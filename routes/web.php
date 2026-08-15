@@ -1174,6 +1174,11 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // gate as the submit ($capActions, co-owner only) and the same controller-route discipline (#20): a draft
     // is still an owner write. Resuming rides the GET above as ?draft={id}, resolved owner-scoped + draft-only.
     Route::post('/add-unit/draft', [OwnerUnitRequestController::class, 'draft'])->middleware($capActions)->name('add-unit.draft');
+    // DO9-3 — the owner WITHDRAWS a request they already filed (pending → withdrawn; a soft transition, never a
+    // delete). Same capability gate as filing one; owner-scoped inside the controller (a cross-owner id 404s);
+    // the pending-only decision is re-made under a row lock in the service, because the page is a snapshot.
+    Route::post('/add-unit/{unitRequest}/withdraw', [OwnerUnitRequestController::class, 'withdraw'])
+        ->middleware($capActions)->name('add-unit.withdraw');
     Route::get('/help', OwnerHelp::class)->name('help');
     // "Ask Vyrobel" — the grounded support assistant (Wave D · support AI). A controller POST (a plain <form>),
     // rate-limited; a READ over generic help content (no owner-data write). Grounding + guardrails + cost/circuit

@@ -304,7 +304,10 @@ it('refuses to approve or decline a draft at the service layer', function () {
 
 // ── 13. The filed-status set is pinned, and the operator query reads it ───────────────────────────
 it('pins the filed statuses and keeps draft out of them', function () {
-    expect(UnitRequest::FILED_STATUSES)->toBe(['pending', 'approved', 'declined'])
+    // ⚠️ This test owns ONE fact: a DRAFT is never filed. The exact contents of the set are pinned once, in
+    // `OwnerUnitRequestWithdrawTest` — pinning the same constant in two files means every legitimate addition
+    // (DO9-3's `withdrawn` was the first) reds a test that has no opinion about it (§N.8f, applied to guards).
+    expect(UnitRequest::FILED_STATUSES)->toContain('pending')
         ->and(UnitRequest::FILED_STATUSES)->not->toContain('draft');
 
     // The operator screen goes through the scope rather than writing its own status list.

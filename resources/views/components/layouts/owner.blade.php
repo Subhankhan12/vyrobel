@@ -884,6 +884,10 @@
         .vy-au-draftnote { margin: 8px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--vy-muted); text-align: center; }
         .vy-au-resume { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; white-space: nowrap; }
         .vy-au-resume:hover { text-decoration: underline; }
+        /* DO9-3 — Withdraw is destructive-ish, so it reads as a quiet secondary action (--vy-muted is the
+           AA-corrected token), never a primary CTA competing with the wizard's own. */
+        .vy-au-withdraw { font-size: 12.5px; font-weight: 600; color: var(--vy-muted); background: none; border: none; padding: 0; cursor: pointer; font-family: var(--vy-sans); white-space: nowrap; }
+        .vy-au-withdraw:hover { color: var(--vy-accent-text); text-decoration: underline; }
         /* live preview */
         .vy-au-preview { flex: 0 0 288px; max-width: 288px; min-width: 260px; position: sticky; top: 20px; }
         .vy-au-preview-label { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin-bottom: 10px; padding-left: 2px; }

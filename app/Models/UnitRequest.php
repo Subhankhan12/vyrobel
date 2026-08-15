@@ -46,9 +46,15 @@ class UnitRequest extends Model
      * both derive from {@see scopeFiled()}, so a new operator surface cannot quietly re-include drafts by
      * writing its own status list.
      *
+     * ⚠️ DO9-3 — `withdrawn` IS filed, and that is deliberate. A draft was never sent; a withdrawn request
+     * genuinely WAS, and the operator may already have read it. Hiding it on retraction would delete a row out
+     * from under someone mid-review and leave "what happened to that request?" unanswerable. It stays visible
+     * and labelled, while being non-actionable (every operator action is gated on `pending`) and absent from
+     * the pending count.
+     *
      * @var list<string>
      */
-    public const FILED_STATUSES = ['pending', 'approved', 'declined'];
+    public const FILED_STATUSES = ['pending', 'approved', 'declined', 'withdrawn'];
 
     /**
      * Requests that have genuinely been filed — everything the OPERATOR is entitled to see. Drafts are excluded

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 /**
  * Owner add-unit REQUEST write (Phase 2 · Sub-gate 6; the WIZARD write, My Units · GATE 3). POST → validate
@@ -74,6 +75,35 @@ class OwnerUnitRequestController extends Controller
 
         return redirect()->to(route('owner.add-unit', ['draft' => $draft->id]))
             ->with('unit_request_draft_saved', 'Draft saved. You can finish this whenever you like.');
+    }
+
+    /**
+     * DO9-3 — the owner retracts a request they have already filed. PRG on a controller route (#20), gated the
+     * same way as filing one ($capActions, co-owner only).
+     *
+     * 🔒 OWNER-SCOPED: resolved through {@see UnitRequest}'s owner scope, so another owner's request id simply
+     * does not exist here (404) — the id in the URL can never reach a request this owner does not hold.
+     *
+     * ⚠️ THE STATE DECISION IS NOT MADE HERE. This controller does not read `status` at all: the service
+     * re-reads it under a row lock, because anything read at this point is already stale (§N.21.6's cousin —
+     * a status on a rendered page is a snapshot). A refusal comes back as an honest, specific message.
+     */
+    public function withdraw(Request $request, OwnerUnitRequestService $units, string $unitRequest): RedirectResponse
+    {
+        try {
+            /** @var UnitRequest $row */
+            $row = UnitRequest::query()->findOrFail($unitRequest);
+        } catch (ModelNotFoundException) {
+            abort(404);
+        }
+
+        try {
+            $units->withdraw($row);
+        } catch (RuntimeException $e) {
+            return back()->with('unit_request_withdraw_error', $e->getMessage());
+        }
+
+        return back()->with('unit_request_withdrawn', 'Request withdrawn. Your manager won’t action it.');
     }
 
     public function store(Request $request, OwnerUnitRequestService $units): RedirectResponse

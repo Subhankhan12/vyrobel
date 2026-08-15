@@ -40,7 +40,12 @@
                                     <td style="font-weight:600">{{ $r['name'] }}</td>
                                     <td>{{ $r['kind'] }}</td>
                                     <td>
-                                        @php $tone = $r['status'] === 'approved' ? '#1a7f4b' : ($r['status'] === 'declined' ? 'var(--vy-muted)' : '#b26a08'); @endphp
+                                        {{-- ⚠️ DO9-3 — `withdrawn` joins `declined` on the muted tone. The final
+                                             else-arm here is the AMBER "needs attention" colour, so without
+                                             this a request the owner had RETRACTED would keep signalling as
+                                             actionable to the operator — the label would say Withdrawn while
+                                             the colour said pending. (Text is fine: ucfirst() renders it.) --}}
+                                        @php $tone = $r['status'] === 'approved' ? '#1a7f4b' : (in_array($r['status'], ['declined', 'withdrawn'], true) ? 'var(--vy-muted)' : '#b26a08'); @endphp
                                         <span style="display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:999px;color:{{ $tone }};background:color-mix(in srgb, {{ $tone }} 12%, transparent)">{{ $r['status'] === 'approved' ? 'Approved' : ucfirst($r['status']) }}</span>
                                     </td>
                                     <td style="white-space:nowrap">{{ $r['when'] }}</td>

@@ -3337,6 +3337,11 @@ says *why* you cannot continue, so it was made readable anyway. The flat wash, a
   — and submit re-validates in full, so an incomplete draft cannot be filed.
 - **DO9-3 — the owner cannot withdraw a request.** `UnitRequest` has no owner-side cancel path; only the
   operator approves/declines. *Verdict: **REAL GAP** — a state machine addition, not presentation.*
+  🏁 **CLOSED 2026-08-15** — a `withdrawn` state on the same enum (§N.8f), gated to `pending` by the SAME
+  rule `approve()`/`decline()` apply, mirrored rather than modified. ⚠️ The decision is re-made **under a row
+  lock**, so a stale page cannot retract a request the operator has already actioned; the refusal names which
+  state won. The row is never deleted — a withdrawn request stays visible to the operator (it genuinely WAS
+  filed), labelled and non-actionable, and out of the pending count.
 - **DO9-4 — the prototype's professional-photo offer ("our team can arrange a shoot — just ask") is copy
   only.** There is no booking/scheduling entity behind it; the live page keeps the sentence as an invitation
   to ask, which is honest. *Verdict: **RATIFIED REFUSAL** unless a real scheduling flow is built.*

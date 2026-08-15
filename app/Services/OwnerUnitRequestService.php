@@ -276,6 +276,65 @@ class OwnerUnitRequestService
     }
 
     /**
+     * DO9-3 — the OWNER retracts a request they have already filed, before the operator acts on it. A soft
+     * transition `pending → withdrawn` on the existing row (§N.8f): nothing is deleted, so the record still
+     * shows what was asked for and that it was taken back.
+     *
+     * ⚠️ THE RACE IS THE WHOLE POINT OF THIS METHOD, AND IT IS DECIDED UNDER A LOCK. The owner's page is a
+     * SNAPSHOT — by the time they click Withdraw, the operator may already have approved the request and
+     * created a real unit from it. So the row is locked (`lockForUpdate`) and `pending` is re-checked INSIDE
+     * the lock; a request that has moved on is REFUSED, never quietly retracted. Withdrawing an approved
+     * request would tell the owner their request was cancelled while a live, bookable unit existed for it.
+     * (Same instinct as {@see OwnerPayoutService::retry()}'s in-lock re-check.)
+     *
+     * ⚠️ ONLY `pending` — the same gate {@see approve()} and {@see decline()} apply, mirrored rather than
+     * modified. A `draft` is not withdrawn (it is resumed or simply left); an already-withdrawn or actioned
+     * request has nothing to retract.
+     *
+     * ⚠️ KNOWN, LOGGED, AND **NOT** CLOSED BY THIS METHOD: {@see approve()} and {@see decline()} check
+     * `pending` OUTSIDE their transaction and take no row lock, so the REVERSE race is still open — an approve
+     * already in flight can land on top of a completed withdrawal and create a unit for a retracted request.
+     * Guarding those two is a separate change to certified operator paths and was deliberately not made here.
+     *
+     * @throws RuntimeException when the request is no longer pending
+     */
+    public function withdraw(UnitRequest $request): UnitRequest
+    {
+        return DB::transaction(function () use ($request): UnitRequest {
+            // 🔒 Lock THIS row, then re-read its REAL status — never the one the caller was handed.
+            $locked = UnitRequest::query()->lockForUpdate()->findOrFail($request->getKey());
+
+            if ($locked->status !== 'pending') {
+                throw new RuntimeException($this->withdrawRefusal((string) $locked->status));
+            }
+
+            $locked->forceFill(['status' => 'withdrawn'])->save();
+
+            $this->audit->record('owner.unit_request_withdrawn', $locked, ['status' => 'pending'], [
+                'status' => 'withdrawn',
+                'kind' => (string) $locked->requested_kind,
+            ]);
+
+            return $locked->refresh();
+        });
+    }
+
+    /**
+     * Why a withdrawal was refused, in the owner's terms. The reason is REAL — read from the locked row — so
+     * the owner learns what actually happened rather than a generic failure.
+     */
+    private function withdrawRefusal(string $status): string
+    {
+        return match ($status) {
+            'approved' => 'Your manager already approved this request, so it can no longer be withdrawn.',
+            'declined' => 'Your manager already reviewed this request, so there is nothing to withdraw.',
+            'withdrawn' => 'This request has already been withdrawn.',
+            'draft' => 'This is still a draft — it hasn’t been sent, so there is nothing to withdraw.',
+            default => 'This request can no longer be withdrawn.',
+        };
+    }
+
+    /**
      * A unique unit `code` within the property (the table enforces UNIQUE(property_id, code)). Derived from the
      * requested name so it reads sensibly (e.g. "Sea View 2B" → "SEA-VIEW-2B"), with a numeric suffix only if that
      * base already exists — deterministic, no reliance on random ids.

@@ -86,6 +86,10 @@ class OwnerAddUnit extends Component
                 'when' => $r->created_at?->format('j M Y'),
                 // DO9-2 — only a DRAFT is resumable; a filed request has no continue link.
                 'resume_url' => $r->isDraft() ? route('owner.add-unit', ['draft' => $r->id]) : null,
+                // DO9-3 — only a PENDING request can be retracted. ⚠️ This drives the CONTROL only; the
+                // decision is re-made under a row lock in the service, so hiding the button is convenience,
+                // never the gate (a stale page must not be able to withdraw an approved request).
+                'withdraw_url' => (string) $r->status === 'pending' ? route('owner.add-unit.withdraw', ['unitRequest' => $r->id]) : null,
             ])->all(),
             'done' => $this->doneData(),
             'draft' => $this->draftData($service),
@@ -232,6 +236,9 @@ class OwnerAddUnit extends Component
             // this case a saved draft would tell the owner it was already with the operator — the exact
             // opposite of the truth, and on the one screen where that distinction is the whole feature.
             'draft' => ['label' => 'Draft — not sent', 'tone' => 'draft'],
+            // ⚠️ DO9-3 — the same trap, one state later: without this arm a request the owner just retracted
+            // would fall through to "Pending review" and read as still live with the operator.
+            'withdrawn' => ['label' => 'Withdrawn', 'tone' => 'draft'],
             default => ['label' => 'Pending review', 'tone' => 'pending'],
         };
     }

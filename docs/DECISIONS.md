@@ -10484,3 +10484,71 @@ amenity-pivot or audit rows.
 **Untouched:** the submit flow's full validation · the operator review beyond the draft exclusion · DO9-1's
 notes (which round-trip through the draft) · isolation/RBAC. **DO9-3 (withdraw) deliberately not built.**
 Suite **2221 / 2212**, 14,239 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-15 — DO9-3 · withdraw a submitted unit request
+
+**The lifecycle is now complete: draft → pending → approved | declined | withdrawn.** `withdrawn` is a fifth
+value on the same enum DO9-2 extended (§N.8f) — a **soft transition, never a delete**, so the record still
+shows what the owner asked for, when, and that they took it back. Deleting would erase a request the operator
+may already have read and make "what happened to that villa request?" unanswerable.
+
+⚠️ **THE RACE IS THE FEATURE, AND IT IS DECIDED UNDER A LOCK.** The owner's page is a SNAPSHOT: by the time
+they click Withdraw, the operator may already have approved the request and created a real, bookable unit
+from it. `withdraw()` therefore re-reads the row with `lockForUpdate()` and re-checks `pending` **inside** the
+lock; a request that has moved on is refused, and the refusal names the state that actually won ("your manager
+already approved this request"). Retracting there would have told an owner their request was cancelled while
+live inventory existed for it.
+
+⚠️ **THE MUTATION THAT DID NOT RED — AND WHAT IT EXPOSED.** Replacing `$locked->status` with the caller's
+`$request->status` (i.e. defeating the in-lock re-check entirely) left **all ten tests green**. The reason is
+worth keeping: over HTTP the controller re-loads the request fresh, so the caller's copy is never stale and a
+gate reading it passes too — **the tests proved the state GATE but not that it reads the LOCKED row.** The
+real race needs a genuinely stale in-memory model: load while pending, let the operator approve, then act. A
+test that forces exactly that was added, and the mutation then reds. **DO3-3's M1 lesson, recurring: a guard
+is only proven by a mutation that can actually reach it.**
+
+⚠️ **LOGGED, NOT FIXED — THE REVERSE RACE IS STILL OPEN.** `approve()` and `decline()` check `pending`
+**outside** their transaction and take no row lock, so an approve already in flight can land on top of a
+completed withdrawal and create a unit for a retracted request. Withdraw cannot defend against that from its
+own side; guarding those two certified operator paths is a separate change and was deliberately not made here.
+**This pass closes owner→operator, not operator→owner.**
+
+⚠️ **THE LABEL TRAP, ONE STATE LATER.** `requestStatusMeta()`'s `default` arm reads "Pending review" — the
+same helper that would have mislabelled a draft in DO9-2 would have told an owner their just-retracted request
+was still live with the operator. Named explicitly and guarded. The OPERATOR side had the same shape in a
+different medium: its tone ternary falls through to the AMBER "needs attention" colour, so a withdrawn request
+would have carried the label *Withdrawn* while the colour still said *pending*. `withdrawn` joins `declined`
+on the muted tone.
+
+**Visibility ruling:** `withdrawn` **is** a filed status, unlike `draft`. A draft was never sent; a withdrawn
+request genuinely was, and the operator may have been mid-review — so it stays visible and labelled while
+being non-actionable (every operator action is gated on `pending`) and absent from the pending count.
+
+**Built:** the enum ALTER · `OwnerUnitRequestService::withdraw()` (transaction + `lockForUpdate` + in-lock
+re-check + a real, state-specific refusal) · `owner.add-unit.withdraw` (controller route #20, `$capActions`,
+owner-scoped resolve → cross-owner 404) · a Withdraw control on pending rows only, with the realm's existing
+`onsubmit confirm` idiom · audited (`owner.unit_request_withdrawn`, before/after recorded).
+
+**Proven:** 11 tests; **4 mutations, each verified to land** — removing the gate reds three tests; defeating
+the in-lock re-check reds the stale-copy test (added because of it); dropping the "Withdrawn" label arm reds
+the label test; breaking the owner scope reds the cross-owner test. The gate is asserted at the **service** as
+well as over HTTP, so a non-HTTP caller is gated too.
+
+⚠️ **TWO ASSERTION TRAPS, BOTH DOCUMENTED, BOTH WALKED INTO:** the wizard's live-preview card always carries a
+"Pending review" badge, so a page-wide `assertDontSee('Pending review')` can never pass — the needle had to be
+the status CHIP's own markup. And **`assertDontSee('Withdraw')` failed on a CSS COMMENT I had just written in
+the shared layout** — CSS comments ship (§N.15.3); an absence assertion must read what RENDERS. Also: a fixture
+that filed a request left the `unit_request_done` flash set, so the next render showed the **done confirmation
+screen** rather than the requests list — the helper now burns that flash (§N.27.6).
+
+Browser-driven as both realms: two pending requests, one withdrawn and one **approved behind the rendered
+page** — the first retracted, the second **refused with the real reason**, one audit row. The operator screen
+then showed **0 pending**, "Withdrawn" in muted grey, no actions. ⚠️ Fixture reverted — `unit_requests` diffs
+identical to its pre-pass snapshot; zero withdrawn rows, zero audit residue.
+
+**Untouched:** `approve()`/`decline()` (their gate mirrored, not modified) · DO9-2's draft + resume + the
+operator draft-exclusion · the submit flow. **Also logged, not built:** there is no "discard draft" — a draft
+is resumed or simply left, and deleting one is a different decision from retracting a filed request.
+Suite **2232 / 2223**, 14,338 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.

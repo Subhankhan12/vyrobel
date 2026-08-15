@@ -81,6 +81,22 @@
             </div>
         </div>
     @else
+        {{-- DO9-3 — the withdrawal outcome. The REFUSAL is its own notice and says WHICH state won the race
+             ("already approved" / "already reviewed"), because "couldn't withdraw" alone would leave the owner
+             unsure whether their request is still live. --}}
+        @if (session('unit_request_withdrawn'))
+            <div class="vy-flash is-ok" style="margin-bottom:18px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                {{ session('unit_request_withdrawn') }}
+            </div>
+        @endif
+        @if (session('unit_request_withdraw_error'))
+            <div class="vy-flash" style="margin-bottom:18px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                {{ session('unit_request_withdraw_error') }}
+            </div>
+        @endif
+
         {{-- DO9-2 — the draft-saved confirmation. Says plainly that nothing has been sent, because "saved" on a
              request screen could otherwise be read as "submitted". --}}
         @if (session('unit_request_draft_saved'))
@@ -433,6 +449,16 @@
                             {{-- DO9-2 — only a draft is resumable; a filed request has no continue link. --}}
                             @if ($r['resume_url'])
                                 <a href="{{ $r['resume_url'] }}" class="vy-au-resume">Continue</a>
+                            @endif
+                            {{-- DO9-3 — retracting a filed request is deliberate, so it confirms first (the
+                                 realm's existing onsubmit-confirm idiom, as on Team and Payout method). The
+                                 server re-decides under a lock: this control is convenience, not the gate. --}}
+                            @if ($r['withdraw_url'])
+                                <form method="POST" action="{{ $r['withdraw_url'] }}" style="margin:0" data-guard-submit
+                                      onsubmit="return confirm('Withdraw this request? Your manager will no longer action it.')">
+                                    @csrf
+                                    <button type="submit" class="vy-au-withdraw">Withdraw</button>
+                                </form>
                             @endif
                             <span class="vy-status vy-status--{{ $r['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $r['status_meta']['label'] }}</span>
                         </div>
