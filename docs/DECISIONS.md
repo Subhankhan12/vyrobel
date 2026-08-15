@@ -10347,3 +10347,73 @@ against the certified rail's existing unique key + row-lock; a retry must not do
 
 ⚠️ **The suite was NOT run for this checkpoint** — it is docs-only and touches no executable path. The last
 measured baseline stands: **2185/2194, 14,065 assertions, 6 non-green** (the documented set).
+
+---
+
+## 2026-08-15 — DO3-3 · the failed-payout alert + retry ⚠️ MONEY-ADJACENT
+
+**The ask:** a failed payout showed a status and no way to act. **The crux was what "retry" DOES**, and
+confirming it changed the shape of the whole pass — in both directions (§N.27.11).
+
+⚠️ **CONFIRMATION 1 — THE SERVICE ALREADY EXISTED, AND IT COULD DOUBLE-PAY.** `OwnerPayoutService::retry()`
+was already written (append-only: a NEW `pending` payout superseding the failed one) and had exactly one
+caller — a service test. It had **no idempotency of any kind**: no row lock, no re-check, no uniqueness. Two
+calls wrote **two live payouts for one statement**, and `PayoutRunService::processOwner()` disburses *every*
+pending payout an owner has, so both would have been sent. ⚠️ **The double-pay was dormant, not absent — and
+adding any control would have shipped it.** The audit ledger described this item as "the status exists; the
+affordance does not", which is a true sentence about the wrong half of the problem.
+
+⚠️ **CONFIRMATION 2 — RETRY DOES NOT SEND, AND THAT IS WHAT MAKES IT SAFE FOR AN OWNER.** `retry()` re-QUEUES;
+only `pay()` disburses, and `pay()` is operator-permissioned (`payouts.manage`) over the config-selected rail
+(`manual` by default; `stripe_connect` is config-gated and test-mode). **So the owner gets no rail.**
+
+⚠️ **CONFIRMATION 3 — SEAM, NOT LIVE.** Nothing in this pass touches live Stripe. Everything is proven against
+the manual rail and a deliberately-failing test rail; `StripeSafetyGuard` and the founder's go-live steps are
+untouched. `failed` is unreachable on the default rail at all (the manual rail cannot refuse), which is why
+the failed state is an **unrendered branch** that had to be FORCED to verify.
+
+**THE RECONCILIATION THAT MATTERS — a ratified refusal, re-read rather than overturned.** The design register
+(§O3) refused the "Retry payout" button on the stated premise that **"there is no owner-initiated retry
+RAIL"**. That premise is correct and is **still honoured**: this gives the owner a re-queue, never a rail. The
+register's *other* refusal — the **"est. {time}" retry ETA** — has no source and **STANDS, unbuilt** (#39).
+The banner half the register called a REAL GAP is what was built.
+
+**Built:** `Payout::LIVE_STATUSES` (the ONE definition of "still claims this statement's money", now read by
+BOTH writers — §N.8f) · a hardened `retry()` (transaction + `lockForUpdate` + in-lock status re-check + the
+same one-live-payout-per-statement invariant `createFromStatement()` enforces) · the shared
+`App\Support\Owner\PayoutRecovery` (ONE definition of retryable/blocked, read by the view gate AND the write
+gate so the button and the guard cannot drift) · `owner.payouts.retry` (controller route #20, `$capPayout`
+co-owner-only #28/#42, owner-scoped by `whereIn` over the per-capability owner set, throttled, audited) · the
+failure alert on `/owner/payouts`.
+
+⚠️ **RETRYABILITY IS DERIVED FROM REAL CURRENT STATE, NEVER THE STORED FAILURE STRING.** `failure_reason`
+describes an attempt that is over; what decides the NEXT attempt is how the account stands now. So a blocked
+account gets **fix-then-retry guidance** routed at the real page instead of a doomed re-send, and a cause the
+owner has since fixed clears itself. The blockers mirror the Connect rail's OWN refusals and a drift test pins
+them to it.
+
+⚠️ **A LIVE §N.8d FOUND BESIDE THE FLAGGED ITEM (§N.13.1, holding again).** The lifecycle note told owners
+*"The last payout failed; it will be retried as a new payout."* **Nothing retried anything** — no scheduler, no
+job, and no control. Corrected to what is true, and guarded.
+
+**Proven:** 14 tests; **6 mutations, each verified to have landed.** ⚠️ **M1 exposed a hole in the TESTS, not
+the code:** removing the service's live-payout guard reded only ONE of the three double-pay tests — the other
+two were passing on the *controller's* pre-flight, so the service guard could have been deleted silently while
+every non-HTTP caller double-paid. **Per-layer tests were added (§N.4p) and M1 then reded all three.** Also:
+`grep -c` with a shell-mangled pattern reported a restore had failed when it had not — **verify a revert with
+a fixed-string match** (§N.27.6, one more way a check lies).
+
+Browser-verified as the demo owner on a FORCED failure (§N.21.6): the alert renders the real €885.60 /
+September 2026 / the rail's own reason / the real attempt date and **no ETA**; Retry queues exactly one payout;
+the control then **disappears**, replaced by the honest "already on its way"; a second POST creates nothing
+(2 rows, 1 audit event). ⚠️ **Fixture fully reverted — the `payouts` table diffs byte-identical to its
+pre-pass snapshot** (6 rows, `updated_at` included), zero orphan rows, zero residual audit/domain events; the
+demo Sep net **€885.60 unchanged**.
+
+**Untouched:** the payout computation · the tax-hold engine · the status vocabulary and badges
+(`processing`→"In transit" / `held`→"On hold", DO-CORRECTNESS-1) · live Stripe. Suite **2208 / 2199**,
+14,163 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.
+
+⚠️ **LOGGED, NOT BUILT:** the OPERATOR has no retry control either — `pay()`'s permission holder still cannot
+re-queue a failed payout from `/app/payouts/run`. The hardened service is ready for it; wiring it is a
+separate item and a separate surface.

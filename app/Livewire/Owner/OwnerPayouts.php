@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Owner;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\Owner;
 use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
@@ -17,6 +18,7 @@ use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
 use App\Support\Owner\OwnerTeamRole;
+use App\Support\Owner\PayoutRecovery;
 use App\Support\Payouts\Iban;
 use App\Support\Payouts\RailLabel;
 use Carbon\CarbonImmutable;
@@ -99,6 +101,10 @@ class OwnerPayouts extends Component
             'years' => $this->distinctYears($payouts),
             // Exact-match additions — all REAL / honest (never a fabricated hold, IBAN, or schedule).
             'hold' => $this->holdBanner($rail, $focus),
+            // DO3-3 — the failed-payout alert + its recovery route. Driven by the REAL `failed` status and
+            // the owner's REAL current account state; no ETA is produced (the wireframe's "est. {time}" has
+            // no source and stays refused, #39).
+            'recovery' => $this->recoveryBanner($payouts, $ctx),
             'payoutAccount' => $this->payoutAccountCard($ctx, $rail),
             'preferences' => $this->preferences($ctx, $currency),
             'canManagePayout' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
@@ -155,6 +161,56 @@ class OwnerPayouts extends Component
             'reason' => 'We’re holding this payout until your tax details are on file.',
             'cta_label' => 'Add tax details',
             'cta_route' => route('owner.tax'),
+        ];
+    }
+
+    /**
+     * DO3-3 — the failed-payout alert. Shown ONLY for a genuinely `failed` payout; every other state
+     * (pending / held / processing / paid / reversed) renders nothing here, because a recovery prompt on a
+     * payout that is fine is worse than no prompt at all.
+     *
+     * ⚠️ WHAT THE OWNER IS OFFERED IS A RE-QUEUE, NOT A SEND. The Retry control posts to a controller route
+     * that calls the certified {@see OwnerPayoutService::retry()}, which writes a new `pending` payout; the
+     * disbursement itself stays operator-permissioned over the config-selected rail. The copy says so.
+     *
+     * ⚠️ THREE HONEST SUPPRESSIONS, each reading real state through the shared {@see PayoutRecovery}:
+     *   • a live replacement already exists (queued / in flight / since paid) → say so, offer NO retry — a
+     *     second live payout for one statement is a double payment;
+     *   • the account would fail the same way again → show what to FIX, and route there, instead of a
+     *     doomed re-send (fix-then-retry);
+     *   • the viewer lacks CAP_PAYOUT → the alert still renders (they should know), the control does not.
+     *
+     * The stored `failure_reason` is rendered verbatim when present — it is real text written by the rail,
+     * never a rewritten or invented explanation. No ETA, ever.
+     *
+     * @param  Collection<int, Payout>  $payouts
+     * @return array<string, mixed>|null
+     */
+    private function recoveryBanner(Collection $payouts, OwnerContext $ctx): ?array
+    {
+        $failed = $payouts->first(fn (Payout $p): bool => (string) $p->status === 'failed');
+
+        if (! $failed instanceof Payout) {
+            return null;
+        }
+
+        $owner = $failed->owner;
+        $replacement = PayoutRecovery::liveReplacement($failed);
+        $blockers = $owner instanceof Owner ? PayoutRecovery::blockers($owner) : [];
+        $statement = $failed->statement;
+
+        return [
+            'amount_display' => $this->money((int) $failed->amount_minor, (string) $failed->currency),
+            'period_label' => $statement instanceof OwnerStatement ? $statement->period_start->format('F Y') : null,
+            // The same parse shape {@see self::payoutDate()} uses — `failed_at` reaches static analysis as
+            // string|null (the cast is invisible to it), so an instanceof check here is always-false.
+            'failed_on' => filled($failed->failed_at) ? Carbon::parse($failed->failed_at)->format('j M Y') : null,
+            'reason' => filled($failed->failure_reason) ? (string) $failed->failure_reason : null,
+            'already_queued' => $replacement !== null,
+            'blockers' => $blockers,
+            'can_act' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
+            'can_retry' => $owner instanceof Owner && PayoutRecovery::isRetryable($failed, $owner),
+            'retry_route' => route('owner.payouts.retry', ['payout' => $failed->id]),
         ];
     }
 
@@ -356,7 +412,11 @@ class OwnerPayouts extends Component
         );
 
         $note = match ($status) {
-            'failed' => 'The last payout failed; it will be retried as a new payout.',
+            // ⚠️ §N.8d — this read "it WILL be retried as a new payout", which nothing in the product did:
+            // no scheduled job retries a failed payout, and until DO3-3 there was no control that could.
+            // The sentence now states what is true — a retry is available and creates a new payout — and
+            // promises no automatic one. Found beside the flagged item (§N.13.1), not by a failing test.
+            'failed' => 'This payout wasn’t sent. Retrying queues a new payout; the failed attempt stays in your history.',
             'reversed' => 'This payout was reversed — the balance carries to your next statement.',
             default => null,
         };

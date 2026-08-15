@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Casts\MoneyCast;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use App\Services\OwnerPayoutService;
+use App\Services\PayoutRunService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +29,20 @@ use Illuminate\Support\Carbon;
 class Payout extends Model
 {
     use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids;
+
+    /**
+     * The statuses in which a payout still CLAIMS its statement's money — queued, moving, or already sent.
+     * ⚠️ THE ONE DEFINITION (§N.8f): a statement may have at most one payout in this set, and both writers
+     * enforce it against THIS list — {@see OwnerPayoutService::createFromStatement()} so an
+     * engine re-run never makes a second payout, and {@see OwnerPayoutService::retry()} so a
+     * retry never does either. A second live row for one statement is a DOUBLE PAYMENT, because
+     * {@see PayoutRunService::processOwner()} disburses every pending payout an owner has.
+     * `failed` and `reversed` are deliberately absent — they claim nothing, which is what makes them
+     * retryable.
+     *
+     * @var list<string>
+     */
+    public const LIVE_STATUSES = ['pending', 'processing', 'held', 'paid'];
 
     protected $fillable = [
         'organization_id',

@@ -51,7 +51,7 @@ class OwnerPayoutService
         // Any non-terminal-or-successful payout already claims this statement — return it, never a second row.
         $existing = Payout::query()
             ->where('owner_statement_id', $statement->getKey())
-            ->whereIn('status', ['pending', 'processing', 'held', 'paid'])
+            ->whereIn('status', Payout::LIVE_STATUSES)
             ->first();
 
         if ($existing !== null) {
@@ -216,26 +216,67 @@ class OwnerPayoutService
     /**
      * Retry a failed payout — a NEW pending record superseding the failed one (append-only). The
      * failed row is preserved so the history reconstructs what was attempted, when, and why it failed.
+     *
+     * ⚠️ THIS METHOD DOES NOT MOVE MONEY. It re-QUEUES: the new row is `pending`, and only {@see pay()}
+     * (operator-permissioned, rail-gated) ever sends. That separation is why an owner may trigger a retry
+     * at all — they ask for another attempt; they never touch the rail.
+     *
+     * 🔒 NO DOUBLE-PAY (the highest-stakes guard on this path — a second live row for ONE statement is a
+     * genuine double payment, because {@see PayoutRunService::processOwner()} disburses EVERY pending
+     * payout an owner has). Two layers, both inside one transaction:
+     *
+     *   1. ROW-LOCK the target + RE-CHECK `failed` INSIDE the lock. The caller's copy — and the status a
+     *      page rendered minutes ago — is a SNAPSHOT. A Connect webhook landing in between can move the
+     *      real row on, so the decision is made against the freshly-locked row, never the displayed one.
+     *   2. THE SAME "one live payout per statement" INVARIANT {@see createFromStatement()} enforces (§N.8f
+     *      — one rule, not a second copy of it): if a `pending`/`processing`/`held`/`paid` payout already
+     *      claims this statement, that row is RETURNED as-is and nothing is created. This is what makes a
+     *      double-click, a retry of a row whose sibling already succeeded, and a retry stacking on one
+     *      already in flight all resolve to exactly ONE effect.
+     *
+     * Callers distinguish the two outcomes with `wasRecentlyCreated`, the same idiom
+     * {@see PayoutRunService} already uses for {@see createFromStatement()}.
      */
     public function retry(Payout $failed): Payout
     {
-        if ($failed->status !== 'failed') {
-            throw new RuntimeException("Only a failed payout can be retried (status: {$failed->status}).");
+        [$retry, $created] = DB::transaction(function () use ($failed): array {
+            // 🔒 Row-lock THIS payout; a concurrent retry() waits here until we commit.
+            $locked = Payout::query()->lockForUpdate()->findOrFail($failed->getKey());
+
+            // Re-check INSIDE the lock — never trust the passed-in (or displayed) status.
+            if ($locked->status !== 'failed') {
+                throw new RuntimeException("Only a failed payout can be retried (status: {$locked->status}).");
+            }
+
+            // 🔒 One live payout per statement — the createFromStatement invariant, enforced here too.
+            $live = Payout::query()
+                ->where('owner_statement_id', $locked->owner_statement_id)
+                ->whereIn('status', Payout::LIVE_STATUSES)
+                ->lockForUpdate()
+                ->first();
+
+            if ($live !== null) {
+                return [$live, false];   // already re-queued / in flight / already paid → never a second row
+            }
+
+            $retry = Payout::create([
+                'organization_id' => $locked->organization_id,
+                'owner_id' => $locked->owner_id,
+                'owner_statement_id' => $locked->owner_statement_id,
+                'amount_minor' => $locked->amount_minor,
+                'currency' => $locked->currency,
+                'rail' => $this->rail->name(),
+                'status' => 'pending',
+                'supersedes_id' => $locked->getKey(),
+            ]);
+
+            return [$retry, true];
+        });
+
+        if ($created) {
+            $this->domainEvents->record('payout.retried', $retry, ['supersedes_id' => $failed->getKey()]);
+            $this->audit->record('payout.retried', $retry, null, ['supersedes_id' => $failed->getKey()]);
         }
-
-        $retry = Payout::create([
-            'organization_id' => $failed->organization_id,
-            'owner_id' => $failed->owner_id,
-            'owner_statement_id' => $failed->owner_statement_id,
-            'amount_minor' => $failed->amount_minor,
-            'currency' => $failed->currency,
-            'rail' => $this->rail->name(),
-            'status' => 'pending',
-            'supersedes_id' => $failed->getKey(),
-        ]);
-
-        $this->domainEvents->record('payout.retried', $retry, ['supersedes_id' => $failed->getKey()]);
-        $this->audit->record('payout.retried', $retry, null, ['supersedes_id' => $failed->getKey()]);
 
         return $retry;
     }

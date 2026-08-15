@@ -99,6 +99,7 @@ use App\Http\Controllers\Owner\OwnerHelpAskController;
 use App\Http\Controllers\Owner\OwnerMessageActionController;
 use App\Http\Controllers\Owner\OwnerPayoutMethodController;
 use App\Http\Controllers\Owner\OwnerPayoutPreferenceController;
+use App\Http\Controllers\Owner\OwnerPayoutRetryController;
 use App\Http\Controllers\Owner\OwnerPayoutsExportController;
 use App\Http\Controllers\Owner\OwnerProfileController;
 use App\Http\Controllers\Owner\OwnerRateController;
@@ -1156,6 +1157,12 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         // Owner Payouts exact-match — the STATED payout preferences (frequency · day · minimum · pause). CO-OWNER
         // ONLY ($capPayout, #28/#42), a controller route (#20). A PREFERENCE, never a schedule/money-movement (#39).
         Route::post('/payouts/preferences', [OwnerPayoutPreferenceController::class, 'save'])->name('payouts.preferences');
+        // DO3-3 — ask for another attempt at a FAILED payout. ⚠️ RE-QUEUES ONLY: OwnerPayoutService::retry()
+        // writes a new `pending` row; sending stays operator-permissioned (`payouts.manage`) over the
+        // config-selected rail, so the owner never touches the money rail. CO-OWNER only ($capPayout) and
+        // owner-scoped inside the controller (a cross-owner id 404s). Throttled — a money action, not a read.
+        Route::post('/payouts/{payout}/retry', [OwnerPayoutRetryController::class, 'retry'])
+            ->middleware('throttle:6,1')->name('payouts.retry');
     });
     // Phase 2 · Sub-gate 6 — Add a unit is an owner REQUEST (self-only, owner-scoped), NOT direct creation: a new
     // unit changes the operator's billable inventory, so the operator reviews the request and creates the real

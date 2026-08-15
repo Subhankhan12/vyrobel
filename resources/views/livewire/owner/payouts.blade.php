@@ -65,6 +65,16 @@
         </div>
     @endif
 
+    {{-- DO3-3 — the retry outcome. Deliberately reports what actually happened (queued, or already on its
+         way, or no longer failed) rather than a blanket success: on a money surface a message that is true
+         only sometimes is worse than none. --}}
+    @if (session('payout_retry_notice'))
+        <div class="vy-flash is-ok" style="margin-bottom:18px">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            {{ session('payout_retry_notice') }}
+        </div>
+    @endif
+
     {{-- On-hold banner — REAL tax-hold only (a pending payout held for missing tax details); never a fake
          "verification pending". Shown only when a real hold exists. --}}
     @if ($hold)
@@ -79,6 +89,67 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     {{ $hold['cta_label'] }}
                 </a>
+            </div>
+        </div>
+    @endif
+
+    {{-- DO3-3 — FAILED-PAYOUT ALERT + RECOVERY. Rendered only for a genuinely `failed` payout; every other
+         state renders nothing here. Reuses the hold banner's treatment (same tokens, so contrast is the
+         measured one) rather than introducing a second alert style.
+         ⚠️ WHAT IS OFFERED IS A RE-QUEUE, NOT A SEND — the copy says so, because the owner has no payout
+         rail and this control gives them none.
+         ⚠️ NO ETA. The wireframe's "retrying · est. {time}" has no source in the product and stays refused
+         (#39); the reason line is the rail's own stored text, verbatim, or nothing.
+         ⚠️ Three states, all real: already-replaced (no control — a second live payout for one statement is
+         a double payment) · blocked (what to FIX, routed, instead of a doomed re-send) · retryable. --}}
+    @if ($recovery)
+        <div class="vy-po-hold vy-fade" data-testid="payout-failure-alert">
+            <span class="vy-po-hold-ic">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+            </span>
+            <div class="vy-po-hold-body">
+                <div class="vy-po-hold-title">
+                    Your {{ $recovery['amount_display'] }}@if ($recovery['period_label']) {{ $recovery['period_label'] }}@endif payout couldn’t be sent
+                </div>
+                <div class="vy-po-hold-sub">
+                    @if ($recovery['reason'])
+                        {{ $recovery['reason'] }}
+                    @else
+                        The transfer didn’t go through. Nothing was taken from your balance — the amount is still yours.
+                    @endif
+                    @if ($recovery['failed_on']) <span style="white-space:nowrap">(attempted {{ $recovery['failed_on'] }})</span>@endif
+                </div>
+
+                @if ($recovery['already_queued'])
+                    {{-- A live payout already claims this statement — a further retry would be a second payment. --}}
+                    <div class="vy-po-hold-sub" style="margin-top:8px">
+                        A replacement payout for this statement is already on its way, so there’s nothing for you to do.
+                    </div>
+                @elseif ($recovery['blockers'])
+                    {{-- FIX-then-retry: re-sending now would fail for the same reason. --}}
+                    @foreach ($recovery['blockers'] as $blocker)
+                        <div class="vy-po-hold-sub" style="margin-top:8px"><strong>{{ $blocker['title'] }}</strong> — {{ $blocker['detail'] }}</div>
+                        @if ($recovery['can_act'])
+                            <a class="vy-po-hold-cta" href="{{ $blocker['cta_route'] }}">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                                {{ $blocker['cta_label'] }}
+                            </a>
+                        @endif
+                    @endforeach
+                @elseif ($recovery['can_act'] && $recovery['can_retry'])
+                    <div class="vy-po-hold-sub" style="margin-top:8px">
+                        Retrying queues a new payout for this statement — your manager sends it on the next payout run.
+                    </div>
+                    {{-- data-guard-submit disables the button on submit: defence in depth ON TOP of the
+                         server-side row-lock + one-live-payout-per-statement guard, never instead of it. --}}
+                    <form method="POST" action="{{ $recovery['retry_route'] }}" data-guard-submit style="margin:0">
+                        @csrf
+                        <button type="submit" class="vy-po-hold-cta" style="border:none;cursor:pointer">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+                            Retry payout
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     @endif
