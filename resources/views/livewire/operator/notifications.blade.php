@@ -56,6 +56,13 @@
                             <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="Mark read" aria-label="Mark “{{ $item['title'] }}” as read">✓</button>
                         </form>
                     @endunless
+                    {{-- D29-5 — DISMISS, deliberately OUTSIDE the @unless: mark-read only makes sense while a
+                         row is unread, but you can take an already-read notification off your list. Same form
+                         + button idiom as the tick beside it (§N.8f), never a new control style. --}}
+                    <form method="POST" action="{{ route('notifications.dismiss', $item['id']) }}" style="margin:0;flex:none">
+                        @csrf
+                        <button type="submit" class="vy-btn vy-btn--ghost vyn-tick" title="Dismiss" aria-label="Dismiss &ldquo;{{ $item['title'] }}&rdquo;">&times;</button>
+                    </form>
                 </div>
             @empty
                 <div class="vy-empty">All caught up — no notifications.</div>

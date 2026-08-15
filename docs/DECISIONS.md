@@ -10207,3 +10207,50 @@ failed. It was measuring the ENVIRONMENT, not this pass's cleanliness, and could
 a check that the fixtures are scoped to this file's own helper — and that one needed a second correction too,
 because counting a needle in `__FILE__` counts the assertion itself. **A source-scanning guard has to exclude
 itself.**
+
+
+---
+
+## 2026-08-15 — D29-5 + DO6-4 · per-notification dismiss, both realms
+
+Mark-read existed; a user could not take a notification OFF their feed. One shared mechanism now does:
+`notifications.dismissed_at`, written by `NotificationController::dismiss` — the SAME shared controller
+mark-read already used, mounted once in the shared `auth` group and reached by both realms.
+
+⚠️ **THE LOAD-BEARING RISK WAS CONFLATION, NOT THE FEATURE.** Two tables now carry a `dismissed_at`:
+`notifications` (this feature — take a row off MY feed) and `owner_attention_states` (a DIFFERENT entity —
+the owner's "needs attention" SIGNAL, keyed by owner_id + attention_key, written by
+`/owner/attention/dismiss`). Same column name, same word in the UI, unrelated meanings. Dismissing a
+notification must never silence an attention signal — that would quietly remove a real to-do from an owner's
+dashboard because they tidied their inbox. Asserted explicitly, mutation-proven (making dismiss write the
+attention store REDS), and confirmed on the live demo: after a real browser dismiss, `notifications` had 1
+dismissed row and `owner_attention_states` had 0.
+
+⚠️ **DISMISS IS NOT MARK-READ.** Read = "I have seen this", the row STAYS; dismiss = "take this off my list",
+the row LEAVES. Separate columns that coexist — a row can be read-and-dismissed or dismissed-while-unread.
+Overloading `read_at` would have made the two acts indistinguishable and silently hidden everything a user
+merely glanced at; a test asserts a dismissed row is dismissed WITHOUT being marked read.
+
+⚠️ **ONE FILTER, IN THE ONE SHARED BUILDER.** `NotificationFeed` was already the single builder behind the
+operator page, the owner page and the top-bar bell panel, so the `whereNull('dismissed_at')` lives there once
+and every surface inherits it — including the unread COUNT, or a dismissed-but-unread row would keep the bell
+lit pointing at something the user had explicitly cleared. A dismiss that hid a row on one surface but not
+another would be worse than no dismiss at all.
+
+**Self-only by construction**, exactly like the mark-read it parallels: the write goes through
+`$request->user()->notifications()`, so another user's id does not resolve (404). Verified by RAW QUERY, not
+through the same scoping that enforces it — and the converse is tested too, so the scope is not merely
+"deny everything".
+
+⚠️ **The dismiss control sits OUTSIDE the `@unless ($item['read'])`** that wraps mark-read in both feeds:
+mark-read only makes sense while a row is unread, but an already-read notification can still be taken off the
+list. Same form and button idiom as the tick beside it — no new control style.
+
+⚠️ **Two of my own guard errors, both the self-reference shape:** a source check banning the word "attention"
+failed on the controller's own anti-conflation docblock (tokenised, so it scans what RUNS, not what is
+written about it), and a fixture wrote `notifiable_type` as the FQCN when the project enforces a morph map
+(`'user' => User::class`) — the row inserted cleanly and was then invisible to `$user->notifications()`,
+which looks exactly like the feature failing. Confirmed against the real demo rows rather than guessed.
+
+`/attention/dismiss` and mark-read are byte-identical to before; DO6-2 (grouping) and D30-3 (digest) remain
+separate.

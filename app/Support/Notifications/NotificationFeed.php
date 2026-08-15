@@ -40,7 +40,10 @@ final class NotificationFeed
     {
         $filter = ($category === null || $category === '' || $category === 'all') ? null : $category;
 
-        $query = $user->notifications()->getQuery()->orderByDesc('created_at');
+        // D29-5 + DO6-4 — dismissed rows leave the feed. ⚠️ FILTERED HERE, in the ONE shared builder, so the
+        // full page, the category counts and the bell panel all inherit it from a single place: a dismiss that
+        // hid a notification on one surface but not another would be worse than no dismiss at all.
+        $query = $user->notifications()->getQuery()->whereNull('dismissed_at')->orderByDesc('created_at');
 
         if ($filter === 'unread') {
             $query->whereNull('read_at');
@@ -57,8 +60,10 @@ final class NotificationFeed
         return [
             'items' => array_map(static fn (DatabaseNotification $n): array => self::map($n), $page->items()),
             'paginator' => $page,
-            'unread' => $user->notifications()->whereNull('read_at')->count(),
-            'categories' => $user->notifications()->get(['data'])
+            // ⚠️ The badge counts what the feed SHOWS. A dismissed-but-unread row would otherwise keep the
+            // bell lit pointing at something the user has explicitly taken off their list.
+            'unread' => $user->notifications()->whereNull('dismissed_at')->whereNull('read_at')->count(),
+            'categories' => $user->notifications()->whereNull('dismissed_at')->get(['data'])
                 ->map(fn (DatabaseNotification $n): string => (string) ($n->data['category'] ?? 'general'))
                 ->unique()
                 ->sort()
@@ -79,11 +84,12 @@ final class NotificationFeed
     public static function recentForUser(User $user, int $limit = 6): array
     {
         /** @var Collection<int, DatabaseNotification> $recent */
-        $recent = $user->notifications()->limit($limit)->get();   // relation is already newest-first (->latest())
+        // ⚠️ The panel filters dismissed too — same rule, same builder, so the bell and the page agree.
+        $recent = $user->notifications()->whereNull('dismissed_at')->limit($limit)->get();   // already newest-first
 
         return [
             'items' => $recent->map(fn (DatabaseNotification $n): array => self::map($n))->all(),
-            'unread' => $user->unreadNotifications()->count(),
+            'unread' => $user->unreadNotifications()->whereNull('dismissed_at')->count(),
         ];
     }
 

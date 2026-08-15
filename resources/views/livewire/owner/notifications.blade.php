@@ -48,6 +48,13 @@
                         <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Mark read" aria-label="Mark “{{ $item['title'] }}” as read">✓</button>
                     </form>
                 @endunless
+                {{-- D29-5 — DISMISS, outside the @unless for the same reason as the operator feed: an
+                     already-read notification can still be taken off the list. Matches the mark-read button
+                     beside it exactly (§N.8f). --}}
+                <form method="POST" action="{{ route('notifications.dismiss', $item['id']) }}" style="margin:0;flex:none">
+                    @csrf
+                    <button type="submit" class="vy-btn vy-btn--ghost" style="padding:4px 9px;font-size:11px" title="Dismiss" aria-label="Dismiss &ldquo;{{ $item['title'] }}&rdquo;">&times;</button>
+                </form>
             </div>
         @empty
             <div class="vy-empty">All caught up — no notifications.</div>

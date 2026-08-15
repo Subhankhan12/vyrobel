@@ -232,6 +232,10 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
 Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    // D29-5 + DO6-4 — DISMISS, mounted beside mark-read in the SAME shared group so both realms reach ONE
+    // implementation. ⚠️ Not to be confused with `owner.attention.dismiss` further down: that dismisses an
+    // owner ATTENTION SIGNAL (owner_attention_states), a different entity entirely.
+    Route::post('/notifications/{notification}/dismiss', [NotificationController::class, 'dismiss'])->name('notifications.dismiss');
 });
 
 /*
