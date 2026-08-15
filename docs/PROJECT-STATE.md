@@ -6,7 +6,7 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-# ⚠️ CANONICAL STATE — **NINE CHAPTERS CLOSED: the DESIGN-PARITY WALK (§N.13) · the CLEANUP SEQUENCE (§N.14) · the FIRST BUILD + its SUPPORT BACKEND (§N.15) · the BACKLOG SEQUENCE (§N.16) · the BILLING WORKSTREAM (§N.17) · the DO-BILL PAIR (§N.18) · the PLAN PANEL (§N.19) · the PRE-BILLING TAIL + the PROBE SAGA + a RETRACTION (§N.20, SAVE v15)** · ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST again (`DO-SEED-1`) — a fresh session needs NO hand-provisioning** · ⚠️ **the one LIVE §N.8d is GONE — the email footer reason is KEYED with a generic-true default** · ⚠️ **the ROLE-COVERAGE AUDIT is now a recorded, guarded PROCEDURE (§N.16.1), and a THIRD way a surface hides — by DATA — is named (§N.16.2)** · ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST — `display = charge = STRIPE`, now from the ADMIN side too (§N.19.6); the ⛔ go-live blocker was a FRAMING ARTEFACT and DISSOLVED (§N.17.1), and the flip is gated on the FOUNDER's Stripe dashboard steps + ONE open decision, NOT on code** · suite **2008 / 2015**, 7 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own** — neither a fix nor drift, §N.17.7) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE — **ELEVEN CHAPTERS CLOSED** (§N.13–§N.27) · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions, exactly THREE wrong-not-absent defects (all fixed) → the remaining feature work is ADDITIVE · ⚠️ **NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH — the gates are the DEPLOYMENT SPRINT (zero deploy artifacts + the ONE crontab line the GDPR deletion depends on) and the FOUNDER's Stripe/VAT steps** · Wave 0 + Wave 1 complete; Wave 2 complete except `DO3-3` (next, money-adjacent — prove idempotency) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2185 / 2194**, 6 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own**, §N.17.7 — and ⚠️ **run it ALONE**) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -56,152 +56,154 @@ conflicts with the repo, **trust the repo** and fix this file.
      ⚠️ The demo DB is now date-robust, so a fresh session needs no hand-provisioning.
      ⬅ NEXT: ⛔ the BILLING blocker (a founder priority call) · DO-TOKEN-1 · DO-EMAIL-5-continued + the DATA axis. -->
 
-> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.13–§N.21, then the DO-register.
+<!-- SAVE v17 (2026-08-15) — supersedes v16's RESUME; §N.13–§N.26 stand unchanged. v17 closes TWO chapters the
+     v16 RESUME never listed: ⑩ the RESTORE/A11Y TAIL (§N.22–§N.26) and ⑪ THE BACKEND AUDIT + THE FEATURE WAVES
+     (§N.27) — the pivot from repair to shipping. The audit's verdict is the frame for everything after it:
+     ⚠️ NO ROT (every route resolves, zero stubs), exactly three "wrong not absent" defects (all fixed), and
+     ⚠️ NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH — deployment does.
+     ⚠️ v16's §N pointer was STALE (it read §N.13–§N.21 while §N.22–§N.26 already existed); corrected here. -->
+
+> ### ⬅ RESUME HERE — **THE SESSION-HANDOFF SURFACE.** Read this, then §N.27 (newest), then §N.13–§N.26, then the DO-register.
 >
 > *Written so a session with no other context can start work immediately. Everything below is verified state,
-> not summary. **SAVE v16 (2026-08-13).***
+> not summary. **SAVE v17 (2026-08-15).***
 >
-> ## WHERE THE PROJECT IS
+> ## WHERE THE PROJECT IS — IN ONE PARAGRAPH
 >
-> **NINE CHAPTERS ARE CLOSED, IN ORDER:**
-> **① THE DESIGN-PARITY WALK (v8)** — operator 42/42 · owner 32/32 · guest 12 gates + 3 verdicts · + the
->   cross-realm PDF sweep. **Canon: §N.13.**
-> **② THE CLEANUP SEQUENCE (v9)** — the grey-literal drift closed across PDFs, emails and the reachable
->   operator/owner web; the O26 star family retired. **Canon: §N.14.**
-> **③ THE FIRST BUILD + ITS BACKEND (v10)** — `GET /guest/help` over the certified `HelpKnowledgeBase`, then the
->   **support backend** (`6550087`): 3 nullable per-property fields → an operator setter → a guest block that
->   shows only what is populated. **`DO-G13-1` is closed in BOTH halves. Canon: §N.15.**
-> **④ THE BACKLOG SEQUENCE (v11)** — `DO-SEED-1` (`f9142c8`) → `DO-EMAIL-9`+`8` (`52321b8`) → `DO-EMAIL-4`
->   (`a70c147`) → `DO-EMAIL-5`/`6` (`2e8cd0f`) → `DO-EMAIL-7` (`4440c7a`). **Canon: §N.16.**
-> **⑤ THE BILLING WORKSTREAM (v12)** — the read-only investigation → pass 1 the shape-aware engine (`43862db`)
->   → pass 3 render-from-plan (`615904c`) → pass 2 the Price wiring (`7de1f35`) → pass 2b Stripe Tax
->   (`9fed4a1`). **Canon: §N.17 + §G.1.**
-> **⑥ THE DO-BILL PAIR (v13)** — `DO-BILL-2` (`c6d398a`, the portfolio "billed per unit" §N.8d) → `DO-BILL-1`
->   (`dcce44f`, the VAT-ID → Stripe-customer sync). **Canon: §N.18.**
-> **⑦ THE PLAN PANEL (v14)** — the super-admin plan CRUD (`f389317`). ⚠️ **WITH THIS THE BILLING CODE *AND*
->   BUILD ARE COMPLETE AND HONEST END-TO-END, INCLUDING FROM THE ADMIN SIDE. Everything remaining is
->   NON-CODE** — the founder's Stripe dashboard steps and one open decision. **Canon: §N.19.**
+> The product is **built, audited, and design-parity-complete across all realms**. A read-only backend audit
+> (`a743bcd`) then established the single most important fact for planning: ⚠️ **THERE IS NO ROT** — every route
+> resolves, there are zero stubbed actions and zero dead controls, and exactly **three** items were *wrong*
+> rather than *absent* (all three fixed). So the remaining feature work is **additive**, and ⚠️ **none of it
+> blocks launch** — the launch gates are **infrastructure and founder steps**, nothing else (see LAUNCH GATES).
+> **Wave 0 (correctness) and Wave 1 are complete. Wave 2 is complete except `DO3-3`, which is next.**
 >
-> **⑧ THE PRE-BILLING TAIL (v15)** — `DO-TOKEN-1` (`92c7b9b`) · `DO-STAR-1` (`5864514`) · `DO-SUP-1`
->   (`9eebdb5`) · the probe saga `DO-PROBE-1`/`DO-PROBE-2` (`600f1bc`, `5f96247`) · `DO-PLATE-1` (`568cdd3`) +
->   the on-gradient fix (`dd5ecb9`). ⚠️ **Its headline is a RETRACTION, not a fix** — the "product-wide AA floor
->   defect" was our own instrument's anti-alias halo. **Canon: §N.20.**
+> **ELEVEN CHAPTERS ARE CLOSED, IN ORDER** (①–⑨ unchanged from v16 — see §N.13–§N.21):
+> **① THE DESIGN-PARITY WALK** (§N.13) · **② THE CLEANUP SEQUENCE** (§N.14) · **③ THE FIRST BUILD + ITS
+> BACKEND** (§N.15) · **④ THE BACKLOG SEQUENCE** (§N.16) · **⑤ THE BILLING WORKSTREAM** (§N.17 + §G.1) ·
+> **⑥ THE DO-BILL PAIR** (§N.18) · **⑦ THE PLAN PANEL** (§N.19) · **⑧ THE PRE-BILLING TAIL + THE PROBE SAGA +
+> A RETRACTION** (§N.20) · **⑨ THE A11Y FAMILY + AXIS 3** (§N.21).
 >
-> **⑨ THE A11Y FAMILY + AXIS 3 (v16)** — Part A's gated surfaces (`921dae3`) + the floor-guard rider
->   (`923435d`) · `DO-A11Y-1` with `DO-A11Y-2` folded in (`bcbc651`) · Part B, the data axis (`2b11af6`) · the
->   throughput pass (`43e9f0d`). ⚠️ **Two headlines: the floor-guard FALSIFIED ITS OWN PREMISE** (posture A
->   rested on a rounded 4.50; the true plate gives **4.4953**) **and the two A11Y items were ONE defect**,
->   root-caused to the operator shell never receiving the owner shell's sample-don't-pick fix.
->   **Canon: §N.21.**
+> **⑩ THE RESTORE / A11Y TAIL (v17, §N.22–§N.26)** — `DO-A11Y-3+4+5` (`f3b469e`) · `DO-EMAIL-5-continued-4`
+>   (`d521995`) · `DO-RESTORE-1` (`8582b8c`, an audit that **restored nothing — the premise did not hold**) ·
+>   `DO-RESTORE-1a` (`0b6f39d`) · `DO-RESTORE-3` (`c2c9f39`) · `DO-EMAIL-5-continued-5` (`c570a5c`) ·
+>   `DO-PROBE-3` (`ce5c281`) · `DO-STATE-1` (`5b5f324`) · `DO-FRONTDESK-1` (`8aaf71b`) · `DO-RESTORE-4`
+>   (`5da284f`) · `DO-RESTORE-5` (`f1184d2`). ⚠️ **Headline: when no text colour can clear both ends of a
+>   gradient, the background is the variable, not the text** (§N.26.1).
 >
-> **Suite 2055 / 2063 · 6 non-green = the documented set** (`BookingImportTest` ×5 · `OwnerUnitDetailViewTest`
-> ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift** (§N.17.7; it read 5 at v12 and 7
-> at both v13 and v14, and **6 consistently across all five v16 passes**, with nothing relevant changed). ⚠️ **One run at `dcce44f` showed an 8th that did NOT
-> reproduce and was NOT identified — recorded as unexplained, not certified** (§N.18.6). PHPStan L5 (0) · Pint
-> clean · `migrate:fresh --seed` clean. ⚠️ **The seed needs MAILPIT running** (SMTP 127.0.0.1:1025) — an abort
-> without it is **ENVIRONMENTAL**, not a regression; start `mailpit` and re-run before diagnosing anything.
+> **⑪ THE BACKEND AUDIT + THE FEATURE WAVES (v17, §N.27)** — the fourteen passes below. ⚠️ **Headline: the
+>   ledger under-described FOUR items out of ten, and on a security item that gap WAS the item** (§N.27.1).
 >
-> ## WHAT IS NOW TRUE THAT WAS NOT
+> ### THE SHIPPED LEDGER — every hash below is confirmed against `git log`
 >
-> - ⚠️ **`migrate:fresh --seed` is CLEAN AND DATE-ROBUST.** It used to abort mid-run and leave the demo org
->   half-seeded (one property, the staff user roleless). The seeder is re-anchored to `now()` and guarded at four
->   travelled dates. **A fresh session gets a working demo DB with roles and needs NO hand-provisioning** —
->   including `demo-admin@vyrobel-demo.test` (Property Owner), which is what makes role-aware work possible.
-> - ⚠️ **The one LIVE §N.8d is GONE.** The email footer no longer defaults to a false booking claim; the reason
->   is **keyed by category** with a **generic-true default**, so the falsehood is unrepresentable (§N.16.3).
-> - **`--vy-amber-text` is one name with one value** (`#804C05`); **`DO-G13-2`/`DO-G13-3` are RATIFIED**, so the
->   whole G13 set is closed; the role-coverage audit **method** is recorded and guarded (§N.16.1).
-> - ⚠️ **THE BILLING BLOCKER IS GONE, AND IT WAS NEVER A DECISION.** §G.1 framed it as "flat tier OR per-unit?"
->   — a founder pricing choice. It **dissolved**: pricing is configurable DATA and a plan declares its own
->   shape, so there was no model to pick, only an engine that must charge faithfully to whatever is declared
->   (§N.17.1). What remains is not a choice but three **dashboard** actions.
-> - 🏁 ⚠️ **THE BILLING CODE *AND* BUILD ARE COMPLETE.** Seven things had to be true and now are: the engine
->   charges the plan's declared shape · the page renders from that shape · the configured Price reaches Stripe
->   or the app refuses to bill · Stripe Tax computes the customer's own tax · no surface claims a tax or a
->   per-unit consequence that is false for some org · the customer's VAT number reaches Stripe so reverse
->   charge applies · **and an admin editing the catalogue cannot make what the app DISPLAYS diverge from what
->   Stripe CHARGES** (§N.19.6 — the invariant's admin-side back door, closed by capturing terms).
->   ⚠️ **What is left is not code at all**: three dashboard steps and one compliance decision.
-> - ⚠️ **`display = charge = STRIPE` now holds — the chain was two links long and the third was broken.** The
->   checkout sent `price × quantity` with **no tax at all**, so a per-unit plan would have **silently
->   under-charged** by the VAT (€88.56 quoted, €72.00 taken — €16.56/mo). Closed from the other end: the app
->   stopped claiming a post-tax total it cannot know (§N.17.2–.3).
+> | # | item | commit | what shipped | key finding | follow-ups |
+> |---|---|---|---|---|---|
+> | 0 | **`DO-BACKEND-AUDIT-1`** | `a743bcd` | the read-only remaining-work ledger → **`docs/BACKEND-REMAINING-WORK.md`** | ⚠️ **NO ROT** — every route resolves, zero stubs/dead actions; exactly **3** wrong-not-absent; ⚠️ **launch-blocking = INFRASTRUCTURE ONLY** | drives Waves 0–4 |
+> | 1 | **`DO-CORRECTNESS-1` 1/3** | `4c18534` | payout badge: `processing` → "In transit", `held` → "On hold" (both had read "Payout pending") | **three** definitions across **two disjoint tone vocabularies** — converged on the two that share one, left the third (§N.27.4) | — |
+> | 2 | **`DO-CORRECTNESS-1` 2/3** | `d154e48` | the Schedule PDF's false footer assertions → one true snapshot line | ⚠️ caught a worse one beside it: **"statutory rest periods observed"** — a labour-law claim the code cannot support (§N.13.1) | → `D34-1` |
+> | 3 | **`DO-CORRECTNESS-1` 3/3** | `ba290c9` | waitlist dedupe on a **generated non-null `window_key`** | ⚠️ a naive UNIQUE index is **NULL-inert** in MySQL — the sibling table's rule had to be re-derived, not copied | — |
+> | 4 | **`D34-1`** (Wave 1) | `dd4a5ef` | `RosterWeek` gains thin `publicationState()`/`openShifts()`; the Schedule PDF renders them truthfully | ⚠️ **same DATA, not same FORMATTING** — `diffForHumans()` is true on screen and **false on paper** (§N.27.3) | `D34-1a` grid convergence · `D34-1b` impossible null-check · `D34-1c` department filter |
+> | 5 | **`DO13-4`** (Wave 1) | `23422be` | real password composition (`min(8)->letters()->numbers()->symbols()`) via ONE `App\Support\Auth\PasswordPolicy`, bound through `Password::defaults()` | ⚠️ **THE AUDIT NAMED 4 PATHS; THERE ARE 9.** A content-sweep is blind to a screen with no rule at all — **sweep the ROUTE** (§N.27.1). `CreatePlatformAdminCommand` (min 12 + mixedCase) deliberately **NOT** collapsed | `DO13-4a` HIBP `uncompromised()` — optional founder call; the guard asserts it is OFF, so enabling it is deliberate |
+> | 6 | **`D24-2`** (Wave 1) | `ec42515` | passkeys wired into the operator realm — the subsystem **reused** via `<x-auth.passkeys>`, not rebuilt | ⚠️ **THE DEVICE GATE WAS LIFTABLE** — a **CDP virtual authenticator proved operator passkey login end-to-end** (§N.27.8). Sign-in needed **no wiring** (shared `web` guard + `RedirectsByRole`) | **`D24-2a` FIXED in this pass** — the controller hardcoded `owner.passkey_registered`, logging the **wrong realm** into the audit trail |
+> | 7 | **`D3-4`** (Wave 1) | `bbd1bbd` | last-year occupancy suppresses on **COVERAGE**, not presence (`MetricSet::coveragePct` / `hasComparableCoverage`) | LY divided by the availability **spine**, so a 3-of-30-day month showed a **fake full %**. ⚠️ **3 consumers, not the ledger's 1.** ⚠️ `->distinct()->count('date')` returned **0 for every period** — a compiling query, silently wrong (§N.27.7). A pre-existing fixture **encoded the bug** — the fixture was fixed, not the rule | **`D3-4a` DECIDED: SUPPRESS at 80% STANDS** (below) |
+> | 8 | **`D1-3`** (Wave 2) | `8f5c953` | `expected_arrival` on the dashboard arrivals, matching Front Desk char-for-char | ⚠️ the ledger's "populated" was **0 of 41** on demo — it is written at online check-in, which the demo never runs, so **the POPULATED case was the unrendered branch** (§N.27.7). Free text, never a defaulted clock | `D1-3a` extract `<x-operator.expected-arrival>`; a parity test reads BOTH sources meanwhile |
+> | 9 | **`D2-1`** (Wave 2) | `7bff7bd` | `max_occupancy` as **`Sleeps N`** on the rack row, matching the existing idiom | ⚠️ schema is `int unsigned NOT NULL DEFAULT 2` → **NULL is impossible**; the real edge is a storable **`0`** (unrecorded ≠ sleeps-nobody) → mapped `0 → null` so it omits (§N.27.2) | `D2-1a` over-capacity detection (now cheap; logic + product call) · `D2-1b` **two existing `Sleeps N` surfaces render `0` unguarded** |
+> | 10 | **`DO9-1`** (Wave 2) | `d7da6ab` | the Add-Unit `notes` textarea — the write side; validation + persistence already existed at **0-line diffs** | ⚠️ **ADDING AN INPUT CAN WEAPONIZE A DORMANT DISPLAY** — the read-back already existed *and already escaped* (`{{ }}`); a `{!! !!}` there would have made this owner→operator **stored XSS** (§N.27.9). §O9's Alpine-root trap re-met | `DO9-1a` a long note dominates the joined detail line (cosmetic) |
+> | 11 | **`D10-2 + D10-5`** (Wave 2) | `166e0bd` | inbox **stage** + **VIP** badges — **REUSED** from Front Desk, not rebuilt | ⚠️ **A LOGGED "STOPPED FOR A GOOD REASON" IS A GIFT** — a prior pass found that feeding raw status to `ReservationStage::meta()` renders **"Unknown"**; this pass **satisfied the objection**, and **mutation M2 now reproduces that exact bug** (§N.27.10) | — |
+> | 12 | **`D29-5 + DO6-4`** (Wave 2) | `17847bd` | per-notification **dismiss** in BOTH realms — ONE mechanism (`notifications.dismissed_at` + one filter in the one `NotificationFeed` builder, so the unread count inherits it) | ⚠️ **THE ANTI-CONFLATION:** `owner_attention_states` and `notifications` **both** carry `read_at` + `dismissed_at` — same names, unrelated meanings. Dismiss leaves the attention store **untouched** (asserted: 0 rows after). Morph-alias fixture trap caught (§N.27.2) | — |
+> | 13 | **`D3-1`** (Wave 2) | `b28122d` | ⚠️ **SHIPPED** (see the discrepancy note below) — a custom `?from=`/`?to=` range on operator Insights, resolved by the shared `CustomRange` **inside the one `resolveRange()` seam** | it **inherits D3-4's coverage guard** because it feeds the same `PerformanceMetrics` path — a custom metric path would have re-opened the exact fake-full-month figure D3-4 had just closed. ⚠️ **The 13-month max span is dictated by `monthlyTrend*()`'s `$guard < 13`**, not taste (§N.8d). LY needed nothing — already a span shift | `D3-1a` the **owner** Insights has its own `resolveRange()` (3 presets vs 5) and no custom window |
 >
-> ⚠️ **THE CAVEAT THAT QUALIFIES EVERY "CLOSED" ABOVE.** *Closed* means *closed everywhere a pass could reach.*
-> There are now **three** ways a surface hides — conditional state (G10), **authorization** (§N.14.1) and
-> **DATA** (§N.16.2) — and the DATA axis has never been swept in any realm.
+> ⚠️ **ONE RECONCILIATION NOTE, kept because it is the method working.** The v17 checkpoint brief listed `D3-1`
+> as *"IN FLIGHT — prompt written, NOT run."* **`git log` shows it shipped at `b28122d`.** The source won; the
+> row above is written from the commit, not the brief. If a future brief and the history disagree, **trust the
+> history** and record the correction rather than the claim.
 >
-> ## ⚠️ OPEN FOUNDER CALLS — decide these before or alongside the work below (none are code)
+> **Suite 2185 / 2194 · 14,065 assertions · 6 non-green = the documented set** (`BookingImportTest` ×5 ·
+> `OperatorGuestProfileTest` ×1). ⚠️ **The count WALKS a 5–10 band on its own — neither a fix nor drift**
+> (§N.17.7). PHPStan L5 (0) · Pint clean · `migrate:fresh --seed` clean. ⚠️ **The seed needs MAILPIT running**
+> (SMTP 127.0.0.1:1025) — an abort without it is **ENVIRONMENTAL**, not a regression.
+> ⚠️ **Run the suite ALONE** — a parallel run corrupts the shared test DB and invents ~17 spurious failures.
 >
-> **(a) THE `--vy-faint` 0.005 (§N.21.1).** On the true measured card plate `rgb(250,221,206)` it is
->   **4.4953** — it misses AA by **0.005**. Posture A was decided on the 2-dp rounded 4.50. Handled
->   non-destructively (the AA test keeps the derived plate at 4.55; the measured floor is pinned separately as
->   a FACT), so nothing is blocked — but the call stands: **accept** (the miss is far below any perceptual or
->   measurement threshold) or **darken the hair**. ⚠️ This is NOT the retracted floor finding — see §N.21.2.
+> ## THE DECISIONS THAT ARE MADE (do not re-litigate; see §G.1 + `DECISIONS.md`)
 >
-> **(b) THE DEPTH-vs-COVERAGE POSTURE for the axis-3 throughput.** Current default is **stay deep**: fix few
->   surfaces properly and log the rest as honestly unmeasured. At the observed rate the remaining ~55 files
->   need several passes. Trading depth for coverage is legitimate — **but only if DECLARED**, because a
->   shallow sweep produces a wall of numbers that reads like a clean bill.
+> - **BILLING** — pricing is **configurable DATA** and a plan declares its own shape; per-unit **PRORATES**; the
+>   flat tiers are **€49 / €99 VAT-INCLUSIVE**; per-unit VAT via **Stripe Tax (Option B)**; plan CRUD is live in
+>   the super-admin panel. ⚠️ **The old "flat tier OR per-unit?" blocker was a FRAMING ARTEFACT and dissolved**
+>   (§N.17.1) — what remains is dashboard steps, not a choice.
+> - **THE RESTORE RULINGS** — the CTA wireframe orange **`#E8703A` is sub-AA and ACCEPTED** by founder decision;
+>   the avatar + plan-tag plates are **flattened** with dark warm-brown text (§N.26.1). ⚠️ These are **decided
+>   exceptions, not open defects** — but a *regression* on them must still read as a defect (§N.26 closing note).
+> - ⚠️ **`D3-4a` — SUPPRESS at 80% coverage STANDS** (not caveat). A caveated number still gets anchored on, and
+>   the observed gap (36% → 100%) makes the exact threshold non-delicate.
+> - **40 RATIFIED design divergences MUST NOT be "fixed"** — see `docs/design/DIVERGENCE-REGISTER.md`.
 >
-> **⛔ (c) THE BILLING FLIP — Stripe dashboard + VAT validation.** See ② below.
+> ## OPEN FOLLOW-UPS (all logged in the ledger; none blocking)
 >
-> ## WHAT TO DO NEXT — in priority order
+> `DO13-4a` HIBP/`uncompromised()` (optional founder call) · `D34-1a` / `D34-1b` / `D34-1c` (grid convergence ·
+> the impossible null-check · the department filter) · `D1-3a` (extract the arrival component) · `D2-1a` /
+> `D2-1b` (over-capacity detection · the two unguarded `Sleeps 0` surfaces) · `DO9-1a` (long-note truncation) ·
+> `D3-1a` (custom range on the owner Insights) · **design remainders:** `DO-EMAIL-5-continued-6` (the axis-3
+> tail, ~55 files logged-UNSWEPT = ⚠️ **unmeasured, not "probably fine"**) · `DO-STATE-2` · `DO-PROBE-4` ·
+> `DO-PROBE-3-gap-C` (blocked on a rasterizer). ⚠️ **`D24-2a` was FIXED inside `D24-2`, and `D3-4a` is
+> DECIDED** — neither is open.
 >
-> **① `DO-EMAIL-5-continued-4` — THE AXIS-3 THROUGHPUT TAIL.** ⚠️ **The method is PROVEN; this is throughput.**
->   Of the **67** data-conditional files: **7 MEASURED**, defects fixed at their class definitions, **~55
->   LOGGED-UNSWEPT**, and **5 dompdf PDFs + the per-page `no-clear-band` unmeasurables SCOPE-GAP-PENDING**.
->   ⚠️ **"Logged-unswept" means UNMEASURED, not "probably fine."**
->   The procedure (§N.21.4): force the DATA condition → render populated **as the role** → measure under the
->   **checked capture contract** with `tools/contrast-sampler.php` + `tools/contrast-collect.js` → flag every
->   scope gap → fix NEW defects to the TOKEN. ⚠️ A reporter **refusal is the contract working** — fix the
->   capture and re-run; never force a number. ⚠️ The shared family is FIXED, so a re-found shared class is
->   either a **missed copy** (§N.21.5 — check every shell) or a **new plate in the populated state**.
->   Run it at the depth the founder chooses in (b).
+> ## ⬅ WHAT TO DO NEXT — the backlog, in order
 >
-> **② `DO-PROBE-3` — the fixable probe gaps.** The dense-text `no-clear-band` unmeasurables (6–71 per page —
->   the biggest coverage hole), the **correct computation** for ancestor-dimmed elements (detect-and-flag is
->   already in), and the **PDF-reachability** question (dompdf needs a non-browser tool).
+> **① `DO3-3` — failed-payout Retry / recovery.** ⚠️ **The last Wave-2 item, size M, and MONEY-ADJACENT.** The
+>   payout status exists; the owner-facing recovery affordance does not (`OwnerPayouts.php:44` is a comment).
+>   ⚠️ **CONFIRM FIRST what "retry" actually does, and prove IDEMPOTENCY — a retry must not double-pay.** The
+>   certified rail already has a unique idempotency key + a ledger row-lock (#45): **orchestrate it, never
+>   re-implement it.** Anything touching live Stripe stays founder-gated.
+> **② WAVES 3–4 — features + de-duplication.** `D1-1` · `D8-2` · `DO9-2`/`DO9-3` · `D18-5`/`D18-6` · `D23-2` ·
+>   `DO24-1` · Excel exports · the `DO25-1`/`DO23-2` §N.8f drift · hand-rolled star colours · `DO20-1` PDF page
+>   numbering · delete the dead `guest/partials/trip-card.blade.php` · **unify the two operator payout maps**.
+> **③ The design remainders** listed under OPEN FOLLOW-UPS, at the founder's chosen depth (⚠️ trading depth for
+>   coverage is legitimate **only if DECLARED** — a shallow sweep reads like a clean bill).
 >
-> **③ `DO-A11Y-3` / `-4` / `-5` — scoped a11y follow-ups.** **-3**: white-on-accent CTAs (~3.2–3.4 across
->   `.vy-btn--accent`, `.vy-pill--accent`, `.vy-act--accent`) — the long-SURFACED realm-wide item, now trivially
->   fixable since the root is known: **the lightest gradient stop must be at least as dark as `--vy-accent`**,
->   where white measures 5.18. Deliberately not folded in — it changes every CTA in the product. **-4**: the
->   page-local `.vy-fd-*` front-desk classes. **-5**: one unclassed link at 4.48 in guests-list.
->   ⚠️ `DO-A11Y-1-continued` is a standing watch item, not a task: if a shared class re-appears, look for
->   another **shell copy** before assuming a new plate.
+> ## ⛔ LAUNCH GATES — **THE ACTUAL BLOCKERS, AND THEY ARE NOT FEATURES**
 >
-> **⛔ ④ THE BILLING FLIP — no code work remains.** The billing CODE *and* BUILD are complete (§N.17–§N.19).
->   Gated on the founder's **Stripe dashboard steps** (enable Stripe Tax + register jurisdictions — ⚠️
->   `automatic_tax` is INERT until then · create the Prices per `docs/BILLING-STRIPE-PRICES.md` · fill the prod
->   env) and the open **VAT-VALIDATION decision** (send-as-is, implemented, vs VIES-first, a build).
->   ⚠️ A session can only remind and verify wiring — never claim the live Prices exist.
+> ⚠️ **Shipping features does not move launch closer.** Feature-completeness and launch-readiness are different
+> axes (§N.27.12). Per the audit (§3.11 of the ledger):
 >
-> **⑤ THE BACKEND PHASE PROPER — plan it as a PHASE, not a gate.** Backlog = the consolidated DO-register at the
->   end of `MISSING-BACKEND-BY-PAGE.md`, plus the **6 reopened operator a11y gates** (§N.9) and the
->   deferred-capability refusal sweep (§N.8b).
+> **① THE DEPLOYMENT SPRINT (size L) — the real gate.** There are **zero deploy artifacts**: no Dockerfile, no
+>   CI/CD, no `.github/`, no deploy script, no backup strategy. `docs/DEPLOYMENT.md` is a **runbook, not
+>   automation**. ⚠️ **Inside it, the single highest-consequence line is the crontab entry**
+>   `* * * * * php artisan schedule:run` — without it **8 scheduled commands silently never run, including the
+>   GDPR 14-day guest deletion and the 30-day ID purge**. The command IS scheduled in code
+>   (`routes/console.php:38`), so the exposure is purely deployment. ⚠️ **Claude has offered a
+>   DEPLOYMENT-SCOPING PASS — the audit-equivalent for shipping. It has not been run.**
+> **⛔ ② THE FOUNDER'S STRIPE/VAT GO-LIVE STEPS.** The billing code *and* build are COMPLETE (§N.17–§N.19).
+>   Remaining: enable Stripe Tax + register jurisdictions (⚠️ `automatic_tax` is **INERT** until then), create
+>   the Prices per `docs/BILLING-STRIPE-PRICES.md`, and fill the prod env — plus the open **VAT-validation
+>   fork**: **send-as-is** (implemented) vs **VIES-first** (needs a build). ⚠️ A session can only remind and
+>   verify wiring — **never claim the live Prices exist**.
 >
-> ## HOW TO WORK
+> ## HOW TO WORK — the method that produced everything above
 >
-> **Read before starting: §N.20 (newest — the probe saga, the RETRACTION, the headroom posture) · §N.19 (the
-> plan-panel canon: the admin-side back door, terms-freeze-
-> quantity-live, model-hook invariants, well-formed-at-shelf-and-till) · §N.18 (the DO-BILL canon: independent checks, the money-path structural
-> check, one sync path per money field, fail-safe direction) · §N.17 (the billing canon: the blocker as framing artefact, display=charge=
-> STRIPE, give-up-the-claim, the divergent second total, refuse-to-charge) · §N.16 (the audit method, the three
-> ways a surface hides, keyed-not-typed) ·
-> §N.15 (the build canon) · §N.14 (start at N.14.1) · §N.13 (the walk canon) · §N.8/§N.8b/§N.8c/§N.8d ·
-> §N.4p + §N.13.2 + §N.14.4 + §N.16.6 (the mutation and instrument discipline) · §N.9 (what is reopened).**
+> **The loop:** Claude (architect) writes ONE dense, self-contained `.md` prompt per task → the founder runs it
+> in a SEPARATE Claude Code session → pastes the report back → Claude confirms and writes the next.
+> **ONE prompt at a time; stop at clean, pushed boundaries.**
 >
-> **Method:** work the real code first, never the summary → classify **DESIGN-GAP** / **REFUSAL-TO-PRESERVE** /
-> **EXTRA-WORK** / **MISSING-BACKEND** → **mutation-prove every guard** (the verdict must come from the guard —
-> not the fixture, the file, the compiled cache, or a role that cannot see the markup) → browser-verify **as
-> every role that can reach the surface** → suite + PHPStan + Pint → commit + push → **report and STOP**.
+> **Every prompt carries the same spine:** orient (read this file first) → ⚠️ **CONFIRM-FIRST** (the ledger
+> under- or mis-describes — and ⚠️ **it cuts both ways: three items got SMALLER**, §N.27.11) → numbered rules →
+> **force the hidden branch** (state · authorization · DATA · actor) → ⚠️ **RENDER/SUBMIT to verify** (§N.21.6 —
+> a fix in the file is not a fix on the page) → **reuse, don't rebuild** (§N.8f) → ⚠️ **mutation-prove every
+> guard, and VERIFY THE MUTATION APPLIED** (§N.4p, §N.27.6) → read the source, never a constant → leave a guard
+> behind → **don't over-reach: log adjacent findings, don't build them** → suite baseline (the documented 5–10
+> band; ⚠️ **run it ALONE**, and stash from a CLEAN worktree, §N.14.5) → PHPStan L5 + Pint → commit + push with
+> the trailer **`Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>`** ⚠️ (**NOT "Opus 5"** — an earlier
+> commit had this wrong) → **REPORT and STOP**.
+>
+> **Read before starting: §N.27 (newest — the audit + waves canon) · §N.22–§N.26 (the restore/a11y tail) ·
+> §N.21 (the checked capture contract) · §N.20 (the probe saga + the RETRACTION) · §N.19 · §N.18 · §N.17 ·
+> §N.16 (the three ways a surface hides; keyed-not-typed) · §N.15 · §N.14 (start at §N.14.1) · §N.13 ·
+> §N.8/§N.8b/§N.8c/§N.8d/§N.8f · §N.4p (the mutation discipline) · §N.9 (what is reopened).**
 >
 > ⚠️ **Honesty rules that outrank tidiness:** never ship UI for a capability the engine lacks (#39); when a true
 > answer VARIES, route to the authoritative screen rather than pick a number (§N.15.2); **a flagged item that
 > measures sound is closed AS sound** (§N.16.7); and **consolidation that flattens a real distinction is an
 > honesty regression** (§N.16.5).
 >
+
 > ## 🏁 THE PER-PAGE **DESIGN-PARITY PASS** IS COMPLETE FOR BOTH BUILT REALMS (2026-08-09 → 2026-08-11)
 >
 > **Read §N before quoting "what remains is only a decision + infrastructure" — that line is no longer the
@@ -7695,3 +7697,165 @@ sits beside the other two probe pieces at **`tools/contrast-report.php`** — th
 
 ⚠️ And the reclassification has teeth in one direction that matters: while the avatar family sat in `$decided`,
 a **regression** on any of it would have been filed as "accepted exception" and never read as a defect.
+
+---
+
+# (N.27) 🏁 THE BACKEND AUDIT + THE FEATURE WAVES — **THE PIVOT FROM REPAIR TO SHIPPING** (SAVE v17, 2026-08-15)
+
+The ten passes from `a743bcd` to `b28122d`: a read-only audit of the whole backend, the three "wrong, not
+absent" corrections it found, and then two waves of feature work run off its ledger. **The chapter's headline
+is the audit's own verdict — there is NO ROT**, so everything after it is additive.
+
+## §N.27.1 ⚠️ **A REGISTER IS A RECORD OF WHAT ONE READER FOUND — SWEEP, ESPECIALLY FOR SECURITY**
+
+The audit ledger (`docs/BACKEND-REMAINING-WORK.md`) is the best map of the backend that exists, and it
+**under- or mis-described the scope of four items out of ten**:
+
+| item | the ledger said | the sweep found |
+|---|---|---|
+| `DO13-4` | 4 set-password paths | ⚠️ **9** — self-signup, platform-admin, and three guest paths were unnamed |
+| `D3-4` | 1 consumer of the LY figure | **3** — the occupancy guard, the KPI deltas, and the pace row |
+| `D1-3` | the column is "populated" | **0 of 41** rows on demo (§N.27.7) |
+| `D2-1` | the column is nullable | `int unsigned NOT NULL DEFAULT 2` — the real edge is a storable `0` |
+
+⚠️ **On a SECURITY item the gap between 4 and 9 is the whole item.** Fixing four password paths and shipping
+would have left five screens setting weak passwords under a commit message announcing the opposite — worse than
+not doing it, because the follow-up would never have been written.
+
+⚠️ **AND A CONTENT-SWEEP IS BLIND TO THE ABSENCE IT SEEKS.** Grepping for `Password::` finds the paths that
+already say something about passwords; a screen with **no rule at all** matches nothing and is invisible to
+exactly the search meant to find it. **Sweep the ROUTE, not the text** — enumerate every endpoint that can set
+a credential, then check each. That is how the silent screens surfaced.
+
+## §N.27.2 ⚠️ **READ THE LIVE SCHEMA — IT NAMES THE REAL EDGE, AND THE REAL EDGE IS RARELY THE OBVIOUS ONE**
+
+Three passes had their premise corrected by one `SHOW CREATE TABLE`:
+
+- **`D34-1`** — `schedule_publications.published_at` is **NOT NULL**, so the grid's `?->published_at !== null`
+  null-check can never be false (logged `D34-1b`).
+- **`D2-1`** — `NOT NULL DEFAULT 2` means NULL is *impossible*; the defensive null-guard everyone reaches for
+  would have guarded nothing while a storable **`0`** printed **"Sleeps 0"** — *unrecorded* rendered as
+  *sleeps nobody*. Mapping `0 → null` at the read makes it omit.
+- **`D29-5`** — `notifications` and `owner_attention_states` **both** carry `read_at` and `dismissed_at`.
+
+⚠️ **IDENTICALLY-NAMED FIELDS ON DIFFERENT ENTITIES ARE MAXIMALLY CONFUSABLE, AND THE NAME CANNOT DISTINGUISH
+THEM.** A notification-dismiss and an attention-dismiss are different acts on different tables; nothing in the
+column names says so. **Assert the boundary** — `NotificationDismissTest` proves the attention store still holds
+0 rows after a notification is dismissed. A comment saying "these are different" is not a defence (§N.16.4).
+
+## §N.27.3 ⚠️ **"READ THE MODELS THE SAME WAY" MEANS THE SAME *DATA*, NOT THE SAME *FORMATTING***
+
+Two passes hit the same shape from opposite sides:
+
+- **`D34-1`** — the grid renders publication as `diffForHumans()` ("2 days ago"). **True on screen, false on
+  paper**: a PDF is read weeks later, and a relative timestamp printed on it silently becomes a lie. The PDF
+  takes the same DATA from the same builder and renders an absolute date.
+- **`D1-3`** — `expected_arrival` is **free text** ("late evening", "after 6"). Coercing it to a clock value is
+  fine for *sorting*, and a lie as *displayed text*. It renders exactly as typed, never defaulted.
+
+**Share the source; let each surface format for its own medium and audience.**
+
+## §N.27.4 ⚠️ **CONVERGE ON ONE MECHANISM (§N.8f) — BUT A LEGITIMATELY *STRONGER* PATH STAYS SEPARATE**
+
+`DO13-4` bound the rule and its user-facing sentence together in one `PasswordPolicy` so a screen cannot state
+one rule and enforce another. But `CreatePlatformAdminCommand` requires **min(12) + mixedCase** — stronger, and
+deliberately so. **It was NOT collapsed into the shared default**, and a test pins it.
+
+⚠️ **DE-DUPLICATION IS NOT FLATTEN-TO-WEAKEST.** The same judgement recurred in the payout badge (`4c18534`:
+three definitions across two *disjoint* tone vocabularies — converged on the two that share a vocabulary, left
+the third) and in the operator-vs-owner tone classes. **Same concept ≠ always one definition; confirm before
+collapsing.**
+
+## §N.27.5 ⚠️ **A GUARD THAT IS TOO LOOSE — OR TOO BROAD — CANNOT CATCH WHAT IT EXISTS TO CATCH**
+
+Both directions, repeatedly:
+
+- **Too loose:** `D10-2`'s original return shape was annotated permissively enough that the wrong-shaped value
+  type-checked. Tighten to the shape the code actually produces.
+- **Too broad:** banning the literal `tone-vip`, `#B4400F`, `in_app`, or `roomNightsSold > 0` fails on *correct*
+  code elsewhere in the file. **Scope the assertion to the real target.**
+- ⚠️ **AND A SOURCE-SCANNING GUARD READS ITS OWN NEEDLE.** Banning `Password::min(`, `attention`, and
+  `PerformanceMetrics::` each failed on the guard's *own comment or docblock* — **three times in one session**,
+  the last on a docblock that legitimately *names* the method it explains the code does not call. **Tokenise
+  (`token_get_all`, skipping `T_COMMENT`/`T_DOC_COMMENT`): a source guard must read what RUNS, not what is
+  written about it.** (§N.4m is the same lesson from the other side.)
+
+## §N.27.6 ⚠️ **A MUTATION OR FIXTURE PROVES NOTHING UNTIL YOU CONFIRM IT *APPLIED* / *CONSTRUCTED ITS CASE***
+
+§N.4p's seven forms all recurred, plus new ones:
+
+- **The edit landed on the wrong call site** — `D3-4`'s coverage argument went to the *owner* `assemble()`, not
+  the *operator* one. Green, and defending nothing. Caught by probing real months, not by reading.
+- **The fixture never built its case** — `D1-3`'s `book()` helper hardcodes the reservation header to
+  2026-09-01, so date overrides reach only the line; `D29-5`'s `notifiable_type` needed the **morph alias**
+  (`'user'`), because an FQCN row is invisible to `$user->notifications()`.
+- **A residue check measured the environment, not the change** — a global "0 message threads" assertion is
+  vacuous under `RefreshDatabase` and passes for the wrong reason (§N.17.7: it also passed alone and failed
+  in-suite).
+
+## §N.27.7 ⚠️ **A QUERY THAT COMPILES AND RUNS CAN BE SILENTLY, TOTALLY WRONG — PROBE THE VALUES**
+
+`D3-4`'s coverage count was written `->distinct()->count('date')` — valid Eloquent, runs clean, and returned
+**0 for every period**. Coverage of 0% would have suppressed the last-year figure *everywhere*, which looks
+exactly like a working guard. The fix (`count(DB::raw('DISTINCT \`date\`'))`) came from **printing the numbers
+for real months**, not from re-reading the code. **At the boundary between an ORM and SQL, read the output.**
+
+⚠️ **AND A PRE-EXISTING TEST CAN ENCODE THE BUG.** `OperatorAnalyticsTest`'s vs-LY fixture seeded only 10 of 30
+days — the exact thin-coverage case the new guard suppresses. **The fixture was fixed, never the rule.** A test
+that fails when a defect is corrected is evidence about the *test*.
+
+⚠️ **AND "POPULATED ON DEMO" ≠ "POPULATED IN PRODUCTION."** `expected_arrival` is written at online check-in —
+an action the demo never performs — so the column was empty on all 41 rows while being entirely real in
+production. **The populated state was the unrendered branch; force it.**
+
+## §N.27.8 ⚠️ **A DEVICE-GATED LIMITATION CAN BE LIFTABLE — LOOK FOR A VIRTUAL INSTRUMENT FIRST**
+
+`D24-2` looked like it ended in a caveat: passkey *registration* is testable, but the *login ceremony* needs
+real hardware. It doesn't. **A CDP virtual authenticator proved operator passkey sign-in end-to-end** —
+usernameless, resident-key, real crypto (`localhost`, not `127.0.0.1`, for the RP ID).
+
+**Before writing "cannot be verified without a device", check whether the platform ships a virtual one.** The
+honesty rule (never claim an unproven ceremony works) is satisfied far better by *proving it* than by flagging
+it. Registration also caught **`D24-2a`**: the controller hardcoded `owner.passkey_registered`, so an operator's
+key logged the **wrong realm into the audit trail** — fixed in the same pass.
+
+## §N.27.9 ⚠️ **ADDING AN INPUT CAN WEAPONIZE A DORMANT DISPLAY**
+
+`DO9-1` added a `notes` textarea to the owner's Add-Unit wizard. The column, its validation and its **read-back
+on the operator's screen already existed** — the field was simply unreachable. So the write was not the risk:
+**if that dormant read-back had used `{!! !!}`, shipping the input would have opened owner→operator stored
+XSS** in one line, in a pass that looks like adding a form field.
+
+**Before shipping a write, verify how the value is READ.** It escaped (`{{ }}`), so the round-trip completed
+safely — but that was a fact to *check*, not to assume.
+
+## §N.27.10 ⚠️ **A LOGGED "STOPPED FOR A GOOD REASON" IS A GIFT — SATISFY THE OBJECTION, AND GUARD THE TRAP**
+
+`D10-2` had been attempted before and correctly abandoned: feeding a raw `reservations.status` to
+`ReservationStage::meta()` renders **"Unknown"**. The note explaining why is worth more than the attempt. This
+pass **satisfied the objection** (resolve the stage in the component) rather than working around it, and
+**mutation M2 reproduces the exact "Unknown" bug** so the trap is now guarded rather than remembered.
+
+⚠️ **A DOCUMENTED TRAP IS NOT A SOLVED TRAP.** §O9's Alpine-root trap (`document.querySelector('[x-data]')`
+matches the *shell's* root, not the component's) was recorded — and walked into again in `DO9-1`.
+
+## §N.27.11 ⚠️ **CONFIRM-FIRST CUTS BOTH WAYS — SOMETIMES IT SHRINKS THE WORK**
+
+The discipline is "the ledger under-describes", but the corrections ran in both directions, and **three items
+got smaller** once checked: `D24-2`'s sign-in needed **no wiring at all** (shared `web` guard +
+`RedirectsByRole`), `DO9-1`'s round-trip already existed *and* escaped, and `D3-1`'s last-year comparison was
+**already a span shift** (`->subYear()` on both ends), so an arbitrary window was correct with zero changes.
+
+**Verify either way. Do not assume the audit is always wrong** — assume only that it is *one reader's finding*.
+
+## §N.27.12 ⚠️ **UI EXISTS ≠ FEATURE WORKS — AND FEATURE-COMPLETENESS ≠ LAUNCH-READINESS**
+
+The audit's own headline, and the frame for everything that follows it:
+
+- **NO ROT.** Every route resolves; there are zero stubbed actions and zero dead controls. Exactly **three**
+  items were *wrong* rather than *absent*, and all three are fixed (`DO-CORRECTNESS-1`).
+- ⚠️ **NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH.** The launch blockers are **infrastructure**: no deploy
+  artifacts at all, the **one crontab line** (without which 8 scheduled commands — including GDPR 14-day
+  deletion and the 30-day ID purge — silently never run), and the founder's Stripe/VAT steps.
+
+**These are different axes.** Shipping features does not move launch closer; the deployment sprint does.

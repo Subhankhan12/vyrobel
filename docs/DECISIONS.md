@@ -10302,3 +10302,48 @@ Browser-verified (§N.21.6): a custom Jul–Aug 2026 window renders labelled `1 
 **9 month-bars against the preset's 19** — the chart genuinely narrowed; a backwards window and a 14-month
 window each show the rejection notice with their values kept. No fixture was needed (the range rides the
 URL); the demo is unchanged.
+
+
+---
+
+## 2026-08-15 — MEMORY CHECKPOINT (SAVE v17) · the audit-and-feature-waves programme, captured
+
+⚠️ **DOCS-ONLY — no code, no tests, no behaviour change.** This entry is the capstone over fourteen commits
+that already each have their own dated entry above; it records what the CHAPTER means, not what each pass did.
+
+**What the chapter is.** `a743bcd` → `b28122d`: a read-only audit of the whole backend, the three
+"wrong-not-absent" corrections it found, then two waves of features run off its ledger. The canon is the new
+**§N.27** in `PROJECT-STATE.md`; the RESUME block is rewritten to **SAVE v17** with the full shipped ledger.
+
+⚠️ **THE AUDIT'S VERDICT IS THE FRAME, AND IT IS THE MOST USEFUL THING IN THE CHAPTER: THERE IS NO ROT.** Every
+route resolves; there are zero stubbed actions and zero dead controls; exactly **three** items were *wrong*
+rather than *absent*, and all three are fixed. That single finding reclassifies everything that follows —
+the remaining feature work is **additive**, not repair, and it changes what "nearly done" means.
+
+⚠️ **AND ITS COROLLARY IS THE PLANNING FACT: NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH.** The gates are the
+**deployment sprint** (zero deploy artifacts — and inside it the one crontab line the GDPR deletion and ID
+purge silently depend on) and the **founder's Stripe/VAT steps**. Feature-completeness and launch-readiness are
+different axes; shipping features does not move launch closer (§N.27.12).
+
+**Two reconciliations, recorded because the method is the point:**
+
+⚠️ **(1) THE BRIEF SAID `D3-1` WAS "IN FLIGHT — prompt written, NOT run". `git log` SHOWS IT SHIPPED AT
+`b28122d`.** The source won: the ledger row is written from the commit. A checkpoint that transcribes a brief
+over the history would bake a false "pending" into the one file a cold session trusts most.
+
+⚠️ **(2) THE v16 RESUME'S OWN POINTER WAS STALE.** It told a fresh session to read "§N.13–§N.21" while
+**§N.22–§N.26 already existed** (the restore/a11y tail), and its chapter list stopped at nine while eleven had
+closed. **A handoff surface decays silently** — nothing fails when it goes stale, which is exactly why it has
+to be re-read against the history rather than appended to. Both the pointer and the chapter count are corrected,
+and chapter ⑩ now has a ledger row like every other.
+
+**The decisions carried forward unchanged** (verified present, not rewritten): the billing rulings (pricing is
+configurable DATA · per-unit prorates · €49/€99 **VAT-inclusive** · Stripe Tax Option B · plan CRUD) · the
+restore rulings (`#E8703A` sub-AA **accepted**; the avatar/plan-tag plates flattened) · ⚠️ **`D3-4a` —
+SUPPRESS at 80% coverage STANDS**, not caveat, because a caveated number still gets anchored on.
+
+**Next is `DO3-3`** (failed-payout retry — money-adjacent: ⚠️ confirm what "retry" does and prove idempotency
+against the certified rail's existing unique key + row-lock; a retry must not double-pay), then Waves 3–4.
+
+⚠️ **The suite was NOT run for this checkpoint** — it is docs-only and touches no executable path. The last
+measured baseline stands: **2185/2194, 14,065 assertions, 6 non-green** (the documented set).
