@@ -8,6 +8,7 @@ use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasPhotos;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,10 +25,48 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * values on a still-pending request — NOT live inventory and NOT a rate write (#39). Amenities attach through the
  * shared {@see HasAmenities} pivot and photos through the shared {@see HasPhotos} media collection — reuse, never
  * a parallel structure. Money is integer minor units + currency (#17).
+ *
+ * `status` spans the full lifecycle enum **draft | pending | approved | declined** (DO9-2 added `draft` by an
+ * ALTER, which the static analyser cannot read from the create-migration's narrower union — the same situation
+ * {@see Payout} documents), so it is typed `string` here rather than that stale three-value union.
+ * ⚠️ `requested_name` is nullable ONLY because a draft may be saved before it is typed; every FILED request has
+ * one, enforced by the submit validation.
+ *
+ * @property string $status
+ * @property string|null $requested_name
  */
 class UnitRequest extends Model
 {
     use BelongsToOrganization, BelongsToOwner, HasAmenities, HasFactory, HasPhotos, HasUlids, SoftDeletes;
+
+    /**
+     * DO9-2 — the statuses a request has once it has actually been FILED. ⚠️ `draft` is deliberately absent:
+     * a draft is the owner's own unfinished work and is **owner-private until submitted**, so it must never
+     * reach the operator's desk. ⚠️ THE ONE DEFINITION (§N.8f) — the operator review list and its KPI counts
+     * both derive from {@see scopeFiled()}, so a new operator surface cannot quietly re-include drafts by
+     * writing its own status list.
+     *
+     * @var list<string>
+     */
+    public const FILED_STATUSES = ['pending', 'approved', 'declined'];
+
+    /**
+     * Requests that have genuinely been filed — everything the OPERATOR is entitled to see. Drafts are excluded
+     * by construction rather than by a caller remembering to exclude them.
+     *
+     * @param  Builder<UnitRequest>  $query
+     * @return Builder<UnitRequest>
+     */
+    public function scopeFiled(Builder $query): Builder
+    {
+        return $query->whereIn('status', self::FILED_STATUSES);
+    }
+
+    /** A still-private draft: saved by the owner, never filed, invisible to the operator. */
+    public function isDraft(): bool
+    {
+        return (string) $this->status === 'draft';
+    }
 
     protected $fillable = [
         'organization_id',

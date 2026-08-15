@@ -35,11 +35,101 @@ class OwnerUnitRequestController extends Controller
 
     private const DISK = 'public';
 
+    /**
+     * DO9-2 — save the wizard's progress as an owner-private DRAFT.
+     *
+     * ⚠️ THE RELAXATION IS PRECISE, AND IT IS ONLY ABOUT REQUIREDNESS. `requested_name` and `requested_kind`
+     * become nullable so a half-filled wizard can be kept; every FORMAT and BOUND rule is the identical rule
+     * {@see store()} applies (same shared {@see self::rules()}), because a draft that quietly accepted a
+     * 5,000-character note or an unknown amenity id would just move the failure to submit-time, after the
+     * owner believed their work was safe.
+     *
+     * ⚠️ NOTHING IS FILED. The row lands with status `draft`, outside {@see UnitRequest::scopeFiled()}, so the
+     * operator never sees it and cannot action it. Submitting is the separate, fully-validated step.
+     */
+    public function draft(Request $request, OwnerUnitRequestService $units): RedirectResponse
+    {
+        $validated = $request->validate(self::rules(draft: true));
+
+        $rateMinor = $this->money($validated['nightly_rate'] ?? null);
+        $cleaningMinor = $this->money($validated['cleaning_fee'] ?? null);
+        if ($rateMinor === false || $cleaningMinor === false) {
+            // withInput() keeps everything they typed, so a bad rate costs them the click, never the draft.
+            return back()->withInput()->withErrors([
+                'nightly_rate' => 'Enter the rate as a plain amount, e.g. 180 or 180.00.',
+            ]);
+        }
+
+        try {
+            $draft = $units->saveDraft(
+                $request->user(),
+                $this->payload($validated, $rateMinor, $cleaningMinor),
+                $this->draftId($request),
+            );
+        } catch (ModelNotFoundException) {
+            abort(404);
+        }
+
+        $this->storePhotos($draft, $request->file('photos', []));
+
+        return redirect()->to(route('owner.add-unit', ['draft' => $draft->id]))
+            ->with('unit_request_draft_saved', 'Draft saved. You can finish this whenever you like.');
+    }
+
     public function store(Request $request, OwnerUnitRequestService $units): RedirectResponse
     {
-        $validated = $request->validate([
-            'requested_name' => ['required', 'string', 'max:120'],
-            'requested_kind' => ['required', Rule::in(array_keys(OwnerUnitRequestService::KINDS))],
+        // ⚠️ THE FULL RULE SET, ALWAYS. A resumed draft submits through exactly this path, so the draft
+        // relaxation can never reach a filed request: an incomplete draft is rejected HERE, at submit.
+        $validated = $request->validate(self::rules());
+
+        // Parse the two proposed money fields — a present-but-unparseable amount is a validation error, not a
+        // silent drop, so the owner sees it rather than submitting a request with a lost rate.
+        $rateMinor = $this->money($validated['nightly_rate'] ?? null);
+        $cleaningMinor = $this->money($validated['cleaning_fee'] ?? null);
+        if ($rateMinor === false || $cleaningMinor === false) {
+            return back()->withInput()->withErrors([
+                'nightly_rate' => 'Enter the rate as a plain amount, e.g. 180 or 180.00.',
+            ]);
+        }
+
+        try {
+            // A `draft_id` promotes THAT draft row to pending (a state transition), rather than filing a second
+            // request and orphaning the draft. It resolves owner-scoped + draft-only inside the service.
+            $created = $units->submit(
+                $request->user(),
+                $this->payload($validated, $rateMinor, $cleaningMinor),
+                $this->draftId($request),
+            );
+        } catch (ModelNotFoundException) {
+            abort(404);
+        }
+
+        $this->storePhotos($created, $request->file('photos', []));
+
+        // Carry the just-created request to the "done" screen (id + a couple of fields for the confirmation).
+        return redirect()->to(route('owner.add-unit'))->with('unit_request_done', [
+            'id' => $created->id,
+            'name' => (string) $created->requested_name,
+            'location' => (string) ($created->location ?? ''),
+        ]);
+    }
+
+    /**
+     * DO9-2 — the ONE rule set behind both writes (§N.8f). ⚠️ `$draft` changes EXACTLY two rules: the two
+     * required fields become nullable. Everything else — the kind whitelist, the numeric bounds, the amenity
+     * existence check, the 2,000-character note cap, the photo mime/size limits — is byte-identical in both
+     * contexts, so a draft can be INCOMPLETE but never MALFORMED, and a draft that saves cleanly cannot fail
+     * submit-time validation for a reason the owner was never shown.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private static function rules(bool $draft = false): array
+    {
+        $required = $draft ? ['nullable'] : ['required'];
+
+        return [
+            'requested_name' => [...$required, 'string', 'max:120'],
+            'requested_kind' => [...$required, Rule::in(array_keys(OwnerUnitRequestService::KINDS))],
             'location' => ['nullable', 'string', 'max:120'],
             'street_address' => ['nullable', 'string', 'max:200'],
             'bedrooms' => ['nullable', 'integer', 'min:0', 'max:'.OwnerUnitRequestService::MAX_BEDROOMS],
@@ -55,46 +145,44 @@ class OwnerUnitRequestController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
             'photos' => ['nullable', 'array', 'max:'.OwnerUnitRequestService::MAX_PHOTOS],
             'photos.*' => ['file', 'image', 'mimes:jpeg,jpg,png,webp', 'max:'.self::PHOTO_MAX_KB],
-        ]);
+            'draft_id' => ['nullable', 'string', 'max:26'],
+        ];
+    }
 
-        // Parse the two proposed money fields — a present-but-unparseable amount is a validation error, not a
-        // silent drop, so the owner sees it rather than submitting a request with a lost rate.
-        $rateMinor = $this->money($validated['nightly_rate'] ?? null);
-        $cleaningMinor = $this->money($validated['cleaning_fee'] ?? null);
-        if ($rateMinor === false || $cleaningMinor === false) {
-            return back()->withInput()->withErrors([
-                'nightly_rate' => 'Enter the rate as a plain amount, e.g. 180 or 180.00.',
-            ]);
-        }
+    /**
+     * The service payload — built once so a draft stores precisely what a submission stores (§N.8f).
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
+     */
+    private function payload(array $validated, ?int $rateMinor, ?int $cleaningMinor): array
+    {
+        return [
+            'requested_name' => $validated['requested_name'] ?? null,
+            'requested_kind' => $validated['requested_kind'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'street_address' => $validated['street_address'] ?? null,
+            'bedrooms' => (int) ($validated['bedrooms'] ?? 0),
+            'bathrooms' => (int) ($validated['bathrooms'] ?? 0),
+            'sleeps' => (int) ($validated['sleeps'] ?? 0),
+            'requested_rate_minor' => $rateMinor,
+            'cleaning_fee_minor' => $cleaningMinor,
+            'min_nights' => isset($validated['min_nights']) ? (int) $validated['min_nights'] : null,
+            'currency' => ($rateMinor !== null || $cleaningMinor !== null) ? 'EUR' : null,
+            'notes' => $validated['notes'] ?? null,
+            'amenity_ids' => $validated['amenities'] ?? [],
+        ];
+    }
 
-        try {
-            $created = $units->submit($request->user(), [
-                'requested_name' => $validated['requested_name'],
-                'requested_kind' => $validated['requested_kind'],
-                'location' => $validated['location'] ?? null,
-                'street_address' => $validated['street_address'] ?? null,
-                'bedrooms' => (int) ($validated['bedrooms'] ?? 0),
-                'bathrooms' => (int) ($validated['bathrooms'] ?? 0),
-                'sleeps' => (int) ($validated['sleeps'] ?? 0),
-                'requested_rate_minor' => $rateMinor,
-                'cleaning_fee_minor' => $cleaningMinor,
-                'min_nights' => isset($validated['min_nights']) ? (int) $validated['min_nights'] : null,
-                'currency' => ($rateMinor !== null || $cleaningMinor !== null) ? 'EUR' : null,
-                'notes' => $validated['notes'] ?? null,
-                'amenity_ids' => $validated['amenities'] ?? [],
-            ]);
-        } catch (ModelNotFoundException) {
-            abort(404);
-        }
+    /**
+     * The draft being resumed, if any. Only ever a hint: the service re-resolves it owner-scoped and draft-only,
+     * so a forged or foreign id simply yields a new row rather than touching someone else's request.
+     */
+    private function draftId(Request $request): ?string
+    {
+        $id = $request->input('draft_id');
 
-        $this->storePhotos($created, $request->file('photos', []));
-
-        // Carry the just-created request to the "done" screen (id + a couple of fields for the confirmation).
-        return redirect()->to(route('owner.add-unit'))->with('unit_request_done', [
-            'id' => $created->id,
-            'name' => (string) $created->requested_name,
-            'location' => (string) ($created->location ?? ''),
-        ]);
+        return is_string($id) && $id !== '' ? $id : null;
     }
 
     /**

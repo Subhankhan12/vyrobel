@@ -79,14 +79,69 @@ class OwnerUnitRequestService
      *     min_nights?: ?int, currency?: ?string, notes?: ?string, amenity_ids?: array<int, string>
      * }  $data
      */
-    public function submit(User $user, array $data): UnitRequest
+    public function submit(User $user, array $data, ?string $draftId = null): UnitRequest
     {
         $owner = $this->owner($user);
+        $request = $this->persist($owner, $data, 'pending', $draftId);
 
-        $request = UnitRequest::create([
+        $this->audit->record('owner.unit_requested', $owner, null, ['kind' => $request->requested_kind]);
+
+        return $request;
+    }
+
+    /**
+     * DO9-2 — save the wizard's progress as an owner-private DRAFT. Same owner, same table, same persist path as
+     * {@see submit()} (§N.8f); only the status differs. Creates the draft, or updates the one being resumed.
+     *
+     * ⚠️ A DRAFT IS NOT A REQUEST. Nothing is filed: it never enters {@see UnitRequest::scopeFiled()}, so it
+     * cannot appear on the operator's desk or in their counts, and {@see approve()}/{@see decline()} refuse it
+     * because they require `pending`. It is the owner's own unfinished work until they submit it.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function saveDraft(User $user, array $data, ?string $draftId = null): UnitRequest
+    {
+        $owner = $this->owner($user);
+        $draft = $this->persist($owner, $data, 'draft', $draftId);
+
+        $this->audit->record('owner.unit_request_drafted', $owner, null, ['kind' => $draft->requested_kind]);
+
+        return $draft;
+    }
+
+    /**
+     * Resolve one of THIS owner's drafts for resuming or submitting — owner-scoped by {@see BelongsToOwner} AND
+     * pinned to `draft`.
+     *
+     * ⚠️ THE STATUS CHECK IS A GUARD, NOT A CONVENIENCE. Without it a resumed-draft submit could be pointed at
+     * an ALREADY-FILED request id and would overwrite a request the operator has seen — or one they have already
+     * approved — from the owner's side. A non-draft id resolves to null and is treated as "no draft".
+     */
+    public function findDraft(?string $draftId): ?UnitRequest
+    {
+        if ($draftId === null || $draftId === '') {
+            return null;
+        }
+
+        return UnitRequest::query()->whereKey($draftId)->where('status', 'draft')->first();
+    }
+
+    /**
+     * The shared writer behind {@see submit()} and {@see saveDraft()} — ONE definition of how a request's fields
+     * reach the table, so a draft and a submission can never drift into storing different things (§N.8f).
+     *
+     * `$draftId` resumes: the SAME row is updated and promoted rather than a second one created, which is what
+     * keeps "draft → submitted" a state transition instead of a duplicate request. It is resolved through
+     * {@see findDraft()}, so only the owner's own, still-draft row can ever be written.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function persist(Owner $owner, array $data, string $status, ?string $draftId): UnitRequest
+    {
+        $attributes = [
             'owner_id' => $owner->id,
-            'requested_name' => $data['requested_name'],
-            'requested_kind' => $data['requested_kind'],
+            'requested_name' => $data['requested_name'] ?? null,
+            'requested_kind' => $data['requested_kind'] ?? array_key_first(self::KINDS),
             'location' => $data['location'] ?? null,
             'street_address' => $data['street_address'] ?? null,
             'bedrooms' => $data['bedrooms'] ?? 0,
@@ -97,22 +152,31 @@ class OwnerUnitRequestService
             'min_nights' => $data['min_nights'] ?? null,
             'currency' => $data['currency'] ?? null,
             'notes' => $data['notes'] ?? null,
-            'status' => 'pending',
-        ]);
+            'status' => $status,
+        ];
+
+        $existing = $this->findDraft($draftId);
+
+        if ($existing instanceof UnitRequest) {
+            $existing->update($attributes);
+            $request = $existing->refresh();
+        } else {
+            $request = UnitRequest::create($attributes);
+        }
 
         // Amenities are real catalog rows — attach only ids that genuinely exist (a tampered id is silently
         // dropped by sync against the validated set the caller passes). Shared pivot, never a parallel table.
-        if (! empty($data['amenity_ids'])) {
-            $request->amenities()->sync($data['amenity_ids']);
-        }
-
-        $this->audit->record('owner.unit_requested', $owner, null, ['kind' => $request->requested_kind]);
+        // ⚠️ sync() on a resumed draft also REMOVES chips the owner has since unticked, which is what makes the
+        // saved draft match the wizard rather than accumulate every amenity ever selected.
+        $request->amenities()->sync($data['amenity_ids'] ?? []);
 
         return $request;
     }
 
     /**
-     * The owner's OWN requests, newest first — owner-scoped by BelongsToOwner.
+     * The owner's OWN requests, newest first — owner-scoped by BelongsToOwner. ⚠️ Deliberately INCLUDES drafts:
+     * this is the owner's own list, and a draft they cannot see is a draft they cannot resume. The operator's
+     * equivalent read is {@see UnitRequest::scopeFiled()}, which excludes them.
      *
      * @return Collection<int, UnitRequest>
      */

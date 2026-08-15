@@ -26,7 +26,11 @@ class OperatorUnitRequests extends Component
 
     public function render(): View
     {
-        $requests = UnitRequest::query()->with('owner', 'amenities', 'photos', 'createdUnit')->orderByDesc('created_at')->get();
+        // ⚠️ DO9-2 — `filed()` EXCLUDES the owner's still-private DRAFTS. This query had no status filter at
+        // all, so the moment a `draft` state existed every half-finished wizard would have appeared on the
+        // operator's desk — an owner's unfinished, deliberately-unsent work shown to staff. The KPI counts
+        // below derive from this same collection, so they inherit the exclusion rather than repeating it.
+        $requests = UnitRequest::query()->filed()->with('owner', 'amenities', 'photos', 'createdUnit')->orderByDesc('created_at')->get();
 
         // #104 GATE 1 — the approve form needs the tenant's real properties + each property's room types (the
         // operational choices the owner can't make). Tenant-scoped; only offered to a manager (`units.manage`).

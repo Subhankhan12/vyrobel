@@ -878,6 +878,12 @@
         .vy-au-cta--wait:hover { transform: none; color: var(--vy-on-grad-soft); }
         .vy-au-cta--ghost { width: 100%; margin-top: 10px; padding: 11px 0; border-radius: var(--vy-r-pill); background: transparent; border: 1px solid rgba(120,70,40,.16); color: var(--vy-muted); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; cursor: pointer; box-shadow: none; text-align: center; text-decoration: none; display: block; box-sizing: border-box; }
         .vy-au-cta--ghost:hover { background: rgba(120,70,40,.06); transform: none; color: var(--vy-muted); }
+        /* DO9-2 — the save-as-draft footer + the "Continue" link on a draft row. Reuses the existing wizard
+           tokens (no new palette); --vy-muted is the AA-corrected token, so the note inherits a measured colour. */
+        .vy-au-draftbar { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--vy-hairline); }
+        .vy-au-draftnote { margin: 8px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--vy-muted); text-align: center; }
+        .vy-au-resume { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; white-space: nowrap; }
+        .vy-au-resume:hover { text-decoration: underline; }
         /* live preview */
         .vy-au-preview { flex: 0 0 288px; max-width: 288px; min-width: 260px; position: sticky; top: 20px; }
         .vy-au-preview-label { font-size: 10.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-on-grad-soft); margin-bottom: 10px; padding-left: 2px; }

@@ -3328,6 +3328,13 @@ says *why* you cannot continue, so it was made readable anyway. The flat wash, a
 - **DO9-2 — no draft/resume.** Leaving the wizard loses everything typed; there is no draft state on
   `unit_requests` (`status` is pending/approved/declined only). The prototype implies none either.
   *Verdict: **REAL GAP** — needs a `draft` status or a client-side persist decision.*
+  🏁 **CLOSED 2026-08-15 — the SERVER-side option was taken** (a real `draft` status, not a client-side
+  persist): the state machine became **draft → pending → approved | declined** and the wizard gained
+  Save-as-draft + resume. ⚠️ **The load-bearing half was not the draft, it was the ISOLATION:**
+  `OperatorUnitRequests` had **no status filter at all**, so a draft state would have put every half-finished
+  wizard on the operator's desk on day one. Excluded through the ONE `UnitRequest::scopeFiled()` the list and
+  its counts both read. Draft-save relaxes **requiredness only** — every format/bound rule is the submit rule
+  — and submit re-validates in full, so an incomplete draft cannot be filed.
 - **DO9-3 — the owner cannot withdraw a request.** `UnitRequest` has no owner-side cancel path; only the
   operator approves/declines. *Verdict: **REAL GAP** — a state machine addition, not presentation.*
 - **DO9-4 — the prototype's professional-photo offer ("our team can arrange a shoot — just ask") is copy

@@ -81,12 +81,27 @@
             </div>
         </div>
     @else
+        {{-- DO9-2 — the draft-saved confirmation. Says plainly that nothing has been sent, because "saved" on a
+             request screen could otherwise be read as "submitted". --}}
+        @if (session('unit_request_draft_saved'))
+            <div class="vy-flash is-ok" style="margin-bottom:18px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                {{ session('unit_request_draft_saved') }}
+            </div>
+        @endif
+
         {{-- THE WIZARD --}}
+        {{-- DO9-2 — every initial value comes from the resumed DRAFT when one is being continued, and falls back
+             to the wizard's own defaults otherwise. Pre-filling here (rather than with a second "load" step)
+             keeps resume a plain GET: the page IS the draft. --}}
         <div x-data="{
             step: 1,
-            name: '', kind: @js(array_key_first($kinds)), town: '', address: '',
-            beds: 1, baths: 1, sleeps: 2, minNights: 2,
-            amenities: [], nightly: '', cleaning: '', coverUrl: '', photo2Url: '', notes: '',
+            name: @js($draft['requested_name'] ?? ''), kind: @js($draft['requested_kind'] ?? array_key_first($kinds)),
+            town: @js($draft['location'] ?? ''), address: @js($draft['street_address'] ?? ''),
+            beds: @js($draft['bedrooms'] ?? 1), baths: @js($draft['bathrooms'] ?? 1),
+            sleeps: @js($draft['sleeps'] ?? 2), minNights: @js($draft['min_nights'] ?? 2),
+            amenities: @js($draft['amenities'] ?? []), nightly: @js($draft['nightly_rate'] ?? ''),
+            cleaning: @js($draft['cleaning_fee'] ?? ''), coverUrl: '', photo2Url: '', notes: @js($draft['notes'] ?? ''),
             pct: @js($commissionPct), sym: @js($currencySymbol), lim: @js($limits),
             kindLabels: @js($kinds), amNames: @js(collect($amenities)->pluck('name', 'id')),
             get canNext1() { return this.name.trim().length > 0 },
@@ -127,6 +142,9 @@
                   @keydown.enter="if (step !== 4) $event.preventDefault()">
                 @csrf
                 {{-- Stepper / chip values that have no visible named input post through these mirrors --}}
+                {{-- DO9-2 — which draft is being continued. Absent on a fresh wizard; only ever a hint, since
+                     the server re-resolves it owner-scoped + draft-only. --}}
+                @if ($draft)<input type="hidden" name="draft_id" value="{{ $draft['id'] }}">@endif
                 <input type="hidden" name="requested_kind" :value="kind">
                 <input type="hidden" name="bedrooms" :value="beds">
                 <input type="hidden" name="bathrooms" :value="baths">
@@ -337,6 +355,31 @@
                                 <button type="submit" class="vy-au-cta">Submit for review</button>
                                 <button type="button" class="vy-au-cta--ghost" @click="go(3)">Back</button>
                             </div>
+
+                            {{-- DO9-2 — SAVE AS DRAFT, available from every step (that is the point: the wizard
+                                 was submit-or-lose). Reuses the wizard's own ghost-button idiom rather than a
+                                 new style.
+                                 ⚠️ IT SITS AFTER "Submit for review" IN DOM ORDER ON PURPOSE. Implicit
+                                 submission (Enter) targets the FIRST submit button in the form, so placing this
+                                 earlier would have made Enter on step 4 silently save a draft instead of
+                                 submitting — quietly breaking the guard the comment on the <form> describes.
+                                 `formaction` sends it to the draft route; one form, two destinations. --}}
+                            <div class="vy-au-draftbar">
+                                <button type="submit" formaction="{{ route('owner.add-unit.draft') }}" formnovalidate
+                                        class="vy-au-cta--ghost" style="width:100%;margin:0">
+                                    Save as draft
+                                </button>
+                                <p class="vy-au-draftnote">
+                                    @if ($draft)
+                                        Draft saved{{ $draft['saved_at'] ? ' · '.$draft['saved_at'] : '' }}. Nothing has been sent to {{ $operatorName }} yet.
+                                        @if ($draft['photo_count'] > 0)
+                                            {{ $draft['photo_count'] }} photo{{ $draft['photo_count'] === 1 ? '' : 's' }} already saved with this draft.
+                                        @endif
+                                    @else
+                                        Keeps what you’ve filled in so far. Nothing is sent to {{ $operatorName }} until you submit.
+                                    @endif
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -386,7 +429,13 @@
                             <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">{{ $r['name'] }}</div>
                             <div class="vy-line-sub" style="font-size:12px">{{ $r['kind'] }}@if ($r['when']) · {{ $r['when'] }}@endif</div>
                         </div>
-                        <span class="vy-status vy-status--{{ $r['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $r['status_meta']['label'] }}</span>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            {{-- DO9-2 — only a draft is resumable; a filed request has no continue link. --}}
+                            @if ($r['resume_url'])
+                                <a href="{{ $r['resume_url'] }}" class="vy-au-resume">Continue</a>
+                            @endif
+                            <span class="vy-status vy-status--{{ $r['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $r['status_meta']['label'] }}</span>
+                        </div>
                     </div>
                 @endforeach
             </section>

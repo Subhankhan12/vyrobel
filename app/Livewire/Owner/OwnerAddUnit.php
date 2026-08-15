@@ -56,6 +56,7 @@ class OwnerAddUnit extends Component
                 'firstName' => 'there',
                 'requests' => [],
                 'done' => null,
+                'draft' => null,
                 'limits' => $this->limits(),
             ]);
         }
@@ -77,12 +78,17 @@ class OwnerAddUnit extends Component
             'currencySymbol' => $this->currencySymbol($currency),
             'firstName' => $this->firstName(),
             'requests' => $service->requests()->map(fn (UnitRequest $r): array => [
-                'name' => (string) $r->requested_name,
+                // A draft may genuinely have no name yet — that is the state, not a missing value, so it is
+                // labelled rather than rendered as an empty row.
+                'name' => filled($r->requested_name) ? (string) $r->requested_name : 'Untitled draft',
                 'kind' => OwnerUnitRequestService::KINDS[$r->requested_kind],
                 'status_meta' => $this->requestStatusMeta((string) $r->status),
                 'when' => $r->created_at?->format('j M Y'),
+                // DO9-2 — only a DRAFT is resumable; a filed request has no continue link.
+                'resume_url' => $r->isDraft() ? route('owner.add-unit', ['draft' => $r->id]) : null,
             ])->all(),
             'done' => $this->doneData(),
+            'draft' => $this->draftData($service),
             'limits' => $this->limits(),
         ]);
     }
@@ -165,6 +171,56 @@ class OwnerAddUnit extends Component
     }
 
     /**
+     * DO9-2 — the wizard PRE-FILLED from one of this owner's drafts, resolved from `?draft={id}`.
+     *
+     * ⚠️ Owner-scoped AND draft-only through the service's {@see OwnerUnitRequestService::findDraft()}: a
+     * foreign id, an already-filed request id, or junk all resolve to null and simply render an empty wizard —
+     * the resume link can never open (or later overwrite) someone else's request, or one the operator has
+     * already seen.
+     *
+     * ⚠️ PHOTOS ARE NOT RE-OFFERED as pre-filled input — a file picker cannot be pre-populated by any browser.
+     * Photos already uploaded stay attached to the draft row and are re-attached to the submitted request; the
+     * view says so rather than leaving the owner to guess whether their uploads survived.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function draftData(OwnerUnitRequestService $service): ?array
+    {
+        $id = request()->query('draft');
+        $draft = $service->findDraft(is_string($id) ? $id : null);
+
+        if (! $draft instanceof UnitRequest) {
+            return null;
+        }
+
+        return [
+            'id' => (string) $draft->id,
+            'requested_name' => (string) ($draft->requested_name ?? ''),
+            'requested_kind' => (string) $draft->requested_kind,
+            'location' => (string) ($draft->location ?? ''),
+            'street_address' => (string) ($draft->street_address ?? ''),
+            'bedrooms' => (int) $draft->bedrooms,
+            'bathrooms' => (int) $draft->bathrooms,
+            'sleeps' => (int) $draft->sleeps,
+            'min_nights' => (int) ($draft->min_nights ?? 2),
+            // Money back out as the plain typed shape the wizard's text inputs use (never a formatted string
+            // the owner would have to re-clean); null → empty, never a fabricated 0.
+            'nightly_rate' => $draft->requested_rate_minor === null ? '' : $this->plainAmount((int) $draft->requested_rate_minor),
+            'cleaning_fee' => $draft->cleaning_fee_minor === null ? '' : $this->plainAmount((int) $draft->cleaning_fee_minor),
+            'notes' => (string) ($draft->notes ?? ''),
+            'amenities' => $draft->amenities()->pluck('amenities.id')->map(fn ($id): string => (string) $id)->all(),
+            'photo_count' => $draft->photos()->count(),
+            'saved_at' => $draft->updated_at?->format('j M Y, H:i'),
+        ];
+    }
+
+    /** Integer minor units → the plain "180" / "180.50" text the wizard's rate fields accept back. */
+    private function plainAmount(int $minor): string
+    {
+        return $minor % 100 === 0 ? (string) intdiv($minor, 100) : number_format($minor / 100, 2, '.', '');
+    }
+
+    /**
      * @return array{label: string, tone: string}
      */
     private function requestStatusMeta(string $status): array
@@ -172,6 +228,10 @@ class OwnerAddUnit extends Component
         return match ($status) {
             'approved' => ['label' => 'Approved', 'tone' => 'paid'],
             'declined' => ['label' => 'Declined', 'tone' => 'draft'],
+            // ⚠️ DO9-2 — a draft MUST be named here. The `default` arm below reads "Pending review", so without
+            // this case a saved draft would tell the owner it was already with the operator — the exact
+            // opposite of the truth, and on the one screen where that distinction is the whole feature.
+            'draft' => ['label' => 'Draft — not sent', 'tone' => 'draft'],
             default => ['label' => 'Pending review', 'tone' => 'pending'],
         };
     }

@@ -10417,3 +10417,70 @@ demo Sep net **€885.60 unchanged**.
 ⚠️ **LOGGED, NOT BUILT:** the OPERATOR has no retry control either — `pay()`'s permission holder still cannot
 re-queue a failed payout from `/app/payouts/run`. The hardened service is ready for it; wiring it is a
 separate item and a separate surface.
+
+---
+
+## 2026-08-15 — DO9-2 · save an Add-Unit request as a DRAFT (+ resume)
+
+**The ask:** the Add-Unit wizard was submit-or-lose. **The confirm step found that the missing state was the
+easy half — the dangerous half was what would happen the moment it existed.**
+
+⚠️ **THE LOAD-BEARING FINDING — THE OPERATOR QUERY HAD NO STATUS FILTER AT ALL.**
+`OperatorUnitRequests` read `UnitRequest::query()->…->get()`, every row, unfiltered. Adding a `draft` state
+without touching it would have put **every half-finished wizard on the operator's desk immediately** — an
+owner's private, deliberately-unsent work shown to staff, and shipped inside a feature whose entire promise is
+"nothing is sent until you submit." The exclusion now lives in ONE place, `UnitRequest::scopeFiled()`, which
+the review list AND its KPI counts both read (§N.8f), rather than in a filter each future operator surface
+would have to remember.
+
+⚠️ **TWO MORE PREMISES THE LIVE SCHEMA AND THE LIVE CODE CORRECTED** (read them, don't assume — §N.27.2):
+
+- **`requested_name` was `NOT NULL` with no default.** A draft of a wizard the owner has barely opened is
+  exactly the case with no name, so the feature was physically unstorable until the column became nullable.
+  ⚠️ It is nullable ONLY for drafts: `required` still stands in the SUBMIT rules, so every FILED request has a
+  name. The owner's list labels a nameless draft "Untitled draft" rather than rendering a blank row.
+- **`requestStatusMeta()`'s `default` arm reads "Pending review".** A draft would have been labelled as
+  already-with-the-operator — the precise opposite of the truth, on the one screen where that distinction IS
+  the feature. A too-loose default, §N.27.5's shape again. Named explicitly and guarded.
+
+**Built:** `draft` added to the real `status` enum by ALTER (**the state machine EXTENDED — never a parallel
+draft table**), lifecycle now **draft → pending → approved | declined** · `saveDraft()`/`findDraft()` beside
+`submit()`, all three over ONE private `persist()` so a draft and a submission cannot drift into storing
+different things · ONE `rules()` behind both writes · `owner.add-unit.draft` (controller route #20,
+`$capActions` co-owner-only, the same gate as submit) · resume as a plain `?draft={id}` GET that pre-fills the
+wizard · Save-as-draft on every step, in the wizard's own ghost-button idiom.
+
+⚠️ **THE RELAXATION IS REQUIREDNESS, AND NOTHING ELSE.** A draft may be INCOMPLETE but never MALFORMED: the
+kind whitelist, the numeric bounds, the amenity-existence check, the 2,000-char note cap and the photo
+mime/size limits are byte-identical in both contexts. A draft that saves cleanly cannot fail submit-time
+validation for a reason the owner was never shown — and **submit re-validates in full**, so an incomplete
+draft is rejected at submit (mutation-proven).
+
+⚠️ **`findDraft()` PINS `status = 'draft'`, AND THAT IS A GUARD, NOT A TIDINESS.** Without it a resumed-draft
+submit could be aimed at an ALREADY-FILED request id and would rewrite, from the owner's side, a request the
+operator had already seen or approved. Proven: passing a filed id files a NEW request and leaves the original
+byte-identical.
+
+**Placement detail worth keeping:** Save-as-draft sits **after** "Submit for review" in DOM order on purpose.
+Implicit submission (Enter) targets the FIRST submit button in a form, so placing it earlier would have made
+Enter on step 4 silently save a draft instead of submitting — quietly breaking the Enter guard the form's own
+comment describes.
+
+**Proven:** 13 tests; **4 mutations, each verified to have landed** — re-including drafts in the operator query
+reds the leak test AND the source guard; removing the draft relaxation reds the partial-save; relaxing SUBMIT
+reds the incomplete-submit; dropping the scope+status pin on `findDraft()` reds both the cross-owner and the
+rewrite-a-filed-request tests. ⚠️ The isolation is asserted against the **operator's own Livewire component**
+and the scope directly, per DO3-3's M1 lesson — never through an owner-side path another filter protects.
+
+Browser-driven end to end as the demo owner: a name-only wizard saved → redirected to `?draft=…` pre-filled →
+**the operator's Unit-requests screen showed "No unit requests yet · 0 pending"** → resumed via Continue
+("Draft — not sent", not "Pending review") → completed → submitted → the SAME row promoted to `pending`, one
+row total. ⚠️ **§O9's Alpine-root trap was walked into a third time** (`document.querySelector('[x-data]')`
+matches the SHELL's root, not the wizard's) — the component root has to be selected by its own state.
+
+⚠️ Fixture fully reverted — `unit_requests` diffs **identical** to its pre-pass snapshot, no orphan media,
+amenity-pivot or audit rows.
+
+**Untouched:** the submit flow's full validation · the operator review beyond the draft exclusion · DO9-1's
+notes (which round-trip through the draft) · isolation/RBAC. **DO9-3 (withdraw) deliberately not built.**
+Suite **2221 / 2212**, 14,239 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.

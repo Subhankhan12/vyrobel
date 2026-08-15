@@ -1170,6 +1170,10 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
     // 🔒 SG2 — requesting a new unit is an "Approval" action: co-owner only (page and submit).
     Route::get('/add-unit', OwnerAddUnit::class)->middleware($capActions)->name('add-unit');
     Route::post('/add-unit', [OwnerUnitRequestController::class, 'store'])->middleware($capActions)->name('add-unit.submit');
+    // DO9-2 — save the wizard as an owner-private DRAFT (relaxed validation; nothing filed). Same capability
+    // gate as the submit ($capActions, co-owner only) and the same controller-route discipline (#20): a draft
+    // is still an owner write. Resuming rides the GET above as ?draft={id}, resolved owner-scoped + draft-only.
+    Route::post('/add-unit/draft', [OwnerUnitRequestController::class, 'draft'])->middleware($capActions)->name('add-unit.draft');
     Route::get('/help', OwnerHelp::class)->name('help');
     // "Ask Vyrobel" — the grounded support assistant (Wave D · support AI). A controller POST (a plain <form>),
     // rate-limited; a READ over generic help content (no owner-data write). Grounding + guardrails + cost/circuit
