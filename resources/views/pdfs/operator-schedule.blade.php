@@ -2,9 +2,15 @@
      HTML4/CSS2.1 — table-based, inline CSS, DejaVu Sans, no flex/grid/external assets. Built from the SAME
      RosterWeek as the on-screen grid, so it reconciles character-for-character: real staff, real shifts, real
      approved leave, and a summary DERIVED from the same builder. No fabricated entries.
-     HONEST (#102): "open shifts" is omitted (no unassigned-shift model — every shift is bound to a person);
-     the footer states the roster is live (there is no publish/provisional state). Property + week are the
-     SELECTED context (no id in the URL). --}}
+     ⚠️ THIS COMMENT WAS STALE AND ITS STALENESS REACHED THE PAGE (DO-CORRECTNESS-1). It said open shifts were
+     omitted because "no unassigned-shift model" existed and that there was "no publish/provisional state".
+     BOTH became false when `open_shifts` + `schedule_publications` landed — and the footer sentence built on
+     them was being printed to operators. The false footer is now gone.
+     ⚠️ OPEN SHIFTS AND THE PUBLICATION STATE ARE STILL OMITTED HERE, but for a DIFFERENT and honest reason:
+     `RosterWeek` — the ONE builder this document and the on-screen grid share so they cannot disagree — does
+     not expose either yet, and a PDF template must never query models directly to work around that. Adding
+     the accessor is D34-1 (deferred, size M). Until then this document simply does not mention them; it no
+     longer DENIES them. Property + week are the SELECTED context (no id in the URL). --}}
 @php $brand = $brand ?? \App\Support\Branding\PropertyBrand::default(); $address = is_array($property?->address) ? $property->address : []; @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -63,8 +69,9 @@
     <h1 class="doc-title">Weekly rota</h1>
     <div class="doc-sub">{{ $brand->displayName }} · week of {{ $roster->weekLabel }} · generated {{ $generatedAt }}</div>
 
-    {{-- Summary — DERIVED from the same RosterWeek builder, so it reconciles to the grid below. "Open" is
-         omitted honestly (no unassigned-shift model exists). --}}
+    {{-- Summary — DERIVED from the same RosterWeek builder, so it reconciles to the grid below. ⚠️ There is
+         no "Open" tile: open shifts DO exist now (the old comment here claimed they did not), but `RosterWeek`
+         does not expose a count and this template must not query the model to invent one. D34-1. --}}
     <table class="sum"><tr>
         <td><div class="sum-n">{{ $roster->teamSize() }}</div><div class="sum-l">Team</div></td>
         <td><div class="sum-n">{{ $roster->shiftCount() }}</div><div class="sum-l">Shifts</div></td>
@@ -133,7 +140,26 @@
             <td style="text-align:left">{{ $brand->displayName }} · generated {{ $generatedAt }}</td>
             <td style="text-align:right">Week schedule · {{ $roster->weekLabel }}</td>
         </tr></table>
-        <div style="margin-top:6px">This rota reflects the LIVE roster — there is no draft or published state, so what you see here is what the team sees. Shift-swap requests go through the Vyrobel app or the front desk; statutory rest periods are observed between late and early shifts.</div>
+        {{-- ⚠️ THIS SENTENCE CARRIED THREE ASSERTIONS AND TWO OF THEM WERE FALSE (§N.8d, rendered to a user).
+             It read: "This rota reflects the LIVE roster — there is no draft or published state, so what you
+             see here is what the team sees. Shift-swap requests go through the Vyrobel app or the front desk;
+             statutory rest periods are observed between late and early shifts."
+
+             1. "there is no draft or published state" — FALSE since `schedule_publications` landed. The screen
+                has a working Publish button, the table is real, and `ScheduleController::publishWeek()` really
+                writes it. The document was denying a feature the product ships.
+             2. "statutory rest periods are observed between late and early shifts" — FALSE, and the most
+                consequential of the three: NOTHING computes or enforces a rest period anywhere in the
+                codebase. `conflictCount` is leave-vs-shift only. A rota pinned to a staff-room wall was
+                making a labour-law assurance the software does not stand behind. ⚠️ Not in the register —
+                found by reading the sentence the register's D34-1 entry pointed near (§N.13.1 again).
+             3. "what you see here is what the team sees" — still technically true (publishing stamps a date
+                and notifies; it does NOT snapshot, and `publishWeek()`'s own comment says "edits stay live
+                afterwards"). Dropped anyway: on a PRINTOUT the honest risk is staleness, not divergence.
+
+             What replaces them is the one thing a printed rota can always verify about itself — WHEN it was
+             taken. `$generatedAt` is already computed in the property's timezone for the header. --}}
+        <div style="margin-top:6px">This rota is a snapshot of the roster as it stood on {{ $generatedAt }} — any later change will not appear on this printout. Shift-swap requests go through the Vyrobel app or the front desk.</div>
     </div>
 </div>
 </body>
