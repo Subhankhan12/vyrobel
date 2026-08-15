@@ -10036,3 +10036,42 @@ it was always meant to represent; the rule was not relaxed.
 
 Browser-verified: on the real demo data `/app/insights` now shows **no "Last year" series and no `pts` delta
 pills** (the whole prior year is the 6–13% tail) while this-year figures render normally.
+
+
+---
+
+## 2026-08-15 — D1-3 · `expected_arrival` on the dashboard arrivals
+
+A real, GDPR-covered column that FRONT DESK already displayed and the dashboard's arrivals payload never
+selected — so the same operator saw the guest's stated arrival at the desk and lost it on the dashboard.
+
+⚠️ **A LEDGER CORRECTION, AND IT INVERTED THE VERIFICATION.** The entry calls the column "real, POPULATED".
+It is populated **0 times out of 41** on the demo — it is written at guest online check-in, so production
+carries values and the demo does not. That makes the **POPULATED** case the unrendered sibling branch, not
+the null one: the demo could only ever render the absent state. Both were forced.
+
+- **Rendered by MATCHING Front Desk character-for-character** — the same `trim()`→null normalisation, the
+  same `Arrival · ` label, the same `@if` that OMITS the line when absent.
+- ⚠️ **FREE TEXT, NOT A CLOCK.** Printed exactly as the guest typed it, never parsed, formatted as `HH:mm`
+  or defaulted to an hour. A guest who wrote "afternoon" has not told us 12:00. ⚠️ Note
+  `FrontDesk::parseArrivalMinutes()` DOES fall back to the property's default check-in — but only to position
+  a DOT on the timeline axis. A plotted guess must never become displayed text, and does not.
+- ⚠️ **NULL OMITS THE LINE rather than printing a placeholder** — a "—" where a time belongs reads as a time
+  that was given and then lost.
+- **GDPR audience confirmed identical**: both routes sit in one `EnsureBackOfficeAccess` group and NEITHER
+  carries an extra `can:`, so anyone who can open the dashboard can already read this value on Front Desk.
+  Nothing new is exposed. Asserted, because "same audience" was the precondition for doing this at all.
+
+⚠️ **Logged, not done (`D1-3a`, §N.8f):** the two surfaces now MATCH rather than SHARE. There is no shared
+arrival-row component and this pass was scoped to leave Front Desk untouched, so a parity test reads BOTH
+sources (payload idiom, Blade label, omit-when-null) and fails loudly on divergence. Extracting a shared
+component — the `<x-auth.passkeys>` pattern from D24-2 — would remove the risk structurally.
+
+⚠️ **A fixture trap worth recording:** the `book()` helper's overrides apply to the LINE only; the
+reservation header's check_in/check_out are hardcoded to 2026-09-01, so a "today" override silently produced
+a September booking that never appeared in today's arrivals and looked like the feature failing. Built
+through the certified `AssignmentService` instead.
+
+Browser-verified on the real demo: with a value forced, the dashboard and Front Desk print the identical
+string `Arrival · late afternoon, after 6`; on a null arrival the dashboard row renders clean with no arrival
+line at all. Fixture reverted, raw-query verified (0 of 41 populated).

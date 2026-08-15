@@ -131,6 +131,18 @@
                                         <div class="vy-arr-name">{{ $a['guest'] }}</div>
                                         {{-- #104 GATE 3c — the wireframe's per-arrival detail: reference · N nights · unit (real). --}}
                                         <div class="vy-arr-ref">{{ $a['reference'] }} · {{ $a['nights'] }} {{ \Illuminate\Support\Str::plural('night', $a['nights']) }}@if ($a['unit']) · {{ $a['unit'] }}@else · Unassigned @endif</div>
+                                        {{-- D1-3 — the guest's own estimated arrival, matching FRONT DESK's rendering
+                                             character-for-character: the same "Arrival · " label, and the same @if that
+                                             OMITS the line entirely when none was given.
+                                             ⚠️ FREE TEXT, NOT A CLOCK — printed exactly as the guest typed it. Never
+                                             parsed, never formatted as a time, and never defaulted to an hour: a guest
+                                             who wrote "afternoon" has not told us 12:00, and inventing one would be a
+                                             fabricated fact about a real person's plans.
+                                             ⚠️ NULL OMITS THE LINE rather than printing a placeholder - a "—" sitting
+                                             where a time belongs reads as a time that was given and then lost. --}}
+                                        @if ($a['expected_arrival'])
+                                            <div class="vy-arr-ref">Arrival · {{ $a['expected_arrival'] }}</div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">

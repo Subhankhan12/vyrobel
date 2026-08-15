@@ -457,7 +457,7 @@ class OperatorDashboard extends Component
      * Today's arrivals as a names-only list (guest PII kept to the name, per the front-desk precedent).
      *
      * @param  Collection<int, Reservation>  $arrivals
-     * @return list<array{id: string, reference: string, guest: string, status_label: string, tone: string}>
+     * @return list<array{id: string, reference: string, guest: string, status_label: string, tone: string, nights: int, unit: ?string, expected_arrival: ?string}>
      */
     private function arrivalsList(Collection $arrivals): array
     {
@@ -484,6 +484,22 @@ class OperatorDashboard extends Component
                 'tone' => $meta['tone'],
                 'nights' => $nights,
                 'unit' => $unit !== '' ? $unit : null,
+                /*
+                 * D1-3 — the guest's own estimated arrival. ⚠️ THE COLUMN WAS ALWAYS REAL AND ALWAYS SHOWN ON
+                 * FRONT DESK; this payload simply never selected it, so the dashboard's arrivals list dropped
+                 * a detail the desk had.
+                 *
+                 * ⚠️ FREE TEXT, NOT A CLOCK. It is whatever the guest typed at online check-in — "afternoon",
+                 * "after 6", "late" — so it is passed through verbatim and NEVER parsed, formatted as a time,
+                 * or defaulted to an hour. `FrontDesk::arrivalRows()` normalises it exactly this way (trim,
+                 * empty → null); matched character-for-character so the two surfaces cannot disagree, and
+                 * pinned by a test that reads BOTH sources (§N.8f).
+                 *
+                 * ⚠️ Note `FrontDesk::parseArrivalMinutes()` DOES fall back to the property's default check-in
+                 * — but only to position a DOT on the timeline axis. That fallback must never become displayed
+                 * text: a plotted guess is not a stated time.
+                 */
+                'expected_arrival' => ($ea = trim((string) ($reservation->expected_arrival ?? ''))) !== '' ? $ea : null,
             ];
         })->all();
     }
