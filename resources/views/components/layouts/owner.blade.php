@@ -203,7 +203,7 @@
         .vy-acct-btn .vy-avatar { width: 30px; height: 30px; }
         .vy-acct-chev { width: 15px; height: 15px; color: var(--vy-faint); transition: transform .18s ease; }
         .vy-acct-btn[aria-expanded="true"] .vy-acct-chev { transform: rotate(180deg); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-grad); color: #fff;   /* --vy-grad's light stop #E8703A gives white 3.08 */ font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-avatar-bg); color: var(--vy-on-peach);   /* DO-RESTORE-5: flat plate, dark ink 7.60 — the CTA gradient it used to ride is untouched */ font-size: 12px; font-weight: 600; display: grid; place-items: center; flex: none; }
         .vy-acct-menu {
             position: absolute; top: calc(100% + 10px); right: 0; z-index: 70; min-width: 210px; padding: 6px;
             background: rgba(255, 252, 248, 0.97); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: var(--vy-r-md);
@@ -720,7 +720,11 @@
         .vy-convo-row:hover { background: rgba(255, 255, 255, 0.55); transform: translateX(2px); }
         .vy-convo-row.is-unread { background: rgba(232, 112, 58, 0.06); }
         .vy-convo-row.is-active { background: #fff; box-shadow: var(--vy-shadow-sm); }
-        .vy-convo-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, var(--vy-peach), var(--vy-accent)); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; }
+        /* ⚠️ A SEVENTH AVATAR COPY — and the guard, not a human, found it (DO-RESTORE-5). It wrote the peach
+           gradient as TOKENS rather than as a literal, so every earlier hex-based search walked straight past
+           it. It is currently UNUSED (no markup references it anywhere in the repo), which is exactly why it
+           had to be fixed rather than deleted: a dead rule is a live defect the moment someone uses it. */
+        .vy-convo-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--vy-avatar-bg); color: var(--vy-on-peach); display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 13.5px; }
         .vy-convo-main { flex: 1; min-width: 0; }
         .vy-convo-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
         .vy-convo-row.is-unread .vy-convo-name { font-weight: 600; }

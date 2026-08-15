@@ -523,7 +523,12 @@
         /* Relative-day pill beside the date. */
         .vy-fd-rel { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--vy-r-pill); background: rgba(217, 102, 46, 0.13); border: 1px solid rgba(232, 112, 58, 0.30); color: var(--vy-on-grad)   /* accent-text measured 3.57 here: this chip sits on the page GRADIENT, outside that token's card/tint scope */; font-size: 11px; font-weight: 500; white-space: nowrap; }
         /* Row initials avatar. */
-        .vy-fd-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; }
+        /* ⚠️ A SIXTH COPY OF THE AVATAR CONCEPT, found in DO-RESTORE-5 and missed by the two passes before it —
+           both searched the SHELLS, and this one is page-local (§N.8f: a copy hides where you did not look).
+           It carried the worst pairing in the family, WHITE on the peach gradient (2.03 at the light stop).
+           Now the same flat plate + dark ink as every other avatar. The initials are aria-hidden and the guest
+           NAME is rendered beside them, so this is a redundant mark — but 2.03 is not de-emphasis (§N.16.6). */
+        .vy-fd-av { width: 32px; height: 32px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: var(--vy-avatar-bg); color: var(--vy-on-peach); font-size: 11px; font-weight: 500; }
         /* The design's illustrated empty board. */
         .vy-fd-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 40px 24px 30px; }
         .vy-fd-empty-ico { position: relative; width: 72px; height: 72px; border-radius: 22px; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent-text); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }

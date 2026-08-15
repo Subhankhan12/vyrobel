@@ -7642,3 +7642,56 @@ failure. ⚠️ **The only real fix is flattening that background — a founder 
 > that was correct for the stop it was taken from and wrong for the surface it was applied to. Re-deriving it
 > against the real painted plate — before applying — is what caught it. *Execute the intent, not just the
 > literal value; and when they diverge, say so rather than silently doing either one.*
+
+
+# (N.26) 🏁 DO-RESTORE-5 — FLATTEN THE PLATE WHEN NO TEXT COLOUR CAN WIN (2026-08-15)
+
+## §N.26.1 ⚠️ A GRADIENT CAN BE UNFIXABLE BY TEXT COLOUR — AND THAT IS A BACKGROUND DECISION
+
+The avatar family rode two gradients. **A gradient has two worst cases at opposite ends:** white is worst at
+the light stop, dark text at the dark stop. So:
+
+| surface | white | dark ink | fixable by text? |
+|---|---|---|---|
+| peach gradient | 1.61 / 3.25 | 9.58 / **4.73** | thinly — ink passes at 4.73, 4.32 at the declared stop |
+| `--vy-grad` | 1.67 / **4.58** | 9.22 / **3.36** | ⚠️ **NO — neither direction clears both ends** |
+
+**When no text colour can clear both ends, the text is not the variable — the background is.** Flattening gives
+one plate value and no end to hug: `--vy-avatar-bg: #F0A57A` (the wireframe peach's own light stop, so the
+avatars stay on-brand) carries dark ink at **7.60**, measured **7.60** on the page.
+
+## §N.26.2 🧭 THE SCOPE GUARD THAT MATTERED MOST
+
+The avatars rode the **same token as every CTA**. Flattening `--vy-grad` itself would have silently destroyed
+the founder's CTA restore (DO-RESTORE-1a). Only the avatar surfaces stopped *using* it; the token and its
+**36 CTA uses** are untouched, verified on a live page, **and a guard reds if anyone flattens the shared
+token** — the scope guard is now structural, not a note.
+
+> **A shared token is a shared decision.** Changing what one surface *uses* is local; changing the token is
+> global. The register's history is full of the second being done by accident — this pass made the difference
+> explicit and testable.
+
+## §N.26.3 THE FAMILY, CLOSED
+
+Five avatar backgrounds across both shells → `--vy-avatar-bg`, dark ink. `.vy-plan-tag` → solid `--vy-accent`
++ white (5.18) so "Pro" still reads as a badge (option b; the flat-peach alternative measured higher but read
+as a muted chip). **`.vy-owner-avatar` reclassified DECIDED → PASSING.** The two-gradient split that made the
+family unfixable is gone: one plate, one text colour, one guard.
+
+
+## §N.26.4 ⚠️ §N.8f APPLIES TO GUARDS, NOT JUST TO TOKENS
+
+DO-RESTORE-3's decision was written into **three** test files. Two were re-pointed in this pass; the third
+(`SharedClassContrastTest`) was missed and **only the full suite caught it** — it still asserted the avatars
+must ride the gradient, i.e. it would have demanded the defect back.
+
+> **A guard is a COPY of a decision.** Copies drift exactly the way tokens do, and the same rule applies:
+> when a decision changes, find every copy. A per-file run would not have surfaced it; the full suite did.
+
+Also fixed here, and overdue: **the joiner/classifier lived in the gitignored `.playwright-mcp/`**, so five
+passes' worth of corrections and the founder-decision classification existed in one working tree only. It now
+sits beside the other two probe pieces at **`tools/contrast-report.php`** — the exact failure
+`contrast-collect.js` already names in its own header, committed at last.
+
+⚠️ And the reclassification has teeth in one direction that matters: while the avatar family sat in `$decided`,
+a **regression** on any of it would have been filed as "accepted exception" and never read as a defect.

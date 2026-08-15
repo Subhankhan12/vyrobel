@@ -66,6 +66,12 @@ function operatorShellSource(): string
     return (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
 }
 
+/** The canonical palette (DO-TOKEN-1) — read directly so a guard never pins a constant the source moved past. */
+function sharedTokenSource(): string
+{
+    return (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+}
+
 /*
  * ⚠️ THE WORST PLATE EACH TOKEN'S USERS ACTUALLY LAND ON, pixel-sampled across ten operator pages with the
  * validated sampler. Pinning the WORST is the whole point (N.16.6): a guard written against a light plate
@@ -160,27 +166,37 @@ it('⚠️ the amber + vip tags use their TEXT values, not their FILL values', f
         ->and(sharedRatio([138, 100, 16], [241, 194, 161]))->toBeLessThan(4.5);           // #8a6410 vip
 });
 
-it('⚠️ SUPERSEDED BY DO-RESTORE-3 — white-on-a-light-accent-tint is RESTORED, and accepted', function () {
+it('⚠️ DO-RESTORE-5 — the avatar plate is FLAT, so one text colour can win', function () {
     $shell = operatorShellSource();
 
-    // ⚠️ THIS TEST INVERTED. DO-A11Y-1 moved .vy-avatar and .vy-plan-tag off the wireframe light tint because
-    // white on it measured 2.27/2.46 — the worst readings in the product. DO-RESTORE-3 restored them by
-    // founder decision, ACCEPTING that. The assertion is now the mirror of what it was, and it still reads the
-    // SOURCE rather than a pinned constant (DO-RESTORE-2's guard trap).
-    expect($shell)->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #F0A57A, #D9662E\)/')
-        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background:\s*var\(--vy-grad\)/');
+    /*
+     * ⚠️ THIS TEST HAS NOW INVERTED TWICE, and the trail matters more than the current assertion:
+     *   DO-A11Y-1   moved .vy-avatar / .vy-plan-tag OFF the wireframe tint (white read 2.27 / 2.46).
+     *   DO-RESTORE-3 put the wireframe back by founder decision, ACCEPTING white at 2.03.
+     *   DO-RESTORE-4 took option (b) — keep the peach, darken the text — which fixed the peach copies thinly
+     *                (4.73 / 4.32) and could NOT fix the `--vy-grad` copies at all.
+     *   DO-RESTORE-5 flattened the background, because that was the actual variable. ⚠️ A GRADIENT HAS TWO
+     *                WORST CASES AT OPPOSITE ENDS: white fails at the light stop, dark ink at the dark stop.
+     *                When no text colour clears both, the text is not what needs to change.
+     *
+     * ⚠️ AND THIS FILE IS WHY §N.8f APPLIES TO GUARDS TOO. Two DO-RESTORE-3 assertions were re-pointed in
+     * DataConditionalContrastTest; THIS third copy was missed and only the full suite caught it. A guard is a
+     * copy of a decision, and copies drift exactly like tokens do.
+     */
+    expect($shell)->toMatch('/\.vy-avatar \{[^}]*background: var\(--vy-avatar-bg\)/')
+        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-accent\)/');
 
-    // `.vy-chan-glyph` always carried this gradient legitimately (no white text on it) — unchanged throughout,
-    // so the guard is about the avatar concept, never a blanket ban on the colour.
+    // `.vy-chan-glyph` always carried the peach gradient legitimately (no text on it at all) — unchanged
+    // through all four passes, so this was never a blanket ban on the colour, only on the avatar concept.
     expect($shell)->toContain('.vy-chan-glyph { background: linear-gradient(140deg, #F0A57A, #D9662E); }');
 
-    // ⚠️ THE ACCEPTED COST, STATED PLAINLY: white on #F0A57A is 2.03 — below AA, below even the 3:1 large-text
-    // bar, and the lowest ratio anywhere in the product. Accepted per DO-RESTORE-3 with the number surfaced.
-    expect(sharedRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(3.0);
+    // The flat plate, measured: dark ink clears comfortably where white never could.
+    expect(sharedRatio([43, 35, 32], [240, 165, 122]))->toBeGreaterThanOrEqual(7.0)    // --vy-on-peach = 7.60
+        ->and(sharedRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(3.0);       // white = 2.03, refused
 
-    // ⚠️ AND THE ALTERNATIVE THE FOUNDER CAN STILL TAKE (option b): the same wireframe peach with DARK text
-    // clears AA comfortably. Pinned so the option stays visible in the record rather than needing re-derivation.
-    expect(sharedRatio([43, 35, 32], [240, 165, 122]))->toBeGreaterThanOrEqual(4.5);   // --vy-ink = 7.60
+    // ⚠️ THE SCOPE GUARD. The avatars stopped USING --vy-grad; the token itself still carries the founder's
+    // restored CTA orange (DO-RESTORE-1a). Flattening the shared token would silently undo that decision.
+    expect(sharedTokenSource())->toContain('--vy-grad: linear-gradient(140deg, #E8703A, #C2410C)');
 });
 
 it('⚠️ N.16.6 — the locked nav item no longer DIMS its own meaning-bearing text', function () {

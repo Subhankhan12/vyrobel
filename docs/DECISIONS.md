@@ -9804,6 +9804,11 @@ wrong. All new cases mutation-proven; the 11 pre-existing harness cases still pa
 
 ---
 
+> ⚠️ **SUPERSEDED BY DO-RESTORE-5 (2026-08-15).** The three `--vy-grad` copies this entry recorded as
+> unfixable-by-text are now FLATTENED and PASSING, and the peach copies' thin 4.32 margin is gone. The
+> decided-non-change guards below were re-pointed to the passing state. `.vy-owner-avatar` is reclassified
+> DECIDED → PASSING. See §N.26.
+
 ## 2026-08-15 — DO-RESTORE-4 · option (b) executed on the PEACH · ⚠️ the brown corrected, the gradient copies blocked
 
 **FOUNDER RULED (b):** keep the wireframe peach, darken the text. Executed for the peach; **partially**, and
@@ -9830,3 +9835,39 @@ that works** (9.58/**4.73**), so the new named token `--vy-on-peach` resolves to
 ⚠️ **A margin note, stated rather than buried:** ink on the peach measures 4.73 where the glyphs sit, but 4.32
 against the declared dark stop. The margin is thin; flattening the avatar background would remove the
 fragility for good.
+
+
+---
+
+## 2026-08-15 — DO-RESTORE-5 · the avatar background FLATTENED · the family finally passes
+
+**FOUNDER RULED:** flatten the avatar/plan-tag background so dark text clears robustly. Canon: **§N.26**.
+
+⚠️ **WHY FLATTENING WAS THE ONLY FIX.** The family rode TWO gradients, and a gradient has two worst cases at
+**opposite ends** — white fails at the light end, dark text at the dark end. That is why DO-RESTORE-4 could fix
+only the peach copies (and only thinly, 4.73/4.32) and why the `--vy-grad` copies were unfixable by **any**
+text colour. **A flat plate has one value and no end to hug.**
+
+- **`--vy-avatar-bg: #F0A57A`** — the wireframe peach's **own light stop**, chosen so the avatars stay
+  on-brand rather than inventing a new peach. Dark ink on it = **7.60** (target was ≥7). Measured on the page:
+  **`.vy-avatar` 7.60 PASSES**.
+- **All five avatar backgrounds across both shells** now point at it (§N.8f), including **`.vy-owner-avatar`,
+  reclassified DECIDED → PASSING** — it is no longer riding the gradient.
+- **The "Pro" badge took option (b):** solid `--vy-accent` + white = **5.18**. Option (a) (flat peach + ink)
+  would have measured higher but read as a muted chip; the badge needs to look like a badge. ⚠️ **Flagged for
+  confirmation: this is a visible change** — "Pro" goes from a peach→orange gradient to a solid terracotta.
+- ⚠️ **THE LOOK CHANGED, deliberately:** avatars are now a flat light peach with dark initials, not a gradient
+  with white ones.
+
+⚠️ **SCOPE HELD — the CTA gradient is untouched.** Only these surfaces stopped *using* it; the token still
+carries the restored wireframe orange and **36 CTA uses remain**. Verified on a live CTA page, and a guard
+reds if anyone flattens the shared token. **DO-RESTORE-1(a) is unchanged.**
+
+Not in scope and logged: `.vy-fd-seg-n` (2.88) and `.vy-fd-count` (3.98) surfaced on front-desk — both on the
+accent segment/count, unrelated to avatars, part of the DO-A11Y-4 front-desk family.
+
+⚠️ **Two process findings this pass, both about copies.** (1) DO-RESTORE-3's decision lived in **three** guard
+files; two were re-pointed here and the third only surfaced in the FULL suite, still demanding the gradient
+back — **a guard is a copy of a decision and drifts like a token (§N.8f)**. (2) The probe's joiner/classifier
+lived in the **gitignored** `.playwright-mcp/`, so five passes of corrections existed in one working tree; it
+now sits with the rest of the probe at **`tools/contrast-report.php`**.

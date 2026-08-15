@@ -49,6 +49,14 @@
                token-source guard parses `--vy-x:` inside a CSS comment as a real declaration, and this comment
                reddened it once. CSS comments SHIP and are scanned. */
             --vy-on-peach: rgb(43, 35, 32);
+            /* ⚠️ THE AVATAR PLATE, FLAT (DO-RESTORE-5). The avatar family previously rode two different
+               GRADIENTS, and a gradient has two worst cases at opposite ends: white fails at the light end,
+               dark text at the dark end, so no single text colour cleared either gradient. A FLAT plate has
+               ONE value and no end to hug. This is the wireframe peach's own light stop, so the avatars stay
+               on-brand, and dark ink clears it at 7.60 — robust rather than the 4.32 the gradient left.
+               ⚠️ SCOPE: this is the AVATAR surface only. The CTA gradient token is untouched and still
+               carries the restored wireframe orange (DO-RESTORE-1a). */
+            --vy-avatar-bg: #F0A57A;
             --vy-accent-border: rgba(232, 112, 58, 0.28);
             /* Amber */
             --vy-amber: rgb(178, 106, 8);

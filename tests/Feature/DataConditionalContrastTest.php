@@ -103,10 +103,12 @@ it('⚠️ §N.8f — .vy-avatar is defined in BOTH shells, and BOTH carry the w
     // test protects is UNCHANGED and is the point: the two shells must agree. It caught an owner-copy miss in
     // one direction (Part B); it now catches a missed copy in the other.
     //
-    // ⚠️ THE TWO SHELLS USE DIFFERENT WIREFRAME BACKGROUNDS, and that is original, not drift: the operator
-    // avatar is the peach gradient, the owner avatar rides `--vy-grad`.
-    expect($operator)->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #F0A57A, #D9662E\)/')
-        ->and($owner)->toMatch('/\.vy-avatar \{[^}]*background:\s*var\(--vy-grad\)/');
+    // ⚠️ RE-POINTED AGAIN BY DO-RESTORE-5 (2026-08-15). The two shells used to carry DIFFERENT wireframe
+    // backgrounds — operator the peach gradient, owner the CTA gradient — which is precisely why neither could
+    // be fixed by text colour. Both are now the SAME FLAT plate, so the §N.8f invariant this test has always
+    // protected (the shells must agree) is stronger than before, not weaker.
+    expect($operator)->toMatch('/\.vy-avatar \{[^}]*background: var\(--vy-avatar-bg\)/')
+        ->and($owner)->toMatch('/\.vy-avatar \{[^}]*background: var\(--vy-avatar-bg\)/');
 
     // ⚠️ THE PROTECTION: the AA-clearing background DO-A11Y-1 shipped must not reappear on either copy — its
     // return means someone "fixed" a contrast report and reverted the founder's decision.
@@ -114,12 +116,11 @@ it('⚠️ §N.8f — .vy-avatar is defined in BOTH shells, and BOTH carry the w
         expect($shell)->not->toMatch('/\.vy-avatar \{[^}]*background:\s*linear-gradient\(140deg, #C2410C, #9A3412\)/');
     }
 
-    // ⚠️ ASSERTED OPENLY AS SUB-AA — this is the WORST reading in the product, and it is deliberate.
-    // White on the operator avatar's light stop #F0A57A is 2.03 against a 4.5 bar; it does not even reach the
-    // 3:1 LARGE-text bar, and the initials are 11px/500 so 4.5 is what applies. ACCEPTED per DO-RESTORE-3,
-    // with the number surfaced to the founder — not discovered later as a defect.
+    // ⚠️ THE SUB-AA IS GONE, NOT ACCEPTED ANY MORE. DO-RESTORE-3 recorded white-on-peach at 2.03 as a decided
+    // exception; DO-RESTORE-5 removed the cause by flattening the plate and darkening the text. What the
+    // pairing below pins is WHY: white on this plate was never viable (2.03), dark ink on it is (7.60).
     expect(partBRatio([255, 255, 255], [240, 165, 122]))->toBeLessThan(3.0)
-        ->and(partBRatio([255, 255, 255], [240, 165, 122]))->toBeGreaterThan(1.9);
+        ->and(partBRatio([43, 35, 32], [240, 165, 122]))->toBeGreaterThanOrEqual(7.0);
 
     // For contrast with the decision that was NOT taken: the deep orange cleared it comfortably.
     expect(partBRatio([255, 255, 255], [194, 65, 12]))->toBeGreaterThanOrEqual(4.5);
@@ -407,59 +408,89 @@ it('⚠️ NOT VACUOUS — the arrival row really renders, so the guard above is
 });
 
 /*
- * ⚠️ DO-RESTORE-4 — option (b), PARTIALLY EXECUTED, and the premise corrected (2026-08-15).
+ * ⚠️ DO-RESTORE-5 — THE AVATAR FAMILY IS FLAT, AND THE WHOLE FAMILY PASSES (2026-08-15).
  *
- * The ruling: keep the wireframe peach, darken the text to the warm brown #5C2E0B (quoted 5.60). Measuring
- * the plate the INITIALS ACTUALLY SIT ON showed that number came from the gradient's LIGHT stop alone:
+ * ⚠️ WHY FLATTENING WAS THE ONLY FIX. The family rode TWO gradients, and a gradient has two worst cases at
+ * OPPOSITE ends: white fails at the light end, dark text at the dark end. DO-RESTORE-4 could therefore fix
+ * only the peach copies (dark text, 4.73 — thin), and the --vy-grad copies were unfixable by ANY text colour
+ * (white 1.67 at one end, ink 3.36 at the other). A FLAT plate has ONE value and no end to hug.
  *
- *   peach avatars   painted fill rgb(242,194,170)..rgb(221,112,58)
- *                   white 1.61/3.25 · #5C2E0B 7.06/3.49 ✗ · --vy-ink 9.58/4.73 ✓
- *   plan-tag        painted fill rgb(238,190,170)..rgb(203,76,22)   (rides --vy-grad, NOT the peach)
- *                   white 1.67/4.58 · #5C2E0B 6.80/2.48 ✗ · --vy-ink 9.22/3.36 ✗
+ *   --vy-avatar-bg = #F0A57A, the wireframe peach's own light stop, so the avatars stay on-brand
+ *   dark ink on it = 7.60 — robust, replacing the 4.32 the gradient left
+ *   .vy-plan-tag took option (b): solid --vy-accent + white = 5.18, so "Pro" still reads as a BADGE
  *
- * ⚠️ On a DIAGONAL gradient the worst case for DARK text is the opposite end from the worst case for WHITE.
- * The brown would have traded a light-end failure for a dark-end one. `--vy-ink` — the alternative the ruling
- * itself offered — is the value that actually clears the peach, so it is what `--vy-on-peach` resolves to.
- *
- * ⚠️ AND THE THREE `--vy-grad` COPIES ARE NOT FIXABLE BY TEXT COLOUR AT ALL: that gradient spans light peach
- * to deep orange, so no single colour clears both ends. They are LEFT in their DO-RESTORE-3/1(a) decided
- * state rather than trading one failure for another.
+ * ⚠️ SCOPE: only these surfaces stopped USING the CTA gradient. The gradient token itself is untouched and
+ * still carries the restored wireframe orange, and every CTA still uses it (DO-RESTORE-1a, unchanged).
  */
-const R4_PEACH_LIGHT = [242, 194, 170];   // painted, where the initials sit
-const R4_PEACH_DARK = [221, 112, 58];
-const R4_GRAD_DARK = [203, 76, 22];       // the plan-tag's dark end
+const R5_AVATAR_BG = [240, 165, 122];      // the flat plate — ONE value, no worst end
+const R5_INK = [43, 35, 32];
+const R5_ACCENT = [194, 65, 12];           // the badge fill
+const R5_OLD_GRAD_DARK = [203, 76, 22];    // the dark end that made the gradient unfixable
 
-it('⚠️ DO-RESTORE-4 — the PEACH avatars carry dark text via a named token, on every copy (§N.8f)', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+it('⚠️ DO-RESTORE-5 — every avatar copy is FLAT and robustly passing (§N.8f)', function () {
+    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $owner = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
     $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
 
-    // ⚠️ NAMED, not a literal: six copies of the avatar concept exist, and a bare hex would drift again.
-    expect($tokens)->toContain('--vy-on-peach: rgb(43, 35, 32)');
+    // ⚠️ NON-VACUITY + named, not inlined: the concept has six copies and a bare hex would drift again.
+    expect($tokens)->toContain('--vy-avatar-bg: #F0A57A');
 
-    // All THREE peach copies, and none left on white.
-    foreach (['.vy-avatar', '.vy-thread-av', '.vy-arr-av'] as $cls) {
-        expect($shell)->toMatch('/'.preg_quote($cls, '/').'[^}]*background: linear-gradient\(140deg, #F0A57A, #D9662E\)[^}]*color: var\(--vy-on-peach\)/');
+    // ⚠️ ALL SIX avatar backgrounds — including .vy-owner-avatar, which DO-RESTORE-4 had to leave DECIDED
+    // because it rode the gradient. It is flattened now, so it is a PASSING surface.
+    foreach (['.vy-avatar', '.vy-thread-av', '.vy-arr-av', '.vy-owner-avatar'] as $cls) {
+        expect($operator)->toMatch('/'.preg_quote($cls, '/').' \{[^}]*background: var\(--vy-avatar-bg\)/');
     }
+    expect($owner)->toMatch('/\.vy-avatar \{[^}]*background: var\(--vy-avatar-bg\)/');
 
-    // ⚠️ THE MEASURED REASON, and why NOT the brown the ruling named: on the plate the glyphs actually sit on,
-    // ink clears both ends and the brown does not.
-    expect(partBRatio([43, 35, 32], R4_PEACH_DARK))->toBeGreaterThanOrEqual(4.5)     // ink 4.73
-        ->and(partBRatio([92, 46, 11], R4_PEACH_DARK))->toBeLessThan(4.5)            // #5C2E0B 3.49
-        ->and(partBRatio([255, 255, 255], R4_PEACH_LIGHT))->toBeLessThan(4.5);       // the white it replaced
+    // ⚠️ THE SIXTH COPY, and the one this pass nearly shipped past: `.vy-fd-av` is PAGE-LOCAL, so the two
+    // earlier passes — which both searched the shells — never saw it. It carried the family's WORST pairing,
+    // white on the peach gradient. §N.8f is not "check the other shell", it is "check everywhere".
+    expect((string) file_get_contents(resource_path('views/livewire/front-desk.blade.php')))
+        ->toMatch('/\.vy-fd-av \{[^}]*background: var\(--vy-avatar-bg\)/');
+
+    // ⚠️ AND THE SWEEP THAT FOUND THE SEVENTH — this is not a hypothetical. Written to catch the next stray,
+    // it immediately caught `.vy-convo-av` in the owner shell, which had escaped every earlier search by
+    // writing the peach gradient as TOKENS (`var(--vy-peach)`) instead of a hex literal. It was UNUSED, and
+    // was fixed rather than deleted: a dead rule is a live defect the moment someone uses it.
+    //
+    // ⚠️ THE GENERAL LESSON: a hand-search finds the copies you can imagine. This matches on the CONCEPT
+    // (a class named like an avatar, painted with a gradient) and found the one nobody imagined.
+    $strays = [];
+    foreach ((new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('views')))) as $f) {
+        if (! $f->isFile() || ! str_ends_with($f->getFilename(), '.blade.php')) {
+            continue;
+        }
+        foreach (preg_split('/\R/', (string) file_get_contents($f->getPathname())) ?: [] as $line) {
+            if (preg_match('/\.vy-[\w-]*(av|avatar)\b[^{]*\{[^}]*linear-gradient/i', $line)) {
+                $strays[] = $f->getFilename().': '.trim(substr($line, 0, 60));
+            }
+        }
+    }
+    expect($strays)->toBe([]);
+
+    // ⚠️ ROBUST, not thin — that is the point of flattening. Measured on the page: .vy-avatar 7.60.
+    expect(partBRatio(R5_INK, R5_AVATAR_BG))->toBeGreaterThanOrEqual(7.0)
+        // and the gradient's dark end, which no text colour could clear, is simply gone from these surfaces.
+        ->and(partBRatio(R5_INK, R5_OLD_GRAD_DARK))->toBeLessThan(4.5);
 });
 
-it('⚠️ THE --vy-grad COPIES ARE LEFT ALONE — no text colour clears that gradient', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+it('⚠️ the "Pro" badge took option (b) — a solid accent fill, so it still reads as a badge', function () {
+    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
 
-    // ⚠️ GUARDING A NON-CHANGE, deliberately. .vy-plan-tag and the owner-side avatars ride --vy-grad, whose
-    // range runs from light peach to deep orange: white fails at the light end, dark text fails at the dark
-    // end. Changing them would trade one failure for another, so they keep their decided state until the
-    // founder rules on the BACKGROUND (flattening it is the only thing that would work).
-    // (order-independent: this rule declares `color` BEFORE `background`, and a regex assuming one
-    // order fails on correct markup — the needle must come from the real markup, not the assumed shape.)
-    expect($shell)->toMatch('/\.vy-plan-tag \{[^}]*color: #fff/')
-        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-grad\)/');
+    expect($operator)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-accent\)/')
+        ->and($operator)->toMatch('/\.vy-plan-tag \{[^}]*color: #fff/');
 
-    expect(partBRatio([43, 35, 32], R4_GRAD_DARK))->toBeLessThan(4.5)      // ink  3.36
-        ->and(partBRatio([92, 46, 11], R4_GRAD_DARK))->toBeLessThan(4.5);  // brown 2.48
+    // White on the solid accent is comfortably AA — unlike the gradient it replaced, where white hit 1.67 at
+    // the light end. Option (a) (flat peach + ink) would have measured higher still but read as a muted chip.
+    expect(partBRatio([255, 255, 255], R5_ACCENT))->toBeGreaterThanOrEqual(4.5);
+});
+
+it('⚠️ THE CTA GRADIENT IS UNTOUCHED — only the avatars stopped using it (DO-RESTORE-1a intact)', function () {
+    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+
+    // ⚠️ THE SCOPE GUARD. Flattening the shared gradient token would have destroyed the founder's CTA restore.
+    // The token keeps the wireframe orange, and the CTAs keep using it.
+    expect($tokens)->toContain('--vy-grad: linear-gradient(140deg, #E8703A, #C2410C)')
+        ->and(substr_count($operator, 'var(--vy-grad)'))->toBeGreaterThan(20);
 });

@@ -9456,9 +9456,19 @@ EXCEPTION**, not a defect; a future pass must not re-flag it. The guards were re
 wireframe across 5 definitions in both shells. ⚠️ **White on the avatar peach `#F0A57A` = 2.03 — the lowest
 ratio in the product**, below even the 3:1 large-text bar and materially worse than the CTAs' 3.1–3.35.
 
-⚠️ **`DO-RESTORE-4` (OPEN, founder):** option (b) — the same wireframe peach with **dark text** (`--vy-ink`
-= **7.60**, `#5C2E0B` = **5.60**) — keeps the background exactly and fixes readability, since the problem is
-the white text, not the peach. Surfaced with numbers, not applied.
+⚠️ **`DO-RESTORE-4` (2026-08-15, option (b) executed — then SUPERSEDED the next pass):** dark text on the
+peach fixed the two peach copies (4.73 / 4.32 — thin), but the three copies riding `--vy-grad` were
+**unfixable by any text colour**: a gradient's two worst cases sit at opposite ends, so white fails light and
+dark fails dark.
+
+🏁 **CLOSED by `DO-RESTORE-5` (2026-08-15) — the background was the variable, not the text.** A new
+`--vy-avatar-bg: #F0A57A` (the wireframe peach's own light stop, so the avatars stay on-brand) makes the plate
+FLAT; dark ink measures **7.60** on the page. All **5** avatar backgrounds across both shells point at it,
+including **`.vy-owner-avatar`, reclassified DECIDED → PASSING**. `.vy-plan-tag` took solid `--vy-accent` +
+white (**5.18**) so "Pro" still reads as a badge. ⚠️ **The look changed deliberately** (flat peach + dark
+initials, not a gradient + white ones). ⚠️ **The CTA gradient is untouched** — only these surfaces stopped
+*using* the token; **36 CTA uses remain** and a guard reds if anyone flattens the shared token, so
+**DO-RESTORE-1(a) stands**. Canon: **§N.26**.
 
 ---
 
