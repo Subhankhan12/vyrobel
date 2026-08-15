@@ -92,7 +92,10 @@ class OperatorInsights extends Component
      */
     private function cards(MetricSet $m, MetricSet $ly, array $leadTime, string $currency): array
     {
-        $hasLy = ! $ly->isEmpty();
+        // D3-4 — ⚠️ COVERAGE, not presence. `isEmpty()` requires all THREE of sold/bookings/available to be
+        // zero, so a prior-year month with three days of spine and one sale is "not empty" and every delta
+        // below was computed against an occupancy figure derived from those three days.
+        $hasLy = ! $ly->isEmpty() && $ly->hasComparableCoverage();
 
         $occDelta = $hasLy ? $m->occupancyPct() - $ly->occupancyPct() : null;
         $revparDelta = $hasLy ? $m->revparMinor() - $ly->revparMinor() : null;
@@ -176,9 +179,14 @@ class OperatorInsights extends Component
      */
     private function occByMonth(array $trend, array $lyTrend, CarbonImmutable $today): array
     {
+        // D3-4 — ⚠️ THE GUARD MOVED FROM PRESENCE TO COVERAGE, and the difference is the whole item.
+        // `roomNightsSold > 0` asked "did anything sell?", which a 3-day spine answers YES to — so the month
+        // published a percentage computed over 3 days under a label that reads as the month. It now asks
+        // "was this period actually measured?" A month that WAS measured publishes its real figure however
+        // low; a month that was not publishes nothing.
         $lyByMonthOfYear = [];
         foreach ($lyTrend as $row) {
-            if ($row['metrics']->roomNightsSold > 0) {
+            if ($row['metrics']->hasComparableCoverage()) {
                 $lyByMonthOfYear[CarbonImmutable::parse($row['month'].'-01')->format('m')] = $row['metrics']->occupancyPct();
             }
         }
@@ -257,7 +265,11 @@ class OperatorInsights extends Component
             }
             $m = PerformanceMetrics::forProperties([$pid], $from, $to, $currency);
             $ly = PerformanceMetrics::forProperties([$pid], $from->subYear(), $to->subYear(), $currency);
-            $lyPct = $ly->isEmpty() ? null : $ly->occupancyPct();
+            // D3-4 — ⚠️ A THIRD LY CONSUMER, which the ledger's entry did not name (it cited only the
+            // occupancy-by-month guard). Without this the page would suppress the LY figure and still badge
+            // a property "behind last year" against the same unmeasured number — the identical lie, one
+            // component over. `$lyPct === null` already drives an honest 'flat' tone and a null column.
+            $lyPct = $ly->isEmpty() || ! $ly->hasComparableCoverage() ? null : $ly->occupancyPct();
             $booked = $m->occupancyPct();
             $tone = $lyPct === null ? 'flat' : ($booked > $lyPct + 1 ? 'ahead' : ($booked < $lyPct - 1 ? 'behind' : 'onpace'));
             $rows[] = ['name' => (string) $property->name, 'booked' => $booked, 'ly' => $lyPct, 'tone' => $tone];

@@ -12,6 +12,7 @@ use App\Support\Folio\FolioTotals;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * THE ONE performance-metrics derivation (Phase 6b · Analytics) — occupancy, ADR, RevPAR, room revenue,
@@ -57,11 +58,22 @@ final class PerformanceMetrics
             return self::empty($currency);
         }
 
-        $availableRoomNights = (int) Availability::query()
+        $spine = Availability::query()
             ->whereIn('room_type_id', $roomTypeIds)
             ->whereDate('date', '>=', $start->toDateString())
-            ->whereDate('date', '<', $end->toDateString())
-            ->sum('total');
+            ->whereDate('date', '<', $end->toDateString());
+
+        $availableRoomNights = (int) (clone $spine)->sum('total');
+
+        // D3-4 — how much of the period the spine actually covers. ⚠️ METADATA ABOUT the denominator, never
+        // part of it: `availableRoomNights` and therefore occupancy are byte-identical to before. A period
+        // the tenant was not fully live for sums only the days it HAS, so its occupancy is computed over a
+        // fraction of the month while reading as the whole of it — see MetricSet::hasComparableCoverage().
+        // ⚠️ A RAW COUNT(DISTINCT …), not `->distinct()->count('date')`: the fluent form compiled and ran
+        // and returned 0 for EVERY period. That would have suppressed every comparison including the fully
+        // covered ones — a worse defect than the one this fixes, and completely silent. Verified against
+        // real months before being trusted.
+        $coveredDays = (int) (clone $spine)->count(DB::raw('DISTINCT `date`'));
 
         $lines = self::overlappingLines(
             ReservationUnit::query()->whereIn('room_type_id', $roomTypeIds),
@@ -75,7 +87,7 @@ final class PerformanceMetrics
             $end,
         );
 
-        return self::assemble($currency, $availableRoomNights, $lines, $counts, $start, $end);
+        return self::assemble($currency, $availableRoomNights, $lines, $counts, $start, $end, $coveredDays);
     }
 
     /**
@@ -138,7 +150,11 @@ final class PerformanceMetrics
             ? ['bookings' => 0, 'cancellations' => 0]
             : self::arrivalCounts(Reservation::query()->whereIn('id', $reservationIds), $start, $end);
 
-        return self::assemble($currency, $availableRoomNights, $lines, $counts, $start, $end);
+        // D3-4 — the owner denominator is `count(units) × days`, a FULL-PERIOD figure by construction, so
+        // this scope can never suffer the property scope's thin-spine inflation. Coverage is therefore 100%
+        // by definition, passed explicitly rather than left to a default so the difference is stated rather
+        // than inferred. ⚠️ Owner behaviour is unchanged by D3-4; the audit drew this line and it holds.
+        return self::assemble($currency, $availableRoomNights, $lines, $counts, $start, $end, $days);
     }
 
     /**
@@ -193,7 +209,7 @@ final class PerformanceMetrics
      * @param  Collection<int, ReservationUnit>  $lines
      * @param  array{bookings: int, cancellations: int}  $counts
      */
-    private static function assemble(string $currency, int $availableRoomNights, Collection $lines, array $counts, CarbonImmutable $start, CarbonImmutable $end): MetricSet
+    private static function assemble(string $currency, int $availableRoomNights, Collection $lines, array $counts, CarbonImmutable $start, CarbonImmutable $end, int $coveredDays = 0): MetricSet
     {
         $roomNights = 0;
         $roomRevenue = 0;
@@ -245,6 +261,9 @@ final class PerformanceMetrics
             guestNights: $guestNights,
             sourceNights: $sourceNights,
             multiCurrency: $multiCurrency,
+            // D3-4 — carried, not computed here: each scope knows how its own denominator was formed.
+            coveredDays: $coveredDays,
+            periodDays: max(0, (int) $start->diffInDays($end)),
         );
     }
 

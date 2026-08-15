@@ -9988,3 +9988,51 @@ than inferred from the shared concern. Browser fixtures deleted, raw-query verif
 
 **Untouched:** the WebAuthn service internals, the `Passkey` model, `PasskeyLoginController` (0-line diffs) and
 every owner flow (re-verified — the owner page still renders its own routes and nothing else).
+
+
+---
+
+## 2026-08-15 — D3-4 · the last-year occupancy COVERAGE guard
+
+**The defect, measured on the real data before a line changed:** operator occupancy divides room-nights-sold
+by `SUM(availability.total)` — the rows that EXIST in the range — so Aug/Sep/Oct/Nov 2025 each rendered
+exactly **50%**, computed over **2–3 days**, labelled as the month. The guard asked `roomNightsSold > 0`
+(PRESENCE — "did anything sell?"), which three days of spine answers YES to. The question that matters is
+"was this period actually MEASURED?"
+
+- **`MetricSet` gained the coverage model** — `coveredDays` / `periodDays` / `coveragePct()` /
+  `hasComparableCoverage()` — because that is where the denominator lives, so all consumers share ONE
+  definition rather than each re-deriving it (§N.8f).
+- ⚠️ **THE GUARD TESTS COVERAGE, NEVER THE VALUE, and that cuts both ways.** A thin month suppresses however
+  HIGH its percentage; a fully-covered month publishes its real figure however LOW. Suppressing on the value
+  would be the mirror-image defect — hiding true bad months, inventing an optimistic picture instead of a
+  false one. Both directions are asserted, side by side, in one test.
+- ⚠️ **THREE LY CONSUMERS, NOT THE ONE THE LEDGER NAMED.** It cited the occupancy-by-month guard. The **KPI
+  deltas** (`isEmpty()` requires all three of sold/bookings/available to be zero, so a thin month is "not
+  empty") and the **per-property pace row** were consuming the same figure — the latter would have kept
+  badging a property "behind last year" against the number the page had just suppressed: the identical lie,
+  one component over.
+
+⚠️ **THE THRESHOLD IS A FOUNDER CALL, SURFACED WITH THE DATA (`D3-4a`).** Implemented: **SUPPRESS** at
+**`MIN_COMPARABLE_COVERAGE_PCT = 80`**, a named constant, not a literal buried in a guard. The alternative —
+CAVEAT ("based on N of M days") — was not chosen because a caveated number still gets anchored on.
+⚠️ **The measured distribution is bimodal: prior-year months sit at 6–13% coverage, live months at 100%, with
+NOTHING between 36% and 100%.** So the exact threshold is not delicate — any value in that gap separates the
+two populations identically. One constant to change.
+
+⚠️ **THE OWNER PATH IS UNAFFECTED AND UNTOUCHED** — `forOwnerUnits()` divides by `count(units) × days`, a
+full-period denominator a thin spine cannot inflate. It now reports 100% coverage explicitly (stated rather
+than inferred) and its figures render identically; browser-verified on `/owner/insights`.
+
+⚠️ **Two silent failures caught by verifying rather than trusting.** `->distinct()->count('date')` compiled,
+ran, and returned **0 for every period** — which would have suppressed EVERY comparison including the fully
+covered ones, a worse and completely silent defect. And the first edit wired the coverage argument into the
+OWNER call site while leaving the OPERATOR one on the 6-argument form — exactly backwards. Both were found by
+probing real months, not by reading the diff.
+
+⚠️ **A pre-existing test encoded the bug**: `OperatorAnalyticsTest`'s vs-last-year fixture recomputed only 10
+of September's 30 days and asserted the comparison renders. The FIXTURE was made into the fully-measured month
+it was always meant to represent; the rule was not relaxed.
+
+Browser-verified: on the real demo data `/app/insights` now shows **no "Last year" series and no `pts` delta
+pills** (the whole prior year is the 6–13% tail) while this-year figures render normally.

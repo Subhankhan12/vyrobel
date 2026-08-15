@@ -34,6 +34,20 @@ final class MetricSet
         public readonly int $guestNights,
         public readonly array $sourceNights = [],
         public readonly bool $multiCurrency = false,
+        /**
+         * D3-4 — how much of the period the inventory spine actually covers.
+         *
+         * ⚠️ THE DENOMINATOR CAN BE PARTIAL, AND THAT IS WHAT MAKES OCCUPANCY LIE. For the property scope,
+         * `availableRoomNights` is `SUM(availability.total)` over the rows that EXIST in the range — so a
+         * month the tenant was not yet live for contributes only the days it has rows. Three days of data
+         * with half of them sold renders "50%" labelled as the month, which is the shape of every new
+         * tenant's first year.
+         *
+         * `coveredDays` counts the distinct dates that carry a spine row; `periodDays` the days in the
+         * range. They are metadata ABOUT the denominator, never part of it — occupancy is unchanged.
+         */
+        public readonly int $coveredDays = 0,
+        public readonly int $periodDays = 0,
     ) {}
 
     /** Occupancy % = room-nights sold ÷ available room-nights (0 when no inventory in range). */
@@ -78,5 +92,38 @@ final class MetricSet
     public function isEmpty(): bool
     {
         return $this->roomNightsSold === 0 && $this->bookings === 0 && $this->availableRoomNights === 0;
+    }
+
+    /**
+     * D3-4 — the minimum spine coverage a period needs before its occupancy may be compared against.
+     *
+     * ⚠️ TUNABLE, AND DELIBERATELY A NAMED CONSTANT RATHER THAN A LITERAL BURIED IN A GUARD. Measured on the
+     * real data, the distribution is starkly bimodal: prior-year months sit at 6–13% coverage and live
+     * months at 100%, with NOTHING between 36% and 100%. So the exact value is not delicate — anything in
+     * that gap separates the two populations identically. 80% is chosen to tolerate a handful of genuinely
+     * missing days in an otherwise-live month without ever accepting a partial period.
+     */
+    public const MIN_COMPARABLE_COVERAGE_PCT = 80;
+
+    /** What share of the period the spine covers, 0–100. */
+    public function coveragePct(): int
+    {
+        return $this->periodDays > 0
+            ? (int) round(min($this->coveredDays, $this->periodDays) / $this->periodDays * 100)
+            : 0;
+    }
+
+    /**
+     * D3-4 — may this period's occupancy be shown as a comparison basis?
+     *
+     * ⚠️ THIS TESTS COVERAGE, NEVER THE OCCUPANCY VALUE, and the distinction is the whole point. A fully
+     * covered month with 10% occupancy is a REAL low month and must show its real 10% — hiding it would be
+     * the mirror-image defect, suppressing true data. A month with three days of spine is not a low month;
+     * it is an unmeasured one, and its computed percentage means nothing regardless of how high or low it
+     * happens to land.
+     */
+    public function hasComparableCoverage(): bool
+    {
+        return $this->coveragePct() >= self::MIN_COMPARABLE_COVERAGE_PCT;
     }
 }

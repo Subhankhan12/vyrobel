@@ -112,7 +112,11 @@ it('shows a real vs-last-year delta only where prior-year data exists', function
     book($s, ['unit_id' => $s['units'][0]->id]);   // this-year stay (Sep 2026)
 
     // A real prior-year stay in the same month one year back → a genuine LY comparison to measure.
-    app(AvailabilityService::class)->recompute($s['roomType']->id, '2025-09-01', '2025-09-10');
+    // ⚠️ THE WHOLE MONTH, not the 10 days this fixture used to build (D3-4). That original fixture was
+    // itself a thin-coverage period — it asserted that a comparison built on 10 of 30 days renders, which is
+    // precisely the defect D3-4 removes. The rule was not relaxed to keep this test green; the FIXTURE was
+    // made into the fully-measured month it was always meant to represent.
+    app(AvailabilityService::class)->recompute($s['roomType']->id, '2025-09-01', '2025-10-01');
     app(AssignmentService::class)->createBooking(
         ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => '2025-09-01', 'check_out' => '2025-09-03', 'lead_guest_id' => $s['guest']->id, 'source' => 'direct'],
         [['room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][1]->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2025-09-01', 'check_out' => '2025-09-03', 'price_minor' => 10000, 'currency' => 'EUR']],
