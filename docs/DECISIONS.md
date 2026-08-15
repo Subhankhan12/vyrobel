@@ -9871,3 +9871,39 @@ files; two were re-pointed here and the third only surfaced in the FULL suite, s
 back — **a guard is a copy of a decision and drifts like a token (§N.8f)**. (2) The probe's joiner/classifier
 lived in the **gitignored** `.playwright-mcp/`, so five passes of corrections existed in one working tree; it
 now sits with the rest of the probe at **`tools/contrast-report.php`**.
+
+
+---
+
+## 2026-08-15 — D34-1 · the Schedule PDF states the real publication state + open shifts
+
+**Closes the loop `DO-CORRECTNESS-1` opened.** That pass removed two false sentences and left the document
+SILENT on publication/open-shifts, because the shared `RosterWeek` builder had no accessor and a PDF template
+must never query models to work around one. The accessors exist now, so the document says what is true.
+
+- **`RosterWeek::publicationState()` · `openShifts()` · `openShiftCount()`** — thin, reading the models
+  EXACTLY as the grid's own private methods do, memoised, additive (a defaulted 8th constructor arg, so no
+  existing consumer changes). The PDF renders all three **through the accessors** and still makes **no model
+  query of its own**.
+- ⚠️ **THE ACCESSOR RETURNS A TIMESTAMP, NOT THE GRID'S `diffForHumans()` STRING — and that is the whole
+  reason it is an accessor rather than a lift-and-shift.** "2 hours ago" is right on a screen and becomes
+  FALSE the moment a rota is printed and carried out of the office. The builder returns truth; each surface
+  formats for its own medium. Reintroducing a stale-on-paper phrase would have re-opened the exact §N.8d
+  defect DO-CORRECTNESS-1 closed, one line further down.
+- **PARITY is asserted against the code that renders the screen**, not against a re-implementation: the test
+  invokes `OperatorSchedule`'s *private* methods by reflection and compares field-for-field. A third copy
+  agreeing with itself would prove nothing.
+- **Verified off the demo path**, which carries neither condition: published AND draft, open-shifts present
+  AND none, plus property/week scoping — every state forced, then the PDF RENDERED and its content streams
+  decompressed.
+
+⚠️ **A premise correction found while reading:** `schedule_publications.published_at` is **NOT NULL** by
+schema, so "published" is the presence of the row, full stop. A first draft null-checked the stamp; PHPStan
+showed the comparison can never be true. The grid carries the same redundant check — logged (`D34-1b`), not
+changed.
+
+⚠️ **Logged, not done:** the grid still queries the models directly, so one concept has two reads
+(**`D34-1a`**, §N.8f). The accessors were written grid-shaped so it is a clean drop-in; refactoring a working
+screen was out of scope here. Also logged: open shifts ignore the department filter on BOTH surfaces
+(**`D34-1c`**) — the PDF matches the grid deliberately, because parity was the requirement, but whether the
+grid should filter is a real product question.

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Support\Schedule;
 
 use App\Livewire\Operator\OperatorSchedule;
+use App\Models\OpenShift;
 use App\Models\Property;
+use App\Models\SchedulePublication;
 use App\Models\Shift;
+use App\Models\User;
 use App\Services\LeaveService;
 use Carbon\CarbonImmutable;
 
@@ -37,7 +40,18 @@ final class RosterWeek
         public readonly int $week,
         public readonly string $dept,
         public readonly int $conflictCount,
+        /**
+         * The property this week was built for (D34-1). ⚠️ Nullable AND defaulted so the signature stays
+         * backward-compatible: `build()` is the only caller today, but a required 8th argument would break
+         * any direct construction a test or future caller makes.
+         */
+        public readonly ?string $propertyId = null,
     ) {}
+
+    /** Memoised so a Blade calling an accessor twice does not query twice. */
+    private ?array $publicationCache = null;
+
+    private ?array $openShiftCache = null;
 
     /** The number of team members on this rota (task #102 — the summary reconciles to THIS builder). */
     public function teamSize(): int
@@ -172,6 +186,101 @@ final class RosterWeek
         return $out;
     }
 
+    /**
+     * D34-1 — the week's PUBLICATION state, as TRUTH rather than as a rendered phrase.
+     *
+     * ⚠️ WHY THIS RETURNS A TIMESTAMP AND NOT A STRING, and it is the whole reason the accessor exists rather
+     * than the grid's method being lifted verbatim: {@see OperatorSchedule::publishedState()} returns
+     * `diffForHumans()` — "2 hours ago". That is right for a screen and WRONG for a document. A PDF printed
+     * on Monday and read on Thursday would still say "2 hours ago", which is precisely the class of claim
+     * DO-CORRECTNESS-1 stripped out of this template. So the builder returns the real `published_at` and each
+     * surface formats it for its own medium: the grid relatively, the PDF absolutely.
+     *
+     * ⚠️ `published` is THE PRESENCE OF THE ROW, full stop — and that is a schema fact, not an assumption:
+     * `schedule_publications.published_at` is NOT NULL (migration 2026_07_31_150000, `timestamp()` with no
+     * `->nullable()`), verified against the live column. A first draft here also null-checked the stamp;
+     * PHPStan pointed out the comparison can never be true. ⚠️ The grid carries the same redundant check
+     * (`$pub?->published_at !== null`) — harmless there, logged rather than changed from this pass.
+     *
+     * @return array{published: bool, published_at: ?CarbonImmutable, published_by: ?string}
+     */
+    public function publicationState(): array
+    {
+        if ($this->publicationCache !== null) {
+            return $this->publicationCache;
+        }
+
+        $none = ['published' => false, 'published_at' => null, 'published_by' => null];
+
+        $weekStart = (string) ($this->days[0]['date'] ?? '');
+        if ($this->propertyId === null || $weekStart === '') {
+            return $this->publicationCache = $none;
+        }
+
+        // ⚠️ THE SAME READ THE GRID MAKES (property + whereDate on the week's Monday), so the two cannot
+        // disagree about whether a week is published. Parity is asserted in SchedulePdfPublicationTest.
+        $publication = SchedulePublication::query()
+            ->where('property_id', $this->propertyId)
+            ->whereDate('week_starts_on', $weekStart)
+            ->first();
+
+        if ($publication === null) {
+            return $this->publicationCache = $none;
+        }
+
+        return $this->publicationCache = [
+            'published' => true,
+            'published_at' => CarbonImmutable::parse($publication->published_at),
+            // Real name or nothing — never "Unknown", which would read as a person (#39).
+            'published_by' => $publication->published_by !== null
+                ? User::query()->whereKey($publication->published_by)->value('name')
+                : null,
+        ];
+    }
+
+    /**
+     * D34-1 — the week's OPEN (unassigned) shift slots, in the shape both surfaces need.
+     *
+     * ⚠️ DELIBERATELY NOT DEPARTMENT-FILTERED, because {@see OperatorSchedule::openShiftsFor()} is not: an
+     * open slot is shown whatever the grid's `dept` filter is set to. Matching that exactly is the point —
+     * an accessor that filtered "more correctly" than the screen would make the PDF disagree with the grid,
+     * which is the drift this builder exists to prevent. ⚠️ Whether the grid SHOULD filter is a real open
+     * question, logged rather than decided here.
+     *
+     * @return list<array{id: string, date: string, day_label: string, shift_label: string, department: ?string}>
+     */
+    public function openShifts(): array
+    {
+        if ($this->openShiftCache !== null) {
+            return $this->openShiftCache;
+        }
+
+        $first = (string) ($this->days[0]['date'] ?? '');
+        $last = (string) ($this->days[count($this->days) - 1]['date'] ?? '');
+        if ($this->propertyId === null || $first === '') {
+            return $this->openShiftCache = [];
+        }
+
+        return $this->openShiftCache = OpenShift::query()
+            ->where('property_id', $this->propertyId)
+            ->whereBetween('date', [$first, $last])
+            ->orderBy('date')
+            ->get()
+            ->map(fn (OpenShift $o): array => [
+                'id' => (string) $o->getKey(),
+                'date' => $o->date->toDateString(),
+                'day_label' => $o->date->format('D j M'),
+                'shift_label' => ShiftType::label((string) $o->shift_type),
+                'department' => $o->department,
+            ])->all();
+    }
+
+    /** How many slots on this week's rota are unfilled — derived from {@see openShifts()}, never re-queried. */
+    public function openShiftCount(): int
+    {
+        return count($this->openShifts());
+    }
+
     public static function build(?Property $property, int $week, string $dept): self
     {
         $tz = $property !== null ? (string) ($property->timezone ?? 'UTC') : 'UTC';
@@ -241,6 +350,7 @@ final class RosterWeek
             week: $week,
             dept: $dept,
             conflictCount: $conflictCount,
+            propertyId: $property?->getKey() !== null ? (string) $property->getKey() : null,
         );
     }
 }

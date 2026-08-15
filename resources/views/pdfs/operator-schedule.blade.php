@@ -6,11 +6,11 @@
      omitted because "no unassigned-shift model" existed and that there was "no publish/provisional state".
      BOTH became false when `open_shifts` + `schedule_publications` landed — and the footer sentence built on
      them was being printed to operators. The false footer is now gone.
-     ⚠️ OPEN SHIFTS AND THE PUBLICATION STATE ARE STILL OMITTED HERE, but for a DIFFERENT and honest reason:
-     `RosterWeek` — the ONE builder this document and the on-screen grid share so they cannot disagree — does
-     not expose either yet, and a PDF template must never query models directly to work around that. Adding
-     the accessor is D34-1 (deferred, size M). Until then this document simply does not mention them; it no
-     longer DENIES them. Property + week are the SELECTED context (no id in the URL). --}}
+     🏁 D34-1 CLOSED THE LOOP (2026-08-15). The document went silent because `RosterWeek` had no accessor;
+     it now has `publicationState()` + `openShifts()`, so both are RENDERED — read from the SHARED BUILDER,
+     never queried here. ⚠️ THE ANTI-DRIFT RULE IS WHY THAT ORDER MATTERED: querying the models from this
+     template would have been quicker and would have let the PDF and the grid disagree the first time either
+     read changed. Property + week are the SELECTED context (no id in the URL). --}}
 @php $brand = $brand ?? \App\Support\Branding\PropertyBrand::default(); $address = is_array($property?->address) ? $property->address : []; @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -28,7 +28,9 @@
         .muted { color: #5F5853; }
         .addr { color: #6C645F; font-size: 9.5px; margin-top: 2px; }
         table.sum { width: 100%; border-collapse: collapse; margin: 14px 0 4px; }
-        table.sum td { border: 1px solid #EFE3D9; padding: 8px 10px; text-align: center; width: 25%; }
+        {{-- 20%, not 25% — D34-1 added the "Open" tile, making it five across. dompdf honours the declared
+             width, so a stale 25% would have left the row 125% wide and pushed the last tile off. --}}
+        table.sum td { border: 1px solid #EFE3D9; padding: 8px 10px; text-align: center; width: 20%; }
         .sum-n { font-size: 17px; font-weight: bold; color: #2B2320; }
         .sum-l { font-size: 8.5px; letter-spacing: .04em; text-transform: uppercase; color: #5F5853; }
         table.grid { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -69,13 +71,31 @@
     <h1 class="doc-title">Weekly rota</h1>
     <div class="doc-sub">{{ $brand->displayName }} · week of {{ $roster->weekLabel }} · generated {{ $generatedAt }}</div>
 
-    {{-- Summary — DERIVED from the same RosterWeek builder, so it reconciles to the grid below. ⚠️ There is
-         no "Open" tile: open shifts DO exist now (the old comment here claimed they did not), but `RosterWeek`
-         does not expose a count and this template must not query the model to invent one. D34-1. --}}
+    {{-- ⚠️ PUBLICATION STATE (D34-1). Read from the SHARED BUILDER — this template never touches
+         `SchedulePublication`; that is the anti-drift rule, and it is why the accessor exists at all.
+         ⚠️ AN ABSOLUTE DATE, NEVER A RELATIVE ONE. The grid renders this as "2 hours ago"
+         (`diffForHumans()`), which is right for a screen and would be a LIE on paper — a rota printed Monday
+         and read Thursday would still claim "2 hours ago". So `publicationState()` hands back the real
+         timestamp and each surface formats for its own medium. Both branches say only what is true: a
+         published week names when and (when recorded) by whom; an unpublished one says the roster is live,
+         which it always is — publishing notifies the team, it does not freeze anything. --}}
+    @php $publication = $roster->publicationState(); @endphp
+    <div class="doc-sub" style="margin-top:2px">
+        @if ($publication['published'])
+            Published {{ $publication['published_at']->timezone($property?->timezone ?? 'UTC')->format('D j M Y · H:i') }}@if ($publication['published_by']) by {{ $publication['published_by'] }}@endif
+        @else
+            Not yet published — this week has not been sent to the team.
+        @endif
+    </div>
+
+    {{-- Summary — DERIVED from the same RosterWeek builder, so it reconciles to the grid below. The "Open"
+         tile is now real (D34-1): `openShiftCount()` counts the same rows `openShifts()` lists, so the tile
+         and the section below can never disagree. --}}
     <table class="sum"><tr>
         <td><div class="sum-n">{{ $roster->teamSize() }}</div><div class="sum-l">Team</div></td>
         <td><div class="sum-n">{{ $roster->shiftCount() }}</div><div class="sum-l">Shifts</div></td>
         <td><div class="sum-n">{{ $roster->hours() }}</div><div class="sum-l">Hours</div></td>
+        <td><div class="sum-n">{{ $roster->openShiftCount() }}</div><div class="sum-l">Open</div></td>
         <td><div class="sum-n">{{ $roster->conflictCount }}</div><div class="sum-l">Conflicts</div></td>
     </tr></table>
 
@@ -120,6 +140,26 @@
             <br>Early {{ \App\Support\Schedule\ShiftType::hours('early') }} · Day {{ \App\Support\Schedule\ShiftType::hours('day') }} · Late {{ \App\Support\Schedule\ShiftType::hours('late') }} · shift times shown per cell.
             @if ($roster->conflictCount > 0) <strong style="color:#B0322A">{{ $roster->conflictCount }} conflict{{ $roster->conflictCount === 1 ? '' : 's' }}</strong> — a shift on an approved-leave day. @endif
         </div>
+    @endif
+
+    {{-- ⚠️ OPEN SHIFTS (D34-1) — the unfilled slots on this week's rota, from the SHARED BUILDER. The empty
+         case prints a positive statement rather than an empty header, because on a printed rota "nothing
+         here" and "this section failed to render" look identical otherwise. ⚠️ Not department-filtered —
+         `openShifts()` matches the grid exactly (see its docblock); a PDF that filtered differently would
+         disagree with the screen, which is the drift this builder exists to prevent. --}}
+    @php $openShifts = $roster->openShifts(); @endphp
+    <h2>Open shifts</h2>
+    @if (count($openShifts) === 0)
+        <p class="muted" style="margin-top:4px">Every shift on this rota is assigned — no open slots this week.</p>
+    @else
+        <table class="off-list">
+            @foreach ($openShifts as $open)
+                <tr>
+                    <td>{{ $open['day_label'] }} <span class="muted">· {{ $open['shift_label'] }}</span></td>
+                    <td style="text-align:right" class="muted">{{ $open['department'] ? \App\Support\Schedule\StaffDepartment::label($open['department']) : 'Any department' }}</td>
+                </tr>
+            @endforeach
+        </table>
     @endif
 
     {{-- Time off — real LeaveRequest rows overlapping this week --}}
