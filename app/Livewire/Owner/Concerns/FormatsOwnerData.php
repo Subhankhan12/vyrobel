@@ -92,7 +92,24 @@ trait FormatsOwnerData
     }
 
     /**
-     * Payout status → badge label + tone.
+     * Payout status → badge label + tone, for the OWNER realm's 3-tone vocabulary (paid/pending/draft).
+     *
+     * ⚠️ `processing` AND `held` USED TO FALL THROUGH TO "Payout pending", AND THAT WAS WRONG ABOUT MONEY.
+     * Both are real, live states — `OwnerPayoutService::pay()` sets `processing` when a Connect transfer has
+     * been INITIATED and is awaiting its webhook, and `hold()` sets `held` when the tax-hold pauses a payout.
+     * An owner reading "Payout pending" against either one is told their money has not started moving when it
+     * has, or that it is merely queued when it is actually BLOCKED on something they must act on. The label
+     * was the only wrong part; when the states are set is untouched.
+     *
+     * ⚠️ THE LABELS ARE NOT NEW — they are the ones `OwnerBalance::rowState()` has always used for these two
+     * statuses ("In transit" / "On hold", both `pending`-toned). The clearing model got this right from the
+     * start; this map is what lagged, so the fix CONVERGES on the existing definition rather than inventing a
+     * third vocabulary for one concept (§N.8f).
+     *
+     * ⚠️ AND `default` NOW MEANS WHAT IT SAYS. It is reached only by `pending` and by a genuinely unknown
+     * value — not by two states the enum has carried since the payout engine landed. A silent `default` that
+     * swallows real enum members is how a status map goes wrong without anyone seeing it: the demo has no
+     * `processing`/`held` payout, so neither branch has ever rendered on a demo page.
      *
      * @return array{label: string, tone: string}
      */
@@ -100,6 +117,8 @@ trait FormatsOwnerData
     {
         return match ($status) {
             'paid' => ['label' => 'Paid', 'tone' => 'paid'],
+            'processing' => ['label' => 'In transit', 'tone' => 'pending'],
+            'held' => ['label' => 'On hold', 'tone' => 'pending'],
             'failed' => ['label' => 'Payout failed', 'tone' => 'pending'],
             'reversed' => ['label' => 'Reversed', 'tone' => 'draft'],
             default => ['label' => 'Payout pending', 'tone' => 'pending'],

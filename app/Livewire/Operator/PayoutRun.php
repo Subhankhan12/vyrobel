@@ -396,9 +396,21 @@ class PayoutRun extends Component
     // ── Real enums / real columns → display ──────────────────────────────────────────────────────
 
     /**
-     * `payouts.status` — the enum is EXACTLY pending|paid|failed|reversed. The design's "Scheduled" /
-     * "In review" / "Sent" / "On hold" are not states this column can hold and are never rendered. An
-     * unexpected value is echoed, never re-badged as something friendlier.
+     * `payouts.status` — pending|processing|paid|failed|reversed|held. The design's "Scheduled" /
+     * "In review" / "Sent" are not states this column can hold and are never rendered. An unexpected value
+     * is echoed, never re-badged as something friendlier.
+     *
+     * ⚠️ THIS COMMENT WAS STALE IN A WAY WORTH RECORDING. It said the enum was "EXACTLY
+     * pending|paid|failed|reversed" and listed **"On hold"** among the design terms the column *cannot*
+     * hold. The payout engine then added `held` — so the design's word was right all along and the code
+     * caught up without the comment doing so. `held`/`processing` reach the `default` arm and echo
+     * accurately ("Held" / "Processing"), so the behaviour here was never wrong; the owner realm's copy
+     * badged both as "Payout pending", which was (fixed in `FormatsOwnerData::payoutStatusMeta()`, where
+     * the owner-facing labels are "On hold" and "In transit" — the terms Balance already used).
+     *
+     * ⚠️ Not unified with the owner trait: the two realms' tone vocabularies do not overlap (see the same
+     * note on `OperatorOwnerDetail::payoutStatusMeta()`). This copy and that one ARE identical to each
+     * other — a real, narrower de-dup, logged rather than done in a correctness-only pass.
      *
      * @return array{label: string, tone: string}
      */
