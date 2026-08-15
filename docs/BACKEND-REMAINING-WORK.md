@@ -282,8 +282,8 @@ few layers · **L** = a subsystem.
 | id | item | status | evidence | size |
 |---|---|---|---|---|
 | `D10-1` | No party size / balance in the inbox reservation panel | STILL-OPEN | `OperatorInbox.php` | S |
-| `D10-2` | No reservation **stage** badge on a conversation (⚠️ `ReservationStage` already exists as a shared helper — reuse, don't rebuild) | STILL-OPEN | `OperatorInbox.php` has no `ReservationStage` | S |
-| `D10-5` | No VIP badge on threads (`is_vip` is real and used on Front Desk) | STILL-OPEN | `OperatorInbox.php` | S |
+| `D10-2` | no reservation-STAGE badge on the inbox conversation | 🏁 **CLOSED 2026-08-15** — `stage_meta` resolved by the SHARED `ReservationStage` in the COMPONENT (never re-derived in Blade), rendered with the Reservations list's exact badge markup. ⚠️ A previous pass logged this in the Blade with the precise reason it stopped: the card carried the RAW `status` and `meta()` needs a computed STAGE — feeding it a status renders "Unknown". Calling the resolver is what that note was waiting for | `OperatorInbox.php`; `InboxStageVipBadgeTest` (10 tests) | — |
+| `D10-5` | no VIP badge on inbox threads | 🏁 **CLOSED 2026-08-15** — `guests.is_vip` on the guest card, rendered as FRONT DESK's badge character-for-character (same classes, dot and word). Omitted for non-VIP and for a thread with no guest | `OperatorInbox.php`; `InboxStageVipBadgeTest` | — |
 | `D10-3`/`D10-4` | Teammate presence + "suggested assignee" | DEFERRED-BY-DECISION (presence needs websockets, §H) | `PROJECT-STATE.md` §H | — |
 | `D29-5` / `DO6-4` | **No per-notification dismiss in either realm.** Mark-read exists; dismiss does not. ⚠️ The `/attention/dismiss` route (`routes/web.php:1084`) is the *attention-state* store — a different entity | STILL-OPEN | owner routes `:1157-1159`; `OperatorNotifications.php` | S |
 | `DO6-2` | No Today/Earlier grouping on the notification feed | STILL-OPEN | `OwnerNotifications.php` | S |

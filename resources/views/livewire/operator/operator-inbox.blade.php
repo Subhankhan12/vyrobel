@@ -150,7 +150,11 @@
                         <div class="vy-thread-who">
                             <div class="vy-conv-avatar">{{ $active['initials'] }}</div>
                             <div>
-                                <div class="vy-thread-name">{{ $active['name'] }}</div>
+                                {{-- D10-5 — VIP, the SAME badge the front desk shows for the same real
+                                     guests.is_vip flag: identical classes, identical dot, identical word. An
+                                     operational flag, not contact PII. Omitted for everyone else, which is
+                                     almost everyone — a badge that appeared for all would say nothing. --}}
+                                <div class="vy-thread-name">{{ $active['name'] }}@if ($active['guest']['is_vip'])<span class="vy-tag tone-vip" style="margin-left: 6px;"><span class="vy-dot"></span>VIP</span>@endif</div>
                                 <div class="vy-thread-sub">
                                     <span class="vy-chan-badge vy-chan--{{ $active['channel_tone'] }}">{{ $active['channel_label'] }}</span>
                                     @if ($active['guest']['stat']) <span>· {{ $active['guest']['stat'] }}</span> @endif
@@ -203,11 +207,12 @@
                                     {{ $active['reservation']['unit'] }}
                                 </span>
                             @endif
-                            {{-- No stage chip here: reservationCard() carries the RAW status, and the shared
-                                 ReservationStage::meta() takes a computed STAGE — feeding it a status renders
-                                 "Unknown". Re-deriving the vocabulary in Blade would be a second definition of
-                                 a concept this project deliberately keeps in one resolver, so the stage is
-                                 LOGGED as a gap instead of guessed at here. --}}
+                            {{-- D10-2 — the stage chip the note here used to defer. The objection was exact and
+                                 still stands: meta() needs a computed STAGE, not the raw status. So the card now
+                                 carries `stage_meta`, resolved by ReservationStage in the COMPONENT, and this
+                                 template renders it with the same markup the Reservations list uses — one
+                                 resolver, one badge, no vocabulary re-derived in Blade (§N.8f). --}}
+                            <span class="vy-tag tone-{{ $active['reservation']['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $active['reservation']['stage_meta']['label'] }}</span>
                             @if ($active['guest']['guest_id'] ?? null)
                                 <a class="vy-tc-link" href="{{ route('app.guests.show', $active['guest']['guest_id']) }}">View guest profile</a>
                             @endif

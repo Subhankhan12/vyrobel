@@ -14,6 +14,7 @@ use App\Services\InboxService;
 use App\Support\Guest\GuestHistory;
 use App\Support\Inbox\MessageTemplate;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Reservations\ReservationStage;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -490,7 +491,7 @@ class OperatorInbox extends Component
     /**
      * Guest context card: NAME + channel + a derived-REAL "N stays · since {year}" (shared {@see GuestHistory}).
      *
-     * @return array{name: string, channel: string, stat: string|null, guest_id: string|null}
+     * @return array{name: string, channel: string, stat: string|null, guest_id: string|null, is_vip: bool}
      */
     private function guestCard(MessageThread $thread): array
     {
@@ -506,11 +507,24 @@ class OperatorInbox extends Component
             'channel' => 'via '.$channel['label'],
             'stat' => $stat,
             'guest_id' => $guest?->getKey() !== null ? (string) $guest->getKey() : null,
+            /*
+             * D10-5 — the guest's REAL VIP flag, the same `guests.is_vip` the front desk already badges.
+             * ⚠️ An OPERATIONAL flag, not contact PII — it says how to treat an arrival, never who they are,
+             * so it carries none of the #28 perimeter's weight (the front desk's own note says the same).
+             * ⚠️ A thread with no linked guest is simply not VIP — never "unknown".
+             */
+            'is_vip' => $guest !== null && (bool) $guest->is_vip,
         ];
     }
 
     /**
-     * @return array<string, string|null>|null
+     * The conversation's linked reservation, or null when the thread has none.
+     *
+     * ⚠️ The shape is stated precisely rather than as `array<string, string|null>`: D10-2 added a nested
+     * `stage_meta`, and the loose declaration would have accepted anything. PHPStan caught the mismatch,
+     * which is the declaration doing its job.
+     *
+     * @return array{id: string, reference: string, unit: ?string, dates: string, status: string, stage_meta: array{label: string, tone: string}}|null
      */
     private function reservationCard(MessageThread $thread): ?array
     {
@@ -527,6 +541,19 @@ class OperatorInbox extends Component
             'unit' => $unit !== null ? (string) ($unit->name ?? $unit->code) : null,
             'dates' => CarbonImmutable::parse($reservation->check_in)->format('j M').' – '.CarbonImmutable::parse($reservation->check_out)->format('j M'),
             'status' => (string) $reservation->status,
+            /*
+             * D10-2 — the reservation's LIFECYCLE STAGE, from the ONE shared resolver.
+             *
+             * ⚠️ THIS IS WHY THE EARLIER ATTEMPT STOPPED. A note in the Blade recorded that the card carried
+             * the RAW `status` and that `ReservationStage::meta()` needs a computed STAGE — feeding it a
+             * status renders "Unknown" — so rather than re-deriving the vocabulary in a template, the gap was
+             * logged. The resolver is called HERE instead, exactly as `ReservationsList` and `GuestProfile`
+             * do, so the inbox cannot disagree with them about whether a guest is in-house.
+             *
+             * ⚠️ A STAGE IS NOT A STATUS: `status` is the 7-value enum, `stage` a derived bucket over that
+             * enum PLUS the dates. Both stay on the card — nothing about the existing `status` changed.
+             */
+            'stage_meta' => ReservationStage::meta(ReservationStage::for($reservation)),
         ];
     }
 

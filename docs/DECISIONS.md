@@ -10158,3 +10158,52 @@ Browser-verified (§N.21.6): the wizard rendered, the textarea filled and the fo
 the demo owner → the note persisted (raw-query confirmed), then read back on the operator page as inert text.
 Test request deleted, raw-query verified (0 unit_requests, 8 units — no unit was ever created, which is the
 whole point of a request).
+
+
+---
+
+## 2026-08-15 — D10-2 + D10-5 · the stage and VIP badges on the operator inbox
+
+Two badges on one surface, both **reuse rather than rebuild**.
+
+⚠️ **D10-2 HAD ALREADY BEEN FOUND — AND STOPPED FOR A GOOD REASON.** The inbox Blade carried a note where the
+chip belongs: *"reservationCard() carries the RAW status, and the shared ReservationStage::meta() takes a
+computed STAGE — feeding it a status renders 'Unknown'. Re-deriving the vocabulary in Blade would be a second
+definition of a concept this project deliberately keeps in one resolver, so the stage is LOGGED as a gap
+instead of guessed at here."* That objection was exactly right and still stands. The fix is not to work around
+it but to satisfy it: the resolver is now called in the **component**, as `ReservationsList` and `GuestProfile`
+already do, and the template renders the result with the Reservations list's exact badge markup.
+
+⚠️ **A STAGE IS NOT A STATUS.** `status` is the 7-value enum; `stage` is a derived bucket over that enum PLUS
+the dates. Both stay on the card — nothing about the existing `status` changed.
+
+⚠️ **D10-5 IS FRONT DESK'S BADGE, CHARACTER-FOR-CHARACTER** — same classes, same dot, same word, for the same
+real `guests.is_vip` column. An operational flag, not contact PII (the front desk's own note says so), and a
+thread with no linked guest is simply not VIP rather than "unknown".
+
+**Both are show-when-applicable**: no reservation → no stage chip (and never "Unknown"); not VIP → no badge,
+which is almost every thread. A badge that appeared for everyone would say nothing.
+
+⚠️ **`is_vip` IS populated on demo** — 1 of 10 guests, and that guest has a thread, so unlike D1-3's 0-of-41
+both branches render without any fixture. Verified rather than assumed, and the guard forces both anyway so
+it cannot depend on demo data.
+
+⚠️ **PHPStan caught the return shape.** `reservationCard()` declared `array<string, string|null>`; the nested
+`stage_meta` broke it. Fixed by stating the shape precisely rather than widening the declaration — the loose
+version would have accepted anything, which is why it did not catch the drift earlier.
+
+**Neither reused source was edited** (`ReservationStage`, `FrontDesk`, the front-desk Blade: 0-line diffs) and
+**D10-1 was not built** — party size and balance stay off the card, asserted by a test so "while I was in
+there" creep would fail rather than pass unnoticed.
+
+Browser-verified on the real demo (§N.21.6): the VIP guest's thread reads `Demo Traveller` + a **VIP** badge
+with the context line `5 Sep – 8 Sep · 101 · Upcoming`; a non-VIP thread with no reservation
+(`Curious Enquirer`) renders neither badge and no context line at all. "Unknown" appears on neither.
+
+⚠️ **A GUARD OF MINE PASSED ALONE AND FAILED IN-SUITE (§N.17.7, live).** The residue test asserted a GLOBAL
+`message_threads` count of 0 — true only when the file runs by itself; in-suite it read 5 seeded threads and
+failed. It was measuring the ENVIRONMENT, not this pass's cleanliness, and could never have caught anything:
+`RefreshDatabase` rolls every test back, so a fixture cannot outlive its test by construction. Replaced with
+a check that the fixtures are scoped to this file's own helper — and that one needed a second correction too,
+because counting a needle in `__FILE__` counts the assertion itself. **A source-scanning guard has to exclude
+itself.**
