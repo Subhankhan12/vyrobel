@@ -69,6 +69,11 @@
                 <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required style="margin-bottom:8px;">
                 <input type="password" name="password" class="vy-input" placeholder="New password" autocomplete="new-password" required style="margin-bottom:8px;">
                 <input type="password" name="password_confirmation" class="vy-input" placeholder="Confirm new password" autocomplete="new-password" required style="margin-bottom:12px;">
+                {{-- ⚠️ DO13-4: this form enforced a composition rule and stated NOTHING, so a rejection gave the
+                     operator no way to comply. It was also the LAST screen found — a copy-sweep for "8
+                     characters" could not see it precisely because it never made the claim (§N.8f: a search
+                     finds only what you name; the route sweep found it). --}}
+                <p style="font-size:11.5px;color:var(--vy-on-grad-soft);margin:-6px 0 12px">{{ \App\Support\Auth\PasswordPolicy::hint() }}</p>
                 <button type="submit" class="vy-btn vy-btn--accent">Update password</button>
             </form>
         </div>

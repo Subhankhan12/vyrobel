@@ -80,6 +80,7 @@ use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
+use App\Support\Auth\PasswordPolicy;
 use App\Support\Llm\AnthropicLlmClient;
 use App\Support\Llm\FakeLlmClient;
 use App\Support\Llm\LlmClientInterface;
@@ -105,6 +106,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Laravel\Passport\Events\AccessTokenCreated;
 use Laravel\Passport\Passport;
 
@@ -237,6 +239,42 @@ class AppServiceProvider extends ServiceProvider
         if ((bool) config('security.force_https')) {
             URL::forceScheme('https');
         }
+
+        /*
+         * PASSWORD COMPOSITION — THE ONE DEFINITION (DO13-4, 2026-08-15).
+         *
+         * ⚠️ WHAT IT REPLACED. Every set-password path validated `Password::min(8)` and nothing else, so
+         * `aaaaaaaa` was an acceptable password on NINE surfaces — including public self-signup and the whole
+         * guest realm — while the Guest Signup screen promised "8+ characters with a number and symbol".
+         *
+         * ⚠️ WHY IT LIVES HERE RATHER THAN AT THE CALL SITES. `Password::defaults()` is the framework's single
+         * chokepoint: nine controllers now ask for `Password::defaults()`, so a future policy change is ONE
+         * edit and no path can silently drift weaker than its siblings (§N.8f — the reason this defect
+         * existed at all was nine independent copies of one rule).
+         *
+         * ⚠️ THE COMPOSITION MATCHES THE STRONGEST PROMISE THE PRODUCT MAKES, and that needed deciding rather
+         * than reading off, because the prototypes do NOT agree:
+         *     Vyrobel Set Password  — "At least 8 characters"                    (length only)
+         *     Owner Security        — "at least 8 characters with a number."     (+ number)
+         *     Guest Signup          — "8+ characters with a number and symbol"   (+ number + symbol)
+         * A per-realm password policy would be a security smell and three more copies to drift, so the
+         * strongest promise becomes the floor for everyone — every screen's stated rule is then satisfied,
+         * and the weaker screens' COPY was corrected to say what is now enforced (a rule the UI does not
+         * state produces mystery rejections; §N.8d in reverse).
+         *
+         * ⚠️ The composition itself — and the SENTENCE that describes it to users — live together in
+         * {@see PasswordPolicy}, so a policy change cannot tighten the rule while eight screens keep
+         * describing the old one. That pairing is the actual fix; this line is only the registration.
+         *
+         * ⚠️ `uncompromised()` (the Have-I-Been-Pwned k-anonymity breach check) is NOT enabled here — it is a
+         * founder call, not a code call: it adds an outbound API dependency on every password set and rejects
+         * passwords users consider fine. Flagged in DECISIONS, not bundled into a composition fix.
+         *
+         * ⚠️ NOT applied to `CreatePlatformAdminCommand`, which requires min(12) + mixedCase + numbers +
+         * symbols. Pointing it here would WEAKEN it. A stronger bar for the platform super-admin is a real
+         * difference, not drift — confirm-before-collapsing, the same call the payout-status maps needed.
+         */
+        Password::defaults(fn (): Password => PasswordPolicy::rule());
 
         // TRUSTED PROXIES (audit 2026-08-07 · F6-10). With none configured Laravel trusts NO proxy — safe (a
         // spoofed X-Forwarded-For is ignored) but behind a real load balancer three controls break QUIETLY:

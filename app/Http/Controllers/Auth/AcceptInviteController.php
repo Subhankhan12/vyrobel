@@ -57,7 +57,7 @@ class AcceptInviteController extends Controller
         }
 
         $request->validate([
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         // Capture the role home BEFORE accept() (the invite is spent in the transaction): an owner invite

@@ -115,12 +115,12 @@ it('invites a manager and activates them as Hotel Manager staff in /app — no o
 
     // Can't authenticate before activation (active-only login).
     $this->post('/logout');
-    $this->post('/login', ['email' => 'morgan@example.test', 'password' => 'staff-strong-pass'])->assertSessionHasErrors();
+    $this->post('/login', ['email' => 'morgan@example.test', 'password' => 'Staff-strong-pass1!'])->assertSessionHasErrors();
     $this->assertGuest();
 
     // Activate via the tokened link → lands in the operator app (NOT /owner).
     $this->get("/invite/{$token}")->assertOk()->assertSee('Set your password')->assertSee('Morgan Manager');
-    $this->post("/invite/{$token}", ['password' => 'staff-strong-pass', 'password_confirmation' => 'staff-strong-pass'])
+    $this->post("/invite/{$token}", ['password' => 'Staff-strong-pass1!', 'password_confirmation' => 'Staff-strong-pass1!'])
         ->assertRedirect('/app/dashboard');
 
     $user->refresh();
@@ -153,7 +153,7 @@ it('invites an accountant and activates them as the Accountant role in /app', fu
     $token = capturedInviteToken();
     $this->post('/logout');
 
-    $this->post("/invite/{$token}", ['password' => 'books-strong-pass', 'password_confirmation' => 'books-strong-pass'])
+    $this->post("/invite/{$token}", ['password' => 'Books-strong-pass1!', 'password_confirmation' => 'Books-strong-pass1!'])
         ->assertRedirect('/app/dashboard');
 
     $user = User::query()->where('email', 'avery@example.test')->firstOrFail();
@@ -187,7 +187,7 @@ it('leaves the owner path unchanged: owner record + agreement + units, /owner, n
     $token = capturedInviteToken();
     $this->post('/logout');
 
-    $this->post("/invite/{$token}", ['password' => 'owner-strong-pass', 'password_confirmation' => 'owner-strong-pass'])
+    $this->post("/invite/{$token}", ['password' => 'Owner-strong-pass1!', 'password_confirmation' => 'Owner-strong-pass1!'])
         ->assertRedirect('/owner');   // owner → the portal
 
     $user = User::query()->where('email', 'olivia@example.test')->firstOrFail();

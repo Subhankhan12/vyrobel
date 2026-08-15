@@ -21,8 +21,8 @@ function signupPayload(array $overrides = []): array
         'property_name' => 'Seaside Villas',
         'name' => 'Ada Okafor',
         'email' => 'ada@newco.test',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'Password123!',
+        'password_confirmation' => 'Password123!',
     ], $overrides);
 }
 

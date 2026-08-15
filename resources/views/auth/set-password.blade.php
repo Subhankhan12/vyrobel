@@ -50,7 +50,8 @@
         .vy-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-muted); cursor: pointer; }
         .vy-hint { font-size: 11px; color: var(--vy-faint); margin-top: 6px; }
         /* Strength meter (presentational) — mirrors reset-password, so the whole auth family is uniform (D14).
-           The floor ("At least 8 characters") IS the real server rule (Password::min(8)); the higher bars are
+           The floor (PasswordPolicy::hint()) IS the real server rule (Password::defaults() — DO13-4 replaced the
+           length-only min(8), so the stated sentence and the enforced rule now come from ONE source); the higher bars are
            advisory guidance only — a VISUAL AID, never a gate (the server stays authoritative). */
         .vy-meter { display: flex; gap: 5px; margin-top: 9px; }
         .vy-meter span { height: 4px; flex: 1; border-radius: 3px; background: rgba(120,70,40,.14); transition: background .2s ease; }
@@ -95,7 +96,7 @@
                     </button>
                 </div>
                 <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
-                <div class="vy-strength"><span>At least 8 characters</span><b id="strength"></b></div>
+                <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
             </div>
             <div class="vy-field">
                 <label class="vy-label" for="password_confirmation">Confirm password</label>

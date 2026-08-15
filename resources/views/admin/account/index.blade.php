@@ -94,7 +94,7 @@
                         <input class="ad-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
                     </div>
                     <button type="submit" class="ad-btn">Update password</button>
-                    <p class="ad-stat-sub" style="margin-top: 10px;">🔒 At least 8 characters. Your current password is required.</p>
+                    <p class="ad-stat-sub" style="margin-top: 10px;">🔒 {{ \App\Support\Auth\PasswordPolicy::hint() }} Your current password is required.</p>
                 </form>
             </div>
 

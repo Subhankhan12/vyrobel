@@ -159,7 +159,7 @@
                 </div>
                 {{-- Presentational strength meter (D14) — a VISUAL AID; the server enforces Password::min(8). --}}
                 <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
-                <div class="vy-strength"><span>At least 8 characters</span><b id="strength"></b></div>
+                <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
                 <div class="vy-actions" data-nav>
                     <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
                     <button type="button" class="vy-btn" data-next>Continue</button>

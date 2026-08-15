@@ -53,7 +53,7 @@ class AcceptOwnerTeamInviteController extends Controller
         }
 
         $request->validate([
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $user = $this->invites->accept($invite, (string) $request->string('password'));

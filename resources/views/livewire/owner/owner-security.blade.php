@@ -93,7 +93,7 @@
                         <label style="{{ $lbl }}" for="new_pw">New password</label>
                         <input id="new_pw" type="password" name="password" class="vy-input" autocomplete="new-password" required>
                         @error('password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                        <span style="font-size:11px;color:var(--vy-faint);">At least 8 characters.</span>
+                        <span style="font-size:11px;color:var(--vy-faint);">{{ \App\Support\Auth\PasswordPolicy::hint() }}</span>
                     </div>
                     <div>
                         <label style="{{ $lbl }}" for="conf_pw">Confirm new password</label>

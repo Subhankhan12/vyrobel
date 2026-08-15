@@ -29,5 +29,5 @@
         <button type="submit" class="vy-btn">Reset password</button>
     </form>
 
-    <div class="vy-foot">At least 8 characters.</div>
+    <div class="vy-foot">{{ \App\Support\Auth\PasswordPolicy::hint() }}</div>
 @endsection

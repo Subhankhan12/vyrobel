@@ -44,7 +44,7 @@ it('changing the password REQUIRES the current password (anti-hijack) + the real
 
     // Wrong current password → rejected, unchanged.
     $this->actingAs($admin, 'admin')
-        ->put(route('admin.account.password'), ['current_password' => 'wrong', 'password' => 'BrandNewPass9', 'password_confirmation' => 'BrandNewPass9'])
+        ->put(route('admin.account.password'), ['current_password' => 'wrong', 'password' => 'BrandNewPass9!', 'password_confirmation' => 'BrandNewPass9!'])
         ->assertSessionHasErrors('current_password');
     expect(adminCredsValid('root@x.test', 'password'))->toBeTrue();   // still the old password
 
@@ -55,10 +55,10 @@ it('changing the password REQUIRES the current password (anti-hijack) + the real
 
     // Correct → changed: the new password works, the OLD no longer does.
     $this->actingAs($admin, 'admin')
-        ->put(route('admin.account.password'), ['current_password' => 'password', 'password' => 'BrandNewPass9', 'password_confirmation' => 'BrandNewPass9'])
+        ->put(route('admin.account.password'), ['current_password' => 'password', 'password' => 'BrandNewPass9!', 'password_confirmation' => 'BrandNewPass9!'])
         ->assertRedirect(route('admin.account.edit'));
 
-    expect(adminCredsValid('root@x.test', 'BrandNewPass9'))->toBeTrue();
+    expect(adminCredsValid('root@x.test', 'BrandNewPass9!'))->toBeTrue();
     expect(adminCredsValid('root@x.test', 'password'))->toBeFalse();
     expect(PlatformAdminAction::query()->where('action', 'platform.account.password_changed')->exists())->toBeTrue();
 })->group('security');

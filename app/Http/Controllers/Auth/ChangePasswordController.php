@@ -52,7 +52,7 @@ class ChangePasswordController extends Controller
             // 🔒 verified against the authenticated user's real hash BEFORE any change (anti-hijack guard).
             'current_password' => ['required', 'current_password'],
             // The same rule set as PasswordResetController::reset — length + confirmation.
-            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);
 
         // The ONE shared hash + remember-token-rotate path: invalidates other remembered sessions; this

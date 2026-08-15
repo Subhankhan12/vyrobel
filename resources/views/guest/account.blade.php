@@ -73,6 +73,8 @@
                         <div class="vy-field"><label class="vy-label" for="current_password">Current password</label><input class="vy-input" type="password" id="current_password" name="current_password" autocomplete="current-password" required></div>
                         <div class="vy-field"><label class="vy-label" for="password">New password</label><input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" required></div>
                         <div class="vy-field"><label class="vy-label" for="password_confirmation">Confirm new password</label><input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required></div>
+                        {{-- DO13-4: this form enforced a composition rule it never stated, so a rejection had no visible reason. --}}
+                        <div class="vy-foot" style="margin:-4px 0 10px">{{ \App\Support\Auth\PasswordPolicy::hint() }}</div>
                         <x-busy-btn class="vy-btn" busy-label="Saving…">Change password</x-busy-btn>
                     </form>
                 </div>

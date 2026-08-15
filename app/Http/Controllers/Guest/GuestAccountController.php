@@ -113,7 +113,7 @@ class GuestAccountController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'current_password:guest'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $guest->changePasswordTo((string) $request->string('password'));   // the one shared hash + rotate path

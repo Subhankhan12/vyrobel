@@ -46,13 +46,13 @@ it('lets a guest with a real booking claim their account, set a password, and la
     $this->get($sentUrl)->assertOk()->assertSee('Set a password');
 
     // 4. Complete the claim.
-    $this->post($sentUrl, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])
+    $this->post($sentUrl, ['password' => 'Super-secret-pw1!', 'password_confirmation' => 'Super-secret-pw1!'])
         ->assertRedirect(route('guest.trips'));
 
     // 5. The account is claimed (hashed password + verified) and the guest is signed in on the GUEST guard.
     $fresh = $guest->fresh();
     expect($fresh->hasPortalAccount())->toBeTrue();
-    expect(Hash::check('super secret pw', (string) $fresh->password))->toBeTrue();
+    expect(Hash::check('Super-secret-pw1!', (string) $fresh->password))->toBeTrue();
     $this->assertAuthenticatedAs($fresh, 'guest');
 });
 
@@ -157,7 +157,7 @@ it('expires the emailed claim link after the hour the page promises, and refuses
     // PAST it (61 minutes) — refused by the signature itself, before any controller code runs.
     $this->travelTo(now()->addMinutes(2));
     $this->get($sentUrl)->assertForbidden();
-    $this->post($sentUrl, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])
+    $this->post($sentUrl, ['password' => 'Super-secret-pw1!', 'password_confirmation' => 'Super-secret-pw1!'])
         ->assertForbidden();
 
     // …and the account was never claimed by the expired link.
@@ -175,7 +175,7 @@ it('refuses a claim URL that carries no signature at all', function () {
     $naked = '/guest/claim/verify/'.$guest->getKey().'/'.sha1('ada@example.test');
 
     $this->get($naked)->assertForbidden();
-    $this->post($naked, ['password' => 'super secret pw', 'password_confirmation' => 'super secret pw'])->assertForbidden();
+    $this->post($naked, ['password' => 'Super-secret-pw1!', 'password_confirmation' => 'Super-secret-pw1!'])->assertForbidden();
 
     expect($guest->fresh()->hasPortalAccount())->toBeFalse();
 });

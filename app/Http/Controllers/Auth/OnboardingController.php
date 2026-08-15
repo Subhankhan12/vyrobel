@@ -62,7 +62,7 @@ class OnboardingController extends Controller
             // Neutral email handling: a duplicate does NOT get a "that email is taken" message that confirms
             // an account exists — it fails with a generic, non-committal error.
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ], [
             'email.unique' => 'We couldn’t create your account with these details. If you already have one, sign in.',
         ]);

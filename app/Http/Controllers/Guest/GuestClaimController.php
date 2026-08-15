@@ -73,7 +73,7 @@ class GuestClaimController extends Controller
             return view('guest.auth.claim-invalid');
         }
 
-        $request->validate(['password' => ['required', 'confirmed', Password::min(8)]]);
+        $request->validate(['password' => ['required', 'confirmed', Password::defaults()]]);
 
         $this->accounts->claim($model, (string) $request->string('password'));
 

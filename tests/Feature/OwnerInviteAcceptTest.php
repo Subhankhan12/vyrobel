@@ -32,7 +32,7 @@ it('activates the owner and logs them in on a valid token', function () {
 
     test()->get("/invite/{$token}")->assertOk()->assertSee('Set your password');
 
-    test()->post("/invite/{$token}", ['password' => 'sup3r-secret-pw', 'password_confirmation' => 'sup3r-secret-pw'])
+    test()->post("/invite/{$token}", ['password' => 'Sup3r-secret-pw!', 'password_confirmation' => 'Sup3r-secret-pw!'])
         ->assertRedirect('/owner');
 
     // Login + owner activated; token spent; unit assigned; agreement created.
@@ -57,11 +57,11 @@ it('lets the activated owner sign in through the normal login afterwards', funct
     $s = seedScenario(1);
     ['token' => $token] = invited($s, 'roundtrip@example.test');
 
-    test()->post("/invite/{$token}", ['password' => 'my-strong-pass', 'password_confirmation' => 'my-strong-pass']);
+    test()->post("/invite/{$token}", ['password' => 'My-strong-pass1!', 'password_confirmation' => 'My-strong-pass1!']);
     test()->post('/logout');
     test()->assertGuest();
 
-    test()->post('/login', ['email' => 'roundtrip@example.test', 'password' => 'my-strong-pass'])
+    test()->post('/login', ['email' => 'roundtrip@example.test', 'password' => 'My-strong-pass1!'])
         ->assertRedirect('/owner');
     test()->assertAuthenticated();
 });
@@ -71,12 +71,12 @@ it('rejects a reused token with a generic page and no re-activation', function (
     $s = seedScenario(1);
     ['invite' => $inv, 'token' => $token] = invited($s, 'once@example.test');
 
-    test()->post("/invite/{$token}", ['password' => 'first-password-x', 'password_confirmation' => 'first-password-x'])->assertRedirect('/owner');
+    test()->post("/invite/{$token}", ['password' => 'First-password-x1!', 'password_confirmation' => 'First-password-x1!'])->assertRedirect('/owner');
     test()->post('/logout');
 
     // Reuse the now-spent token → generic invalid page, no second activation.
     test()->get("/invite/{$token}")->assertOk()->assertSee('isn’t valid');
-    test()->post("/invite/{$token}", ['password' => 'attacker-repass', 'password_confirmation' => 'attacker-repass'])
+    test()->post("/invite/{$token}", ['password' => 'Attacker-repass1!', 'password_confirmation' => 'Attacker-repass1!'])
         ->assertOk()->assertSee('isn’t valid');
     test()->assertGuest();
     app(TenantContext::class)->set($s['org']->id);
@@ -91,7 +91,7 @@ it('shows a generic page for an expired token', function () {
     OwnerInvite::query()->whereKey($inv->id)->update(['expires_at' => now()->subDay()]);
 
     test()->get("/invite/{$token}")->assertOk()->assertSee('isn’t valid');
-    test()->post("/invite/{$token}", ['password' => 'whatever-longpw', 'password_confirmation' => 'whatever-longpw'])
+    test()->post("/invite/{$token}", ['password' => 'Whatever-longpw1!', 'password_confirmation' => 'Whatever-longpw1!'])
         ->assertOk()->assertSee('isn’t valid');
     // No activation.
     expect(User::query()->where('email', 'stale@example.test')->firstOrFail()->status)->toBe('invited');
@@ -109,7 +109,7 @@ it('rejects a too-short or mismatched password without activating', function () 
 
     test()->post("/invite/{$token}", ['password' => 'short', 'password_confirmation' => 'short'])
         ->assertSessionHasErrors('password');
-    test()->post("/invite/{$token}", ['password' => 'long-enough-1', 'password_confirmation' => 'different-2'])
+    test()->post("/invite/{$token}", ['password' => 'Long-enough-1!', 'password_confirmation' => 'different-2'])
         ->assertSessionHasErrors('password');
 
     test()->assertGuest();

@@ -111,7 +111,7 @@
                     </button>
                 </div>
                 <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
-                <div class="vy-strength"><span>At least 8 characters</span><b id="strength"></b></div>
+                <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
             </div>
 
             <div class="vy-field">

@@ -9907,3 +9907,44 @@ changed.
 screen was out of scope here. Also logged: open shifts ignore the department filter on BOTH surfaces
 (**`D34-1c`**) — the PDF matches the grid deliberately, because parity was the requirement, but whether the
 grid should filter is a real product question.
+
+
+---
+
+## 2026-08-15 — DO13-4 · real password composition, at every set-password path
+
+**One policy — `App\Support\Auth\PasswordPolicy`, registered as `Password::defaults()`:**
+`min(8)->letters()->numbers()->symbols()`, plus the SENTENCE that describes it, in the same class so they
+cannot drift apart.
+
+⚠️ **THE AUDIT NAMED FOUR PATHS; THERE ARE NINE.** A sweep (validation arrays · the rule class however
+aliased · `Hash::make` in app code) found five more the audit's list missed — **public self-signup**
+(`OnboardingController`, the most public path in the product), the **platform-admin account**, and the
+**entire guest realm** (Account · Claim · PasswordReset). ⚠️ The four were simply the ones an earlier reader
+had already written down; §N.8f again — **a search finds only what you name**.
+
+⚠️ **THE PROTOTYPES DO NOT AGREE, so "match the prototype" had no single answer** — "At least 8 characters"
+(Set Password) · "at least 8 characters with a number." (Owner Security) · "8+ characters with a number and
+symbol" (Guest Signup). A per-realm password policy would be a security smell and three more copies to
+drift, so the **strongest promise became the floor for every realm**, and the weaker screens' copy was
+corrected to state what is actually enforced. `letters()` is included ("characters with a number and symbol"
+plainly means letters; without it `12345678!` passes); `mixedCase()` is NOT — no screen promises it, and
+enforcing an unstated rule is the same defect reversed.
+
+⚠️ **A NINTH SCREEN WAS FOUND ONLY BY SWEEPING THE ROUTE.** `livewire/operator/operator-security` has a
+change-password form that stated NO rule at all — so a copy-sweep for "8 characters" could not see it,
+precisely because it made no claim. Two screens were silent this way (the other: guest Account); both now
+state the rule.
+
+⚠️ **`CreatePlatformAdminCommand` deliberately NOT collapsed** — it requires min(12) + mixedCase + numbers +
+symbols. Pointing it at the shared default would have WEAKENED it. Confirm-before-collapsing, the same
+judgement the payout-status maps needed; a test pins the higher bar so a later tidy-up cannot lower it.
+
+⚠️ **`uncompromised()` (Have-I-Been-Pwned) is an OPEN FOUNDER CALL, not a silent addition** (`DO13-4a`). It
+is stronger, and it adds an outbound API dependency on every password set plus real UX friction — a product
+decision. One line in `PasswordPolicy::rule()` if wanted; `hint()` must gain a matching sentence in the same
+change, which is the whole point of the two living together.
+
+**Composition is a SET-time rule, not a login rule** — existing users keep their passwords; a test proves a
+legacy weak password still signs in. Seeders bypass validation (`Hash::make` directly) and are unaffected.
+31 fixture passwords across 6 test files were strengthened — the FIXTURES, never the rule.

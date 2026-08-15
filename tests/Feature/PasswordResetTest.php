@@ -95,19 +95,19 @@ it('resets the password end-to-end and signs the user in', function () {
     $this->post('/reset-password', [
         'token' => $token,
         'email' => 'roundtrip@example.test',
-        'password' => 'a-brand-new-pass',
-        'password_confirmation' => 'a-brand-new-pass',
+        'password' => 'A-brand-new-pass1!',
+        'password_confirmation' => 'A-brand-new-pass1!',
     ])->assertRedirect('/app/dashboard');
 
     $this->assertAuthenticatedAs($user->fresh());
 
     // Password is hashed (not plaintext) and actually changed.
-    expect(Hash::check('a-brand-new-pass', $user->fresh()->password))->toBeTrue();
+    expect(Hash::check('A-brand-new-pass1!', $user->fresh()->password))->toBeTrue();
 
     // Old password no longer works; the new one does.
     $this->post('/logout');
     $this->post('/login', ['email' => 'roundtrip@example.test', 'password' => 'old-password'])->assertSessionHasErrors();
-    $this->post('/login', ['email' => 'roundtrip@example.test', 'password' => 'a-brand-new-pass'])->assertRedirect('/app/dashboard');
+    $this->post('/login', ['email' => 'roundtrip@example.test', 'password' => 'A-brand-new-pass1!'])->assertRedirect('/app/dashboard');
 });
 
 // ── Single-use: a spent token cannot reset again ─────────────────────────────────────────────────
@@ -121,14 +121,14 @@ it('rejects a reused reset token (single-use)', function () {
 
     $this->post('/reset-password', [
         'token' => $token, 'email' => 'once@example.test',
-        'password' => 'first-new-pass', 'password_confirmation' => 'first-new-pass',
+        'password' => 'First-new-pass1!', 'password_confirmation' => 'First-new-pass1!',
     ])->assertRedirect('/app/dashboard');
     $this->post('/logout');
 
     // Reuse the now-spent token → generic error, not authenticated.
     $this->post('/reset-password', [
         'token' => $token, 'email' => 'once@example.test',
-        'password' => 'second-new-pass', 'password_confirmation' => 'second-new-pass',
+        'password' => 'Second-new-pass1!', 'password_confirmation' => 'Second-new-pass1!',
     ])->assertSessionHasErrors('email');
     $this->assertGuest();
 });
@@ -146,7 +146,7 @@ it('rejects an expired reset token', function () {
 
     $this->post('/reset-password', [
         'token' => $token, 'email' => 'stale@example.test',
-        'password' => 'too-late-pass', 'password_confirmation' => 'too-late-pass',
+        'password' => 'Too-late-pass1!', 'password_confirmation' => 'Too-late-pass1!',
     ])->assertSessionHasErrors('email');
     $this->assertGuest();
 });

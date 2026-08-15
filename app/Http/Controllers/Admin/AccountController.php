@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\AdminEmailChangeMail;
 use App\Models\PlatformAdmin;
+use App\Support\Auth\PasswordPolicy;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\TwoFactor\PlatformTwoFactorService;
 use Illuminate\Contracts\View\View;
@@ -61,7 +62,10 @@ class AccountController extends Controller
 
     /**
      * Change the password. 🔒 CURRENT password required (anti-hijack) + the real server-authoritative rule
-     * (Password::min(8), confirmed) + the single hash+rotate path. This session stays signed in (no re-login).
+     * ({@see PasswordPolicy}'s composition via `Password::defaults()`, confirmed) + the
+     * single hash+rotate path. This session stays signed in (no re-login). ⚠️ The old note here said
+     * "Password::min(8)" — true when written, false after DO13-4, and the same stale-docblock class the
+     * payout enum and the schedule PDF both carried.
      */
     public function changePassword(Request $request): RedirectResponse
     {
@@ -69,7 +73,7 @@ class AccountController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'current_password:admin'],
-            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+            'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);
 
         $admin->changePasswordTo((string) $request->string('password'));
