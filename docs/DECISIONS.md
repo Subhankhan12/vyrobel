@@ -9754,6 +9754,12 @@ supersedes DO-A11Y-3's darkening. Canon: **§N.22.5**.
 
 ---
 
+> ⚠️ **PARTLY SUPERSEDED BY DO-RESTORE-4 (2026-08-15).** The founder took option (b). The three PEACH avatar
+> copies now carry dark text and PASS (the exception is closed for them). The three `--vy-grad` copies —
+> `.vy-plan-tag`, the owner `.vy-avatar`, `.vy-owner-avatar` — could NOT be fixed by text colour and keep this
+> entry's accepted state. ⚠️ And the warm brown named here as option (b) does NOT clear the real plate; see
+> §N.25 for the corrected measurement.
+
 ## 2026-08-14 — DO-RESTORE-3 · the avatar / plan-tag wireframe peach restored
 
 **FOUNDER RULED:** restore the `.vy-avatar` and `.vy-plan-tag` **backgrounds** to wireframe. Executed across
@@ -9794,3 +9800,33 @@ Canon: **§N.23**. Tooling only — no product code.
 
 Eight instrument corrections now, **every one caught by a known-answer fixture**, never by a number looking
 wrong. All new cases mutation-proven; the 11 pre-existing harness cases still pass.
+
+
+---
+
+## 2026-08-15 — DO-RESTORE-4 · option (b) executed on the PEACH · ⚠️ the brown corrected, the gradient copies blocked
+
+**FOUNDER RULED (b):** keep the wireframe peach, darken the text. Executed for the peach; **partially**, and
+with a premise correction. Canon: **§N.25**.
+
+⚠️ **THE RULING'S COLOUR DOES NOT WORK, and measuring the real plate is what showed it.** `#5C2E0B` was quoted
+at 5.60 — that is the gradient's **light stop**. On the plate the initials actually sit on
+(rgb(242,194,170)..rgb(221,112,58)) it reaches only **3.49** at the dark end. **On a diagonal gradient the
+worst case for DARK text is the opposite end from the worst case for WHITE**, so the brown would have traded a
+light-end failure for a dark-end one. **`--vy-ink` — the alternative the ruling itself offered — is the value
+that works** (9.58/**4.73**), so the new named token `--vy-on-peach` resolves to it.
+
+- ✅ **THE 3 PEACH COPIES FIXED** (`.vy-avatar`, `.vy-thread-av`, `.vy-arr-av`) → `var(--vy-on-peach)`.
+  Re-measured with the validated sampler: `.vy-arr-av` **5.12 PASSES** (`.vy-avatar` fell in the run's
+  unmeasurable set — a small round element). The peach background is **untouched**.
+- ⛔ **THE 3 `--vy-grad` COPIES ARE NOT FIXABLE BY TEXT COLOUR** (`.vy-plan-tag`, owner `.vy-avatar`,
+  `.vy-owner-avatar`). That gradient runs light-peach → deep-orange: white fails at the light end (1.67), dark
+  text fails at the dark end (ink 3.36, brown 2.48). **No single colour clears both.** Left in their decided
+  state rather than trading one failure for another — **the only fix is flattening the background, which is a
+  founder call on the LOOK** (`DO-RESTORE-5`).
+- ⚠️ `.vy-owner-avatar` therefore stays **DECIDED**, not reclassified — the reporter's split is unchanged.
+- The CTA exception (DO-RESTORE-1(a)) is untouched and still accepted.
+
+⚠️ **A margin note, stated rather than buried:** ink on the peach measures 4.73 where the glyphs sit, but 4.32
+against the declared dark stop. The margin is thin; flattening the avatar background would remove the
+fragility for good.

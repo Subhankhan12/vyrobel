@@ -405,3 +405,61 @@ it('⚠️ NOT VACUOUS — the arrival row really renders, so the guard above is
 
     expect($html)->toContain('vy-fd-meta')->toContain('vy-tl-foot');
 });
+
+/*
+ * ⚠️ DO-RESTORE-4 — option (b), PARTIALLY EXECUTED, and the premise corrected (2026-08-15).
+ *
+ * The ruling: keep the wireframe peach, darken the text to the warm brown #5C2E0B (quoted 5.60). Measuring
+ * the plate the INITIALS ACTUALLY SIT ON showed that number came from the gradient's LIGHT stop alone:
+ *
+ *   peach avatars   painted fill rgb(242,194,170)..rgb(221,112,58)
+ *                   white 1.61/3.25 · #5C2E0B 7.06/3.49 ✗ · --vy-ink 9.58/4.73 ✓
+ *   plan-tag        painted fill rgb(238,190,170)..rgb(203,76,22)   (rides --vy-grad, NOT the peach)
+ *                   white 1.67/4.58 · #5C2E0B 6.80/2.48 ✗ · --vy-ink 9.22/3.36 ✗
+ *
+ * ⚠️ On a DIAGONAL gradient the worst case for DARK text is the opposite end from the worst case for WHITE.
+ * The brown would have traded a light-end failure for a dark-end one. `--vy-ink` — the alternative the ruling
+ * itself offered — is the value that actually clears the peach, so it is what `--vy-on-peach` resolves to.
+ *
+ * ⚠️ AND THE THREE `--vy-grad` COPIES ARE NOT FIXABLE BY TEXT COLOUR AT ALL: that gradient spans light peach
+ * to deep orange, so no single colour clears both ends. They are LEFT in their DO-RESTORE-3/1(a) decided
+ * state rather than trading one failure for another.
+ */
+const R4_PEACH_LIGHT = [242, 194, 170];   // painted, where the initials sit
+const R4_PEACH_DARK = [221, 112, 58];
+const R4_GRAD_DARK = [203, 76, 22];       // the plan-tag's dark end
+
+it('⚠️ DO-RESTORE-4 — the PEACH avatars carry dark text via a named token, on every copy (§N.8f)', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+
+    // ⚠️ NAMED, not a literal: six copies of the avatar concept exist, and a bare hex would drift again.
+    expect($tokens)->toContain('--vy-on-peach: rgb(43, 35, 32)');
+
+    // All THREE peach copies, and none left on white.
+    foreach (['.vy-avatar', '.vy-thread-av', '.vy-arr-av'] as $cls) {
+        expect($shell)->toMatch('/'.preg_quote($cls, '/').'[^}]*background: linear-gradient\(140deg, #F0A57A, #D9662E\)[^}]*color: var\(--vy-on-peach\)/');
+    }
+
+    // ⚠️ THE MEASURED REASON, and why NOT the brown the ruling named: on the plate the glyphs actually sit on,
+    // ink clears both ends and the brown does not.
+    expect(partBRatio([43, 35, 32], R4_PEACH_DARK))->toBeGreaterThanOrEqual(4.5)     // ink 4.73
+        ->and(partBRatio([92, 46, 11], R4_PEACH_DARK))->toBeLessThan(4.5)            // #5C2E0B 3.49
+        ->and(partBRatio([255, 255, 255], R4_PEACH_LIGHT))->toBeLessThan(4.5);       // the white it replaced
+});
+
+it('⚠️ THE --vy-grad COPIES ARE LEFT ALONE — no text colour clears that gradient', function () {
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+
+    // ⚠️ GUARDING A NON-CHANGE, deliberately. .vy-plan-tag and the owner-side avatars ride --vy-grad, whose
+    // range runs from light peach to deep orange: white fails at the light end, dark text fails at the dark
+    // end. Changing them would trade one failure for another, so they keep their decided state until the
+    // founder rules on the BACKGROUND (flattening it is the only thing that would work).
+    // (order-independent: this rule declares `color` BEFORE `background`, and a regex assuming one
+    // order fails on correct markup — the needle must come from the real markup, not the assumed shape.)
+    expect($shell)->toMatch('/\.vy-plan-tag \{[^}]*color: #fff/')
+        ->and($shell)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-grad\)/');
+
+    expect(partBRatio([43, 35, 32], R4_GRAD_DARK))->toBeLessThan(4.5)      // ink  3.36
+        ->and(partBRatio([92, 46, 11], R4_GRAD_DARK))->toBeLessThan(4.5);  // brown 2.48
+});

@@ -194,7 +194,7 @@
 
         .vy-bell { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); color: var(--vy-muted); }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }
+        .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: var(--vy-on-peach); font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }
         .vy-avatar--lg { width: 38px; height: 38px; font-size: 13px; font-weight: 600; }
         .vy-chip-name { font-size: 13px; font-weight: 500; }
 
@@ -1026,7 +1026,7 @@
         .vy-thread-row:last-child { border-bottom: none; }
         .vy-thread-row:hover { background: rgba(255, 255, 255, 0.5); transform: translateX(2px); }
         .vy-thread-row.is-unread { background: rgba(232, 112, 58, 0.05); }
-        .vy-thread-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: #fff; display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vy-thread-av { position: relative; flex: none; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); color: var(--vy-on-peach); display: grid; place-items: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
         .vy-thread-av .vy-unread-dot { position: absolute; top: -1px; right: -1px; width: 11px; height: 11px; border-radius: 50%; background: var(--vy-accent); border: 2px solid rgba(255, 252, 248, 0.95); }
         .vy-thread-main { flex: 1; min-width: 0; }
         .vy-thread-top { display: flex; align-items: center; gap: 8px; }
@@ -1336,7 +1336,7 @@
 
         /* Arrivals — the prototype's initials avatar */
         .vy-dash .vy-arr-who { display: flex; align-items: center; gap: 11px; min-width: 0; }
-        .vy-dash .vy-arr-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 500; flex: none; }
+        .vy-dash .vy-arr-av { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: flex; align-items: center; justify-content: center; color: var(--vy-on-peach); font-size: 11px; font-weight: 500; flex: none; }
 
         /* Occupancy — the prototype's 130px chart, wider gutters, today emphasised */
         .vy-dash .vy-occ7 { height: 130px; gap: 14px; }

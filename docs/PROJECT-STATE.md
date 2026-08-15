@@ -7606,3 +7606,39 @@ cards untouched — they already pass, and darkening them would violate posture 
 force-measured) · inactive **tab panels** (front-desk Departures/In-house) · `aria-expanded` accordions (8
 files) · `:focus-within` hover reveals (9 files) · toast/flash states · loading/skeleton states · disabled
 states. ⚠️ `x-show` appears in **48 files** — this pass forced two states deeply, not forty-eight shallowly.
+
+
+# (N.25) 🏁 DO-RESTORE-4 — THE COLOUR A RULING NAMES CAN BE THE WRONG ONE (2026-08-15)
+
+Option (b) — keep the wireframe peach, darken the text — executed on the peach copies, **blocked on the
+gradient copies**, and with the ruling's own colour corrected by measurement.
+
+## §N.25.1 ⚠️ A GRADIENT HAS TWO WORST CASES, AND THEY ARE AT OPPOSITE ENDS
+
+`#5C2E0B` was offered at **5.60** — computed against the peach's **light stop**, which is the worst case for
+**white** text. For **dark** text the worst case is the **other end**. Measured on the plate the initials
+actually sit on:
+
+| surface | painted fill | white | `#5C2E0B` | `--vy-ink` |
+|---|---|---|---|---|
+| peach avatars | rgb(242,194,170)..rgb(221,112,58) | 1.61 / 3.25 | 7.06 / **3.49** ✗ | 9.58 / **4.73** ✓ |
+| `--vy-grad` copies | rgb(238,190,170)..rgb(203,76,22) | 1.67 / 4.58 | 6.80 / **2.48** ✗ | 9.22 / **3.36** ✗ |
+
+**Applying the named colour would have moved the failure rather than removed it.** `--vy-ink` (the ruling's own
+stated alternative) is what clears the peach, so `--vy-on-peach` resolves to it — named, not inlined, because
+the avatar concept has six copies (§N.8f).
+
+## §N.25.2 ⛔ THREE COPIES CANNOT BE FIXED BY TEXT COLOUR AT ALL
+
+`.vy-plan-tag`, the owner `.vy-avatar` and `.vy-owner-avatar` ride `--vy-grad`, which spans light peach to deep
+orange. **White fails at one end, dark text at the other — no single colour clears both.** They keep their
+decided state; the guard asserts that NON-CHANGE, so a future pass cannot "fix" them into the opposite
+failure. ⚠️ **The only real fix is flattening that background — a founder call on the LOOK, logged as
+`DO-RESTORE-5`.**
+
+## §N.25.3 🧭 THE LESSON
+
+> **A number in a ruling carries the assumptions of whoever measured it.** The founder chose (b) on a figure
+> that was correct for the stop it was taken from and wrong for the surface it was applied to. Re-deriving it
+> against the real painted plate — before applying — is what caught it. *Execute the intent, not just the
+> literal value; and when they diverge, say so rather than silently doing either one.*

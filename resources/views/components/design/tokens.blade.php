@@ -38,6 +38,17 @@
             --vy-accent-2: rgb(217, 102, 46);
             --vy-accent-3: rgb(232, 112, 58);
             --vy-accent-text: rgb(147, 42, 7);
+            /* ⚠️ TEXT ON THE PEACH AVATAR GRADIENT (DO-RESTORE-4). Named rather than inlined so the six copies
+               of the avatar concept cannot drift (§N.8f). The value is the ink colour rgb(43,35,32), chosen by
+               measuring the plate the INITIALS actually sit on — rgb(242,194,170)..rgb(221,112,58) — where ink
+               clears both ends at 9.58/4.73 while the ruling's warm brown #5C2E0B reaches only 3.49 at the
+               dark end. The brown came from the gradient's LIGHT stop alone, and on a diagonal gradient the
+               worst case for DARK text is the other end. ⚠️ The 4.73 margin is thin: a glyph reaching the
+               declared dark stop #D9662E would be 4.32; flattening the background would remove that entirely.
+               ⚠️ NOTE the prose above deliberately avoids writing a token name followed by a colon — the
+               token-source guard parses `--vy-x:` inside a CSS comment as a real declaration, and this comment
+               reddened it once. CSS comments SHIP and are scanned. */
+            --vy-on-peach: rgb(43, 35, 32);
             --vy-accent-border: rgba(232, 112, 58, 0.28);
             /* Amber */
             --vy-amber: rgb(178, 106, 8);
