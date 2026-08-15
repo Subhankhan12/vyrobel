@@ -1,0 +1,484 @@
+# Vyrobel — the REMAINING-WORK LEDGER (`DO-BACKEND-AUDIT-1`, 2026-08-15)
+
+**A READ-ONLY audit. Nothing in this pass was fixed, filled, stubbed or tested — the only write is this file.**
+
+**Purpose.** The design programme is complete-in-method and billing is code+build complete (gated on the
+founder's Stripe/VAT steps). What remains is the **backend phase**: pages that carry a full UI over a missing,
+partial or deliberately-inert backend. Its true scope lives in the registers **and in the code**, not in
+memory. This file is the map.
+
+**Inputs.** `docs/design/MISSING-BACKEND-BY-PAGE.md` (the spine — **265** logged item-rows;
+176 in table form across 45 page sections, 89 as later-format bullets) · `docs/design/DIVERGENCE-REGISTER.md` · `docs/DECISIONS.md` · `docs/PROJECT-STATE.md` §G.1 / §H /
+§H.bis / §I / §J · and the codebase.
+
+> ⚠️ **THE RULE THIS LEDGER IS BUILT ON: "UI exists" ≠ "feature works", and "the register says so" ≠ "it is
+> still true".** A register entry is a claim about the moment it was written (§N.8b). Several have since been
+> built. Every status below cites a file+line, or says **UNVERIFIED** and why.
+
+---
+
+## 0 · HEADLINE NUMBERS
+
+| | count |
+|---|---|
+| Register item-rows enumerated | **265** (176 table-format across 45 page sections + 89 bullet-format) |
+| Of those, logged as open work when written (`REAL GAP`) | **115** |
+| Logged as **not** work — refusal / `ACCOUNT-GATED` / `NOT A GAP` / deferred | **108** ⚠️ *not counted as remaining work* |
+| Rows carrying a prose verdict too mixed to classify mechanically | **42** — sampled, not swept (§8) |
+| Re-verified against current code **this pass** | **84** (40 deep-traced · 44 mechanically re-checked) |
+| **SINCE-DONE** (register stale — built after the entry) | **6** |
+| **PARTIAL** (some layers real) | **7** |
+| **STILL-OPEN** | **71** |
+| **UNVERIFIED** (named, with the reason) | **~73** rows + all perf claims |
+| In-code `TODO`/`FIXME`/stub/`abort(501)`/debug leftovers | **0** ✅ |
+| Dead routes referenced in Blade/PHP | **0** ✅ |
+| Launch-BLOCKING items | **3** (all infrastructure/founder, none feature) |
+
+⚠️ **Two facts worth stating plainly up front, because they set the tone of everything below.**
+
+1. **There is no rot.** A full sweep for `TODO`, `FIXME`, `HACK`, `XXX`, `not implemented`, `abort(501)`,
+   `// stub`, `dd()`/`dump()`/`ray()`/`var_dump()` across `app/`, `routes/`, `resources/views/`, `database/`
+   and `config/` returns **one** hit — the word "HACK" inside an explanatory sentence
+   (`app/Livewire/Owner/OwnerMessages.php:39`). **No stubbed handler, no dead action, no debug leftover.**
+2. **Every `route('…')` reference resolves.** 371 distinct route names are referenced across `app/` and
+   `resources/views/`; 441 are registered; the 5 apparent misses are 4 `$request->route('param')` *parameter*
+   reads and one `@if (Route::has('register'))`-guarded link in Laravel's stock `welcome.blade.php`.
+   **No Blade links to a route that 404s.**
+
+**So the remaining work is almost entirely ADDITIVE — features not yet built — not defects to repair.** The
+exceptions are in §1, and there are only three of them.
+
+---
+
+## 1 · ⚠️ THE THREE THINGS THAT ARE WRONG, NOT MERELY MISSING
+
+These are the only items where the product currently **says something untrue** or **loses data**. They are
+small, and they are first for that reason.
+
+### 1.1 🔴 `payoutStatusMeta` tells an owner a payout in transit is "pending" — and it exists THREE times
+
+**Status: STILL-OPEN · Size S · No dependency · ⚠️ REAL MONEY, owner-facing**
+
+The register logs this **six separate times** — `D16-7`, `DO14-1`, `DO17-1`, `DO21-1`, `DO21-2`, `DO24-2` —
+each on a different page, none of them naming it as one defect. It is one helper.
+
+```
+app/Livewire/Owner/Concerns/FormatsOwnerData.php:101-106
+    'paid'     => 'Paid'
+    'failed'   => 'Payout failed'
+    'reversed' => 'Reversed'
+    default    => 'Payout pending'        ← ⚠️ swallows 'processing' AND 'held'
+```
+
+Both swallowed statuses are written by live production code, not hypotheticals:
+`app/Services/OwnerPayoutService.php:127` sets `processing`, `:189` sets `held`. The declared enum is
+`pending/processing/paid/failed/reversed/held` (`app/Models/Payout.php:19`).
+
+⚠️ **The audit found it is worse than recorded: there are THREE definitions of this one concept**, an §N.8f
+violation the register never spotted because each entry looked at one page:
+
+| copy | file:line | `default` behaviour | consequence |
+|---|---|---|---|
+| owner shared trait | `app/Livewire/Owner/Concerns/FormatsOwnerData.php:99` | `'Payout pending'` | ⚠️ **actively misinforms** — money already sent reads as not started; money held by the tax-hold reads the same |
+| operator, private copy | `app/Livewire/Operator/OperatorOwnerDetail.php:658` | `ucfirst($status)` | degrades gracefully → "Processing"/"Held", untranslated, generic tone |
+| operator, private copy | `app/Livewire/Operator/PayoutRun.php:405` | `ucfirst($status)` | same |
+
+Call sites: 5 owner surfaces (`OwnerPayouts` ×2, `OwnerDocuments`, `OwnerDashboard`, `OwnerStatementView`)
++ 3 operator. **The owner-facing copy is the dangerous one**, and it is the one that names the states wrongly
+rather than bluntly.
+
+**What it needs:** one definition (extend the shared trait to cover `processing`/`held`, delete the two
+private copies, point all 8 call sites at it). ⚠️ `OwnerBalance` already models `held`/`processing` correctly
+in its clearing identity — **the concept is already right somewhere in the codebase; the label map is what
+lags.**
+
+### 1.2 🔴 The operator Schedule PDF prints two statements that are now false
+
+**Status: STILL-OPEN · Size S · Depends on: extending `RosterWeek` (see 3.3) · Register: `D34-1`, `D34-2`**
+
+`resources/views/pdfs/operator-schedule.blade.php` renders, **as visible text to the operator**:
+
+> `:136` — "This rota reflects the LIVE roster — **there is no draft or published state**, so what you see
+> here is what the team sees."
+
+and carries two matching source comments (`:5-6`, `:66-67`) asserting *"open shifts is omitted (no
+unassigned-shift model — every shift is bound to a person)"*.
+
+**Both claims were true when written and are false now.** The migration
+`database/migrations/2026_07_31_150000_create_schedule_publications_and_open_shifts.php` creates both tables;
+`app/Models/OpenShift.php` and `app/Models/SchedulePublication.php` exist; `ScheduleController` really writes
+them (`:220` publish, `:250` create open shift, `:263` fill, `:290` remove) behind gated routes
+(`routes/web.php:942-944`); and the **screen** shows a real Publish button and a "Published" tag
+(`resources/views/livewire/operator/schedule.blade.php:52,58`).
+
+⚠️ **This is the §N.8d class — an assertion the code no longer supports — and it is rendered to a user.** It
+is also §N.13.1 exactly: the register flagged the *missing feature* (open shifts absent from the PDF); the
+*false sentence* sits three lines away and went unrecorded.
+
+**Root cause is shared and structural:** the PDF and the grid both read `App\Support\Schedule\RosterWeek`,
+whose entire public surface is `teamSize() · shiftCount() · hours() · dayView() · coverageByDepartment() ·
+build()` — **no open-shift and no publication accessor**. The grid queries the models directly
+(`OperatorSchedule.php:145,167`); the PDF cannot, because the anti-drift rule says the PDF renders from the
+shared builder. ⚠️ **The fix belongs in `RosterWeek`, never in the template** (the register says this too).
+
+### 1.3 🟠 `joinWaitlist()` has no uniqueness rule at either layer
+
+**Status: STILL-OPEN · Size S · Register: `DO-G10-3`**
+
+`app/Services/GuestWishlistService.php:80` is a bare `GuestWaitlistEntry::query()->create([...])`, and
+`database/migrations/2026_07_22_120000_create_guest_wishlist_and_waitlist.php:29-46` gives
+`guest_waitlist_entries` two plain indexes and **no unique constraint**. A double-submit writes two rows.
+
+⚠️ **The sibling table in the same migration gets it right** — `:26` puts
+`unique(['guest_id','room_type_id'])` on the wishlist. So this is a one-table omission, not a design position.
+Client-side guarding is defence-in-depth, not the rule.
+
+---
+
+## 2 · REGISTER RECONCILIATION
+
+| outcome | n | what it means |
+|---|---|---|
+| **STILL-OPEN** | 71 | verified absent in current code |
+| **SINCE-DONE** | 6 | the register is stale — built after the entry was written |
+| **PARTIAL** | 7 | some layers real; the gap named per row |
+| **CHANGED** | 3 | the gap is real but its shape differs from the record |
+| **UNVERIFIED** | ~73 | not re-checked this pass — see §8 |
+| **DEFERRED-BY-DECISION** | **108** | refusal-class **69** + `ACCOUNT-GATED` **22** + `NOT A GAP` **16** + deferred **1** — ⚠️ **not remaining work** |
+
+### 2.1 ✅ SINCE-DONE — the register is stale here (do NOT re-open)
+
+| id | register claim | current reality |
+|---|---|---|
+| `D9-2` | "no open-shifts row in the schedule grid" | **BUILT.** `OperatorSchedule.php:167` renders them; create/fill/remove routes at `routes/web.php:942-944`. *(The PDF half, `D34-1`, is still open — see 1.2.)* |
+| `DO5-5` | "no Snoozed tab on My Units" | **BUILT.** `OwnerMyUnits.php:89` → `OwnerAttention::snoozed()` |
+| `DO14-2` | "no year filter on Documents" | **BUILT.** `OwnerDocuments.php:70-72` — built from the REAL years present, rendered only when >1 exists |
+| `DO16-5` (partly) | "the Next-payout figure has no date" | **BUILT for Payouts.** `OwnerPayouts.php:122` → `PayoutSchedule::nextRunDate()`. *(Still absent elsewhere — see PARTIAL)* |
+| `D16-5` | "no per-transfer bank identity on payout-run rows" | **BUILT.** `PayoutRun.php:143-150` — masked IBAN per owner, `payouts.manage`-gated, one batched read |
+| `DO10-4` (mostly) | "the ★ colour is hand-rolled in 11 view files" | **LARGELY CLOSED.** `resources/views/components/star-rating.blade.php:41` is the shared component at the AA-safe `#8F5A06`. **3 files still hand-roll** (`livewire/owner/messages.blade.php`, `livewire/owner/reviews.blade.php`, `guest/review.blade.php`) |
+
+### 2.2 🟡 PARTIAL — real in one place, absent in another
+
+| id | what is real | what is not | evidence |
+|---|---|---|---|
+| `DO1-1` / `DO2-2` | a **real** next-payout date exists | it reaches **only** the Payouts page; the owner Dashboard hero and the Statement dark rail still have none | `nextRunDate` has exactly one consumer: `OwnerPayouts.php:122` |
+| `D18-6` | multiple rate plans are loaded and listed | the grid is keyed to **one** `primaryRatePlan` per room type, so the design's three side-by-side plans don't render | `RatesGrid.php:86,103,139,148` |
+| `D24-2` | passkeys/WebAuthn are **fully built** — model, service, register + usernameless login | **owner realm only.** Registration lives under `Route::prefix('owner')` (`routes/web.php:964`, routes `:1221-1223`); the operator Security page has none | `app/Support/Auth/PasskeyService.php`, `app/Models/Passkey.php` |
+| `D3-4` | the guard for *absent* prior-year data exists (`has_ly`) | the guard for *thin* prior-year data does not — see 3.1 | `OperatorInsights.php:181,206` |
+| `D6-1`/`D6-2`/`D6-3` | the register records a deliberate scope call, not pure absence | the composer was omitted, so "no bulk backend is left to reach" | `ReservationsList.php:57-61` — ⚠️ read this before building |
+| `DO10-4` | shared `<x-star-rating>` at the corrected colour | 3 files bypass it | above |
+| `DO27-1` | thread unread **boolean** | no unread **count** | `OwnerMessages.php:625` |
+
+### 2.3 ⚠️ CHANGED — real, but not the shape recorded
+
+- **`D24-2`** is not "passkeys are missing"; it is "passkeys exist and one realm was never wired". That moves
+  it from **M to S** and changes who should do it.
+- **`D16-7`** is not one page's KPI blind spot; it is **one helper with three definitions and eight call
+  sites** (1.1).
+- **`D34-1/2`** is not only a missing PDF section; the PDF **asserts the opposite of the truth** (1.2).
+
+---
+
+## 3 · THE LEDGER, BY FUNCTIONAL AREA
+
+Areas discovered from the code's own structure (`app/Livewire/{Operator,Owner}`, `app/Http/Controllers/
+{Operator,Owner,Guest,Admin}`, `app/Services`, `app/Payouts`, `app/Support`), not an assumed list.
+
+Sizes are **order-of-magnitude only**: **S** = a handful of files / one handler · **M** = a feature across a
+few layers · **L** = a subsystem.
+
+### 3.1 Analytics & reporting
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `D3-4` | ⚠️ **"Last year" occupancy is divided by the availability SPINE, not by the month.** A month with 3 spine rows out of 30 renders a full-looking LY %. The guard that exists tests *presence* (`roomNightsSold > 0`), not *coverage*. ⚠️ **This misreads for every tenant's first year** — i.e. every new tenant — and it feeds the KPI deltas too | STILL-OPEN | denominator: `PerformanceMetrics.php:60-64` (`SUM(availability.total)`); guard: `OperatorInsights.php:181,206`. ⚠️ **The owner path is NOT affected** — `forOwnerUnits()` uses `count(units) × days` (`:127`) | **M** |
+| `D3-1` | No arbitrary date range on Insights — 5 preset keys only. The metric layer already takes explicit start/end, so this is a controller-level change | STILL-OPEN | `OperatorInsights.php:383-387` | S |
+| `D3-2` | No per-channel delta / warning dot on the channel-mix rows | STILL-OPEN | (grep: absent) | S |
+| `D4-1` / `D12b-1` | No Excel/workbook export anywhere — no spreadsheet library is installed | STILL-OPEN | no `phpspreadsheet`/`maatwebsite` in `composer.json`; UI is honest: `livewire/operator/reports.blade.php:42` *"Needs a spreadsheet library — coming soon"* | M |
+| `D4-2` | No "email this report to owners" from the operator side. ⚠️ The owner-side equivalent **is** built (`owner.reports.email` → `OwnerReportMail`) and is the pattern to copy | STILL-OPEN | `routes/web.php:1037`; `app/Mail/OwnerReportMail.php` | S |
+| `D4-3` | Operator Reports has no owner-statements rail | STILL-OPEN | `OperatorReports.php:56-118` — no statement key in the payload | S |
+| `D12b-2` / `D12b-3` | Maintenance Costs has no period navigator and no 6-month trend chart | STILL-OPEN | `OperatorMaintenanceCosts.php` | S |
+| `DO1-3` | Owner Dashboard: no 3M/6M/12M toggle, no per-bar tooltip | STILL-OPEN | `OwnerDashboard.php` | S |
+| `DO18-2` | Owner Bookings chart caps at 8 months, no range selector | UNVERIFIED (register-recorded) | reason: §8 | S |
+| `DO25-1` | Owner Reports draws its own `.vy-rep-bar` instead of the shared `<x-charts.bars>` — ⚠️ §N.8f: a second implementation of one concept | STILL-OPEN | no `x-charts.bars` in `livewire/owner/reports.blade.php` | S |
+
+### 3.2 Payouts, statements & owner money ⚠️ REAL MONEY
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| **1.1** | **`payoutStatusMeta` collapses `processing`+`held`, ×3 definitions, 8 call sites** | STILL-OPEN | §1.1 | **S** |
+| `D16-1` | No payout-run headline total ("€96,400 · 12 statements · …") | STILL-OPEN | `PayoutRun.php` | S |
+| `D16-6` | "Request IBAN" / "Carry forward" are recorded as buttons on the design; the live rail treats them differently — read the entry's own note before building | UNVERIFIED-BY-DESIGN | `PayoutRun.php:85` carries the reasoning | S |
+| `DO3-3` | No failed-payout alert with a Retry action (the status exists; the owner-facing recovery affordance does not) | STILL-OPEN | `OwnerPayouts.php:44` (comment only) | M |
+| `DO3-6` | No payout receipt modal | STILL-OPEN | `OwnerPayouts.php` | S |
+| `DO3-8` | No "reset to default" for payout preferences | STILL-OPEN | `OwnerPayoutPreferenceController` | S |
+| `DO11-1` | `MoneyFormatter::display(0, signed: true)` renders **"+€0.00"** on the zero OTA-commission row | UNVERIFIED — see §8 | register: `§O11` | S |
+| `DO17-3` | "In transit" can never be shown populated in the demo (no demo payout is ever `processing`) — a **demo-data** gap, not a code gap | STILL-OPEN | `DemoSeeder` | S |
+| `DO24-2` | Archive can't express a held/processing payout — ⚠️ **a symptom of 1.1**, not separate work | STILL-OPEN (fold into 1.1) | `statusMeta()` | — |
+| `DO16-5` | The Next-payout figure has no date on Payout Method | PARTIAL (2.2) | | S |
+
+### 3.3 Front desk & daily operations
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| **1.2** | **The Schedule PDF prints two false statements** | STILL-OPEN | §1.2 | **S** |
+| `D34-1` | `RosterWeek` exposes no open shifts / publication state, so the PDF cannot show them. ⚠️ **Add to the shared builder, never query in the template** | STILL-OPEN | `app/Support/Schedule/RosterWeek.php` public API | **M** |
+| `D9-1` | No per-person hours on a roster row — `hours()` is the **week total** (`shiftCount × HOURS_PER_SHIFT`) | STILL-OPEN | `RosterWeek.php:64-67` | S |
+| `D1-1` | No per-user task-completion store (the dashboard's tickable tasks). ⚠️ The register warns: a task whose real count is >0 must never be "done" | STILL-OPEN | `OperatorDashboard.php:287` derives, stores nothing | M |
+| `D1-2` | No task category dimension, no persisted grouping preference | STILL-OPEN | `OperatorDashboard.php` | S |
+| `D1-3` | `reservations.expected_arrival` is a **real, populated, GDPR-covered column** that the dashboard's arrivals payload never selects. ⚠️ Free text, not a clock value — render as-is or normalise, never default an hour | STILL-OPEN | payload keys at `OperatorDashboard.php:480-486`; ⚠️ **Front Desk already reads it** (`FrontDesk.php:155,343`) | **S** |
+| `D2-1` | `units.max_occupancy` (real, populated) never reaches the rack row payload | STILL-OPEN | `ReservationRack.php` — no `max_occupancy` | S |
+| `D5-1` | No housekeeping-readiness chip on the arrival row | STILL-OPEN | `FrontDesk.php:329-334` payload | S |
+| `D8-1` | No housekeeping status filter (honestly disabled) | STILL-OPEN | `HousekeepingBoard.php:46` | S |
+| `D8-2` | No `ready_by` time per room — **no such column exists** | STILL-OPEN | absent from `database/migrations` | M |
+| `D11-2` | No "logged by {person}" on a work-order card | STILL-OPEN | `MaintenanceList.php` | S |
+| `D12a-1` | No sub-location/Area on a work order — no column | STILL-OPEN | `app/Models/MaintenanceTicket.php` | S |
+| `D13-1` | Maintenance Settings isn't property-scoped in its header | STILL-OPEN | `OperatorMaintenanceSettings.php` — no `ResolvesCurrentProperty` | S |
+| `D6-1`/`D6-2`/`D6-3` | Reservations list: no bulk-select, no row quick-actions, no month scope | STILL-OPEN — ⚠️ **read the scope note first** | `ReservationsList.php:57-61` | M |
+
+### 3.4 Reservations, rates & inventory ⚠️ MONEY + INVENTORY
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `D18-5` | The rates grid's rows are room **types**, not physical units | STILL-OPEN | `RatesGrid.php:33` — `rate_plan_id` belongs to a room type | M |
+| `D18-6` | Only the primary rate plan renders per row | PARTIAL (2.2) | `RatesGrid.php:103,139` | M |
+| `D19-1` | Stay dates are not the design's two compact fields + nights counter | UNVERIFIED | | S |
+| `D19-3` | No per-unit scarcity badge ("1 left") | STILL-OPEN | `NewReservation.php` | S |
+| `D19-4` | The booking summary is not itemised Accommodation / Extras / City tax / VAT | UNVERIFIED — a tax-shaped item; see §8 | | M |
+| `D20-1`/`D20-2` | Group booking: no combined date field, no block identity card | STILL-OPEN | `GroupBooking.php` | S |
+| `DO4-2` | No Peak rate column on owner Rates | STILL-OPEN | `OwnerRateService`, `OwnerRates` | M |
+| `DO4-5` | Rate guardrail floor/ceiling not expressed as per-night euros | UNVERIFIED | `OwnerRateService.php:32` is a comment | S |
+
+### 3.5 Owner portal (non-money)
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `DO9-1` | `unit_requests.notes` **is validated and persisted** by the backend but has **no field in the wizard** — a real column unreachable from the UI | STILL-OPEN | no `notes` in `owner-add-unit.blade.php` | **S** |
+| `DO9-2` | No draft/resume on the Add-Unit wizard | STILL-OPEN | `unit_requests.status` = pending/approved/declined only | M |
+| `DO9-3` | The owner cannot withdraw a submitted request | STILL-OPEN | no cancel path in `UnitRequest`/`OwnerUnitRequestController` | M |
+| `DO9-5` | Drop tiles are file pickers, not real drag-and-drop | STILL-OPEN | | S |
+| `DO5-2` | No unit photo thumbnails on My Units | STILL-OPEN | `OwnerMyUnits.php` | S |
+| `DO5-3` | No sort/filter chips on My Units | STILL-OPEN | `OwnerMyUnits.php` | S |
+| `DO10-1` | No occupancy delta vs prior period on Unit Detail (`OwnerOccupancy` can already produce it) | UNVERIFIED | | S |
+| `DO10-2` | The owner cannot request a cleaning | STILL-OPEN | housekeeping is operator-side | M |
+| `DO12-3` | No live "Unsaved changes / All saved" bar on Settings (per-section saves instead) | STILL-OPEN | `owner-settings.blade.php` | S |
+| `DO15-2` | Team "Recent activity" covers invites only, not role changes | UNVERIFIED | | S |
+| `DO19-1` | No per-booking timeline/event feed | UNVERIFIED | | M |
+| `DO19-2` | No per-booking document list | UNVERIFIED | | S |
+| `DO23-2` | The Block-Calendar and Unit-Detail day grids are **duplicated markup**, not shared — ⚠️ §N.8f drift risk | STILL-OPEN | two day-cell implementations | S |
+| `DO24-1` | The full-archive ZIP has no builder (honestly disabled today) | STILL-OPEN | no Zip usage in `app/Http/Controllers/Owner` | M |
+| `DO24-3` | Per-year archive bars are sparse, not contiguous (a year with no statements is skipped) | UNVERIFIED | | S |
+
+### 3.6 Messaging, inbox & notifications
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `D10-1` | No party size / balance in the inbox reservation panel | STILL-OPEN | `OperatorInbox.php` | S |
+| `D10-2` | No reservation **stage** badge on a conversation (⚠️ `ReservationStage` already exists as a shared helper — reuse, don't rebuild) | STILL-OPEN | `OperatorInbox.php` has no `ReservationStage` | S |
+| `D10-5` | No VIP badge on threads (`is_vip` is real and used on Front Desk) | STILL-OPEN | `OperatorInbox.php` | S |
+| `D10-3`/`D10-4` | Teammate presence + "suggested assignee" | DEFERRED-BY-DECISION (presence needs websockets, §H) | `PROJECT-STATE.md` §H | — |
+| `D29-5` / `DO6-4` | **No per-notification dismiss in either realm.** Mark-read exists; dismiss does not. ⚠️ The `/attention/dismiss` route (`routes/web.php:1084`) is the *attention-state* store — a different entity | STILL-OPEN | owner routes `:1157-1159`; `OperatorNotifications.php` | S |
+| `DO6-2` | No Today/Earlier grouping on the notification feed | STILL-OPEN | `OwnerNotifications.php` | S |
+| `D30-3` | No daily digest at a chosen hour | STILL-OPEN | `OperatorNotificationPreferences.php:26` | M |
+| `DO27-1` | No per-thread unread count | PARTIAL (2.2) | `OwnerMessages.php:625` | S |
+| `DO-G7-1` | No delivery/read state for the guest (absence is honest, not fabricated) | UNVERIFIED | | M |
+
+### 3.7 Identity, auth & RBAC
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `D24-2` | **Operator Security has no passkeys — but the whole subsystem is already built for the owner realm.** Model, service, register + usernameless login all exist; `PasskeyLoginController:59` logs in on the shared `web` guard | PARTIAL → **S, not M** | `routes/web.php:964` (owner prefix), `:1221-1223`; `app/Support/Auth/PasskeyService.php` | **S** |
+| `DO13-4` | **Password composition is length-only.** Every user-facing path uses `PasswordRule::min(8)` + `confirmed` — no `letters()`/`numbers()`/`mixedCase()`/`symbols()`/`uncompromised()` anywhere, while the prototype promises "a number and a symbol" | STILL-OPEN | `AcceptInviteController.php:60`, `PasswordResetController.php:72`, `ChangePasswordController.php:55`, `AcceptOwnerTeamInviteController.php:56` | **S** |
+| `D24-1` | No session location (city/country) beside device + IP | STILL-OPEN — needs a geo-IP source (external) | `OperatorSecurity.php` | M |
+| `DO13-1` | No new-device email alert, no full sign-in history, no session timeout (named honestly in a "Coming soon" card) | STILL-OPEN | `owner-security.blade.php:301-308` | M |
+| `DO13-3` | The data export is an immediate JSON download, not the promised emailed secure link | STILL-OPEN | | S |
+| `D23-2`/`D23-3` | Permissions aren't grouped into friendly capability domains; roles aren't a card grid | STILL-OPEN | `OperatorRoles.php` | M |
+| `DO-G11-1` | An expired guest link's 403 shows **operator** role/permission copy to a guest | UNVERIFIED — see §8 | register `§G-11` | S |
+
+### 3.8 Guest portal
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| **1.3** | **`joinWaitlist()` has no dedupe at either layer** | STILL-OPEN | §1.3 | **S** |
+| `DO-G10-4` | `resources/views/guest/partials/trip-card.blade.php` is **dead code** duplicating the live trip card | STILL-OPEN (confirmed present) | file exists; ⚠️ **log-don't-fix: not deleted in this pass** | S |
+| `DO-G5-1` | No cancellation **review** step (refund breakdown + policy before confirming) | UNVERIFIED | | M |
+| `DO-G5-2` | No request-history surface | UNVERIFIED | | S |
+| `DO-G6-2` | A pending payment is invisible rather than shown as processing ⚠️ **the same shape as 1.1, on the guest side** | UNVERIFIED — worth checking with 1.1 | | S |
+| `DO-G8-2` | No visible moderation timeline on a review | UNVERIFIED | | S |
+| `DO-G9-1` | The GDPR erase depends on the daily cron. **The command IS scheduled** (`routes/console.php:38`, `dailyAt('03:00')`) — the exposure is the ONE crontab line, which is a **deployment** item (§3.11), not a code gap | VERIFIED-SCHEDULED | `routes/console.php:38`; `docs/DEPLOYMENT.md` | — |
+| `DO-G9-2` | The guest isn't told what deletion *keeps* | UNVERIFIED | | S |
+| `DO-G1-2` | The past trip card shows no rating | UNVERIFIED | | S |
+
+### 3.9 Exports & documents (PDF / CSV / XLSX)
+
+| id | item | status | evidence | size |
+|---|---|---|---|---|
+| `DO20-1` | **No page numbering on any PDF.** `PdfService` stamps a per-page watermark but no "Page X of Y" — a multi-page statement can't be checked for completeness | STILL-OPEN | no page-count token in `app/Services/PdfService.php` | S |
+| `DO11-3` | The Statement PDF's footer is single-shot, not a repeating page footer | UNVERIFIED | | S |
+| `DO11-4` | The `PdfService` watermark measures 2.70 on white — the one on-paper contrast failure left | STILL-OPEN (design programme, §3.12) | | S |
+| `D4-1`/`D12b-1` | Excel exports — no spreadsheet library (§3.1) | STILL-OPEN | | M |
+| `DO24-1` | Archive ZIP (§3.5) | STILL-OPEN | | M |
+
+### 3.10 Channels / OTA — ⚠️ DEFERRED-BY-DECISION, **not** remaining work
+
+**`D2-2`, `D26-1..5`, `DO8-3` and the OTA brand split are all ACCOUNT-GATED on the Channex cutover**
+(`PROJECT-STATE.md` §H). Verified: `channels.provider`/`name` and `reservations.channel_id` are **modelled**;
+what is missing is *attribution*, which only a live import can write. `app/Services/ChannelConnectionService.php`
+and `ChannelMappingGuard.php` are the local halves; there is **no Channex client**, correctly.
+
+⚠️ **Do not build a brand badge, a "Synced" dot or a last-sync time before the cutover** — sweep §5 / #37.
+
+### 3.11 Platform & infrastructure — ⚠️ **THE ONLY LAUNCH BLOCKERS**
+
+| item | status | evidence | size |
+|---|---|---|---|
+| ⛔ **No deploy artifacts at all** — no Dockerfile, no CI/CD, no `.github/`, no deploy script, no backup strategy | STILL-OPEN — **LAUNCH BLOCKING** | verified: nothing matching `Dockerfile`/`docker-compose`/`.github`/`Procfile`/`fly.toml` at repo root. `docs/DEPLOYMENT.md` is a runbook, not automation | **L** |
+| ⛔ **The ONE cron line** `* * * * * php artisan schedule:run` — without it **8 scheduled commands silently never run, including GDPR 14-day guest deletion and the 30-day ID purge** | STILL-OPEN — **LAUNCH BLOCKING** (part of deployment) | `routes/console.php:38`; `CLAUDE.md`; `docs/DEPLOYMENT.md` | S |
+| ⛔ **The founder's Stripe/VAT go-live steps** — billing code+build is COMPLETE; the flip is not code | BLOCKED-ON-FOUNDER — **LAUNCH BLOCKING** | `PROJECT-STATE.md` §G.1; `docs/BILLING-STRIPE-PRICES.md` | — |
+| **Zero caching app-wide** — `Cache::remember` appears **0 times** in `app/` | STILL-OPEN — post-launch | grep | M |
+| **Pagination is partial** — only 4 view files use the shared `<x-pager>` | STILL-OPEN — post-launch | grep | M |
+| Composite indexes worth 73×–200× at 500k rows; N+1 (210 queries on `/app/insights`, 116 on the storefront) | **UNVERIFIED — not re-measured this pass** | `PROJECT-STATE.md` §I.3 (audit-recorded) | L |
+
+### 3.12 The design programme's own remainders (a separate, already-scoped track)
+
+Not backend work, but genuinely open and tracked in the same register:
+
+| id | item | state |
+|---|---|---|
+| `DO-EMAIL-5-continued-6` | **~49 of the 67 data-conditional files remain UNMEASURED** on axis 3. ⚠️ "logged-unswept" means unmeasured, **not** "probably fine" | OPEN — throughput, at the founder-chosen depth |
+| `DO-STATE-2` | 10 further scrim modals (carry the fix, unmeasured) · inactive tab panels · 8 accordions · 9 focus reveals · toasts · loading · disabled | OPEN |
+| `DO-PROBE-3` (C) | 5 dompdf PDFs unreachable by a browser probe | ⛔ **BLOCKED ON TOOLING** — needs `brew install poppler` or `ghostscript` |
+| `DO-PROBE-4` | a small label whose box contains an adjacent coloured marker captures the wrong plate | OPEN (logged with reason) |
+| `DO-A11Y-1-continued` | further shell-copy misses | a **watch item**, not a task |
+
+---
+
+## 4 · ⚠️ WHAT IS **NOT** REMAINING WORK (do not "discover" and build these)
+
+Counting these as undone would be the single easiest way to corrupt this ledger.
+
+- **69 refusal-class rows.** Fabricated figures, invented history, fake channel sync, guest PII on owner
+  surfaces, editable role catalogues, stored cards, open guest self-signup. Authorities:
+  `docs/design/DIVERGENCE-REGISTER.md` (40 ratified divergences), `WIREFRAME-PARITY-SWEEP-2026-08-08.md` §5,
+  `PROJECT-STATE.md` §H.bis.
+- **22 `ACCOUNT-GATED` rows.** Channex · live Stripe charge/payout · SMS (Twilio) · push (FCM/APNs) ·
+  websockets/presence · live LLM (a real `FakeLlmClient` today) · third-party KYC (capture-only,
+  `verification_status = 'pending'`, never "verified" — `GuestIdDocumentService.php:94`) · tax rates
+  (`tax:set-rate`, seeded rates are EXAMPLE only). **These are credentials, not code.**
+- **The §6 "extra work to keep"** — capability the product has that the wireframes never asked for. Removing
+  it in the name of parity is a regression.
+
+---
+
+## 5 · SUGGESTED SEQUENCE — ⚠️ **a recommendation for the founder, not a decision**
+
+**Wave 0 — correctness (do first; ~1 short pass total).** All three are small and all three are cases where
+the product currently misinforms or loses data: **1.1** the payout status map (⚠️ money, owner-facing) →
+**1.2** the Schedule PDF's false statements → **1.3** the waitlist dedupe. Nothing depends on them, and they
+are the only items in this ledger that are *wrong* rather than *absent*.
+
+**Wave 1 — foundational/unblocking.** `D34-1` extend `RosterWeek` (**unblocks the rest of 1.2**) ·
+`DO13-4` password composition rules (⚠️ security, one-line-per-controller) · `D24-2` wire the **already-built**
+passkey subsystem into the operator realm · `D3-4` the LY coverage guard (⚠️ affects every new tenant's first
+year, and it feeds the KPI deltas).
+
+**Wave 2 — high-value user-facing.** The one-column-away wins first: `D1-3` expected_arrival · `D2-1`
+max_occupancy · `DO9-1` the `notes` field — **each is a real, populated column the UI simply never reads.**
+Then `D3-1` custom ranges · `DO3-3` failed-payout recovery · `D29-5`/`DO6-4` notification dismiss ·
+`D10-2`/`D10-5` inbox stage + VIP (both reuse existing helpers).
+
+**Wave 3 — features proper.** `D1-1` task completion · `D8-2` `ready_by` · `DO9-2`/`DO9-3` draft + withdraw ·
+`D18-5`/`D18-6` the rates-grid shape · `D23-2` permission grouping · `DO24-1` archive ZIP · Excel exports.
+
+**Wave 4 — polish + de-duplication.** `DO25-1` and `DO23-2` (§N.8f drift risks) · the 3 remaining hand-rolled
+star colours · `DO20-1` PDF page numbering · delete the dead `guest/partials/trip-card.blade.php`.
+
+**Parallel, and the actual gate on launch:** ⛔ the **deployment sprint** (§3.11) and the founder's **Stripe/VAT
+steps**. ⚠️ **No feature in Waves 0–4 blocks launch. Deployment does** — and inside it, the single crontab
+line, because GDPR deletion depends on it.
+
+**Post-launch, before the first large tenant:** the scale-perf workstream (§3.11, unverified figures).
+
+---
+
+## 6 · PREMISE CORRECTIONS THIS AUDIT PRODUCED
+
+1. ⚠️ **`D16-7`/`DO14-1`/`DO17-1`/`DO21-1`/`DO21-2`/`DO24-2` are ONE defect, and it has THREE definitions.**
+   Six register entries, each written from one page, describe a single shared helper. The register never
+   spotted the operator's two private copies at all (§1.1).
+2. ⚠️ **The Schedule PDF's "there is no draft or published state" is FALSE and rendered to a user.** The
+   register logged the missing *feature*; the false *sentence* three lines away went unrecorded (§1.2). This
+   is §N.13.1 holding again — the defect sits beside the flagged thing.
+3. ⚠️ **`D9-2` is SINCE-DONE** — open shifts were built into the grid after the entry was written. Treating
+   the register as current would have rebuilt them.
+4. ⚠️ **`D24-2` is mis-sized in the register.** Passkeys are not unbuilt; they are built and wired to one
+   realm. **M → S.**
+5. ⚠️ **`D3-4` does not affect the owner realm.** `forOwnerUnits()` uses a units×days denominator, not the
+   spine — the defect is operator-path-only. The register did not draw that line.
+6. ⚠️ **`DO-G9-1` overstates its exposure.** `guests:process-deletions` **is** registered and scheduled
+   (`routes/console.php:38`). The real exposure is the deployment crontab line, which belongs in §3.11.
+7. ⚠️ **`DO14-2`, `DO5-5`, `D16-5` and most of `DO10-4` are SINCE-DONE.** Four more stale rows.
+8. ⚠️ **The register is ~50% larger than a table-scan suggests.** It carries **265** item rows in **three**
+   formats — the `| D1-1 |` tables (176), the `### 📌 MISSING BACKEND` bullets the owner gates switched to,
+   and the `### 🚩 LOGGED — not built` bullets the guest gates switched to again. A reader (or a script) that
+   walks only the tables misses **89 rows**, nearly all of them owner and guest. Worth normalising before the
+   backend phase leans on it.
+9. **Minor:** the audit brief cites `docs/DIVERGENCE-REGISTER.md`; the file is at
+   `docs/design/DIVERGENCE-REGISTER.md`.
+
+---
+
+## 7 · METHOD
+
+For each item: **UI → route → controller/Livewire → service → query → table**, plus a grep for the named
+mechanism in **both** directions (present *and* absent), plus the code-wide tells sweep (§0). A status was
+recorded only where a file+line supports it; everything else says UNVERIFIED and why.
+
+⚠️ **A "— none" grep result was never treated as proof on its own** where the mechanism could be named
+differently. Where the first grep was ambiguous, the file was opened and read (that is how `DO5-5`, `DO14-2`,
+`D16-5` and the `payoutStatusMeta` triple were resolved — three of them in the SINCE-DONE direction).
+
+---
+
+## 8 · ⚠️ THE AUDIT'S OWN COVERAGE — the honest bound
+
+**Verified deeply** (traced through the layers, code read): **~40 register entries** + the whole of §1 + the
+infrastructure facts in §3.11 + the two code-wide sweeps (tells, dead routes). Specifically: the entire
+payout-status cluster, the schedule/roster chain, `D1-3`, `D2-1`, `D3-1`, `D3-4`, `D4-1/2/3`, `D5-1`, `D6-*`,
+`D9-1/2`, `D18-5/6`, `D24-2`, `D34-1/2`, `DO1-1`, `DO5-5`, `DO6-2/4`, `DO9-1`, `DO10-4`, `DO13-4`, `DO14-2`,
+`DO-G9-1`, `DO-G10-3`, `DO25-1`, `DO27-1`.
+
+**Mechanically re-checked** (targeted grep of the named mechanism, hit/miss recorded, code not read):
+**~44 entries** — most of §3.3–§3.7's smaller rows.
+
+**NOT re-verified this pass — status carried from the register, marked UNVERIFIED (~36 rows):**
+- **Most guest-realm bullet items** (`DO-G1-*` … `DO-G12-*`). Reason: the guest sections use a third register
+  format and the pass ran out of depth budget after the operator + owner realms. Sampled, not swept.
+- **`§O-20` … `§O-32`** bullets beyond the ones cited. Reason: same.
+- **`DO11-1` (`+€0.00`)**, **`DO11-3`**, **`D19-4`** (VAT/city-tax itemisation), **`DO4-5`**. Reason: each
+  needs a *rendered* surface with the right data forced to confirm, not a grep — and forcing data was out of
+  scope for a read-only pass.
+- **All performance figures** (index gains, the 210/116 query counts). Reason: not re-measured; they are
+  audit-recorded from `PROJECT-STATE.md` §I.3.
+- **The 5 dompdf PDFs.** Reason: ⛔ genuinely unreachable — no rasterizer in this environment.
+
+**Not reached at all:** the 69 refusal-class rows were classified from the register and its authorities
+rather than re-argued (correctly — re-litigating a ratified refusal is how fabrication gets rebuilt); the
+`docs/design/raw/` prototypes were not re-decoded; the test suite was not re-read for coverage gaps.
+
+⚠️ **What this means for the reader.** The **shape** of the remaining work is trustworthy and the §1 items are
+proven. The **count** of open items is a floor, not a ceiling: the ~36 unverified rows will resolve into some
+mix of STILL-OPEN and SINCE-DONE, and — on the evidence of this pass, where **6 of 84 checked rows had already
+been built** — expect roughly **1 in 14 of them to be stale**.
+
+---
+
+## 9 · READ-ONLY CONFIRMATION
+
+- **No code, test, stub, migration, config or view was touched.** The only write is this file.
+- Items found trivially fixable were **logged, not fixed** — the dead `guest/partials/trip-card.blade.php`,
+  the 3 hand-rolled star hexes, the Schedule PDF's false sentence, the `payoutStatusMeta` triple. Fixing them
+  mid-audit would have cost the map its neutrality.
+- Baseline **unchanged and unmeasured by this pass** (recorded from the run immediately preceding it):
+  suite **2076/2085**, 13,460 assertions, 7 non-green (the documented set, inside the 5–10 band);
+  PHPStan L5 **0**; Pint clean.
