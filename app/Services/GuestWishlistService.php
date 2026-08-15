@@ -71,23 +71,40 @@ class GuestWishlistService
     /**
      * Join the waitlist for a room type — exact dates OR a flexible month. Real store; the notify/hold are deferred.
      *
+     * ⚠️ `firstOrCreate`, NOT `create` — a double-submit used to write TWO identical rows. The sibling
+     * `addToWishlist()` three methods up has always done this; the waitlist simply never got it, and the
+     * table never got the matching unique index either (both closed together — see the migration
+     * 2026_08_21_000000, whose header explains why the index needs a generated column to fire at all).
+     *
+     * ⚠️ THE IDENTITY INCLUDES THE DATES, and that is not the sibling's shape. Wishlist identity is
+     * (guest, room type); a WAITLIST entry for 3–7 Sep and one for 20–24 Sep on the same room type are two
+     * genuinely different requests, so the window is part of what makes two entries "the same".
+     *
+     * An existing entry is returned untouched rather than duplicated or silently refreshed: reviving a lapsed
+     * place in the queue is {@see reconfirmWaitlist()}'s job, and doing it here would let a double-submit
+     * quietly extend an expiry — trading one wrong write for another.
+     *
      * @param  array{check_in?: ?string, check_out?: ?string, flexible_month?: ?string, notify_similar?: bool}  $data
      */
     public function joinWaitlist(Guest $guest, RoomType $roomType, array $data, ?CarbonImmutable $now = null): GuestWaitlistEntry
     {
         $now ??= CarbonImmutable::now();
 
-        return GuestWaitlistEntry::query()->create([
-            'guest_id' => $guest->getKey(),
-            'room_type_id' => $roomType->getKey(),
-            'check_in' => $data['check_in'] ?? null,
-            'check_out' => $data['check_out'] ?? null,
-            'flexible_month' => $data['flexible_month'] ?? null,
-            'notify_similar' => (bool) ($data['notify_similar'] ?? false),
-            'status' => GuestWaitlistEntry::STATUS_ACTIVE,
-            'confirmed_at' => $now,
-            'expires_at' => $now->addDays(self::WAITLIST_TTL_DAYS),
-        ]);
+        return GuestWaitlistEntry::query()->firstOrCreate(
+            [
+                'guest_id' => $guest->getKey(),
+                'room_type_id' => $roomType->getKey(),
+                'check_in' => $data['check_in'] ?? null,
+                'check_out' => $data['check_out'] ?? null,
+                'flexible_month' => $data['flexible_month'] ?? null,
+            ],
+            [
+                'notify_similar' => (bool) ($data['notify_similar'] ?? false),
+                'status' => GuestWaitlistEntry::STATUS_ACTIVE,
+                'confirmed_at' => $now,
+                'expires_at' => $now->addDays(self::WAITLIST_TTL_DAYS),
+            ],
+        );
     }
 
     public function leaveWaitlist(GuestWaitlistEntry $entry): void
