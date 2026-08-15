@@ -1284,6 +1284,20 @@
         .vy-task-group b { font-family: var(--vy-display); color: var(--vy-ink); }
         .vy-task-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--vy-hairline); }
         .vy-task-row:last-child { border-bottom: none; }
+        /* D1-1 — the personal tick + your own progress through the list. ⚠️ A ticked row is DIMMED and
+           struck, never removed, and its real count stays legible: the tick is a note to yourself, not a
+           claim that the work is finished. Tokens only (--vy-muted / --vy-accent are the AA-corrected ones). */
+        .vy-task-line { display: flex; align-items: center; gap: 10px; }
+        .vy-task-line .vy-task-row { flex: 1; min-width: 0; }
+        .vy-task-tick { flex: none; width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--vy-hairline-strong, rgba(120,70,40,.28)); background: rgba(255,255,255,.6); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; transition: background .15s, border-color .15s; }
+        .vy-task-tick:hover { border-color: var(--vy-accent); }
+        .vy-task-tick:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-task-line.is-ticked .vy-task-tick { background: var(--vy-accent); border-color: var(--vy-accent); }
+        .vy-task-line.is-ticked .vy-task-label { text-decoration: line-through; color: var(--vy-muted); }
+        .vy-task-prog { margin: 2px 0 12px; }
+        .vy-task-prog-bar { height: 4px; border-radius: 999px; background: rgba(120,70,40,.12); overflow: hidden; }
+        .vy-task-prog-bar span { display: block; height: 100%; border-radius: 999px; background: var(--vy-accent); transition: width .25s ease; }
+        .vy-task-prog-label { display: block; margin-top: 6px; font-size: 11.5px; color: var(--vy-muted); }
         .vy-task-pri { width: 7px; height: 7px; border-radius: 50%; flex: none; }
         .vy-task-pri.is-urgent { background: var(--vy-accent); }
         .vy-task-pri.is-high { background: var(--vy-amber-2); }

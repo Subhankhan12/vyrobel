@@ -67,6 +67,7 @@ use App\Http\Controllers\Operator\OperatorRateProposalController;
 use App\Http\Controllers\Operator\OperatorReportsExportController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\OperatorSecurityController;
+use App\Http\Controllers\Operator\OperatorTaskStateController;
 use App\Http\Controllers\Operator\OwnerManageController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
@@ -488,6 +489,11 @@ Route::prefix('stay/{organization}')
 Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
+    // D1-1 — tick/un-tick one of the dashboard's DERIVED task rows. ⚠️ A PERSONAL note, not a completion:
+    // it changes no count and moves no state (see OperatorTaskStateController). A controller route (#20) so
+    // the property context + tenant scope are resolved the same way the dashboard resolved them; self-only
+    // by construction, so it needs no `can:` beyond back-office access — a user can only tick their own list.
+    Route::post('/dashboard/tasks/toggle', [OperatorTaskStateController::class, 'toggle'])->name('dashboard.tasks.toggle');
 
     // Phase 6a · multi-property — the topbar property switcher. Sets the per-user working property
     // (or "all") in the session, then PRG back. Any back-office user may switch among the properties

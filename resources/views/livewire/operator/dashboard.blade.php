@@ -93,6 +93,25 @@
                                 </span>
                             @endif
                         </div>
+                        {{-- D1-1 — YOUR OWN progress through the list. ⚠️ "Ticked", never "done": every row
+                             here has a live count greater than zero (that is the only reason it renders), so
+                             the product cannot claim the work is finished. Two genuinely different states:
+                             an EMPTY list means the real counts reached zero — "All caught up", true; a
+                             fully-ticked list means the work is still open and you have been through it. --}}
+                        @if ($tasks['total_count'] > 0)
+                            <div class="vy-task-prog">
+                                <div class="vy-task-prog-bar" aria-hidden="true">
+                                    <span style="width: {{ (int) round($tasks['ticked_count'] / max($tasks['total_count'], 1) * 100) }}%"></span>
+                                </div>
+                                <span class="vy-task-prog-label">
+                                    @if ($tasks['ticked_count'] === $tasks['total_count'])
+                                        You’ve ticked off all {{ $tasks['total_count'] }} — the work itself is still open below
+                                    @else
+                                        {{ $tasks['ticked_count'] }} of {{ $tasks['total_count'] }} ticked off
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
                         {{-- ACTIONABLE — each task links to the page where it's resolved; it auto-clears from
                              REAL state when its count hits 0 (no fabricated "done" flag, #39). --}}
                         @forelse ($vyTaskSecs as $vyPri => $vyRows)
@@ -103,11 +122,27 @@
                                     <span class="vy-task-sec-count">{{ $vyRows->count() }}</span>
                                 </div>
                                 @foreach ($vyRows as $t)
-                                    <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
-                                        <span class="vy-task-label">{{ $t['label'] }}</span>
-                                        <span class="vy-task-meta">{{ $t['meta'] }}</span>
-                                        <span class="vy-task-go" aria-hidden="true">→</span>
-                                    </a>
+                                    <div class="vy-task-line {{ $t['ticked'] ? 'is-ticked' : '' }}">
+                                        {{-- The tick is a PERSONAL note. It never removes the row and never
+                                             changes the count beside it — the count is real and stays. --}}
+                                        <form method="POST" action="{{ $t['toggle_url'] }}" data-guard-submit style="margin:0;display:flex">
+                                            @csrf
+                                            <input type="hidden" name="task_key" value="{{ $t['key'] }}">
+                                            <input type="hidden" name="task_date" value="{{ $day['date'] ?? '' }}">
+                                            <input type="hidden" name="ticked" value="{{ $t['ticked'] ? '0' : '1' }}">
+                                            <button type="submit" class="vy-task-tick" role="checkbox" aria-checked="{{ $t['ticked'] ? 'true' : 'false' }}"
+                                                    aria-label="{{ $t['ticked'] ? 'Un-tick' : 'Tick off' }} “{{ $t['label'] }}” on your own list">
+                                                @if ($t['ticked'])
+                                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
+                                                @endif
+                                            </button>
+                                        </form>
+                                        <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
+                                            <span class="vy-task-label">{{ $t['label'] }}</span>
+                                            <span class="vy-task-meta">{{ $t['meta'] }}</span>
+                                            <span class="vy-task-go" aria-hidden="true">→</span>
+                                        </a>
+                                    </div>
                                 @endforeach
                             </div>
                         @empty

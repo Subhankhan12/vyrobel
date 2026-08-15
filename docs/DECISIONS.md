@@ -10613,3 +10613,67 @@ transitions is **logged, not built**.
 **Untouched:** what approve/decline DO in the normal case (unit created, statuses/notes/reviewer stamped,
 owner notified — asserted unchanged) · withdraw's behaviour · isolation/RBAC/permissions. Suite **2240 /
 2231**, 14,381 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-15 — D1-1 · ticking a dashboard task (a personal note, not a completion)
+
+⚠️ **THE FORK WAS NEITHER SHAPE THE BRIEF ANTICIPATED, AND READING THE CODE IS THE ONLY REASON WE KNOW.**
+The brief framed this as either (A) a plain checklist `completed_at` or (B) a housekeeping completion that
+marks a unit ready. It is neither. `OperatorDashboard::tasks()` **derives every row live** from real counts —
+urgent work orders, rooms to clean, arrivals still to check in — and each row only exists while its count is
+greater than zero. There is no task record to complete, no id, and no downstream state to move.
+
+**So what would "done" have meant?** A flag asserting work is finished, sitting next to a number the product
+can independently see is NOT zero. That is a fabricated status (#39), and the design register had already
+warned about exactly it: *"a task whose real count is still >0 cannot be 'done'."*
+
+**THE RESOLUTION — a PERSONAL, PER-DAY tick**, and the register's other open question ("a personal note or a
+shared team signal — they are different tables") is answered **personal**, for two reasons: the prototype's
+own persistence was `localStorage` (per-browser, per-person, non-authoritative), so personal is the faithful
+translation rather than a compromise; and one person's tick must never hide urgent work from a teammate.
+
+⚠️ **THE HONESTY INVARIANT, NOW A GUARD:** a ticked row is dimmed and struck **but keeps its real count and
+stays on the list**, and the header distinguishes two genuinely different states — an EMPTY list means the
+counts reached zero ("All caught up", true), while a fully-ticked list says *"you've ticked off all N — the
+work itself is still open below"*. Ticking never changes a count, never removes a row, and never touches the
+KPI card. A test resolves the real work and proves the row disappears **regardless of the tick**.
+
+⚠️ **A SCHEMA TRAP AVOIDED BY REMEMBERING OUR OWN HISTORY.** The dashboard reads either one property or ALL
+of them, so the natural column was a nullable `property_id` ("null = all"). In MySQL a UNIQUE index treats
+NULLs as **distinct**, so the constraint would have been silently inert for every all-properties tick — the
+exact defect `DO-CORRECTNESS-1` found on `guest_waitlist_entries`. `scope_key` is generated and NOT NULL, the
+same fix, applied before it could bite.
+
+**Built:** `operator_task_states` (unique on user + scope + task + date → **idempotent by construction, at the
+database**) · a closed `OperatorTaskState::KEYS` set · stable string keys on each derived row (never an index —
+the list changes shape as counts clear) · a self-only POST controller route (#20) taking the user from
+`$request->user()` and the scope from `PropertyContext`, never the request · the tick control + an honest
+progress line.
+
+⚠️ **DELIBERATELY NO LOCK AND NO TRANSACTION.** This changes no count and moves no state, so DO9-3b's
+machinery would be cargo here. The care went where the risk actually is: idempotency, personal scope, and the
+honesty invariant.
+
+**Proven:** 11 tests; **5 mutations, each verified to land** — a request-supplied `user_id` (reds the forgery
+test), an open key set (reds the closed-set test), `create` instead of `firstOrCreate` (reds idempotency),
+dropping the per-day filter (reds yesterday's-tick), dropping the self-only read filter (reds the personal
+test). Idempotency is asserted at BOTH layers — the controller's `firstOrCreate` and the unique index itself,
+so a future caller that forgets to guard still cannot double-write.
+
+⚠️ **THREE ASSERTION FAULTS, ALL MINE, ALL THE SAME FAMILY.** `assertDontSee('is-ticked')` could never pass
+because the layout's CSS rule `.vy-task-line.is-ticked` **ships** (§N.15.3, third time this programme) — the
+needle became the space-separated class attribute, which is markup-only. And "All caught up" is also rendered
+by the **notifications bell in the shell, on every page**, so both the DontSee *and* a positive assertion
+elsewhere in the file were resolving against unrelated markup — the second one was **passing for the wrong
+reason**. Needles are now scoped to the task card's own prose. Also: my fixture used `reported_at`/`property_id`
+where the model has `opened_at` and derives the property from the unit.
+
+Browser-verified as the demo operator: "0 of 3 ticked off" → ticked the urgent row → struck and dimmed, **"1
+urgent" still legible beside it**, KPI card still "3 · 1 urgent", progress "1 of 3"; a double-POST wrote ONE
+row. Fixture reverted — 0 ticks, 3 open work orders, identical to the pre-pass snapshot.
+
+**Untouched:** the derived task computation · the housekeeping/availability system · other dashboard cards ·
+isolation/RBAC. **Logged, not built:** `D1-2` (the category dimension + a persisted grouping preference) is the
+natural next item and shares this table's shape. Suite **2251 / 2242**, 14,434 assertions, 6 non-green = the
+documented set; PHPStan L5 (0); Pint clean.

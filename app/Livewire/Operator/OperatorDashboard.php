@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\HousekeepingTask;
 use App\Models\MaintenanceTicket;
+use App\Models\OperatorTaskState;
 use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\Property;
@@ -290,19 +291,19 @@ class OperatorDashboard extends Component
         $items = [];
 
         if ($workOrders['urgent'] > 0) {
-            $items[] = ['label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent', 'link' => $maintenanceUrl.'?filter=urgent'];
+            $items[] = ['key' => 'work_orders.urgent', 'label' => 'Resolve urgent work orders', 'meta' => $workOrders['urgent'].' urgent', 'priority' => 'urgent', 'link' => $maintenanceUrl.'?filter=urgent'];
         }
         if ($workOrders['open'] - $workOrders['urgent'] > 0) {
-            $items[] = ['label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high', 'link' => $maintenanceUrl];
+            $items[] = ['key' => 'work_orders.open', 'label' => 'Work through open work orders', 'meta' => ($workOrders['open'] - $workOrders['urgent']).' open', 'priority' => 'high', 'link' => $maintenanceUrl];
         }
         if ($housekeeping['to_clean'] > 0) {
-            $items[] = ['label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high', 'link' => route('app.housekeeping')];
+            $items[] = ['key' => 'housekeeping.to_clean', 'label' => 'Rooms to clean', 'meta' => $housekeeping['to_clean'].' to clean', 'priority' => 'high', 'link' => route('app.housekeeping')];
         }
 
         // Arrivals still to check in = those not yet checked_in (the real status enum has no 'in_house').
         $toArrive = $arrivals->reject(fn (Reservation $r): bool => (string) $r->status === 'checked_in')->count();
         if ($toArrive > 0) {
-            $items[] = ['label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal', 'link' => route('app.front-desk').'?date='.$date];
+            $items[] = ['key' => 'arrivals.to_check_in', 'label' => 'Check in arrivals', 'meta' => $toArrive.' expected', 'priority' => 'normal', 'link' => route('app.front-desk').'?date='.$date];
         }
 
         $groups = [
@@ -311,7 +312,62 @@ class OperatorDashboard extends Component
             ['label' => 'Arrivals', 'count' => $toArrive],
         ];
 
-        return ['groups' => $groups, 'items' => $items];
+        // D1-1 — this viewer's OWN ticks for this scope and this day. Personal: another user's dashboard is
+        // unaffected, and nothing here removes a row or changes a count.
+        $ticked = $this->tickedKeys($date);
+        $items = array_map(
+            fn (array $item): array => $item + [
+                'ticked' => in_array($item['key'], $ticked, true),
+                'toggle_url' => route('app.dashboard.tasks.toggle'),
+            ],
+            $items,
+        );
+
+        return [
+            'groups' => $groups,
+            'items' => $items,
+            // ⚠️ "TICKED", NEVER "DONE". Every row here has a live count > 0 — that is why it is rendered at
+            // all — so the progress figure counts what this person has ticked off their own list, not work
+            // the product believes is finished. The two states the view distinguishes are genuinely
+            // different: an EMPTY list means the real counts reached zero (caught up); a fully-ticked list
+            // means the work is still open and one person has been through it.
+            'ticked_count' => count(array_filter($items, fn (array $i): bool => $i['ticked'])),
+            'total_count' => count($items),
+            'scope_key' => $this->taskScopeKey(),
+        ];
+    }
+
+    /**
+     * The `task_key`s this viewer has ticked for this scope + day. Self-only by construction (the query is
+     * keyed on the authenticated user), so no other user's ticks are ever readable here.
+     *
+     * @return list<string>
+     */
+    private function tickedKeys(string $date): array
+    {
+        $userId = auth()->id();
+        if ($userId === null) {
+            return [];
+        }
+
+        return OperatorTaskState::query()
+            ->where('user_id', $userId)
+            ->where('scope_key', $this->taskScopeKey())
+            ->whereDate('task_date', $date)
+            ->pluck('task_key')
+            ->map(fn ($key): string => (string) $key)
+            ->all();
+    }
+
+    /**
+     * The scope a tick belongs to: the selected property, or the literal `all`. ⚠️ Never null — see the
+     * migration on why a nullable scope would make the unique index NULL-inert in MySQL.
+     */
+    private function taskScopeKey(): string
+    {
+        return $this->viewingAllProperties || $this->currentPropertyId === ''
+            ? OperatorTaskState::SCOPE_ALL
+            : $this->currentPropertyId;
     }
 
     /**
