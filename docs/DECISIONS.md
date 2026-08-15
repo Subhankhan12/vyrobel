@@ -10113,3 +10113,48 @@ stay for 2 renders "Sleeps 5".
 Browser-verified on the real demo (§N.21.6): the rack rows read `101 · OUT OF SERVICE · Sleeps 2`, `A1 ·
 Sleeps 4` …; with unit 102 forced to 0 its row renders as just `102` — no "Sleeps 0", no bare label, no broken
 cell. Fixture reverted and raw-query verified back to the exact seeded values (8/8 populated, 2–4, zero zeros).
+
+
+---
+
+## 2026-08-15 — DO9-1 · the Add-Unit `notes` field
+
+A wired column nobody could reach: `OwnerUnitRequestController` has validated `notes` as
+`['nullable','string','max:2000']` and `OwnerUnitRequestService` has persisted it all along — the wizard had
+no input, so the only way to populate it was a hand-crafted POST. **The validation and the persistence are
+unchanged; this pass only reaches them.**
+
+⚠️ **THE LEDGER WAS ACCURATE THIS TIME** — worth recording after DO13-4 (four paths were nine), D3-4 (one
+consumer was three) and D1-3 ("populated" was 0-of-41). Confirmed anyway, before writing a line.
+
+⚠️ **THE ROUND-TRIP WAS CHECKED BEFORE BUILDING, AND ALREADY EXISTED.** A note nobody reads is a
+half-feature, so the operator side was verified first: `OperatorUnitRequests::details()` folds `notes` into
+the request's detail line and the Blade renders `{{ $r['details'] }}` — **auto-escaped**. So no `DO9-1a`
+display gap: the write had a reader waiting.
+
+⚠️ **AND THAT ESCAPING IS THE SECURITY CASE, NOT A DETAIL.** This is owner free text rendered into a staff
+browser. Had the review used `{!! !!}` anywhere, adding the input would have opened a stored-XSS path from an
+owner to the operators who review their requests. Proven end-to-end rather than assumed: a
+`<script>alert(1)</script>` note submitted through the REAL wizard reaches the operator page as inert text —
+no dialog fired, no tag injected — and a guard reds if the display is ever switched to raw.
+
+- **Optional, because the rule is `nullable`.** A field added to a wizard must not become a new obstacle in
+  front of filing a request; submitting with the box empty still files. Asserted both ways.
+- `maxlength="2000"` mirrors the server rule so the limit is felt in the field rather than discovered as a
+  rejection — **the server rule remains authoritative**, and a guard proves a 2001-character POST is still
+  rejected.
+- Reuses the wizard's own `.vy-au-input` / `.vy-au-flabel` idiom rather than a new field style (§N.8f).
+
+⚠️ **A DOCUMENTED TRAP RE-MET, ON THE PAGE THAT DOCUMENTED IT.** Driving the wizard to step 4 in the browser,
+`document.querySelector('[x-data]')` again matched the SHELL's Alpine root rather than the wizard's — exactly
+what the §O9 record warns about for this file. `ta.closest('[x-data]')` is the correct root. The note is now
+in that record's neighbourhood twice over.
+
+**Logged, not changed (`DO9-1a`, cosmetic):** the operator's detail line joins the note with the bed/bath and
+amenity counts into one `·`-separated string, so a 2000-character note would dominate that column. Fine for
+the short notes the field invites; worth a truncate-with-expand if long ones become common.
+
+Browser-verified (§N.21.6): the wizard rendered, the textarea filled and the form **submitted for real** as
+the demo owner → the note persisted (raw-query confirmed), then read back on the operator page as inert text.
+Test request deleted, raw-query verified (0 unit_requests, 8 units — no unit was ever created, which is the
+whole point of a request).

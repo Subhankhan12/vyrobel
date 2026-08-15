@@ -260,7 +260,8 @@ few layers · **L** = a subsystem.
 
 | id | item | status | evidence | size |
 |---|---|---|---|---|
-| `DO9-1` | `unit_requests.notes` **is validated and persisted** by the backend but has **no field in the wizard** — a real column unreachable from the UI | STILL-OPEN | no `notes` in `owner-add-unit.blade.php` | **S** |
+| `DO9-1` | `unit_requests.notes` validated + persisted with no field in the wizard | 🏁 **CLOSED 2026-08-15** — a textarea in step 4 ("Anything else we should know? (optional)"), bound to the name the backend already reads. Validation and persistence **unchanged** — the pass only reached them. Optional (the rule is `nullable`); `maxlength` mirrors `max:2000` with the server still authoritative. ⚠️ **The round-trip already existed AND already escaped** — `OperatorUnitRequests::details()` folds notes into the detail line, rendered `{{ }}`; a `<script>` note was submitted through the real wizard and reaches the operator as inert text (no dialog, no injected tag) | `owner/add-unit.blade.php`; `AddUnitNotesFieldTest` (10 tests) | — |
+| `DO9-1a` | ⚠️ **OBSERVATION, not a defect — a long note floods the operator's detail line.** `OperatorUnitRequests::details()` joins notes with the bed/bath/amenity counts into one `·`-separated string, so a 2000-character note would dominate that column. Fine for the short notes the field invites; worth a truncate-with-expand if long notes become common. Not changed — the display path was out of scope and is correct, just terse | OPEN — cosmetic | `OperatorUnitRequests.php:108-109` | S |
 | `DO9-2` | No draft/resume on the Add-Unit wizard | STILL-OPEN | `unit_requests.status` = pending/approved/declined only | M |
 | `DO9-3` | The owner cannot withdraw a submitted request | STILL-OPEN | no cancel path in `UnitRequest`/`OwnerUnitRequestController` | M |
 | `DO9-5` | Drop tiles are file pickers, not real drag-and-drop | STILL-OPEN | | S |

@@ -86,7 +86,7 @@
             step: 1,
             name: '', kind: @js(array_key_first($kinds)), town: '', address: '',
             beds: 1, baths: 1, sleeps: 2, minNights: 2,
-            amenities: [], nightly: '', cleaning: '', coverUrl: '', photo2Url: '',
+            amenities: [], nightly: '', cleaning: '', coverUrl: '', photo2Url: '', notes: '',
             pct: @js($commissionPct), sym: @js($currencySymbol), lim: @js($limits),
             kindLabels: @js($kinds), amNames: @js(collect($amenities)->pluck('name', 'id')),
             get canNext1() { return this.name.trim().length > 0 },
@@ -299,6 +299,24 @@
                                             <button type="button" class="vy-au-pm" aria-label="One more minimum night" @click="inc('minNights', lim.min_nights)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
                                         </span>
                                     </div>
+                                </div>
+
+                                {{-- DO9-1 — "anything else we should know", the last word before submitting.
+                                     ⚠️ THE BACKEND WAS ALREADY READY: OwnerUnitRequestController validates
+                                     ['nullable','string','max:2000'] and OwnerUnitRequestService persists it. The
+                                     column was simply unreachable — the wizard had no input. Nothing about the
+                                     validation or the persistence changed here; this only reaches them.
+                                     ⚠️ OPTIONAL, because the rule is `nullable`. Submitting with the box empty
+                                     must still file the request — the field is a chance to add context, never a
+                                     new obstacle in front of one.
+                                     `maxlength` mirrors the server's max:2000 so the limit is felt in the field
+                                     rather than discovered as a rejection; the server rule remains authoritative.
+                                     Reuses .vy-au-input / .vy-au-flabel — the wizard's own field idiom (§N.8f). --}}
+                                <div class="vy-au-field" style="margin-bottom:16px">
+                                    <label class="vy-au-flabel" for="au-notes">Anything else we should know? <span style="font-weight:400;color:var(--vy-muted)">(optional)</span></label>
+                                    <textarea id="au-notes" name="notes" x-model="notes" class="vy-au-input" rows="3" maxlength="2000"
+                                              placeholder="Access quirks, parking, a gate code the cleaners need — anything that helps us set it up right."
+                                              style="resize:vertical;min-height:76px;font-family:inherit"></textarea>
                                 </div>
 
                                 {{-- Managed-by panel — REAL commission from the owner's agreement, or an honest line when none --}}
