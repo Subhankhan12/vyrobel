@@ -662,6 +662,16 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::get('/security', OperatorSecurity::class)->name('security');
     Route::post('/security/password', [ChangePasswordController::class, 'operator'])->middleware('throttle:6,1')->name('security.password');
 
+    // D24-2 — PASSKEYS FOR THE OPERATOR REALM. ⚠️ THE SAME `PasskeyController` the owner realm mounts
+    // (`owner.security.passkeys.*`), not a copy: the WebAuthn subsystem is realm-agnostic — `PasskeyService`
+    // has zero owner references, `Passkey belongsTo(User)`, and every action works on `$request->user()`, so
+    // self-only scoping comes free and a second implementation would only drift (§N.8f).
+    // ⚠️ LOGIN NEEDED NO WIRING AT ALL: the usernameless sign-in already runs on the shared `web` guard and
+    // redirects through the shared `RedirectsByRole`, so an operator's passkey already lands on /app.
+    Route::post('/security/passkeys/options', [PasskeyController::class, 'options'])->middleware('throttle:20,1')->name('security.passkeys.options');
+    Route::post('/security/passkeys', [PasskeyController::class, 'store'])->middleware('throttle:20,1')->name('security.passkeys.store');
+    Route::post('/security/passkeys/{passkey}/remove', [PasskeyController::class, 'destroy'])->middleware('throttle:10,1')->name('security.passkeys.remove');
+
     // #86 — Email Templates: the REAL customization MANAGER for the 5 guest emails (#83). The list + editor let an
     // operator edit subject/heading/message/button + toggle content blocks + pause an email; the saved content is
     // what the real Mailables render at send (mutation-proven). Reads behind #26; every WRITE carries

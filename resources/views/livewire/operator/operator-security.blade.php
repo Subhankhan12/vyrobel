@@ -113,6 +113,21 @@
         </div>
 
         {{-- ── ACTIVE SESSIONS (real #66) ──────────────────────────────────────────────────────────────── --}}
+        {{-- ══ D24-2 · PASSKEYS — the SAME <x-auth.passkeys> card the owner Security page renders, on the
+             SAME PasskeyController and the SAME PasskeyService. Only the route names differ; the ceremony,
+             the self-only remove-with-re-auth and the empty state are one implementation (§N.8f).
+             ⚠️ Sign-IN needed no wiring: the usernameless flow is already on the shared `web` guard and
+             redirects through `RedirectsByRole`, so an operator passkey already lands on /app. --}}
+        <x-auth.passkeys
+            :passkeys="$passkeys"
+            options-route="app.security.passkeys.options"
+            store-route="app.security.passkeys.store"
+            remove-route="app.security.passkeys.remove"
+            h2="font-size:15px;font-weight:600;margin:0 0 4px;color:var(--vy-ink);"
+            sub="font-size:12.5px;color:var(--vy-muted);margin:0;"
+            ghost="background:transparent;border:1px solid var(--vy-glass-border);"
+            err="font-size:12px;color:#B0322A;display:block;margin-top:6px;" />
+
         <div id="sec-sessions" class="vy-card vy-fade" style="margin-bottom:16px;max-width:560px;">
             <h2 class="vy-card-title" style="margin-bottom:6px;">Active sessions &amp; devices</h2>
             @forelse ($sessions as $sess)

@@ -9948,3 +9948,43 @@ change, which is the whole point of the two living together.
 **Composition is a SET-time rule, not a login rule** — existing users keep their passwords; a test proves a
 legacy weak password still signs in. Seeders bypass validation (`Hash::make` directly) and are unaffected.
 31 fixture passwords across 6 test files were strengthened — the FIXTURES, never the rule.
+
+
+---
+
+## 2026-08-15 — D24-2 · passkeys wired into the operator realm (reused, not rebuilt)
+
+**Confirmed FIRST, because the audit has under-described before (DO13-4's four paths were nine) — this time
+it was right:** `PasskeyService` contains **zero** owner references, `Passkey belongsTo(User)`, and
+`PasskeyController` works on `$request->user()` throughout. Genuinely realm-agnostic, so the size stayed **S**
+— a wiring pass, not a generalisation.
+
+⚠️ **SIGN-IN NEEDED NO WIRING AT ALL**, which the audit suspected and this pass confirmed:
+`PasskeyLoginController` runs on the shared `web` guard and resolves its destination through the shared
+`RedirectsByRole` concern — the same one password login, 2FA and password reset use. An operator's passkey
+already authenticated and already landed on `/app`. Only register + manage needed mounting.
+
+- **The operator realm mounts the SAME controller** (`app.security.passkeys.*` alongside
+  `owner.security.passkeys.*`) on the SAME service.
+- ⚠️ **The owner's card was EXTRACTED into `<x-auth.passkeys>`, not copied.** Copying it would have been the
+  faster wiring and the §N.8f defect this project keeps paying for — two markups, two ceremonies, drifting
+  the first time either is touched. Only the route names differ, as props. A guard asserts neither page
+  re-implements `navigator.credentials.create`.
+- ⚠️ **A defect found while wiring (`D24-2a`):** the shared controller hardcoded `owner.passkey_registered` /
+  `owner.passkey_removed`, so an **operator** registering a passkey would have written a **false realm into
+  the audit trail** — the audit log's own §N.8d, invisible until someone read it back. Now realm-accurate by
+  mount (`app.*` is the operator convention, per `app.trusted_device_revoked`). The flash key is resolved the
+  same way — the two shells genuinely read different keys, a real difference rather than drift.
+
+⚠️ **THE CEREMONY WAS PROVEN, NOT MERELY FLAGGED.** PHP cannot mint an authenticator signature, so the crypto
+was exercised against the OPERATOR mount in Chromium with a CDP virtual authenticator: register via the real
+button → credential persisted for the operator → the audit row read **`app.passkey_registered`** (which is how
+that fix is known to WORK, not just to be present) → logged out → usernameless sign-in with a real signed
+assertion → **landed on `/app/dashboard`**. So the realm-correct redirect is proven with real crypto rather
+than inferred from the shared concern. Browser fixtures deleted, raw-query verified (0 passkeys, 0 audit rows).
+
+⚠️ Reproducibility gotchas (both cost real debugging previously): WebAuthn **rejects an IP as `rp.id`** — use
+`localhost:8000`, never `127.0.0.1:8000`; and usernameless sign-in needs a **discoverable/resident** credential.
+
+**Untouched:** the WebAuthn service internals, the `Passkey` model, `PasskeyLoginController` (0-line diffs) and
+every owner flow (re-verified — the owner page still renders its own routes and nothing else).

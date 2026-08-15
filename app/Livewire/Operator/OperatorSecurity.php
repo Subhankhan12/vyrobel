@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\IpAllowRule;
+use App\Models\Passkey;
 use App\Models\User;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Security\ActiveSessions;
@@ -57,8 +58,24 @@ class OperatorSecurity extends Component
         $ipRules = IpAllowRule::query()->orderBy('created_at')->get()
             ->map(fn (IpAllowRule $r): array => ['id' => (string) $r->getKey(), 'ip' => (string) $r->ip_address, 'label' => (string) ($r->label ?? '')])->all();
 
+        // D24-2 — the operator's OWN passkeys. ⚠️ The identical user-scoped read the owner page makes: the
+        // `Passkey` model belongs to a USER, so an operator who registers one gets a real row and sees only
+        // their own. No owner concept is involved anywhere in the subsystem.
+        $passkeys = $user instanceof User
+            ? Passkey::query()
+                ->where('user_id', (string) $user->getKey())
+                ->orderByDesc('last_used_at')
+                ->get()
+                ->map(fn (Passkey $p): array => [
+                    'id' => (string) $p->id,
+                    'label' => (string) ($p->label ?? 'Passkey'),
+                    'last_used' => $p->last_used_at !== null ? CarbonImmutable::parse($p->last_used_at)->diffForHumans() : 'not used yet',
+                ])->all()
+            : [];
+
         return view('livewire.operator.operator-security', [
             'viewer' => $this->viewer(),
+            'passkeys' => $passkeys,
             'twoFactor' => $this->twoFactorPanel('app.security.2fa'),
             'sessions' => $sessions,
             'trusted' => $trusted,
