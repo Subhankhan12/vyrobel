@@ -57,7 +57,7 @@ use Livewire\Component;
  *   rows: list<array{
  *     room_type_id: string, room_type: string, kind: string, units: int,
  *     availability: array<string, int>,
- *     unit_rows: list<array{unit_id: string, code: string, name: string, state: string, state_label: string,
+ *     unit_rows: list<array{unit_id: string, code: string, name: string, state: string, state_label: string, sleeps: ?int,
  *       bars: list<array<string, mixed>>,
  *       ooo: list<array{offset: int, span: int, reason: string, label: string, clip_start: bool, clip_end: bool}>}>,
  *     unassigned: list<list<array<string, mixed>>>,
@@ -142,6 +142,21 @@ class ReservationRack extends Component
                         'out_of_service' => 'Out of service',
                         default => '',
                     },
+                    /*
+                     * D2-1 — the unit's real sleeping capacity, so an operator can size a booking against the
+                     * row without leaving the rack. The units were already loaded for this row; only the
+                     * column was never carried through.
+                     *
+                     * ⚠️ 0 BECOMES NULL, AND THAT DISTINCTION IS THE POINT. `units.max_occupancy` is
+                     * `int unsigned NOT NULL DEFAULT 2`, so it can never BE null — but 0 is storable, and 0
+                     * does not mean "sleeps nobody", it means nobody said. Rendering "Sleeps 0" would assert
+                     * a capacity the data never claimed. Null here makes the view omit the fact rather than
+                     * state a false one.
+                     *
+                     * ⚠️ This is the UNIT's capacity, never a reservation's party size — a different field on
+                     * a different table, and the one it would be easiest to confuse it with on this screen.
+                     */
+                    'sleeps' => ($cap = (int) $unit->max_occupancy) > 0 ? $cap : null,
                     'bars' => $this->buildUnitBars($linesByUnit->get($unit->getKey(), new Collection), $start),
                     'ooo' => $this->buildOooBars($blocksByUnit->get((string) $unit->getKey(), new Collection), $start),
                 ];

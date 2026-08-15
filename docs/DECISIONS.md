@@ -10075,3 +10075,41 @@ through the certified `AssignmentService` instead.
 Browser-verified on the real demo: with a value forced, the dashboard and Front Desk print the identical
 string `Arrival · late afternoon, after 6`; on a null arrival the dashboard row renders clean with no arrival
 line at all. Fixture reverted, raw-query verified (0 of 41 populated).
+
+
+---
+
+## 2026-08-15 — D2-1 · `max_occupancy` on the reservation rack row
+
+A real unit column the rack row payload never read, so an operator could not size a booking against the row
+without leaving the screen.
+
+⚠️ **THE LEDGER'S "POPULATED" HELD THIS TIME — 8 of 8 demo units carry 2–4.** D1-3's field was 0-of-41
+because an action the demo never performs writes it; this one is set at unit creation. ⚠️ **That inverts
+which branch hides: ZERO is the unrendered sibling here**, and it was forced both in the guard and in the
+browser.
+
+⚠️ **NULL IS IMPOSSIBLE; ZERO IS THE REAL EDGE.** `units.max_occupancy` is `int unsigned NOT NULL DEFAULT 2`
+— the column can never BE null, but 0 is storable. And **0 does not mean "sleeps nobody", it means nobody
+recorded a capacity.** "Sleeps 0" would assert a fact about a real unit that the data never claimed, so the
+payload maps 0 → null and the view omits the element. Absent is the honest rendering of an unrecorded fact.
+
+⚠️ **THE LABEL WAS MATCHED, NOT INVENTED (§N.8f).** The product already says **"Sleeps N"** in two places —
+the operator Owner-detail unit list and the owner Unit-detail property row. The rack reuses that exact
+wording and the row's existing muted meta class (`.vy-unit-name`) rather than introducing a third way to say
+capacity on a dense row. A parity test reads those sources, so renaming the label in one place fails loudly.
+
+⚠️ **IT IS THE UNIT'S CAPACITY, NEVER THE RESERVATION'S PARTY SIZE** — different fields on different tables,
+and the two would look identical on a rack row. Proven by making them differ: a unit that sleeps 5 carrying a
+stay for 2 renders "Sleeps 5".
+
+**Logged, not built:**
+- **`D2-1a`** — over-capacity detection is now cheap (capacity sits beside the bookings) but is LOGIC, not
+  display, and needs a product decision: warn or block? at booking time or on the rack? what counts as a cot?
+- **`D2-1b`** — ⚠️ the two EXISTING capacity surfaces render `Sleeps {{ … }}` **unguarded**, so both would
+  print "Sleeps 0". Their comments reason correctly about NOT NULL but not about 0. Out of scope here; the
+  rack is guarded.
+
+Browser-verified on the real demo (§N.21.6): the rack rows read `101 · OUT OF SERVICE · Sleeps 2`, `A1 ·
+Sleeps 4` …; with unit 102 forced to 0 its row renders as just `102` — no "Sleeps 0", no bare label, no broken
+cell. Fixture reverted and raw-query verified back to the exact seeded values (8/8 populated, 2–4, zero zeros).

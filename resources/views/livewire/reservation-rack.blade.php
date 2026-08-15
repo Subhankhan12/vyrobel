@@ -267,6 +267,17 @@
                                         <span class="vy-unit-code">{{ $unit['code'] }}</span>
                                         @if ($unit['state_label'] !== '')<span class="vy-unit-state state-{{ $unit['state'] }}">{{ $unit['state_label'] }}</span>@endif
                                         @if ($unit['name'] !== $unit['code'])<span class="vy-unit-name">{{ $unit['name'] }}</span>@endif
+                                        {{-- D2-1 — the unit's real sleeping capacity, so a booking can be sized against
+                                             the row without leaving the rack. Uses the product's EXISTING label, the
+                                             "Sleeps N" of the operator Owner-detail unit list and the owner Unit-detail
+                                             property row - matched rather than reinvented (§N.8f). Rendered in the row's
+                                             existing muted meta register (.vy-unit-name), so it adds a fact without a
+                                             new visual language on an already dense row.
+                                             ⚠️ OMITTED WHEN THE PAYLOAD SAYS null, which it does for 0. "Sleeps 0"
+                                             would assert that the unit sleeps nobody; 0 means nobody recorded a
+                                             capacity. Absent is the honest rendering of an unrecorded fact.
+                                             ⚠️ This is the UNIT's capacity, never the reservation's party size. --}}
+                                        @if ($unit['sleeps'])<span class="vy-unit-name">Sleeps {{ $unit['sleeps'] }}</span>@endif
                                     </div>
                                     <div style="flex: 1; min-width: 0;">
                                         <div class="vy-lane">
