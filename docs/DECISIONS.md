@@ -12108,3 +12108,45 @@ storefront unit-commit work.
 
 **Nothing built, nothing moved:** `rate_calendar` hashes `2bbdafccc3b5c1ee43f89fe313a3f02d` (929 rows,
 10,920,000 minor); the sync, the resolver, §G.1 and every other channel are untouched.
+
+---
+
+## 2026-08-17 — D18-5 phase 3 · STOPPED: the wiring was written, the money proof did not land, so nothing shipped
+
+⚠️ **THE RULE THIS PASS WAS GIVEN — "if the money proof can't be completed, STOP and report rather than leave
+an unverified money path" — is the rule it ended on.** The four storefront steps were written and syntactically
+sound; the folio-level proof did not pass inside this session; the code was **reverted**. Nothing unverified
+is in the tree, `ConcurrentBookingTest` re-runs green (1/1, 7 assertions) and `rate_calendar` still hashes
+`2bbdafccc3b5c1ee43f89fe313a3f02d` (929 rows).
+
+**What was confirmed, and it materially shortens the next attempt:**
+
+1. ⚠️ **NO MIGRATION IS NEEDED.** The brief asked for a nullable `unit_id` column on `booking_quotes`. The
+   quote's **`requested` is already a JSON array of lines** (`room_type_id`, `rate_plan_id`, `qty`), so the
+   chosen unit rides inside it and a pre-existing quote simply has no `unit_id` key — exactly the
+   backward-compatibility a nullable column was meant to provide, with no schema change at all.
+2. ⚠️ **THE PRICING SEAM IS PHASE 2's, REUSED VERBATIM.** `quote()` computes the shown total and `book()`
+   computes `price_minor` per line, both through `priceOver($ratePlanId, …)`. Wrapping each with
+   `NightlyRate::stayTotalForUnit(...) ?? priceOver(...)` gives charged = shown = resolved **and** zero
+   movement by construction, because that helper returns NULL when the unit carries no override.
+3. ⚠️ **"SHOWN = ENFORCED" IS REUSE, NOT NEW CODE.** `UnitAvailabilityService::freeUnitsForRoomType()` already
+   exists and is the same read the operator path validates a chosen `unit_id` against — so the storefront can
+   validate identically and never offer a unit `assertUnitFree()` would reject.
+4. ⚠️ **THE CORE REALLY IS FREE.** `book()` builds `$lines[]` and hands them to `createBooking()`, which
+   already accepts a per-line `unit_id`; adding `'unit_id' => $line['unit_id'] ?? null` changes no lock. The
+   core was not modified in this pass.
+
+⚠️ **WHERE THE PROOF STOPPED, precisely.** The storefront is **two POSTs**, not one: `/book/{property}/checkout`
+(`booking.reserve`) creates the advisory quote — the price the guest is *shown* — and `/book/{property}/book`
+(`booking.book`, requiring `quote_id` + `payment_token`) is what reserves and charges. My test drove both, but
+**no quote row was created**, so the folio never existed and every assertion failed on `null`. That is a
+fixture/route-shape problem in the test, not evidence about the wiring — and **that is exactly why it could
+not be shipped**: an unproven charge path is indistinguishable from a working one until a folio says otherwise,
+which is phase 2's leak restated.
+
+⛔ **THE NEXT ATTEMPT SHOULD START BY GETTING ONE TYPE-ONLY STOREFRONT BOOKING TO PRODUCE A FOLIO** — no
+overrides, no unit, just the existing path — and only then add the unit. A money proof that cannot yet book at
+all cannot prove anything about pricing, and building further on top of it would be the half-built state
+phases 1 and 2 refused.
+
+**Nothing regressed:** no application code changed, the concurrency core untouched, the suite unaffected.
