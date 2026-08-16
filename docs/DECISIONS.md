@@ -11792,3 +11792,61 @@ overrides, a type-level edit still affects every unit of the type; the moment ov
 silently.
 
 Suite **2357 / 2347**, 15,197 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-5 phase 2 · the override is CHARGED where the unit is committed before the money
+
+⚠️ **FOUNDER RULING recorded: option 1 — guests book a specific unit.** That settles the product. It does not,
+by itself, settle the code, and confirming the code first changed what this pass could honestly ship.
+
+⚠️ **THE GUEST FLOW STILL DOES NOT CARRY A UNIT — CONFIRMED, NOT ASSUMED.** `BookingEngineController` validates
+`room_type_id` + `rate_plan_id` and nothing else; `booking_quotes` has no unit column; `priceOver()` takes a
+rate-plan id. So on the storefront the money is still decided before any unit exists, exactly as phase 1
+found. **Wiring per-unit pricing there today would have re-created phase 1's contradiction**, so the guest
+path is untouched and prices type-level, byte-for-byte as before.
+
+⚠️ **BUT ONE PATH ALREADY SATISFIES THE RULING, AND THAT IS WHERE THIS SHIPPED.** The operator's New
+Reservation controller takes a `unit_id` **and validates it against the offer before charging** — so the
+guest's actual room is known at the moment money is decided. Per-unit pricing is therefore honest there
+today, with no contradiction: the unit is chosen, the override is resolved for it, and the folio is charged
+that figure.
+
+**`NightlyRate::stayTotalForUnit()`** is the seam, and its **NULL return is the zero-movement guarantee**.
+⚠️ It deliberately does not re-derive a stay total when no override exists, because rate plans can be
+**derived** (`derived_from_rate_plan_id` + `adjustment`) — so the price a caller already computed is not
+always the raw sum of `rate_calendar`, and recomputing it would have moved money nobody asked to change. No
+override anywhere in the stay ⇒ NULL ⇒ the existing figure stands untouched. A partial override prices the
+overridden nights at the unit price and the rest at the type price; **an unpriced night returns NULL rather
+than being summed as zero**, so a stay is never quietly given away.
+
+⚠️ **THE MUTATION THAT EXPOSED A HOLE IN MY OWN GUARDS.** Deleting the wiring from the charge path left every
+test green — they proved the *resolver* answers correctly and said nothing about whether the money path asks
+it. On a pricing change that is the only question that finally matters. A test now books through the real
+operator route and reads the **folio**: the overridden unit is charged **€245.00**, its sibling **€180.00**.
+Re-run, the deletion reds it.
+
+⚠️ **AND TWO FIXTURE TRAPS, BOTH OF WHICH LOOKED LIKE PRODUCT BUGS.** The first booking silently created
+nothing because `seedScenario` publishes availability only for **2026-09-01 → 2026-09-10** and the fixture sat
+outside it. The second made the sibling appear to be charged the override — both bookings land in the same
+second, so "the newest reservation" re-read the first one; the reservation is now identified by the unit it
+occupies. Neither was the code.
+
+**Eight mutations across both phases, each verified to land** (money makes that mandatory): prefer-type-over-
+override · leak-to-sibling · no-override-as-€0 · inert unique key · return-a-total-when-there-is-no-override ·
+sell-an-unpriced-night-free · **charge-path-ignores-the-override** · hasAny-ignores-the-unit.
+
+⚠️ **ZERO EXISTING MONEY MOVED:** `rate_calendar` still hashes `2bbdafccc3b5c1ee43f89fe313a3f02d` (929 rows,
+10,920,000 minor), the demo holds **zero** overrides, and §G.1, VAT and the computation were not touched.
+
+⛔ **WHAT OPTION 1 STILL NEEDS, AND IT IS THE LARGER HALF — SEQUENCED, NOT BUILT:** the storefront must let a
+guest *choose* a unit before checkout. That is not a UI job: it makes units individually sellable, which means
+per-unit availability, a quote that carries `unit_id`, and — the dangerous part — `createBooking` reserving
+**that exact unit** under lock without weakening the certified no-double-booking guarantee. Half-building it
+would risk the one invariant this system protects most, so it is its own gate. ⚠️ **Channel-sync stays
+sequenced too** — per-unit rates are not pushed to OTAs, and an OTA quoting a stale type price for an
+overridden unit is the same contradiction in a place we cannot correct it. ⚠️ The "N units affected"
+safeguard remains accurate while no overrides exist; it must read "units without their own price" as part of
+that gate.
+
+Suite **2362 / 2352**, 15,210 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

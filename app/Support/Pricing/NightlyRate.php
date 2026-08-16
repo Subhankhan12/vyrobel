@@ -72,4 +72,48 @@ final class NightlyRate
             ->whereDate('date', CarbonImmutable::parse($date)->toDateString())
             ->exists();
     }
+
+    /**
+     * D18-5 phase 2 — the stay total for a CHOSEN unit, or NULL when the unit carries no override at all.
+     *
+     * ⚠️ NULL IS THE ZERO-MOVEMENT GUARANTEE, AND IT IS WHY THIS RETURNS NULL RATHER THAN A NUMBER. A rate
+     * plan may be DERIVED from another (`rate_plans.derived_from_rate_plan_id` + `adjustment`), so the price
+     * a caller already computed for the stay is not always the raw sum of `rate_calendar`. Re-deriving it
+     * here would risk moving a price that nobody asked to change. So this answers only the question it can
+     * answer safely: "does this unit have its own price for any night of this stay?" — NULL means no, and the
+     * caller keeps the figure it already had, byte-for-byte.
+     *
+     * ⚠️ WHEN AN OVERRIDE DOES EXIST it is authoritative by definition — it is an explicit per-unit price —
+     * and the nights around it fall back to the type price, so a partial override prices the stay honestly
+     * rather than all-or-nothing.
+     *
+     * @param  string  $checkOut  exclusive — stay nights are half-open [check_in, check_out)
+     */
+    public static function stayTotalForUnit(string $ratePlanId, string $unitId, string $checkIn, string $checkOut): ?int
+    {
+        $start = CarbonImmutable::parse($checkIn)->startOfDay();
+        $end = CarbonImmutable::parse($checkOut)->startOfDay();
+
+        $hasAny = UnitRateOverride::query()
+            ->where('rate_plan_id', $ratePlanId)
+            ->where('unit_id', $unitId)
+            ->whereDate('date', '>=', $start->toDateString())
+            ->whereDate('date', '<', $end->toDateString())
+            ->exists();
+
+        if (! $hasAny) {
+            return null;   // ⚠️ no override anywhere in the stay → the caller's existing total stands, untouched
+        }
+
+        $total = 0;
+        for ($date = $start; $date->lt($end); $date = $date->addDay()) {
+            $night = self::forUnit($ratePlanId, $unitId, $date->toDateString());
+            if ($night === null) {
+                return null;   // an unpriced night is not a free night — refuse rather than undercharge
+            }
+            $total += $night;
+        }
+
+        return $total;
+    }
 }

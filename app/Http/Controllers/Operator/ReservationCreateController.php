@@ -27,6 +27,7 @@ use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Pricing\NightlyRate;
 use App\Support\Property\PropertyContext;
 use App\Support\Reservations\ReservationExtras;
 use Carbon\CarbonImmutable;
@@ -125,6 +126,20 @@ class ReservationCreateController extends Controller
         $chosenPlan = collect($offered['plans'])->firstWhere('id', trim((string) $request->input('rate_plan_id', '')));
         $ratePlanId = is_array($chosenPlan) ? (string) $chosenPlan['id'] : (string) $offered['rate_plan_id'];
         $roomChargeMinor = is_array($chosenPlan) ? (int) $chosenPlan['price_minor'] : (int) $offered['price_minor'];
+
+        // ⚠️ D18-5 PHASE 2 — THE CHOSEN UNIT'S OWN PRICE, WHERE ONE EXISTS. This path is the one place a unit
+        // is committed BEFORE the money: `$unitId` was validated against `$offered['units']` above, so by the
+        // time we price, the guest's actual room is known. That is what makes a per-unit charge honest here
+        // and still impossible on the storefront, which sells a room TYPE and assigns a unit afterwards.
+        //
+        // ⚠️ IT CAN ONLY RAISE ITS HAND, NEVER SHRUG. `stayTotalForUnit` returns NULL when the unit carries no
+        // override for any night of the stay, and the line above stands untouched — so a booking on a unit
+        // nobody has priced individually is charged byte-for-byte what it was charged yesterday, derived-plan
+        // adjustments and all. Only an explicit per-unit price displaces it.
+        $perUnitMinor = NightlyRate::stayTotalForUnit($ratePlanId, $unitId, $checkIn, $checkOut);
+        if ($perUnitMinor !== null) {
+            $roomChargeMinor = $perUnitMinor;
+        }
 
         $adults = max(1, min(30, (int) $request->input('adults', 1)));
         $children = max(0, min(30, (int) $request->input('children', 0)));
