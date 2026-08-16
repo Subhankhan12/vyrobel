@@ -11898,3 +11898,42 @@ gate, and it is now a **safe** one.
 
 **No code changed in this pass.** The finding is the deliverable: the blocker that made phase 3 dangerous
 does not exist, and the remaining work can be planned as ordinary plumbing.
+
+---
+
+## 2026-08-17 — D18-5 · the rates-grid blast-radius label, reconciled for per-unit pricing
+
+⚠️ **THE LEDGER CALLED IT "N units affected"; THE CODE NEVER SAID THAT.** Searching for that phrase found it
+only in my own phase 1/2 entries. The safeguard is real but reads **"3 units"** on each room-type row of the
+rates grid (`RatesGrid::row()` → `units_label`, fed by `withCount('units')`), and the grid's own docblock says
+why it exists: *"so the operator is never misled about what a save touches."* Confirming the wording before
+"fixing" it mattered — a text-matching fix would have found nothing and reported success.
+
+**Why it needed reconciling.** A rate plan prices a ROOM TYPE, so one save moves every unit beneath it — the
+count was exactly right while type-level was the only pricing there was. It became a small lie the moment a
+unit could carry its own price (phases 1–2), because a type-level save does not reach an overridden unit.
+
+**The fix:** the row now subtracts units carrying an override **for that plan, inside the displayed
+fortnight** — the scope of the save being warned about. The source of truth is `unit_rate_overrides`, so this
+cannot drift from what `NightlyRate` actually resolves (§N.8f). ⚠️ The unique-ing is done with `pluck` +
+`unique` in PHP rather than `->distinct()->count()`, which has already returned 0 for every period once in
+this codebase while looking exactly like a working guard (§N.27.7).
+
+⚠️ **TRANSITION-CORRECT BY CONSTRUCTION, WHICH WAS THE ACTUAL DIFFICULTY.** With no overrides the subtraction
+is zero and the label is **byte-identical to what it has always shown** — `"2 units"`, asserted to the
+character, because a "fix" that reworded a warning already telling the truth would itself be a regression.
+Only when something is genuinely excluded does it change shape: `"1 of 2 units · 1 priced individually"`.
+
+⚠️ **AND THE WORDING FOLLOWS THE NUMBER.** Showing a reduced count under the old phrasing would be the same
+misleading warning in a quieter form — the operator would read "2 units" and not know a third was untouched.
+A mutation that does exactly that reds the tests.
+
+**Three mutations, each verified to land:** counting all units regardless of overrides (the pre-fix
+behaviour) reds the exclusion tests; dropping the date-window predicate reds the scope test — an override
+three months out must **not** shrink today's warning; showing the corrected number under the old wording reds
+both.
+
+**Untouched:** the save behaviour, the rate write, `NightlyRate`, §G.1, isolation/RBAC. The demo carries zero
+overrides, so its label is unchanged. Count and label only.
+
+Suite **2366 / 2356**, 15,219 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

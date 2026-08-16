@@ -13,10 +13,12 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Restriction;
 use App\Models\RoomType;
+use App\Models\UnitRateOverride;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Pricing\NightlyRate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -115,6 +117,7 @@ class RatesGrid extends Component
         $rates = $this->indexRates($planIds, $fromStr, $throughStr);
         $availability = $this->indexAvailability($roomTypeIds, $fromStr, $throughStr);
         $restrictions = $this->indexRestrictions($roomTypeIds, $fromStr, $throughStr);
+        $overriddenUnits = $this->indexOverriddenUnits($planIds, $fromStr, $throughStr);
 
         $rows = $roomTypes->map(fn (RoomType $rt): array => $this->row(
             $rt,
@@ -123,6 +126,7 @@ class RatesGrid extends Component
             $rates,
             $availability,
             $restrictions,
+            $overriddenUnits,
         ))->all();
 
         return view('livewire.operator.rates-grid', [
@@ -378,11 +382,51 @@ class RatesGrid extends Component
      * @param  array<string, array{min_stay: ?int, stop_sell: bool}>  $restrictions
      * @return array<string, mixed>
      */
-    private function row(RoomType $roomType, ?RatePlan $plan, array $dates, array $rates, array $availability, array $restrictions): array
+    /**
+     * D18-5 — which units already carry their OWN price, per plan, inside the displayed window.
+     *
+     * ⚠️ THE SOURCE OF TRUTH IS THE OVERRIDE TABLE, not a re-reading of rates. "Has its own price" is exactly
+     * "has a row in `unit_rate_overrides`", so this cannot drift from what {@see NightlyRate}
+     * actually resolves (§N.8f).
+     *
+     * ⚠️ COUNTED IN PHP AFTER `pluck`, DELIBERATELY. A `->distinct()->count()` on this shape has already
+     * returned 0 for every period once in this codebase while looking like a working guard (§N.27.7), so the
+     * unique-ing is done where it can be seen.
+     *
+     * @param  list<string>  $planIds
+     * @return array<string, list<string>> plan id → the unit ids priced individually in the window
+     */
+    private function indexOverriddenUnits(array $planIds, string $from, string $through): array
+    {
+        if ($planIds === []) {
+            return [];
+        }
+
+        return UnitRateOverride::query()
+            ->whereIn('rate_plan_id', $planIds)
+            ->whereDate('date', '>=', $from)
+            ->whereDate('date', '<=', $through)
+            ->get(['rate_plan_id', 'unit_id'])
+            ->groupBy(fn (UnitRateOverride $o): string => (string) $o->rate_plan_id)
+            ->map(fn ($rows): array => $rows->pluck('unit_id')->map(fn ($id): string => (string) $id)->unique()->values()->all())
+            ->all();
+    }
+
+    private function row(RoomType $roomType, ?RatePlan $plan, array $dates, array $rates, array $availability, array $restrictions, array $overriddenUnits = []): array
     {
         $rtId = (string) $roomType->getKey();
         $planId = $plan?->getKey() !== null ? (string) $plan->getKey() : null;
+        // ⚠️ THE BLAST-RADIUS COUNT, RECONCILED FOR PER-UNIT PRICING (D18-5). This label exists so the
+        // operator is never misled about what a type-level save touches. It counted EVERY unit of the type,
+        // which was exactly right while a rate plan could only be priced per type — and becomes a small lie
+        // the moment a unit carries its own price, because a type-level save does not reach that unit.
+        //
+        // ⚠️ TRANSITION-CORRECT BY CONSTRUCTION: with no overrides in this plan+window the subtraction is
+        // zero, so the number and the wording are byte-identical to what they have always been. The label
+        // only changes shape once there is genuinely something to exclude.
         $units = (int) ($roomType->units_count ?? 0);
+        $overridden = $planId === null ? 0 : count($overriddenUnits[$planId] ?? []);
+        $affected = max(0, $units - $overridden);
 
         $cells = [];
         foreach ($dates as $date) {
@@ -411,7 +455,11 @@ class RatesGrid extends Component
             'code' => (string) ($roomType->code ?? ''),
             'plan_name' => $plan !== null ? (string) $plan->name : null,
             'has_plan' => $planId !== null,
-            'units_label' => $units.' '.($units === 1 ? 'unit' : 'units'),
+            // ⚠️ THE WORDING FOLLOWS THE NUMBER. Saying "2 units" while silently excluding a third would be
+            // the same misleading count in a quieter form, so once any unit is excluded the label says why.
+            'units_label' => $overridden > 0
+                ? $affected.' of '.$units.' '.($units === 1 ? 'unit' : 'units').' · '.$overridden.' priced individually'
+                : $units.' '.($units === 1 ? 'unit' : 'units'),
             'cells' => $cells,
         ];
     }
