@@ -11490,3 +11490,56 @@ on *any* PDF"). No document's content or layout was restructured, and the full s
 existing PDF test — is unchanged at the documented 9 non-green.
 
 Suite **2336 / 2327**, 15,046 assertions; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — DO25-1 / DO23-2 · the §N.8f drift pair: both merges refused, the real risk guarded
+
+Two items logged as "the same concern implemented twice". **They are two different drifts, so they were
+split (the D18-5/D18-6 lesson), and both merges were REFUSED after reading all four sites.** A refusal that
+shows its evidence is worth more than a merge that flattens something real.
+
+⚠️ **DO25-1 — NOT ONE CONCEPT.** The register says the owner Reports chart is "a second implementation" of
+`<x-charts.bars>`. It is not: the shared component is a **flex-column, single-series** chart with static
+label rows; the Reports chart is **absolutely positioned**, carries a **prior-year ghost bar** layered behind
+the live one, floats its value at the bar's top (`bottom:{pct}%` — it moves with the bar), and badges the
+peak month with an inline star. Merging would mean adding a second layout mode inside a component with
+**five working consumers** — a refactor beyond the drift, risking five surfaces to remove a duplication that
+isn't one. ⚠️ Along the way a plausible-looking inference of mine was wrong: `<x-charts.bars>`'s `valueTop`
+prop was added for the **operator** Reports page, not the owner one, so it is not evidence of an abandoned
+migration.
+
+⚠️ **DO23-2 — SAME LOOK, DIFFERENT INTERACTION MODEL.** Two day-cell families genuinely exist (`vy-cal-*`
+and `vy-ud-*`), but Block Calendar **drag-selects a range** (`mousedown`/`mouseenter`/`aria-pressed`) and
+POSTs a real block, while Unit Detail opens a **read-only detail popover**. Merging means parameterising two
+300–450-line views by interaction mode. ⚠️ **And the cost this row was opened for has already been paid** —
+the O10 keyboard lockout it cites was re-made on the second grid, and both now render real `<button>` day
+cells with descriptive `aria-label`s and no clickable `<div>`. Verified by reading both. ⚠️ A first pass of
+that check reported Block Calendar had no `aria-label`; that was **my grep**, not the code — the attribute
+sits below the class on a later line and a single-line pattern missed it. Corrected before it reached a
+verdict.
+
+⚠️ **THE SWEEP FOUND THE REAL COST, AND IT IS FIVE TIMES BIGGER THAN EITHER ROW SAID.** Looking for the
+duplication rather than at the two named files turned up **EIGHT bar implementations** — `components/charts/
+bars`, owner `reports`, `dashboard`, `insights`, `unit-detail` (×2), `bookings`, and `statement` — every one
+hand-carrying the same honesty rule: **a bucket worth zero must draw nothing.** That rule exists because the
+Reports chart once applied a two-percent floor and five months that genuinely earned €0.00 each rendered a
+visible bar, contradicting the figure printed beside them (#39). The fix then had to be copied by hand into
+every other chart, and `statement` implements it a third way again (a `.is-zero` class resetting the floor).
+
+**So the deliverable is the invariant, not a merge.** The layouts genuinely differ and flattening them would
+be a new defect; the *rule* does not differ at all. `BarChartZeroFloorTest` now holds every implementation to
+it — behaviourally for the shared component (render a zero bucket, assert no floor; render a real one, assert
+the hairline IS applied, so it is a floor-for-nonzero rather than a blanket removal) and structurally for the
+seven local charts, with Blade and CSS comments stripped first because several of those files *explain* the
+floor in prose and a naive scan would have matched its own needle (§N.27.5).
+
+**Three mutations, each verified to land:** restoring the floor in the shared component reds both the
+behavioural and the structural test; losing the conditional in owner Reports (where the defect first shipped)
+reds the structural one; deleting `statement`'s `.is-zero` reset reds the class-based one.
+
+⚠️ **NOTHING WAS MERGED AND NO BEHAVIOUR CHANGED.** The diff is one new test file — no view, no component, no
+data. Both sites of both items render exactly as before, which is the correct outcome when the copies are
+genuinely divergent.
+
+Suite **2339 / 2330**, 15,071 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
