@@ -11730,3 +11730,65 @@ set `OPS_HEARTBEAT_PING_URL` for the dead-man's-switch — **unset it is inert b
 otherwise** — and decide on-call routing. A working alarm wired to nobody is still silence.
 
 Suite **2350 / 2341**, 15,171 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-5 · per-unit rate plans, PHASE 1 (founder ruling recorded) — and the question it exposed
+
+⚠️ **FOUNDER RULING, recorded as what unblocked this:** two units of the same room type MAY be priced apart.
+A rate may bind to a UNIT as an override, not only to a room type. D18-6 had left this as the open product
+call; it is now made.
+
+**BUILT — the foundation, and nothing that could misprice anything:**
+
+- **`unit_rate_overrides`** — a NEW table, deliberately not a column on `rate_calendar`. Adding a nullable
+  `unit_id` there would have altered the table every existing price lives in, and would have made its
+  `UNIQUE(rate_plan_id, date)` depend on a nullable column — and **MySQL treats NULLs as distinct**, so that
+  index would have gone quietly inert and allowed two conflicting type-level prices for one night (the
+  DO-CORRECTNESS-1 waitlist lesson, this time on a money table). Every column of the new
+  `UNIQUE(rate_plan_id, unit_id, date)` is NOT NULL; "applies to all units" is the ABSENCE of a row.
+- **`NightlyRate`** — one resolver: a unit override wins, otherwise the type price, which is *exactly*
+  today's behaviour. ⚠️ **That total fallback is the zero-movement guarantee**: the override table starts
+  empty, so every resolution takes the old branch.
+- **Reversible, zero-loss migration** — `down()` drops only the new table; `rate_calendar` is untouched in
+  both directions.
+
+⚠️ **ZERO PRICE MOVED, PROVEN ON THE WHOLE TABLE, NOT A SAMPLE.** `rate_calendar` hashes identically before
+and after the migration — `2bbdafccc3b5c1ee43f89fe313a3f02d`, 929 rows, 10,920,000 minor — and the demo holds
+**zero** overrides. §G.1, the VAT logic and the pricing computation were not touched.
+
+⚠️⚠️ **CONFIRM-FIRST FOUND THE THING THE RULING DOES NOT SETTLE, AND IT IS WHY NO AUTHORING SURFACE SHIPPED.**
+The brief assumed a single resolver to extend. There isn't one — **eight** call sites read `rate_calendar`
+directly. More decisively, the real money path is `BookingEngineService::priceOver($ratePlanId, …)`: a stay is
+priced **from a rate plan**, the folio is charged, and the **unit is assigned afterwards**. The guest
+storefront therefore *cannot* consult a per-unit price, because at the moment money is taken **nobody has
+chosen a unit yet**. The operator's New Reservation path *does* accept a `unit_id`, so it could.
+
+**Shipping an authoring surface today would therefore have created a price an operator can set and the
+storefront cannot honour** — the same unit sold at one figure to a guest and displayed at another to staff.
+That is a money contradiction, and a worse outcome than the missing feature. So the surface is deliberately
+**not built**, and `NightlyRate` is deliberately **not wired into the charging path**.
+
+⛔ **THE FOUNDER QUESTION THAT MUST BE ANSWERED BEFORE PHASE 2 — it is not "which UI", it is *when is the unit
+chosen?*:**
+1. **The guest picks the unit at booking** (units become individually sellable) — the honest way to charge
+   per-unit, and a booking-flow change.
+2. **The operator pre-assigns the unit** — per-unit pricing applies only to operator-created bookings; the
+   storefront keeps type pricing, and the two must be visibly different things, not silently.
+3. **Per-unit is planning-only** — it informs rack/owner views and never charges.
+
+**Four mutations, each verified to land** (money makes this mandatory): preferring the type rate over a set
+override reds the override tests; dropping the unit predicate so an override leaks to a sibling reds the
+isolation test; resolving "no override" as €0 reds four tests including zero-movement; removing `unit_id`
+from the unique key reds the duplicate test. ⚠️ The leak mutation **silently failed to apply on the first
+attempt** — the pattern did not match, so its "pass" meant nothing. Re-applied and re-verified; §N.4p again.
+
+**SEQUENCED, NOT BUILT (each its own pass):** the booking-flow decision above · wiring `NightlyRate` into the
+charge path once that is settled · per-unit across the rates grid, calendars and reports · the D18-6 grid
+re-shape the founder can now revisit · channel-sync (per-unit rates are **not** pushed to OTAs) · bulk
+tooling. ⚠️ **The rack's "N units affected" safeguard is untouched and still accurate today** — with no
+overrides, a type-level edit still affects every unit of the type; the moment overrides exist it must read
+"units without their own price", and that is part of the phase-2 surface, raised here rather than changed
+silently.
+
+Suite **2357 / 2347**, 15,197 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
