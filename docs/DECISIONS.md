@@ -11850,3 +11850,51 @@ safeguard remains accurate while no overrides exist; it must read "units without
 that gate.
 
 Suite **2362 / 2352**, 15,210 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-5 phase 3 · CONFIRM-FIRST DISSOLVED THE GATE: the guarantee is ALREADY unit-grain
+
+⚠️ **FOUNDER RULING (option 1, guest-picks) re-recorded for phase 3.** This pass was framed as the dangerous
+one — extend the certified no-double-booking guarantee to unit grain and prove it under concurrency, or stop.
+**Reading the mechanism first showed there is nothing to extend: it is already there, and already proven.**
+
+**How the guarantee actually works** (`AssignmentService`, read end-to-end rather than assumed):
+
+- The mutex is `SELECT … FOR UPDATE` on the **`availability`** rows for `(room_type_id, each night)` — counts
+  per room type (`total`/`sold`/`out_of_order`/`blocked`), which serializes every booking of that type.
+- ⚠️ **`createBooking()` already accepts an optional `unit_id` per line**, and `occupy()` — the single locked
+  core both `createBooking()` and `createGroupBooking()` funnel through — already guards it: it refuses a
+  non-bookable unit **and calls `assertUnitFree()`**, a half-open overlap check on `reservation_units`
+  (`check_in < out AND check_out > in`) taken **`lockForUpdate()` inside the same transaction**.
+- So a specific unit is *already* protected at unit grain, by the same lock discipline, in the same
+  transaction — not by a parallel or weaker check.
+
+⚠️ **AND IT IS ALREADY CERTIFIED.** `tests/Feature/ConcurrentBookingTest.php` carries
+*"permits exactly one of two truly-concurrent bookings on the same unit and dates"* — a real race, not an
+assertion. Re-run during this pass: **1/1, 7 assertions, green.**
+
+**So the hazard this gate was created for does not exist.** Nothing was changed, because changing the most
+protected invariant in the system to add a guarantee it already provides would have been pure risk for no
+gain. The correct output of a confirm-first pass is sometimes that the feared work is already done.
+
+⚠️ **WHAT PHASE 3 ACTUALLY STILL NEEDS IS NARROWER, AND NOW LOW-RISK** — it is a plumbing job on the
+storefront, not a concurrency job on the booking core:
+
+1. `booking_quotes` gains a nullable `unit_id` (a type-only quote must keep resolving type-level).
+2. The storefront offers the *specific available units* of the chosen type/dates and lets the guest pick one —
+   availability shown must equal availability enforced.
+3. That `unit_id` flows into `createBooking()`, **which already handles it safely** — this is the step that
+   was feared and is in fact free.
+4. `NightlyRate` is consulted for the chosen unit so the storefront charge is `charged = shown = resolved`,
+   exactly as phase 2 did on the operator path.
+
+⚠️ **NOT STARTED IN THIS PASS, DELIBERATELY.** That build spans a migration, the quote model, a storefront
+selection UI and the charge seam, and its money claims need the same treatment phase 2 got — a real booking
+whose **folio** is read, plus mutation proof that the charge path consults the resolver (phase 2's charge
+wiring passed every test until a mutation exposed that nothing checked it). Beginning it at the end of a long
+session and leaving it unverified would be exactly the half-built state phases 1 and 2 refused. It is its own
+gate, and it is now a **safe** one.
+
+**No code changed in this pass.** The finding is the deliverable: the blocker that made phase 3 dangerous
+does not exist, and the remaining work can be planned as ordinary plumbing.
