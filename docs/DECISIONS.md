@@ -11229,3 +11229,59 @@ over-reach, and they are not flaky — they are consistently red, which is worse
 
 PHPStan L5 (0); Pint clean. Baseline **before**: 9 non-green at the real date, 52 at a rolled date.
 **After**: 9 at any date.
+
+---
+
+## 2026-08-16 — D23-3 · the roles become a card grid
+
+The register deferred this deliberately: it restructures the page's three-column shape, and folding a layout
+change into an RBAC-sensitive surface is how a grant quietly disappears. It got its own gate, as intended.
+
+**What changed, and only this:** the roles moved out of the 240px left column into a **full-width card grid**
+above the page — a card per role carrying an icon tile, a selected tick, the name, the description, and a
+level pill with the member count. The remaining page is **two columns** (matrix + a 300px rail) instead of
+three, and the rail's "Selected role" card is now the **dark gradient hero** the design specifies.
+
+⚠️ **THE "5 ACROSS" IS THE PROTOTYPE'S OWN RULE, NOT A HARDCODED COLUMN COUNT.** The prototype specifies
+`repeat(auto-fit, minmax(190px, 1fr))`, which yields five cards at the design canvas and degrades instead of
+overflowing. Measured in the browser: **5 columns at 1440px**, 6 at 1680px, 4 at 1280px. Pinning `repeat(5,
+1fr)` would have matched the screenshot and broken every other width.
+
+⚠️ **THE ICON IS KEYED TO THE ROLE'S REAL DERIVED `level`** — Admin / Manager / Supervisor / Team, which
+`RolePermissionService::level()` computes from the role's ACTUAL grants. A card therefore cannot display an
+authority glyph its permissions do not support, and the glyph moves the moment the grants do. An unrecognised
+level falls back to the neutral tone rather than guessing a tier. The alternative — a per-role icon map — would
+have been decoration asserting something the data does not say.
+
+⚠️ **THE BLAST RADIUS WAS THE POINT, AND IT HELD.** D23-2's permission grouping shipped on this page days
+ago; browser-verified after the restructure, all four domains still render (Operations · Guests · Finance ·
+System & access) with all **49** permissions, the hidden `role` input still tracks the selection, CSRF is
+intact, and clicking a card still drives both the matrix and the rail. The demo pivot is unchanged at
+**250 / Group Admin 42 / catalogue 49** — the exact figures D23-2 recorded.
+
+⚠️ **THE MUTATION THAT REFUSED TO RED, AND THE TEST IT EXPOSED.** The mandatory silent-revoke check —
+renaming the form's `permissions[]` input — left the no-op-save test perfectly green. The reason is that the
+test builds its payload in PHP and posts it, so it proves the **controller** round-trips a full set and says
+nothing about what the **form** submits. On a form that DIFFS against the database, the input NAME is itself
+load-bearing: rename it and every grant the form no longer carries is revoked on the next save, silently. A
+second test now pins both carriers in the delivered markup — the checkbox **and** the hidden input that
+preserves a locked-but-granted permission (the one an operator cannot see or toggle, and would therefore
+never notice losing). Both mutations red against it.
+
+**Four mutations, each verified to land:** slicing the role iteration reds the every-role test; renaming
+`permissions[]` and deleting the hidden carrier each red the form-contract test; emptying the domain order
+reds the D23-2 test.
+
+⚠️ **A NEEDLE SLIP WORTH RECORDING, TWICE OVER.** Checking D23-2's survival in the browser first reported the
+domains missing — they are **CSS-uppercased**, so `includes('Operations')` fails on rendered `OPERATIONS`.
+And in the test, a per-role-name needle failed because `Js::from('Group Admin')` emits an entire
+`JSON.parse('…')` expression rather than a bare quoted string; the whole role array ships as one payload, so
+asserting that payload is both correct and stricter. Same class of trap D23-2 hit — derive the needle the way
+the view writes it.
+
+**Untouched:** the roles · the permission catalogue · the grants · spatie-teams enforcement · the two-tier
+gate (a Front Desk operator still gets 403) · `organization_id` isolation. The diff is **one Blade file**
+plus the new test; no PHP under test changed, and no role CRUD was added.
+
+Suite **2332 / 2323**, 15,026 assertions; PHPStan L5 (0); Pint clean. Baseline unchanged: the same 9
+non-green, all previously shown pre-existing.

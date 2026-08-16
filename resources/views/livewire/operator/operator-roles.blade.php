@@ -33,23 +33,42 @@
                 canEdit: {{ $canEdit ? 'true' : 'false' }},
                 readOnly: {{ $readOnly ? 'true' : 'false' }},
             })">
-                <div class="vyr-cols">
-                    {{-- ── LEFT: the role list ─────────────────────────────────────────────────────────── --}}
-                    <div class="vy-card vy-fade" style="align-self: start;">
-                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-                            <h2 class="vy-card-title" style="margin: 0;">Roles</h2>
-                            <button type="button" class="vy-btn" style="padding: 6px 12px; font-size: 12px;" x-on:click="newRoleOpen = true">New role</button>
-                        </div>
-                        <template x-for="(r, i) in roles" x-bind:key="r.name">
-                            <button type="button" class="vyr-role" x-bind:class="{ 'is-on': i === selected }" x-on:click="select(i)">
-                                <div class="vyr-role-name" x-text="r.name"></div>
-                                <div class="vyr-role-desc" x-text="r.desc"></div>
-                                <div class="vyr-role-meta"><span x-text="r.level"></span> · <span x-text="r.member_count + (r.member_count === 1 ? ' member' : ' members')"></span></div>
-                            </button>
-                        </template>
-                    </div>
+                {{-- ── D23-3 — the roles as a CARD GRID, above the two columns ──────────────────────────
+                     ⚠️ LAYOUT ONLY. This is the SAME `roles` array, the SAME `select(i)`, rendered wider: no
+                     role is filtered, sorted away or sliced, and nothing here is an input. The permission
+                     form below (and its `permissions[]` checkboxes) is a SEPARATE <form> and is untouched —
+                     which is what keeps a re-layout from silently revoking a grant on the next save.
+                     ⚠️ THE ICON IS KEYED TO THE ROLE'S REAL DERIVED `level` (Admin / Manager / Supervisor /
+                     Team — computed from its ACTUAL grants by RolePermissionService::level()), never to an
+                     invented per-role decoration. A role cannot show an authority glyph its permissions do
+                     not support, and the glyph moves the moment its grants do. --}}
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+                    <h2 class="vy-card-title" style="margin: 0;">Roles</h2>
+                    <button type="button" class="vy-btn" style="padding: 6px 12px; font-size: 12px;" x-on:click="newRoleOpen = true">New role</button>
+                </div>
+                <div class="vyr-rolegrid">
+                    <template x-for="(r, i) in roles" x-bind:key="r.name">
+                        <button type="button" class="vyr-rolecard" x-bind:class="{ 'is-on': i === selected }" x-on:click="select(i)">
+                            <div class="vyr-rolecard-top">
+                                <span class="vyr-rolecard-icon" x-bind:class="'is-' + levelKey(r.level)">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path x-bind:d="levelIcon(r.level)"></path></svg>
+                                </span>
+                                <span class="vyr-rolecard-tick" x-show="i === selected" x-cloak>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"></path></svg>
+                                </span>
+                            </div>
+                            <div class="vyr-rolecard-name" x-text="r.name"></div>
+                            <div class="vyr-rolecard-desc" x-text="r.desc"></div>
+                            <div class="vyr-rolecard-meta">
+                                <span class="vyr-rolecard-level" x-bind:class="'is-' + levelKey(r.level)" x-text="r.level"></span>
+                                <span x-text="r.member_count + (r.member_count === 1 ? ' member' : ' members')"></span>
+                            </div>
+                        </button>
+                    </template>
+                </div>
 
-                    {{-- ── CENTER: the editable permission matrix ──────────────────────────────────────── --}}
+                <div class="vyr-cols">
+                    {{-- ── LEFT: the editable permission matrix ────────────────────────────────────────── --}}
                     <form class="vy-card vy-fade" method="POST" action="{{ route('app.roles.permissions') }}" style="align-self: start;">
                         @csrf
                         <input type="hidden" name="role" x-bind:value="roles[selected].name">
@@ -99,14 +118,15 @@
                         @endif
                     </form>
 
-                    {{-- ── RIGHT: the selected role card ───────────────────────────────────────────────── --}}
-                    <div class="vy-card vy-fade" style="align-self: start;">
-                        <span class="vy-eyebrow" style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint);">Selected role</span>
-                        <div style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 2px;" x-text="roles[selected].name"></div>
-                        <div style="font-size: 12.5px; color: var(--vy-muted);"><span x-text="roles[selected].level"></span> · <span x-text="roles[selected].member_count + (roles[selected].member_count === 1 ? ' member' : ' members')"></span></div>
-                        <div style="font-size: 12px; color: var(--vy-faint); margin-top: 6px;"><span x-text="grantCount()"></span> permissions granted</div>
+                    {{-- ── RIGHT: the selected role card — DARK (D23-3). Same real figures, new treatment. --}}
+                    <div class="vyr-selected vy-fade" style="align-self: start;">
+                        <span class="vy-eyebrow" style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">Selected role</span>
+                        <div class="vyr-sel-name" style="font-size: 20px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 2px;" x-text="roles[selected].name"></div>
+                        <div class="vyr-sel-sub" style="font-size: 12.5px;"><span x-text="roles[selected].level"></span> · <span x-text="roles[selected].member_count + (roles[selected].member_count === 1 ? ' member' : ' members')"></span></div>
+                        <div class="vyr-sel-sub" style="font-size: 12px; margin-top: 6px;"><span x-text="grantCount()"></span> permissions granted</div>
 
-                        <div style="margin-top: 14px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
+                        <div class="vyr-sel-rule" style="height: 1px; margin: 14px 0 12px;"></div>
+                        <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <span style="font-size: 12.5px; font-weight: 600; color: var(--vy-ink);">Members</span>
                                 @if ($canAssign && ! $readOnly)
@@ -190,6 +210,23 @@
         function rolesMatrix(config) {
             return {
                 roles: config.roles,
+
+                /* D23-3 — the card's glyph + tone, derived from the role's REAL `level` (which
+                   RolePermissionService computes from its ACTUAL grants). Presentation only: this reads a
+                   value the payload already carried and grants nothing. An unrecognised level falls back to
+                   the neutral 'team' tone rather than guessing an authority tier. */
+                levelKey: function (level) {
+                    var k = String(level || '').toLowerCase();
+                    return ['admin', 'manager', 'supervisor'].indexOf(k) !== -1 ? k : 'team';
+                },
+                levelIcon: function (level) {
+                    switch (this.levelKey(level)) {
+                        case 'admin': return 'M12 3l7 4v5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V7l7-4z';
+                        case 'manager': return 'M16 20v-2a4 4 0 0 0-8 0v2M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8';
+                        case 'supervisor': return 'M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12zm10 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z';
+                        default: return 'M17 20v-2a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v2M10.5 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M20 20v-2a3 3 0 0 0-2.3-2.9';
+                    }
+                },
                 sections: config.sections,
                 // D23-2 — the domain tier is a VIEW TRANSFORM over `sections`: same objects, regrouped.
                 // Building it here (rather than shipping a second list) means there is one source of truth
@@ -220,12 +257,34 @@
     </script>
 
     <style>
-        .vyr-cols { display: grid; grid-template-columns: 240px 1fr 260px; gap: 16px; align-items: start; }
-        .vyr-role { display: block; width: 100%; text-align: left; border: 1px solid var(--vy-hairline); background: rgba(255,255,255,0.6); border-radius: var(--vy-r-sm, 9px); padding: 10px 12px; margin-bottom: 8px; cursor: pointer; }
-        .vyr-role.is-on { border-color: var(--vy-accent); background: rgba(194,65,12,.06); }
-        .vyr-role-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
-        .vyr-role-desc { font-size: 11px; color: var(--vy-muted); margin-top: 2px; line-height: 1.4; }
-        .vyr-role-meta { font-size: 11px; color: var(--vy-faint); margin-top: 4px; }
+        /* D23-3 — the roles moved out of a 240px column into a full-width card grid, so the page is now
+           two columns (matrix + rail) rather than three. Layout only. */
+        .vyr-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+        .vyr-rolegrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .vyr-rolecard { text-align: left; background: rgba(255,255,255,0.62); border: 1px solid var(--vy-hairline); border-radius: 18px; padding: 16px 18px; cursor: pointer; transition: transform .14s, box-shadow .14s, border-color .14s; }
+        .vyr-rolecard:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(60,30,10,.10); }
+        .vyr-rolecard.is-on { border-color: var(--vy-accent); box-shadow: 0 8px 22px rgba(194,65,12,.16); }
+        .vyr-rolecard-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .vyr-rolecard-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        /* The tile's tone follows the role's REAL derived level — not a per-role decoration. */
+        .vyr-rolecard-icon.is-admin { background: rgba(194,65,12,.12); color: #C2410C; }
+        .vyr-rolecard-icon.is-manager { background: rgba(180,83,9,.11); color: #B45309; }
+        .vyr-rolecard-icon.is-supervisor { background: rgba(21,94,117,.10); color: #155E75; }
+        .vyr-rolecard-icon.is-team { background: rgba(87,83,78,.10); color: #57534E; }
+        .vyr-rolecard-tick { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(140deg, #E8703A, #C2410C); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .vyr-rolecard-name { font-size: 14px; font-weight: 600; color: var(--vy-ink); }
+        .vyr-rolecard-desc { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; line-height: 1.35; min-height: 30px; }
+        .vyr-rolecard-meta { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 11px; color: var(--vy-faint); }
+        .vyr-rolecard-level { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 30px; font-size: 10px; font-weight: 600; }
+        .vyr-rolecard-level.is-admin { background: rgba(194,65,12,.12); color: #C2410C; }
+        .vyr-rolecard-level.is-manager { background: rgba(180,83,9,.11); color: #B45309; }
+        .vyr-rolecard-level.is-supervisor { background: rgba(21,94,117,.10); color: #155E75; }
+        .vyr-rolecard-level.is-team { background: rgba(87,83,78,.10); color: #57534E; }
+        /* The rail's selected-role card goes DARK (the design's hero treatment). */
+        .vyr-selected { position: relative; background: linear-gradient(160deg, #3A2E27 0%, #251C17 100%); border-radius: 20px; box-shadow: 0 10px 30px rgba(60,30,10,.28); padding: 20px 22px; }
+        .vyr-selected .vy-eyebrow, .vyr-selected .vyr-sel-sub { color: #B9ABA0 !important; }
+        .vyr-selected .vyr-sel-name { color: #FFFFFF; }
+        .vyr-selected .vyr-sel-rule { background: rgba(255,255,255,.10); }
         .vyr-section { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 8px; }
         /* D23-2 — the domain tier: the same uppercase idiom as .vyr-section, one step louder so it reads as
            the outer grouping. --vy-muted is the AA-corrected token. */
