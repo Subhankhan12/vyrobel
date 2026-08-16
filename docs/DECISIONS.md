@@ -11285,3 +11285,57 @@ plus the new test; no PHP under test changed, and no role CRUD was added.
 
 Suite **2332 / 2323**, 15,026 assertions; PHPStan L5 (0); Pint clean. Baseline unchanged: the same 9
 non-green, all previously shown pre-existing.
+
+---
+
+## 2026-08-16 — the deployment-scoping pass (and a wrong PHP floor that would have failed the deploy)
+
+The first pass of the deployment sprint: inventory what exists, rank the gaps by harm, build only the
+highest-leverage artifacts. `docs/DEPLOYMENT.md` §0 and §7 are the deliverable.
+
+⚠️ **THE BRIEF'S HEADLINE GAP WAS ALREADY CLOSED, AND CHECKING SAVED THE PASS FROM RE-DOING IT.** The GDPR
+crontab was framed as the #1 undocumented risk. It is not undocumented: `docs/DEPLOYMENT.md` §1 has carried
+the exact line, the consequence and a table of all 8 commands since 2026-08-08 (audit finding F6-4). The
+scheduled list was re-derived from `php artisan schedule:list` rather than memory — **8 confirmed**, and
+worth noting that `payouts:run` is among them, so a missing cron is a **financial** stoppage as well as a
+legal one, which the existing framing under-states.
+
+⚠️ **WHAT IS ACTUALLY MISSING THERE IS DETECTION, NOT DOCUMENTATION.** The failure mode is silence: no error,
+no alert. A runbook cannot detect its own omission. That is why scheduler/queue **liveness alerting** ranks
+second in the plan rather than "document the cron", which was already done.
+
+⚠️ **THE REAL FIND — THE REPOSITORY'S DECLARED PHP FLOOR WAS WRONG, AND WOULD HAVE FAILED A CORRECTLY
+FOLLOWED DEPLOY.** `composer.json` required `php: ^8.3`. The installed production graph requires **≥ 8.4.1**:
+`openspout/openspout` (which **I added three passes ago in D4-1**) requires `~8.4.0 || ~8.5.0`, and the entire
+`symfony/*` v8.1 stack requires `>= 8.4.1`. `composer why-not php 8.3.0` lists them. A server provisioned to
+the floor this repository advertised — and which `CLAUDE.md` repeated — **could not install the application
+at all**. It never surfaced locally because this machine runs 8.4.22.
+
+This is the `ext-zip` lesson at a larger scale: a runtime requirement that is real but undeclared is
+discovered by the deploy, not by the install. Fixed to `^8.4.1` (the exact floor, not a rounded `^8.4`, since
+`symfony` needs `.1`), lock platform regenerated with **zero package version changes** (169 before, 169
+after), `composer validate` clean, `check-platform-reqs --no-dev` fully green, suite unchanged.
+
+⚠️ **AND A REQUIREMENT DELIBERATELY *NOT* DECLARED.** `ext-gd` is used by `PlaceholderImage` — but its only
+callers are `DemoSeeder` and one test, and production is never seeded (§4). Declaring it would harden a
+dev-only dependency into a production install requirement. A naive "grep found gd, declare it" would have
+been wrong in the opposite direction; the requirement list is only useful if it is *exactly* right.
+
+⚠️ **TWO CLAIMS I DECLINED TO MAKE AFTER CHECKING.** A raw grep says **121** `env()` keys are "missing" from
+`.env.example` — a finding I did not report, because almost all are Laravel framework defaults that belong in
+`config/` and were never meant to be listed. Filtered to Vyrobel's own config files the real number is **5**,
+all optional-with-defaults (`HORIZON_*`, `PASSPORT_CONNECTION`, `STRIPE_TAX_BEHAVIOR`). And the audit's old
+`SESSION_SECURE_COOKIE` gap is already closed. Separately, **zero `env()` calls exist outside `config/`**,
+which is what makes the `config:cache` step in §5 safe — verified rather than assumed.
+
+**The ranked plan (§7), by harm, each its own later pass:** 1 backups + a *proven restore* (the only
+unrecoverable failure; an unrestored backup is a hypothesis) · 2 scheduler/queue liveness alerting · 3 a
+deploy script (§5 is order-sensitive and hand-run) · 4 secrets management · 5 Dockerfile/pinned runtime ·
+6 CI. The founder's Stripe/VAT/Passport/tax-rate flips are listed separately as **not** engineering gaps.
+
+⚠️ **HONESTLY: THIS IS NOT "DEPLOY-READY".** What is DONE this pass is the inventory, the ranked plan, a
+corrected PHP floor and a runtime-requirements section with a pre-flight command. What is PLANNED is
+everything in §7 items 1–6. Nothing here has deployed anything.
+
+**No application code was touched** — the diff is `composer.json`, `composer.lock` and the runbook. Suite
+**2332 / 2323**, 15,026 assertions, the same 9 non-green as the previous three passes.

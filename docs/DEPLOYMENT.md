@@ -11,6 +11,44 @@
 
 ---
 
+## 0. RUNTIME REQUIREMENTS (check these BEFORE provisioning)
+
+> ⚠️ **Added 2026-08-16 by the deployment-scoping pass, which found the repository's own declared floor was
+> wrong.** `composer.json` required `php: ^8.3` — and had done since long before the dependencies that broke
+> it landed. The installed production graph requires **PHP ≥ 8.4.1**: `openspout/openspout` (added by D4-1
+> for the Excel exports) requires `~8.4.0 || ~8.5.0`, and the whole `symfony/*` v8.1 stack requires
+> `>= 8.4.1`. A server provisioned to the floor this repository advertised **could not install the
+> application at all** — `composer install --no-dev` would fail outright, at deploy time, on a correctly
+> followed instruction. The constraint is now `^8.4.1`, which is what the code actually needs.
+
+| Requirement | Version | Why / evidence |
+|---|---|---|
+| **PHP** | **≥ 8.4.1** | `composer why-not php 8.4.0` lists the blockers. Do **not** provision 8.3 |
+| **MySQL** | 8.x (InnoDB) | Genuine MySQL, **not MariaDB** — the app uses standard InnoDB locking (`SELECT … FOR UPDATE`) on the no-double-booking and payout paths |
+| **Redis** | any current | Queue + Horizon (`QUEUE_CONNECTION=redis`) |
+| **ext-zip** | — | Declared in `composer.json`. Owner statement-archive ZIP (DO24-1) **and** required by `openspout` |
+| **ext-dom / ext-filter / ext-libxml / ext-xmlreader** | — | Required by `openspout`; Composer enforces them transitively, so they need no separate declaration here |
+| **Node** | for the build only | `npm ci && npm run build`; not needed at runtime |
+
+⚠️ **`ext-gd` is deliberately NOT a production requirement.** It is used by `App\Support\Media\PlaceholderImage`,
+whose only callers are `DemoSeeder` and a test — and production is never seeded (§4). Declaring it would
+harden a dev-only dependency into a production install requirement, which is the opposite of correct.
+
+### The pre-flight that catches all of this
+
+Run **on the target machine**, before the first deploy — it compares the lock file against the real PHP
+binary and its extensions:
+
+```bash
+composer check-platform-reqs --no-dev    # every line must read "success"
+```
+
+⚠️ This is the check that would have caught the wrong PHP floor above, and it is the same class of failure as
+a missing extension discovered at runtime. Cheap, definitive, and it belongs in the deploy script when that
+lands.
+
+---
+
 ## 1. THE CRON ENTRY (do this, or nothing below runs)
 
 Exactly one line, as the user that owns the application directory:
@@ -146,4 +184,48 @@ Tracked in `docs/AUDIT-COMPLETE-2026-08-07.md` — these are real work, not conf
 - ✅ ~~Dependency advisories~~ — **DONE**; `composer audit` is clean.
 - ✅ ~~Seeders have no production guard~~ — **DONE**; they now refuse outright.
 - ⬜ **Still missing: Dockerfile / CI workflow / deploy script / backup strategy.** These are the remaining
-  deployment sprint, not config.
+  deployment sprint, not config. **Scoped and ranked below (2026-08-16).**
+
+---
+
+## 7. THE DEPLOYMENT SPRINT — gap map and ranked plan (scoping pass, 2026-08-16)
+
+⚠️ **Grounded in the repository, not in this document's own claims.** Every "present" below is a file that
+exists; every "absent" is a path that does not.
+
+| Concern | State | Grounded in |
+|---|---|---|
+| Cron / scheduler | **Documented, not enforced** | §1 above; nothing in the repo *verifies* it |
+| Runtime requirements | **Present (fixed this pass)** | §0; `composer check-platform-reqs --no-dev` passes |
+| Queue / Horizon | **Documented, not shipped** | §2 has the supervisor block; no `supervisord.conf` in-repo |
+| Env template | **Present and adequate** | `.env.example` (85 keys); every critical key checked present, incl. `SESSION_SECURE_COOKIE`; **zero `env()` calls outside `config/`**, so `config:cache` in §5 is safe |
+| Security headers · error views · npm lockfile · dependency advisories · seeder guards | **Done** | closed by the audit pass, above |
+| **Backups** | **ABSENT — nothing at all** | no script, no documented policy, no restore drill |
+| **Monitoring / alerting** | **ABSENT** | nothing would report a stopped scheduler, a stalled queue or a failed payout run |
+| Deploy script | **Absent** (a manual sequence exists) | §5 is a human checklist; no `deploy.sh` |
+| Secrets management | **Absent** | `.env` on disk only |
+| Dockerfile / reproducible runtime | **Absent** | no `Dockerfile`, no compose file |
+| CI pipeline | **Absent** | no `.github/`, no CI config of any kind |
+
+### Ranked by harm if missing at launch — the recommended build order
+
+Each of these is **its own pass**; they are deliberately not built together.
+
+1. **Backups + a proven restore.** ⚠️ The only *unrecoverable* failure on the list. Everything else can be
+   fixed after the fact; lost tenant data, folios and owner ledgers cannot. ⚠️ A backup nobody has restored
+   is a hypothesis, not a backup — the pass must include an actual restore into a scratch database.
+2. **Scheduler + queue liveness alerting.** §1 documents the cron correctly, but **its failure mode is
+   silence** — no error, no alert, and GDPR erasure requests are accepted and never served while
+   `payouts:run` also quietly stops. Documentation cannot detect its own omission; a heartbeat can.
+3. **A deploy script.** §5 is order-sensitive (migrate before caching, `horizon:terminate` after) and is
+   currently executed by hand. The risk is a skipped or reordered step under pressure, not ignorance.
+4. **Secrets management.** Moves credentials off the filesystem; real, but the exposure is narrower than 1–3.
+5. **Dockerfile / pinned runtime.** Now that **PHP ≥ 8.4.1** is a hard floor (§0), a pinned image removes an
+   entire class of provisioning error — but the pre-flight in §0 already catches it.
+6. **CI pipeline.** Regression safety and convenience. Valuable, and the least harmful of the six to lack on
+   day one. ⚠️ Note the suite must run **alone** (a parallel run corrupts the shared test database) and the
+   clock is frozen for determinism.
+
+⚠️ **Not on this list, because they are the founder's calls, not engineering gaps:** the Stripe live-key flip
+and Connect KYC, the payout-engine go-live flip, `passport:keys` per environment, `tax:set-rate` per
+jurisdiction, and the VAT-validation fork (send-as-is vs VIES-first). See §3 and the linked production docs.
