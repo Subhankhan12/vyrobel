@@ -169,7 +169,8 @@ class RatesGrid extends Component
         return RatePlan::query()
             ->whereIn('room_type_id', $roomTypeIds)
             ->where('is_active', true)
-            ->with('derivedFrom:id,name')
+            // D18-6 — the plan's ROOM TYPE, eager-loaded so the list can say WHICH type each plan prices.
+            ->with(['derivedFrom:id,name', 'roomType:id,name'])
             ->orderBy('derived_from_rate_plan_id')   // base plans (null) first
             ->orderBy('created_at')
             ->get()
@@ -181,6 +182,12 @@ class RatesGrid extends Component
 
                 return [
                     'name' => (string) $plan->name,
+                    // ⚠️ D18-6 — WHICH room type this plan prices. A rate plan belongs to a room type, and
+                    // several types routinely carry a plan of the same name: the demo has THREE active
+                    // "Flexible" plans (Double Room, One-Bedroom Apartment, City Studio). Without this the
+                    // list printed the same name and sub-line for each, so an operator could not tell which
+                    // one they were reading — on the screen that prices rooms.
+                    'room_type' => (string) ($plan->roomType->name ?? ''),
                     'sub' => $sub,
                     'refundable' => (bool) $plan->is_refundable,
                     'is_derived' => $pct !== null,

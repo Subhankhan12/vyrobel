@@ -10852,3 +10852,56 @@ Rendered as the Property Owner: four domain headings, 30 resource sections benea
 enforcement · `organization_id` isolation. **Not built:** `D23-3` (roles as a card grid) — the register keeps
 it as its own gate because it restructures the page's three-column shape. Suite **2282 / 2273**, 14,721
 assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — D18-6 · the rate-plan list says which room type it prices (D18-5 stays a founder call)
+
+⚠️ **THE PAIR DOES NOT BUNDLE, AND THE BUILDABLE ONE IS THE OPPOSITE OF THE BRIEF'S ASSUMPTION.** The task
+proposed doing D18-5 and logging D18-6. Reading both entries reverses it:
+
+- **D18-5 — NOT BUILT, and it is not a shape change.** The grid's rows are room TYPES because `rate_calendar`
+  is keyed on `rate_plan_id` and a rate plan belongs to a room type. Per-unit rows would require **per-unit
+  rate plans** — a pricing-model change carrying a genuine product question the register already names:
+  *should two units of the same type be priceable apart?* That is a founder decision (STRUCT-1), not a
+  display item, and the safeguard is already in place: the row's sub-label states how many physical units a
+  save touches, so nobody is misled about what they are pricing. **Logged, unchanged.**
+- **D18-6 — BUILT.** A real clarity defect on the screen that sets prices.
+
+⚠️ **THE DEFECT, AND IT WAS BIGGER THAN RECORDED.** The plan list rendered only a name and a meta line, and a
+rate plan belongs to a room type — so plans of the same name were **word-for-word identical**. The register
+found two "Flexible" plans; the live demo has **THREE** (Double Room, One-Bedroom Apartment, City Studio).
+§N.27.1 again: a register is one reader's finding. The derived rows were ambiguous in the same way — "−10% ·
+derived from Flexible" does not say *which* Flexible. Each row now carries its room type.
+
+**Read payload + display only.** `with('roomType:id,name')` on the existing query, one field on the payload,
+one composed line in the view. No rate value, no derivation, no pricing computation, no VAT, nothing from
+§G.1 was touched — and it is **proven, not asserted**: `rate_calendar` measured **929 rows / 10,920,000 minor
+before and after, byte-identical**, plus a per-test JSON comparison of the whole table around a render.
+
+**Proven:** 6 tests; **3 mutations, each verified to land** — dropping the room type (restores the original
+defect), hardcoding it (proves it is READ, not invented), and printing a lone separator for an empty label.
+
+⚠️ **A TEST WAS RETIRED FOR PRETENDING.** The dangling-separator edge test deleted a room type and asserted no
+stray "·" — but a plan is only listed when its room type is in the grid's loaded set, so deleting the type
+removes the PLAN too and the empty-label branch never renders. The mutation that printed a lone separator
+**passed that test happily**. It was replaced with the reachable truth (the listed set is exactly the plans
+whose type is in scope), and the `?? ''` stays as cheap null-safety rather than a guarded behaviour. §N.4p: a
+guard is only proven by a mutation that can reach it.
+
+⚠️ **THREE INSTRUMENT CORRECTIONS, ALL WORTH KEEPING.** (1) **`Livewire::test` renders no plans at all** here —
+the grid scopes on the PROPERTY CONTEXT, which HTTP middleware resolves, so a component test mounts with an
+empty read set (#20's shape, one layer along); the assertions go through the rendered page. (2) **Livewire
+injects `<!--[if BLOCK]-->` markers around every `@if`**, which split the composed line in the delivered HTML
+— invisible on screen, fatal to any reader of the rendered text; the view now prints ONE expression instead
+of wrapping a directive round the label. (3) `setRate`'s range is **half-open**, so `start === end` writes
+nothing and reads exactly like a broken fixture; and the column is `price_minor`, not the `rate_minor` a
+first guess reaches for.
+
+Browser-verified as the operator: the two "Flexible" rows now read *"Double Room · Free cancellation…"* and
+*"One-Bedroom Apartment · Free cancellation…"*, and the derived rows name their type as well. Rate money
+identical to the pre-pass snapshot.
+
+**Untouched:** the rate values · the derivation engine · the pricing computation · the VAT-inclusive tiers
+(§G.1) · isolation/RBAC. Suite **2288 / 2279**, 14,742 assertions, 6 non-green = the documented set; PHPStan
+L5 (0); Pint clean.

@@ -249,7 +249,7 @@ few layers · **L** = a subsystem.
 | id | item | status | evidence | size |
 |---|---|---|---|---|
 | `D18-5` | The rates grid's rows are room **types**, not physical units | STILL-OPEN | `RatesGrid.php:33` — `rate_plan_id` belongs to a room type | M |
-| `D18-6` | Only the primary rate plan renders per row | PARTIAL (2.2) | `RatesGrid.php:103,139` | M |
+| `D18-6` | Only the primary rate plan renders per row | 🏁 **CLOSED 2026-08-16 — the real defect was the plan LIST, not the grid rows.** The list rendered name + meta only, so plans of the same name were **word-for-word identical**: ⚠️ the demo has **THREE** active "Flexible" plans (the register found two), and "derived from Flexible" was ambiguous across them. The plan's ROOM TYPE now rides the payload and the row's meta line. Read payload + display only — **not one rate value moved** (929 rows / 10,920,000 minor, byte-identical before and after) | `RatesGrid::ratePlanList()`; `RatePlanListRoomTypeTest` (6 tests, 3 mutations) | — |
 | `D19-1` | Stay dates are not the design's two compact fields + nights counter | UNVERIFIED | | S |
 | `D19-3` | No per-unit scarcity badge ("1 left") | STILL-OPEN | `NewReservation.php` | S |
 | `D19-4` | The booking summary is not itemised Accommodation / Extras / City tax / VAT | UNVERIFIED — a tax-shaped item; see §8 | | M |

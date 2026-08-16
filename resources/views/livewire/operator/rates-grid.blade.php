@@ -302,7 +302,16 @@
                     <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--vy-hairline);">
                         <div style="flex: 1;">
                             <div style="font-size: 13.5px; color: var(--vy-ink); font-weight: 600;">{{ $plan['name'] }} @if ($plan['is_derived'])<span style="color: var(--vy-accent); font-weight: 500;"> · derived</span>@endif</div>
-                            <div style="font-size: 12px; color: var(--vy-muted);">{{ $plan['sub'] }}</div>
+                            {{-- D18-6 — the room type this plan prices, ahead of the plan's own meta. Several
+                                 types carry a plan of the same name (the demo has three "Flexible"), and
+                                 without this the rows were word-for-word identical. Omitted when absent
+                                 rather than printed as an empty separator. --}}
+                            {{-- ⚠️ ONE expression, not an @if wrapped around the text: Livewire injects
+                                 `<!--[if BLOCK]-->` markers around every conditional, which would split this
+                                 line in the delivered HTML (invisible on screen, but it breaks anything
+                                 reading the rendered text — including a test). The room type is omitted
+                                 when absent rather than printing a lone separator. --}}
+                            <div style="font-size: 12px; color: var(--vy-muted);">{{ ($plan['room_type'] !== '' ? $plan['room_type'].' · ' : '').$plan['sub'] }}</div>
                         </div>
                         <span style="font-size: 11.5px; color: var(--vy-faint);">{{ $plan['channel'] }}</span>
                     </div>
