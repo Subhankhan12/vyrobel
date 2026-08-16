@@ -11666,3 +11666,67 @@ recoverable set, and a restore *proven* to reconstruct it, re-runnable by anyone
 machine it protects, which is no defence against disk loss or a compromised host — plus the `APP_KEY` and
 passphrase secret store, and a recurring calendar slot for the drill. A backup that never leaves the box is
 a real improvement and not yet disaster recovery.
+
+---
+
+## 2026-08-16 — DEPLOY §7.2 · the silence becomes audible (scheduler + queue liveness)
+
+Rank 2 of the deployment sprint. §1 has documented the crontab correctly since the audit; **the gap was never
+documentation, it was detection** — a runbook cannot detect its own omission. If cron stops, all eight
+scheduled commands stop, including the **GDPR 14-day guest deletion**, the **30-day ID purge** and
+**`payouts:run`**, and *nothing reports it*. No exception, no log line, no symptom until an erasure is legally
+overdue or an owner was never paid.
+
+⚠️ **THE COMMAND LIST WAS RE-DERIVED FROM `schedule:list`, AND IT SETTLED THE DESIGN.** All eight run
+**daily** — so none of them can prove liveness at any useful resolution: a cron that died at 09:01 would look
+identical to a healthy one until tomorrow. The heartbeats therefore run **every minute** and exist purely to
+be observed; the real commands were not touched.
+
+⚠️ **TWO HEARTBEATS, BECAUSE THEY FAIL SEPARATELY.** The scheduler stamps one directly; the queue's is
+stamped inside `QueueHeartbeatJob::handle()` — **only a live worker reaches it**. Dispatching succeeds with
+every worker dead (the row just sits there), so stamping at dispatch would make a dead Horizon look healthy
+forever. A stalled scheduler with a fresh queue means cron; a fresh scheduler with a stalled queue means
+Horizon. One combined signal could not tell an operator which to go and fix.
+
+⚠️ **THE DETECTOR IS OUTSIDE THE THING IT WATCHES, WHICH IS THE WHOLE ARCHITECTURE.** A check running inside
+the scheduler could never report the scheduler being dead — it would simply not run, which is
+indistinguishable from healthy silence. So the app only **publishes** evidence at `GET /up/liveness`; the
+alarm belongs to an external monitor polling it, and to the dead-man's-switch ping, which is the only
+detector that survives power loss or a crashed host.
+
+⚠️ **503, NOT A JSON FLAG.** Every uptime monitor alerts on a non-2xx; almost none parses a body. Returning
+200 with `{"healthy":false}` would be a check that technically reports the outage while waking nobody — the
+current situation with extra steps.
+
+⚠️ **A HEARTBEAT THAT NEVER EXISTED COUNTS AS STALE, NOT HEALTHY.** Reading "no data" as "fine" would leave
+the check silent in the exact case it was built for: a fresh deploy whose crontab line was forgotten.
+
+⚠️ **AND ALERT FATIGUE IS ITSELF A FAILURE MODE** — a check that pages on one missed minute gets muted, and a
+muted check restores the silence. Scheduler tolerates 5 minutes, queue 15 (a worker under load may defer a
+low-priority probe). A blip inside tolerance stays silent, and that is tested.
+
+**PROVEN BY FORCING EACH STALL, over HTTP against a live server** — an alarm nobody has triggered is
+decoration: healthy → **200**; scheduler aged past its window → **503** *naming the scheduler while the queue
+reads healthy*; queue aged past its window → **503** naming the queue; never-beaten → **503**; recovered →
+**200**. `ops/liveness-drill.sh` re-runs all five and exits non-zero on failure.
+
+**Four mutations, each verified to land:** treating a never-written heartbeat as healthy reds the
+fresh-deploy test; returning 200 instead of 503 reds three; stamping the queue beat at construction reds the
+round-trip test; dropping the beats to daily reds the cadence test.
+
+⚠️ **A RESTORE THAT SILENTLY DID NOTHING, CAUGHT.** Reverting the third mutation with `git checkout` was a
+no-op — the file is **untracked**, so git had nothing to restore, and the next mutation ran against a still-
+mutated job (which is why its run showed an extra red). §N.4p applies to restores exactly as it applies to
+mutations: verify the revert landed. Rewritten and re-verified, then M4 re-run cleanly.
+
+**Untouched:** all eight scheduled commands (`schedule:list` still shows 8), their behaviour, and every
+business path. The new code is confined to `app/Support/Ops`, `app/Jobs/Ops`, one route and two scheduler
+entries — observation only, no dependency added.
+
+⚠️ **HONESTLY, DONE vs FOUNDER.** **DONE:** the heartbeats, the endpoint, the drill, and an alarm *proven* to
+fire on each real stall and stay quiet when healthy. **FOUNDER STEPS, and §7.2 is not finished without
+them:** point an external uptime monitor at `/up/liveness` (unpolled, it is evidence nobody reads), optionally
+set `OPS_HEARTBEAT_PING_URL` for the dead-man's-switch — **unset it is inert by design, and nothing pretends
+otherwise** — and decide on-call routing. A working alarm wired to nobody is still silence.
+
+Suite **2350 / 2341**, 15,171 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

@@ -266,6 +266,56 @@ and add the upload. The `APP_KEY` and passphrase secret store. And a calendar re
 
 ---
 
+### 7.2 SCHEDULER / QUEUE LIVENESS ALERTING — ✅ BUILT 2026-08-16 (rank 2)
+
+⚠️ **The failure this detects is silent.** If the §1 crontab line is missing or cron dies, all eight scheduled
+commands stop — the **GDPR 14-day guest deletion**, the **30-day ID purge** and **`payouts:run`** among them —
+and nothing reports it. No exception, no log line, no symptom until an erasure is legally overdue or an owner
+was never paid. §1 documents the crontab; **a runbook cannot detect its own omission.** This closes that.
+
+| Piece | Where | What it proves |
+|---|---|---|
+| Scheduler heartbeat | `Schedule::call(…)->everyMinute()` | cron is really firing `schedule:run` |
+| Queue heartbeat | `QueueHeartbeatJob`, stamped in `handle()` | a **worker** is really running — dispatch alone proves nothing |
+| Liveness endpoint | `GET /up/liveness` → **200 / 503** | what an external monitor polls |
+| Dead-man's-switch | `->pingOnSuccessIf(OPS_HEARTBEAT_PING_URL)` | survives the whole box dying |
+
+⚠️ **Every minute, deliberately.** All eight real commands run *daily*, so at their cadence a cron that died
+at 09:01 would look healthy until tomorrow. Only a minute-resolution beat detects a stall while it still
+matters.
+
+⚠️ **Two heartbeats, because they fail separately.** A stalled scheduler with a fresh queue means cron; a
+fresh scheduler with a stalled queue means Horizon. One combined signal could not tell an operator which to
+go and fix.
+
+⚠️ **The detector must be OUTSIDE the thing it watches.** A check running inside the scheduler cannot report
+the scheduler being dead — it simply would not run, which looks exactly like healthy silence. So the app only
+*publishes* evidence; the alarm belongs to an external monitor polling `/up/liveness`, and to the
+dead-man's-switch, which is the only detector that survives power loss or a crashed host.
+
+⚠️ **503, not a JSON flag.** Uptime monitors alert on a non-2xx; almost none parse a body. Returning 200 with
+`{"healthy":false}` would report the outage to nobody.
+
+**Tuning (alert fatigue is itself a failure mode — a muted check restores the silence):** scheduler stale
+after **5 min**, queue after **15 min**. A missed beat inside tolerance does not alarm. ⚠️ **A heartbeat that
+never existed counts as STALE, not healthy** — a fresh deploy whose crontab was forgotten is the exact case
+this exists for.
+
+**Re-run the proof any time:**
+
+```bash
+APP_URL=https://<your-domain> ops/liveness-drill.sh   # forces each stall, asserts the alarm; exit 0 = passed
+```
+
+⛔ **FOUNDER STEPS — the mechanism is built and proven, but nothing is watching it yet:**
+1. Point an **external uptime monitor** at `GET /up/liveness` (alert on non-2xx). Unpolled, it is evidence
+   nobody is reading.
+2. Optionally set `OPS_HEARTBEAT_PING_URL` (Healthchecks.io / Better Stack / Cronitor) for the
+   dead-man's-switch. **Unset, it is inert by design** — no ping is attempted and nothing pretends one was.
+3. Decide **on-call routing** — who the alert wakes.
+
+---
+
 ### Ranked by harm if missing at launch — the recommended build order
 
 Each of these is **its own pass**; they are deliberately not built together.
@@ -273,7 +323,7 @@ Each of these is **its own pass**; they are deliberately not built together.
 1. ✅ **Backups + a proven restore — BUILT 2026-08-16, see §7.1 above.** ⚠️ The only *unrecoverable* failure on the list. Everything else can be
    fixed after the fact; lost tenant data, folios and owner ledgers cannot. ⚠️ A backup nobody has restored
    is a hypothesis, not a backup — the pass must include an actual restore into a scratch database.
-2. **Scheduler + queue liveness alerting.** §1 documents the cron correctly, but **its failure mode is
+2. ✅ **Scheduler + queue liveness alerting — BUILT 2026-08-16, see §7.2 above.** §1 documents the cron correctly, but **its failure mode is
    silence** — no error, no alert, and GDPR erasure requests are accepted and never served while
    `payouts:run` also quietly stops. Documentation cannot detect its own omission; a heartbeat can.
 3. **A deploy script.** §5 is order-sensitive (migrate before caching, `horizon:terminate` after) and is

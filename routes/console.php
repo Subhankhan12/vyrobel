@@ -1,5 +1,7 @@
 <?php
 
+use App\Jobs\Ops\QueueHeartbeatJob;
+use App\Support\Ops\Heartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -41,3 +43,30 @@ Schedule::command('guests:process-deletions')->dailyAt('03:00');
 // bytes + rows) 30 days after the stay checks out. Makes the online-check-in "deleted 30 days after
 // checkout" promise real. Daily.
 Schedule::command('guest-documents:purge-expired')->dailyAt('03:30');
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+// DEPLOY §7.2 — LIVENESS. ⚠️ None of the eight commands above runs more often than daily, so none of
+// them can prove the scheduler is alive at any useful resolution: a cron that died at 09:01 would look
+// identical to a healthy one until tomorrow. These two entries exist ONLY to be observed.
+//
+// ⚠️ AND NOTE WHAT THIS FILE CANNOT DO FOR ITSELF. If cron stops, everything below stops too — a check
+// living here could never report its own absence. That is why the alarm is an EXTERNAL monitor polling
+// /up/liveness, and optionally a dead-man's-switch ping. This half only leaves the evidence.
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+Schedule::call(fn () => Heartbeat::beat(Heartbeat::SCHEDULER))
+    ->everyMinute()
+    ->name('ops-scheduler-heartbeat')
+    ->withoutOverlapping()
+    // ⚠️ THE DEAD-MAN'S-SWITCH, and it is the only detector that survives the whole box dying. An external
+    // service expects this ping every minute and raises the alarm when it STOPS arriving — so it alerts on
+    // power loss, a killed cron and a crashed host alike, none of which any in-app check can report.
+    // ⛔ FOUNDER STEP: set OPS_HEARTBEAT_PING_URL (Healthchecks.io / Better Stack / Cronitor). Unset, this
+    // is inert by design — no ping is attempted and nothing pretends one was.
+    ->pingOnSuccessIf((bool) env('OPS_HEARTBEAT_PING_URL'), (string) env('OPS_HEARTBEAT_PING_URL', ''));
+
+// ⚠️ Dispatched every minute, stamped only when a WORKER runs it — see QueueHeartbeatJob. A dispatch that
+// is never processed is exactly the signal we want, so this must go through the real queue.
+Schedule::job(new QueueHeartbeatJob)
+    ->everyMinute()
+    ->name('ops-queue-heartbeat')
+    ->withoutOverlapping();

@@ -201,6 +201,7 @@ use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
 use App\Models\MessageThread;
+use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
 
@@ -1385,3 +1386,25 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
         ->middleware(['signed', 'throttle:6,1'])
         ->name('account.email.verify');
 });
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+// DEPLOY §7.2 — THE LIVENESS ENDPOINT AN EXTERNAL MONITOR POLLS.
+//
+// ⚠️ THIS HAS TO BE OUTSIDE THE THING IT WATCHES. A check that ran inside the scheduler could never
+// report the scheduler being dead — it would simply not run, which looks exactly like healthy silence.
+// So the app only PUBLISHES the evidence here; the alarm belongs to an external uptime monitor that
+// polls this URL, and to the dead-man's-switch ping in routes/console.php.
+//
+// ⚠️ 503 IS DELIBERATE, NOT COSMETIC. Every uptime monitor in existence alerts on a non-2xx; almost
+// none parses a JSON body. Returning 200 with {"healthy":false} would be a check that technically
+// reports the outage while never actually waking anybody.
+//
+// Deliberately unauthenticated, like Laravel's own /up: a monitor cannot hold a session, and the body
+// carries no tenant data — only two timestamps and their ages.
+// ⛔ FOUNDER STEP: point an external monitor at this URL. Unpolled, it is evidence nobody is reading.
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+Route::get('/up/liveness', function () {
+    $report = Heartbeat::report();
+
+    return response()->json($report, $report['healthy'] ? 200 : 503);
+})->name('ops.liveness');
