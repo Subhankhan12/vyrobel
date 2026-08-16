@@ -1,6 +1,6 @@
 {{-- Operator MAINTENANCE COSTS (#89 exact-match) — every figure REAL/derived from resolved work orders
      (MaintenanceCostService). #89 makes the labor/parts split real (labor+parts=total, #17); the billable
-     totals reconcile to what the owner is billed. Real exports (PDF/CSV) + email-to-self. Excel honest-deferred.
+     totals reconcile to what the owner is billed. Real exports (PDF/CSV/XLSX) + email-to-self.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div x-data="{ exOpen: false }">
     <x-operator.shell active="maintenance" title="Maintenance costs" subtitle="Derived from resolved work orders" :viewer="$viewer">
@@ -31,7 +31,9 @@
                      style="position: absolute; right: 0; top: 42px; z-index: 30; width: 250px; background: var(--vy-glass); border: 1px solid var(--vy-glass-border); border-radius: 12px; box-shadow: 0 14px 40px rgba(150,90,50,.16); padding: 6px;">
                     <a href="{{ route('app.maintenance.costs.pdf', ['period' => $period['active']]) }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">PDF report <span style="color: var(--vy-faint); font-size: 11px;">· formatted</span></a>
                     <a href="{{ route('app.maintenance.costs.csv', ['period' => $period['active']]) }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">CSV <span style="color: var(--vy-faint); font-size: 11px;">· billable line items</span></a>
-                    <div style="padding: 9px 12px; color: var(--vy-faint); font-size: 13px;">Excel <span style="font-size: 11px;">· coming soon (use CSV)</span></div>
+                    {{-- D12b-1 — real now (it needed a spreadsheet library, which D4-1 added). ⚠️ It carries the
+                         SAME `period` as the PDF/CSV above, so the workbook exports what the page is showing. --}}
+                    <a href="{{ route('app.maintenance.costs.xlsx', ['period' => $period['active']]) }}" class="vy-menu-item" style="display: block; padding: 9px 12px; border-radius: 8px; text-decoration: none; color: var(--vy-ink); font-size: 13px;">Excel workbook <span style="color: var(--vy-faint); font-size: 11px;">· summary &amp; line items</span></a>
                     <form method="POST" action="{{ route('app.maintenance.costs.email') }}" style="border-top: 1px solid var(--vy-hairline); margin-top: 4px; padding-top: 4px;">
                         @csrf
                         <button type="submit" class="vy-menu-item" style="display: block; width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px; border: none; background: none; cursor: pointer; color: var(--vy-ink); font-size: 13px;">Email to me <span style="color: var(--vy-faint); font-size: 11px;">· PDF attachment</span></button>

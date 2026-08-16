@@ -765,6 +765,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // (the operator owns this cost data); every export is audited.
     Route::get('/maintenance/costs/export.csv', [MaintenanceCostExportController::class, 'csv'])->middleware('can:maintenance.manage')->name('maintenance.costs.csv');
     Route::get('/maintenance/costs/export.pdf', [MaintenanceCostExportController::class, 'pdf'])->middleware('can:maintenance.manage')->name('maintenance.costs.pdf');
+    // D12b-1 — the workbook: the SAME scope + period as the CSV/PDF above, same maintenance.manage gate.
+    Route::get('/maintenance/costs/export.xlsx', [MaintenanceCostExportController::class, 'xlsx'])->middleware('can:maintenance.manage')->name('maintenance.costs.xlsx');
     Route::post('/maintenance/costs/email', [MaintenanceCostExportController::class, 'email'])->middleware('can:maintenance.manage')->name('maintenance.costs.email');
     Route::get('/maintenance/settings', OperatorMaintenanceSettings::class)->middleware('can:maintenance.manage')->name('maintenance.settings');
     Route::post('/maintenance/settings', [MaintenanceSettingsController::class, 'update'])->middleware('can:maintenance.manage')->name('maintenance.settings.update');

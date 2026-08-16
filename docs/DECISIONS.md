@@ -11097,3 +11097,73 @@ Suite **2314 / 2305**, 14,884 assertions; PHPStan L5 (0); Pint clean. ⚠️ Bas
 pass: 9 non-green — `BookingImportTest` (passes alone; in-suite ordering) plus `OperatorGuestProfileTest`,
 and `OwnerUnitDetailViewTest` + `PhaseBEndToEndTest`, both already shown to fail identically on a clean
 worktree (date-sensitive, pre-existing).
+
+---
+
+## 2026-08-16 — D12b-1 · the Maintenance Costs workbook (the D4-1 recipe, re-applied)
+
+The Costs export menu offered PDF and CSV with "Excel · coming soon (use CSV)". D4-1 paid the library fork, so
+this was ordinary work: reuse `App\Support\Export\Workbook` (openspout) **as-is**, no re-fork, no
+investigation.
+
+⚠️ **THE RESOLVER ALREADY EXISTED — AND SAID SO.** Unlike D4-1, this controller's private `scope()` was
+already the shared reading of property scope + period, with a docblock recording the exact drift bug it was
+created to prevent (the screen reading `?period=` while the export read `?from=`/`?to=`). Reusing it was the
+whole job: the workbook owns no predicate, so a chosen period exports that period because there is nowhere
+else for the period to come from. Same `maintenance.manage` gate and same audit as its siblings.
+
+⚠️⚠️ **CONFIRM-FIRST CAUGHT A REAL TRAP, AND IT CHANGED THE BUILD.** The brief asked that the summary tab
+reconcile to the line-item tab. Reading the service first showed it *could not*: `report()` sums `cost_minor`
+over **every** resolved ticket in the window, while `billable()` carried `->limit(60)`. That is entirely
+reasonable for a screen preview and a **defect in a workbook** — above 60 tickets the Summary tab would
+silently exceed the detail printed beneath it, and a workbook is exported precisely to hold the whole detail.
+Asserting equality blindly would have encoded the bug; removing the cap globally would have changed the
+screen.
+
+`report()` therefore gained an **optional detail depth**: the default is the unchanged 60-row preview (the
+page, the CSV and the PDF are byte-for-byte unaffected — pinned by a test) and the workbook passes `null` for
+the complete set. Same resolver, same scope, same period; only the depth differs. ⚠️ **The reconciliation test
+creates 63 tickets on purpose** — with three it would pass whether or not the cap had ever been addressed.
+
+⚠️ **PRE-EXISTING, LOGGED NOT FIXED:** the **CSV** has the same shape — a reconciling totals row printed under
+a silently capped 60 rows, with nothing on the artifact saying the detail is a preview. Not touched here (the
+brief was one page, and changing an existing export's contents is its own decision), but it is a real
+"no silent caps" instance and is now written down.
+
+⚠️ **HONEST LIMIT ON "LARGE-SAFE", MEASURED RATHER THAN CLAIMED.** The *writer* is O(1) — D4-1 measured it
+flat at 12 MB for both 10k and 100k rows. But lifting the cap means the *source* materialises the period's
+rows, which is linear: **5,000 line items measured at a 16 MB delta, 80.5 MB peak** — comfortable against the
+suite's 512 MB, and far beyond any real operator's resolved work orders in one window. It is bounded, not
+unbounded, and a chunked read would remove the ceiling entirely: logged, not built. Claiming end-to-end O(1)
+here would have been false.
+
+⚠️ **A FLOAT ASSERTION THAT WAS TESTING IEEE-754, NOT THE EXPORT.** Summing 63 exact `minor ÷ 100` cells drifts
+by ~1e-13, so the detail sum and the summary cell differ in the last bits — as Excel's own `SUM()` does. The
+assertion was corrected to compare **to the cent**, which is what #17 means; comparing binary floats for
+identity would have been a false failure dressed as rigour.
+
+**Verified by opening the file, never a 200.** A live download as the demo operator produced a genuine Excel
+file with tabs `Summary` and `Line items`; read back, work-order dates are `DateTimeInterface`, months are
+date cells, money is numeric, and it reconciles: line items 45 + 180 = **225** = Summary "Total spend", with
+by-category 180 + 45 and owner-billed 180 + operator-borne 45 both landing on the same 225.
+
+**Five mutations, each verified to land, each redding its own guard:** dropping the period filter reds the
+subset test; **restoring the 60-row cap reds the reconciliation test**; stringifying money reds four; dropping
+`maintenance.manage` reds the RBAC test; dropping the property scope reds the scope test (unlike D4-1's
+cross-org case, this one is *not* over-determined — the guard is genuinely load-bearing here).
+
+⚠️ **A LEAK IN MY OWN D4-1 TEST HELPER, FOUND AND FIXED.** 117 orphaned temp workbooks had accumulated. The
+**live path leaks zero** — a controlled before/after around a real download confirmed `deleteFileAfterSend`
+fires — but the *test client never performs a real send*, so every test run littered a file. The D4-1 helper
+copied the response file and unlinked only the copy. Both test files now unlink the original; a full suite run
+leaves **0**.
+
+**Untouched:** the on-screen Costs page and its figures · the CSV and PDF exports · D4-1's Reports workbook and
+the shared `Workbook` helper · `maintenance.manage` / `PropertyContext` · §G.1 money values. No import path;
+nothing re-priced. Demo fixtures restored (the two audit rows my live downloads wrote were deleted and
+raw-verified at 0).
+
+Suite **2324 / 2315**, 14,938 assertions; PHPStan L5 (0); Pint clean. ⚠️ Baseline unchanged across the last
+three passes: 9 non-green — `BookingImportTest` (passes alone; in-suite ordering) + `OperatorGuestProfileTest`,
+and `OwnerUnitDetailViewTest` + `PhaseBEndToEndTest`, both previously shown to fail identically on a clean
+worktree (date-sensitive, pre-existing).

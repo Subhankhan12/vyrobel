@@ -29,8 +29,11 @@ class MaintenanceCostService
 
     private const TOP_UNITS = 8;
 
+    /** The screen's line-item preview depth (a workbook asks for the complete set instead). */
+    public const BILLABLE_PREVIEW = 60;
+
     /**
-     * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
+     * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, date_iso: ?string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
      */
     /** @var list<string> the property read-set for this report — set by report(), read by every helper. */
     private array $propertyIds = [];
@@ -39,11 +42,23 @@ class MaintenanceCostService
 
     private ?string $to = null;
 
-    public function report(array $propertyIds, ?string $from = null, ?string $to = null): array
+    private ?int $billableLimit = self::BILLABLE_PREVIEW;
+
+    /**
+     * @param  ?int  $billableLimit  how many line items to return — the default keeps the SCREEN's 60-row
+     *                               preview; NULL returns the complete set. ⚠️ D12b-1: `total_minor` sums
+     *                               EVERY resolved ticket in the window while `billable` was capped, so above
+     *                               60 tickets the totals legitimately exceed the rows beneath them. A CSV can
+     *                               live with a preview; a WORKBOOK is exported precisely to hold the whole
+     *                               detail, and its summary tab must reconcile to its own line-item tab. Same
+     *                               resolver, same scope, same period — only the detail depth differs.
+     */
+    public function report(array $propertyIds, ?string $from = null, ?string $to = null, ?int $billableLimit = self::BILLABLE_PREVIEW): array
     {
         $this->propertyIds = array_values(array_map('strval', $propertyIds));
         $this->from = $from;
         $this->to = $to;
+        $this->billableLimit = $billableLimit;
 
         $ordersClosed = $this->resolved()->count();
         $totalMinor = (int) $this->resolved()->sum('cost_minor');
@@ -90,7 +105,7 @@ class MaintenanceCostService
             ->whereNotNull('cost_minor')
             ->join('units', 'units.id', '=', 'maintenance_tickets.unit_id')
             ->orderByDesc('maintenance_tickets.resolved_at')
-            ->limit(60)
+            ->when($this->billableLimit !== null, fn (Builder $q) => $q->limit((int) $this->billableLimit))
             ->get([
                 'maintenance_tickets.id AS id', 'maintenance_tickets.title AS title', 'maintenance_tickets.category AS category',
                 'maintenance_tickets.cost_minor AS total', 'maintenance_tickets.labor_minor AS labor', 'maintenance_tickets.parts_minor AS parts',
@@ -104,6 +119,9 @@ class MaintenanceCostService
                 return [
                     'id' => (string) $row->getAttribute('id'),
                     'date' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->format('j M') : '—',
+                    // ⚠️ The display string above cannot be a spreadsheet DATE cell ("5 Sep" sorts before
+                    // "9 Aug"). The raw date travels beside it; nothing that renders `date` is affected.
+                    'date_iso' => $row->getAttribute('resolved_at') !== null ? CarbonImmutable::parse($row->getAttribute('resolved_at'))->toDateString() : null,
                     'title' => (string) $row->getAttribute('title'),
                     'unit' => (string) $row->getAttribute('unit_code'),
                     'category' => (string) $row->getAttribute('category'),

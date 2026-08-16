@@ -11,12 +11,16 @@ use App\Services\MaintenanceCostService;
 use App\Services\PdfService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
+use App\Support\Export\Workbook;
 use App\Support\Maintenance\MaintenancePeriod;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use OpenSpout\Writer\XLSX\Writer;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,8 +31,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * export is AUDITED (who + how many, never the values). "Email to accountant" sends the PDF to the operator's
  * OWN email (MailSafetyGuard → log/Mailpit outside production) — never a fabricated send.
  *
- * ⚠️ Excel is honestly deferred — the CSV is the machine-readable export; an `.xls`-as-HTML is a hack, not a
- * real workbook, so it is not offered as a fake.
+ * ⚠️ D12b-1 — Excel is no longer deferred. It was deferred because no spreadsheet library was in the stack and
+ * an `.xls`-as-HTML is a hack, not a workbook; D4-1 paid that fork, so this reuses {@see Workbook} as-is.
  */
 class MaintenanceCostExportController extends Controller
 {
@@ -81,6 +85,109 @@ class MaintenanceCostExportController extends Controller
             fputcsv($out, CsvSafe::row(['', 'Total', '', '', MoneyFormatter::display($report['labor_minor'], $currency), MoneyFormatter::display($report['parts_minor'], $currency), MoneyFormatter::display($report['total_minor'], $currency)]));
             fclose($out);
         }, 'Vyrobel-maintenance-costs.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    /**
+     * D12b-1 — the Costs report as a real WORKBOOK: a Summary tab and a Line items tab.
+     *
+     * ⚠️ IT CARRIES NO SCOPE OF ITS OWN. Both tabs come from ONE {@see report()} call resolved through the
+     * SAME {@see scope()} the screen, the CSV and the PDF use — so a chosen period exports that period because
+     * there is nowhere else for the period to come from. Gated `can:maintenance.manage` at the route and
+     * audited like its siblings.
+     *
+     * ⚠️ THE SUMMARY TAB RECONCILES TO THE LINE-ITEM TAB, WHICH IS WHY IT ASKS FOR THE COMPLETE DETAIL.
+     * `report()` defaults to the screen's 60-row preview while its totals sum EVERY resolved ticket in the
+     * window — perfectly fine for a page, and a defect in a workbook, where the two tabs would silently
+     * disagree above 60 tickets. Passing NULL takes the whole set, so the summary equals its own detail.
+     *
+     * ⚠️ TYPED CELLS: money is numeric (it SUMS; the currency lives in the number format) and dates are real
+     * date cells. Nothing is re-priced — these are the same integer minor amounts the screen renders (§G.1).
+     */
+    public function xlsx(Request $request, MaintenanceCostService $costs, AuditEventRecorder $audit): BinaryFileResponse
+    {
+        [$ids, $from, $to] = $this->scope($request);
+        $report = $costs->report($ids, $from, $to, null);   // ⚠️ NULL = the complete line-item set
+        $currency = (string) $report['currency'];
+        $audit->record('maintenance.costs_exported', null, null, ['format' => 'xlsx', 'orders' => $report['orders_closed']]);
+
+        return Workbook::download('Vyrobel-maintenance-costs.xlsx', function (Writer $writer) use ($report, $currency): void {
+            $this->summarySheet($writer, $report, $currency);
+            $this->lineItemSheet($writer, $report, $currency);
+        });
+    }
+
+    /** Tab 1 — the page's KPIs and its three breakdowns, every figure numeric. */
+    private function summarySheet(Writer $writer, array $report, string $currency): void
+    {
+        $writer->getCurrentSheet()->setName('Summary');
+
+        $writer->addRow(Workbook::headingRow(['Measure', 'Value']));
+        foreach ([
+            ['Total spend', Workbook::money((int) $report['total_minor'], $currency)],
+            ['Labour', Workbook::money((int) $report['labor_minor'], $currency)],
+            ['Parts', Workbook::money((int) $report['parts_minor'], $currency)],
+            ['Orders closed', (int) $report['orders_closed']],
+            ['Owner-billed', Workbook::money((int) $report['owner_units_minor'], $currency)],
+            ['Operator-borne', Workbook::money((int) $report['operator_units_minor'], $currency)],
+            ['Parts on order', (int) $report['parts_on_order']],
+        ] as $row) {
+            $writer->addRow(Workbook::row($row));
+        }
+        // ⚠️ An average over zero orders is NOT zero — the service returns null and so does this cell.
+        $writer->addRow(Workbook::row(['Average per order', $report['avg_minor'] !== null ? Workbook::money((int) $report['avg_minor'], $currency) : '—']));
+
+        $writer->addRow(Workbook::row([]));
+        $writer->addRow(Workbook::headingRow(['By category', 'Orders', 'Total']));
+        foreach ($report['by_category'] as $c) {
+            $writer->addRow(Workbook::row([ucfirst((string) $c['category']), (int) $c['count'], Workbook::money((int) $c['total_minor'], $currency)]));
+        }
+
+        $writer->addRow(Workbook::row([]));
+        $writer->addRow(Workbook::headingRow(['By month', 'Orders', 'Total']));
+        foreach ($report['by_month'] as $m) {
+            $writer->addRow(Workbook::row([
+                Workbook::date(CarbonImmutable::parse(((string) $m['month']).'-01'), Workbook::MONTH_FORMAT),
+                (int) $m['count'],
+                Workbook::money((int) $m['total_minor'], $currency),
+            ]));
+        }
+
+        $writer->addRow(Workbook::row([]));
+        $writer->addRow(Workbook::headingRow(['Top units', 'Orders', 'Total']));
+        foreach ($report['top_units'] as $u) {
+            $writer->addRow(Workbook::row([(string) $u['code'], (int) $u['count'], Workbook::money((int) $u['total_minor'], $currency)]));
+        }
+    }
+
+    /** Tab 2 — the complete billable detail, the same columns the CSV and the screen show. */
+    private function lineItemSheet(Writer $writer, array $report, string $currency): void
+    {
+        $sheet = $writer->addNewSheetAndMakeItCurrent();
+        $sheet->setName('Line items');
+
+        $writer->addRow(Workbook::headingRow(['Date', 'Work order', 'Unit', 'Category', 'Labour', 'Parts', 'Total']));
+
+        foreach ($report['billable'] as $row) {
+            $writer->addRow(Workbook::row([
+                // A real date cell where the raw date exists; an unresolved date stays honestly blank.
+                $row['date_iso'] !== null ? Workbook::date(CarbonImmutable::parse((string) $row['date_iso'])) : '—',
+                (string) $row['title'],
+                (string) $row['unit'],
+                ucfirst((string) $row['category']),
+                Workbook::money((int) $row['labor_minor'], $currency),
+                Workbook::money((int) $row['parts_minor'], $currency),
+                Workbook::money((int) $row['total_minor'], $currency),
+            ]));
+        }
+
+        // The reconciling totals row — labour + parts === total (#17), and equal to the Summary tab because
+        // both read the same complete population.
+        $writer->addRow(Workbook::row([
+            '', 'Total', '', '',
+            Workbook::money((int) $report['labor_minor'], $currency),
+            Workbook::money((int) $report['parts_minor'], $currency),
+            Workbook::money((int) $report['total_minor'], $currency),
+        ]));
     }
 
     public function pdf(Request $request, MaintenanceCostService $costs, PdfService $pdf, AuditEventRecorder $audit): SymfonyResponse

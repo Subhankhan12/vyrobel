@@ -59,6 +59,10 @@ function wbDownload($test, $actor, array $session, string $query = ''): array
 
     $sheets = wbRead($copy);
     @unlink($copy);
+    // ⚠️ …and the ORIGINAL: the test client never performs a real send(), so the response's own
+    // deleteFileAfterSend never fires and each run would litter a temp workbook (the live path is clean —
+    // verified separately). Cleaning up after ourselves is the test's job here, not the product's.
+    @unlink($path);
 
     return $sheets;
 }
@@ -240,10 +244,12 @@ it('formats the numeric cells as currency and months', function () {
     $response = test()->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])
         ->get('/app/reports/export.xlsx')->assertOk();
 
+    $path = $response->baseResponse->getFile()->getPathname();
     $zip = new ZipArchive;
-    expect($zip->open($response->baseResponse->getFile()->getPathname()))->toBeTrue();
+    expect($zip->open($path))->toBeTrue();
     $styles = (string) $zip->getFromName('xl/styles.xml');
     $zip->close();
+    @unlink($path);   // the test client never sends, so deleteFileAfterSend never fires — clean up here
 
     // The value is a number; the euro sign and the month mask live in the FORMAT, where they belong.
     expect($styles)->toContain('#,##0.00')
