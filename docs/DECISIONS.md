@@ -11167,3 +11167,65 @@ Suite **2324 / 2315**, 14,938 assertions; PHPStan L5 (0); Pint clean. ⚠️ Bas
 three passes: 9 non-green — `BookingImportTest` (passes alone; in-suite ordering) + `OperatorGuestProfileTest`,
 and `OwnerUnitDetailViewTest` + `PhaseBEndToEndTest`, both previously shown to fail identically on a clean
 worktree (date-sensitive, pre-existing).
+
+---
+
+## 2026-08-16 — the suite's clock is frozen (date-fragile fixtures), and a correction to my own finding
+
+⚠️ **FIRST, THE CORRECTION — THE TWO TESTS I NAMED AS DATE-FRAGILE ARE NOT DATE-FRAGILE.** The D4-1 and
+D12b-1 reports recorded `OwnerUnitDetailViewTest` and `PhaseBEndToEndTest` as "pre-existing and
+date-sensitive (today's date rolled during the session)". Running them under a frozen clock at 2026-06-15,
+2026-08-16, 2026-09-15 and 2027-01-10 shows them failing **identically at every date**. They are
+deterministically broken, not flaky. `PhaseBEndToEndTest` contains **no date reference at all**. I had
+inferred a shared cause from the fact that both surfaced together on a clean worktree, and the inference was
+wrong — the §N.27.1 lesson applied to my own ledger entry, not someone else's.
+
+⚠️ **AND THE REAL PROBLEM IS AN ORDER OF MAGNITUDE LARGER THAN THE TWO NAMED TESTS.** Run with the clock at
+**2027-03-04 the suite produces 52 failures across 25 files**; at the real date, 9. Nothing about the code
+differs — only what day it is. Among the fragile files is `OperatorReportsWorkbookTest`, which **I wrote
+three passes ago**. So the suite's baseline has been quietly meaning different things on different mornings,
+and it would have become a scheduled-CI landmine the moment deployment made CI real.
+
+**The cause is the PINNED direction, not the relative one.** Fixtures across the suite pin real dates in
+September 2026 (`book()`'s `2026-09-01` and its many siblings) and then assert behaviour that depends on
+those stays being **upcoming** — arrival windows, trips, "this month" occupancy, analytics ranges. The
+fixtures never drifted; the present moved past them.
+
+**THE FIX: one central frozen clock in `tests/Pest.php`** — `beforeEach` pins `Carbon` and `CarbonImmutable`,
+`afterEach` clears them. Re-anchoring hundreds of fixtures across 25 files would have been a vastly larger and
+riskier diff for the same result, and 18 files already set their own clock locally, which simply overrides
+this one. ⚠️ **The anchor `2026-08-01 09:00:00` is deliberate, not "the day this was written":** it sits
+inside a window proven stable by measurement (2026-06-01 · 2026-08-01 · 2026-08-16 · 2026-08-31 all green
+across the previously fragile files, so it is not knife-edge) and before the September fixtures, so their
+stays remain upcoming — which is what those tests assert.
+
+⚠️ **THE DIFF IS ONE FILE. NO PRODUCTION CODE WAS TOUCHED** — a date-fragile test is a test defect, and
+changing the code under test to satisfy a flaky test would have been a new defect.
+
+⚠️ **IT MAKES NOTHING PASS THAT WAS FAILING.** Frozen, the full suite reproduces the **same 9 non-green, the
+same identities, the same 2,324 tests and 14,938 assertions** as the unfrozen run on the same day. The
+documented non-green set is therefore **unchanged** — those 9 were never date-related, which is exactly why
+the correction above matters.
+
+⚠️ **AND NOTHING WENT VACUOUS.** Two independent proofs. First, the tests demonstrably react to the clock —
+if they ignored it they would have passed at 2027 rather than producing 52 failures. Second, a behaviour
+mutation **under the frozen clock** (forcing `GuestTrip`'s `is_past` true regardless of date) reds 4 of 6
+`GuestTripsTest` tests. Freezing fixed *which* clock they read, not *whether* they read one.
+
+⚠️ **THE PROOF IS RE-RUNNABLE, DELIBERATELY.** `VY_TEST_NOW=2027-03-04 ./vendor/bin/pest` simulates a date
+roll and overrides the anchor. It produced the 52 failures above; the override is kept so the next person can
+verify the claim instead of trusting this entry.
+
+⚠️ **LOGGED, NOT FIXED — the two genuinely broken tests**, now with their real causes rather than the wrong
+one I recorded:
+- `OwnerUnitDetailViewTest::it renders the unit's real facts…` — the fixture sets the unit
+  `condition_status: 'out_of_service'` and then books it; the certified out-of-service path writes an
+  availability block, so the booking throws *"Unit is blocked (inventory_block) over the requested dates."*
+  A fixture that asks for two mutually exclusive states, failing at every date.
+- `PhaseBEndToEndTest::it runs the full Phase B chain…` — *"Call to a member function all() on array"* inside
+  `TestResponseAssert`. An assertion-shape error, entirely unrelated to dates.
+Both are real correctness work with their own confirm pass; absorbing them into this one would have been
+over-reach, and they are not flaky — they are consistently red, which is worse and easier to fix.
+
+PHPStan L5 (0); Pint clean. Baseline **before**: 9 non-green at the real date, 52 at a rolled date.
+**After**: 9 at any date.

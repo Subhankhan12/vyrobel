@@ -405,6 +405,20 @@ Then `D3-1` custom ranges · `DO3-3` failed-payout recovery · `D29-5`/`DO6-4` n
 **Wave 3 — features proper.** `D1-1` task completion · `D8-2` `ready_by` · `DO9-2`/`DO9-3` draft + withdraw ·
 `D18-5`/`D18-6` the rates-grid shape · `D23-2` permission grouping · `DO24-1` archive ZIP · Excel exports.
 
+**2026-08-16 — THE SUITE'S CLOCK IS FROZEN (date-fragility), and a correction.** ⚠️ `OwnerUnitDetailViewTest`
+and `PhaseBEndToEndTest` were recorded (by me, in the D4-1/D12b-1 reports) as "date-sensitive". **They are
+not** — under a frozen clock they fail identically at 2026-06-15 / 2026-08-16 / 2026-09-15 / 2027-01-10, and
+`PhaseBEndToEndTest` contains no date reference at all. They are deterministically broken, logged below with
+their real causes. ⚠️ **The genuine date-fragility was 5× larger:** at a 2027 clock the suite produced **52
+failures across 25 files** (including a test written three passes ago), caused by the PINNED direction —
+fixtures pin September-2026 dates and assert those stays are upcoming. Fixed centrally by a frozen test clock
+in `tests/Pest.php` (anchor `2026-08-01`, inside a measured-stable window); **one file changed, no production
+code**, same 9 non-green as before, non-vacuity mutation-proven. Re-run the proof with
+`VY_TEST_NOW=2027-03-04 ./vendor/bin/pest`. ⚠️ **STILL OPEN (logged, not fixed):** `OwnerUnitDetailViewTest`
+— the fixture marks a unit `out_of_service` then books it, so the certified availability block rejects the
+booking (two mutually exclusive states); `PhaseBEndToEndTest` — "Call to a member function all() on array" in
+`TestResponseAssert`, an assertion-shape error.
+
 **2026-08-16 — the `'15:00'` invented-default fix (logged by D8-2) is CLOSED.** ⚠️ The register named it as
 "two sites in `OperatorNewReservation`"; the real file is `app/Livewire/Operator/NewReservation.php` and the
 form carried **four** inventions, not two — `'15:00'` at `:130` and `:242`, an identical `'11:00'` for
