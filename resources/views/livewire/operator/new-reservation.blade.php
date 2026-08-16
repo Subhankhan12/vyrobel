@@ -40,7 +40,10 @@
             <div class="vy-nr-doneref">Reference <span class="vy-u-code">{{ $done['ref'] }}</span> · it’s on the rack now</div>
             <div class="vy-nr-qr">{!! $done['qr'] !!}</div>
             <div class="vy-nr-qrlabel">Self check-in code</div>
-            <div class="vy-nr-qrsub">{{ $done['guest'] }} scans to open online check-in from {{ $done['check_in_time'] }} — in the guest portal (they sign in first). No check-in code is stored here.</div>
+            {{-- ⚠️ The "from HH:MM" clause is OMITTED when the property has published no check-in time,
+                 rather than inventing one (D8-2). One expression, not @if: Livewire wraps a directive in
+                 [if BLOCK] markers, which splits composed text in the delivered HTML. --}}
+            <div class="vy-nr-qrsub">{{ $done['guest'] }} scans to open online check-in{{ $done['check_in_time'] !== null ? ' from '.$done['check_in_time'] : '' }} — in the guest portal (they sign in first). No check-in code is stored here.</div>
             <div class="vy-nr-doneactions">
                 <a href="{{ $done['show_url'] }}" class="vy-nr-donebtn is-primary">View reservation</a>
                 <a href="{{ $done['create_url'] }}" class="vy-nr-donebtn">New reservation</a>
@@ -360,8 +363,11 @@
                             <h2 class="vy-card-title">House rules</h2>
                             <p class="vy-nr-hint">How the property runs — these go out with the guest’s confirmation.</p>
                             <div class="vyn-rules" style="margin-top: 12px;">
-                                <div><span>Check-in</span><strong>From {{ $houseRules['check_in'] ?? '15:00' }}</strong></div>
-                                <div><span>Check-out</span><strong>By {{ $houseRules['check_out'] ?? '11:00' }}</strong></div>
+                                {{-- ⚠️ An unpublished time reads "—", the same absence idiom this panel already
+                                     uses for min_stay — never a fabricated hour, and never "00:00", which is
+                                     just a different lie. The "From"/"By" word goes with it. --}}
+                                <div><span>Check-in</span><strong>{{ $houseRules['check_in'] !== null ? 'From '.$houseRules['check_in'] : '—' }}</strong></div>
+                                <div><span>Check-out</span><strong>{{ $houseRules['check_out'] !== null ? 'By '.$houseRules['check_out'] : '—' }}</strong></div>
                                 <div><span>Pets</span><strong>{{ $houseRules['pet'] ?? 'Not permitted' }}</strong></div>
                                 <div><span>Smoking</span><strong>{{ $houseRules['smoking'] ?? 'Not permitted' }}</strong></div>
                                 <div><span>Minimum stay</span><strong>{{ $houseRules['min_stay'] ?? '—' }}</strong></div>

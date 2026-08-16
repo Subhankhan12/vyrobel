@@ -16,6 +16,7 @@ use App\Services\AssignmentService;
 use App\Services\UnitAvailabilityService;
 use App\Support\QrSvg;
 use App\Support\Reservations\ReservationExtras;
+use App\Support\StayTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -127,7 +128,12 @@ class NewReservation extends Component
         }
 
         $property = $reservation->property;
-        $checkInTime = $property?->check_in_time !== null ? substr((string) $property->check_in_time, 0, 5) : '15:00';
+        // ⚠️ A TIME IS A FACT OR NOTHING (D8-2). This fabricated '15:00' whenever the property had published
+        // no check-in time — right for the demo properties (both 15:00) and silently wrong for any property
+        // that opens at a different hour, which is the kind of invention that survives review (#39).
+        // StayTime is the ONE derivation (§N.8f) and returns NULL when unset, so the panel OMITS the clause
+        // rather than inventing an hour.
+        $checkInTime = StayTime::display($property?->check_in_time, 'H:i');
         $guest = $reservation->leadGuest;
         $guestName = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
@@ -239,8 +245,13 @@ class NewReservation extends Component
         $minStay = data_get($policy, 'min_stay');
 
         return [
-            'check_in' => $property->check_in_time !== null ? substr((string) $property->check_in_time, 0, 5) : '15:00',
-            'check_out' => $property->check_out_time !== null ? substr((string) $property->check_out_time, 0, 5) : '11:00',
+            // ⚠️ THE SAME INVENTION, TWICE OVER — the logged '15:00' and, one line below it, an identical
+            // '11:00' for check-out. Both are now the real published time or NULL; the view renders the
+            // panel's own established absence idiom ('—', already used for min_stay) rather than an hour
+            // nobody published. ⚠️ StayTime also parses properly: `substr()` on a cast attribute is not a
+            // safe way to read a time.
+            'check_in' => StayTime::display($property->check_in_time, 'H:i'),
+            'check_out' => StayTime::display($property->check_out_time, 'H:i'),
             'pet' => is_string($pet) && $pet !== '' ? $pet : 'Not permitted',
             'smoking' => is_string($smoking) && $smoking !== '' ? $smoking : 'Not permitted',
             'cancellation' => $cancellationLabel,

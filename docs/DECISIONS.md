@@ -11034,3 +11034,66 @@ on a stashed clean worktree**, so they are pre-existing and date-sensitive (toda
 session), not this change. Recorded rather than absorbed into the band.
 
 Suite **2307 / 2298**, 14,855 assertions; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — the invented `'15:00'` on the New Reservation form (D8-2 follow-up)
+
+D8-2 established the rule on the housekeeping board: **a time is a fact or nothing.** `ready_by` derives from
+the property's published `check_in_time`, and an unpublished time yields *no deadline* — never `by 00:00`. It
+logged the New Reservation form as carrying the same defect. It does, and now it does not.
+
+⚠️ **THE REGISTER UNDER-DESCRIBED IT — AGAIN (§N.27.1).** It named "two sites in `OperatorNewReservation`".
+The file is `app/Livewire/Operator/NewReservation.php`, and the form carried **four** inventions:
+
+1. `:130` — the post-create confirmation panel: `'15:00'` when the property published nothing.
+2. `:242` — the house-rules panel: the same `'15:00'` …
+3. `:243` — …and, **one line below it, an identical `'11:00'` for check-out**, which the register never
+   mentioned and which it would have been incoherent to leave: the same function, half-honest.
+4. The **view**, `new-reservation.blade.php:363-364` — `?? '15:00'` / `?? '11:00'` sitting downstream of (2)
+   and (3). ⚠️ This one matters most: fixing the component alone would have changed nothing a user sees,
+   because the view would have re-fabricated exactly the value the component had just made honest. A fix that
+   stops at the first layer is not a fix.
+
+⚠️ **THE BLAST RADIUS TURNED OUT TO BE THE EASY PART, AND CONFIRMING IT CHANGED THE FIX.** The brief allowed
+for storing the real published time if a NOT NULL consumer needed one. Reading the schema settled it: **the
+form writes no time at all** — `reservations` carries `date('check_in')` and has no time column (a test pins
+that with a raw `SHOW COLUMNS`). Both sites are purely presentational, so null-safe is unambiguously correct
+and nothing downstream can break. D8-2's board reads the same `properties.check_in_time` independently and is
+untouched.
+
+**The fix reuses D8-2's source of truth rather than inventing a second convention (§N.8f):** `App\Support\
+StayTime::display()`, whose docblock already documents this exact defect class ("a fabricated fact that
+happens to match, which is the kind that survives review") and which returns NULL precisely so a caller can
+omit rather than invent. It also replaced `substr((string) $time, 0, 5)`, which is not a safe way to read a
+time. Absence renders as: the confirmation sentence **drops the "from HH:MM" clause entirely**, and the
+house-rules rows show **"—"**, the idiom that panel already uses for an unset minimum stay. ⚠️ Never `00:00`,
+which is simply a different lie.
+
+⚠️ **EVERY FIXTURE PUBLISHES A NON-15:00 TIME (14:00 / 10:30) — the D8-2 M3 lesson.** On a 15:00 property the
+invention and the fact are indistinguishable and a restored `'15:00'` passes happily. Three mutations, each
+verified to land, each redding its own site independently: restoring `'15:00'` at `:130` reds the
+confirmation-panel absence test; restoring the pair at `:242` and restoring the view's `??` defaults each red
+the house-rules absence tests. ⚠️ Recorded precisely: the *flow-through* assertions do **not** red under those
+mutations, because the published path was already correct — they are non-regression guards, not proofs of the
+fix. ⚠️ And the assertions read **rendered markup, never source**: the fix leaves "15:00" in explanatory
+comments, and a source-scanning guard would read its own needle (§N.27.5).
+
+**Verified live, both branches.** As the demo operator the panel still reads *"From 15:00 · By 11:00"* —
+byte-identical to before, **because on the demo that is now a FACT rather than a coincidence**, which is
+exactly why the bug survived this long. Blanking the published times re-rendered it as *"— · —"*. ⚠️ The demo
+DB was then restored to the seeder's `15:00:00`/`11:00:00` and raw-query verified on both properties.
+
+⚠️ **LOGGED, NOT FIXED — the same anti-pattern in two other places** (different realms and surfaces, each
+deserving its own confirm pass rather than a blind copy of this one): `GuestCheckinController::timeLabel()`
+returns `'15:00'` for an absent or unparseable time — a **guest** told to arrive at an hour nobody published,
+which is the higher-stakes instance — and `emails/pre-arrival.blade.php:65` defaults `?? '15:00'` /
+`?? '11:00'` in the pre-arrival email.
+
+**Untouched:** the reservation-create flow · D8-2's board and `ready_by` (its tests re-run green) · the
+property's published-time source · isolation and RBAC. No form or save-flow restructure; no time-picker.
+
+Suite **2314 / 2305**, 14,884 assertions; PHPStan L5 (0); Pint clean. ⚠️ Baseline unchanged from the previous
+pass: 9 non-green — `BookingImportTest` (passes alone; in-suite ordering) plus `OperatorGuestProfileTest`,
+and `OwnerUnitDetailViewTest` + `PhaseBEndToEndTest`, both already shown to fail identically on a clean
+worktree (date-sensitive, pre-existing).

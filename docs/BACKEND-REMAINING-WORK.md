@@ -404,6 +404,17 @@ Then `D3-1` custom ranges · `DO3-3` failed-payout recovery · `D29-5`/`DO6-4` n
 **Wave 3 — features proper.** `D1-1` task completion · `D8-2` `ready_by` · `DO9-2`/`DO9-3` draft + withdraw ·
 `D18-5`/`D18-6` the rates-grid shape · `D23-2` permission grouping · `DO24-1` archive ZIP · Excel exports.
 
+**2026-08-16 — the `'15:00'` invented-default fix (logged by D8-2) is CLOSED.** ⚠️ The register named it as
+"two sites in `OperatorNewReservation`"; the real file is `app/Livewire/Operator/NewReservation.php` and the
+form carried **four** inventions, not two — `'15:00'` at `:130` and `:242`, an identical `'11:00'` for
+check-out one line below the second, and a third pair of `?? '15:00'` / `?? '11:00'` in the view that would
+have re-fabricated whatever the component made honest. All four now read the real published time through the
+shared `StayTime` (§N.8f) or render an honest absence. ⚠️ **STILL OPEN, the same anti-pattern elsewhere
+(logged, not fixed — different realms/surfaces, each needs its own confirm pass):**
+`GuestCheckinController::timeLabel()` returns `'15:00'` for an absent or unparseable time (a GUEST is told to
+arrive at an hour nobody published), and `emails/pre-arrival.blade.php:65` defaults `?? '15:00'` / `?? '11:00'`
+in the pre-arrival email.
+
 **Wave 4 — polish + de-duplication.** `DO25-1` and `DO23-2` (§N.8f drift risks) · the 3 remaining hand-rolled
 star colours · `DO20-1` PDF page numbering · delete the dead `guest/partials/trip-card.blade.php`.
 
