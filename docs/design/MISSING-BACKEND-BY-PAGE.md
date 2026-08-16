@@ -4763,6 +4763,11 @@ it points at (#30).
 
 - **DO24-1 — the full-archive ZIP has no builder.** Honestly disabled today. *Verdict: **REAL GAP** (small) —
   the #60 drop, correctly expressed as a dead control rather than a fake link.*
+  🏁 **CLOSED 2026-08-16 — the builder exists and the control is live.** One ZIP of exactly the statements
+  this page lists (both read the shared `OwnerStatement::scopeArchived()`), each the same watermarked PDF its
+  row already downloads. ⚠️ Bulk egress, so the scope IS the feature: owner+org global scopes, the same
+  `CAP_EXPORTS` gate as the individual PDFs, and the per-owner `CAP_PAYOUT` rule carried INSIDE the zip (an
+  accountant's archive has no IBAN, #28). Verified by unzipping the real bytes.
 - **DO24-2 — a `held` or `processing` payout cannot be expressed here.** ⚠️ Archive derives its badge from
   `statusMeta()` — the **statement** enum (draft/finalized/paid), all three mapped — so it does **NOT** inherit
   the D16-7 `payoutStatusMeta` collapse. But a finalized statement always reads **"Payout pending"**, even when

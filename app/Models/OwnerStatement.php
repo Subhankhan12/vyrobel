@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,28 @@ use Illuminate\Support\Carbon;
  */
 class OwnerStatement extends Model
 {
+    /**
+     * DO24-1 — the statuses that make a statement part of the owner's ARCHIVE: committed history, never a
+     * draft. ⚠️ THE ONE DEFINITION (§N.8f) — the archive PAGE and the archive ZIP both read
+     * {@see scopeArchived()}, so the bundle can never contain more (or less) than the list it claims to
+     * bundle. Two `whereIn`s for one concept is exactly how a download and its page drift apart.
+     *
+     * @var list<string>
+     */
+    public const ARCHIVED_STATUSES = ['finalized', 'paid'];
+
+    /**
+     * The owner's committed statement history, newest first — what the Archive page lists and what the
+     * archive ZIP contains. Owner + org scoping come from the model's global scopes, not from here.
+     *
+     * @param  Builder<OwnerStatement>  $query
+     * @return Builder<OwnerStatement>
+     */
+    public function scopeArchived(Builder $query): Builder
+    {
+        return $query->whereIn('status', self::ARCHIVED_STATUSES)->orderByDesc('period_start');
+    }
+
     use BelongsToOrganization, BelongsToOwner, HasFactory, HasUlids;
 
     protected $fillable = [

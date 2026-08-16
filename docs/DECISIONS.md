@@ -10905,3 +10905,65 @@ identical to the pre-pass snapshot.
 **Untouched:** the rate values · the derivation engine · the pricing computation · the VAT-inclusive tiers
 (§G.1) · isolation/RBAC. Suite **2288 / 2279**, 14,742 assertions, 6 non-green = the documented set; PHPStan
 L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — DO24-1 · the owner's full statement archive as one ZIP
+
+The Archive page's "Download ZIP" was an honest disabled control — there was no builder. There is now.
+
+⚠️ **THIS IS BULK EGRESS, SO THE SCOPE IS THE FEATURE, NOT A DETAIL.** One request now emits many documents,
+which turns a scoping slip from "one wrong page" into a bulk leak. Three boundaries hold it, and each is
+mutation-proven:
+
+- **THE ROWS** — the query is `OwnerStatement::query()->archived()`, carrying the owner + organization global
+  scopes. No status or owner predicate is hand-written; the set comes from the **same shared scope the
+  Archive PAGE reads**, so the bundle cannot contain more (or less) than the list it claims to bundle. Two
+  `whereIn`s for one concept is exactly how a download and its page drift apart (§N.8f).
+- **THE GATE** — the route sits in the existing `CAP_EXPORTS` group, the same capability gating every
+  individual statement PDF. Bundling must never become a way around the gate on downloading one.
+- **THE CONTENTS** — each PDF is built by the SAME `OwnerStatementDocument::data()` and the SAME per-owner
+  `CAP_PAYOUT` check the single download uses, so **the #28 rule travels INTO the zip** rather than being
+  re-decided at its edge: an accountant may export the archive and still never receives an account number.
+
+**Read-only** (the only row written is the export audit), **one audit stamp per bundle** whose watermark goes
+on every page of every document inside, and the temp file is deleted after send. **Synchronous, deliberately:**
+an archive is one statement per period — tens of documents, and the page states the count before the click.
+PDFs are rendered one at a time straight into the zip on disk, never all in memory. ⚠️ A queued build + signed
+link is the next step **if** archives outgrow a request; logged, not built.
+
+⚠️ **`ext-zip` IS NOW DECLARED IN `composer.json`** — the first hard extension dependency this repo takes. It
+is present everywhere in practice, but depending on it silently would mean an owner discovering its absence
+at download time instead of the deploy discovering it at install time.
+
+**Proven:** 9 tests, **every content assertion OPENS THE REAL BYTES** (unzip, read the entries) rather than
+trusting a 200; 3 mutations, each verified to land — dropping the owner/org scope (another owner's statements
+appear in the bundle), dropping the payout check, and skipping cleanup.
+
+⚠️ **THE MUTATION THAT EXPOSED A VACUOUS TEST.** The first #28 test searched the zip bytes for the IBAN
+digits — but a PDF compresses its streams and the zip compresses again, so that needle can **never** match
+whether or not the number is there. Forcing `canSeePayout = true` passed it happily. It was replaced with a
+**differential** test that holds everything constant (same accountant, same statement, same watermark) and
+varies only whether a payout account exists: if the check is honoured, an account the accountant may not see
+cannot change a single byte of their archive. That version reds under the mutation.
+
+⚠️ **TWO MORE INSTRUMENT LESSONS.** (1) **A single-file test run hides helper collisions** — this file's
+`archiveOwner()` duplicated one in `OwnerArchiveViewTest`, passing alone and FATALLY redeclaring in the full
+suite; renamed, and the reason recorded where the next person will read it. (2) `sequence_no` **restarts per
+owner**, so two owners' first statements for the same month produce byte-identical filenames — harmless in
+production (an archive holds one owner's documents) but it made "B's file is absent from A's zip" unprovable
+by name until B was given distinct periods.
+
+⚠️ **AN ANOMALY RECORDED AS UNEXPLAINED (§N.18.6).** One full-suite run showed a 7th non-green
+(`OperatorSearchTest`). It passes alone (13/13), touches nothing this pass changed, did not reproduce on a
+second full run, and a **stashed clean-worktree run showed the documented 6** — so it is intermittent, not
+this change. Noted rather than explained away.
+
+Browser + real HTTP as the demo owner: the control reads "One ZIP of 6 statement PDFs" (matching the six
+statements listed above it), and the downloaded file unzips to **six real `%PDF-1.7` documents** named per
+statement. Fixture cleaned — temp files removed, the two audit rows my downloads wrote deleted, demo data
+identical to the pre-pass snapshot.
+
+**Untouched:** statements, lines, payouts and every other export · `organization_id` isolation · RBAC · the
+#28 perimeter. Suite **2297 / 2288**, 14,784 assertions, 6 non-green = the documented set; PHPStan L5 (0);
+Pint clean.

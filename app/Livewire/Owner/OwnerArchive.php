@@ -59,10 +59,9 @@ class OwnerArchive extends Component
     {
         // Owner-scoped by the OwnerScope global scope (a non-linked user resolves to an empty scope →
         // no rows, never every owner's). Finalized history only — a draft is not archive.
-        $statements = OwnerStatement::query()
-            ->whereIn('status', ['finalized', 'paid'])
-            ->orderByDesc('period_start')
-            ->get();
+        // DO24-1 — the ONE archived-set definition, shared with the archive ZIP so the bundle and this list
+        // can never disagree about what "the full archive" means (§N.8f).
+        $statements = OwnerStatement::query()->archived()->get();
 
         $groups = $this->yearGroups($statements);
         $lifetime = $this->netByCurrency($statements);

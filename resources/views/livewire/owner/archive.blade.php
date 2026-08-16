@@ -19,7 +19,8 @@
       • REAL      — the per-year annual tax summary PDF (OwnerAnnualTaxDocument via owner.tax.annual),
                     export-gated, the same document the Tax Center offers. Linked only for years with
                     committed statements (exactly what annualSummary() sums), so it never 404s.
-      • NO BACKEND— the full-archive ZIP (no ZIP builder): a disabled "Soon", never a fake download link.
+      • REAL (DO24-1) — the full-archive ZIP: one ZIP of exactly the statements listed here, each the same
+        watermarked PDF its row downloads. CAP_EXPORTS-gated; owner+org scoped by the model's global scopes.
       • NOT PORTED— the design's static "3 years · 34 documents", "since June 2023", its 7-year
                     retention promise and its "OS-2025-09" reference format are all fiction with no
                     backing row or policy. Counts + span are derived from real rows, the real reference
@@ -173,13 +174,24 @@
             </section>
         @endforelse
 
-        {{-- Full-archive ZIP — NO BACKEND (no ZIP builder): disabled, never a fake download --}}
-        <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.1s;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
-            <div>
-                <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">Download the full archive</div>
-                <div class="vy-line-sub">One ZIP of every statement PDF. Each statement above already downloads on its own.</div>
-            </div>
-            <button type="button" class="vy-btn vy-btn--ghost is-soon" style="opacity:.6;cursor:not-allowed" disabled aria-disabled="true" title="Coming soon">Download ZIP</button>
-        </section>
+        @if (session('archive_zip_notice'))
+            <div class="vy-flash" style="margin-top:18px">{{ session('archive_zip_notice') }}</div>
+        @endif
+
+        {{-- DO24-1 — the full-archive ZIP is REAL now: one ZIP of exactly the statements listed above (the
+             same shared archived-set), each rendered as the same PDF its own row downloads, watermarked to
+             whoever took the bundle. ⚠️ CAP_EXPORTS-gated like every other export here — bundling must not
+             become a way around the gate on downloading one. Shown only when there is something to bundle. --}}
+        @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
+            @if ($summary['count'] > 0)
+                <section class="vy-card vy-fade" style="margin-top:22px;animation-delay:.1s;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+                    <div>
+                        <div style="font-family:var(--vy-display);font-weight:600;font-size:14.5px">Download the full archive</div>
+                        <div class="vy-line-sub">One ZIP of {{ $summary['count'] }} statement {{ $summary['count'] === 1 ? 'PDF' : 'PDFs' }}. Each statement above already downloads on its own.</div>
+                    </div>
+                    <a href="{{ route('owner.archive.zip') }}" class="vy-btn vy-btn--ghost">Download ZIP</a>
+                </section>
+            @endif
+        @endownercan
     </div>
 </x-owner.shell>

@@ -275,7 +275,7 @@ few layers · **L** = a subsystem.
 | `DO19-1` | No per-booking timeline/event feed | UNVERIFIED | | M |
 | `DO19-2` | No per-booking document list | UNVERIFIED | | S |
 | `DO23-2` | The Block-Calendar and Unit-Detail day grids are **duplicated markup**, not shared — ⚠️ §N.8f drift risk | STILL-OPEN | two day-cell implementations | S |
-| `DO24-1` | The full-archive ZIP has no builder (honestly disabled today) | STILL-OPEN | no Zip usage in `app/Http/Controllers/Owner` | M |
+| `DO24-1` | The full-archive ZIP has no builder (honestly disabled today) | 🏁 **CLOSED 2026-08-16** — the disabled "Soon" is now a real download: one ZIP of exactly the statements the Archive page lists (the shared `OwnerStatement::scopeArchived()`, so bundle and list cannot drift), each the SAME watermarked PDF its own row downloads. ⚠️ **Bulk egress, so scope is the feature:** owner+org global scopes on the rows, the same `CAP_EXPORTS` group as the individual PDFs (bundling is not a way around the gate), and the per-owner `CAP_PAYOUT` check travels INTO the zip so an accountant's archive carries no IBAN (#28). Read-only; temp file deleted after send; ONE audit row per bundle. Verified by **unzipping the real bytes**, not a 200 | `OwnerArchiveZipController`; `OwnerArchiveZipTest` (9 tests, 3 mutations) | — |
 | `DO24-3` | Per-year archive bars are sparse, not contiguous (a year with no statements is skipped) | UNVERIFIED | | S |
 
 ### 3.6 Messaging, inbox & notifications
@@ -329,7 +329,7 @@ few layers · **L** = a subsystem.
 | `DO11-3` | The Statement PDF's footer is single-shot, not a repeating page footer | UNVERIFIED | | S |
 | `DO11-4` | The `PdfService` watermark measures 2.70 on white — the one on-paper contrast failure left | STILL-OPEN (design programme, §3.12) | | S |
 | `D4-1`/`D12b-1` | Excel exports — no spreadsheet library (§3.1) | STILL-OPEN | | M |
-| `DO24-1` | Archive ZIP (§3.5) | STILL-OPEN | | M |
+| `DO24-1` | Archive ZIP (§3.5) | 🏁 **CLOSED 2026-08-16** — see §3.5 | | — |
 
 ### 3.10 Channels / OTA — ⚠️ DEFERRED-BY-DECISION, **not** remaining work
 

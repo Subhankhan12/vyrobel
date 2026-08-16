@@ -84,6 +84,7 @@ use App\Http\Controllers\Operator\WorkspaceSwitchController;
 use App\Http\Controllers\Owner\OwnerAccountController;
 use App\Http\Controllers\Owner\OwnerAgreementController;
 use App\Http\Controllers\Owner\OwnerAgreementPdfController;
+use App\Http\Controllers\Owner\OwnerArchiveZipController;
 use App\Http\Controllers\Owner\OwnerAttentionController;
 use App\Http\Controllers\Owner\OwnerBalanceExportController;
 use App\Http\Controllers\Owner\OwnerBlockController;
@@ -1039,6 +1040,13 @@ Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->nam
         // (which would resolve {statement}="history" → a 404). Optional ?year= clips the set (never widens it).
         Route::get('/statement-history/csv', [OwnerStatementHistoryExportController::class, 'csv'])->name('statements.history.csv');
         Route::get('/statement-history/pdf', [OwnerStatementHistoryExportController::class, 'pdf'])->name('statements.history.pdf');
+        // DO24-1 — the FULL ARCHIVE as one ZIP (every statement PDF the Archive page lists). ⚠️ Bulk egress:
+        // it sits in this same CAP_EXPORTS group as the individual statement PDFs, so bundling can never be
+        // a way around the gate on downloading one; the rows are owner+org scoped by the model's global
+        // scopes, and the masked IBAN inside each PDF still obeys CAP_PAYOUT (#28). Throttled — it renders
+        // one PDF per statement.
+        Route::get('/archive/zip', [OwnerArchiveZipController::class, 'download'])
+            ->middleware('throttle:6,1')->name('archive.zip');
         // Owner Booking Detail exact-match (#78) — the per-booking CONFIRMATION PDF. OWNER-scoped inside the
         // controller (the SAME guard as the page: 404 unless the reservation touches one of THIS owner's units);
         // guest NAME only (#28); reconciles to the on-screen earnings via the shared OwnerLedgerAttribution. The
