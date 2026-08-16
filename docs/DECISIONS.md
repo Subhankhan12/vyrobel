@@ -12030,3 +12030,38 @@ the design intends, but it is a design decision, not an inference I should make.
 
 **Untouched:** every rate value, the resolver, the grid, §G.1, isolation/RBAC. Suite unaffected (no code
 changed).
+
+---
+
+## 2026-08-17 — D18-6 / STRUCT-1 · a correction to my own entry above, and why the answer is still "not yet"
+
+⚠️ **I CHECKED ONE AUTHORITY LESS THAN I SHOULD HAVE, AND IT PARTLY VINDICATES THE BRIEF.** The entry above
+concluded from `WAVE4-INVENTORY.md` and the grid's docblock that STRUCT-1 was a decided fork, not a deferral.
+That is true, but I did not consult `design/DIVERGENCE-REGISTER.md`, which is the authority on design gaps —
+and it records the per-unit grid as a real divergence on `/app/rates` (an exact-match rebuild, task #100) with
+the stated reason: *"per-unit grid needs per-unit rate data the model doesn't hold; the toolbar 'All units'
+filter + 'Bulk edit' modal likewise…"*.
+
+⚠️ **THAT STATED REASON IS NOW STALE.** D18-5 phase 1 gave the model exactly that data. So the brief's premise
+— "the blocker is removed" — is right about the register's *recorded* blocker, and my entry above was too
+absolute in saying the re-shape was never deferred. It was deferred here, for a reason that has since been
+answered.
+
+⚠️ **AND YET THE ANSWER IS STILL "NOT YET", FOR A DIFFERENT AND LARGER REASON.** The register's blocker was
+about **data availability**. The remaining blocker is **semantics**: on a grid whose rows are units, saving a
+price can only mean "this unit's own price", so **every edit mints an override** and permanently detaches
+that unit from its type. Within a few edits the type rate stops being the thing that moves prices and the
+blast-radius warning reads "0 of N units" everywhere. Per-unit data makes the grid *possible*; it does not
+decide whether every edit should *create* an exception. The founder ruled that units **may** be priced apart —
+permission for the exception, not a mandate to make it the default.
+
+**Still nothing re-shaped, nothing moved:** `rate_calendar` hashes `2bbdafccc3b5c1ee43f89fe313a3f02d`
+(929 rows, 10,920,000 minor). The register row should be updated from *"the model doesn't hold per-unit rate
+data"* to *"the data now exists; the open question is what an edit on a unit row means"* — recorded here
+rather than silently rewritten, since the register is a design authority and this is a product call.
+
+⛔ **THE DECISION, unchanged from the entry above but now correctly sourced:** on a unit-row grid, does
+editing a rate create a per-unit override? **Yes** → per-unit rows are buildable now, and the UI must say each
+edit detaches that unit. **No** → per-room-type rows stay, and this divergence is ratified rather than open.
+**Third option** — unit rows read-only until a unit is explicitly "priced individually" — preserves both
+behaviours and is most likely what the design intends.
