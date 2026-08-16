@@ -11937,3 +11937,48 @@ both.
 overrides, so its label is unchanged. Count and label only.
 
 Suite **2366 / 2356**, 15,219 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-5 · per-unit rates surfaced where a rate is shown FOR A UNIT
+
+Phase 2 made the charge honour a unit's own price. A surface still displaying the room-type figure for that
+same unit would contradict what is actually charged — on the very page that names the unit. This closes that
+on the display side.
+
+⚠️ **THE INVENTORY MATTERED MORE THAN THE EDIT, AND TWO OF MY OWN GUESSES WERE WRONG.** Grepping every reader
+of `rate_calendar` found eight, and the question is not "does it show a rate" but **"does it have a UNIT in
+scope"**:
+
+| surface | scope | verdict |
+|---|---|---|
+| `OwnerUnitDetail` | one specific `$unit` | ⚠️ **routed through the resolver** |
+| `RevenueOnHold::forUnits($unitIds, …)` | takes **unit ids** | ⚠️ **routed through the resolver** |
+| `OwnerMyUnits` | iterates `editableRoomTypes()` | type-scoped — **I guessed "per-unit" and was wrong** |
+| `OwnerRates::card(RoomType $rt, …)` | room type | type-scoped, correct as-is |
+| `RatesGrid` · `OperatorDashboard` · `StorefrontLanding` | room type / plan | type-scoped, correct as-is |
+
+**Routing a type-scoped surface through a unit resolver would be wrong, not thorough** — the type price *is*
+the right answer where no unit is named. Only the two genuinely unit-contextual surfaces changed.
+
+**`RevenueOnHold` was the substantive one.** It is handed the ids of blocked (out-of-order) units and asks
+"what revenue is this withholding" — so it summed the room-type price once per unit. With overrides live that
+under- or over-states a unit priced individually. It now resolves per unit, falling back to the type price, so
+a unit nobody priced individually contributes exactly what it always did.
+
+⚠️ **A "MONEY LEAK" THAT WAS A FIXTURE GAP.** The first run returned **0** for every unit. Checked before
+concluding: `seedScenario` never sets `default_rate_plan_id`, which `RevenueOnHold` reads — **the original
+code returned 0 there too**. Not a regression; the fixture now sets it, and that is recorded in the test so
+the next reader is not misled by the same zero.
+
+⚠️ **A MUTATION THAT DID NOT RED, EXPLAINED RATHER THAN PAPERED OVER.** Removing the `?? type price` fallback
+left the tests green — because `NightlyRate::forUnit()` **already falls back internally**, so it cannot return
+null while a type price exists. The trailing `??` is belt-and-braces, and the invariant it guards is tested
+one layer down (`UnitRateOverrideTest` — *"never treats a missing price as zero"*). Bypassing the resolver
+entirely **does** red, which is the mutation that matters here.
+
+**Zero movement:** the demo carries no overrides, so every one of these surfaces displays exactly what it
+displayed yesterday. §G.1, VAT presentation, the computation and the resolver's own logic are untouched, and
+the grid was **not** re-shaped (that remains its own item).
+
+Suite **2369 / 2358**, 15,225 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

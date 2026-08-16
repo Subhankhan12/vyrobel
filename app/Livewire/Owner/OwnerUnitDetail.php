@@ -27,6 +27,7 @@ use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Owner\OwnerOccupancy;
 use App\Support\Owner\OwnerUnitAnalytics;
+use App\Support\Pricing\NightlyRate;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
 use Carbon\CarbonImmutable;
@@ -422,8 +423,19 @@ class OwnerUnitDetail extends Component
                 ->where('rate_plan_id', $plan->id)->whereDate('date', '>=', $today)
                 ->orderBy('date')->first();
             if ($row !== null) {
-                $rateDisplay = $this->money((int) $row->price_minor, (string) $row->currency);
-                $rateUnits = (int) round((int) $row->price_minor / 100);
+                // ⚠️ D18-5 — THIS PAGE IS ABOUT ONE UNIT, so the rate it shows must be THAT unit's rate. The
+                // row above finds the next priced night for the room TYPE; the resolver then answers for this
+                // unit on that night — its own price if it carries one, the type price otherwise. Showing the
+                // type figure for a unit charged its override would contradict the charge on the very page
+                // that names the unit (§N.8f — one resolver, never a second read).
+                $resolvedMinor = NightlyRate::forUnit(
+                    (string) $plan->id,
+                    (string) $unit->getKey(),
+                    CarbonImmutable::parse($row->date)->toDateString(),
+                ) ?? (int) $row->price_minor;
+
+                $rateDisplay = $this->money($resolvedMinor, (string) $row->currency);
+                $rateUnits = (int) round($resolvedMinor / 100);
             }
 
             // Owner-set restrictions are keyed by room_type_id (OwnerRateService::apply), rate_plan_id null.
