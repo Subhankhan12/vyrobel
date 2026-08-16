@@ -11434,3 +11434,59 @@ indirection.
 operator and public realms both define the token too.
 
 Suite **2332 / 2323**, 15,031 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — DO20-1 · every PDF now carries "Page N of M"
+
+The nine PDFs this product renders had no page numbering at all. `PdfService` already stamped a per-page
+downloader watermark, so the per-page mechanism existed — the completeness mark did not.
+
+⚠️ **WHY THIS IS NOT COSMETIC.** An unnumbered multi-page statement cannot be checked for completeness: page
+3 of an unnumbered document is indistinguishable from the end of it, so a page lost in printing, scanning or
+forwarding leaves no trace. On a financial document that is the difference between a reader knowing they have
+all of it and assuming so.
+
+⚠️ **IT COULD NOT BE DONE IN MARKUP, AND FINDING THAT OUT FIRST SAVED THE PASS.** The obvious approach — a
+`{PAGE_NUM}` placeholder in the footer div the watermark already uses — **does not work in dompdf 3.x**: the
+inline substitution in `Renderer/Text.php` is commented out, so the placeholder would have rendered
+*literally*, on every page of every financial document. The working mechanism is the canvas page-script:
+`CPDF::page_text()` registers a callback invoked once per page at OUTPUT time with the real
+`(pageNumber, pageCount)`. **That is also what makes M the true total rather than a number this service had
+to count for itself** — the denominator is supplied by the renderer after the document is laid out.
+
+The stamp therefore lives in `PdfService::paginate()`, the ONE renderer all nine documents pass through
+(§N.8f) — not in seventeen templates. It sits bottom-right, clear of the centred watermark, in the same
+7.5pt / `#5f5853` so the two footer marks read as one family. The document is rendered explicitly first
+(the page-script needs a canvas); the wrapper's own `rendered` flag stops that happening twice.
+
+⚠️ **VERIFIED BY INFLATING THE REAL PDF BYTES — AND A ONE-PAGER WOULD HAVE PROVED NOTHING.** dompdf
+compresses its content streams, so the text is unreadable until decompressed, which is precisely why
+asserting on the HTML would have been worthless here: **there is no page number in the HTML at all.**
+Fixtures were tuned to force genuine overflow, and the stamps read back exactly:
+
+| pages | stamps found in the file |
+|---|---|
+| 1 | `Page 1 of 1` |
+| 3 | `Page 1 of 3` · `Page 2 of 3` · `Page 3 of 3` |
+| 4 | `Page 1 of 4` … `Page 4 of 4` |
+| 6 | `Page 1 of 6` … `Page 6 of 6` |
+
+The denominator moves with the document, which is the actual claim — a one-page test prints "1 of 1" whether
+the logic is right or wrong.
+
+**Also verified on a real document, not just the fixture:** the demo owner's statement PDF downloaded over
+HTTP contains both `Page 1 of 1` **and** the downloader watermark (`Downloaded by Demo Owner … ·
+Confidential`) — one footer mark did not evict the other. ⚠️ A first check reported the watermark missing and
+was wrong: the parentheses in the emailed identity are backslash-escaped inside the PDF string, so the naive
+pattern missed it. The mark was always there; the needle wasn't.
+
+**Three mutations, each verified to land:** hardcoding the denominator to 3 reds the real-total test;
+removing the stamp reds all four; skipping the explicit `render()` reds the multi-page tests (the single-page
+case survives it, which is itself a reminder that only the overflow cases test the mechanism).
+
+⚠️ **This is a SHARED change — all nine PDFs gained the footer**, which the item intended ("no page numbering
+on *any* PDF"). No document's content or layout was restructured, and the full suite — including every
+existing PDF test — is unchanged at the documented 9 non-green.
+
+Suite **2336 / 2327**, 15,046 assertions; PHPStan L5 (0); Pint clean.

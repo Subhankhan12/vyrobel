@@ -327,7 +327,7 @@ few layers · **L** = a subsystem.
 
 | id | item | status | evidence | size |
 |---|---|---|---|---|
-| `DO20-1` | **No page numbering on any PDF.** `PdfService` stamps a per-page watermark but no "Page X of Y" — a multi-page statement can't be checked for completeness | STILL-OPEN | no page-count token in `app/Services/PdfService.php` | S |
+| `DO20-1` | **No page numbering on any PDF.** `PdfService` stamps a per-page watermark but no "Page X of Y" — a multi-page statement can't be checked for completeness | 🏁 **CLOSED 2026-08-16.** Every PDF now carries **"Page N of M"** bottom-right, stamped in the ONE renderer all nine documents share. ⚠️ **It could not be done in markup** — dompdf's inline `{PAGE_NUM}` substitution is commented out in `Renderer/Text.php`, so a placeholder in a Blade view renders literally; the working mechanism is the canvas page-script (`CPDF::page_text()`), which is invoked per page at OUTPUT time with the real `(pageNumber, pageCount)` — **so M is the true total and never a guessed count**. Verified by inflating the real PDF streams at 1 / 3 / 4 / 6 pages | `PdfService::paginate()`; `PdfPageNumberingTest` (4 tests, 3 mutations) | — |
 | `DO11-3` | The Statement PDF's footer is single-shot, not a repeating page footer | UNVERIFIED | | S |
 | `DO11-4` | The `PdfService` watermark measures 2.70 on white — the one on-paper contrast failure left | STILL-OPEN (design programme, §3.12) | | S |
 | `D4-1` | Operator Reports workbook (§3.1) | 🏁 **CLOSED 2026-08-16** — see §3.1 | | — |

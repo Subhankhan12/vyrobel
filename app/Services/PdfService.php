@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Support\Exports\ExportAudit;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Adapter\CPDF;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -18,6 +19,11 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class PdfService
 {
+    /** Bottom-right of A4 (595x842pt), clear of the centred downloader watermark at the very bottom. */
+    private const FOOTER_X = 476.0;
+
+    private const FOOTER_Y = 812.0;
+
     /**
      * Stream a rendered view as a downloadable PDF (Content-Type: application/pdf; attachment filename).
      *
@@ -25,7 +31,7 @@ class PdfService
      */
     public function download(string $view, array $data, string $filename, ?string $watermark = null): Response
     {
-        return $this->make($view, $data, $watermark)->setPaper('a4')->download($filename);
+        return $this->paginate($this->make($view, $data, $watermark)->setPaper('a4'))->download($filename);
     }
 
     /**
@@ -35,7 +41,36 @@ class PdfService
      */
     public function raw(string $view, array $data, ?string $watermark = null): string
     {
-        return $this->make($view, $data, $watermark)->setPaper('a4')->output();
+        return $this->paginate($this->make($view, $data, $watermark)->setPaper('a4'))->output();
+    }
+
+    /**
+     * DO20-1 — stamp "Page N of M" into the bottom margin of EVERY page.
+     *
+     * ⚠️ WHY THIS IS NOT MARKUP. A statement or a report that runs to several pages cannot be checked for
+     * completeness without a total: page 3 of an unnumbered document is indistinguishable from the end of it,
+     * and a page lost in printing or emailing leaves no trace. So this belongs in the ONE renderer every PDF
+     * already goes through, not in seventeen templates (§N.8f).
+     *
+     * ⚠️ AND IT CANNOT BE DONE IN HTML. dompdf's inline `{PAGE_NUM}` substitution is **commented out** in
+     * `Renderer/Text.php`, so a placeholder written into the Blade view renders literally. The working
+     * mechanism is the canvas page-script: {@see CPDF::page_text()} defers to a callback
+     * invoked per page at OUTPUT time with the real `(pageNumber, pageCount)`, which is why **M is the true
+     * total and never a count this service had to guess**. The document must therefore be rendered first —
+     * hence the explicit `render()` here, which the wrapper's own `rendered` flag stops from happening twice.
+     *
+     * Positioned bottom-RIGHT so it never collides with the centred downloader watermark below, and set in
+     * the same 7.5pt / #5f5853 as that stamp so the two footer marks read as one family.
+     */
+    private function paginate(\Barryvdh\DomPDF\PDF $pdf): \Barryvdh\DomPDF\PDF
+    {
+        $pdf->render();
+        $pdf->getDomPDF()->getCanvas()->page_text(
+            self::FOOTER_X, self::FOOTER_Y, 'Page {PAGE_NUM} of {PAGE_COUNT}',
+            'sans-serif', 7.5, [0.373, 0.345, 0.325]   // #5f5853, the watermark's ink
+        );
+
+        return $pdf;
     }
 
     /**
