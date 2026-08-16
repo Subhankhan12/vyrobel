@@ -44,6 +44,13 @@ CLAUDE.local.md
 /docs/design/raw/
 /docs/design/*.html
 
+# ⚠️ ENCRYPTED DATABASE + FILE BACKUPS — NEVER commit these. They contain the whole tenant dataset,
+# including guest PII and the encrypted ID-document blobs. They are encrypted at rest, but committing
+# one would put every customer's data into the repository's history permanently, where a later
+# APP_KEY or passphrase leak would expose it retroactively. `storage/` is not wholly ignored here, so
+# this directory needs its own rule — it was untracked-but-committable until §7.1 added this line.
+/storage/backups/
+
 # Laravel Passport OAuth signing keys — NEVER commit the private key
 /storage/oauth-private.key
 /storage/oauth-public.key

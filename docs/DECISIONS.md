@@ -11606,3 +11606,63 @@ isolation/RBAC. Three definitions became two — **one per realm, which is the c
 
 Suite **2343 / 2334**, 15,150 assertions, the same 9 non-green (an `OperatorPortfolioTest` blip appeared in
 one run and passes alone — in-suite ordering, not this change); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — DEPLOY §7.1 · backups, and a restore proven to reconstruct the data
+
+Rank 1 of the deployment sprint: the only *unrecoverable* failure on the list. `ops/backup.sh` and
+`ops/restore-drill.sh`, documented as §7.1 in the runbook.
+
+⚠️ **THE RESTORE IS THE DELIVERABLE. THE BACKUP IS THE EASY HALF.** A script that produces a file proves only
+that a file was produced — so `ops/restore-drill.sh` decrypts the archive, restores it into a **scratch
+database**, and asserts the restored data matches the source: row counts for **all 130 tables** compared per
+table (a total would let a +1/−1 cancel), field-by-field spot-checks on a reservation, a payout and a
+statement, money totals (payouts · statement net · folio items), **270 foreign keys** restored with no
+orphaned rows, and the file set by count plus a SHA-256 checksum.
+
+⚠️ **AND THE DRILL FAILS IF THE SOURCE IS EMPTY.** An empty database restores perfectly and matches itself,
+which is the DR version of a one-page PDF printing "1 of 1" — so the drill asserts the source has real
+reservations before believing its own comparison. Proven on the real demo dataset: 41 reservations, payouts
+totalling €3,690.00, folio items €9,200.40.
+
+⚠️ **A DRILL THAT ALWAYS PASSES IS NOT A DRILL — SO IT WAS SHOWN TO FAIL.** A deliberately damaged archive (a
+`reservations` INSERT block removed, the shape of a truncated dump) was fed to it: it reported
+`✗ reservations: source=41 restored=0`, named the spot-check mismatch, and **exited 1**. The good archive
+exits **0**. Both exit codes matter — they are what let cron or CI treat a failed restore as an alarm rather
+than a log line nobody reads.
+
+⚠️ **THE FINDING THAT WILL BITE SOMEONE LATER: `APP_KEY` GATES THE WHOLE BACKUP, AND IT IS DELIBERATELY NOT
+IN IT.** Guest email/phone columns and the ID-document blobs are encrypted with it. **Without it, a restore
+produces rows whose PII is permanently unreadable — the data is there and worthless. With it stored beside
+the archive, the encryption protecting that PII is worthless instead**, because one stolen file would carry
+both the ciphertext and its key. There is no version of this where the key belongs in the backup; it belongs
+in a separate secret store, and losing it is as fatal as losing the backup. Written into §7.1 as a founder
+step rather than solved silently.
+
+⚠️ **THE BACKUP REFUSES TO RUN WITHOUT A PASSPHRASE** (exit 2, verified) rather than writing a tenant's entire
+dataset in the clear — an unencrypted archive would be a GDPR breach committed by the backup itself. The
+archive was checked as bytes, not assumed: `openssl enc'd data with salted password`, `Salted__` magic, and
+**zero** plaintext PII strings recoverable from it. Retention (14 days, configurable) prunes **after** a
+successful run, so a failed backup can never delete the last good archive.
+
+⚠️ **A REAL RISK FOUND WHILE CLEANING UP: `storage/backups/` WAS NOT GITIGNORED.** The archive appeared in
+`git status` as untracked — one `git add -A` from being committed, which would have put the entire tenant
+dataset into the repository's permanent history, where a later key or passphrase leak would expose it
+retroactively. `storage/` is not wholly ignored, so the directory needed its own rule. Added and verified
+with `git check-ignore`.
+
+**Safety of the drill itself:** it refuses outright if the scratch database name equals the source, and drops
+the scratch schema on exit. Raw-verified afterwards — only `vyrobel` and `vyrobel_test` remain, and the
+source still holds 41 reservations and €3,690.00 of payouts, byte-identical to before.
+
+**No application code was touched** (the diff is `ops/`, `.gitignore` and the runbook), no dependency was
+added — `mysqldump`, `tar` and `openssl` were already present — and the suite is unchanged at the documented
+9 non-green.
+
+⚠️ **HONESTLY, WHAT IS AND IS NOT DONE.** **DONE:** an encrypted, retained, schedule-ready backup of the
+recoverable set, and a restore *proven* to reconstruct it, re-runnable by anyone. **STILL FOUNDER STEPS, and
+§7.1 is not finished until they land:** an **offsite destination** — the archive currently lands on the same
+machine it protects, which is no defence against disk loss or a compromised host — plus the `APP_KEY` and
+passphrase secret store, and a recurring calendar slot for the drill. A backup that never leaves the box is
+a real improvement and not yet disaster recovery.

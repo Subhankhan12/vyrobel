@@ -207,11 +207,70 @@ exists; every "absent" is a path that does not.
 | Dockerfile / reproducible runtime | **Absent** | no `Dockerfile`, no compose file |
 | CI pipeline | **Absent** | no `.github/`, no CI config of any kind |
 
+### 7.1 BACKUPS + A PROVEN RESTORE — ✅ BUILT 2026-08-16 (rank 1)
+
+⚠️ **The restore is the deliverable, not the backup.** A script that produces a file proves only that a file
+was produced; `ops/restore-drill.sh` restores the archive into a **scratch database** and asserts the data
+matches. Run it after any change to either script — and periodically, because a backup nobody has restored
+is a hypothesis.
+
+```bash
+BACKUP_PASSPHRASE='…' ops/backup.sh          # → storage/backups/vyrobel-<UTC>.tar.gz.enc
+BACKUP_PASSPHRASE='…' ops/restore-drill.sh   # → restores into a scratch DB and compares; exit 0 = passed
+```
+
+**What is captured** — everything unrecoverable if the volume dies:
+
+| Captured | Why |
+|---|---|
+| The MySQL database (`--single-transaction`) | Every folio, ledger, payout, statement. 130 tables |
+| `storage/app` | Media blobs **including guest ID documents encrypted at rest**; nothing regenerates them |
+
+**Deliberately excluded:** Redis/Horizon queue state (in-flight jobs, not a system of record),
+`bootstrap/cache`, `storage/framework`, `vendor/`, `node_modules/` — all rebuilt by a deploy.
+
+⚠️ **`APP_KEY` IS NOT IN THE ARCHIVE, AND THAT IS DELIBERATE — this is the part that will bite.** Guest
+email/phone columns and the ID-document blobs are encrypted with it. **Without it a restore produces rows
+whose PII is permanently unreadable; with it stored beside the backup, the encryption protecting that PII is
+worthless** — one stolen archive would carry both ciphertext and key. ⛔ **Founder step: store `APP_KEY` in a
+separate secret manager. Losing it is as fatal as losing the backup.**
+
+⚠️ **The backup REFUSES to run without `BACKUP_PASSPHRASE`** (exit 2) rather than writing guest personal data
+in the clear — a plaintext archive would be a GDPR breach committed by the backup itself. Retention defaults
+to 14 days (`BACKUP_RETAIN_DAYS`) and is pruned **after** a successful run, so a failed backup can never
+delete the last good archive.
+
+**What the drill asserts** — proven on the real dataset, not an empty one:
+
+- **Row counts for all 130 tables**, compared per table (a total would let +1/−1 cancel)
+- **Non-vacuity**: it FAILS if the source has no reservations, because an empty DB restores perfectly and
+  proves nothing
+- **Field-by-field spot-checks** on a reservation, a payout and a statement
+- **Money totals**: payouts, statement net, folio items
+- **Referential integrity**: 270 foreign keys restored, and no orphaned rows
+- **The file set**: count plus a SHA-256 checksum on a real file
+
+⚠️ **It refuses to run if the scratch database name equals the source**, and drops the scratch schema on
+exit — a drill that restored over the live schema would destroy the thing it exists to protect. Verified:
+a deliberately damaged archive exits **1** with the mismatch named; a good one exits **0**.
+
+**Schedule it** (alongside the §1 scheduler line, as the app user):
+
+```cron
+30 2 * * * cd /path/to/vyrobel && BACKUP_PASSPHRASE="$(cat /etc/vyrobel/backup.pass)" ops/backup.sh >> storage/logs/backup.log 2>&1
+```
+
+⛔ **STILL FOUNDER STEPS (not faked here):** an **offsite destination** — the archive currently lands on the
+same machine it protects, which is not a backup against disk loss or a compromised host; provision a bucket
+and add the upload. The `APP_KEY` and passphrase secret store. And a calendar reminder to run the drill.
+
+---
+
 ### Ranked by harm if missing at launch — the recommended build order
 
 Each of these is **its own pass**; they are deliberately not built together.
 
-1. **Backups + a proven restore.** ⚠️ The only *unrecoverable* failure on the list. Everything else can be
+1. ✅ **Backups + a proven restore — BUILT 2026-08-16, see §7.1 above.** ⚠️ The only *unrecoverable* failure on the list. Everything else can be
    fixed after the fact; lost tenant data, folios and owner ledgers cannot. ⚠️ A backup nobody has restored
    is a hypothesis, not a backup — the pass must include an actual restore into a scratch database.
 2. **Scheduler + queue liveness alerting.** §1 documents the cron correctly, but **its failure mode is
