@@ -10,12 +10,15 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
 use App\Models\HousekeepingTask;
 use App\Models\Media;
+use App\Models\Property;
+use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\HousekeepingService;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Schedule\StaffRoster;
+use App\Support\StayTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -90,12 +93,13 @@ class HousekeepingBoard extends Component
             ->orderBy('date')
             ->get();
 
-        $arrivalGuests = $this->arrivalGuestsForTasks($tasks);   // #87 prefs/VIP
+        $arrivals = $this->arrivalsForTasks($tasks);         // #87 prefs/VIP + D8-2 the ready-by deadline
         $todayArrivals = $this->todayArrivals($readIds, $today);  // unit_id → arriving reservation status (urgency)
         $photos = $this->photosForTasks($tasks);                  // taskId → list of proof photos
+        $checkInTimes = $this->checkInTimes($readIds);             // D8-2 — property id → its own check-in time
 
         // Every card (unfiltered) — the tallies + crew load must read the whole workspace, not the filtered view.
-        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivalGuests, $todayArrivals, $photos, $now))->all();
+        $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes))->all();
 
         $outOfOrder = $this->outOfOrderCount($readIds);
         $crew = $this->crew($tasks, $crewFilter);
@@ -146,19 +150,26 @@ class HousekeepingBoard extends Component
     }
 
     /**
-     * @param  array<string, Guest>  $arrivalGuests  keyed "unitId|YYYY-MM-DD" → the guest arriving that day
+     * @param  array<string, Reservation>  $arrivals  keyed "unitId|YYYY-MM-DD" → the reservation arriving that day
      * @param  array<string, string>  $todayArrivals  unit_id → the arriving reservation's status (for urgency)
      * @param  array<string, list<array{id: string, url: string}>>  $photos  taskId → proof photos
      * @return array<string, mixed>
      */
-    private function card(HousekeepingTask $task, array $arrivalGuests, array $todayArrivals, array $photos, CarbonImmutable $now): array
+    private function card(HousekeepingTask $task, array $arrivals, array $todayArrivals, array $photos, CarbonImmutable $now, array $checkInTimes = []): array
     {
         $assignee = $task->assignedTo;
         $priority = $this->priorityMeta((string) $task->priority);
         $status = (string) $task->status;
         $type = (string) $task->type;
 
-        $guest = $arrivalGuests[$this->arrivalKey((string) $task->unit_id, (string) $task->date)] ?? null;
+        $arrival = $arrivals[$this->arrivalKey((string) $task->unit_id, (string) $task->date)] ?? null;
+        $guest = $arrival?->leadGuest;
+
+        // ⚠️ D8-2 — THE READY-BY DEADLINE IS A FACT OR IT IS NOTHING. It exists only when a real, non-cancelled
+        // reservation arrives at THIS room on THIS date, and it is that property's own published check-in time
+        // — the hour a guest may actually turn up. No arrival, or no published time, means no deadline, and
+        // the row keeps its "—". Nothing here estimates, rounds or defaults an hour (#39, D1-3).
+        $readyBy = $arrival !== null ? ($checkInTimes[(string) $task->property_id] ?? null) : null;
 
         // Elapsed is REAL — from started_at (set on the in_progress transition), against the expected minutes.
         $elapsed = null;
@@ -201,6 +212,8 @@ class HousekeepingBoard extends Component
             // #87 — the incoming guest's VIP flag + preferences, so the room is prepped right. Name-free.
             'guest_vip' => $guest !== null && (bool) $guest->is_vip,
             'guest_preferences' => $guest !== null ? $guest->preferenceLabels() : [],
+            // D8-2 — the real turnover deadline, or null. Never a placeholder time.
+            'ready_by' => $readyBy,
         ];
     }
 
@@ -368,9 +381,9 @@ class HousekeepingBoard extends Component
      * One batched query over the active reservation lines; a cancelled/no-show stay never sources a guest.
      *
      * @param  Collection<int, HousekeepingTask>|iterable<HousekeepingTask>  $tasks
-     * @return array<string, Guest>
+     * @return array<string, Reservation> keyed "unitId|YYYY-MM-DD"
      */
-    private function arrivalGuestsForTasks($tasks): array
+    private function arrivalsForTasks($tasks): array
     {
         $unitIds = collect($tasks)->pluck('unit_id')->filter()->unique()->values()->all();
         if ($unitIds === []) {
@@ -386,17 +399,45 @@ class HousekeepingBoard extends Component
         $map = [];
         foreach ($lines as $line) {
             $reservation = $line->reservation;
-            $guest = $reservation?->leadGuest;
-            if ($reservation === null || $guest === null) {
+            if ($reservation === null) {
                 continue;
             }
             if (in_array((string) $reservation->status, ReservationStage::CANCELLED_STATUSES, true)) {
                 continue;
             }
-            $map[$this->arrivalKey((string) $line->unit_id, (string) $reservation->check_in)] = $guest;
+            // ⚠️ D8-2 — the RESERVATION is kept, not just its guest. This map is the ONE answer to "who
+            // arrives at this unit on this date", and two things now read it: the guest's prefs/VIP (which
+            // need a lead guest) and the ready-by deadline (which does not). Dropping guest-less rows here,
+            // as this method used to, would have made a second reader disagree with the first — a booking
+            // with no lead guest is still a real arrival with a real deadline (§N.8f).
+            $map[$this->arrivalKey((string) $line->unit_id, (string) $reservation->check_in)] = $reservation;
         }
 
         return $map;
+    }
+
+    /**
+     * D8-2 — when each property expects a guest at the door, keyed by property id. The board can span several
+     * properties, so the deadline must come from the room's OWN property, never one shared figure.
+     *
+     * ⚠️ A NULL `check_in_time` STAYS NULL. An unset column means the property has not published a check-in
+     * time, so there is no deadline to state — the row keeps its honest "—" rather than inheriting an
+     * invented hour ({@see StayTime}, and D1-3's lesson on defaulted times).
+     *
+     * @param  list<string>  $propertyIds
+     * @return array<string, string|null>
+     */
+    private function checkInTimes(array $propertyIds): array
+    {
+        if ($propertyIds === []) {
+            return [];
+        }
+
+        return Property::query()
+            ->whereIn('id', $propertyIds)
+            ->pluck('check_in_time', 'id')
+            ->map(fn ($time): ?string => StayTime::display($time, 'H:i'))   // the board's own 24h idiom
+            ->all();
     }
 
     private function arrivalKey(string $unitId, string $date): string

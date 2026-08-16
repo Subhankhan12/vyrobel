@@ -10734,3 +10734,64 @@ work order, identical to the pre-pass snapshot.
 **Untouched:** `tasks()`'s derivation (the output is grouped, the counts are not recomputed) · D1-1's ticks ·
 the other dashboard cards · isolation/RBAC. Suite **2264 / 2255**, 14,510 assertions, 6 non-green = the
 documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-15 — D8-2 · a real turnover deadline in the housekeeping board's READY column
+
+⚠️ **THE LEDGER SAID "no such column exists" AND SIZED IT M. THE REGISTER HELD THE BETTER ANSWER.** Its own
+entry offered two routes — "a target-ready timestamp on `housekeeping_tasks`, **or derived from the arriving
+reservation's check-in time + the property timezone**" — and closed with the rule that decided it: *"the
+column is already there and honestly empty, which is the right holding state. **Do not fill it with a
+guess.**"*
+
+**DERIVED, and no column was added.** A room's deadline is the hour a guest may actually turn up, and the
+product already knows that: the property's published `check_in_time`. So the target is shown **only where a
+real, non-cancelled reservation arrives at THAT room on THAT date**, and it is **that room's own property's**
+published time. Storing a `ready_by` would have been a second copy of a fact the schema already holds — free
+to drift the moment a property changed its check-in hour (§N.8f).
+
+⚠️ **THIS IS NOT A GUESS, AND THE DISTINCTION IS THE WHOLE PASS.** An estimated turnaround ("checkout + 90
+minutes") would have been one. A published check-in time against a real booking is a fact: it is the moment
+the room is contractually needed. Where either half is missing — no arrival, or no published time — there is
+**no deadline**, and the column keeps the honest "—" it already had. Nothing rounds, estimates or defaults an
+hour (#39; D1-3's coerced-time lesson).
+
+**Reused, not invented:** the shared `App\Support\StayTime` — whose docblock already carries this rule
+(*"an unset column returns NULL so the caller can OMIT the line rather than invent an hour"*) — in the board's
+own 24h format, matching its existing started/completed labels.
+
+⚠️ **ONE ARRIVAL MAP, SO TWO READERS CANNOT DISAGREE.** The board already resolved "who arrives at this unit
+on this date" for the guest's VIP/preferences, but **dropped rows with no lead guest**. A second arrival query
+for the deadline would have disagreed with the first: a booking with no lead guest is still a real arrival
+with a real deadline. The map now keeps the RESERVATION and both readers derive from it — the guest lookup
+behaves exactly as before (pinned by a test).
+
+**Proven:** 11 tests; **3 mutations, each verified to land** — dropping the arrival requirement (every room
+would get a "deadline"), defaulting a null time to 15:00 (D1-3's defect, exactly), and collapsing the
+per-property lookup to one shared time.
+
+⚠️ **THE THIRD MUTATION PASSED THE FIRST TIME, AND THAT WAS THE USEFUL RESULT.** With a single property in the
+read set, `$checkInTimes[$task->property_id]` and `reset($checkInTimes)` are indistinguishable — the keying
+that exists *because the board spans properties* was untested. A genuine two-property test was added (a second
+property, its own room type/unit/task/booking, the context switched to "all" **through the real switcher
+route**), and the mutation then reds. §N.4p: a guard is only proven by a mutation that can reach it.
+
+⚠️ **TWO FIXTURE TRAPS, BOTH RECORDED IN THE CANON, BOTH WALKED INTO.** `book()` **hardcodes the reservation
+header to 2026-09-01** — a `check_in` override reaches only the line — so the "arrival on a different date"
+test silently created a same-date arrival and failed for the right reason on the wrong grounds; the TASK is
+moved instead now. And `seedScenario`'s property publishes **no** check-in time (that is the demo seeder's
+doing), so the populated case had to be constructed — the D1-3 inversion, one layer along: "populated on the
+demo" says nothing about the world a test runs in.
+
+Browser-verified on the demo: a real arrival today, one housekeeping task created for that room → the board
+showed **"by 15:00" on room 103 (the row already flagged "Guest arriving today · VIP")** and an unchanged
+"—" on all seven other rows. Fixture reverted — 7 tasks, check-in times untouched, identical to snapshot.
+
+⚠️ **LOGGED, NOT FIXED — a defaulted hour elsewhere.** `OperatorNewReservation` falls back to a hardcoded
+`'15:00'` when `check_in_time` is null (`:130`, `:242`) — the same class of invented time this pass refuses,
+on a different surface. Out of scope here.
+
+**Untouched:** the housekeeping system and its statuses · the elapsed/expected bar · the derivation's inputs ·
+isolation/RBAC. Suite **2275 / 2266**, 14,542 assertions, 6 non-green = the documented set; PHPStan L5 (0);
+Pint clean.

@@ -211,11 +211,20 @@
                                         @endif
                                     </td>
                                     <td><span class="vy-tag tone-{{ $card['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $card['status_meta']['label'] }}</span></td>
+                                    {{-- D8-2 — the READY column. The target is the hour a guest may actually
+                                         turn up at THIS room (its property's published check-in time), shown
+                                         only when a real reservation arrives here on this date. No arrival or
+                                         no published time → the honest "—" stays; nothing is estimated. --}}
                                     <td>
                                         @if ($card['status'] === 'inspected')
                                             <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Ready</span>
                                         @elseif ($card['elapsed'])
                                             <span class="vy-u-sub">{{ $card['elapsed']['minutes'] }}m / {{ $card['elapsed']['expected'] }}m</span>
+                                            @if ($card['ready_by'])
+                                                <div class="vy-u-sub">by {{ $card['ready_by'] }}</div>
+                                            @endif
+                                        @elseif ($card['ready_by'])
+                                            <span class="vy-u-sub">by {{ $card['ready_by'] }}</span>
                                         @else
                                             <span class="vy-muted">—</span>
                                         @endif
