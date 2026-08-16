@@ -11339,3 +11339,43 @@ everything in §7 items 1–6. Nothing here has deployed anything.
 
 **No application code was touched** — the diff is `composer.json`, `composer.lock` and the runbook. Suite
 **2332 / 2323**, 15,026 assertions, the same 9 non-green as the previous three passes.
+
+---
+
+## 2026-08-16 — the dead `guest/partials/trip-card.blade.php`, deleted on proven absence
+
+`DO-G1-1` / `DO-G10-4`: a Blade partial the register called dead code duplicating the live guest trip card.
+It was. It is gone.
+
+⚠️ **THE FILE ITSELF ARGUED IT WAS ALIVE.** Its docblock reads *"shared by Trips (and reused as the header on
+the Reservation detail)"*, and it carries a `G10` accessibility comment from a later sweep — so it looks
+maintained. Both are claims, not references. A content-based sweep edits dead files exactly as happily as
+live ones, which is how a dead file accumulates evidence of life.
+
+⚠️ **ABSENCE WAS PROVEN ACROSS EVERY MECHANISM, NOT ASSUMED FROM A NAME-GREP** — the thing a name-grep is
+structurally blind to is the dynamic case, so each was closed separately: the dotted name
+(`guest.partials.trip-card`), the slug, the slash path, `@include` / `@includeIf` / `@includeWhen` /
+`@includeFirst` / `@each` / `@component`, `view()` / `View::make`, variable and string-concatenated view
+names, `<x-…>` component-namespace registration, and any config array listing view names. **Zero references
+in `app/`, `resources/`, `routes/`, `tests/`, `config/`** — every hit anywhere in the repo was a `docs/`
+register entry about it, plus one unrelated test *comment*.
+
+**Two facts made the verdict decisive rather than merely negative:**
+- `resources/views/guest/` contains **no include directive of any kind** — not one `@include`, `@each` or
+  `@component` in the entire realm. Nothing there can pull in a partial.
+- The only genuinely dynamic renderer in the codebase, `PdfService::view($view)`, receives a **literal in
+  every one of its nine call sites**, all under `pdfs.*`. It cannot resolve to a guest view.
+
+⚠️ **AND THE RENDER CHECK WAS MADE NON-VACUOUS.** A page with no cards would survive deleting a card partial
+regardless, so "200 OK" alone proves nothing. Re-rendered as the real demo guest after `view:clear` (a cached
+compiled view can mask a broken reference), `/guest/trips` returns **two real trip cards** — `R-UAAXARVV`
+and `R-KW3ASFRD`, 3 nights each, €369.00, "Paid in full" / "€184.50 due" — and the Reservation detail renders
+too, both with zero view-not-found errors.
+
+⚠️ **THE PROOF THEY HAD ALREADY DIVERGED**, which is the actual risk the register named: the deleted partial's
+CTA read **"View booking →"**; the live card renders **"View reservation"**. Two implementations of one card,
+already saying different words — a fix applied to one would silently have missed the other.
+
+**Untouched:** the live trip card · the guest trip surfaces · every view include · the render pipeline.
+`GuestTripsTest` 6/6 green after the deletion, which is what proves the surface outlived the file. Suite
+**2332 / 2323**, 15,026 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

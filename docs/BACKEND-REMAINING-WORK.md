@@ -314,7 +314,7 @@ few layers · **L** = a subsystem.
 | id | item | status | evidence | size |
 |---|---|---|---|---|
 | **1.3** | **`joinWaitlist()` has no dedupe at either layer** | STILL-OPEN | §1.3 | **S** |
-| `DO-G10-4` | `resources/views/guest/partials/trip-card.blade.php` is **dead code** duplicating the live trip card | STILL-OPEN (confirmed present) | file exists; ⚠️ **log-don't-fix: not deleted in this pass** | S |
+| `DO-G10-4` / `DO-G1-1` | `resources/views/guest/partials/trip-card.blade.php` is **dead code** duplicating the live trip card | 🏁 **CLOSED 2026-08-16 — deleted, after proving absence across every inclusion mechanism**, not on a name-grep: zero hits for the dotted name, the slug, the slash path, `@include`/`@includeIf`/`@includeWhen`/`@includeFirst`/`@each`/`@component`, `view()`/`View::make`, dynamic/concatenated view names, `<x-…>` component registration, and config view arrays. ⚠️ The decisive fact: `resources/views/guest/` contains **no include of any kind**, and `trips.blade.php` renders the card inline. The one genuinely dynamic renderer (`PdfService::view($view)`) only ever receives literals under `pdfs.*`. Both surfaces re-rendered as the real guest after `view:clear` | `guest/trips.blade.php` renders the live card | — |
 | `DO-G5-1` | No cancellation **review** step (refund breakdown + policy before confirming) | UNVERIFIED | | M |
 | `DO-G5-2` | No request-history surface | UNVERIFIED | | S |
 | `DO-G6-2` | A pending payment is invisible rather than shown as processing ⚠️ **the same shape as 1.1, on the guest side** | UNVERIFIED — worth checking with 1.1 | | S |
