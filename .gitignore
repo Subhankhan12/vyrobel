@@ -31,6 +31,12 @@ CLAUDE.local.md
 /.playwright-mcp/
 /flow*.png
 /flow*.md
+# Dev before/after capture pairs dropped at the repo root during verification passes.
+# ⚠️ ROOT-ANCHORED, like /flow*.png above: four before/after images ARE committed assets
+# (doemail1-plates, doemail3-admin-email, doinv4-email-plates, email-footer). Git ignores
+# never apply to already-tracked paths, so those are unaffected either way — but anchoring
+# keeps this rule aimed at the scratch location rather than the filename everywhere.
+/*-before-after.png
 
 # Design source: version the .md specs (CATALOGUE + design-system + owner-portal) as the
 # source-of-truth; keep the bulky raw Claude Design HTML exports OUT (104MB of self-unpacking
