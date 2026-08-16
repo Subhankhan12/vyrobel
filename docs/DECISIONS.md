@@ -11379,3 +11379,58 @@ already saying different words — a fix applied to one would silently have miss
 **Untouched:** the live trip card · the guest trip surfaces · every view include · the render pipeline.
 `GuestTripsTest` 6/6 green after the deletion, which is what proves the surface outlived the file. Suite
 **2332 / 2323**, 15,026 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — the hand-rolled star colours become a token (DO10-4 closed)
+
+⚠️ **THE PREMISE WAS WRONG IN A USEFUL WAY: THERE WAS NO STAR TOKEN TO MIGRATE TO.** The item read "replace
+the hand-rolled star colours with the `--vy-*` design token". No such token existed. The tokens file carries
+`--vy-amber`, `--vy-amber-2`, `--vy-amber-text` and `--vy-accent-3` — and `--vy-accent-3` is
+`rgb(232,112,58)`, the **brand orange**, not the star gold `#8F5A06`. The only canonical star value in the
+product was a **measured literal inside the shared component**, hand-copied into four more view files. So the
+fix was to create the missing definition, not to point at one.
+
+**`--vy-star: rgb(143,90,6)` and `--vy-star-empty: rgb(122,110,100)`** now hold the values — unchanged, still
+the ones measured against the three real plates (peach `#FBD3BF` · owner card `#F8F4EF` · light card
+`#FFFDFB`), empty always below filled so the hierarchy survives. The component reads them; the duplicates
+were swapped.
+
+⚠️ **THREE SWAPS WERE PARITY. ONE WAS A REAL COLOUR CHANGE, AND IT IS THE POINT OF THE ITEM.**
+`owner/reviews:90`, `owner/reviews:123` and `operator/guest-profile:132` already held `#8F5A06`, so those are
+pure de-duplication — not a pixel moved. But **`owner/reviews:163` was still painting `#E8A63A`**: the exact
+gold the accessibility pass measured at **2.05** and rejected for missing the 3:1 a non-text graphic must
+meet. It is a survivor of that fix — precisely the failure mode the original entry predicted ("a fix applied
+to one silently misses the other"). Swapping it is a **visible change**, raised here rather than smuggled,
+and it closes a measured contrast defect.
+
+⚠️ **THREE THINGS DELIBERATELY LEFT, EACH FOR A DIFFERENT REASON:**
+- **The review email** keeps its literal `#8F5A06`. Mail clients strip CSS custom properties; tokenising it
+  would have broken the colour in most inboxes. Hand-rolling is *correct* there, and the token comment says so.
+- **`guest/review` and `booking/room` / `booking/browse`** use `var(--vy-accent-3)` — a **ratified** choice,
+  recorded in `guest/review.blade.php:46`: the component's old `#E8A63A` measured 2.05 on that page, so the
+  orange was chosen deliberately and measured. Not a defect to "fix".
+- **`owner/messages`' SVG stars** are message **flags**, not ratings. Same glyph family, different concept.
+
+⚠️ **A 500 I CAUSED, AND THE TRAP BEHIND IT.** The first version of the token comment contained the component
+tag `<x-star-rating>` written in angle brackets. **Blade compiles component tags anywhere in a file — CSS
+comments included** — so the unclosed tag broke the whole tokens view and every page that includes it
+returned a 500. A CSS comment is not a Blade comment, which is the same family as "CSS comments ship"
+(§N.15.3), one layer deeper. Caught by rendering, invisible to `php -l`, and now warned about in the file
+itself for the next editor.
+
+⚠️ **AND THE CHANGE BROKE A REAL GUARD, WHICH THE SUITE CAUGHT.** `StarRatingCorrectnessTest` measures the
+star inks by **reading them out of the rendered component** — its own comment records that asserting the hex
+as a literal had been *vacuous*. Moving the colour into a custom property left no hex in that output, so the
+contrast guard went blind and failed. Rather than weaken it, it now **follows the ink to its new home**:
+assert the component defers to the token (and that no literal crept back beside it), resolve the token's real
+value from the rendered token block exactly as a browser would, then run the identical contrast maths.
+Mutation-proven twice — setting the token to the rejected `#E8A63A` reds it, and reverting the component to a
+literal hex reds it too. The guard is **stronger** than before: it now protects the single definition and the
+indirection.
+
+**Verified by rendering, not by source:** on `/owner/reviews` the token resolves to `rgb(143,90,6)` and **all
+20 star elements** compute to the filled or empty token — **none** remains at the old `rgb(232,166,58)`. The
+operator and public realms both define the token too.
+
+Suite **2332 / 2323**, 15,031 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.

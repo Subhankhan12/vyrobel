@@ -38,8 +38,10 @@
     //     filled #8F5A06 → 4.18 / 5.28 / 5.70
     //     empty  #7A6E64 → 3.58 / 4.52 / 4.88   (always LOWER than filled, so the hierarchy survives)
     // Hues preserved (amber h37 / warm stone h27) — luminance-only, so greyscale is unaffected.
-    'color' => '#8F5A06',
-    'emptyColor' => '#7A6E64',
+    // ⚠️ Now the TOKEN, not the literal — same measured values, one definition (§N.8f). Overridable per
+    // call site as before. Not usable from an email; see the token comment.
+    'color' => 'var(--vy-star)',
+    'emptyColor' => 'var(--vy-star-empty)',
     'gap' => '2px',
 ])
 @php

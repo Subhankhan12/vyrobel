@@ -81,15 +81,32 @@ it('keeps both star inks above 3:1 on every real plate the product renders them 
         return (max($a, $b) + 0.05) / (min($a, $b) + 0.05);
     };
 
-    // ⚠️ Read the inks the component ACTUALLY RENDERS, never literals repeated from the source. A first cut of
+    // ⚠️ Read the inks the product ACTUALLY RENDERS, never literals repeated from the source. A first cut of
     // this test asserted `$ratio('#8F5A06', …)` directly and was VACUOUS — reverting the component's default to
     // the failing #E8A63A left it green (O32: a passing assertion means vacuity or redundancy; resolve it).
+    //
+    // ⚠️ THE INK MOVED, SO THIS FOLLOWS IT (Wave 4 · DO10-4). The component now renders `color:var(--vy-star)`
+    // instead of a literal hex, because the same hex had been hand-copied into four other view files and a
+    // contrast fix applied here silently missed them. That indirection would have made this guard BLIND —
+    // there is no longer a hex in the component's own output to measure — so the test now resolves the token
+    // exactly as a browser does: confirm the component defers to the token, then read the token's real value
+    // out of the rendered design-token block. The maths below is unchanged, and it still guards the single
+    // value the whole product paints its stars with.
     $html = starRow(3.0);
-    preg_match_all('/color:(#[0-9A-Fa-f]{6})/', $html, $m);
-    $inks = array_values(array_unique($m[1]));
-    expect($inks)->toHaveCount(2);            // exactly one filled ink and one empty ink
+    expect($html)->toContain('color:var(--vy-star)')
+        ->and($html)->toContain('color:var(--vy-star-empty)')
+        // …and no literal hex sneaked back in beside the token.
+        ->and(preg_match('/color:#[0-9A-Fa-f]{6}/', $html))->toBe(0);
 
-    [$filled, $empty] = [$inks[0], $inks[1]];
+    $tokens = Blade::render('<x-design.tokens />');
+    $ink = function (string $name) use ($tokens): string {
+        expect(preg_match('/--'.$name.':\s*rgb\((\d+),\s*(\d+),\s*(\d+)\)/', $tokens, $t))->toBe(1, "token --$name not defined");
+
+        return sprintf('#%02X%02X%02X', (int) $t[1], (int) $t[2], (int) $t[3]);
+    };
+
+    [$filled, $empty] = [$ink('vy-star'), $ink('vy-star-empty')];
+    expect($filled)->not->toBe($empty);
 
     // #FBD3BF is the PEACH owner unit-detail hero plate — pixel-sampled from the live render, and the plate
     // that failed the first choice. #F8F4EF the owner card, #FFFDFB the light card.

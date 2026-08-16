@@ -58,6 +58,19 @@
                carries the restored wireframe orange (DO-RESTORE-1a). */
             --vy-avatar-bg: #F0A57A;
             --vy-accent-border: rgba(232, 112, 58, 0.28);
+            /* ⚠️ STAR RATING (Wave 4 · DO10-4). ⚠️ NOTE FOR THE NEXT EDITOR: do NOT write a component tag
+               like x-star-rating in angle brackets in this comment — Blade compiles component tags ANYWHERE
+               in a file, CSS comments included, and an unclosed one breaks the whole view (it cost a 500
+               here). A CSS comment is not a Blade comment. The star gold existed as a measured literal in
+               the star-rating component and was then hand-copied into four more view files — the exact §N.8f drift the
+               token layer exists to stop, and the reason a contrast fix applied to the component silently
+               missed the copies. The VALUES are unchanged and still the measured ones: filled #8F5A06 reads
+               4.18 / 5.28 / 5.70 and empty #7A6E64 reads 3.58 / 4.52 / 4.88 on the three real plates (peach
+               #FBD3BF · owner card #F8F4EF · light card #FFFDFB), empty always below filled so the hierarchy
+               survives. ⚠️ EMAILS CANNOT USE THESE — mail clients strip custom properties, so
+               emails/review-request.blade.php keeps the literal #8F5A06 deliberately. */
+            --vy-star: rgb(143, 90, 6);
+            --vy-star-empty: rgb(122, 110, 100);
             /* Amber */
             --vy-amber: rgb(178, 106, 8);
             --vy-amber-2: rgb(224, 146, 30);

@@ -155,7 +155,7 @@ Client-side guarding is defence-in-depth, not the rule.
 | `DO14-2` | "no year filter on Documents" | **BUILT.** `OwnerDocuments.php:70-72` — built from the REAL years present, rendered only when >1 exists |
 | `DO16-5` (partly) | "the Next-payout figure has no date" | **BUILT for Payouts.** `OwnerPayouts.php:122` → `PayoutSchedule::nextRunDate()`. *(Still absent elsewhere — see PARTIAL)* |
 | `D16-5` | "no per-transfer bank identity on payout-run rows" | **BUILT.** `PayoutRun.php:143-150` — masked IBAN per owner, `payouts.manage`-gated, one batched read |
-| `DO10-4` (mostly) | "the ★ colour is hand-rolled in 11 view files" | **LARGELY CLOSED.** `resources/views/components/star-rating.blade.php:41` is the shared component at the AA-safe `#8F5A06`. **3 files still hand-roll** (`livewire/owner/messages.blade.php`, `livewire/owner/reviews.blade.php`, `guest/review.blade.php`) |
+| `DO10-4` | "the ★ colour is hand-rolled in 11 view files" | 🏁 **CLOSED 2026-08-16.** ⚠️ **There was no `--vy-*` star token to migrate to** — the "token" the item assumed did not exist, and `--vy-accent-3` is the brand orange, not the star gold. A **`--vy-star` / `--vy-star-empty` pair** now carries the measured values, the shared component reads them, and the four hand-rolled RATING sites were swapped (3 at exact parity; **1 real colour change** — `owner/reviews:163` still painted the REJECTED `#E8A63A`, measured 2.05, now the AA-safe token). ⚠️ **Deliberately left:** the review EMAIL (mail clients strip custom properties — its literal `#8F5A06` is correct), `guest/review` + `booking/*` (a ratified `--vy-accent-3` contrast choice), and `owner/messages`' SVG **starred-message flags** (not ratings). Token resolution browser-verified in every realm |
 
 ### 2.2 🟡 PARTIAL — real in one place, absent in another
 
@@ -166,7 +166,7 @@ Client-side guarding is defence-in-depth, not the rule.
 | `D24-2` | passkeys/WebAuthn are **fully built** — model, service, register + usernameless login | **owner realm only.** Registration lives under `Route::prefix('owner')` (`routes/web.php:964`, routes `:1221-1223`); the operator Security page has none | `app/Support/Auth/PasskeyService.php`, `app/Models/Passkey.php` |
 | `D3-4` | the guard for *absent* prior-year data exists (`has_ly`) | the guard for *thin* prior-year data did not | 🏁 **CLOSED 2026-08-15** — replaced by a coverage guard; see §3.1 |
 | `D6-1`/`D6-2`/`D6-3` | the register records a deliberate scope call, not pure absence | the composer was omitted, so "no bulk backend is left to reach" | `ReservationsList.php:57-61` — ⚠️ read this before building |
-| `DO10-4` | shared `<x-star-rating>` at the corrected colour | 3 files bypass it | above |
+| `DO10-4` | shared star colour | 🏁 **CLOSED** — now a `--vy-star` token; see above | above |
 | `DO27-1` | thread unread **boolean** | no unread **count** | `OwnerMessages.php:625` |
 
 ### 2.3 ⚠️ CHANGED — real, but not the shape recorded
