@@ -79,10 +79,16 @@
                         @php
                             // Presentation-only regrouping: the design groups these rows by PRIORITY, which
                             // each item already carries. No new data is read or computed here.
+                            // D1-2 — the same rows, grouped by whichever dimension this person chose. Nothing
+                            // is filtered or dropped: the SET of rows is identical either way, only the
+                            // headings differ.
                             $vyPriOrder = ['urgent' => 'Urgent', 'high' => 'High', 'normal' => 'Normal'];
-                            $vyTaskSecs = collect($tasks['items'])
-                                ->groupBy('priority')
-                                ->sortBy(fn ($rows, $key) => array_search($key, array_keys($vyPriOrder), true));
+                            $vyByCategory = ($tasks['grouping'] ?? 'priority') === 'category';
+                            $vyTaskSecs = $vyByCategory
+                                ? collect($tasks['items'])->groupBy('category_label')->sortKeys()
+                                : collect($tasks['items'])
+                                    ->groupBy('priority')
+                                    ->sortBy(fn ($rows, $key) => array_search($key, array_keys($vyPriOrder), true));
                         @endphp
                         <div class="vy-detail-head" style="margin-bottom: 4px;">
                             <h2 class="vy-card-title">Today’s tasks</h2>
@@ -93,6 +99,20 @@
                                 </span>
                             @endif
                         </div>
+                        {{-- D1-2 — the design's two-button segmented control. A PERSONAL arrangement choice:
+                             it re-groups the same rows and cannot hide, filter or re-rank any of them. --}}
+                        @if ($tasks['total_count'] > 0)
+                            <form method="POST" action="{{ $tasks['grouping_url'] }}" class="vy-task-group-sw" data-guard-submit>
+                                @csrf
+                                <span class="vy-task-group-lbl">Group by</span>
+                                <button type="submit" name="task_grouping" value="priority"
+                                        class="vy-task-group-opt {{ $vyByCategory ? '' : 'is-on' }}"
+                                        aria-pressed="{{ $vyByCategory ? 'false' : 'true' }}">Priority</button>
+                                <button type="submit" name="task_grouping" value="category"
+                                        class="vy-task-group-opt {{ $vyByCategory ? 'is-on' : '' }}"
+                                        aria-pressed="{{ $vyByCategory ? 'true' : 'false' }}">Category</button>
+                            </form>
+                        @endif
                         {{-- D1-1 — YOUR OWN progress through the list. ⚠️ "Ticked", never "done": every row
                              here has a live count greater than zero (that is the only reason it renders), so
                              the product cannot claim the work is finished. Two genuinely different states:
@@ -115,11 +135,23 @@
                         {{-- ACTIONABLE — each task links to the page where it's resolved; it auto-clears from
                              REAL state when its count hits 0 (no fabricated "done" flag, #39). --}}
                         @forelse ($vyTaskSecs as $vyPri => $vyRows)
+                            @php
+                                // ⚠️ D1-2's HONESTY INVARIANT. Grouped by CATEGORY, a section heading no longer
+                                // says how urgent its contents are — so the urgency has to travel WITH the
+                                // rows, or re-arranging the list would quietly bury which work is urgent. The
+                                // section carries the real urgent count, and each row keeps its own priority
+                                // mark below. Read from the rows themselves, never from a preference.
+                                $vySecUrgent = $vyByCategory ? $vyRows->where('priority', 'urgent')->count() : 0;
+                                $vySecPri = $vyByCategory ? 'normal' : $vyPri;
+                            @endphp
                             <div class="vy-task-sec">
                                 <div class="vy-task-sec-head">
-                                    <span class="vy-task-sec-dot vy-task-pri is-{{ $vyPri }}"></span>
-                                    <span class="vy-task-sec-label vy-task-pri-ink is-{{ $vyPri }}">{{ $vyPriOrder[$vyPri] ?? $vyPri }}</span>
+                                    <span class="vy-task-sec-dot vy-task-pri is-{{ $vySecPri }}"></span>
+                                    <span class="vy-task-sec-label vy-task-pri-ink is-{{ $vySecPri }}">{{ $vyByCategory ? $vyPri : ($vyPriOrder[$vyPri] ?? $vyPri) }}</span>
                                     <span class="vy-task-sec-count">{{ $vyRows->count() }}</span>
+                                    @if ($vySecUrgent > 0)
+                                        <span class="vy-task-sec-urgent">{{ $vySecUrgent }} urgent</span>
+                                    @endif
                                 </div>
                                 @foreach ($vyRows as $t)
                                     <div class="vy-task-line {{ $t['ticked'] ? 'is-ticked' : '' }}">
@@ -138,6 +170,14 @@
                                             </button>
                                         </form>
                                         <a class="vy-task-row is-actionable" href="{{ $t['link'] }}">
+                                            {{-- ⚠️ Under CATEGORY grouping the priority is no longer in the
+                                                 heading, so it rides the row — the urgent signal survives the
+                                                 re-arrangement instead of being lost with the old heading. --}}
+                                            @if ($vyByCategory)
+                                                <span class="vy-task-pri vy-task-row-dot is-{{ $t['priority'] }}"
+                                                      title="{{ $vyPriOrder[$t['priority']] ?? $t['priority'] }}"></span>
+                                                <span class="vy-sr-only">{{ $vyPriOrder[$t['priority']] ?? $t['priority'] }} priority</span>
+                                            @endif
                                             <span class="vy-task-label">{{ $t['label'] }}</span>
                                             <span class="vy-task-meta">{{ $t['meta'] }}</span>
                                             <span class="vy-task-go" aria-hidden="true">→</span>

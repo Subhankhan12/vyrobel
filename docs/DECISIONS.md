@@ -10677,3 +10677,60 @@ row. Fixture reverted — 0 ticks, 3 open work orders, identical to the pre-pass
 isolation/RBAC. **Logged, not built:** `D1-2` (the category dimension + a persisted grouping preference) is the
 natural next item and shares this table's shape. Suite **2251 / 2242**, 14,434 assertions, 6 non-green = the
 documented set; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-15 — D1-2 · grouping the dashboard tasks by category (a personal, persisted arrangement)
+
+⚠️ **THE CONFIRM STEP CHANGED WHAT WAS BUILT, AGAIN.** The brief asked for a "grouping/collapse preference"
+and framed the risk around a COLLAPSE hiding urgent work. The design register is explicit that the prototype's
+control is **a two-button segmented switch between grouping by priority and grouping by category, persisted
+across reloads** — there is **no collapse anywhere in it**. So none was invented: a collapse is precisely the
+interaction that could hide urgent work, and building one the design never asked for, to guard a risk the
+design never takes, would have been inventing UI. **Logged, not built.**
+
+⚠️ **BUT THE INVARIANT IS REAL HERE — IN A DIFFERENT SHAPE, AND IT IS THE POINT OF THE PASS.** Grouped by
+PRIORITY, urgency *is* the section heading. Grouped by CATEGORY it is not — so re-arranging the list would
+have quietly buried which work is urgent, the same harm in the form this feature can actually take. The fix
+travels with the data: each category section carries its **real urgent count** and every row keeps its own
+priority mark (`aria`-named, not colour-only). Both halves are mutation-proven, and a test resolves the real
+work to show the signal clears **while the preference stays** — governed by counts, never by a setting.
+
+⚠️ **A SIBLING TABLE, NOT A ROW IN `operator_task_states` (§N.27.4).** The two share a discipline — personal,
+generated NOT NULL key, unique, self-only — but not a KEY: a tick is scoped to a **day** (so yesterday's tick
+cannot suppress today's task), while a display preference must **outlive the day**. Reusing that table would
+have meant a sentinel date or a grouping that silently reset every midnight. Same shape, different lifetime;
+the shape is mirrored, the table is not. Both key columns are NOT NULL, so the unique index genuinely applies
+(the NULL-inert lesson, third application).
+
+⚠️ **THE CATEGORY IS DERIVED, NOT STORED TWICE.** `work_orders.urgent` → `work_orders`, read from D1-1's own
+key namespace via `OperatorTaskState::categoryFor()`. A new task type therefore cannot arrive with a key but
+no category, and a test asserts every key in the closed set resolves to a NAMED label — an unlabelled one
+would have rendered a heading like "Work_orders".
+
+**Built:** `operator_dashboard_preferences` (unique on org+user → idempotent at the database) · the
+category derivation + labels on the model that owns the keys · a `grouping` action on D1-1's existing
+self-only controller (same route group, same discipline) · the segmented control · the urgent-count chip and
+per-row priority mark.
+
+**Proven:** 13 tests; **5 mutations, each verified to land** — removing the section's urgent chip and removing
+the per-row priority mark each red the invariant (the two halves are independent); making the preference
+shared reds the personal test; a request-supplied `user_id` reds the forgery test; opening the value set reds
+the closed-set test. Also pinned: an unknown STORED value falls back to the default rather than rendering a
+grouping the view has no branch for, and D1-1's ticks still work under the new grouping.
+
+⚠️ **THE §N.15.3 TRAP, FOURTH TIME — AND THIS TIME IT WAS MY OWN NEW CSS.** `assertDontSee('vy-task-sec-urgent')`
+could never pass because the rule I had just added to the layout ships with the page; worse, the matching
+`assertSee` was partly passing on the stylesheet rather than the markup. Both needles are now the class
+ATTRIBUTE (`class="vy-task-sec-urgent"`), which only exists in rendered markup. Separately, a count pinned
+from the DEMO database ("7 to clean") failed against a fixture with one task — **a constant copied from
+another environment is not an assertion about this one.**
+
+Browser-verified as the demo operator: priority headings + the switch → clicked Category → headings became
+Arrivals / Housekeeping / **Work orders with a "1 urgent" chip**, every row keeping its priority dot and real
+count; a fresh page load came back still on Category. Fixture reverted — 0 preferences, 0 ticks, 1 urgent
+work order, identical to the pre-pass snapshot.
+
+**Untouched:** `tasks()`'s derivation (the output is grouped, the counts are not recomputed) · D1-1's ticks ·
+the other dashboard cards · isolation/RBAC. Suite **2264 / 2255**, 14,510 assertions, 6 non-green = the
+documented set; PHPStan L5 (0); Pint clean.

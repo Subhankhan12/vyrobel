@@ -9,6 +9,7 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Channel;
 use App\Models\HousekeepingTask;
 use App\Models\MaintenanceTicket;
+use App\Models\OperatorDashboardPreference;
 use App\Models\OperatorTaskState;
 use App\Models\Organization;
 use App\Models\Payment;
@@ -319,6 +320,10 @@ class OperatorDashboard extends Component
             fn (array $item): array => $item + [
                 'ticked' => in_array($item['key'], $ticked, true),
                 'toggle_url' => route('app.dashboard.tasks.toggle'),
+                // D1-2 — the grouping dimensions. `priority` was already on the row; `category` is READ from
+                // the key's own namespace, so it cannot disagree with it (§N.8f).
+                'category' => OperatorTaskState::categoryFor($item['key']),
+                'category_label' => OperatorTaskState::categoryLabelFor($item['key']),
             ],
             $items,
         );
@@ -334,6 +339,10 @@ class OperatorDashboard extends Component
             'ticked_count' => count(array_filter($items, fn (array $i): bool => $i['ticked'])),
             'total_count' => count($items),
             'scope_key' => $this->taskScopeKey(),
+            // D1-2 — how THIS person has chosen to arrange the list. ⚠️ Read AFTER the rows and their counts
+            // are derived: a preference decides arrangement only, never which work exists or how much of it.
+            'grouping' => OperatorDashboardPreference::groupingFor(auth()->id()),
+            'grouping_url' => route('app.dashboard.tasks.grouping'),
         ];
     }
 

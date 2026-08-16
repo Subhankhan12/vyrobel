@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\NotificationController;
+use App\Models\OperatorDashboardPreference;
 use App\Models\OperatorTaskState;
 use App\Services\OwnerUnitRequestService;
 use App\Support\Property\PropertyContext;
@@ -65,6 +66,36 @@ class OperatorTaskStateController extends Controller
         } else {
             OperatorTaskState::query()->where($key)->delete();
         }
+
+        return back();
+    }
+
+    /**
+     * D1-2 — how this person wants their task list arranged: by priority (the default) or by category.
+     *
+     * ⚠️ A PREFERENCE, NOT A FILTER. It changes the arrangement of rows that were already derived from real
+     * counts; it cannot remove a row, change a count, or reorder work by importance. That is why it is safe
+     * to persist per person at all — see {@see OperatorDashboardPreference}.
+     *
+     * 🔒 Self-only and closed-set, exactly like {@see self::toggle()}: the row is keyed on
+     * `$request->user()`'s id, and the value must be one the view can actually render.
+     * ⚠️ IDEMPOTENT via `updateOrCreate` on the natural key, behind the table's UNIQUE index.
+     */
+    public function grouping(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'task_grouping' => ['required', 'string', Rule::in(OperatorDashboardPreference::GROUPINGS)],
+        ]);
+
+        $user = $request->user();
+        if ($user === null) {
+            abort(403);
+        }
+
+        OperatorDashboardPreference::query()->updateOrCreate(
+            ['user_id' => $user->getKey()],   // organization_id is auto-filled by BelongsToOrganization
+            ['task_grouping' => $validated['task_grouping']],
+        );
 
         return back();
     }

@@ -494,6 +494,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // the property context + tenant scope are resolved the same way the dashboard resolved them; self-only
     // by construction, so it needs no `can:` beyond back-office access — a user can only tick their own list.
     Route::post('/dashboard/tasks/toggle', [OperatorTaskStateController::class, 'toggle'])->name('dashboard.tasks.toggle');
+    // D1-2 — how THIS person groups their task list (priority | category). A preference, not a filter: it
+    // cannot remove a row or change a count. Self-only, same controller, same discipline.
+    Route::post('/dashboard/tasks/grouping', [OperatorTaskStateController::class, 'grouping'])->name('dashboard.tasks.grouping');
 
     // Phase 6a · multi-property — the topbar property switcher. Sets the per-user working property
     // (or "all") in the session, then PRG back. Any back-office user may switch among the properties

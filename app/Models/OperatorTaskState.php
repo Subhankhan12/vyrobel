@@ -38,6 +38,33 @@ class OperatorTaskState extends Model
     /** The scope value for the "All properties" dashboard view — never null (see the migration). */
     public const SCOPE_ALL = 'all';
 
+    /**
+     * D1-2 — the CATEGORY each task belongs to, derived from the key rather than stored a second time
+     * (§N.8f). The category is already implicit in the key's own namespace, so reading it here means a new
+     * task type cannot arrive with a key but no category — the two cannot drift apart.
+     *
+     * @var array<string, string>
+     */
+    public const CATEGORY_LABELS = [
+        'work_orders' => 'Work orders',
+        'housekeeping' => 'Housekeeping',
+        'arrivals' => 'Arrivals',
+    ];
+
+    /** The category namespace of a task key (`work_orders.urgent` → `work_orders`). */
+    public static function categoryFor(string $taskKey): string
+    {
+        return (string) str($taskKey)->before('.');
+    }
+
+    /** The human label for a task key's category; falls back to the namespace so nothing renders blank. */
+    public static function categoryLabelFor(string $taskKey): string
+    {
+        $category = self::categoryFor($taskKey);
+
+        return self::CATEGORY_LABELS[$category] ?? ucfirst(str_replace('_', ' ', $category));
+    }
+
     protected $fillable = [
         'organization_id',
         'user_id',

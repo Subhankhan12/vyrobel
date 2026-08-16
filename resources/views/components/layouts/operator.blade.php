@@ -1298,6 +1298,17 @@
         .vy-task-prog-bar { height: 4px; border-radius: 999px; background: rgba(120,70,40,.12); overflow: hidden; }
         .vy-task-prog-bar span { display: block; height: 100%; border-radius: 999px; background: var(--vy-accent); transition: width .25s ease; }
         .vy-task-prog-label { display: block; margin-top: 6px; font-size: 11.5px; color: var(--vy-muted); }
+        /* D1-2 — the grouping switch + the urgent signal that must survive re-grouping. Tokens only. */
+        .vy-task-group-sw { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 12px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(120,70,40,.06); border: 1px solid var(--vy-glass-border); }
+        .vy-task-group-lbl { font-size: 10.5px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); padding: 0 6px 0 8px; }
+        .vy-task-group-opt { border: none; background: none; padding: 5px 11px; border-radius: var(--vy-r-pill); font-family: var(--vy-sans); font-size: 12px; font-weight: 500; color: var(--vy-muted); cursor: pointer; transition: background .15s, color .15s; }
+        .vy-task-group-opt:hover { color: var(--vy-ink); }
+        .vy-task-group-opt.is-on { background: #fff; color: var(--vy-ink); font-weight: 600; box-shadow: var(--vy-shadow-sm); }
+        .vy-task-group-opt:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* ⚠️ The folded-away urgency, brought forward: a category heading says nothing about priority, so the
+           real urgent count rides the heading and each row keeps its own priority dot. */
+        .vy-task-sec-urgent { margin-left: auto; font-size: 10.5px; font-weight: 600; color: var(--vy-accent-text); background: rgba(194,65,12,.10); padding: 2px 8px; border-radius: var(--vy-r-pill); white-space: nowrap; }
+        .vy-task-row-dot { flex: none; }
         .vy-task-pri { width: 7px; height: 7px; border-radius: 50%; flex: none; }
         .vy-task-pri.is-urgent { background: var(--vy-accent); }
         .vy-task-pri.is-high { background: var(--vy-amber-2); }
