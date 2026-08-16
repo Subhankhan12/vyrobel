@@ -12065,3 +12065,46 @@ editing a rate create a per-unit override? **Yes** → per-unit rows are buildab
 edit detaches that unit. **No** → per-room-type rows stay, and this divergence is ratified rather than open.
 **Third option** — unit rows read-only until a unit is explicitly "priced individually" — preserves both
 behaviours and is most likely what the design intends.
+
+---
+
+## 2026-08-17 — D18-5 · channel-sync per-unit: OTAs cannot represent it. Surfaced, not built.
+
+⚠️ **THE CENTRAL QUESTION HAS A PLAIN ANSWER: NO.** `AriSnapshotBuilder` builds the pushed state for one
+**channel + room_type + date range**, and its rates are keyed `rate_plan_id => date`, mapped to an external id
+through `channel_mappings`. **There is no unit concept anywhere in the snapshot** — and that is not a Vyrobel
+limitation, it is how OTAs sell: a guest books a room TYPE on a rate plan, and the property decides which
+physical unit they get. A per-unit price has nowhere to go.
+
+**So per-unit is UN-SYNCABLE**, and the resolution is a founder decision rather than a build. Nothing was
+pushed, changed, or half-wired.
+
+⚠️ **AND ONE FACT THAT CHANGES THE URGENCY, NOT THE ANSWER: the channel is not live.** `CHANNEX_FAKE=true`
+keeps the app on `FakeChannexClient` with no network, and `CHANNEX_API_KEY` is empty. So **no stale price is
+reaching any OTA today** — there is no live contradiction to stop, only one to prevent before go-live. The
+`channels` row reading "connected" is the demo's own state, not a live integration.
+
+⚠️ **WHY I DID NOT SHIP THE "SAFE DEFAULT".** The brief allows implementing a fail-safe withhold if it is
+*clearly* correct. It is not. Availability here is **per room type, as counts** — so "withhold an overridden
+unit" means silently decrementing the type's channel availability by one. That is a **revenue decision**: it
+stops a real, sellable room from being sold on OTAs because of a pricing exception, and on a channel that is
+not even connected yet. Shipping it unasked would be exactly the kind of quiet business change these passes
+have refused all week.
+
+⛔ **THE OPTIONS, with a recommendation:**
+
+1. **Type rate to OTAs; overridden units are direct-only** *(recommended)*. The OTA keeps selling the type at
+   the type price — which the property can always honour, because assignment is theirs — and an overridden
+   unit is simply not the one an OTA booking gets. **No wrong price anywhere, no lost inventory.** It requires
+   one real rule: the assignment path must not hand an OTA booking a unit whose price it did not pay for.
+2. **Withhold the overridden unit** — decrement channel availability by one per overridden unit. Safest on
+   price, costs real bookings, and needs care not to oversell the remainder.
+3. **Don't list the type at all while any unit is overridden** — simplest, and by far the most expensive.
+
+⚠️ **Option 1 is recommended because it is the only one where nobody is misled AND nothing stops selling** —
+the OTA's price stays true for what the OTA actually sells (a type), and the exception lives where Vyrobel can
+enforce it (assignment). Its cost is a real constraint on assignment, which belongs in the same gate as the
+storefront unit-commit work.
+
+**Nothing built, nothing moved:** `rate_calendar` hashes `2bbdafccc3b5c1ee43f89fe313a3f02d` (929 rows,
+10,920,000 minor); the sync, the resolver, §G.1 and every other channel are untouched.
