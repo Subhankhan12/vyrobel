@@ -39,10 +39,13 @@
                             <span style="display:block;font-size:13px;font-weight:600">CSV export</span>
                             <span style="display:block;font-size:11px;color:var(--vy-faint)">Channel &amp; month rows · opens in Excel</span>
                         </a>
-                        <div style="padding:9px 10px;border-radius:10px;opacity:.55" title="Needs a spreadsheet library — coming soon">
-                            <span style="display:block;font-size:13px;font-weight:600">Excel workbook <span class="vy-soon-tag" style="font-size:9px">Soon</span></span>
-                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Use the CSV meanwhile</span>
-                        </div>
+                        {{-- D4-1 — the workbook is real now (it needed a spreadsheet library, which the stack
+                             lacked). Same period + property scope as the CSV above; its cells are TYPED, which is
+                             the whole reason it exists beside the CSV rather than instead of it. --}}
+                        <a href="{{ $xlsxUrl }}" style="display:block;padding:9px 10px;border-radius:10px;text-decoration:none;color:var(--vy-ink)">
+                            <span style="display:block;font-size:13px;font-weight:600">Excel workbook</span>
+                            <span style="display:block;font-size:11px;color:var(--vy-faint)">Channels &amp; trend tabs · figures sum</span>
+                        </a>
                         <div style="padding:9px 10px;border-radius:10px;opacity:.55" title="Coming soon">
                             <span style="display:block;font-size:13px;font-weight:600">Email as PDF <span class="vy-soon-tag" style="font-size:9px">Soon</span></span>
                             <span style="display:block;font-size:11px;color:var(--vy-faint)">Send the report to your inbox</span>

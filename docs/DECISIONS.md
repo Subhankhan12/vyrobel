@@ -10967,3 +10967,70 @@ identical to the pre-pass snapshot.
 **Untouched:** statements, lines, payouts and every other export · `organization_id` isolation · RBAC · the
 #28 perimeter. Suite **2297 / 2288**, 14,784 assertions, 6 non-green = the documented set; PHPStan L5 (0);
 Pint clean.
+
+---
+
+## 2026-08-16 — D4-1 · the operator Reports Excel workbook (and the spreadsheet-library decision)
+
+The Reports export menu offered PDF and CSV, with "Excel workbook" disabled and honestly captioned *"Needs a
+spreadsheet library — coming soon"*. That caption was accurate: **the gap was a dependency, not a build.** It
+is closed.
+
+⚠️ **THE LIBRARY CALL — `openspout/openspout`.** The ledger's own note suggested `phpoffice/phpspreadsheet`,
+and `maatwebsite/excel` is the reflexive Laravel answer. Both were rejected for concrete reasons:
+PhpSpreadsheet holds the entire sheet in memory, which is the exact ceiling an export must not have; and
+maatwebsite 3.x pins `illuminate/*` constraints, i.e. it couples an export format to the framework's major
+version — a poor trade on Laravel 13, which is already ahead of most packages. OpenSpout writes each row
+straight to disk with **no framework coupling at all**. The claim was measured, not assumed: **12 MB at 10,000
+rows and 12 MB at 100,000 rows** — flat, on a 128 MB limit.
+
+⚠️ **ONE SURFACE, DONE PROPERLY — AND THE OTHER ONE DELIBERATELY LEFT.** Two Excel gaps are on the register:
+this one and `D12b-1` (Maintenance Costs). Adding both in one sweep would have been the same mistake as
+forcing an unrelated pair into one bundle: a different scope, different columns and a different gate
+(`maintenance.manage`) do not become one job because they share a file extension. `D12b-1` is logged as
+**unblocked ordinary work** — the shared writer is there for it — and left for its own confirm pass.
+
+⚠️ **THE EXPORT *IS* THE VIEW, AND THAT IS ENFORCED BY THERE BEING ONE OF IT.** The load-bearing risk with any
+export is that it quietly re-queries the table: it then hands the operator rows their screen may not show them
+(a leak) and rows their filter excluded (a lie about what they were looking at). The CSV's scope + period
+resolution was therefore **extracted into a single private `view()`** that the CSV and the workbook both read.
+Neither export owns a predicate. A month filter exports that month because there is nowhere else for the
+period to come from (§N.8f).
+
+⚠️ **THE CELLS ARE TYPED — THE ONLY REASON A WORKBOOK BEATS A CSV.** A workbook that writes "€1,234.56" as a
+STRING is strictly worse than the CSV beside it: it looks correct and then refuses to SUM, the single thing a
+person opens a workbook to do. So money is a NUMBER with the currency in the cell's number format, months are
+DATE cells (a stringified "Apr" sorts before "Aug" alphabetically and is wrong every year), shares are percent
+cells. ⚠️ **Nothing is re-priced** — the integer minor amount is the one the screen renders (VAT-inclusive,
+§G.1); this changes its TYPE, never its value, and a test pins the workbook's sum against the screen's own
+breakdown to the cent.
+
+**Verified by opening the real file, never by a 200.** A live download as the demo operator produced a genuine
+`Microsoft Excel 2007+` file whose raw XML shows revenue cells with no `t=` attribute (numeric: `6340`) and
+month cells carrying date serials (`46023`), with number formats `"€"#,##0.00` and `mmm yyyy`; read back
+through a reader the columns are `int`/`float`/`DateTimeInterface`; and its channel figures sum to €7,080.00,
+exactly what the page displayed. Filtering to `?month=2026-03` returned **one** month row whose value matched
+that month in the full-year file — a real subset, not the table.
+
+⚠️ **A MUTATION THAT WOULD NOT RED, CHASED TO GROUND RATHER THAN SHRUGGED OFF (§N.4p).** Six mutations were
+applied and each verified to land. Dropping the period filter reds the reflects-the-view test; dropping the
+property scope reds the property test; stringifying money reds five tests at once. But **removing the tenant
+scope did not red the cross-org test — and neither did removing the property scope AND the tenant scope AND
+the breakdown's own scope.** The reason is real defence in depth: the org boundary on this path is enforced
+independently at the property-id set (org-scoped by `PropertyContext`), the `reservations` global scope, and
+the tenant scope on the folio rows the money is summed from — the revenue itself is unreachable cross-org.
+Rather than leave a test that credits a guard it cannot exercise, the cross-org test was made to **prove its
+own premise**: it reads the RAW `folio_items` table to pin that €1,290 genuinely exists and is genuinely
+leakable, then asserts the workbook carries €300. The limitation is written into the test where the next
+person will read it.
+
+**Untouched:** the on-screen Reports page and its figures · the existing CSV (a test pins its unchanged
+formatted-string shape) · the PDF · `organization_id` and RBAC (same `reports.view` gate as the page it
+exports) · §G.1 money values. No import path was added.
+
+⚠️ **BASELINE NOTE.** The suite shows 9 non-green against a documented 6. `BookingImportTest` passes alone
+(in-suite ordering, the documented one); `OwnerUnitDetailViewTest` and `PhaseBEndToEndTest` fail **identically
+on a stashed clean worktree**, so they are pre-existing and date-sensitive (today's date rolled during the
+session), not this change. Recorded rather than absorbed into the band.
+
+Suite **2307 / 2298**, 14,855 assertions; PHPStan L5 (0); Pint clean.

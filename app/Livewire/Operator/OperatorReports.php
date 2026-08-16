@@ -80,6 +80,8 @@ class OperatorReports extends Component
             // GATE 10.2 — both exports carry the SAME period (roll-up range or specific month).
             'exportUrl' => route('app.reports.export', $exportParams),
             'pdfUrl' => route('app.reports.export.pdf', $exportParams),
+            // D4-1 — the workbook carries the SAME period as the other two; nothing about it is special-cased.
+            'xlsxUrl' => route('app.reports.export.xlsx', $exportParams),
             'empty' => $data['empty'],
         ]);
     }

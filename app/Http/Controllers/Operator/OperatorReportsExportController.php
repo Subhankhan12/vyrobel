@@ -9,12 +9,16 @@ use App\Models\Property;
 use App\Models\Reservation;
 use App\Services\PdfService;
 use App\Support\Export\CsvSafe;
+use App\Support\Export\Workbook;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Property\PropertyContext;
 use App\Support\Reports\OperatorReportData;
 use App\Support\Reports\OperatorRevenueBreakdown;
 use App\Support\Reports\ReportPeriod;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use OpenSpout\Writer\XLSX\Writer;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -29,22 +33,7 @@ class OperatorReportsExportController extends Controller
 {
     public function csv(Request $request): StreamedResponse
     {
-        $ctx = app(PropertyContext::class);
-        $ids = $ctx->readIds();
-        $range = ReportPeriod::resolve($request->query('range'), $request->query('month'));
-        $currency = $this->currency($ctx);
-
-        $reservationIds = $ids === []
-            ? []
-            : Reservation::query()
-                ->whereIn('property_id', $ids)
-                ->whereNotIn('status', ['cancelled', 'no_show'])
-                ->whereDate('check_in', '>=', $range['start']->toDateString())
-                ->whereDate('check_in', '<', $range['end']->toDateString())
-                ->pluck('id')->map(fn ($id): string => (string) $id)->all();
-
-        $channels = OperatorRevenueBreakdown::byChannel($reservationIds, $currency);
-        $months = OperatorRevenueBreakdown::byMonth($reservationIds, $currency, $range['start'], $range['end']);
+        ['range' => $range, 'currency' => $currency, 'channels' => $channels, 'months' => $months] = $this->view($request);
 
         $filename = 'reports-'.str_replace(':', '-', $range['key']).'.csv';
 
@@ -101,6 +90,94 @@ class OperatorReportsExportController extends Controller
             'currency' => $currency,
             'scopeLabel' => $scopeLabel,
         ], $filename);
+    }
+
+    /**
+     * D4-1 — the wireframe's "Excel workbook" export, which until now was an honest disabled "Soon" (there was
+     * no spreadsheet library in the stack, so it was a genuine dependency gap, not a build gap).
+     *
+     * ⚠️⚠️ AN EXPORT IS ONLY HONEST IF IT IS THE VIEW. It carries no scope of its own: the rows come from
+     * {@see view()} — the SAME property scope, the SAME period and the SAME breakdown the screen and the CSV
+     * use. A workbook that re-queried the table would quietly hand the operator rows their screen is not
+     * allowed to show them (a leak) and rows their filter excluded (a lie about what they were looking at).
+     *
+     * ⚠️ THE REASON IT IS A WORKBOOK AND NOT A SECOND CSV: the cells are TYPED (see {@see Workbook}). Money is
+     * a number that SUMS, months are date cells that sort chronologically, shares are percent cells. The CSV
+     * stays exactly as it was — this adds a format, it does not replace one.
+     *
+     * Two sheets, matching the design's "Trend + channels tabs". Gated `can:reports.view` at the route, the
+     * same gate as the screen.
+     */
+    public function xlsx(Request $request): BinaryFileResponse
+    {
+        ['range' => $range, 'currency' => $currency, 'channels' => $channels, 'months' => $months] = $this->view($request);
+
+        $filename = 'reports-'.str_replace(':', '-', $range['key']).'.xlsx';
+
+        return Workbook::download($filename, function (Writer $writer) use ($channels, $months, $currency): void {
+            // ── Sheet 1 · Revenue by channel ──────────────────────────────────────────────────────
+            $writer->getCurrentSheet()->setName('Revenue by channel');
+            $writer->addRow(Workbook::headingRow(['Channel', 'Bookings', 'Revenue', 'Share']));
+
+            foreach ($channels as $c) {
+                $writer->addRow(Workbook::row([
+                    OperatorRevenueBreakdown::sourceLabel($c['source']),
+                    (int) $c['bookings'],                                  // numeric
+                    Workbook::money((int) $c['revenue_minor'], $currency),  // 🔢 numeric — it SUMS
+                    Workbook::percent((int) $c['share']),                   // 📊 percent cell
+                ]));
+            }
+
+            // ── Sheet 2 · Revenue by month (the trend) ────────────────────────────────────────────
+            $trend = $writer->addNewSheetAndMakeItCurrent();
+            $trend->setName('Revenue by month');
+            $writer->addRow(Workbook::headingRow(['Month', 'Revenue']));
+
+            foreach ($months as $m) {
+                $writer->addRow(Workbook::row([
+                    // 📅 a real date cell for the month start — sorts chronologically, unlike "Apr"/"Aug".
+                    Workbook::date(CarbonImmutable::parse($m['month'].'-01'), Workbook::MONTH_FORMAT),
+                    Workbook::money((int) $m['revenue_minor'], $currency),
+                ]));
+            }
+        });
+    }
+
+    /**
+     * ⚠️ THE ONE DEFINITION OF "WHAT THE OPERATOR IS LOOKING AT" — the property scope, the active period and
+     * the resulting breakdown. The CSV, the workbook (and the screen, through the same collaborators) all read
+     * it, so an export cannot drift from the view it claims to be (§N.8f).
+     *
+     * 🔒 SCOPE — {@see PropertyContext::readIds()}, never a request-supplied property id (#38). No accessible
+     *    property yields an EMPTY id set, and an empty set short-circuits to no reservations at all rather
+     *    than to an unfiltered query.
+     * 🔒 PERIOD — {@see ReportPeriod::resolve()} on the request's `range`/`month`, the same resolver the screen
+     *    uses, so a chosen reporting month exports that month and nothing else.
+     *
+     * @return array{range: array{key: string, label: string, start: CarbonImmutable, end: CarbonImmutable}, currency: string, channels: list<array<string, mixed>>, months: list<array<string, mixed>>}
+     */
+    private function view(Request $request): array
+    {
+        $ctx = app(PropertyContext::class);
+        $ids = $ctx->readIds();
+        $range = ReportPeriod::resolve($request->query('range'), $request->query('month'));
+        $currency = $this->currency($ctx);
+
+        $reservationIds = $ids === []
+            ? []
+            : Reservation::query()
+                ->whereIn('property_id', $ids)
+                ->whereNotIn('status', ['cancelled', 'no_show'])
+                ->whereDate('check_in', '>=', $range['start']->toDateString())
+                ->whereDate('check_in', '<', $range['end']->toDateString())
+                ->pluck('id')->map(fn ($id): string => (string) $id)->all();
+
+        return [
+            'range' => $range,
+            'currency' => $currency,
+            'channels' => OperatorRevenueBreakdown::byChannel($reservationIds, $currency),
+            'months' => OperatorRevenueBreakdown::byMonth($reservationIds, $currency, $range['start'], $range['end']),
+        ];
     }
 
     private function currency(PropertyContext $ctx): string

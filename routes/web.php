@@ -533,6 +533,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // scope; rendered from the SAME OperatorReportData the screen builds, so the printed report can't drift.
     Route::get('/reports/export.pdf', [OperatorReportsExportController::class, 'pdf'])->middleware('can:reports.view')->name('reports.export.pdf');
 
+    // D4-1 — the Excel workbook: the SAME scope + period + breakdown as the CSV and the screen, typed
+    // (money numeric, months as date cells). Same `reports.view` gate as the page it exports.
+    Route::get('/reports/export.xlsx', [OperatorReportsExportController::class, 'xlsx'])->middleware('can:reports.view')->name('reports.export.xlsx');
+
     // Phase 7b · Subscription billing — the Paywall + Checkout, gated `can:billing.manage` (the founder /
     // Property Owner, NOT Front Desk). Read-only until the account-gated Stripe charge: the tiers + the
     // honest derived trial status render; the subscribe action is the deferred Stripe-Billing seam (no
