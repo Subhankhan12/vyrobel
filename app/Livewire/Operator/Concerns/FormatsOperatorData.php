@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Operator\Concerns;
 
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
+use App\Models\Payout;
 use App\Models\User;
 use App\Support\Maintenance\MaintenanceSla;
 use App\Support\Reports\OperatorRevenueBreakdown;
@@ -342,5 +343,43 @@ trait FormatsOperatorData
     {
         return $channel === 'manual'
             || (bool) config('services.inbox.channels.'.$channel.'.enabled', false);
+    }
+
+    /**
+     * `payouts.status` → an OPERATOR-shell badge. The declared enum is
+     * pending|processing|paid|failed|reversed|held ({@see Payout}); an unexpected value is
+     * echoed through `ucfirst`, never re-badged as something friendlier. The design's "Scheduled" /
+     * "In review" / "Sent" are not states this column can hold and are never rendered.
+     *
+     * ⚠️ ONE DEFINITION, WAS TWO. `OperatorOwnerDetail` and `PayoutRun` each carried a private, byte-identical
+     * copy of this map, and both documented the duplication rather than closing it. Two readers of one payout
+     * concept drift at the edges, and at money scale a drift is a payout badged wrongly on one screen but not
+     * the other — which is exactly what happened in the owner realm, where its copy of this concept badged
+     * `processing` and `held` as "Payout pending" (money already sent reading as not started) until it was
+     * corrected. Neither operator screen owns the map now, so they cannot disagree.
+     *
+     * ⚠️ DELIBERATELY *NOT* SHARED WITH THE OWNER REALM, and that separation is load-bearing rather than
+     * laziness: the two shells' badge vocabularies do not overlap. The owner shell defines exactly three
+     * tones (paid/pending/draft); this shell defines fifteen `tone-*` classes and defines neither `paid` nor
+     * `draft`. Collapsing the two maps would emit tone strings the receiving shell has no CSS for, so the
+     * badge would lose its colour — a worse outcome than the duplication. The realms also speak differently
+     * on purpose: an owner reads "In transit" and "On hold" about their own money, where an operator reads
+     * the raw state.
+     *
+     * ⚠️ `processing` and `held` reach the `default` arm and echo accurately ("Processing" / "Held"). That is
+     * the behaviour both copies already had, preserved here to the character — this change unified the
+     * source, not the output.
+     *
+     * @return array{label: string, tone: string}
+     */
+    protected function payoutStatusMeta(string $status): array
+    {
+        return match ($status) {
+            'pending' => ['label' => 'Pending', 'tone' => 'pending'],
+            'paid' => ['label' => 'Paid', 'tone' => 'confirmed'],
+            'failed' => ['label' => 'Failed', 'tone' => 'no-show'],
+            'reversed' => ['label' => 'Reversed', 'tone' => 'cancelled'],
+            default => ['label' => ucfirst($status), 'tone' => 'departed'],
+        };
     }
 }

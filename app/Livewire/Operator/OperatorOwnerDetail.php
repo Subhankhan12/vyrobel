@@ -650,35 +650,6 @@ class OperatorOwnerDetail extends Component
     }
 
     /**
-     * `payouts.status` — pending|processing|paid|failed|reversed|held. A payout is never shown as
-     * "Scheduled" (no such state) and a failure is always shown honestly rather than softened.
-     *
-     * ⚠️ THE ENUM LIST ABOVE WAS STALE AND SAID "EXACTLY pending|paid|failed|reversed" — the payout engine
-     * added `processing` and `held` after this comment was written. The `default` arm echoes them accurately
-     * ("Processing" / "Held"), so the BEHAVIOUR was never wrong here, only the record of it. ⚠️ The owner
-     * realm's copy of this map was NOT so lucky: its default said "Payout pending", which is wrong about
-     * money — fixed in `FormatsOwnerData::payoutStatusMeta()`.
-     *
-     * ⚠️ NOT UNIFIED WITH THE OWNER TRAIT, DELIBERATELY. Same concept, but the two realms' badge vocabularies
-     * do not overlap: the owner shell defines exactly three tones (paid/pending/draft), this shell defines
-     * fifteen `tone-*` classes and defines neither `paid` nor `draft`. Collapsing the maps would emit tone
-     * strings the receiving shell has no CSS for. The remaining duplication is real but narrower — this copy
-     * and `PayoutRun`'s are byte-identical to each other (logged, not collapsed in this pass).
-     *
-     * @return array{label: string, tone: string}
-     */
-    private function payoutStatusMeta(string $status): array
-    {
-        return match ($status) {
-            'pending' => ['label' => 'Pending', 'tone' => 'pending'],
-            'paid' => ['label' => 'Paid', 'tone' => 'confirmed'],
-            'failed' => ['label' => 'Failed', 'tone' => 'no-show'],
-            'reversed' => ['label' => 'Reversed', 'tone' => 'cancelled'],
-            default => ['label' => ucfirst($status), 'tone' => 'departed'],
-        };
-    }
-
-    /**
      * `management_agreements.status` — the REAL enum only (active | ended).
      *
      * @return array{label: string, tone: string}

@@ -25,6 +25,7 @@
  * `hold()` (`held`) are byte-identical to before. A label fix must not become a money fix.
  */
 
+use App\Livewire\Operator\OperatorOwnerDetail;
 use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
@@ -149,13 +150,34 @@ it('⚠️ the two OPERATOR copies are NOT collapsed into the owner trait — th
     expect($operatorShell)->not->toContain('.vy-tag.tone-paid')
         ->and($operatorShell)->not->toContain('.vy-tag.tone-draft');
 
-    // Both operator copies still exist and still echo unknown statuses rather than re-badging them.
+    // ⚠️ UPDATED 2026-08-16 — THE OPERATOR SIDE IS NOW ONE DEFINITION, WHICH IS WHAT THIS FILE ASKED FOR.
+    // This block used to assert a `private function payoutStatusMeta` inside EACH operator component, because
+    // that is how the map existed when the decision above was recorded. The two copies were byte-identical
+    // and both of their docblocks called the remaining duplication "a real, narrower de-dup, logged rather
+    // than done" — it has now been done, into the `FormatsOperatorData` trait both components already used.
+    //
+    // ⚠️ THE DECISION THIS TEST GUARDS IS UNCHANGED AND STILL GUARDED ABOVE: the operator realm did NOT
+    // collapse into the OWNER trait, and cannot, for the tone-vocabulary reason proved a few lines up. What
+    // changed is that the operator realm stopped keeping two copies of its own map — so the assertion now
+    // follows the code to its single home rather than pinning a shape that no longer exists.
+    $operatorMap = (new ReflectionClass(App\Livewire\Operator\PayoutRun::class))->getMethod('payoutStatusMeta');
+    $otherMap = (new ReflectionClass(OperatorOwnerDetail::class))->getMethod('payoutStatusMeta');
+
+    expect(basename((string) $operatorMap->getFileName()))->toBe('FormatsOperatorData.php')
+        // ⚠️ Same file AND same line — a trait is flattened into the using class, so the declaring class name
+        // alone cannot distinguish one shared definition from two identical copies.
+        ->and($operatorMap->getFileName())->toBe($otherMap->getFileName())
+        ->and($operatorMap->getStartLine())->toBe($otherMap->getStartLine());
+
+    // The behaviour this block always cared about: an unknown status is ECHOED, never re-badged.
+    $operatorSrc = (string) file_get_contents(app_path('Livewire/Operator/Concerns/FormatsOperatorData.php'));
+    expect($operatorSrc)->toContain("default => ['label' => ucfirst(\$status)");
+
+    // ⚠️ And no component may quietly grow its own copy back.
     foreach (['Operator/OperatorOwnerDetail.php', 'Operator/PayoutRun.php'] as $file) {
         $src = (string) file_get_contents(app_path('Livewire/'.$file));
-        expect($src)->toContain('private function payoutStatusMeta(string $status): array')
-            ->and($src)->toContain("default => ['label' => ucfirst(\$status)");
-        // ⚠️ And their docblocks no longer claim the enum is "EXACTLY pending|paid|failed|reversed" — that
-        // sentence was false from the moment the payout engine landed (the §N.8d class, in a comment).
-        expect($src)->not->toContain('the enum is EXACTLY pending|paid|failed|reversed');
+        expect($src)->not->toContain('function payoutStatusMeta(string $status): array')
+            // The stale docblock claim stays gone (the §N.8d class, in a comment).
+            ->and($src)->not->toContain('the enum is EXACTLY pending|paid|failed|reversed');
     }
 });

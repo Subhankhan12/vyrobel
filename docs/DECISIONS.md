@@ -11543,3 +11543,66 @@ data. Both sites of both items render exactly as before, which is the correct ou
 genuinely divergent.
 
 Suite **2339 / 2330**, 15,071 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-16 — the two operator payout maps unified (§1.1 closed, and its headline was stale)
+
+⚠️ **THE BRIEF SAID "TWO OPERATOR MAPS". THE REGISTER SAYS THREE, FLAGS IT 🔴, AND PUTS THE DANGEROUS ONE IN
+THE OWNER REALM.** Reading §1.1 first changed what this pass was: three definitions of "payout status →
+badge" — the owner shared trait plus a private copy inside each of `OperatorOwnerDetail` and `PayoutRun` —
+and the owner copy's `default` arm badged `processing` and `held` as **"Payout pending"**, telling an owner
+that money already in transit had not started moving.
+
+⚠️ **AND THAT HALF WAS ALREADY FIXED — the register row is stale.** `FormatsOwnerData::payoutStatusMeta()`
+now carries explicit arms: `processing` → **"In transit"**, `held` → **"On hold"** (DO-CORRECTNESS-1). Both
+operator copies' docblocks even record the fix. So the money-misinformation defect this red row is named for
+no longer exists; what remained was the duplication.
+
+⚠️ **THE TRAP THIS PASS HAD TO AVOID: "unify to the shared source" WOULD HAVE MADE THINGS WORSE.** The
+obvious §N.8f move is to fold the operator copies into the owner trait. That would have been wrong twice
+over. Both components already documented why, and reading them confirmed it:
+
+- **The tone vocabularies are disjoint.** The owner shell defines exactly three tone classes; the operator
+  shell defines fifteen `tone-*` classes and defines **neither `paid` nor `draft`**. Feeding one realm's tone
+  to the other's CSS yields an unstyled badge — the badge would lose its colour.
+- **The realms speak differently on purpose.** An owner reads "In transit" and "On hold" about their own
+  money; an operator reads the raw state. Collapsing them would have imposed one realm's voice on the other.
+
+An existing test — `PayoutStatusLabelTest`'s third case — pins exactly that reasoning "so a later
+'consistency' pass cannot collapse them without first disproving it". It is a guard on a **decision**, and it
+did its job on me.
+
+**So the unification is within the operator realm only.** The two copies were **byte-identical** (same four
+arms, same `default => ucfirst($status)`), and both docblocks called the remaining duplication "a real,
+narrower de-dup, logged rather than done". It is done: the map moved into `FormatsOperatorData`, the trait
+**both components already used**, and both private copies were deleted — necessarily, since a class method
+silently wins over a trait method and would have left the drift in place while looking fixed.
+
+⚠️ **MONEY: BYTE-IDENTICAL, VERIFIED BOTH WAYS.** All six declared enum states plus an undeclared one were
+captured through the old copies before the change and through the trait after: `pending`→Pending/pending ·
+`processing`→Processing/departed · `paid`→Paid/confirmed · `failed`→Failed/no-show · `reversed`→Reversed/
+cancelled · `held`→Held/departed · unknown→ucfirst/departed. Identical. Reflection then proves both
+components resolve to **the same file AND the same line** (`FormatsOperatorData.php:374`) — the declaring
+class alone proves nothing, because PHP flattens a trait into the using class. Both surfaces rendered as the
+operator: owner-detail and payout-run each show `Paid · tone-confirmed` and `Pending · tone-pending`, matching
+the seeded 5 paid / 1 pending exactly. The `payouts` table is untouched (5 paid €2,804.40 · 1 pending €885.60,
+raw-verified identical before and after).
+
+⚠️ **AN EXISTING GUARD BROKE, AND FOLLOWING IT WAS THE POINT.** `PayoutStatusLabelTest` asserted a
+`private function payoutStatusMeta` inside each operator component — the shape the map had when the decision
+was recorded. Deleting the copies failed it. The decision it guards is unchanged and still guarded; only the
+mechanism moved, so the assertion now follows the map to its single home (same file, same line) and adds a
+stronger clause: **no component may grow its own copy back**. Mutation-proven — re-adding a private copy reds
+it.
+
+**Three further mutations, each verified to land:** changing a label in the one map reds the parity test;
+re-adding a private copy reds the one-source test; re-breaking the owner realm's `processing` arm reds the
+realm-separation test.
+
+⚠️ **NOT TOUCHED:** payout amounts, the payout computation, when `processing`/`held` are SET
+(`OwnerPayoutService::pay()`/`hold()`), §G.1, the badge vocabularies' meaning, failed-payout recovery,
+isolation/RBAC. Three definitions became two — **one per realm, which is the correct number.**
+
+Suite **2343 / 2334**, 15,150 assertions, the same 9 non-green (an `OperatorPortfolioTest` blip appeared in
+one run and passes alone — in-suite ordering, not this change); PHPStan L5 (0); Pint clean.
