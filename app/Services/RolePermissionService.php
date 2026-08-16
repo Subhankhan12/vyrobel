@@ -34,6 +34,55 @@ class RolePermissionService
     /** The capability whose loss would lock an org out of role management — the last-admin guard protects it. */
     private const ROLE_MANAGER_PERMISSION = 'roles.manage';
 
+    /** D23-2 — the display DOMAIN each permission resource belongs to. Presentation only (see {@see domainFor}). */
+    public const DOMAIN_OTHER = 'Other';
+
+    /**
+     * resource → display domain. ⚠️ A MAP, NOT A FILTER: a resource missing here still renders, under
+     * {@see self::DOMAIN_OTHER}. The order of the domains on screen is {@see self::DOMAIN_ORDER}.
+     *
+     * @var array<string, string>
+     */
+    public const DOMAINS = [
+        // Front-of-house and the daily running of the property.
+        'reservations' => 'Operations',
+        'availability' => 'Operations',
+        'restrictions' => 'Operations',
+        'rates' => 'Operations',
+        'housekeeping' => 'Operations',
+        'maintenance' => 'Operations',
+        'schedule' => 'Operations',
+        'units' => 'Operations',
+        'properties' => 'Operations',
+        'addons' => 'Operations',
+        'amenities' => 'Operations',
+        // Everything about the people staying, and what they can reach.
+        'guests' => 'Guests',
+        'guest_documents' => 'Guests',
+        'guest_portal' => 'Guests',
+        'reviews' => 'Guests',
+        'corporate_accounts' => 'Guests',
+        // Money in and money out.
+        'payments' => 'Finance',
+        'payouts' => 'Finance',
+        'invoices' => 'Finance',
+        'folios' => 'Finance',
+        'billing' => 'Finance',
+        'taxes' => 'Finance',
+        'fees' => 'Finance',
+        'reports' => 'Finance',
+        'owner_portal' => 'Finance',
+        // Who may do what, and how the system is configured.
+        'users' => 'System & access',
+        'roles' => 'System & access',
+        'settings' => 'System & access',
+        'organizations' => 'System & access',
+        'api' => 'System & access',
+    ];
+
+    /** The order domains appear in — most-used first; Other last so a new resource is visible, not buried. */
+    public const DOMAIN_ORDER = ['Operations', 'Guests', 'Finance', 'System & access', self::DOMAIN_OTHER];
+
     public function __construct(
         private TenantContext $tenant,
         private PermissionRegistrar $registrar,
@@ -44,7 +93,7 @@ class RolePermissionService
      * The full editable matrix for the screen: every editable role with its meta + members + its permissions
      * (from the DB), grouped into sections, each flagged granted/lockable (the actor can only toggle what they hold).
      *
-     * @return array{permissions: list<array{key: string, label: string}>, sections: list<array{section: string, permissions: list<array{key: string, label: string}>}>, roles: list<array<string, mixed>>}
+     * @return array{permissions: list<array{key: string, label: string}>, sections: list<array{section: string, domain: string, permissions: list<array{key: string, label: string, resource: string}>}>, roles: list<array<string, mixed>>}
      */
     public function matrix(User $actor): array
     {
@@ -230,21 +279,56 @@ class RolePermissionService
     }
 
     /**
-     * Group the flat catalog into resource sections for the matrix (Reservations / Guests / …).
+     * Group the flat catalog into resource sections for the matrix (Reservations / Guests / …), each tagged
+     * with the DOMAIN it displays under (D23-2).
      *
      * @param  list<string>  $catalog
-     * @return list<array{section: string, permissions: list<array{key: string, label: string}>}>
+     * @return list<array{section: string, domain: string, permissions: list<array{key: string, label: string, resource: string}>}>
      */
     private function sections(array $catalog): array
     {
         $grouped = [];
         foreach ($catalog as $perm) {
             [$resource] = array_pad(explode('.', $perm, 2), 2, '');
-            $grouped[ucfirst(str_replace('_', ' ', $resource))][] = ['key' => $perm, 'label' => $this->permLabel($perm)];
+            $grouped[ucfirst(str_replace('_', ' ', $resource))][] = ['key' => $perm, 'label' => $this->permLabel($perm), 'resource' => $resource];
         }
         ksort($grouped);
 
-        return array_map(fn (string $section, array $perms): array => ['section' => $section, 'permissions' => $perms], array_keys($grouped), $grouped);
+        return array_map(
+            fn (string $section, array $perms): array => [
+                'section' => $section,
+                // D23-2 — the DOMAIN this resource belongs to, for a coarser display tier above the
+                // resource headings. Presentation only: it partitions the same sections, adds no permission
+                // and removes none.
+                // A section only exists because a permission was pushed into it, so [0] is always present.
+                'domain' => self::domainFor((string) $perms[0]['resource']),
+                'permissions' => $perms,
+            ],
+            array_keys($grouped),
+            $grouped,
+        );
+    }
+
+    /**
+     * D23-2 — which broad DOMAIN a permission's resource belongs to, for display grouping only.
+     *
+     * ⚠️ THIS CHANGES WHERE A ROW IS DRAWN AND NOTHING ELSE. The catalogue, the labels, the grants and the
+     * spatie-teams checks are all untouched; a role granted `units.manage` is identical whether or not
+     * "Operations" is a heading. 49 permissions currently sit under **30** resource headings, 20 of which
+     * hold a single row — grouped in name, flat to the eye. This is the coarser tier that makes it scannable.
+     *
+     * ⚠️ THE LABELS ARE DELIBERATELY NOT TOUCHED. The design's friendly names ("Manage team & roles") were
+     * REFUSED by the design pass for a reason that still holds: that phrase conflates `users.manage` and
+     * `roles.manage`, which this product deliberately separates — they are the two tiers gating this very
+     * page. Blurring two permissions on the screen that grants them is a correctness risk, not a copy
+     * improvement. Every row keeps its exact 1:1 key-derived label; only the headings above them changed.
+     *
+     * ⚠️ UNMAPPED RESOURCES FALL TO "Other" AND ARE STILL SHOWN. A new permission added tomorrow appears
+     * under Other rather than vanishing from the matrix — an admin cannot grant what they cannot see.
+     */
+    public static function domainFor(string $resource): string
+    {
+        return self::DOMAINS[$resource] ?? self::DOMAIN_OTHER;
     }
 
     private function permLabel(string $perm): string

@@ -28,6 +28,7 @@
             <div x-data="rolesMatrix({
                 roles: @js($matrix['roles']),
                 sections: @js($matrix['sections']),
+                domainOrder: @js(\App\Services\RolePermissionService::DOMAIN_ORDER),
                 lockable: @js($matrix['lockable']),
                 canEdit: {{ $canEdit ? 'true' : 'false' }},
                 readOnly: {{ $readOnly ? 'true' : 'false' }},
@@ -58,7 +59,17 @@
                         </div>
                         <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">Toggle what this role can access. Changes apply to everyone assigned to it.</p>
 
-                        <template x-for="section in sections" x-bind:key="section.section">
+                        {{-- D23-2 — a coarser DOMAIN tier above the resource headings. 49 permissions sat
+                             under 30 resource headings, 20 of them holding one row: grouped in name, flat to
+                             the eye. This groups those SAME sections; it adds no permission and removes none,
+                             and every row keeps its exact 1:1 key-derived label (the design's friendlier
+                             phrasing was refused because "Manage team & roles" conflates `users.manage` with
+                             `roles.manage` — two permissions this product separates, on the screen that
+                             grants them). --}}
+                        <template x-for="domain in domains" x-bind:key="domain.domain">
+                        <div>
+                            <div class="vyr-domain" x-text="domain.domain"></div>
+                        <template x-for="section in domain.sections" x-bind:key="section.section">
                             <div style="border-top: 1px solid var(--vy-hairline); padding: 10px 0;">
                                 <div class="vyr-section" x-text="section.section"></div>
                                 <div class="vyr-perms-grid">
@@ -73,6 +84,8 @@
                                     </template>
                                 </div>
                             </div>
+                        </template>
+                        </div>
                         </template>
 
                         @if ($canEdit && ! $readOnly)
@@ -178,6 +191,13 @@
             return {
                 roles: config.roles,
                 sections: config.sections,
+                // D23-2 — the domain tier is a VIEW TRANSFORM over `sections`: same objects, regrouped.
+                // Building it here (rather than shipping a second list) means there is one source of truth
+                // and no way for the two to disagree about which permissions exist.
+                domains: config.domainOrder
+                    .map(name => ({ domain: name, sections: config.sections.filter(s => s.domain === name) }))
+                    .filter(d => d.sections.length > 0),
+                domainOrder: config.domainOrder,
                 lockable: config.lockable,
                 canEdit: config.canEdit,
                 readOnly: config.readOnly,
@@ -207,6 +227,9 @@
         .vyr-role-desc { font-size: 11px; color: var(--vy-muted); margin-top: 2px; line-height: 1.4; }
         .vyr-role-meta { font-size: 11px; color: var(--vy-faint); margin-top: 4px; }
         .vyr-section { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 8px; }
+        /* D23-2 — the domain tier: the same uppercase idiom as .vyr-section, one step louder so it reads as
+           the outer grouping. --vy-muted is the AA-corrected token. */
+        .vyr-domain { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); margin: 18px 0 2px; padding-bottom: 6px; border-bottom: 2px solid var(--vy-accent-border, rgba(194,65,12,.18)); }
         .vyr-perms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 12px; }
         /* The design renders each permission as a SWITCH rather than a bare checkbox. The input stays a real
            `input[type=checkbox]` — only its appearance changes — so the form payload, the x-model binding and

@@ -10795,3 +10795,60 @@ on a different surface. Out of scope here.
 **Untouched:** the housekeeping system and its statuses · the elapsed/expected bar · the derivation's inputs ·
 isolation/RBAC. Suite **2275 / 2266**, 14,542 assertions, 6 non-green = the documented set; PHPStan L5 (0);
 Pint clean.
+
+---
+
+## 2026-08-15 — D23-2 · a domain tier on the permission matrix (display only)
+
+⚠️ **THE BRIEF'S PREMISE WAS FALSE, AND THE CODE SAID SO.** The task described "a flat, hard-to-navigate
+list". The matrix has grouped permissions by RESOURCE since it was built — `sections()` partitions on the key
+prefix and the view renders a heading per group. The ledger's "aren't grouped" and the register's "the live
+matrix groups by resource" disagreed; the code settled it. (§N.9's rule, again: verify a finding — including
+one of our own — before acting on it.)
+
+**But the gap is real, and measuring it showed why:** **49 permissions under 30 resource headings, 20 of them
+holding exactly one row.** Grouped in name, flat to the eye. So the build is the coarser tier the design
+actually asks for — **Operations · Guests · Finance · System & access** — above the resource headings.
+
+⚠️ **THE OTHER HALF STAYS REFUSED, ON THE DESIGN PASS'S OWN ARGUMENT.** D23-2 also wants friendly capability
+names, and that was refused with a reason that still holds exactly: *"Manage team & roles"* conflates
+`users.manage` **and** `roles.manage` — **the two tiers gating this very page**. Blurring two permissions on
+the screen that grants them is a correctness risk, not a copy improvement. Every row keeps its 1:1
+key-derived label; only the headings above them changed. A test asserts the two keep separate rows in
+separate sections and that the conflated phrase never appears.
+
+⚠️ **PARTITIONED, NOT FILTERED — the guard the whole pass rests on.** An admin cannot grant what they cannot
+see, so a grouping that silently drops a permission removes a capability from the product's reach. The test
+compares the grouped set against the **catalogue the matrix itself publishes** (never a pinned number): same
+set, each key exactly once. An unmapped resource falls to **"Other"**, which is in the display order — so a
+permission added tomorrow appears rather than vanishing.
+
+**Display only, and structurally so:** the domains are a VIEW TRANSFORM built in the component from the same
+`sections` list, not a second list shipped alongside it — there is one source of truth and no way for the two
+to disagree about which permissions exist. `catalogPermissions()`, `permLabel()`, `save()` and the
+spatie-teams checks are untouched.
+
+**Proven:** 7 tests; **3 mutations, each verified to land** — an unmapped resource escaping the ordered
+domains, a whole domain filtered out of the sections, and a permission duplicated into two groups. Plus a test
+that a saved grant still genuinely authorises through spatie (team-pinned), so the grouping changed no
+behaviour.
+
+⚠️ **THE BROWSER CHECK THAT MATTERED MOST WAS A NO-OP SAVE.** Re-grouping the markup could have dropped
+`permissions[]` inputs — and because the save DIFFS against the DB, a dropped input does not fail loudly, it
+**silently revokes**. Saving a role unchanged and confirming the pivot stayed at 250 (Group Admin still 42, 49
+permissions) proves the regrouped form still submits the complete set, and left the demo untouched.
+
+⚠️ **THREE INSTRUMENT SLIPS, ALL MINE.** The page 403'd as `demo-staff` — this screen needs `roles.manage`,
+so the pass had to run as `demo-admin` (§N.14.1: a render pass is bounded by the ROLE it runs as). A `can()`
+asserted outside the spatie TEAM context answers for no team and reads as revoked. And "System & access"
+reaches the page through `Js::from`, which escapes the ampersand to a unicode escape and then escapes THAT
+backslash again for its `JSON.parse('…')` wrapper — two hand-written needles missed it silently before the
+assertion was changed to **derive** the payload the same way the view does.
+
+Rendered as the Property Owner: four domain headings, 30 resource sections beneath them, **49 permission rows
+— the exact catalogue count**. RBAC state identical to the pre-pass snapshot.
+
+**Untouched:** the permission catalogue · the labels · the role→permission grants · the spatie-teams
+enforcement · `organization_id` isolation. **Not built:** `D23-3` (roles as a card grid) — the register keeps
+it as its own gate because it restructures the page's three-column shape. Suite **2282 / 2273**, 14,721
+assertions, 6 non-green = the documented set; PHPStan L5 (0); Pint clean.

@@ -303,7 +303,8 @@ few layers · **L** = a subsystem.
 | `D24-1` | No session location (city/country) beside device + IP | STILL-OPEN — needs a geo-IP source (external) | `OperatorSecurity.php` | M |
 | `DO13-1` | No new-device email alert, no full sign-in history, no session timeout (named honestly in a "Coming soon" card) | STILL-OPEN | `owner-security.blade.php:301-308` | M |
 | `DO13-3` | The data export is an immediate JSON download, not the promised emailed secure link | STILL-OPEN | | S |
-| `D23-2`/`D23-3` | Permissions aren't grouped into friendly capability domains; roles aren't a card grid | STILL-OPEN | `OperatorRoles.php` | M |
+| `D23-2` | Permissions aren't grouped into friendly capability domains | 🏁 **CLOSED 2026-08-15 — the NAVIGATIONAL half built, the LABEL half still refused.** ⚠️ **Ledger correction: they were already grouped** — by RESOURCE — so "flat list" was wrong. The real problem was the shape: **49 permissions under 30 resource headings, 20 holding a single row** — grouped in name, flat to the eye. A coarser DOMAIN tier (Operations · Guests · Finance · System & access) now sits above them. ⚠️ The design's friendly labels stay REFUSED on the design pass's own still-valid argument: "Manage team & roles" conflates `users.manage` and `roles.manage`, the two tiers gating this very page. Display-only: catalogue, labels, grants and spatie checks untouched | `RolePermissionService::domainFor()`; `RolePermissionGroupingTest` (7 tests, 3 mutations) | — |
+| `D23-3` | Roles aren't a card grid | STILL-OPEN — presentation, deliberately its own gate | `OperatorRoles.php` | S |
 | `DO-G11-1` | An expired guest link's 403 shows **operator** role/permission copy to a guest | UNVERIFIED — see §8 | register `§G-11` | S |
 
 ### 3.8 Guest portal
