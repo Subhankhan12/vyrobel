@@ -11982,3 +11982,51 @@ displayed yesterday. §G.1, VAT presentation, the computation and the resolver's
 the grid was **not** re-shaped (that remains its own item).
 
 Suite **2369 / 2358**, 15,225 assertions, the same 9 non-green; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-6 / STRUCT-1 · the re-shape was not deferred; it was DECIDED. Not re-shaped.
+
+⚠️ **THE BRIEF'S PREMISE — "the shape change was deferred as STRUCT-1 pending per-unit, now unblocked" — is
+not what the record says, and the brief itself warned that this area's descriptions have been wrong twice.**
+They were wrong a third time.
+
+**What STRUCT-1 actually was** (`docs/WAVE4-INVENTORY.md:96`, verbatim):
+
+> **STRUCT-1 grid decision** (decision, then S) — per-room-type rows (with "N units" sub-label) vs a
+> 1-unit-per-room-type rule.
+
+It was a **fork between two shapes**, to be decided before the grid was built — not a re-shape parked until
+per-unit pricing existed. And it **was decided**, in favour of per-room-type rows; `RatesGrid`'s own docblock
+records the decision and its reasoning: *"the design's per-physical-unit grid cannot be backed without
+silently editing every unit under a room type. Each row here is a ROOM TYPE… The sub-label states how many
+physical units sit under it, so the operator is never misled about what a save touches."* That sub-label is
+the one reconciled two passes ago.
+
+⚠️ **AND PER-UNIT PRICING DOES NOT AUTOMATICALLY UNBLOCK THE OTHER SHAPE — IT CHANGES WHAT AN EDIT MEANS.**
+The original objection was that a per-unit grid would silently edit every unit under a type. Overrides remove
+that specific objection and introduce a larger one: **on a per-unit grid, every rate edit would mint an
+override.** A row is a unit, so saving a price for it can only mean "this unit's own price". Within a few
+edits every unit is permanently detached from its type's pricing, the type rate stops being the thing that
+moves prices, and the blast-radius warning reads "0 of 3 units" everywhere — the safeguard rendered useless
+by the shape rather than by a bug.
+
+⚠️ **That is a product decision, and it is NOT the one the founder made.** The ruling was *"two units of the
+same room type MAY be priced apart"* — permission for the exception. A per-unit grid makes the exception the
+default, which is a different claim entirely, and phases 1–3 have repeatedly shown that the distance between
+those two is where the money goes wrong.
+
+**So nothing was re-shaped.** No code changed; `rate_calendar` still hashes `2bbdafccc3b5c1ee43f89fe313a3f02d`
+(929 rows, 10,920,000 minor). The grid keeps per-room-type rows, which is the decided shape and remains
+correct: it prices the type, warns how many units that reaches, and — since two passes ago — excludes the
+units that carry their own price.
+
+⛔ **THE QUESTION FOR THE FOUNDER, if a per-unit grid is still wanted:** *should editing a rate on a unit row
+create a per-unit override for that unit?* If **yes**, the grid can become per-unit rows and every edit mints
+an override (say so in the UI, because it is irreversible in effect — that unit stops following its type). If
+**no**, per-room-type rows are already the right shape and D18-6 is closed as-is. A third option — unit rows
+that are read-only until explicitly "priced individually" — keeps both behaviours honest and is probably what
+the design intends, but it is a design decision, not an inference I should make.
+
+**Untouched:** every rate value, the resolver, the grid, §G.1, isolation/RBAC. Suite unaffected (no code
+changed).
