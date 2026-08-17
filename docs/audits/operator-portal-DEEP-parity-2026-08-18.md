@@ -1330,3 +1330,92 @@ yet, and the decision is yours" is the honest form.
 ## REMAINING
 
 **33 of 50** — presentation parity only.
+
+---
+
+# ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
+
+**33 of 50 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
+Follow it and the remaining pages are mechanical.
+
+## 1 · Start the two servers
+
+    php artisan serve --port=8000
+    (cd docs/design/raw && python3 -m http.server 8099)
+
+## 2 · ⚠️ LOG IN — this is where two runs were lost
+
+    await page.context().clearCookies();                       // ⚠️ /logout is a POST; a GET does nothing
+    await page.goto('.../login', {waitUntil:'networkidle'});
+    await page.reload({waitUntil:'networkidle'});              // ⚠️ stale CSRF after clearing cookies
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', 'password');
+    await page.evaluate(() => document.querySelector('form').submit());   // ⚠️ page.click() does NOT fire the POST
+
+⚠️ **Without `clearCookies()` every role returns identical output** (a stale session) — which reads like "no
+gating at all" and is pure instrument error. ⚠️ **Without the native `form.submit()` the login silently
+no-ops** and the role looks perfectly gated when it is simply not logged in. **Prove a role CAN see before
+trusting that it CANNOT.**
+
+## 3 · ⚠️ READ CONTROLS BY VISIBILITY, never by presence
+
+    const isVis = el => typeof el.checkVisibility === 'function'
+      ? el.checkVisibility({checkOpacity:false, checkVisibilityCSS:true})
+      : (el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0);
+
+⚠️ **Do NOT harvest `innerText || aria-label || title` across all elements** — a hidden button returns `''`
+for `innerText` but still yields its `aria-label`, which manufactured a false over-exposure on the front desk.
+Scope every read to `document.querySelector('main')`, not the whole page: the operator shell renders nav,
+bell and search on every screen and collides with content strings.
+
+## 4 · ⚠️ ROUTE GATING — three gate types, and one wrong needle
+
+    php artisan route:list --path=app --json     # then match 'Middleware\Authorize:' — NOT 'can:'
+
+⚠️ `can:` is resolved to `Illuminate\Auth\Middleware\Authorize:<perm>` in the JSON; searching for the alias
+returns "0 gated" and is wrong. ⚠️ **There are THREE gate types** — permission (`Authorize:`), subscription
+(`EnsureSubscriptionActive`), and **plan feature (`EnsurePlanFeature`, which 403s `/app/channels` for every
+role on Essential)`. ⚠️ **A regex over URIs must not stop at the dot** — `app/[a-z0-9/_{}-]*` silently
+truncated `folio.pdf` and all six `export.{csv,pdf,xlsx}` routes, hiding the entire export surface.
+
+⚠️ **And prefer MEASURING to sweeping**: fetch each route as `demo-housekeeper` (the least-privileged role)
+and read the status. Run 13 replaced four revisions of inference with one pass of ground truth, and only then
+found `/app/notifications` leaking money.
+
+## 5 · The four demo roles (all password `password`)
+
+    demo-admin@vyrobel-demo.test         Property Owner   49 perms
+    demo-staff@vyrobel-demo.test         Hotel Manager    37
+    demo-accountant@vyrobel-demo.test    Accountant       12
+    demo-housekeeper@vyrobel-demo.test   Housekeeping      4
+
+⚠️ `CLAUDE.md` still says `demo-staff` is *"the only demo account that can reach `/app`"* — **stale; four do.**
+
+## 6 · Per page, in order
+
+1. Open the wireframe on `:8099`, hydrate (~2.4 s), read `innerText` + visible controls.
+2. Open the live page on `:8000` as **Property Owner** (the reference render), then as any role whose
+   control-set should differ.
+3. Diff element-by-element → MATCH / DIVERGENCE / MISSING / EXTRA.
+4. ⚠️ **Before writing MISSING, read the view source.** Three times in the owner audit and twice here, an
+   absence was a feature that was built and data-gated, role-gated, or a documented refusal
+   (`DECISIONS.md` — e.g. the seasonal apply-panel).
+5. Screenshot to `.captures/deep-operator-NN-{page}-{role}.png` (⚠️ `.captures/` is **gitignored** — local only).
+6. Append the page section and update the authoritative header at the top.
+
+## 7 · Pages still to diff (33)
+
+`units`(no wireframe) · `insights` · `reports` · `portfolio` · `search` · `schedule` · `schedule/pdf` ·
+`roles` · `settings` · `security` · `profile` · `notifications` · `notification-preferences` ·
+`guest-requests` · `unit-requests` · `group-booking` · `reservations/create` · `guests/{id}` ·
+`inbox/{thread}` · `owners/{id}` · `maintenance/{id}` · `maintenance/costs` · `maintenance/settings` ·
+`email-templates` · `email-templates/{key}/edit` · `email-previews` · `email-previews/{key}` ·
+`billing` · `billing/checkout` · `rack` · `owners/invite/preview` · `reports/export.*` ·
+`maintenance/costs/export.*`
+⚠️ **`channels` cannot be diffed on this demo** — plan-gated (Pro-only); it needs a Pro org.
+
+## 8 · Never
+
+Exercise a mutation · POST a gated action to test enforcement · change code · leave the demo dirty.
+**Confirm the baseline at the end:** `rate_calendar` md5 `693e3237b51205e5373e9833b23c8b34` · 929 rows ·
+10,920,000 minor · 0 overrides · 41 reservations · 0 seasons · 40 folio items · 16 payments.
