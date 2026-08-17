@@ -3,6 +3,7 @@
 use App\Models\Guest;
 use App\Models\Note;
 use App\Models\Reservation;
+use App\Models\Review;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\FolioService;
@@ -294,12 +295,51 @@ it('renders the real vocabulary and honest states — no fabricated review or br
         ->assertDontSee('Completed')
         ->assertDontSee('Booking.com')
         // #87 — the review panel is now REAL (reviews module #76) with an HONEST empty state (this guest has
-        // none), never a fabricated 5.0.
+        // none), never a fabricated rating.
+        //
+        // ⚠️⚠️ THE NEEDLE WAS `'5.0'`, AND IT WAS THE ONLY REASON THIS TEST WAS RED — the product was right all
+        // along. Three characters is too small a target: the ONE occurrence in 213 KB of markup was inside a
+        // shipped CSS comment from the a11y token work — *"rgb(147,42,7) clears the darkest sampled tint at
+        // 5.06"* — a CONTRAST RATIO, in `components/layouts/operator.blade.php`. Blade comments are stripped,
+        // but CSS comments SHIP (§N.15.3), so the layout carried `5.06` into every operator page and `'5.0'`
+        // matched the substring. The assertion was therefore asserting nothing about reviews at all.
+        //
+        // ⚠️ DERIVED FROM THE WAY THE VIEW WRITES A RATING, not typed by hand: the panel renders
+        // `aria-label="{rating} out of 5 stars"` and the bold figure beside it ONLY when a review exists. So
+        // that phrase is present exactly when a rating is on screen and cannot collide with a ratio, a price
+        // or a version. The companion test below seeds a REAL review and proves the phrase appears — without
+        // that, this `assertDontSee` would be the same phantom in a longer costume.
         ->assertSee('Latest review')
         ->assertSee('No reviews yet')
-        ->assertDontSee('5.0')
+        ->assertDontSee('out of 5 stars')
         // #87 — the preferences flow is now REAL; the hint is truthful (front desk + housekeeping do read it).
         ->assertSee('Shown to housekeeping')
         // Omitted by precedent: no billing backend reads subscriptions.status.
         ->assertDontSee('Workspace paused');
+});
+
+// ── 8b. ⚠️⚠️ THE NEEDLE CAN REGISTER A POSITIVE — otherwise 8's assertDontSee proves nothing ──────
+it('renders a real review rating, which is what makes the no-fabrication assertion meaningful', function () {
+    $s = seedScenario(1);
+    $guest = profileGuest();
+    $stay = profileStay($s, 0, $guest, 'checked_out', '2026-08-01', '2026-08-03');
+
+    // A REAL review by this guest — the only thing that puts a rating on the page.
+    Review::create([
+        'organization_id' => $s['org']->id,
+        'property_id' => $s['property']->id,
+        'reservation_id' => $stay->getKey(),
+        'guest_id' => $guest->getKey(),
+        'rating' => 5,
+        'body' => 'A genuinely lovely stay.',
+        'status' => 'published',
+    ]);
+
+    $html = $this->actingAs(operatorUser($s))->get('/app/guests/'.$guest->id)->assertOk()->getContent();
+
+    // ⚠️ THE PROBE RULE: the phrase test 8 forbids DOES appear when a rating is genuinely rendered, so its
+    // absence there is evidence rather than an accident of wording.
+    expect($html)->toContain('out of 5 stars')
+        ->and($html)->toContain('5.0')          // the real figure, rendered by number_format($rating, 1)
+        ->and($html)->not->toContain('No reviews yet');
 });

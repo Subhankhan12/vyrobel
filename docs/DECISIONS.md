@@ -12825,3 +12825,52 @@ that cannot be vacuous.
 other channels. Demo money-as-seeded (0 overrides; `rate_calendar` `2bbdafccc3b5c1ee43f89fe313a3f02d`).
 
 Suite **2413 / 2416**, 15,523 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — `OperatorGuestProfileTest`: the product was right; a 3-character needle hit a CSS comment
+
+⚠️⚠️ **THE FIFTH CONSECUTIVE "CONSISTENTLY RED" LABEL THAT WAS WRONG AT THE MECHANISM — and this time my own
+first reading of the failure was wrong too.** The register filed it as a "rendered-HTML mismatch". The runner
+printed *"Failed asserting that '…213 KB of HTML…' does not contain \"5.0\""*, which I first read as a missing
+`assertSee`. It is the opposite: that sentence is how PHPUnit states an **`assertDontSee`** — the assertion is
+*"assert the page does NOT contain 5.0"*, and it failed because the page **does**.
+
+**THE TRUE CAUSE — category (d), a needle that can match what it never meant.** Scanning the whole rendered
+page found **exactly one** occurrence of `5.0`, and it is not a rating:
+
+    rgb(147,42,7) clears the darkest sampled tint at 5.06
+
+A **contrast ratio**, in a CSS comment in `components/layouts/operator.blade.php`, written during the a11y
+token work. ⚠️ **Blade comments are stripped; CSS comments SHIP (§N.15.3)** — so that layout carries `5.06`
+into every operator page, and the three-character needle `'5.0'` matched the substring. **The product has been
+correct the whole time**: the review panel renders its honest "No reviews yet", exactly as intended (#87).
+The assertion was asserting nothing about reviews at all — it was a phantom, and the fix is the test.
+
+**THE FIX — the needle DERIVED FROM THE WAY THE VIEW WRITES A RATING**, not typed by hand: the panel emits
+`aria-label="{rating} out of 5 stars"` (and the bold figure beside it) **only** when a review exists. So
+`assertDontSee('out of 5 stars')` is present exactly when a rating is on screen and cannot collide with a
+ratio, a price or a version string.
+
+⚠️ **AND A POSITIVE TEST, BECAUSE A `assertDontSee` ALONE IS THE SAME PHANTOM IN A LONGER COSTUME.** Test 8b
+seeds a REAL published review and proves the page then contains `out of 5 stars` **and** `5.0`. That is the
+probe rule this session has now needed four times: *a negative is only evidence once the probe is shown
+capable of a positive.* Without it, the corrected needle would be no better than the old one.
+
+**TWO MUTATIONS, EACH VERIFIED TO LAND, ONE PER DIRECTION:** returning a hardcoded 5-star review when the
+guest has none — the exact fabrication #87 exists to forbid — **reds test 8 itself** (checked by name, not by
+count); and removing the rating's aria-label reds the positive proof, confirming the needle is live rather
+than decorative.
+
+⚠️ **NO PRODUCT CODE CHANGED** — `git diff --name-only` is the one test file. Fixing this in the product
+would have been the (c) remedy applied to a (d) cause: the "which side is stale" fork, answered by reading the
+rendered bytes instead of the label.
+
+**THE SUITE IS NOW FULLY GREEN: 2415 / 2417, 15,529 assertions — 0 FAILED, 0 ERRORED, 2 skipped**, read across
+all three buckets (the reporting defect corrected earlier this session). The non-green figure has gone **9 → 0**
+over this run of work: `OwnerUnitDetailViewTest` (fixture ORDER), `PhaseBEndToEndTest` (a framework helper
+eating the message over a stale password), `BookingImportTest` ×6 (a memory-starved queue worker),
+`OperatorPortfolioTest` (never reproduced), and now this one (a needle collision). ⚠️ **Not one of the five was
+what its register entry said it was, and only one of the five was a defect in the product.**
+
+PHPStan L5 (0); Pint clean.
