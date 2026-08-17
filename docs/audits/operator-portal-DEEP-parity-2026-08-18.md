@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **29 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **19 of 50** — presentation parity only |
+> | **Pages fully diffed** | **31 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **17 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1846,6 +1846,74 @@ mutations surfaced/exercised **17 / 0** · **code changed 0**.
 ## REMAINING
 
 **19 of 50.**
+
+---
+
+# RUN 24 — `/app/billing` · ⚠️ THE STORED CARD, REFUSED AGAIN
+
+## Gating
+
+| Role | `/app/billing` |
+|---|---|
+| Property Owner (`billing.manage` ✓) | **200** |
+| Hotel Manager | **403** |
+| Accountant · Housekeeping | **403** (run 1) |
+
+**Correctly gated — Property Owner only**, matching `billing.manage`.
+
+## ⚠️⚠️ THE FABRICATED CARD — refused on a THIRD surface
+
+`Operator Billing.html` shows a fully-populated commercial relationship:
+
+> `Pro · Active · Monthly · 6 units × €9,00 · subscribed 5 Jul 2026 · €66,42/mo incl. 23% VAT`
+> `Next invoice 5 Aug 2026 · €66,42 to **Visa ····4242** — reminder email 3 days before`
+> `Invoices — #S-0001 · Pro monthly · 5 Jul 2026 · **Visa ····4242** · Paid €66,42 · PDF`
+> `Switch to yearly · save €129,60`
+
+**The live page shows the REAL subscription and NO CARD:** `Essential · Active · Monthly · subscribed
+15 Aug 2026 · €49.00/mo`. ⚠️ **Card-detection on the rendered text returns FALSE** — no `Visa`, no `····`,
+no masked PAN anywhere.
+
+⚠️ **Confirmed against the data, not just the render:** the org's `stripe_subscription_id` is **NULL**. There
+IS no card on file, so printing `Visa ····4242` would be inventing a payment instrument — and #41 holds that
+the live charge is account-gated and an org is never flipped to active off a fake payment.
+
+⚠️ **THIS IS THE THIRD SURFACE ON WHICH THE SAME FABRICATED CARD IS REFUSED**, across two realms:
+1. **Owner Settings** (owner audit, page 16 item 21) — `Visa ···· 4242 · Expires 04/27` + `Update`
+2. **Owner Booking-detail / Refund** (owner audit; operator run 4) — `Original card · Visa ····4242`
+3. **Operator Billing** (here) — the subscription card + two invoice rows
+
+⚠️ **Together with the `Suspicious login blocked` refusal in BOTH realms (run 20), that is two distinct
+fabrications each refused everywhere they appear.** A refusal applied once is a choice; applied consistently
+across surfaces and realms it is a **policy** — and this audit has now measured it four times.
+
+## Element diff vs `Operator Billing.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Settings` tabs `General` · `Team` · `Billing` | present | **MATCH** |
+| 2 | Plan + status (`Pro · Active`) | **`Essential · Active`** (real) | **MATCH** |
+| 3 | `Monthly · 6 units × €9,00 · subscribed 5 Jul 2026` | `Monthly · subscribed 15 Aug 2026` | **MATCH** — ⚠️ per-unit price breakdown absent (the real plan is flat-rate) |
+| 4 | `€66,42/mo incl. 23% VAT` | **`€49.00/mo`** (real plan price) | **MATCH**; the VAT-inclusive label absent — **DIVERGENCE, minor** |
+| 5 | `Next invoice … to **Visa ····4242**` | next-invoice date present, **no card** | ⚠️ **DIVERGENCE — RATIFIED refusal** (`stripe_subscription_id` NULL; #41) |
+| 6 | `Invoices` list with `Paid` + `PDF` per row | not populated | **DATA-DEPENDENT** — no real invoices exist (no live charge has run, #41) |
+| 7 | `Switch to yearly · save €129,60` | absent | **DIVERGENCE — the saving is a computed claim** on a plan/period pair that has never been billed |
+| 8 | `30-day trial 5 Jun – 4 Jul 2026` | absent | **DATA-DEPENDENT** (this org is past trial, on a real subscription) |
+| 9 | `Change plan` | present | **MATCH** |
+
+⚠️ **MUTATION SURFACED, NOT EXERCISED:** `/app/billing/checkout` → Stripe Checkout (`billing.manage`).
+⚠️ **Deliberately not opened** — it is the subscription-purchase seam, and #45 keeps the live-key flip as the
+founder's step.
+
+## Updated tally
+
+Pages fully diffed **31 of 50** · findings 3 · candidates open 1 · candidates resolved 4 ·
+⚠️ **refusals confirmed 31** (+ stored card, yearly-saving, VAT label) · auditor self-corrections 7 ·
+hypotheses killed 1 · mutations surfaced/exercised **18 / 0** · **code changed 0**.
+
+## REMAINING
+
+**17 of 50.**
 
 ---
 
