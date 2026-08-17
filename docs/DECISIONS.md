@@ -12220,3 +12220,56 @@ channel-sync per-unit · the storefront plumbing (still stopped, `5329211`).
 
 Suite **2371 / 2382**, 15,311 assertions, the documented non-green 6 (BookingImport ×5 + OperatorGuestProfile
 ×1); PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — the last two invented '15:00' sites, both guest-facing (items 22 + 23)
+
+⚠️ **A SWEEP FIRST, AND THIS TIME IT CONFIRMED THE LEDGER RATHER THAN EXPANDING IT** (§N.27.11 — confirm-first
+cuts both ways). Grepping every `15:00`/`11:00` in `app/` and `resources/views/` returned twelve hits, of which
+**exactly two were fabrications**: `GuestCheckinController::timeLabel()` and `emails/pre-arrival.blade.php:65`.
+The rest are explanatory comments from the earlier passes, the check-in page's **real** arrival-window ranges
+(`'15-18' => '15:00–18:00'`), shift labels, and a `<input type="time">` helper. The register's count was right.
+
+⚠️⚠️ **15:00 IS NEVER "THE DEFAULT" — CONFIRMED AT THE SCHEMA.** `properties.check_in_time` / `check_out_time`
+are `time NULL` with **`Default: NULL`**, and there is **no config default anywhere**. So the fix is "publish or
+say nothing", never "read the default from config". ⚠️ And the reason it survived review is visible in the same
+query: **both demo properties publish exactly 15:00 and 11:00**, so the invention and the fact were
+indistinguishable in every demo and every fixture (#39).
+
+**ITEM 23 — THE PRE-ARRIVAL EMAIL (the live one, and the higher stakes).** `?? '15:00'` / `?? '11:00'` sat at
+the last step before sending. `ArrivalPack::time()` already returns NULL correctly, so the fabrication was
+purely the template's. Now: published times render (`In from 14:00 … out by 10:30`), and an unpublished
+property gets the real DATES plus an honest line — *"The property will confirm your check-in and check-out
+times."* ⚠️ **VALUE ONLY** — every span, style and the "Arriving early?" line below it are untouched (a test
+pins them). ⚠️ **An email cannot be recalled**, which is exactly why this one mattered more than its sibling.
+
+⚠️⚠️ **ITEM 22 WAS SMALLER THAN THE REGISTER SAID — THE FABRICATION IS DORMANT.** The brief's premise was "a
+guest can be told to arrive at a time the property never published". **`guest/checkin.blade.php` never renders
+the `checkInTime` the controller computes** — no guest is being shown 15:00 today. It was fixed anyway rather
+than deleted, because the value is one `{{ $checkInTime }}` away from going live, and a dormant fabrication
+that later becomes visible is the hardest kind to catch (the §N.27.9 hazard, inverted). Both of its branches
+now resolve through the ONE idiom, `StayTime::display()` (§N.8f).
+
+⚠️ **A THIRD SILENT NON-EDIT, AND `php -l` COULD NOT SEE IT.** Adding `use App\Support\StayTime;` targeted
+`use App\Services\GuestIdDocumentService;` — the real line is `App\Services\Guest\GuestIdDocumentService`, so
+the replace no-op'd. The lint passed (unresolved classes are a RUNTIME failure, not a syntax one) and my
+verifying grep printed only the method line. Re-applied with an assert, then proven by **invoking the real
+private method through reflection**: `14:00:00 → "14:00"`, `null → NULL`, `"nonsense" → NULL`.
+
+**NOT A DEFECT, LOGGED:** `BookingConfirmationMail::timeLabel()` is already honest (returns `''` when unset),
+but it is a **third private re-implementation** of what `StayTime::labelled()` does — a §N.8f duplication, not
+a fabrication. Left alone deliberately (over-reach), recorded here.
+
+**MUTATIONS, EACH VERIFIED TO LAND:** restoring the email's `?? '15:00'`/`?? '11:00'` reds two email tests —
+and the landing was verified **in the COMPILED Blade output**, because Blade comments do not survive
+compilation and a source grep would have read the explanatory comment the fix itself added (§N.27.5, hit for
+the third time this session); restoring `?? '15:00'` on the controller reds the method test.
+
+**RENDERED (§N.21.6), REAL BYTES, BOTH WAYS:** published → `In from 14:00 Wed, 2 Sep · out by 10:30 Fri, 4 Sep.`
+with no absence line; unpublished → `In on Wed, 2 Sep · out on Fri, 4 Sep.` **plus** the honest line, and **no
+fabricated hour in either**. ⚠️ Rendered against **14:00/10:30, never 15:00** — against a 15:00 property the
+invention and the fact are indistinguishable and a restored fallback would pass happily. Fixture reverted to
+data-as-seeded (both demo properties back to 15:00:00 / 11:00:00, verified by re-reading the row).
+
+Suite **2377 / 2388**, 15,338 assertions, the documented non-green 6; PHPStan L5 (0); Pint clean.

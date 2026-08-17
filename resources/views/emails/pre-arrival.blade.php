@@ -62,7 +62,24 @@
         <tr>
             <td style="padding:14px 16px;">
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:12px; color:#5F5853;">Check-in &amp; out</span><br>
-                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">In from {{ $checkInTime ?? '15:00' }} {{ $checkInLabel }} · out by {{ $checkOutTime ?? '11:00' }} {{ $checkOutLabel }}.</span>
+                {{-- ⚠️⚠️ A TIME IS A FACT OR NOTHING, AND AN EMAIL CANNOT BE RECALLED (#39). These read
+                     `?? '15:00'` / `?? '11:00'`, so a property that publishes no times sent every guest an
+                     arrival hour nobody set — and the guest PLANS around it. `properties.check_in_time` is
+                     nullable with no schema default and no config default, so those figures were never "the
+                     default": they are right for the two demo properties (which publish exactly 15:00/11:00)
+                     and silently wrong for anyone else. ArrivalPack::time() already hands us NULL when a time
+                     is unpublished — the invention was here, at the last step before sending.
+                     ⚠️ VALUE ONLY — the markup, spans and styles below are untouched. --}}
+                @php
+                    $vyIn = ($checkInTime ?? '') !== '' ? 'In from '.$checkInTime : 'In on';
+                    $vyOut = ($checkOutTime ?? '') !== '' ? 'out by '.$checkOutTime : 'out on';
+                @endphp
+                <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:14.5px; color:#2B2320;">{{ $vyIn }} {{ $checkInLabel }} · {{ $vyOut }} {{ $checkOutLabel }}.</span>
+                @if (($checkInTime ?? '') === '' || ($checkOutTime ?? '') === '')
+                    {{-- ⚠️ THE HONEST ABSENCE. Saying nothing about the hour would leave the guest to assume
+                         one; this tells them the truth — the property has not published it yet. --}}
+                    <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#5F5853;"> The property will confirm your check-in and check-out times.</span>
+                @endif
                 <span style="font-family:'Inter',Arial,Helvetica,sans-serif; font-size:13px; color:#5F5853;"> Arriving early? <a href="{{ $messagesUrl }}" style="color:#C2410C; text-decoration:underline;">Message us</a>.</span>
             </td>
         </tr>
