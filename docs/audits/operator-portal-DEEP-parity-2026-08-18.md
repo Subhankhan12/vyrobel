@@ -7,10 +7,11 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **19 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **29 of 50** — presentation parity only |
+> | **Pages fully diffed** | **21 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **27 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
+> | ⚠️ **Finding 3 (run 18)** | `/app/schedule` **instructs Housekeeping to drag shifts** — an action requiring `schedule.manage`, which it lacks. Carried by PROSE, so no control-based check could see it. Plus a candidate: **zero `draggable="true"` nodes for ANY role**, so the instruction may describe an unwired interaction. |
 > | **Candidate 3** | **WITHDRAWN** on evidence (run 10) |
 > | **Write routes** | 135/135 swept — **no gap** |
 > | **#28 PII perimeter** | measured correct on 7 surfaces |
@@ -1448,6 +1449,80 @@ Pages fully diffed **19 of 50** · findings **2** (unchanged) · refusals confir
 ## REMAINING
 
 **29 of 50** — presentation parity only.
+
+---
+
+# RUN 18 — `/app/schedule` + `/app/roles` · ⚠️⚠️ FINDING 3
+
+## ⚠️⚠️ FINDING 3 — an instruction to do what the role cannot do, carried by PROSE
+
+| | Housekeeping (**no** `schedule.manage`) | Property Owner (has it) |
+|---|---|---|
+| *"Drag a shift to move it — or drop it on another person's day to swap."* | ⚠️ **VISIBLE** | visible |
+| `schedule/shift/move` occurrences in HTML | 1 | 1 |
+| `[draggable="true"]` nodes | **0** | **0** |
+
+**Two distinct problems:**
+
+1. ⚠️ **The instruction is ungated.** `POST app/schedule/shift/move` requires `schedule.manage`; Housekeeping
+   holds only `schedule.view`. The action buttons ARE correctly hidden (run 10 proved that: `Publish week`,
+   `Add shift`, `Approve`, `Decline`, `Add leave` are all absent for Housekeeping) — **but the sentence telling
+   them to drag shifts is not.** Same family as Finding 2 (the UI inviting a 403), except it is carried by
+   COPY rather than a control.
+
+   ⚠️ **This is why run 10 withdrew the candidate: it searched for CONTROLS, and prose is not a control.** A
+   button-based sweep — the method used for every gating verdict in this report — is structurally blind to it.
+   **The withdrawal in run 10 was sound for what it measured and wrong about the page.**
+
+2. ⚠️ **CANDIDATE — nobody can drag, including Property Owner.** Zero `draggable="true"` nodes render for
+   EITHER role, while both are told to drag. That suggests stale copy describing an interaction that is not
+   wired — a product-honesty issue independent of permissions. ⚠️ **Marked CANDIDATE, not fact**: drag can be
+   implemented with pointer events rather than the HTML5 attribute, and attempting a drag would be a mutation
+   this audit does not perform.
+
+## `/app/schedule` vs `Operator Team Schedule.html`
+
+| # | Wireframe | Live (Property Owner) | Verdict |
+|---|---|---|---|
+| 1 | `Schedule` · `Team rota & shifts` | `Team schedule` · property name | **MATCH** |
+| 2 | Week range + `This week` | `‹ Last week` · `17 Aug – 23 Aug 2026` · `Next week ›` | **MATCH** + **EXTRA** (real navigation) |
+| 3 | `Week` / `Day` views | both | **MATCH** |
+| 4 | Team filters `All teams` · `Front desk` · `Housekeeping` · `Manager` | all four (real `StaffDepartment`) | **MATCH** |
+| 5 | `Print / export` | **`PDF`** (the real `schedule/pdf`, `schedule.view`) | **MATCH** (naming) |
+| 6 | `Add shift` · `Publish week` | present for PO; **absent** for Housekeeping | **MATCH** + gating correct |
+| 7 | Stats `Shifts 34` · `Open 3` · `On leave 1` · `Hours 272 h` | present (real `RosterWeek`) | **MATCH** |
+| 8 | Drag instruction | present — ⚠️ **ungated (Finding 3)** | ⚠️ **DEFECT** |
+| 9 | `TEAM` grid, Mon–Sun columns | present with real dates | **MATCH** |
+
+## `/app/roles` vs `Operator Roles.html` (Property Owner only — `users.manage`)
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Roles & permissions` + `What each role can see and do` | identical | **MATCH** |
+| 2 | `New role` | present | **MATCH** |
+| 3 | Role list with description · scope · member count | present, **real roles** (`Group Admin — Runs the organization…`) | **MATCH** |
+| 4 | `Save changes` · `Delete this role` · `Add` | present | **MATCH** |
+| 5 | Wireframe roles (`Property manager` · `Front desk` · `Housekeeping` · `Accountant` · `Owner (portal)`) | the **real** spatie role catalogue | **MATCH** (real data) |
+
+⚠️ **Note on scope:** `/app/roles` is `users.manage` — Property Owner only (run 1 matrix). The owner audit
+recorded editable role catalogues as a refusal on the OWNER side (#30); on the operator side, for the one role
+that may manage users, the catalogue is real and editable. **Consistent, not contradictory.**
+
+**Verdict — schedule + roles: 1 DEFECT (Finding 3) · 1 candidate · 0 backend gaps.**
+
+## Updated tally
+
+Pages fully diffed **21 of 50** · ⚠️ **findings 3** · candidates open **1** · refusals confirmed 22 ·
+screenshots 21 · auditor self-corrections **7** · mutations surfaced/exercised 14/0 · **code changed 0**.
+
+⚠️ **METHOD NOTE FOR THE REMAINING PAGES:** every gating verdict in runs 1–17 was reached by inspecting
+CONTROLS. Finding 3 was carried by COPY. ⚠️ **The remaining 27 pages should be read for instructional text
+that assumes a permission the reader may not hold**, not only for buttons — and the earlier pages may deserve
+a re-read on that axis alone.
+
+## REMAINING
+
+**27 of 50.**
 
 ---
 
