@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **31 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **17 of 50** — presentation parity only |
+> | **Pages fully diffed** | **32 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **17 of 49** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1914,6 +1914,50 @@ hypotheses killed 1 · mutations surfaced/exercised **18 / 0** · **code changed
 ## REMAINING
 
 **17 of 50.**
+
+---
+
+# RUN 25 — `/app/maintenance/costs` · ⚠️ AND A LEDGER CORRECTION: `rack` IS NOT A PAGE
+
+## ⚠️ LEDGER CORRECTION — `/app/rack` is an ALIAS of `/app/calendar`
+
+    Route::get('/rack',     ReservationRack::class)->name('rack');
+    Route::get('/calendar', ReservationRack::class)->name('calendar');
+
+**The same Livewire component under two route names.** Rendered as Property Owner, both return
+**1,540 chars with an identical control set** — byte-identical output.
+
+⚠️ **So `rack` was never a 50th page.** It has been sitting in the REMAINING list since run 1 as work still to
+do, when run 7's `/app/calendar` diff already covered it. **The denominator is 49, not 50** — the third
+inventory correction in this audit (after the truncated-at-the-dot regex and the export-surface omission).
+
+⚠️ **A route list counts ROUTES, not SURFACES.** Two names can share one component, and only opening both
+reveals it. Recorded so the remaining count is honest rather than flattering.
+
+## `/app/maintenance/costs` vs `Operator Maintenance Costs.html`
+
+**Gating:** Property Owner **200** · Accountant **403** — matching `maintenance.manage` (run 6's export sweep
+found the same on its three export endpoints).
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | Costs page under Maintenance | present | **MATCH** |
+| 2 | Cost figures (`€2,840` · `€316` · `€180` · `€920` · `€640`) | **real** figures (`€225.00` · `€112.50` · `€180.00` · `€45.00` · **`€0.00`**) | **MATCH** — ⚠️ including a genuine **€0.00**, not hidden |
+| 3 | Export (csv/pdf/xlsx) | present, all three gated `maintenance.manage` (run 6) | **MATCH** |
+| 4 | `Workspace paused` banner | absent | **DATA-DEPENDENT** (active subscription) |
+
+⚠️ **The live figures carry CENTS (`€112.50`, `€225.00`) where the wireframe shows round hundreds** — the
+prototype's numbers are illustrative, the build's come from real `maintenance_costs` rows.
+
+## Updated tally
+
+Pages fully diffed **32 of 49** · findings 3 · candidates open 1 · candidates resolved 4 ·
+refusals confirmed 31 · ⚠️ **inventory corrections 3** · auditor self-corrections 7 · hypotheses killed 1 ·
+mutations surfaced/exercised 18 / 0 · **code changed 0**.
+
+## REMAINING
+
+**17 of 49** — presentation parity only.
 
 ---
 
