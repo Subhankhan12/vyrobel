@@ -2430,7 +2430,7 @@ and carrying money (run 28).
 | Mutations exercised | ✅ **0** of 41 surfaced |
 | Code changed | ✅ **0** |
 | Seasonal apply-panel treated as a deferral | ✅ recorded at `/app/rates` (run 3) |
-| ⚠️ Screenshot per page **per role** | ❌ **NOT met — 68 captures for 52 pages × 4 roles.** Runs 1–13 predate the capture pass (run 14). The *diffs* were done in-browser and are recorded; the *image artefacts* are partial, and `.captures/` is gitignored so none of them are in the repo anyway. **Stated rather than quietly dropped.** |
+| ⚠️ Screenshot per page **per role** | ⚠️ **CORRECTED IN RUN 30 — this row was wrong.** "68" was the whole `.captures/` directory (28 owner-audit + 19 unrelated); the operator audit had **21**. Now **58**: every renderable page at the reference role + 6 role-pairs evidencing the findings. 8 artifact routes are downloads, not renderable. The 208-image matrix was never attempted and is not claimed. |
 
 ## ⚠️ What this audit could NOT establish (by construction)
 
@@ -2452,6 +2452,80 @@ and carrying money (run 28).
 
 **Findings 2–5 are one sweep** (gate the control wherever its route carries `Authorize:`). **Finding 1 is a
 separate, larger question** (which pages should carry a gate at all).
+
+---
+
+# RUN 30 — ⚠️⚠️ THE SELF-CHECK WAS ITSELF WRONG, AND THE CAPTURE GAP IT MIS-SIZED IS NOW CLOSED
+
+## ⚠️⚠️ THE SELF-CHECK CONTAINED THE EXACT ERROR IT EXISTS TO CATCH
+
+Run 29's self-check honestly marked the screenshot criterion ❌ — and then mis-stated it:
+
+> ⚠️ Screenshot per page **per role** — ❌ NOT met — **68 captures** for 52 pages × 4 roles
+
+**68 was the whole `.captures/` directory.** Counted properly:
+
+    deep-operator-*  21        ← this audit
+    deep-owner-*     28        ← the OWNER audit (a different deliverable)
+    other            19        ← DO-item / restore captures from earlier work
+    ─────────────────────
+    total            68
+
+⚠️ **The operator audit had 21 captures, not 68** — and I credited it with all three sets because they share
+a directory. **A superset counted and attributed to the subset**: the same error as run 29's inherited
+denominator, run 28's parameterised-route blind spot, and run 27's role-varying cap.
+
+⚠️ **The bitter part: this happened INSIDE the self-check whose whole job is to catch it** — and it happened
+in the *flattering* direction, making a real gap look three times smaller. **A self-check is not
+self-validating.** It is another measurement, made by the same instrument that made the errors, and it needs
+its own ground truth. §N.4p's mutation rule generalised: *a check must be independent of what it checks.*
+
+## The gap, actually closed
+
+**+37 captures this run** (21 → **58**), covering every renderable page not captured by run 14, plus the
+least-privileged role on every page carrying a finding.
+
+**Property Owner — the reference render, 31 further pages:** portfolio · insights · reports · search · units ·
+channels · maintenance · reviews · schedule · roles · settings · security · profile · notifications ·
+guest-requests · unit-requests · email-templates · email-previews · billing · billing-checkout ·
+group-booking · new-reservation · maintenance-costs · maintenance-settings · work-order ·
+notification-prefs · invite-preview · owner-detail · guest-profile · email-editor · email-preview-one
+
+**⚠️ Housekeeping — the gating evidence, 6 pairs.** These are the findings as images:
+
+| Capture | Status | What it evidences |
+|---|---|---|
+| `42-owner-detail-housekeeping` | **200** | ⚠️ **Finding 1** — gross · commission · statements · payouts **+ an owner email** |
+| `46-reservation-detail-housekeeping` | **200** | ⚠️ **Finding 1** — folio money on a parameterised route |
+| `44-email-editor-housekeeping` | **200** | ⚠️ **Finding 5** — `Save template` rendered for 4 permissions |
+| `39-work-order-housekeeping` | **200** | ⚠️ **Finding 4** — `Add update` with no composer beneath it |
+| `38-maintenance-settings-housekeeping` | **403** | gating **correct** |
+| `34-billing-checkout-housekeeping` | **403** | gating **correct** |
+
+⚠️ `20-channels-propowner` is a **403 for the Property Owner** — the `EnsurePlanFeature` gate on an Essential
+plan (run 12). The highest-privilege role refused by a *plan*, not a permission, is worth having as an image
+precisely because it looks like a bug and is not.
+
+## ⚠️ What is still NOT captured, stated plainly
+
+- **8 artifact routes cannot be screenshotted by construction** — 6 `export.{csv,pdf,xlsx}`,
+  `reservations/{r}/folio.pdf`, `schedule/pdf`. They are downloads; run 29 verified `schedule/pdf` as a real
+  881,198-byte `%PDF` per role, and run 6 verified the exports by status. **Not "missing" — not renderable.**
+- **The full 52 × 4 matrix (208 images) was never the standard applied.** What exists is: every renderable
+  page at the reference role, plus the second role wherever the control-set differs or a finding lives.
+  ⚠️ **Stated as a bounded claim rather than reported as ✅.**
+- `.captures/` is **gitignored** — these are local evidence, not repo artifacts.
+
+## Updated self-check row
+
+| Check | Result |
+|---|---|
+| Screenshot coverage | ⚠️ **58 operator captures** — 44 renderable pages at the reference role + 6 role-pairs on the findings + run 14's 12. **8 artifact routes not renderable.** Full 208-image matrix **not** attempted, and not claimed. |
+
+## Tally — unchanged by this run
+
+Pages diffed **52 of 52** · findings **5** · inventory corrections 6 · **auditor self-corrections 10** ·
+mutations surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
 
