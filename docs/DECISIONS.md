@@ -12489,3 +12489,53 @@ That test is **not** in the non-green set; the remaining one is `OperatorGuestPr
 rendered-HTML mismatch with no queue involvement. **No shared root cause.**
 
 PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — `OperatorPortfolioTest` (item 28): DOES NOT REPRODUCE. Closed on evidence, with no code change.
+
+⚠️⚠️ **THE HONEST OUTCOME OF THIS PASS IS A CHANGE THAT WAS NOT MADE.** The item describes a recent in-suite
+ordering blip, sibling to item 27, and asks for an isolation fix proven in the failing order. **There is no
+failing order.** Every attempt to produce one came back green, and the test is structurally incapable of the
+failure described:
+
+- **It uses `RefreshDatabase`** — so it does not see committed rows from a neighbour at all.
+- ⚠️ **Its count assertions are RELATIVE, not absolute** — `$before = Property::count()` … `toBe($before + 1)`.
+  That is precisely the shape that is immune to leaked rows: whatever junk exists, it measures the delta. A
+  test written this way cannot fail because someone else left a property behind.
+
+**THE REPRODUCTION ATTEMPTS, all green:**
+
+- Alone → **6/6** (and its two namesakes: `OperatorPortfolioGate1Test` 8/8, `PortfolioBillingClaimTest` 4/4).
+- ⚠️ **The most hostile order available** — every committing, non-`RefreshDatabase` DB test placed immediately
+  before it (`BookingImportTest`, `AriPushTest`, `SyncReliabilityTest`, `CrossSystemConcurrencyTest`,
+  `ConcurrentBookingTest`, `ConcurrentRefundTest`, `ChannelConnectionTest`) → **60/60, 359 assertions.** Those
+  are the only tests in the suite that can leave real rows behind; if leakage were the mechanism, this is
+  where it would surface.
+- **Two consecutive full-suite runs** → `2391 / 2394`, 15,425 assertions, **1 failed + 2 skipped**, with
+  `OperatorPortfolioTest` green in both. It has not appeared in the non-green set in ANY full-suite run
+  during this session's work.
+
+⚠️ **CROSS-REFERENCE TO ITEM 27: NO SHARED ROOT CAUSE, and the answer is structural rather than a guess.**
+Item 27 was **not leaked state either** — it was `queue:work` defaulting to `--memory=128` and silently
+declining to take a job once the process crossed that ceiling (165–169 MB in a full run). That mechanism can
+only affect a test that *drives a queue worker*. `OperatorPortfolioTest` never calls one. So the two items
+share a *symptom description* and nothing else, and the "fix once" branch does not apply.
+
+⚠️ **NO CHANGE WAS MADE, DELIBERATELY.** Adding setUp/tearDown scaffolding to a test that is already isolated
+would be motion, not repair: it would suggest a hazard that does not exist, and future readers would maintain
+a defence against nothing. **Refusing to act beats acting wrongly** — and an unnecessary change to a green
+test is the kind that quietly costs signal later.
+
+⚠️ **THIS IS THE FOURTH CONSECUTIVE ITEM WHOSE STATED MECHANISM WAS WRONG, and the pattern is now worth naming
+in its own right.** `OwnerUnitDetailViewTest` was filed as "two mutually exclusive states" (it was fixture
+ORDER — both states were legitimate). `PhaseBEndToEndTest` was filed as an "assertion-shape error" (there was
+no mis-shaped assertion; a framework helper was eating the real message, which was a stale fixture password).
+`BookingImportTest` was filed as "a prior test leaks state" (nothing leaked; the queue worker was refusing
+jobs on memory). And item 28 does not reproduce at all. **A register entry records what one reader concluded
+from a symptom — the symptom is evidence, the mechanism in the entry is a hypothesis, and on this evidence the
+hypothesis has been wrong more often than right.** Reproduce before believing it, in either direction.
+
+**BASELINE: 2391 / 2394 · 15,425 assertions — 1 failed + 2 skipped.** Non-green is **1**: `OperatorGuestProfileTest`
+×1, a rendered-HTML mismatch with no queue and no ordering involvement. Down from 9 at the start of this run of
+work. PHPStan L5 (0); Pint clean; no application or test code changed by this pass.
