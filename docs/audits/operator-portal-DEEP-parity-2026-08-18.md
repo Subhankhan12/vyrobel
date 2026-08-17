@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **15 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **33 of 50** — presentation parity only |
+> | **Pages fully diffed** | **17 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **31 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | **Candidate 3** | **WITHDRAWN** on evidence (run 10) |
@@ -1330,6 +1330,54 @@ yet, and the decision is yours" is the honest form.
 ## REMAINING
 
 **33 of 50** — presentation parity only.
+
+---
+
+# RUN 16 — `/app/insights` + `/app/reports`
+
+Both gated `reports.view` (PO · HM · Accountant; Housekeeping 403 — run 1).
+
+## `/app/insights` vs `Operator Insights.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Portfolio insights` + range | `Portfolio insights` · `Demo Seaside Property · 2026` | **MATCH** |
+| 2 | Property switcher (`All properties` · per-property) | present (real multi-property, #38) | **MATCH** |
+| 3 | Range `Jan–Sep 2026` | **richer**: `Year to date` · `Last 6 months` · `Summer (Jun–Aug)` · `Q4 · on the books` · `Full year 2026` + a custom `Range start/end` | **MATCH** + **EXTRA** |
+| 4 | `OCCUPANCY 77%` **`+2 pts vs same range last year`** | occupancy present; **no vs-LY delta** | **DIVERGENCE — RATIFIED refusal** (#39 — vs-prior renders only where real prior-year data exists) |
+| 5 | `REVPAR €132` **`+€10`** | RevPAR present, no delta | **same refusal** |
+| 6 | `AVG DAILY RATE €172` **`+€9`** | ADR present, no delta | **same refusal** |
+| 7 | `BOOKING WINDOW 26 days median` | present (real `BookingCadence`) | **MATCH** |
+| 8 | `Occupancy by month` | present | **MATCH** |
+
+## `/app/reports` vs `Operator Reports.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Reports` + `September 2025` | `Reports` · `Demo Seaside Property · arrivals in 2026` | **MATCH** + **EXTRA** (states the basis: *arrivals*) |
+| 2 | Period picker | `2026` · `Year to date` · `Last 6 months` · **`Jump to month…`** with 6 real months | **MATCH** + **EXTRA** |
+| 3 | `Export` | present (gated `reports.view`; csv/pdf/xlsx — run 6) | **MATCH** |
+| 4 | `REVENUE · SEP €172,900` **`+9%`** | revenue present, **no delta** | **DIVERGENCE — RATIFIED refusal** |
+| 5 | `OCCUPANCY 78% +6%` · `ADR €164` · `REVPAR €128 +11%` | all three metrics present, **deltas absent** | **MATCH** + **same refusal** |
+| 6 | `Revenue by month · Apr–Sep` | present | **MATCH** |
+| 7 | ⚠️ Top-owner leaderboard — `D Daniel Weiss Casa Onda €8,542` · `P Priya Nair Villa Lumen €7,461` | **absent** | **DIVERGENCE — worth naming.** A named-owner earnings ranking is invented data (#39); the build shows real aggregates and no leaderboard |
+| 8 | `Workspace paused · €0 while paused` | absent | **DATA-DEPENDENT** (active subscription) |
+
+⚠️ **Six vs-prior deltas refused across these two pages** — `+2 pts`, `+€10`, `+€9`, `+9%`, `+6%`, `+11%`.
+The metrics themselves are all real; only the comparisons the data cannot support are withheld. That is now
+**the single most repeated refusal in the build** — seen on rates, reports, guests, reviews, insights and the
+owner portal.
+
+**Verdict — insights + reports: 0 frontend gaps · 0 backend gaps.**
+
+## Updated tally
+
+Pages fully diffed **17 of 50** · findings **2** (unchanged) · honest refusals confirmed **19** ·
+screenshots 21 · self-corrections 6 · mutations surfaced/exercised 14/0 · **code changed 0**.
+
+## REMAINING
+
+**31 of 50** — presentation parity only.
 
 ---
 
