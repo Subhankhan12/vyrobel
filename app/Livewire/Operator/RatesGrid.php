@@ -468,11 +468,59 @@ class RatesGrid extends Component
             'has_plan' => $planId !== null,
             // ⚠️ THE WORDING FOLLOWS THE NUMBER. Saying "2 units" while silently excluding a third would be
             // the same misleading count in a quieter form, so once any unit is excluded the label says why.
+            // D18-6 · THE THIRD OPTION — the units under this type, READ-ONLY, each showing the rate it
+            // actually resolves to. ⚠️ THE ROWS ARE NOT EDITABLE, AND THAT IS THE WHOLE DESIGN. A fully
+            // editable per-unit grid ("Yes") would mint an override on every edit, detaching every unit from
+            // its type and leaving the rack safeguard reading "0 of N" everywhere — useless BY SHAPE. Here the
+            // type row stays the price-mover and per-unit stays the deliberately-invoked exception, which is
+            // exactly the founder's ruling (a permission, not the norm).
+            //
+            // ⚠️ EVERY FIGURE COMES FROM NightlyRate — the ONE resolver (D4-1). The grid does NOT read
+            // `unit_rate_overrides` or `rate_calendar` itself for these cells, so what a unit row displays is
+            // by construction what that unit charges (item 18's displayed = charged), and a unit with no
+            // override of its own shows its ROOM TYPE's rate, never €0.
+            'unit_rows' => $planId === null ? [] : $this->unitRows($roomType, $planId, $dates),
             'units_label' => $overridden > 0
                 ? $affected.' of '.$units.' '.($units === 1 ? 'unit' : 'units').' · '.$overridden.' priced individually'
                 : $units.' '.($units === 1 ? 'unit' : 'units'),
             'cells' => $cells,
         ];
+    }
+
+    /**
+     * The read-only per-unit rows for one room type (D18-6 third option).
+     *
+     * ⚠️ RESOLVED, NOT READ. Each cell asks {@see NightlyRate::forUnit()} — override first, else the type
+     * price — so these rows cannot drift from what the booking paths charge. Re-indexing the tables here
+     * would be a second implementation of the precedence and is exactly what §N.8f/D4-1 forbid.
+     *
+     * @param  list<string>  $dates
+     * @return list<array{id: string, label: string, cells: list<array{date: string, rate: ?string, overridden: bool}>}>
+     */
+    private function unitRows(RoomType $roomType, string $planId, array $dates): array
+    {
+        return Unit::query()->where('room_type_id', $roomType->getKey())->orderBy('code')
+            ->get(['id', 'code', 'name'])
+            ->map(function (Unit $unit) use ($planId, $dates): array {
+                $unitId = (string) $unit->getKey();
+
+                return [
+                    'id' => $unitId,
+                    // ⚠️ `name ?: code` — units carry a code and a NULL name; a money row that does not say
+                    // which unit it prices is the blank-rows defect the bulk pass shipped and had to fix.
+                    'label' => (string) ($unit->name !== null && $unit->name !== '' ? $unit->name : $unit->code),
+                    'cells' => array_map(function (string $date) use ($planId, $unitId): array {
+                        $minor = NightlyRate::forUnit($planId, $unitId, $date);
+
+                        return [
+                            'date' => $date,
+                            'rate' => $minor === null ? null : $this->money($minor, 'EUR'),
+                            // Marks the exception so the operator can see WHICH units are priced apart.
+                            'overridden' => NightlyRate::hasOverride($planId, $unitId, $date),
+                        ];
+                    }, $dates),
+                ];
+            })->values()->all();
     }
 
     /**
@@ -561,6 +609,10 @@ class RatesGrid extends Component
 
         return [
             'label' => $from->format('j M').' – '.$through->format('j M Y'),
+            // D18-6 — the raw bounds, so a dialog opened from a unit row defaults to the window the operator
+            // is actually looking at. (The label above is for humans and cannot be put in a date input.)
+            'from' => $fromStr,
+            'through' => $throughStr,
             'prev' => route('app.rates', ['from' => $from->subDays(self::WINDOW_DAYS)->toDateString()]),
             'next' => route('app.rates', ['from' => $from->addDays(self::WINDOW_DAYS)->toDateString()]),
             'today' => route('app.rates', ['from' => CarbonImmutable::today()->toDateString()]),

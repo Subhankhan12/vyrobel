@@ -12710,3 +12710,58 @@ clear→type · dropping the preselected `unit_ids[]` reds the render test.
 follows for free (same table) — asserted.
 
 Suite **2401 / 2404**, 15,476 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-6 THIRD OPTION: read-only unit rows, priced apart only on purpose (founder ruling)
+
+⚠️ **THE FOUNDER RULED THE THIRD OPTION, AND THE SHAPE IS THE SAFETY.** STRUCT-1 was a decided fork, and the
+reason "Yes" (a fully editable per-unit grid) was refused is not taste: **every edit would mint an override**,
+detaching every unit from its room type, and the rack's "N units affected" warning would read **"0 of N"
+everywhere** — true, and useless *by shape*. The third option keeps the **type row as the price-mover** and
+makes per-unit pricing a **deliberately-invoked exception**, which is exactly what "two units MAY be priced
+apart" means: a permission, not the norm.
+
+**BUILT — read-only unit rows under each type row:**
+
+- Each unit row shows **`NightlyRate`'s answer** (override → type). ⚠️ The grid does **not** read
+  `rate_calendar` or `unit_rate_overrides` for these cells, so a row cannot disagree with what the booking
+  paths charge (D4-1 / item 18's displayed = charged), and a unit with no price of its own shows its **room
+  type's rate, never €0**.
+- ⚠️ **There is no cell editor on a unit row — none, by construction.** The only way in is a per-row **"Price
+  individually"** action opening the **same `<x-rates.unit-price-form>`** the Units list opens, posting to the
+  **same** proven preview→apply routes. A new *entry* to a proven path; no second form, no second writer.
+- **Type-row editing is untouched** — the default path still moves the type rate, and does so without minting
+  a single override (asserted).
+
+⚠️ **A ZERO-WRITE CLAIM DESERVES A WHOLE-TABLE CHECK, NOT A SAMPLE:** `rate_calendar` hashed
+**`2bbdafccc3b5c1ee43f89fe313a3f02d`, 929 rows, 10,920,000 minor** before and after the browser pass — a
+display re-shape moved nothing. The demo ends money-as-seeded (the two overrides the render created, removed).
+
+⚠️ **RENDERING CAUGHT WHAT THE TESTS COULD NOT, AGAIN — TWICE IN ONE PASS.** First, `$window` has no
+`from`/`through` keys, so the dialog's date inputs would have opened **blank**; caught by checking the payload
+before trusting it, and the two keys added. Second, and more sharply, the dialogs landed **outside** the
+`x-data` root, and Alpine said so in the console — *"unitPriceFor is not defined"*. **Six green tests were
+silent on both**, because they assert the markup is present, not that it works. This is the same lesson as the
+single-set pass, and it arrived through an explicit console error rather than a probe I had to trust.
+
+**RENDERED, AS THE OPERATOR — the whole design visible in one screen:** 2 type rows, 5 unit rows; **0 editors
+inside unit rows, 28 inside type rows**; 5 deliberate actions. Pricing unit **101** at €265.00 for two nights
+gave a row reading **€265.00 · €265.00 · €100.00** — its own price where set, **falling back to the type rate
+outside it** (the null-override edge, live) — marked as the exception, with **102 unchanged at €100.00**, and
+the safeguard reading **"2 of 3 units · 1 priced individually"**. That last figure is the whole justification
+of the third option, on screen: **meaningful, not "0 of N".**
+
+**THREE MUTATIONS, EACH VERIFIED TO LAND — one per hazard the shape exists to prevent:** making unit cells
+editable (the "Yes" fork) reds the read-only test · resolving a unit row from the type table reds the
+resolver-seam test · writing a rate while rendering reds the whole-table zero-write test.
+
+**Untouched:** the resolver, the single-set form, the routes, the money path, §G.1, isolation/RBAC. The three
+existing guards (`RatesGridBlastRadius`, `BulkUnitRateOverride`, `SingleSetUnitRateForm`) held at **23/23, 130
+assertions** across the re-shape.
+
+⚠️ **LOGGED, NOT OPTIMISED:** each unit cell resolves individually, so a room type costs `units × 14` resolver
+calls. Fine at this inventory (8 units, ~112 calls) and honest; a large property would want an indexed read —
+but that must be a widening of `NightlyRate` itself, never a second precedence in the grid.
+
+Suite **2407 / 2410**, 15,511 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.

@@ -22,7 +22,7 @@
              control row can carry Bulk edit — which is an Alpine action (`bulkOpen`) and must sit inside
              `ratesEditor()`. Nothing else about the editor changed; the KPI tiles simply fall inside the
              scope now, which is inert for them. --}}
-        <div x-data="ratesEditor()">
+        <div x-data="{ ...ratesEditor(), unitPriceFor: null }">
 
         {{-- ── Toolbar: the two-week window, pageable. Real dates only; no fabricated "sync" ribbon.
              The design puts the legend and the bulk-edit action in this control row, not on a separate
@@ -149,6 +149,38 @@
                                             </td>
                                         @endforeach
                                     </tr>
+
+                                    {{-- ── D18-6 · THE THIRD OPTION — the units under this type, READ-ONLY.
+                                         ⚠️ THERE IS DELIBERATELY NO CELL EDITOR HERE. An editable per-unit
+                                         grid would mint an override on every edit, detaching every unit from
+                                         its type and leaving the "N units affected" warning above reading
+                                         "0 of N" everywhere — useless by shape. The type row stays the
+                                         price-mover; pricing a unit apart is invoked once, on purpose, via
+                                         the action below, which opens the SAME single-set form the Units
+                                         list opens. Every figure is NightlyRate's answer (D4-1). ────────── --}}
+                                    @foreach ($row['unit_rows'] as $vyUnitRow)
+                                        <tr class="vyr-unitrow">
+                                            <td class="vyr-rt" style="padding-left: 22px;">
+                                                <div class="vyr-rt-sub" style="color: var(--vy-ink);">{{ $vyUnitRow['label'] }}</div>
+                                                @if ($canManage && ! $readOnly)
+                                                    <button type="button" class="vyr-priceind"
+                                                            style="padding:0;border:0;background:none;font-size:11px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
+                                                            x-on:click="unitPriceFor = '{{ $vyUnitRow['id'] }}'">Price individually</button>
+                                                @endif
+                                            </td>
+                                            @foreach ($vyUnitRow['cells'] as $vyCell)
+                                                <td class="vyr-cell @if ($dates[$loop->index]['is_weekend']) is-weekend @endif">
+                                                    {{-- ⚠️ STATIC BY CONSTRUCTION — no button, no editor, nothing to type into. --}}
+                                                    <div class="vyr-cell-static" style="opacity: .85;">
+                                                        <span class="vy-u-code">{{ $vyCell['rate'] ?? '—' }}</span>
+                                                        @if ($vyCell['overridden'])
+                                                            <span title="Priced individually" style="color: var(--vy-accent); font-size: 10px;">●</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
                                 @endforeach
                             </tbody>
                         </table>
@@ -314,6 +346,37 @@
                             </x-rates.unit-price-form>
                         </div>
                     </div>
+                @endif
+            @endcan
+
+        {{-- D18-6 — the single-set dialogs the unit rows open. ⚠️ The SAME <x-rates.unit-price-form> the Units
+                 list uses, so the grid adds no second form and no second writer — it is a new ENTRY to a proven
+                 path, which is the whole point of the third option. --}}
+            @can('rates.manage')
+                @if (count($rows) > 0 && ! $readOnly)
+                    @foreach ($rows as $vyRow)
+                        @foreach ($vyRow['unit_rows'] as $vyU)
+                            <div x-show="unitPriceFor === '{{ $vyU['id'] }}'" x-cloak
+                                 style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 61; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                                 x-on:click.self="unitPriceFor = null">
+                                <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;"
+                                     x-data="{ unitMode: 'set', unitRt: '{{ $vyRow['id'] }}' }">
+                                    <x-rates.unit-price-form
+                                        :room-types="$roomTypeOptions"
+                                        :units="$unitOptions"
+                                        :preselect="$vyU['id']"
+                                        :from="$window['from']"
+                                        :to="$window['through']"
+                                        heading="Price this unit individually"
+                                        subheading="a price for this unit only — the rest of its room type is unchanged">
+                                        <x-slot:actions>
+                                            <button type="button" class="vy-btn" x-on:click="unitPriceFor = null" style="padding: 9px 16px;">Cancel</button>
+                                        </x-slot:actions>
+                                    </x-rates.unit-price-form>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endforeach
                 @endif
             @endcan
 
