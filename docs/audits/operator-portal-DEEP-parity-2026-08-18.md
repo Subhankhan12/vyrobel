@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **23 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **25 of 50** — presentation parity only |
+> | **Pages fully diffed** | **25 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **23 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1649,6 +1649,85 @@ auditor self-corrections 7 · mutations surfaced/exercised 14/0 · **code change
 ## REMAINING
 
 **25 of 50.**
+
+---
+
+# RUN 21 — `/app/profile` + `/app/notifications` · ⚠️ A HYPOTHESIS I KILLED, AND WHAT IT LEFT
+
+## ⚠️⚠️ "THE OPERATOR FEED IS ORG-WIDE" — TESTED AND FALSE
+
+Housekeeping's notifications page shows **`59 unread`** — the **same number** as Property Owner — and carries
+a **`Finance`** category filter. That reads like a shared, org-wide feed leaking finance notifications to a
+housekeeper.
+
+**It is not.** One query settled it:
+
+    demo-admin        owns  59 rows,  59 unread
+    demo-housekeeper  owns  59 rows,  59 unread
+
+⚠️ **Each user genuinely owns 59 notification rows of their own.** The counts match because the DEMO SEEDER
+dispatches the same notifications to every back-office user — not because one feed is shared. The feed is
+correctly **self-scoped** (`notifiable_id`), the same posture as the owner realm.
+
+⚠️ **I was one write-up away from filing "the operator notification feed is org-wide" off two equal numbers.**
+That would have been the eighth instrument error in this audit. Equal figures are a hypothesis, not a
+mechanism — and the mechanism was one `notifiable_id` count away.
+
+## ⚠️ BUT IT SHARPENS FINDING 1 — the question is DISPATCH AUDIENCE, not scoping
+
+Run 13 measured `/app/notifications` rendering **€332.10 · €467.40 · €721.60** to Housekeeping. Now the
+mechanism is clear, and it is *not* a scoping bug:
+
+> **Finance-category notifications are DISPATCHED to roles that hold no finance permission.** Housekeeping
+> owns them legitimately; the question is why they were addressed to a housekeeper at all.
+
+⚠️ **This is the same shape as the OWNER portal's Fix 2**, where `NotificationPreferences::CATALOG` uses an
+`audience` field to decide which realm receives a type. The operator catalogue's audience is `operator` —
+**one bucket for eleven roles**. There is no per-permission narrowing, so a `statement_finalized` or
+`owner_payout_sent` notification reaches Housekeeping exactly as it reaches the Property Owner.
+
+⚠️ **RECORDED AS A REFINEMENT OF FINDING 1, not a new finding** — the exposure is the same money reaching the
+same role; only the mechanism is now correctly named. **The remedy differs, though**: a `can:` on the route
+would NOT fix this one, because the notification is genuinely the user's own. It needs the dispatch audience
+narrowed (or the category suppressed per-permission).
+
+## `/app/notifications` vs `Operator Notifications.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Notifications` + `3 unread` | `Notifications` + `59 unread` (real) | **MATCH** |
+| 2 | `Mark all read` | present | **MATCH** |
+| 3 | Filters `All` · `Unread` · `Front desk` · `Finance` | `All` · `Unread` · `Finance` · `Front Desk` · **`Maintenance`** · **`Reputation`** | **MATCH** + **EXTRA** (real categories) |
+| 4 | Rows: title · category · detail · age | present (`New booking · R-6QEW0DOC` · `Front Desk` · `Direct · 2 Sep – 4 Sep` · `14 hours ago`) | **MATCH** |
+| 5 | `Expedia disconnected · Channels` row | **absent** | **DIVERGENCE — RATIFIED** (#37, no live channel to disconnect) |
+| 6 | `Owner payout run is due · September · €10,370` | present in kind (real figures) | ⚠️ **MATCH — and this is the Finding-1 row** |
+| 7 | *(none)* | per-row `✓` (read) · `×` (dismiss) + `Unread` chip | **EXTRA** |
+
+## `/app/profile` vs `Operator Profile.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Your profile` + avatar · name · role · property · `Member since` | present (`DA · Demo Admin · Property Own…`) | **MATCH** |
+| 2 | `Personal details` — `FULL NAME` · `PREFERRED NAME` · `WORK EMAIL` · `PHONE` | present | **MATCH** |
+| 3 | `LANGUAGE` — English · Português · Español · Français | present | **MATCH** |
+| 4 | `Save changes` · `Cancel` | present | **MATCH** |
+| 5 | `Sign out` | present | **MATCH** |
+| 6 | `Active` status chip | present | **MATCH** |
+
+Self-scoped (`/app/profile` is per-user, correctly ungated — run 13).
+
+**Verdict — profile + notifications: 0 frontend gaps · 0 backend gaps · 1 hypothesis killed · Finding 1's
+notifications element re-mechanised.**
+
+## Updated tally
+
+Pages fully diffed **25 of 50** (halfway) · findings 3 · candidates 1 · refusals confirmed **27** ·
+⚠️ **hypotheses tested-and-killed 1** · auditor self-corrections 7 · mutations surfaced/exercised 14/0 ·
+**code changed 0**.
+
+## REMAINING
+
+**23 of 50.**
 
 ---
 
