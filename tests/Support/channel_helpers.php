@@ -64,6 +64,24 @@ if (! function_exists('channexBookingPayload')) {
     }
 }
 
+/**
+ * ⚠️ THE WORKER'S MEMORY CEILING, DEFINED ONCE — and it is a real bug fix, not tuning.
+ *
+ * `queue:work` defaults to `--memory=128` (MB) and checks it BEFORE taking a job: over the limit it stops
+ * immediately and **silently**, having processed nothing. In a test that is indistinguishable from "the job
+ * ran and did nothing" — the webhook returns 202, the worker exits, and the assertions report zero imported
+ * reservations as though the import path were broken.
+ *
+ * ⚠️ THIS IS WHY BookingImportTest PASSED ALONE AND FAILED IN THE FULL SUITE, and it is NOT leaked state:
+ * measured at this exact call, the process holds ~121 MB partway through the suite (still under the limit,
+ * still green) and **165–169 MB in a full run** — over it. Nothing a prior test wrote mattered; what changed
+ * was the ambient memory of the PHP process, which is why no preceding test could ever reproduce it.
+ *
+ * Tied to phpunit.xml's own `memory_limit=512M`, so the worker never self-terminates before PHP itself
+ * would — a genuine runaway is still stopped, an ordinary long suite no longer silently eats jobs.
+ */
+const VY_QUEUE_WORKER_MEMORY_MB = 512;
+
 if (! function_exists('drainSync')) {
     /**
      * Process the `sync` queue on the `database` connection until empty — drains a webhook-import
@@ -76,6 +94,7 @@ if (! function_exists('drainSync')) {
             'connection' => 'database',
             '--queue' => 'sync',
             '--stop-when-empty' => true,
+            '--memory' => VY_QUEUE_WORKER_MEMORY_MB,
         ]);
     }
 }

@@ -317,7 +317,7 @@ it('retries a failing sync job with backoff and dead-letters at max attempts on 
     $syncJob = SyncJob::query()->where('type', 'ari_push')->firstOrFail();
 
     for ($i = 0; $i < 6; $i++) { // tries = 5, +1 slack
-        Artisan::call('queue:work', ['connection' => 'redis', '--queue' => 'sync', '--once' => true]);
+        Artisan::call('queue:work', ['connection' => 'redis', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
         $syncJob->refresh();
         if ($syncJob->status === 'dead_letter') {
             break;

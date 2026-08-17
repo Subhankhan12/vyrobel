@@ -235,7 +235,7 @@ it('surfaces an unmapped incoming room type as a clear error without crashing or
     postChannexWebhook($channel, channexBookingPayload())->assertStatus(202); // accepted + recorded
 
     // Process one attempt: the import fails loudly (not a crash, not a silent drop).
-    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
 
     $syncJob = SyncJob::query()->where('type', 'booking_import')->firstOrFail();
     expect($syncJob->status)->toBe('failed')

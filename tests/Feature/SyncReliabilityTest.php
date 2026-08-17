@@ -71,7 +71,7 @@ it('processes a pending sync job to success and records one info attempt', funct
     ]);
 
     FlakySyncJob::dispatch($org->id, $syncJob->id)->onConnection('database')->onQueue('sync');
-    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
 
     $syncJob->refresh();
 
@@ -102,7 +102,7 @@ it('retries a failing sync job with backoff and eventually succeeds', function (
     FlakySyncJob::dispatch($org->id, $syncJob->id)->onConnection('database')->onQueue('sync');
 
     for ($i = 0; $i < 3; $i++) {
-        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
         $syncJob->refresh();
 
         if ($syncJob->status === 'succeeded') {
@@ -146,7 +146,7 @@ it('moves a permanently failing sync job to dead-letter after max attempts and n
 
     // tries = 5 on RetryableSyncJob: 5 real attempts, then the worker permanently fails it.
     for ($i = 0; $i < 5; $i++) {
-        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
         $this->travel(400)->seconds();
     }
 
@@ -184,7 +184,7 @@ it('does not reprocess a sync job that already succeeded', function () {
     ]);
 
     FlakySyncJob::dispatch($org->id, $syncJob->id)->onConnection('database')->onQueue('sync');
-    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
 
     $syncJob->refresh();
     expect($syncJob->status)->toBe('succeeded')->and($syncJob->attempts)->toBe(1);

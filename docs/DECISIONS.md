@@ -12426,3 +12426,66 @@ it at 21 assertions; reverting the fixture password reds it with the readable me
 **7**, down from 9 two commits ago: `BookingImportTest` ×6 · `OperatorGuestProfileTest` ×1. Both named
 cheapest-closes are shut, and **both turned out to be stale fixtures rather than what the register called
 them.** PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — `BookingImportTest`: nothing leaked. The queue worker was silently eating the job.
+
+⚠️⚠️ **THE REGISTER SAID "A PRIOR TEST LEAKS STATE `BookingImportTest` DEPENDS ON BEING CLEAN". NOTHING
+LEAKS.** The brief was right that it passes alone (11/11) and fails in-suite, and right that an isolation fix
+must be proven in the failing order. It was wrong about the mechanism, and the mechanism is why every attempt
+to bisect a culprit came up empty:
+
+- `AriPushTest` + `BookingImportTest` → 22/22 green.
+- `BillingStripeTest` + it → 16/16. `CrossSystemConcurrencyTest` + it → 18/18.
+- **All 26 `[A-B]` Feature files together → 179/179.** With `tests/Unit` prepended — i.e. **the exact prefix
+  the real suite runs before it** — → 223/223.
+
+⚠️ **A test that survives its own suite prefix is not order-dependent.** That is what turned the search from
+"which test dirties the DB" to "what differs about the process", and the answer is **memory**.
+
+**`queue:work` DEFAULTS TO `--memory=128` (MB), AND CHECKS IT BEFORE TAKING A JOB.** Over the limit it stops
+immediately and **silently**, having processed nothing — which in a test is indistinguishable from "the job
+ran and did nothing". The webhook returns 202, `drainSync()` returns, and the assertions report zero imported
+reservations as though the import path were broken. Instrumenting the helper and measuring at that exact call:
+
+    Unit + [A-M] chunk (830 tests, green)   →  121.0 MB   ← under 128, worker runs, import happens
+    the FULL suite (2394 tests, red)        →  165–169 MB ← OVER 128, worker exits, jobs=1 still queued
+
+**That is the whole defect.** Nothing a prior test wrote mattered; what changed was the ambient memory of the
+PHP process — which is exactly why no preceding test could reproduce it, and why the pairs all passed.
+
+**THE FIX IS ONE SHARED DEFINITION** (§N.8f), not a magic number sprinkled about: `VY_QUEUE_WORKER_MEMORY_MB`
+in `tests/Support/channel_helpers.php`, tied to phpunit.xml's own `memory_limit=512M`, so the worker never
+self-terminates before PHP itself would — a genuine runaway is still stopped, an ordinary long suite no longer
+eats jobs. **The suite was NOT reordered and no production code was touched** (`git diff --name-only` = five
+test files).
+
+⚠️ **AND THE SWEEP FOUND NINE MORE SITES CARRYING THE IDENTICAL LATENT LIMIT** — `AriPushTest` ×3,
+`SyncReliabilityTest` ×4, `CrossSystemConcurrencyTest` ×1 and `BookingImportTest`'s own inline call ×1, each a
+bare `queue:work … --once`. They pass today only because they happen to sit at a lower memory point; they are
+the same landmine, waiting for the suite to grow. All now carry the shared constant. **I extended the brief's
+scope by those nine deliberately** — it said not to touch other tests, but these are the proven-identical
+defect, and leaving them is §N.13.1 ignored. Recorded so the call can be reversed.
+
+**PROVEN WHERE IT MATTERED — the failing order was the FULL SUITE, and it is now green there:**
+
+    before:  2385 / 2394   (BookingImportTest ×6 non-green)
+    after:   2391 / 2394 · 15,425 assertions   (1 failed + 2 skipped)
+
+**NON-GREEN IS NOW 1**, down from 9 at the start of this run of work: only `OperatorGuestProfileTest` ×1
+remains. Alone → still 11/11. **Non-vacuous, mutation-proven:** flipping the import's `'source' => 'ota'` to
+`'direct'` reds 5 of its 11 tests, so the isolation fix did not neuter a single assertion.
+
+**LATENT HAZARD LOGGED, NOT FIXED (out of scope, no symptom today):** `webhook_events` carries a **global**
+`UNIQUE(source, external_event_id)` — not scoped by `organization_id` — while its `organization_id` FK is
+**`SET NULL`, not CASCADE**. So the rows this file commits survive `cleanupCommittedTenantData()` as orphans
+with a null org. It is harmless today only because `channexBookingPayload()` randomises the id per call; a
+fixed-id fixture would dedupe against another tenant's orphan and silently import nothing — the same
+signature this pass just chased.
+
+**Cross-ref:** the register paired this with `OperatorPortfolioTest` (item 28) as a possible shared root cause.
+That test is **not** in the non-green set; the remaining one is `OperatorGuestProfileTest`, whose failure is a
+rendered-HTML mismatch with no queue involvement. **No shared root cause.**
+
+PHPStan L5 (0); Pint clean.

@@ -213,7 +213,7 @@ it('retries a failing ARI push with backoff and eventually succeeds, sending exa
     expect($syncJob->status)->toBe('pending');
 
     for ($i = 0; $i < 3; $i++) {
-        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
         $syncJob->refresh();
         if ($syncJob->status === 'succeeded') {
             break;
@@ -242,7 +242,7 @@ it('dead-letters a permanently failing ARI push after max attempts and never exc
     $syncJob = SyncJob::query()->where('channel_id', $channel->id)->firstOrFail();
 
     for ($i = 0; $i < 5; $i++) { // RetryableSyncJob::$tries = 5
-        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+        Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
         $this->travel(400)->seconds();
     }
 
@@ -275,7 +275,7 @@ it('pushes CURRENT availability read at execution time, not a snapshot captured 
         ->and($fake->pushCount())->toBe(0); // nothing delivered yet — both jobs are still queued
 
     // Run exactly one queued job. Whichever it is, process() reads availability NOW.
-    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true]);
+    Artisan::call('queue:work', ['connection' => 'database', '--queue' => 'sync', '--once' => true, '--memory' => VY_QUEUE_WORKER_MEMORY_MB]);
 
     // A snapshot frozen at J1's enqueue time would report available = 1. Because process() reads
     // CURRENT state, it reports 0 — the true post-second-booking availability. This is what makes
