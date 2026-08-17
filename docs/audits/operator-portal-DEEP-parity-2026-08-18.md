@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **27 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **21 of 50** — presentation parity only |
+> | **Pages fully diffed** | **29 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **19 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1793,6 +1793,59 @@ seeding (unit-requests). **None became a finding.**
 ## REMAINING
 
 **21 of 50.**
+
+---
+
+# RUN 23 — `/app/email-templates` (+ previews) · the LAST unmeasured weaker-gate view
+
+`/app/email-templates` and `/app/email-templates/{key}/edit` are **UNGATED GETs** (run 8) whose writes require
+`properties.manage`. That makes this the strongest remaining case of the run-9 shape: **anyone in the back
+office can open the page; only some may act.**
+
+## ⚠️ MEASURED — correctly gated, with a working positive control
+
+| Role | `Edit` control | Edit links |
+|---|---|---|
+| **Property Owner** (`properties.manage` ✓) | **`Edit`** | 3 real: `booking-confirmation` · `cancellation` · `pre-arrival` |
+| **Housekeeping** (`properties.manage` ✗) | **none** | **none** |
+
+⚠️ **The positive control fires** — Property Owner gets three genuine edit links — **so Housekeeping's zero is
+gating, not an empty page.** This is the distinction run 22's `unit-requests` could NOT make (where even the
+permitted role saw nothing, leaving the question unanswerable). Here the instrument is proven able to find
+controls, and it finds none for the role that shouldn't have them.
+
+⚠️ **A page anyone can open, where every write affordance is still correctly withheld** — which is the general
+shape of Finding 1: the READ is open, the WRITE is not.
+
+## ⚠️ AN EMPTY TABLE THAT IS NOT AN EMPTY FEATURE
+
+`email_templates` has **0 rows**, yet three templates render with real keys. ⚠️ **The catalogue is
+CODE-DEFINED with DB overrides**, not DB-driven — so the empty table means "nothing has been customised", not
+"no templates exist". **Had this been judged by the row count alone it would have read as a dead feature.**
+(The same trap as the owner audit's data-gated year pills, in a new costume.)
+
+## Element diff vs `Operator Email Templates.html` / `Operator Email Editor.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | Template list with name + status | present (3 real templates, page title `Guest emails`) | **MATCH** |
+| 2 | Per-template `Edit` | present for `properties.manage`; **absent otherwise** | **MATCH** + gating correct |
+| 3 | Editor: subject/body + `Save` · `Send test` · enable toggle | routes exist (`{key}` POST · `{key}/test` · `{key}/toggle`, all `properties.manage`) | **MATCH** — ⚠️ **editor content UNVERIFIED**: opening it for a role that may write is fine, but the page's write affordances were not exercised |
+| 4 | Engagement / open-rate stats | ⚠️ **absent**, replaced by *"click tracking isn't collected, so no engagement stats are shown"* | **DIVERGENCE — RATIFIED refusal** (run 19 confirmed this is a refusal, not an instruction) |
+
+⚠️ **MUTATIONS SURFACED, NOT EXERCISED:** `email-templates/{key}` (POST → template override) · `{key}/test`
+(sends a real email) · `{key}/toggle` (enables/disables a guest-facing email). ⚠️ **`{key}/test` sends mail to
+a real address — deliberately untouched.**
+
+## Updated tally
+
+Pages fully diffed **29 of 50** · findings 3 · candidates open 1 · candidates resolved **4** ·
+refusals confirmed 28 · auditor self-corrections 7 · hypotheses killed 1 ·
+mutations surfaced/exercised **17 / 0** · **code changed 0**.
+
+## REMAINING
+
+**19 of 50.**
 
 ---
 
