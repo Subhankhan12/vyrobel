@@ -185,7 +185,14 @@
                         @endforeach
                     </div>
                     @if ($summary['softest_label'] !== null)
-                        <div style="font-size:11.5px;color:var(--vy-faint);line-height:1.5;margin-top:14px">{{ $summary['softest_label'] }} is your softest score — the proposed <a href="{{ route('owner.rates') }}" style="color:var(--vy-accent);text-decoration:none;font-weight:500">rate changes</a> factor this in.</div>
+                        {{-- ⚠️ THE CAUSATION CLAUSE WAS FABRICATED, and it was inherited verbatim from the prototype.
+                             It asserted (a) that proposed rate changes EXIST — nothing here counts them — and
+                             (b) that they FACTOR REVIEW SCORES IN — no such linkage exists anywhere:
+                             RateProposalService and OwnerRateService reference reviews nowhere, and a proposal
+                             is operator-authored with no review input. `softest_label` is genuinely derived, so
+                             it stays; the invented cause-and-effect around it does not. The Rates link stays as
+                             an ACTION the owner may take, never as a claim about what is already happening. --}}
+                        <div style="font-size:11.5px;color:var(--vy-faint);line-height:1.5;margin-top:14px">{{ $summary['softest_label'] }} is your softest score. Your rates are yours to set — <a href="{{ route('owner.rates') }}" style="color:var(--vy-accent);text-decoration:none;font-weight:500">open your Rates</a> if you want to act on it.</div>
                     @endif
                 </section>
             @endif

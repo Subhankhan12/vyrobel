@@ -131,7 +131,19 @@
                                      come from the ONE shared list so this cannot drift from the display side. --}}
                                 @php $selectedCountry = \App\Support\Countries::toCode(old('tax_country', $profile['tax_country'])); @endphp
                                 <select id="tax_country" name="tax_country" class="vy-input" style="width:100%;cursor:pointer">
-                                    <option value="">—</option>
+                                    {{-- ⚠️ "Not listed" IS A COMPLETABLE CHOICE, and saying so is the fix.
+                                         The residency list is deliberately the set the product serves, so an
+                                         owner resident elsewhere has no option to pick. Leaving this blank was
+                                         ALWAYS allowed — `tax_country` is `nullable` and the payout hold is
+                                         released by `Owner::hasTaxDetails()`, which reads `tax_id` ALONE — but
+                                         a bare em-dash reads as "unset", so an owner could believe the form was
+                                         un-completable and never save the tax id that releases their payout.
+                                         ⚠️ NO "Other" OPTION: `tax_country` is an ISO-code lookup key for
+                                         TaxRateService::rateFor(), and Countries::toCode() passes unrecognised
+                                         values THROUGH — so "Other" would be stored as a junk code matching no
+                                         configured rate, behaving exactly like blank while LOOKING like a
+                                         recorded residency. Blank is the honest representation of "not listed". --}}
+                                    <option value="">Not listed — leave blank</option>
                                     @foreach (\App\Support\Countries::options() as $code => $name)
                                         <option value="{{ $code }}" @selected($selectedCountry === $code)>{{ $name }}</option>
                                     @endforeach
