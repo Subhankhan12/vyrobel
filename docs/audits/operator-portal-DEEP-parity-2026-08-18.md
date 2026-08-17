@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **17 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **31 of 50** — presentation parity only |
+> | **Pages fully diffed** | **19 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **29 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | **Candidate 3** | **WITHDRAWN** on evidence (run 10) |
@@ -1378,6 +1378,76 @@ screenshots 21 · self-corrections 6 · mutations surfaced/exercised 14/0 · **c
 ## REMAINING
 
 **31 of 50** — presentation parity only.
+
+---
+
+# RUN 17 — `/app/portfolio` + `/app/search` · ⚠️ AND A CORRECTION TO RUN 10'S METHOD
+
+## ⚠️⚠️ RUN 10's PORTFOLIO VERDICT WAS RIGHT BY LUCK, NOT BY MEASUREMENT
+
+Run 10 declared portfolio *"proven correctly gated"* for Hotel Manager. This run noticed Hotel Manager's
+portfolio text containing **`Add property`** — a control whose write requires `properties.manage`, which
+Hotel Manager does **not** hold.
+
+**Re-measured with a selector that names the control directly:**
+
+| Role | `Add property` in DOM | Visible |
+|---|---|---|
+| **Hotel Manager** (no `properties.manage`) | **0** | **none** |
+| **Property Owner** (has it) | 4 | `Add property` · `Edit` · `Edit` |
+
+✅ **The gating IS correct** — Hotel Manager's markup never emits the control (the `MANAGER` label in the
+page text was a KPI heading, not a button).
+
+⚠️ **But run 10's check could not have found the defect if it existed.** Its button filter was
+`/move|publish|approve|decline|confirm|add shift|open shift|edit|save|new/i` — **"Add property" matches none
+of those terms.** The verdict was correct; the evidence behind it was not. Had Hotel Manager genuinely been
+shown the button, run 10 would have published a false all-clear.
+
+⚠️ **This is the SEVENTH instrument error in this audit, and the first where a CORRECT conclusion rested on a
+BROKEN check.** A green result from a check that cannot fail is worth nothing — the same shape as a vacuous
+test. Run 10's *conclusion* stands; its *method* is hereby marked unreliable, and the portfolio result is now
+backed by the direct measurement above.
+
+## `/app/portfolio` vs `Operator Portfolio.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Portfolio` + `3 properties · 75 rooms` | `Portfolio` + **`2 properties · 8 units`** (real) | **MATCH** |
+| 2 | `Add property` | present for Property Owner; **correctly absent** for Hotel Manager | **MATCH** + gating correct |
+| 3 | KPI `REVENUE · MONTH €214,600` **`+9%`** | revenue present, **no delta** | **DIVERGENCE — RATIFIED refusal** (vs-prior, #39) |
+| 4 | KPI `OCCUPANCY TONIGHT 81% · 61 of 75` | present with the real basis | **MATCH** |
+| 5 | KPI `ARRIVALS TODAY 27 across 3` | present | **MATCH** |
+| 6 | KPI `NEEDS ATTENTION 3` | present | **MATCH** |
+| 7 | Per-property cards: name · city · rooms · OCCUPANCY · ADR · REVENUE | present, real per-property metrics | **MATCH** |
+| 8 | `All synced · 12 arrivals` per card | sync half **absent** | **DIVERGENCE — RATIFIED** (#37 — no live channel sync to claim) |
+| 9 | Per-card `Dashboard` · `Calendar` links | present | **MATCH** |
+
+## `/app/search` vs `Operator Search.html`
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Search` | `Search` + **`Everything, in one place`** | **MATCH** + **EXTRA** |
+| 2 | Entity facets `All 15` · `Reservations 4` · `Guests 3` · `Units 3` · `Owners 2` · `Documents 3` | all six entities present | **MATCH** |
+| 3 | `DATES` — `Any time` · `September` · `October` · `Upcoming` · `Custom` | present | **MATCH** |
+| 4 | `SOURCE` — `Direct` · **`Booking.com`** · **`Airbnb`** · **`Expedia`** | real `source` enum, no OTA brands | **DIVERGENCE — RATIFIED** (brand unmodelled) |
+| 5 | `STATUS` — `Confirmed` · `Checked in` · `Due` | present | **MATCH** |
+| 6 | `OCCUPANCY` band filter | present | **MATCH** |
+| 7 | `Recent searches` + `Clear` | not in the visible set | **DIVERGENCE — minor** |
+
+**Verdict — portfolio + search: 0 frontend gaps · 0 backend gaps · portfolio gating re-proven directly.**
+
+## Updated tally
+
+Pages fully diffed **19 of 50** · findings **2** (unchanged) · refusals confirmed **22** · screenshots 21 ·
+⚠️ **auditor self-corrections 7** · mutations surfaced/exercised 14/0 · **code changed 0**.
+
+⚠️ **Seven instrument errors against two product defects.** Every verdict in this report should be read as
+"measured with a check proven able to fail" — and where that could not be shown, it is said so explicitly.
+
+## REMAINING
+
+**29 of 50** — presentation parity only.
 
 ---
 
