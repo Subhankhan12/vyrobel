@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **34 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **15 of 49** — presentation parity only |
+> | **Pages fully diffed** | **36 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **13 of 49** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -2041,9 +2041,139 @@ mutations surfaced/exercised 20 / 0 · **code changed 0**.
 
 ---
 
+# RUN 27 — `/app/maintenance/settings` + `/app/maintenance/{ticket}` · ⚠️ FINDING 4, AND A CORRECTION TO MY OWN RECIPE
+
+## ⚠️⚠️ FIRST: THE RECIPE IN THIS REPORT WAS WRONG — `<main>` CONTAINS THE SIDEBAR
+
+Step 3 of HOW TO RESUME says *"scope every read to `document.querySelector('main')`, not the whole page"*.
+Measured directly:
+
+    {main: true, mainContainsNav: true}
+
+⚠️ **`<main>` exists, and the operator sidebar is INSIDE it.** So every "scoped" read in this audit has in
+fact been reading the chrome too — the mitigation the recipe prescribes was never actually in effect.
+
+It bit immediately. My first pass took the visible controls capped at the first 30, and reported that
+Property Owner sees the maintenance-settings form with **no `Save changes` button** while Hotel Manager sees
+one — a spectacular-looking inversion where the *higher* role gets a read-only form. It was entirely mine:
+**PO's sidebar carries more entries** (Roles & access, Settings, Billing), so the same 30-item window stopped
+earlier in PO's list and cut the button off. A direct unbounded read returned `Save changes` for both.
+
+⚠️ **A CAP APPLIED AFTER MIXING CHROME WITH CONTENT TRUNCATES BY ROLE** — and since privilege is exactly what
+changes the sidebar length, the artefact *correlates with the thing being measured*. That is the most
+dangerous shape an instrument error can take: it manufactures a gating finding out of nothing.
+
+The correct read excludes chrome by ancestor, not by container:
+
+    const inChrome = e => !!e.closest('nav,aside,header,.vy-sidebar,.vy-topbar,[class*="sidebar"],[class*="topbar"]');
+
+Both pages below were re-measured with it. **Auditor self-correction #8.**
+
+## `/app/maintenance/settings` vs `Operator Maintenance Settings.html`
+
+| Role | Status | Save control | Editable fields |
+|---|---|---|---|
+| Property Owner | 200 | `Save changes` | 13 |
+| Hotel Manager | 200 | `Save changes` | 13 |
+| Accountant | **403** | — | — |
+| Housekeeping | **403** | — | — |
+
+`maintenance.manage` — correctly gated, and identical for the two permitted roles.
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | Resolution targets | 4 real SLA fields (`sla_urgent/high/normal/low_hours`) | **MATCH** |
+| 2 | Targets as preset chips (`Same day` · `4 hours` … `1 month`) | numeric inputs, `min=1 max=720` | **DIVERGENCE (minor)** — free numeric beats a fixed ladder |
+| 3 | Auto-assignment | `auto_assign_enabled` + 5 per-category assignee selects | **MATCH** |
+| 4 | Technicians | the same 5 selects (plumbing/electrical/appliance/structural/other) | **MATCH** |
+| 5 | — | **Out-of-order policy** (`block_room_from_sale`, `notify_front_desk`, `require_photo_on_resolve`) | **EXTRA** |
+| 6 | — | **Notify me about** — 5 real toggles incl. an SLA-breach and a daily digest | **EXTRA** |
+
+⚠️ Item 5 is inventory-touching (`block_room_from_sale` decides whether a work order pulls a unit from sale)
+and is **surfaced, not exercised**.
+
+## `/app/maintenance/{ticket}` vs `Operator Work Order.html`
+
+⚠️ **A WIREFRAME THAT HAD NO ROUTE UNTIL NOW.** `Operator Work Order.html` was not previously mapped in this
+ledger; it is the detail view behind `maintenance.show`. Recorded as a ledger addition, in the same class as
+run 25's alias correction — **the inventory keeps moving in both directions.**
+
+Read on the seeded ticket `01m0210t65…` (*"Wardrobe door off its runner"*, status `open`).
+
+| Role | Actions rendered | POST forms |
+|---|---|---|
+| Property Owner | Start work · Note · Progress · Part ordered · Post update · Reassign · Mark awaiting parts · Cancel work order | 6 |
+| Hotel Manager | identical | 6 |
+| Accountant | **none** | **0** |
+| Housekeeping | **none** | **0** |
+
+Gating is **correct and complete at the render layer**: `MaintenanceTicketDetail.php:94` derives one
+`$canManage` from `maintenance.manage` and every capability flag (`can_start`, `can_resolve`, `can_cancel`,
+`can_assign`, `can_parts`) is `$canManage && <status condition>` — so the two unprivileged roles get a genuine
+read-only view, not a disabled one.
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Mark resolved` in the header | `Start work` | **MATCH — status-derived** (`can_resolve` needs `in_progress`; this ticket is `open`) |
+| 2 | Update types Note / Progress / Part ordered | all three | **MATCH** |
+| 3 | `Add photo` · `Post update` | both, real `/photos` + `/notes` POSTs | **MATCH** |
+| 4 | `Reassign` / *"Open the rack to reassign"* | `Reassign` → a real `/assign` POST | **DIVERGENCE — build correct** (acts in place, no detour) |
+| 5 | — | `Mark awaiting parts`, `Cancel work order` | **EXTRA** — real lifecycle transitions |
+| 6 | `€310` in the wireframe body | no money on the work order | **DIVERGENCE** — costs live on `/app/maintenance/costs` (run 25) |
+
+## ⚠️⚠️ FINDING 4 (minor) — `Add update` is offered to roles that cannot add one
+
+`maintenance-ticket-detail.blade.php:56`
+
+    <a href="#wo-composer" class="vy-btn vy-btn--ghost">Add update</a>
+
+⚠️ **This anchor carries no gate at all**, while the composer it points at is inside
+`@if ($canManage && ! $readOnly)`. And the id it targets sits on the **Activity card** (line 164), which is
+ungated — so for Accountant and Housekeeping the link resolves, scrolls to a read-only timeline, and nothing
+happens. Measured: both roles render `Add update` with **zero action buttons and zero forms** on the page.
+
+**Verdict: OVER-EXPOSED LABEL, not an over-exposed capability.** Nothing becomes writable, no request is
+issued, and no 403 is invited — this is weaker than Finding 2 (a control that does invite a 403) and weaker
+than Finding 3. It is a **dead affordance**: the page offers an action to a reader who cannot perform it.
+
+⚠️ **Recorded, not fixed** — report-only. The one-line shape of a fix is visible (the same `@if ($canManage
+&& ! $readOnly)` already wrapping its own target), which is precisely why it must not be applied here.
+
+⚠️ Note the pattern across three of this audit's four findings: **the gate exists and is correct; what is
+missing is the gate on the CONTROL that advertises it.** Findings 2, 3 and 4 are all that same shape, on three
+unrelated screens — which makes it a systematic omission rather than three coincidences, and worth fixing as
+one pass rather than three patches.
+
+## Mutations SURFACED — none exercised
+
+| Endpoint | Writes | Money | Inventory |
+|---|---|---|---|
+| `POST …/{ticket}/start` | `maintenance_tickets.status` → `in_progress` | no | no |
+| `POST …/{ticket}/resolve` | status → resolved (+ optional return-to-sale) | no | ⚠️ **yes** |
+| `POST …/{ticket}/cancel` | status → cancelled | no | no |
+| `POST …/{ticket}/assign` | assignee | no | no |
+| `POST …/{ticket}/notes` | a timeline note (`body`) | no | no |
+| `POST …/{ticket}/parts` | awaiting-parts + `part_name` / `part_eta` | no | no |
+| `POST …/{ticket}/photos` | a media row | no | no |
+| `POST /app/maintenance/settings` | 13 settings incl. `block_room_from_sale` | no | ⚠️ **policy** |
+
+All **UI-gated; server-enforcement unverified-without-mutation.**
+
+## Updated tally
+
+Pages fully diffed **36 of 49** · **findings 4** · candidates open 1 · candidates resolved 4 ·
+refusals confirmed 33 · inventory corrections 4 · **auditor self-corrections 8** · hypotheses killed 1 ·
+mutations surfaced/exercised 28 / 0 · **code changed 0**.
+
+## REMAINING
+
+**13 of 49** — presentation parity only.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
-**15 of 49 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
+**13 of 49 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
 Follow it and the remaining pages are mechanical.
 
 ## 1 · Start the two servers
@@ -2073,8 +2203,10 @@ trusting that it CANNOT.**
 
 ⚠️ **Do NOT harvest `innerText || aria-label || title` across all elements** — a hidden button returns `''`
 for `innerText` but still yields its `aria-label`, which manufactured a false over-exposure on the front desk.
-Scope every read to `document.querySelector('main')`, not the whole page: the operator shell renders nav,
-bell and search on every screen and collides with content strings.
+⚠️ **CORRECTED IN RUN 27 — do NOT scope to `main`: the operator sidebar is INSIDE `<main>`.** Exclude
+chrome by ancestor instead (`e.closest('nav,aside,header,[class*="sidebar"],[class*="topbar"]')`), and never
+cap a control list that still contains chrome — the sidebar length varies WITH privilege, so the truncation
+correlates with the very thing being measured.
 
 ## 4 · ⚠️ ROUTE GATING — three gate types, and one wrong needle
 
