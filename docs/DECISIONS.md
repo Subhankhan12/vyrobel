@@ -12539,3 +12539,56 @@ hypothesis has been wrong more often than right.** Reproduce before believing it
 **BASELINE: 2391 / 2394 · 15,425 assertions — 1 failed + 2 skipped.** Non-green is **1**: `OperatorGuestProfileTest`
 ×1, a rendered-HTML mismatch with no queue and no ordering involvement. Down from 9 at the start of this run of
 work. PHPStan L5 (0); Pint clean; no application or test code changed by this pass.
+
+---
+
+## 2026-08-17 — the scratch-directory decision, and the 18 files turned out to be MY OWN mistake
+
+⚠️⚠️ **CONFIRM-FIRST FOUND THAT THE "18 LOOSE UNTRACKED FILES" WERE NOT UNTRACKED — I HAD COMMITTED THEM.**
+`git ls-files --others --exclude-standard` returns **0**: there is nothing loose in this tree. But the item's
+prefix list (`d1-1-tasks-*`, `d8-2-ready-by`, `d18-6-rate-plans`, `do9-*`, `restore*`) matches, **file for
+file, the 18 capture PNGs swept into commit `3104918` by a `git add -A` in my own D18-5 bulk-per-unit pass.**
+`git log --diff-filter=A` names that commit for every one of them. The item is real; its files had simply
+moved from "untracked litter" to "committed by me" in between.
+
+⚠️ **HAD I FOLLOWED THE BRIEF LITERALLY — "move or rm the loose files under those prefixes" — I WOULD HAVE
+DELETED COMMITTED ASSETS.** The register's own warning (*"4 of the ~15 were actually committed"*) understates
+it by an order of magnitude: **98 capture PNGs sit tracked at the repo root**, of which **80 predate me and
+are the founder's** and 18 are mine. The per-file `git ls-files --error-unmatch` check is the only thing
+separating the two, and it is the whole reason nothing of the founder's was touched.
+
+⚠️ **THE REFERENCE CHECK WAS PROVEN SENSITIVE BEFORE ITS SILENCE WAS TRUSTED.** Grepping the 18 filenames
+across `docs/ resources/ app/ tests/` found nothing — but so did the control, so the probe's silence meant
+nothing yet. Re-running it against known-committed captures surfaced
+`gate0-op-dashboard-newsidebar.png` in `docs/design/DIVERGENCE-REGISTER.md`, which establishes the grep can
+find a reference when one exists. **Only then** was 0-of-18 a real negative (§N.4p — a check must be able to
+find what it seeks).
+
+**THE FIX — one rule, plus a backstop, plus a convention that ships:**
+
+- **`/.captures/*`** — the scratch directory. ⚠️ **The CONTENTS, not the directory**: excluding
+  `/.captures/` outright makes git skip the directory entirely, so the `!/.captures/README.md` negation could
+  never match and the convention doc would silently not ship. Caught by testing it.
+- **`/*.png` (+ jpg/jpeg/webp) at the root** — the backstop, because `browser_take_screenshot` with a bare
+  relative filename lands **at the repo root**, which is how every one of these was born. ⚠️ **This cannot
+  hide the 80 committed captures — a `.gitignore` rule has no effect on a tracked file** — verified by
+  touching one and watching `git status` still report ` M 2b-flat-unchanged.png`.
+- **`.captures/README.md`** — the convention, in the repo where it can be read: pass
+  `filename: ".captures/…"`, and `git add -f` anything root-level that genuinely belongs.
+- **My 18 untracked and moved into `.captures/`** — `git rm --cached` then `mv`. ⚠️ `git rm` is correct here
+  precisely *because* they were tracked; the "untracked → rm, never git rm" rule governs files git never knew
+  about. **7.8 MB of bytes preserved on disk, nothing destroyed.**
+
+**VERIFIED:**
+- **The tracked-file list changed by EXACTLY my 18** — 1841 → 1823, and the diff lists those 18 and nothing
+  else. The founder's 80 remain tracked.
+- **A brand-new prefix is ignored in both places** — `zz-never-seen-prefix.png` at the root and
+  `zz-brand-new-prefix.png` in `.captures/` both stay out of `git status`. **The whack-a-mole is over: no
+  future pass needs a new rule.**
+- Suite **2391 / 2394**, 15,425 assertions, unchanged (1 failed + 2 skipped) — nothing referenced a moved file.
+
+⚠️ **A SMALL PROBE TRAP WORTH RECORDING:** `git check-ignore -v <file>` exits **0 when it matches a NEGATION
+too**, so "exit 0" does not mean "ignored". Reading the exit code alone said the README was still excluded
+when it was in fact included; `git status --porcelain -uall` is what settled it.
+
+**Subsumes item 30.** PHPStan/Pint untouched (no code changed).

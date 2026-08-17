@@ -31,6 +31,24 @@ CLAUDE.local.md
 /.playwright-mcp/
 /flow*.png
 /flow*.md
+
+# ⚠️ THE SCRATCH DIRECTORY — one rule that retires the whole verification-capture category.
+# Per-prefix ignores below were whack-a-mole: every pass invents a prefix no rule anticipates, and it
+# either litters `git status` or gets swept into a commit by a `git add -A` (commit 3104918 did exactly
+# that to 18 captures). Captures now go to `.captures/` — see .captures/README.md for the convention.
+# ⚠️ THE CONTENTS, not the directory. Excluding `/.captures/` outright makes git skip the directory
+# entirely, so a `!` negation inside it can never match and the convention doc silently would not ship.
+/.captures/*
+!/.captures/README.md
+
+# ⚠️ THE BACKSTOP, for when the convention is forgotten: a screenshot with a bare relative filename lands
+# at the REPO ROOT, so ignore root-level images outright. This canNOT hide the ~80 root captures already
+# committed — a .gitignore rule has no effect on a tracked file — it only stops NEW ones appearing.
+# A root image that genuinely belongs in the repo can still be added with `git add -f`.
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
 # Dev before/after capture pairs dropped at the repo root during verification passes.
 # ⚠️ ROOT-ANCHORED, like /flow*.png above: four before/after images ARE committed assets
 # (doemail1-plates, doemail3-admin-email, doinv4-email-plates, email-footer). Git ignores
