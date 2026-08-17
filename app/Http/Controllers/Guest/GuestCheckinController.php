@@ -11,6 +11,7 @@ use App\Models\Reservation;
 use App\Services\Guest\GuestIdDocumentService;
 use App\Support\Guest\GuestName;
 use App\Support\Reservations\ReservationStage;
+use App\Support\StayTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -155,16 +156,27 @@ class GuestCheckinController extends Controller
         return CarbonImmutable::parse($reservation->check_out)->startOfDay()->greaterThanOrEqualTo($today->startOfDay());
     }
 
-    private function timeLabel(mixed $time): string
+    /**
+     * The property's PUBLISHED check-in time, or NULL when it has not published one.
+     *
+     * ⚠️ A TIME IS A FACT OR NOTHING (#39). Both branches of this method used to return a hardcoded
+     * '15:00' — once for an absent value and once for an unparseable one. `properties.check_in_time` is
+     * nullable with **no schema default and no config default**, so 15:00 was never "the default": it was
+     * an invention that happens to be right for the two demo properties (which publish exactly 15:00), and
+     * silently wrong for any property that opens at a different hour. That is the kind of fabricated fact
+     * that survives review precisely because it matches the fixture.
+     *
+     * ⚠️ IT IS NOW NULL-SAFE VIA THE ONE IDIOM ({@see StayTime::display()}, §N.8f) — the same helper the
+     * operator-side sites were moved onto — so a caller must decide what an unpublished time means rather
+     * than be handed an hour nobody published.
+     *
+     * ⚠️ CONFIRM-FIRST FOUND THIS IS CURRENTLY DORMANT: `guest/checkin.blade.php` never renders the
+     * `checkInTime` it is given, so no guest is being shown 15:00 today. It is fixed rather than deleted
+     * because the value is one `{{ $checkInTime }}` away from being live, and a dormant fabrication that
+     * goes live later is exactly the failure mode that is hardest to catch.
+     */
+    private function timeLabel(mixed $time): ?string
     {
-        if (! is_string($time) || $time === '') {
-            return '15:00';
-        }
-
-        try {
-            return CarbonImmutable::parse($time)->format('H:i');
-        } catch (\Throwable) {
-            return '15:00';
-        }
+        return StayTime::display($time, 'H:i');
     }
 }
