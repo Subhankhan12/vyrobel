@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **38 of 48** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **10 of 48** — presentation parity only |
+> | **Pages fully diffed** | ✅ **52 of 52 — COMPLETE** (denominator DERIVED in run 29: 54 GET `/app` URIs − 2 aliases) |
+> | **REMAINING** | ✅ **0** |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -2301,9 +2301,163 @@ mutations surfaced/exercised 36 / 0 · **code changed 0**.
 
 ---
 
+# RUN 29 — THE LAST FIVE PAGES · ⚠️ FINDING 5 · ⚠️ THE DENOMINATOR WAS NEVER DERIVED · ✅ N = M
+
+## ⚠️⚠️ INVENTORY CORRECTION #6 — the denominator was inherited, never derived
+
+Rule #1 of this audit says *build the ledger from `route:list` — DERIVE it, don't assume a count*. The **page
+ledger** was derived. **The denominator was not.** "50" came from a run-1 estimate and was then adjusted by
+−1 per alias discovered (→49 in run 25, →48 in run 28), so it stayed *plausible* while never once being
+recomputed from the source it claimed to come from.
+
+Derived properly:
+
+    54 distinct GET /app URIs − 2 aliases (rack → calendar, inbox/{thread} → inbox)  =  52 pages
+
+⚠️ **A number that is maintained by adjustment rather than by recomputation drifts silently** — every
+correction I made to it was locally right and the total stayed wrong. The whole-ledger rebuild below is
+derived from `route:list`, page by page, and every one of the 52 maps to the run that diffed it.
+
+## The last five pages, all four roles
+
+| Page | Prop Owner | Hotel Mgr | Accountant | Housekeeping | Gate | Verdict |
+|---|---|---|---|---|---|---|
+| `/app/notification-preferences` | 200 (16 toggles) | 200 | 200 | 200 | *(none — self-only)* | **correctly open** — a user's own preferences |
+| `/app/billing/checkout` | 200 (€99.00) | **403** | **403** | **403** | `can:billing.manage` | **correctly gated** |
+| `/app/owners/invite/preview` | 200 | **403** | **403** | **403** | `can:users.manage` | **correctly gated** |
+| `/app/schedule/pdf` | 200 · **881 KB real PDF** | 200 · PDF | **403** | 200 · PDF | `can:schedule.view` | **correctly gated** — HK holds `schedule.view`, ACC does not |
+| ⚠️ `/app/email-templates/{key}/edit` | 200 | 200 | **200** | **200** | *(none)* | ⚠️ **OVER-EXPOSED — Finding 5** |
+
+⚠️ The schedule PDF is a **download**, so `page.goto()` aborts with *"Download is starting"* and returns no
+status at all. Read through the request context instead — it returned a genuine `%PDF` of 881,198 bytes for
+three roles and a 403 HTML body for the Accountant. **A capture harness that only knows how to navigate will
+score every download as an error**, which reads identically to a broken page.
+
+⚠️ The editor key was **derived from the rendered list page**, not invented: `email_templates` has **0 rows**
+(it is a config catalogue with DB overrides), so a guessed key would have 404'd and I would have recorded a
+phantom absence.
+
+## ⚠️⚠️ FINDING 5 — the email-template editor renders WRITE controls for every back-office role
+
+| Route | Gate |
+|---|---|
+| `GET /app/email-templates` | *** none *** |
+| `GET /app/email-templates/{key}/edit` | *** none *** |
+| `POST /app/email-templates/{key}` | `Authorize:properties.manage` |
+| `POST /app/email-templates/{key}/test` | `Authorize:properties.manage` |
+| `POST /app/email-templates/{key}/toggle` | `Authorize:properties.manage` |
+
+**The three writes are correctly gated. The page that offers them is not**, and the view carries **no `@can`
+anywhere** — measured, not assumed. So Accountant and **Housekeeping (4 permissions)** both render the
+booking-confirmation editor complete with **`Save template`**, **`Send me a test`**, the merge-tag palette and
+3 section toggles, pointed at two `properties.manage` endpoints.
+
+**Verdict: OVER-EXPOSED.** Two distinct problems, worth separating:
+
+1. **A write control that invites a 403** — the Finding 2 shape, but three controls rather than one, and on a
+   page reachable by the *least*-privileged role.
+2. **A read exposure** — the org's outbound guest email copy (subject, heading, body, merge tags) is legible
+   to every back-office role. Not PII, so not a #28 breach; still content no housekeeper needs.
+
+⚠️ **Server-enforcement is UI-gated-only from here**: that the POST would actually reject is what the route
+middleware says, and proving it would require POSTing a gated action. **Unverified-without-mutation.**
+
+## ⚠️⚠️ THE PATTERN IS THE REAL RESULT — 4 of the 5 findings are one omission
+
+| Finding | Screen | Gate exists | Control gated |
+|---|---|---|---|
+| 2 | `/app/calendar` — `New reservation` | ✅ route | ❌ |
+| 3 | `/app/schedule` — the drag instruction | ✅ route | ❌ (partial) |
+| 4 | `/app/maintenance/{ticket}` — `Add update` | ✅ view | ❌ |
+| 5 | `/app/email-templates/{key}/edit` — `Save template` ×3 | ✅ route | ❌ |
+
+⚠️ **Every gate in this build is present and correct. What is missing, on four unrelated screens, is `@can`
+on the control that advertises the gated action.** CLAUDE.md states the rule explicitly — *"Gate the CONTROL
+too (`@can`), so the UI never invites a 403"* — so this is not an unknown principle but an **unswept one**.
+
+⚠️ **That makes it one pass, not four patches** — and the sweep should be over *controls whose target route
+carries `Authorize:`*, which is mechanically enumerable, rather than over screens someone remembers.
+
+Finding 1 stands apart: it is not a control problem but **pages with no gate at all**, 2 of them parameterised
+and carrying money (run 28).
+
+---
+
+# ✅ THE COMPLETE LEDGER — 52 pages, all diffed
+
+| Page | Run | Page | Run |
+|---|---|---|---|
+| `/app/dashboard` | 1 | `/app/maintenance/costs` | 25 |
+| `/app/payouts/run` | 1 | `/app/maintenance/costs/export.csv` | 6 |
+| `/app/owners` | 1 | `/app/maintenance/costs/export.pdf` | 6 |
+| `/app/front-desk` | 2 | `/app/maintenance/costs/export.xlsx` | 6 |
+| `/app/reservations` | 3 | `/app/reports/export.csv` | 6 |
+| `/app/rates` | 3 | `/app/reports/export.pdf` | 6 |
+| `/app/housekeeping` | 4 | `/app/reports/export.xlsx` | 6 |
+| `/app/reservations/{r}/refund` | 4 | `/app/security/export` | 20 |
+| `/app/reservations/{r}` | 5 | `/app/settings` | 20 |
+| `/app/reservations/{r}/folio.pdf` | 5 | `/app/security` | 20 |
+| `/app/calendar` | 7 | `/app/profile` | 21 |
+| `/app/guests` | 11 | `/app/notifications` | 21 |
+| `/app/inbox` | 11 | `/app/guest-requests` | 22 |
+| `/app/channels` | 12 | `/app/unit-requests` | 22 |
+| `/app/units` | 12 | `/app/email-templates` | 23 |
+| `/app/maintenance` | 15 | `/app/email-previews` | 23 |
+| `/app/reviews` | 15 | `/app/email-previews/{key}` | 23 |
+| `/app/insights` | 16 | `/app/billing` | 24 |
+| `/app/reports` | 16 | `/app/group-booking` | 26 |
+| `/app/portfolio` | 17 | `/app/reservations/create` | 26 |
+| `/app/search` | 17 | `/app/maintenance/settings` | 27 |
+| `/app/schedule` | 18 | `/app/maintenance/{ticket}` | 27 |
+| `/app/roles` | 18 | `/app/guests/{guest}` | 28 |
+| `/app/notification-preferences` | 29 | `/app/owners/{owner}` | 28 |
+| `/app/billing/checkout` | 29 | `/app/owners/invite/preview` | 29 |
+| `/app/email-templates/{key}/edit` | 29 | `/app/schedule/pdf` | 29 |
+
+**Aliases (not pages):** `/app/rack` → `calendar` (run 25) · `/app/inbox/{thread}` → `inbox` (run 28).
+
+---
+
+# ⚠️ SELF-CHECK AT N = M — including what it does NOT cover
+
+| Check | Result |
+|---|---|
+| Ledger 0 remaining | ✅ 52/52, denominator **derived** from `route:list` |
+| Every page control-diffed across all 4 roles | ✅ |
+| Every finding confirmed at source, not inferred | ✅ 5/5 (route middleware + view source quoted for each) |
+| Every gating verdict mapped to the capability matrix | ✅ |
+| Money + inventory as-seeded | ✅ `693e3237…` · 929 rows · 41 reservations · 16 payments · 0 overrides · 0 seasons · 0 anonymized |
+| Mutations exercised | ✅ **0** of 41 surfaced |
+| Code changed | ✅ **0** |
+| Seasonal apply-panel treated as a deferral | ✅ recorded at `/app/rates` (run 3) |
+| ⚠️ Screenshot per page **per role** | ❌ **NOT met — 68 captures for 52 pages × 4 roles.** Runs 1–13 predate the capture pass (run 14). The *diffs* were done in-browser and are recorded; the *image artefacts* are partial, and `.captures/` is gitignored so none of them are in the repo anyway. **Stated rather than quietly dropped.** |
+
+## ⚠️ What this audit could NOT establish (by construction)
+
+- **Server-side enforcement of any gated write.** Every POST is `UI-gated; unverified-without-mutation` —
+  41 mutations surfaced, 0 exercised. Finding 5's three endpoints included.
+- **Whether Finding 1's ungated pages are also unscoped.** They render *this org's* data to a low-privilege
+  member of *this org*; cross-tenant isolation is a separate (and separately certified) property.
+- **Behaviour behind a wizard step.** Both create wizards were read at step 1 and from source (run 26).
+
+## ⚠️ The five findings, ranked
+
+| # | Severity | What |
+|---|---|---|
+| **1** | ⚠️ **highest** | Pages with **no gate at all** — incl. `/app/owners/{owner}` (gross/commission/statements/payouts **+ an owner email**) and `/app/reservations/{r}` (folio money) to Housekeeping. ⚠️ Parameterised routes were **structurally invisible** to the original sweep. |
+| **5** | high | Email-template editor: 3 write controls rendered for every back-office role; writes gated, page not. |
+| **2** | medium | `/app/calendar` `New reservation` without `@can` — invites a 403. |
+| **4** | low | `/app/maintenance/{ticket}` `Add update` offered to roles that cannot add one. |
+| **3** | low | `/app/schedule` drag instruction shown to a role that cannot drag. |
+
+**Findings 2–5 are one sweep** (gate the control wherever its route carries `Authorize:`). **Finding 1 is a
+separate, larger question** (which pages should carry a gate at all).
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
-**10 of 48 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
+✅ **The audit is COMPLETE — 0 pages remain.** The recipe below is kept for re-verification. Everything below cost this audit real runs to learn.
 Follow it and the remaining pages are mechanical.
 
 ## 1 · Start the two servers
