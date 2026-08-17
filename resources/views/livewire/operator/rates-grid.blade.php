@@ -64,6 +64,7 @@
                 @can('rates.manage')
                     @unless ($readOnly)
                         <button type="button" class="vy-btn vy-btn--ghost vyr-bulk" style="padding: 8px 14px; font-size: 12.5px;" x-on:click="bulkOpen = true">Bulk edit</button>
+                        <button type="button" class="vy-btn vy-btn--ghost vyr-unitbulk" style="padding: 8px 14px; font-size: 12.5px;" x-on:click="unitOpen = true">Price units individually</button>
                     @endunless
                 @endcan
             @endif
@@ -292,7 +293,119 @@
                 @endif
             @endcan
 
+            {{-- ── D18-5 · BULK PER-UNIT PRICING — step 1 of 2: describe the operation. ⚠️ THIS FORM POSTS TO
+                 `preview`, WHICH WRITES NOTHING. Money at scale earns a confirmation step: a bulk mistake is
+                 many wrong prices at once and is silent, so the operator is shown the exact figures first and
+                 the write happens only from the panel below. ───────────────────────────────────────────── --}}
+            @can('rates.manage')
+                @if (count($rows) > 0 && ! $readOnly)
+                    <div x-show="unitOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="unitOpen = false">
+                        <div class="vy-card" style="max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;">
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">Price units individually</h3>
+                            <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">{{ $window['label'] }} · a price for one unit, not the whole room type</div>
+                            <form method="POST" action="{{ route('app.rates.units.preview') }}">
+                                @csrf
+                                <input type="hidden" name="start_date" x-model="from">
+                                <input type="hidden" name="end_date" x-model="to">
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label" for="ub_rt">Room type</label>
+                                    <select id="ub_rt" name="room_type_id" class="vy-input" x-model="unitRt">
+                                        @foreach ($roomTypeOptions as $opt)
+                                            <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label">Units</label>
+                                    <div style="font-size: 11.5px; color: var(--vy-faint); margin-bottom: 6px;">Leave all unticked to apply to every unit of that room type.</div>
+                                    @foreach ($unitOptions as $rtId => $units)
+                                        <div x-show="unitRt === '{{ $rtId }}'" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                            @foreach ($units as $u)
+                                                <label class="vyr-check" style="margin: 0;"><input type="checkbox" name="unit_ids[]" value="{{ $u['id'] }}"> {{ $u['name'] }}</label>
+                                            @endforeach
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="vy-field" style="margin: 0 0 12px;">
+                                    <label class="vy-field-label">What to do</label>
+                                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="set" x-model="unitMode"> Set a per-unit rate</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="clear" x-model="unitMode"> Clear per-unit rates</label>
+                                    </div>
+                                    <input type="text" name="amount" class="vy-input" inputmode="decimal" placeholder="e.g. 175.00" x-show="unitMode === 'set'">
+                                    {{-- ⚠️ CLEAR REMOVES THE OVERRIDE — it does not set €0. The units go back to
+                                         following their room type's rate, and the preview shows that figure. --}}
+                                    <div x-show="unitMode === 'clear'" style="font-size: 12px; color: var(--vy-muted);">Those units go back to following the room-type rate.</div>
+                                </div>
+                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                    <button type="button" class="vy-btn" x-on:click="unitOpen = false" style="padding: 9px 16px;">Cancel</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Preview changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+            @endcan
+
         </div>
+
+        {{-- ── D18-5 · step 2 of 2: THE PREVIEW IS THE APPROVAL GATE. Nothing has been written at this point.
+             ⚠️ The digest below is a hash of every (unit, night, from, to) tuple shown here; the apply route
+             re-computes it inside the transaction and refuses if anything moved, so what commits is exactly
+             what is on this screen. ────────────────────────────────────────────────────────────────────── --}}
+        @can('rates.manage')
+            @if (session('unit_rate_preview'))
+                @php($vyPreview = session('unit_rate_preview'))
+                <div class="vy-card vy-fade vyr-unitpreview" style="margin-top: 18px; border: 1px solid rgba(194,65,12,.35);">
+                    <h2 class="vy-card-title" style="margin-bottom: 2px;">Review before applying</h2>
+                    <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 12px;">
+                        {{ $vyPreview['room_type_name'] }} · {{ count($vyPreview['units']) }} {{ count($vyPreview['units']) === 1 ? 'unit' : 'units' }} ·
+                        {{ $vyPreview['nights'] }} {{ $vyPreview['nights'] === 1 ? 'night' : 'nights' }} from {{ $vyPreview['start'] }} to {{ $vyPreview['end_inclusive'] }} ·
+                        <strong>nothing has been changed yet</strong>
+                    </div>
+
+                    <table class="vy-table" style="margin-bottom: 12px;">
+                        <thead><tr><th>Unit</th><th>Now</th><th>After</th><th>Nights</th></tr></thead>
+                        <tbody>
+                            @foreach ($vyPreview['units'] as $vyRow)
+                                <tr>
+                                    <td>{{ $vyPreview['names'][$vyRow['unit_id']] ?? $vyRow['unit_id'] }}</td>
+                                    <td>{{ $vyRow['from_minor'] === null ? '—' : \App\Support\Money\MoneyFormatter::display($vyRow['from_minor'], $vyPreview['currency']) }}</td>
+                                    <td>
+                                        <strong>{{ $vyRow['to_minor'] === null ? '—' : \App\Support\Money\MoneyFormatter::display($vyRow['to_minor'], $vyPreview['currency']) }}</strong>
+                                        @if ($vyRow['state'] === 'cleared')
+                                            <span style="font-size: 11.5px; color: var(--vy-muted);"> · room-type rate</span>
+                                        @elseif ($vyRow['state'] === 'pinned')
+                                            <span style="font-size: 11.5px; color: var(--vy-muted);"> · unchanged, but pinned to this unit</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $vyRow['nights_changing'] }} of {{ $vyRow['nights'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+                    @if ($vyPreview['skipped_units'] > 0)
+                        <div style="font-size: 12px; color: var(--vy-muted); margin-bottom: 10px;">{{ $vyPreview['skipped_units'] }} {{ $vyPreview['skipped_units'] === 1 ? 'unit has' : 'units have' }} no per-unit price in this range and will be left alone.</div>
+                    @endif
+
+                    <form method="POST" action="{{ route('app.rates.units.apply') }}" style="display: flex; gap: 10px; justify-content: flex-end; align-items: center;">
+                        @csrf
+                        <input type="hidden" name="digest" value="{{ $vyPreview['digest'] }}">
+                        <input type="hidden" name="start_date" value="{{ $vyPreview['start'] }}">
+                        <input type="hidden" name="end_date" value="{{ $vyPreview['end_inclusive'] }}">
+                        <input type="hidden" name="room_type_id" value="{{ $vyPreview['room_type_id'] }}">
+                        <input type="hidden" name="mode" value="{{ $vyPreview['mode'] }}">
+                        <input type="hidden" name="amount" value="{{ $vyPreview['amount'] }}">
+                        @foreach ($vyPreview['units'] as $vyRow)
+                            <input type="hidden" name="unit_ids[]" value="{{ $vyRow['unit_id'] }}">
+                        @endforeach
+                        <a class="vy-btn" style="padding: 9px 16px;" href="{{ route('app.rates', ['from' => $vyPreview['start']]) }}">Cancel</a>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Apply to {{ count($vyPreview['units']) }} {{ count($vyPreview['units']) === 1 ? 'unit' : 'units' }}</button>
+                    </form>
+                </div>
+            @endif
+        @endcan
 
         {{-- ── Rate plans — REAL base + derived plans (#100). Derived = base × adjustment (reconciles). ──── --}}
         @if (count($ratePlans) > 0)
@@ -358,6 +471,9 @@
                 stopSell: false,
                 updateDerived: false,
                 bulkOpen: false,
+                unitOpen: false,
+                unitMode: 'set',
+                unitRt: '{{ $roomTypeOptions[0]["id"] ?? "" }}',
                 buMode: 'increase_pct',
                 edit(roomType, date, rate, minStay, stopSell) {
                     this.roomType = roomType;

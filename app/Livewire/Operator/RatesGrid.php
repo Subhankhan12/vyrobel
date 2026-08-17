@@ -13,6 +13,7 @@ use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Restriction;
 use App\Models\RoomType;
+use App\Models\Unit;
 use App\Models\UnitRateOverride;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
@@ -142,6 +143,16 @@ class RatesGrid extends Component
                 'name' => (string) $rt->name,
                 'has_plan' => $this->primaryRatePlan($rt) !== null,
             ])->all(),
+            // D18-5 — the units behind each room type, so the bulk per-unit panel can offer a real selection.
+            // Display only: the grid's own rows and its blast-radius label are untouched.
+            'unitOptions' => Unit::query()
+                ->whereIn('room_type_id', $allRoomTypes->map(fn (RoomType $rt): string => (string) $rt->getKey())->all())
+                ->orderBy('code')->get(['id', 'name', 'code', 'room_type_id'])
+                ->groupBy('room_type_id')
+                // ⚠️ `name ?: code` — units carry a code and a NULL name, so labelling by name alone renders
+                // a picker of blank checkboxes. The mailers already use exactly this fallback.
+                ->map(fn ($g): array => $g->map(fn ($u): array => ['id' => (string) $u->id, 'name' => (string) ($u->name ?: $u->code)])->values()->all())
+                ->all(),
             'rtFilter' => $rtFilter,
             'tiles' => $this->tiles($rates, $availability),
             'window' => $this->windowNav($from, $fromStr, $throughStr),

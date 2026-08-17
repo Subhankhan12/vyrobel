@@ -79,6 +79,7 @@ use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Http\Controllers\Operator\UnitRequestActionController;
 use App\Http\Controllers\Operator\WorkspaceSwitchController;
 use App\Http\Controllers\Owner\OwnerAccountController;
@@ -632,6 +633,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
     // #100 — bulk edit (increase%/decrease%/set-exact across units/nights, skip booked, update derived plans).
     Route::post('/rates/bulk', [RateActionController::class, 'bulkApply'])->middleware('can:rates.manage')->name('rates.bulk');
+
+    // D18-5 — BULK PER-UNIT overrides. ⚠️ TWO POSTS ON PURPOSE: `preview` writes NOTHING and returns the exact
+    // per-unit change set + a digest; `apply` refuses without that digest and re-verifies it inside the
+    // transaction, so what commits is what the operator approved. Both `rates.manage` (#30), both write only
+    // through the ONE UnitRateOverrideService (D4-1 — never a direct rate write).
+    Route::post('/rates/units/preview', [UnitRateActionController::class, 'preview'])->middleware('can:rates.manage')->name('rates.units.preview');
+    Route::post('/rates/units/apply', [UnitRateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.units.apply');
 
     // RATE PROPOSALS (Wave C · GATE 1) — the operator proposes a rate change to an owner (who approves/declines in
     // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.

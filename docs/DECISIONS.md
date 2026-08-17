@@ -12150,3 +12150,73 @@ all cannot prove anything about pricing, and building further on top of it would
 phases 1 and 2 refused.
 
 **Nothing regressed:** no application code changed, the concurrency core untouched, the suite unaffected.
+
+---
+
+## 2026-08-17 — D18-5 · BULK per-unit rate overrides: preview → atomic commit, through the ONE writer
+
+⚠️⚠️ **CONFIRM-FIRST INVERTED THE BRIEF'S CENTRAL PREMISE, AND IT CHANGED THE SHAPE OF THE BUILD.** The task
+was "bulk REUSES the single-set authoring path". **There is no single-set authoring path.** Nothing in `app/`
+writes `unit_rate_overrides` — the only writers in the repo are three test fixtures. Phase 1's own entry says
+so in as many words ("the surface is deliberately **not built**") and its sequenced list ends with "bulk
+tooling". So the instruction to reuse a path described something that does not exist.
+
+⚠️ **THE HONEST READING OF THE RULE INVERTED THE CONSTRUCTION.** A bulk-only writer built today would have
+BECOME the single writer, and the single-set surface built tomorrow would have been the SECOND one — exactly
+the two-sources-that-can-disagree hazard D4-1 exists to prevent, reached from the other direction. So
+**`UnitRateOverrideService` is the write path itself, not a wrapper around one**, and single-set is simply its
+N=1 call (one unit, one night). When that UI ships it calls this, and there is still one place that decides
+what an override row means (§N.8f).
+
+**THE PREVIEW IS A MECHANISM, NOT A COURTESY.** `preview()` computes the exact per-unit, per-night change set,
+writes nothing, and returns a **`digest`** — a sha256 over every `(unit, night, from, to)` tuple it promises.
+`commit()` re-computes that set **inside the transaction** and refuses unless the digest still matches. If a
+colleague re-prices the room type while the operator is reading, the approved sentence "from €180.00 to
+€255.00" is no longer true, and the commit **aborts having written nothing** rather than applying figures
+nobody approved. That is what makes commit == preview a guarantee instead of a claim.
+
+- **ATOMIC** — one transaction; a mid-bulk failure rolls back the units that had already succeeded. A
+  half-priced set is the worst outcome available because it looks like success.
+- **CLEAR REMOVES ROWS, IT DOES NOT WRITE ZEROS** — and the preview shows the **type rate each unit lands on**,
+  so the operator approves the real figure rather than the word "cleared". €0 would sell the night for nothing.
+- **VALIDATION IS THE TYPE-LEVEL PATH'S, UNCHANGED** — `MoneyInput::toMinor` with the same MAX_PRICE_MINOR
+  bound `RateActionController` uses; integer minor units by string arithmetic, VAT-inclusive (§G.1 untouched).
+- **THE RACK SAFEGUARD FOLLOWS FOR FREE** — it reads the same table this writes, so after a bulk set the label
+  became "1 of 3 units · 2 priced individually" with nobody maintaining a second count.
+
+⚠️ **A REAL DEFECT WAS FOUND BY OPENING THE PAGE, NOT BY A TEST.** Every real unit carries a `code` ("101",
+"A1") and a **NULL `name`** — so labelling by name rendered a bulk MONEY screen whose rows were **blank**: an
+operator approving prices for units they could not identify. Thirteen green tests were blind to it. Fixed to
+the `name ?: code` fallback the mailers already use, and now guarded against the real codes (§N.21.6 — static
+checks cannot see a rendered page).
+
+⚠️⚠️ **AND THE FIX ITSELF SILENTLY FAILED TO APPLY THE FIRST TIME** — the needle didn't match, and the `grep`
+that "verified" it matched **the explanatory comment I had just written**, not the code. §N.27.5 on my own
+edit, and §N.4p's whole point: an unverified mutation's pass means nothing. Re-applied with an assert on the
+match count and re-verified against the code line.
+
+**FIVE MUTATIONS, EACH VERIFIED TO LAND** (money makes this mandatory): committing a figure the preview never
+showed reds commit==preview · removing the transaction reds atomicity · clearing to €0 reds clear→type ·
+flipping the override/type precedence reds the one-source test · deleting the digest check reds the
+moved-world test. ⚠️ **The first mutation reported "0 hits" twice before it applied** — and one intervening
+run printed a false 13/13 green because the file was never mutated.
+
+⚠️ **AND A GUARD WAS FOUND TO BE DECORATION AND STRENGTHENED.** The precedence-flip mutation red the *clear*
+test but NOT the one-source test it was aimed at: that test compared only each unit's **opening** night, and
+the fixture's override sat on the second — so a broken resolver agreed on night one and the guard stayed
+green. Rewritten to compare **every night, tuple for tuple**; the mutation now reds it.
+
+**MONEY, RAW-VERIFIED IN THE BROWSER** (a real preview → approve → commit → clear, as the demo operator):
+preview wrote **0 rows**; the commit wrote **exactly** 2 units × 3 nights @ 19500 and nothing else; units 103 /
+A1 / A2 held **0** overrides; clear removed the rows (**0 written as €0**) and both units resolved back to
+€100.00; and `rate_calendar` hashed **`2bbdafccc3b5c1ee43f89fe313a3f02d`, 929 rows, 10,920,000 minor** — the
+founding baseline — at every step. The demo ended **money-as-seeded** (0 overrides).
+
+**Untouched:** `NightlyRate`'s logic, the type-level rate write, single-set (there is none), §G.1, the
+computation, isolation/RBAC (both routes `can:rates.manage`, proven refused to Front Desk).
+
+**SEQUENCED, NOT BUILT:** the single-set authoring UI (this service is ready for it) · the D18-6 re-shape ·
+channel-sync per-unit · the storefront plumbing (still stopped, `5329211`).
+
+Suite **2371 / 2382**, 15,311 assertions, the documented non-green 6 (BookingImport ×5 + OperatorGuestProfile
+×1); PHPStan L5 (0); Pint clean.
