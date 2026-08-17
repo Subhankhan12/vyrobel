@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **21 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **27 of 50** — presentation parity only |
+> | **Pages fully diffed** | **23 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **25 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1580,6 +1580,75 @@ mutations surfaced/exercised 14/0 · **code changed 0**.
 
 **All three are omissions in a codebase that gates correctly everywhere else** — 118/135 write routes, every
 export, both guest-PII pages, and every action control across eight pages.
+
+---
+
+# RUN 20 — `/app/settings` + `/app/security`
+
+## ⚠️⚠️ THE SAME FABRICATED SECURITY INCIDENT, REFUSED AGAIN — cross-realm
+
+`Operator Security.html` carries:
+
+> **"Suspicious login blocked** — A failed sign-in from an unrecognised device in **Porto, Portugal on
+> 28 Sep, 03:41.** If this wasn't you…"
+
+⚠️ **The live page does not render it.** This is the *identical* fabrication the OWNER audit refused
+(owner report, page 17 item 9) — a named city, a date, a time, for a security incident the system records no
+data to support. **Both realms refuse it independently.**
+
+⚠️ **That cross-realm consistency is the strongest evidence yet that the refusals are a POLICY, not an
+accident of what happened to get built.** A fabrication surviving in one realm while being refused in the
+other would suggest luck; refused in both suggests intent. Inventing a break-in is the most harmful class of
+fabrication a product can ship — the user's rational response is to panic and change credentials.
+
+Also refused on the live page: `4 Connected apps` · `2 Trusted devices` · `2 IP rules` as *decorative
+counts* — the live page shows the **real** figures, which for Housekeeping are `CONNECTED APPS 0` ·
+`TRUSTED DEVICES 0` · `IP RULES 0`. ⚠️ **Three honest zeroes where the prototype shows populated numbers.**
+
+## `/app/security` — per-role, and correctly SELF-SCOPED
+
+| Role | Renders |
+|---|---|
+| Property Owner | `Two-factor off` · `ACTIVE SESSIONS 21` · connected apps · trusted devices · IP rules |
+| Housekeeping | `Two-factor off` · **`ACTIVE SESSIONS 23`** · `CONNECTED APPS 0` · `TRUSTED DEVICES 0` · `IP RULES 0` · `Update password` · `Enable two-factor` |
+
+⚠️ **The session counts DIFFER between roles (21 vs 23)** — which is the proof the page is per-user, not
+org-wide. Both roles get the same self-service controls (`Update password`, `Enable two-factor`), which is
+correct: account security is everyone's own. **A 200 for all four roles here is right**, the same shape as
+`security/export` in run 6.
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Account security` + `Protected` badge | `Account security` + real 2FA state | **MATCH** |
+| 2 | `3 Active sessions` · `4 Connected apps` · `2 Trusted devices` · `2 IP rules` | all four, **real per-user counts** incl. genuine zeroes | **MATCH** |
+| 3 | ⚠️ `Suspicious login blocked` + city/date/time | **ABSENT** | ⚠️ **DIVERGENCE — RATIFIED refusal** (no sign-in history recorded; fabricating a break-in is the worst class) |
+| 4 | `Secure my account` CTA | absent (follows #3) | **DIVERGENCE — same refusal** |
+| 5 | *(none)* | `Update password` · `Enable two-factor` with rules stated | **EXTRA** |
+
+## `/app/settings` vs `Operator Property Settings.html` (Property Owner only — `properties.manage`)
+
+Wireframe **993 chars** · live **12,095** — ⚠️ **twelve times the content.**
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Property settings` + property name | identical | **MATCH** |
+| 2 | Tabs `General` · `Policies` · `Team access` · `Tax & fees` · `Branding` | a single long-form page (`Property basics`, `DISPLAY NAME`, check-in/out, …) | **DIVERGENCE — layout** (one page vs five tabs) |
+| 3 | `Taxes` — `City tax` per guest/night · `VAT` reduced rate | present (the real bounded Tax & fees editor, `properties.manage`) | **MATCH** |
+| 4 | `Fees` — `Cleaning fee` departure | present | **MATCH** |
+
+⚠️ **The live settings page is far RICHER than its wireframe**, not poorer — the prototype shows one tab's
+worth of content and the build ships the whole surface. Recorded as EXTRA, never a defect.
+
+**Verdict — settings + security: 0 frontend gaps · 0 backend gaps · 2 more refusals, one cross-realm.**
+
+## Updated tally
+
+Pages fully diffed **23 of 50** · findings 3 · candidates 1 · refusals confirmed **26** ·
+auditor self-corrections 7 · mutations surfaced/exercised 14/0 · **code changed 0**.
+
+## REMAINING
+
+**25 of 50.**
 
 ---
 
