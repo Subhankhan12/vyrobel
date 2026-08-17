@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **25 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **23 of 50** — presentation parity only |
+> | **Pages fully diffed** | **27 of 50** (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **21 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1728,6 +1728,71 @@ Pages fully diffed **25 of 50** (halfway) · findings 3 · candidates 1 · refus
 ## REMAINING
 
 **23 of 50.**
+
+---
+
+# RUN 22 — `/app/guest-requests` + `/app/unit-requests` · the last two run-9 candidates, resolved
+
+Run 9 flagged five views whose PAGE gate is weaker than their WRITE gate. Three were measured in run 10.
+These are the last two — and they resolve in opposite ways, neither of them "a finding".
+
+## ⚠️ `/app/guest-requests` — the candidate is KILLED by the permission matrix
+
+| Role | `reservations.view` (page) | `reservations.manage` (write) |
+|---|---|---|
+| Property Owner | Y | **Y** |
+| Hotel Manager | Y | **Y** |
+| Accountant | n | n |
+| Housekeeping | n | n |
+
+⚠️ **No role holds the page permission WITHOUT the write permission.** The two roles that can open the page can
+both act on it; the two that cannot act cannot open it (Housekeeping measured **403**). **The "weaker page
+gate" is structurally unreachable here** — there is no role for whom the gap exists.
+
+⚠️ **This could not have been settled by rendering alone.** The render shows no approve/decline controls for
+anyone — which looks like gating but is actually the empty state (below). **The matrix is what closes it**, and
+that is a different instrument from every other verdict in this report.
+
+## ⚠️ `/app/unit-requests` — the candidate is UNTESTABLE on this demo, and is recorded as such
+
+| Role | Page | Approve/Decline visible |
+|---|---|---|
+| Property Owner (`units.manage` ✓) | 200 | **none** |
+| Housekeeping (`units.view` ✓, `units.manage` ✗) | 200 | **none** — honest empty state |
+
+⚠️ **Housekeeping DOES have the gap on paper** — `units.view` without `units.manage` — so this is the one place
+the shape is real. **But `unit_requests` has 0 rows**, so no request card renders for ANY role, and therefore
+no approve/decline control can render regardless of gating.
+
+⚠️ **Property Owner — who HAS `units.manage` — also sees no controls.** That is the positive control failing:
+if the role that *should* see them doesn't, the absence for Housekeeping proves nothing about gating. **It is
+data, not a gate.**
+
+⚠️ **RECORDED AS UNTESTABLE-WITHOUT-DATA, not as pass or fail.** Settling it needs a pending unit request,
+which means seeding — a mutation this audit does not perform. **The honest verdict is "unknown", and saying so
+is the point.** (`unit_requests` is a REAL entity — the owner portal's Add-a-Unit flow writes it, and the
+`unit_request_reviewed` notification type exists — so the emptiness is demo data, not an absent feature.)
+
+## Element diffs
+
+Both pages render their shells correctly for the roles that may see them; with zero pending rows on
+`unit-requests` and the guest-requests list gated to PO/HM, **there is no populated state to diff against a
+wireframe on this demo**. Recorded as **shell-verified, content-untestable**.
+
+## Updated tally
+
+Pages fully diffed **27 of 50** · findings 3 · candidates open **1** (the unwired-drag question) ·
+⚠️ **candidates resolved 3** (1 withdrawn on evidence · 1 killed by the matrix · 1 recorded untestable) ·
+refusals confirmed 27 · auditor self-corrections 7 · hypotheses killed 1 · mutations surfaced/exercised 14/0 ·
+**code changed 0**.
+
+⚠️ **All five of run 9's weaker-page-gate candidates are now closed**: three proven correctly gated (run 10,
+re-proven for portfolio in run 17), one structurally unreachable (guest-requests), one untestable without
+seeding (unit-requests). **None became a finding.**
+
+## REMAINING
+
+**21 of 50.**
 
 ---
 
