@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **36 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **13 of 49** — presentation parity only |
+> | **Pages fully diffed** | **38 of 48** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **10 of 48** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -2171,9 +2171,139 @@ mutations surfaced/exercised 28 / 0 · **code changed 0**.
 
 ---
 
+# RUN 28 — `/app/guests/{guest}` + `/app/owners/{owner}` · ⚠️⚠️ FINDING 1 WAS MEASURED OVER THE WRONG SET
+
+## ⚠️⚠️ THE HEADLINE: A PARAMETERISED ROUTE CANNOT BE FETCHED BY A SWEEP THAT READS `route:list`
+
+Run 13 replaced four revisions of inference with one pass of ground truth and bounded Finding 1 at **13
+ungated routes, 7 carrying money**. That pass fetched each URI as `demo-housekeeper` and read the status.
+
+⚠️ **But a URI containing `{owner}` is not fetchable.** A sweep that walks `route:list` and requests each
+`uri` verbatim silently gets nothing useful from every parameterised route — so **Finding 1 was measured over
+the non-parameterised routes only**, and its "13" was never the whole set. Nothing in the output said so; a
+skipped row and a passing row look identical in a status table.
+
+Substituting real ids and re-fetching as **Housekeeping (4 permissions)**:
+
+| Parameterised GET route | Route gate | HK status | What HK sees |
+|---|---|---|---|
+| `/app/owners/{owner}` | *(none)* | **200** | ⚠️ **€4,653.60 gross · €2,804.40 commission · €885.60 net · statements · payouts** — and the owner's email `demo-owner@vyrobel-demo.test` |
+| `/app/reservations/{reservation}` | *(none)* | **200** | ⚠️ **€300.00 · €69.00 · €369.00** folio money |
+| `/app/maintenance/{ticket}` | *(none)* | 200 | no money (read-only, run 27) |
+| `/app/inbox/{thread}` | *(none)* | **403** | — ⚠️ see the alias note below |
+| `/app/guests/{guest}` | `Authorize:guests.view` | **403** | — |
+| `/app/reservations/{reservation}/refund` | `Authorize:payments.refund` | *(not fetched — a money route)* | — |
+
+⚠️ **Seven of the nine parameterised GET routes carry no permission middleware at all** — only
+`guests/{guest}` and the refund route do.
+
+**FINDING 1 IS EXTENDED, not superseded:** two further routes reachable by the least-privileged role carry
+money, and `/app/owners/{owner}` additionally renders an **owner's email address** — contact PII outside the
+Guests CRM, which is the perimeter invariant #28 draws. The owner-detail page is a strictly *richer* leak than
+the `/app/owners` list already in Finding 1 (which showed one figure, €885.60): the detail view adds gross,
+commission, the statement table and the payout history.
+
+⚠️ **Recorded, not fixed.** And note what made it findable: not a new idea, but **running the existing method
+over the set it had structurally excluded**. §N.27.1 — *a register is a record of what one reader found* —
+applied to my own register.
+
+## ⚠️ INVENTORY CORRECTION #5 — `/app/inbox/{thread}` is a redirect, not a page
+
+    Route::get('/inbox/{thread}', fn (string $thread) => redirect()->route('app.inbox', ['c' => $thread]))
+
+A legacy deep-link that redirects to `/app/inbox?c={id}`. Its 403 for Housekeeping comes from the
+**redirect target** (`/app/inbox` is `guests.view`-gated, diffed in run 11) — not from any gate of its own.
+
+⚠️ **So its ungated row above is not a hole**, and it is not a page owed a diff. Third alias of this class
+after `rack`→`calendar` (run 25) and the owner audit's `/owner/messages/{thread}`. **Denominator 49 → 48.**
+
+## ⚠️ AUDITOR SELF-CORRECTION #9 — my noise filter ate the signal
+
+My capture excluded any address matching `vyrobel-demo.test`, to stop the logged-in operator's own address in
+the topbar from contaminating a `#28` read. The guest profile then showed a phone number and **no email**, and
+I was one step from recording an asymmetry.
+
+The demo guest's email **is** `demo.traveller@vyrobel-demo.test`. **My own filter removed it.**
+
+⚠️ Second time in two runs that a *noise-reduction step* destroyed the measurement — run 27's cap truncated by
+role, this one filtered by domain. **A filter written against chrome will happily eat content that resembles
+it**, and the failure is silent in exactly the direction an auditor wants to believe. The corrected read
+filters nothing and scopes to `.vy-main` by ancestor instead.
+
+The email rendering on the guest profile is **CORRECT**: #28 permits contact PII on the Guests CRM, and only
+there.
+
+## `/app/guests/{guest}` vs `Operator Guest Profile.html`
+
+| Role | Status | Actions |
+|---|---|---|
+| Property Owner | 200 | Message · Edit profile · Add note · Tags add/remove · **Erase** |
+| Hotel Manager | 200 | same, **no Erase** |
+| Accountant | **403** | — |
+| Housekeeping | **403** | — |
+
+**`Erase` is correctly gated** — `guest-profile.blade.php:272` wraps it in `@can('guests.erase')`, and Hotel
+Manager renders the whole page without it. A clean render-layer gating proof, no mutation.
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | Stay history · Latest review · Contact · Preferences & notes | all present | **MATCH** |
+| 2 | Contact block with email + phone | real encrypted-cast values rendered | **MATCH** (#28-permitted surface) |
+| 3 | `Edit profile` · `Add note` | both, real POSTs | **MATCH** |
+| 4 | — | `Message`, Tags add/remove, **Erase this guest** (GDPR `anonymize`) | **EXTRA** |
+| 5 | Stay figures (€1,023 / €1,120 / €3,940 …) | real folio figures (€123.00 / €369.00 / €1,107.00 / €184.50) | **MATCH** — real, not the prototype's |
+
+## `/app/owners/{owner}` vs `Operator Owner Detail.html`
+
+| Role | Status | Actions | `Rate proposals` section |
+|---|---|---|---|
+| Property Owner | 200 | Edit owner · Propose a change · Add note | yes |
+| Hotel Manager | 200 | **Propose a change only** | yes |
+| Accountant | 200 | **none** | **no** |
+| Housekeeping | 200 | **none** | **no** |
+
+Gating **of the controls** is correct and layered — `Edit owner`/`Add note` need `users.manage` (PO only),
+the proposals panel needs `rates.manage` (`owner-detail.blade.php:147`), and the two unprivileged roles get a
+genuinely read-only render with zero POST forms. ⚠️ **But the PAGE ITSELF is ungated** — which is the finding
+above: the controls are gated, the *financial content* is not.
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | Owner identity + contact | present | **MATCH** |
+| 2 | `Edit owner` · `Message` · `Add note` | Edit owner · Add note (PO); Message via the inbox | **MATCH** |
+| 3 | Portfolio figures (€10,370 / €74,830 / €12,400 …) | real (€4,653.60 / €2,804.40 / €885.60 / €194.40) | **MATCH** — real ledger, not the prototype's |
+| 4 | — | **Rate proposals** panel (#67), **Management agreement**, **Statements** table, **Payouts** | **EXTRA** |
+| 5 | — | `pause-payouts`, `remove` POSTs | **EXTRA** — surfaced, not exercised |
+
+## Mutations SURFACED — none exercised
+
+| Endpoint | Writes | Money |
+|---|---|---|
+| `POST /app/guests/{guest}` | guest profile fields | no |
+| `POST …/{guest}/notes` · `/tags` · `/message` | note / tag / outbound message | no |
+| ⚠️ `POST …/{guest}/anonymize` | **GDPR erase — strips PII, sets `anonymized_at`** | no, **irreversible** |
+| `POST /app/owners/{owner}/update` · `/note` | owner fields, note | no |
+| ⚠️ `POST …/{owner}/pause-payouts` | halts the payout rail for this owner | ⚠️ **money-adjacent** |
+| ⚠️ `POST …/{owner}/remove` | removes the owner relationship | ⚠️ **money-adjacent** |
+| `POST /app/rate-proposals` | a `rate_proposals` row (#67) | no |
+
+All **UI-gated; server-enforcement unverified-without-mutation.**
+
+## Updated tally
+
+Pages fully diffed **38 of 48** · findings 4 (**#1 extended**) · candidates open 1 · candidates resolved 4 ·
+refusals confirmed 33 · **inventory corrections 5** · **auditor self-corrections 9** · hypotheses killed 1 ·
+mutations surfaced/exercised 36 / 0 · **code changed 0**.
+
+## REMAINING
+
+**10 of 48** — presentation parity only.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
-**13 of 49 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
+**10 of 48 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
 Follow it and the remaining pages are mechanical.
 
 ## 1 · Start the two servers
@@ -2217,6 +2347,10 @@ returns "0 gated" and is wrong. ⚠️ **There are THREE gate types** — permis
 (`EnsureSubscriptionActive`), and **plan feature (`EnsurePlanFeature`, which 403s `/app/channels` for every
 role on Essential)`. ⚠️ **A regex over URIs must not stop at the dot** — `app/[a-z0-9/_{}-]*` silently
 truncated `folio.pdf` and all six `export.{csv,pdf,xlsx}` routes, hiding the entire export surface.
+
+⚠️⚠️ **AND SUBSTITUTE IDS — a `{param}` URI is NOT fetchable.** Run 13's ground-truth sweep silently skipped
+every parameterised route, so Finding 1's count was measured over a subset. A skipped row and a clean row look
+identical in a status table. Substitute a real id for every `{...}` before believing any coverage number.
 
 ⚠️ **And prefer MEASURING to sweeping**: fetch each route as `demo-housekeeper` (the least-privileged role)
 and read the status. Run 13 replaced four revisions of inference with one pass of ground truth, and only then
