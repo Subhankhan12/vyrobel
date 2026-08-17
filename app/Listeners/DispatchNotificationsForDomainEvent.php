@@ -15,6 +15,7 @@ use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\Reservation;
+use App\Models\ReservationUnit;
 use App\Models\Review;
 use App\Models\Unit;
 use App\Models\User;
@@ -30,6 +31,9 @@ use App\Notifications\Operator\ThreadAssignedNotification;
 use App\Notifications\Operator\UnitOutOfOrderNotification;
 use App\Notifications\Operator\UrgentWorkOrderNotification;
 use App\Notifications\Owner\AccountSecurityNotification;
+use App\Notifications\Owner\OwnerMessageReceivedNotification;
+use App\Notifications\Owner\OwnerNewBookingNotification;
+use App\Notifications\Owner\OwnerReviewPostedNotification;
 use App\Notifications\Owner\PayoutSentNotification;
 use App\Notifications\Owner\StatementReadyNotification;
 use App\Support\Folio\FolioTotals;
@@ -67,6 +71,9 @@ class DispatchNotificationsForDomainEvent
         'owner.payout_method_changed',
         'review.submitted',
         'inbox.thread_assigned',
+        // ⚠️ OWNER FIX 2 — the OPERATOR's direction only. The owner's own reply is recorded `inbound` by
+        // InboxService::postOwnerMessage(), so an owner is never notified about their own message.
+        'inbox.message_sent',
     ];
 
     /**
@@ -118,6 +125,7 @@ class DispatchNotificationsForDomainEvent
                 'owner.payout_method_changed' => $this->accountSecurity($domainEvent),
                 'review.submitted' => $this->newReview($domainEvent, $orgId),
                 'inbox.thread_assigned' => $this->threadAssigned($domainEvent),
+                'inbox.message_sent' => $this->ownerMessage($domainEvent),
             };
         });
     }
@@ -131,6 +139,47 @@ class DispatchNotificationsForDomainEvent
         }
 
         $this->toOperators($orgId, new NewBookingNotification($reservation));
+
+        // ⚠️ OWNER FIX 2 — and the OWNER of each unit on the stay, once each. A reservation can span units
+        // belonging to different owners, and each may be notified only about their OWN (isolation): the owner
+        // is resolved from the unit, never from the reservation, so there is no path to another owner's stay.
+        foreach ($this->ownersOfReservation($reservation) as [$owner, $unit]) {
+            $owner->user?->notify(new OwnerNewBookingNotification($reservation, $unit));
+        }
+    }
+
+    /**
+     * The distinct owners with a unit on this reservation, paired with that unit.
+     *
+     * @return list<array{0: Owner, 1: Unit}>
+     */
+    private function ownersOfReservation(Reservation $reservation): array
+    {
+        $unitIds = ReservationUnit::query()
+            ->where('reservation_id', $reservation->getKey())
+            ->pluck('unit_id')
+            ->filter()
+            ->all();
+
+        if ($unitIds === []) {
+            return [];   // a type-only line (an OTA import before assignment) — no unit, so no owner yet
+        }
+
+        $out = [];
+        $seen = [];
+        foreach (Unit::query()->whereIn('id', $unitIds)->get() as $unit) {
+            $ownerId = $unit->owner_id;
+            if (! is_string($ownerId) || $ownerId === '' || isset($seen[$ownerId])) {
+                continue;   // an unowned unit, or an owner already notified for this stay
+            }
+            $owner = Owner::query()->find($ownerId);
+            if ($owner instanceof Owner) {
+                $seen[$ownerId] = true;
+                $out[] = [$owner, $unit];
+            }
+        }
+
+        return $out;
     }
 
     /** A guest checked out still owing money → the org's operators (ONLY when the folio balance is > 0). */
@@ -258,6 +307,37 @@ class DispatchNotificationsForDomainEvent
         if ((int) $review->rating < 4) {
             $this->toOperators($orgId, new LowRatingNotification($review));
         }
+
+        // ⚠️ OWNER FIX 2 — and the ONE owner whose unit was reviewed. Resolved through the review's unit, so
+        // a review of another owner's unit can never reach this owner. Fires on the review the operators are
+        // told about; the owner's copy names no reviewer (#28).
+        $ownerId = $review->unit?->owner_id;
+        if (is_string($ownerId) && $ownerId !== '') {
+            Owner::query()->find($ownerId)?->user?->notify(new OwnerReviewPostedNotification($review));
+        }
+    }
+
+    /**
+     * OWNER FIX 2 — an operator message on an OWNER thread → that ONE owner.
+     *
+     * ⚠️ A GUEST THREAD IS SKIPPED BY CONSTRUCTION: the two kinds are discriminated by `guest_id` XOR
+     * `owner_id`, so a null `owner_id` simply returns. That is also why this cannot leak a guest conversation
+     * to an owner — there is no owner to resolve on one.
+     */
+    private function ownerMessage(DomainEvent $domainEvent): void
+    {
+        $threadId = (string) (($domainEvent->payload['thread_id'] ?? '') ?: '');
+        $thread = $threadId !== '' ? MessageThread::query()->find($threadId) : null;
+        if (! $thread instanceof MessageThread) {
+            return;
+        }
+
+        $ownerId = $thread->owner_id;
+        if (! is_string($ownerId) || $ownerId === '') {
+            return;   // an operator↔guest thread — not the owner's conversation
+        }
+
+        Owner::query()->find($ownerId)?->user?->notify(new OwnerMessageReceivedNotification($thread));
     }
 
     /**
