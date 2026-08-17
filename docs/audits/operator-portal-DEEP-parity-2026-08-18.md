@@ -7,8 +7,8 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | **32 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
-> | **REMAINING** | **17 of 49** — presentation parity only |
+> | **Pages fully diffed** | **34 of 49** ⚠️ (denominator corrected — `rack` is an alias of `calendar`) (dashboard · payouts-run · owners · front-desk · reservations · rates · housekeeping · refund · reservation-detail · folio.pdf · calendar · guests · inbox) |
+> | **REMAINING** | **15 of 49** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
 > | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
@@ -1961,9 +1961,89 @@ mutations surfaced/exercised 18 / 0 · **code changed 0**.
 
 ---
 
+# RUN 26 — `/app/group-booking` + `/app/reservations/create` · ⚠️ THE TWO WIZARDS, AND A TAX RATE THE PROTOTYPE INVENTED
+
+Both are multi-step create wizards with a sticky pricing rail. **Gating measured across all four roles**, each
+run against `/app/dashboard` first so a 403 below is a gate and not a dead session:
+
+| Route | Property Owner | Hotel Manager | Accountant | Housekeeping |
+|---|---|---|---|---|
+| `/app/dashboard` (control) | 200 | 200 | 200 | 200 |
+| `/app/group-booking` | 200 | 200 | **403** | **403** |
+| `/app/reservations/create` | 200 | 200 | **403** | **403** |
+
+`reservations.create` — correct, and the two money-taking wizards are the two most write-heavy screens in the
+operator app.
+
+## ⚠️ THE DIVERGENCE THAT MATTERS: the prototype hardcodes a tax rate, the build derives one
+
+Both wireframes total the stay client-side and add **`City tax`** and **`VAT (10%)`** as literal lines —
+`grandTotal = net + cityTax + vat`, with the 10% written into the prototype's own JavaScript.
+
+The build does not carry that number anywhere. `NewReservation::taxesFor()` reads the **property's real `Tax`
+rows** and hands the client `['mode','rate','amount_minor']`; the rail then computes from those. On the seeded
+property that renders **`€300.00` accommodation → `€69.00` tax → `€369.00`** — **23%, the configured rate**,
+not the prototype's 10%.
+
+⚠️ **A hardcoded rate in a prototype is a placeholder; the same number shipped is a wrong tax.** Recording this
+as a DIVERGENCE the build is right about, in the direction the audit should always want.
+
+## ⚠️ AND BOTH RAILS REFUSE TO PRICE AN EMPTY STAY — one of them learned it from the other
+
+`new-reservation.blade.php:452` documents the original defect in its own words:
+
+> Taxes include flat / per-night modes that compute a figure from the DATES alone … "Taxes €15.00, Estimated
+> total —" — a tax on a stay that has no accommodation
+
+⚠️ **A per-night tax is derivable from dates before any room is chosen** — so the tax line rendered a real
+figure beneath an accommodation line reading `—`. The fix gates it on `unitId && taxMinor() > 0`.
+
+The group-booking rail then generalised it *before* being bitten (`group-booking.blade.php:322`): its discount
+and deposit lines are gated on `count > 0` as well as on their own percentage, because both are a percentage
+**of** the accommodation, so revisiting step 4 with an emptied block would print `Group discount (10%) −€0.00`
+against `—`. Its comment names the New Reservation gate as the reason.
+
+⚠️ **That is a lesson travelling between two screens rather than being re-learned** — §N.8f's principle applied
+to a *behaviour* rather than to a helper. Worth naming because a component of a total is itself a claim: `—`
+is honest, `€0.00` is an assertion that the stay costs nothing.
+
+## Per-element diff
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | 5-step group wizard, 7-step reservation wizard | same step counts | **MATCH** |
+| 2 | Occasion chips (Wedding/Corporate/Family/Sports/Other) | all five | **MATCH** |
+| 3 | Headcount stepper (`−` / `+`) | present on both | **MATCH** |
+| 4 | Discount + deposit chips (25/50/100%) | present, plus cash/bank/**card · soon** | **MATCH + honest** |
+| 5 | `City tax` + `VAT (10%)` rail lines | derived `Taxes` from real `Tax` rows | ⚠️ **DIVERGENCE — build correct** |
+| 6 | Rail totals a stay with nothing selected | `—` until `count > 0` / `unitId` | ⚠️ **DIVERGENCE — build correct** |
+| 7 | — | *"the authoritative total is the folio"* rail note | **EXTRA — honest** |
+| 8 | Card deposit | present, labelled **`· soon`** with a real explanation | **MATCH + honest** (#45) |
+
+⚠️ Item 7 is the §N.8d discipline stated on the screen: the rail is a client **estimate** built from real
+prices, and the folio is authoritative. The prototype's total presents itself as the number.
+
+## ⚠️ NO MUTATION EXERCISED
+
+Neither wizard was advanced or submitted. The rail behaviour above was read from the **view source and the
+component**, not by driving the flow — advancing a create wizard risks a write, and this pass is read-only.
+What a submit *writes* was surfaced in run 9's write sweep, not re-tested here.
+
+## Updated tally
+
+Pages fully diffed **34 of 49** · findings 3 · candidates open 1 · candidates resolved 4 ·
+refusals confirmed 33 · inventory corrections 3 · auditor self-corrections 7 · hypotheses killed 1 ·
+mutations surfaced/exercised 20 / 0 · **code changed 0**.
+
+## REMAINING
+
+**15 of 49** — presentation parity only.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
-**33 of 50 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
+**15 of 49 pages remain**, all presentation parity. Everything below cost this audit real runs to learn.
 Follow it and the remaining pages are mechanical.
 
 ## 1 · Start the two servers
