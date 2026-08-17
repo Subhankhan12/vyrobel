@@ -60,6 +60,17 @@ class NotificationPreferences
         'performance_digest' => ['label' => 'Performance digest', 'description' => 'Occupancy & earnings vs last month', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'terms_changed' => ['label' => 'Terms changed', 'description' => 'A change to commission or fees', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
         'unit_request_reviewed' => ['label' => 'Unit request reviewed', 'description' => 'Your add-a-unit request is approved or declined', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
+        // ⚠️ OWNER FIX 2 — the owner audit found the portal shows bookings, messages and reviews as full
+        // PAGES while the owner could not be NOTIFIED of any of them. These three close that.
+        // ⚠️ THEY CARRY THEIR OWN KEYS BECAUSE `audience` IS A SINGLE STRING. `new_booking` and `new_review`
+        // already exist as `operator`, and one key cannot serve two portals here — reusing them would have
+        // meant flipping the audience and silently stranding every operator. The operator keys are untouched.
+        'owner_new_booking' => ['label' => 'New booking', 'description' => 'A booking is confirmed on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'owner_review_posted' => ['label' => 'Review posted', 'description' => 'A guest review is published on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
+        // ⚠️ NOT "Guest message" (the wireframe's label): owner↔guest messaging does not exist — a thread is
+        // `guest_id` XOR `owner_id`, and an owner's threads are with their operator. Naming it after guests
+        // would advertise a channel the owner has not got.
+        'owner_message' => ['label' => 'New message', 'description' => 'Your management team sends you a message', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'account_security' => ['label' => 'Account & security', 'description' => 'Sign-ins and bank changes — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
     ];
 

@@ -119,7 +119,12 @@ it('derives the owner’s unread from their own read position, and never touches
     expect((int) $thread->fresh()->unread_count)->toBe(1)          // the operator has not read it
         ->and($thread->fresh()->owner_last_read_at)->toBeNull();
 
-    $this->actingAs($a['user'])->get('/owner/messages')->assertOk()->assertSee('1 unread');
+    // ⚠️ ANCHORED ON THE MESSAGES TAB'S OWN BADGE, not on the words "1 unread". Since OWNER FIX 2 the
+    // notification BELL also renders "1 unread" — the operator's reply now legitimately produces an owner
+    // notification — so the bare string no longer identifies WHICH counter is being asserted. The rule this
+    // test exists for is unchanged; only the proxy for it had to become specific.
+    $this->actingAs($a['user'])->get('/owner/messages')->assertOk()
+        ->assertSee('<span class="vy-msg-badge" aria-hidden="true">1</span>', false);
 
     // Opening it marks it read FOR THE OWNER…
     $this->actingAs($a['user'])->get('/owner/messages?c='.$thread->id)->assertOk();
@@ -130,7 +135,8 @@ it('derives the owner’s unread from their own read position, and never touches
         // read a message they have not seen.
         ->and((int) $fresh->unread_count)->toBe(1);
 
-    $this->actingAs($a['user'])->get('/owner/messages')->assertOk()->assertDontSee('1 unread');
+    $this->actingAs($a['user'])->get('/owner/messages')->assertOk()
+        ->assertDontSee('<span class="vy-msg-badge" aria-hidden="true">1</span>', false);
 });
 
 // ── 5. FILTERS + SEARCH over real rows ───────────────────────────────────────────────────────────
