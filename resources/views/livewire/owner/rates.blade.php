@@ -124,13 +124,24 @@
             @else
                 <div style="overflow-x:auto;margin-top:12px">
                     <table class="vy-table">
-                        <thead><tr><th>Villa</th><th class="vy-num">Base</th><th class="vy-num">Weekend</th><th class="vy-num">Occ.</th></tr></thead>
+                        <thead><tr><th>Villa</th><th class="vy-num">Base</th><th class="vy-num">Weekend</th><th class="vy-num">Peak</th><th class="vy-num">Occ.</th></tr></thead>
                         <tbody>
                             @foreach ($cards as $card)
                                 <tr>
                                     <td><div class="vy-row-month">{{ $card['name'] }}</div>@unless ($card['has_plan'])<div class="vy-row-sub" style="color:var(--vy-faint)">No rate plan</div>@endunless</td>
                                     <td class="vy-num vy-mono">{{ $card['rate_display'] ?? '—' }}</td>
                                     <td class="vy-num vy-mono">{{ $card['weekend_display'] ?? '—' }}</td>
+                                    {{-- ⚠️ PEAK reads `rate_seasons` — the covering season or an em-dash. Never a
+                                         fabricated figure, and a season that has been DEFINED but not yet applied
+                                         says so, because those nights are not selling at it yet. --}}
+                                    <td class="vy-num vy-mono">
+                                        @if ($card['season'])
+                                            {{ $card['season']['display'] }}
+                                            <div class="vy-row-sub" style="font-weight:500">{{ $card['season']['name'] }}@unless ($card['season']['applied']) · not applied yet @endunless</div>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                     <td class="vy-num vy-mono" style="color:{{ $card['occ_pct'] >= 85 ? '#3F6A38' : ($card['occ_pct'] >= 75 ? '#93610C' : '#B4400F') }}">{{ $card['occ_pct'] }}%</td>
                                 </tr>
                             @endforeach

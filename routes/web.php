@@ -78,6 +78,7 @@ use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Http\Controllers\Operator\RoleAssignmentController;
 use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
+use App\Http\Controllers\Operator\SeasonActionController;
 use App\Http\Controllers\Operator\SettingsActionController;
 use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Http\Controllers\Operator\UnitRequestActionController;
@@ -640,6 +641,13 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // through the ONE UnitRateOverrideService (D4-1 — never a direct rate write).
     Route::post('/rates/units/preview', [UnitRateActionController::class, 'preview'])->middleware('can:rates.manage')->name('rates.units.preview');
     Route::post('/rates/units/apply', [UnitRateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.units.apply');
+
+    // SEASONAL ("peak") RATES — OWNER FIX 4b. ⚠️ TWO POSTS: `store` records the season and writes NO price;
+    // `apply` MATERIALIZES it into `rate_calendar` through the certified RateAndRestrictionService (never a
+    // second write path — D4-1). Both `rates.manage` (#30): applying overwrites real nightly prices for a
+    // whole range, which is a revenue action, not a front-desk one.
+    Route::post('/seasons', [SeasonActionController::class, 'store'])->middleware('can:rates.manage')->name('seasons.store');
+    Route::post('/seasons/{season}/apply', [SeasonActionController::class, 'apply'])->middleware('can:rates.manage')->name('seasons.apply');
 
     // RATE PROPOSALS (Wave C · GATE 1) — the operator proposes a rate change to an owner (who approves/declines in
     // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.

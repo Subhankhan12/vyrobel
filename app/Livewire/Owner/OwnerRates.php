@@ -14,6 +14,7 @@ use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\OwnerRateService;
 use App\Services\RateAndRestrictionService;
+use App\Services\SeasonalRateService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
@@ -234,6 +235,11 @@ class OwnerRates extends Component
             'rate_display' => $rate === null ? null : $this->money($rateMinor, (string) $rate->currency),
             'rate_units' => $rateMinor !== null ? (int) round($rateMinor / 100) : null,
             'weekend_pct' => $weekendPct,
+            // ⚠️ PEAK — the covering season, READ FROM `rate_seasons` and NEVER fabricated. This is DISPLAY
+            // ONLY: the charge reads `rate_calendar`, into which a season is materialized when applied. A row
+            // with no season shows "—", and a season DEFINED but not yet applied says so rather than implying
+            // those nights already carry the price.
+            'season' => $plan === null ? null : $this->seasonCardFor((string) $plan->getKey()),
             // The derived Fri/Sat price at the current uplift — a real figure for the manage view (never fabricated).
             'weekend_display' => ($rateMinor !== null && $weekendPct !== null && $weekendPct > 0)
                 ? $this->money((int) round($rateMinor * (1 + $weekendPct / 100)), (string) $rate->currency)
@@ -271,5 +277,31 @@ class OwnerRates extends Component
         }
 
         return (string) $roomTypes->first()->id;
+    }
+
+    /**
+     * The season covering TODAY for a plan, for the PEAK column — or NULL when none.
+     *
+     * ⚠️ DISPLAY ONLY, and it must stay that way. A season prices nights by being MATERIALIZED into
+     * `rate_calendar`; reading `rate_seasons` to charge a stay would be the second price source this design
+     * exists to avoid (D4-1).
+     *
+     * @return array{name: string, display: string, applied: bool}|null
+     */
+    private function seasonCardFor(string $ratePlanId): ?array
+    {
+        $season = app(SeasonalRateService::class)->covering($ratePlanId, now()->toDateString());
+
+        if ($season === null) {
+            return null;
+        }
+
+        return [
+            'name' => (string) $season->name,
+            'display' => $this->money((int) $season->price_minor, (string) $season->currency),
+            // ⚠️ An unapplied season is NOT yet the price of anything — say so rather than let the column
+            // imply those nights are already selling at it.
+            'applied' => $season->applied_at !== null,
+        ];
     }
 }
