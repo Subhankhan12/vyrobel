@@ -11,7 +11,7 @@
 > | **REMAINING** | **27 of 50** — presentation parity only |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
-> | ⚠️ **Finding 3 (run 18)** | `/app/schedule` **instructs Housekeeping to drag shifts** — an action requiring `schedule.manage`, which it lacks. Carried by PROSE, so no control-based check could see it. Plus a candidate: **zero `draggable="true"` nodes for ANY role**, so the instruction may describe an unwired interaction. |
+> | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
 > | **Candidate 3** | **WITHDRAWN** on evidence (run 10) |
 > | **Write routes** | 135/135 swept — **no gap** |
 > | **#28 PII perimeter** | measured correct on 7 surfaces |
@@ -1523,6 +1523,63 @@ a re-read on that axis alone.
 ## REMAINING
 
 **27 of 50.**
+
+---
+
+# RUN 19 — THE INSTRUCTION SWEEP · ⚠️ FINDING 3 CONFIRMED AT SOURCE, AND SHARPER
+
+Finding 3's method note said the remaining pages should be read for *instructional prose assuming a
+permission*, not only for controls. This run does that as a sweep across every operator view at once.
+
+## The sweep
+
+Imperative instructions in **shipped copy** (Blade comments stripped, so a doc-comment can't be mistaken for
+UI text): **7 total, across 3 files.** Only `schedule.blade.php` carries any that are ungated.
+
+## ⚠️⚠️ THE SOURCE — the author gated ONE CLAUSE AND NOT THE OTHER, in the same span
+
+`resources/views/livewire/operator/schedule.blade.php:179`
+
+    <span …>Drag a shift to move it — or drop it on another person's day to swap.
+            @if ($canManage)Click a cell to add or change a shift.@endif</span>
+    @if ($canManage && ! $readOnly)
+        <button …>+ Add shift</button>
+    @endif
+
+- **"Click a cell to add or change a shift."** → **inside** `@if ($canManage)` ✅
+- **"Drag a shift to move it — or drop it on another person's day to swap."** → ⚠️ **outside it**
+- **`+ Add shift`** → gated twice (`$canManage && ! $readOnly`) ✅
+
+⚠️ **This is far stronger evidence than a wholesale miss.** Someone reasoned about permissions **on that exact
+line** and covered one clause of one sentence pair. A partial gate is the hardest kind to spot — and it is
+precisely why every control-based sweep in runs 1–17 returned clean on this page.
+
+**Finding 3 is therefore CONFIRMED, not candidate**: Housekeeping (holding `schedule.view`, not
+`schedule.manage`) is told to drag shifts to move them, while the move route 403s.
+
+## What the sweep also shows — the rest is clean
+
+- `rates-grid.blade.php` — *"Click a cell to prefill · applies to a whole date range"* — the file uses `@can`,
+  and the rates page 403s wholesale for roles without `rates.view` (run 3), so no unauthorised reader reaches it.
+- `email-templates.blade.php` — the only other hit is *"click tracking isn't collected, so no engagement stats
+  are shown"* — ⚠️ **not an instruction at all but an HONEST REFUSAL** (no analytics claimed). A naive
+  keyword sweep would have flagged it; reading it does not.
+- **No other operator view carries an ungated imperative.** ⚠️ **So Finding 3 is ONE line in ONE file, not a
+  pattern** — the sweep bounded it rather than expanding it.
+
+## Updated tally
+
+Pages fully diffed 21 of 50 · **findings 3 (all confirmed at source)** · candidates open **1** (the
+unwired-drag question) · refusals confirmed **23** (+ email click-tracking) · auditor self-corrections 7 ·
+mutations surfaced/exercised 14/0 · **code changed 0**.
+
+⚠️ **The three findings, final form — each a single, precise omission:**
+1. **13 ungated GET routes** (7 rendering money, + the folio PDF) — measured per-role.
+2. **`/app/calendar`** renders `New reservation` without `@can` — the same control IS wrapped on `/app/reservations`.
+3. **`schedule.blade.php:179`** — one ungated clause beside a gated one.
+
+**All three are omissions in a codebase that gates correctly everywhere else** — 118/135 write routes, every
+export, both guest-PII pages, and every action control across eight pages.
 
 ---
 
