@@ -286,6 +286,25 @@
                                         <button type="button" class="vy-msg-act" title="React" aria-label="React" @click="reactFor = (reactFor === '{{ $m['id'] }}' ? null : '{{ $m['id'] }}')">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                                         </button>
+                                        {{-- ⚠️ PURELY CLIENT-SIDE: it copies the body ALREADY RENDERED on this
+                                             page — no route, no request, nothing new exposed (#28 unchanged).
+                                             A message with no body (an attachment-only row) has nothing to copy,
+                                             so the control is not offered rather than copying an empty string.
+                                             `aria-live` announces the outcome; the label reverts so the button
+                                             does not lie about its next action. --}}
+                                        @if (trim((string) $m['body']) !== '')
+                                            <button type="button" class="vy-msg-act" title="Copy text" aria-label="Copy text"
+                                                x-data="{ done: false }"
+                                                @click="navigator.clipboard.writeText(@js($m['body'])).then(() => { done = true; setTimeout(() => done = false, 1600) })"
+                                                :title="done ? 'Copied' : 'Copy text'" :aria-label="done ? 'Copied' : 'Copy text'">
+                                                <template x-if="!done">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                                </template>
+                                                <template x-if="done">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                                </template>
+                                            </button>
+                                        @endif
                                         {{-- ⚠️ DO-STAR-1 — a BOOKMARK toggle, not a rating (it never touches
                                              <x-star-rating>, which is for a 0–5 count). Its STATE is carried by
                                              the GLYPH — filled vs outline — so it survives greyscale, and by

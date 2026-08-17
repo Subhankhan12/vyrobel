@@ -132,7 +132,11 @@
                      actually says — a fact about the support model, not a signal. --}}
                 <div class="vy-eyebrow" style="margin-bottom:10px">How support works</div>
                 <div class="vy-hlp-status"><span style="font-size:13px;font-weight:500;color:var(--vy-ink)">Your operator is your first line of support</span></div>
-                <span style="font-size:11.5px;color:var(--vy-faint);margin-top:8px">Payouts, statements and your portal are running normally.</span>
+                {{-- ⚠️ THE LEFTOVER SAT BESIDE THE THING THAT WAS CORRECTLY REMOVED (§N.13.1). The status board and
+                     its presence dot went; this sentence stayed, and "are running normally" is a PRESENT-TENSE
+                     OPERATIONAL CLAIM with nothing measuring it — the same assertion the board was refused for,
+                     in prose. It now describes the support model, which is a fact this page can actually back. --}}
+                <span style="font-size:11.5px;color:var(--vy-faint);margin-top:8px">Message them from your inbox and the thread keeps its full history — no ticket number to track.</span>
             </div>
         </section>
 
