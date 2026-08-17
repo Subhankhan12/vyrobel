@@ -12874,3 +12874,40 @@ eating the message over a stale password), `BookingImportTest` ×6 (a memory-sta
 what its register entry said it was, and only one of the five was a defect in the product.**
 
 PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-18 — OWNER ROLE SEALED · two deliberate deferrals recorded
+
+The owner deep parity audit (28 pages + 5 non-page artifacts, **0 backend gaps**) and its four follow-up
+fixes are merged to `main` and composing green (**2439/2441, 0 failed**). Two items are deferred ON PURPOSE,
+recorded here so neither is mistaken later for an oversight.
+
+### (a) The seasonal apply-panel — engine complete, operator UI pending
+
+The seasonal ("peak") rate tier (`6114dcb`) is **complete and folio-proven as a BACKEND capability**:
+`rate_seasons` is the authoring record, applying materializes the season into `rate_calendar` through the
+**certified** `RateAndRestrictionService`, the apply action is routed and **`rates.manage`-gated**, and the
+blast-radius preview (nights · units · nights-changing · weekend-nights-replaced) is **computed and tested**.
+
+⚠️ **What it does NOT have is an operator UI.** The tested preview is not on a screen, so seasonal pricing is
+**not operator-usable from the rates grid today** — the capability exists, the surface does not. This was kept
+to ruled scope deliberately: the ruling was to build the tier, not to design a panel unprompted.
+
+⚠️ **The apply-panel is an OPERATOR surface, so it belongs with the operator module** rather than trailing off
+the owner work. Decide its timing when that module is scoped. Until then the tier is inert-by-absence-of-UI,
+which is honest: nothing fabricates a seasonal price, and no night carries one unless a season was applied.
+
+### (b) `Approve all` + expense media — surfaced, not built, because the backing does not exist
+
+Two owner-audit candidate gaps were **deliberately surfaced rather than built**, because a control with no
+backing is worse than its absence:
+
+- **`/owner/units` → `Approve all`.** No bulk-approve action exists server-side, and the items it would
+  approve are **money** (expenses, rate proposals). Shipping the control would have meant inventing a bulk
+  money mutation inside a "small gaps" pass.
+- **`/owner/expenses` → the photo affordance.** `OwnerExpense` has **no `media()` relation**, no capture path,
+  and **0 media rows**. A "N photos" badge would render empty forever.
+
+Each needs a **backend built first** (a real bulk-approve action; an expense-media capture path). Both are
+deferred **product decisions**, not launch work.

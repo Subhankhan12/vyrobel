@@ -7859,3 +7859,34 @@ The audit's own headline, and the frame for everything that follows it:
   deletion and the 30-day ID purge — silently never run), and the founder's Stripe/VAT steps.
 
 **These are different axes.** Shipping features does not move launch closer; the deployment sprint does.
+
+### §N.28 — RATES MATERIALIZE AT AUTHORING TIME THROUGH THE CERTIFIED WRITER. THEY NEVER RESOLVE AT READ TIME.
+
+⚠️ **This is a money rule, and it was learned by nearly shipping the opposite.**
+
+The weekend uplift does not exist as a resolution step. `RateAndRestrictionService::setRateWeekendAware()`
+**writes** the higher Fri/Sat price into `rate_calendar` at authoring time; there is no read-time weekend
+layer. So the runtime precedence is only two levels:
+
+    unit_rate_overrides (plan, unit, date)   → wins
+    rate_calendar       (plan, date)         → everything else, already containing whatever was authored
+
+⚠️ **THEREFORE ANY NEW RATE DIMENSION MUST MATERIALIZE THROUGH THE CERTIFIED WRITER**, never become a
+read-time input to `NightlyRate`. Two facts make the alternative unworkable, and both were confirmed by
+reading the code rather than assumed:
+
+1. **It would be INERT for most bookings.** `NightlyRate::stayTotalForUnit()` returns NULL for a unit with no
+   override, so the default storefront charge is `BookingEngineService::priceOver()` → `rate_calendar`. A
+   read-time dimension would be consulted almost never — and in the one case it *is* consulted, the per-unit
+   override wins anyway.
+2. **It would create a SECOND PRICE SOURCE.** **22 files read `rate_calendar` directly** against **7** that
+   use the resolver — including the storefront landing "from" price and the owner Rates page. A read-time
+   dimension would show one price on the landing page and charge another (D4-1).
+
+This is why the read-time seasonal design was **rejected and stopped before any code**, and the materialized
+one shipped (`6114dcb`): written into `rate_calendar`, a season is visible to every reader at once, the
+storefront and folio need no change, and the per-unit override still wins with no new logic.
+
+⚠️ **The cost of materializing is that applying OVERWRITES real prices for the range** — which is what setting
+a seasonal rate means. So it is a money mutation: `rates.manage`-gated, with a computed blast-radius preview,
+and season-over-weekend is **authoring order (last write wins)**, stated legibly rather than left to surprise.
