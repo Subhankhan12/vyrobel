@@ -135,7 +135,10 @@ class OwnerBalance extends Component
             'held' => $onHold['minor'] !== 0 ? ['display' => $onHold['display']] : null,
             'ibanMasked' => $rail['iban_masked'],
             'byCurrency' => $this->byCurrency($net['currencies'], $inTransit['currencies'], $paid['currencies']),
-            'entries' => $this->activityRows($ascending, (bool) $rail['paused'], $payoutStatusByStatement),
+            // ⚠️ `entries` is UNCHANGED and still the flat, newest-first list — the CSV export and every other
+            // reader keep exactly what they had. `activityGroups` is a second VIEW of those same rows.
+            'entries' => $entries = $this->activityRows($ascending, (bool) $rail['paused'], $payoutStatusByStatement),
+            'activityGroups' => $this->activityGroups($entries),
             'schedule' => $this->payoutSchedule(),
             // TEST-MODE boundary — 'In transit'/'On hold' can reflect real engine state; never real money in this build.
             'testMode' => PayoutEngineMode::isTest(),
@@ -285,6 +288,12 @@ class OwnerBalance extends Component
             $rows[] = [
                 'id' => (string) $entry->id,
                 'date' => $entry->service_date->format('j M Y'),
+                // ⚠️ CARRIED, NOT RECOMPUTED. `$signed` is the exact value the running balance above just
+                // consumed and `amount_display` just formatted; the rollup sums these same integers. Nothing
+                // downstream re-derives a figure from the ledger, so a group cannot drift from its lines.
+                'signed_minor' => $signed,
+                'month_key' => $currency.'|'.$entry->service_date->format('Y-m'),
+                'month_label' => $entry->service_date->format('F Y'),
                 'description' => (string) $entry->description,
                 'type_label' => $this->entryTypeLabel((string) $entry->entry_type),
                 'amount_display' => $this->money($signed, $currency, signed: true),
@@ -299,6 +308,71 @@ class OwnerBalance extends Component
         }
 
         return array_reverse($rows);
+    }
+
+    /**
+     * OWNER FIX 3 — the activity list, GROUPED for display. One summary per (currency, month), each holding
+     * the very rows that are rendered when it is expanded.
+     *
+     * ⚠️ THIS IS A GROUPING, NOT AN AGGREGATE. Every figure here is a sum of `signed_minor` values already
+     * computed by {@see activityRows()} — the same integers behind `amount_display` and the running balance.
+     * Nothing re-queries the ledger, so a summary CANNOT disagree with the lines beneath it; that is the whole
+     * safety property, and a test asserts it group by group.
+     *
+     * ⚠️ KEYED ON CURRENCY AS WELL AS MONTH, deliberately. The running balance is already kept per currency
+     * because a single cross-currency total would be a silent FX sum — a month-only key would reintroduce
+     * exactly that bug in the summary row.
+     *
+     * ⚠️ THE BALANCE SHOWN ON A SUMMARY IS THE GROUP'S MOST RECENT LINE'S RUNNING BALANCE, not a sum: a
+     * running balance is a position, and adding positions together is meaningless.
+     *
+     * @param  list<array<string, mixed>>  $rows  newest-first, as rendered
+     * @return list<array<string, mixed>>
+     */
+    private function activityGroups(array $rows): array
+    {
+        $groups = [];
+
+        foreach ($rows as $row) {
+            $key = (string) $row['month_key'];
+
+            if (! isset($groups[$key])) {
+                $groups[$key] = [
+                    'key' => $key,
+                    'label' => (string) $row['month_label'],
+                    'currency' => (string) $row['currency'],
+                    // The FIRST row encountered is the group's most recent (rows arrive newest-first), so its
+                    // running balance is the balance as at the end of this month.
+                    'running_display' => (string) $row['running_display'],
+                    'net_minor' => 0,
+                    'unverified' => false,
+                    'prior_period' => false,
+                    'lines' => [],
+                ];
+            }
+
+            $groups[$key]['net_minor'] += (int) $row['signed_minor'];
+            $groups[$key]['lines'][] = $row;
+
+            // ⚠️ SURFACED ON THE SUMMARY, NOT SWALLOWED BY IT. Rolling up must not hide that a month contains
+            // provisional or back-dated money — the rolled view says so, and the expanded view says which line.
+            $groups[$key]['unverified'] = $groups[$key]['unverified'] || (bool) $row['unverified'];
+            $groups[$key]['prior_period'] = $groups[$key]['prior_period'] || (bool) $row['prior_period'];
+        }
+
+        return array_values(array_map(function (array $group): array {
+            $count = count($group['lines']);
+            $group['count'] = $count;
+            $group['count_label'] = $count.' '.($count === 1 ? 'movement' : 'movements');
+            $group['net_display'] = $this->money((int) $group['net_minor'], (string) $group['currency'], signed: true);
+            $group['is_negative'] = (int) $group['net_minor'] < 0;
+            // The span reads oldest → newest, the direction a person reads a period.
+            $group['span'] = $count > 1
+                ? (string) $group['lines'][$count - 1]['date'].' – '.(string) $group['lines'][0]['date']
+                : (string) $group['lines'][0]['date'];
+
+            return $group;
+        }, $groups));
     }
 
     /**
