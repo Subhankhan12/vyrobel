@@ -12,6 +12,7 @@ use App\Support\Owner\OwnerOccupancy;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -72,10 +73,28 @@ it('renders the unit\'s real facts and the real month occupancy', function () {
         'name' => 'Casa Ondine',
         'unit_kind' => 'apartment',       // REAL enum
         'max_occupancy' => 4,             // the design's "Sleeps"
-        'condition_status' => 'out_of_service',   // REAL enum — surfaced honestly
     ]);
 
     attributedStay($s, $a['unit'], 20000);   // 2 nights in Sep 2026 → the focus month resolves there
+
+    // ⚠️ THE CONDITION IS SET **AFTER** THE BOOKING, AND THE ORDER IS THE WHOLE FIX. This fixture used to
+    // pass `condition_status => 'out_of_service'` alongside the other columns above — i.e. BEFORE the stay
+    // was booked — and `out_of_service` is in {@see Unit::UNBOOKABLE_CONDITIONS}, so AssignmentService
+    // correctly refused to occupy the unit and the whole test errored on its own fixture.
+    //
+    // ⚠️ NEITHER ASSERTION WAS WRONG, AND NEITHER IS WEAKENED. The test wants a unit that BOTH has a real
+    // stay in the focus month AND currently reads "Out of service" — and that is a perfectly coherent real
+    // state, reached the way it is reached in practice: a unit is booked, and is later taken out of service
+    // (damage found, maintenance scheduled). The guard bites at BOOKING time only, which is exactly right —
+    // it stops new inventory being sold, it does not retroactively erase a stay that already exists. So the
+    // fixture now models the real sequence instead of an impossible instant.
+    $a['unit']->update(['condition_status' => 'out_of_service']);   // REAL enum — surfaced honestly
+
+    // ⚠️ GUARD THE PREMISE — the fixture must genuinely hold BOTH states at once, or every assertion below
+    // passes for the wrong reason. Read RAW, independently of the view under test (§N.18.1): this unit is
+    // out of service AND it really is occupied by the stay just booked.
+    expect((string) $a['unit']->fresh()->condition_status)->toBe('out_of_service')
+        ->and(DB::table('reservation_units')->where('unit_id', $a['unit']->id)->count())->toBe(1);
 
     $response = $this->actingAs($a['user'])->get('/owner/units/'.$a['unit']->id);
 

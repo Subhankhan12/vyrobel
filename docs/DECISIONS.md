@@ -12324,3 +12324,47 @@ only, which is what its name always claimed. The `TOP_UNITS`(8) and `MONTHS`(6) 
 displays with no reconciling total beneath them, not silent caps.
 
 Suite **2383 / 2394**, 15,363 assertions, the documented non-green 6; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — `OwnerUnitDetailViewTest`: the fixture's ORDER was the bug, not either of its halves
+
+⚠️ **THE BRIEF SAID "TWO MUTUALLY EXCLUSIVE STATES" AND ASKED WHICH HALF TO DROP. NEITHER.** Reading the
+assertions settles it: the test wants a unit that BOTH has a real stay in the focus month (`2 nights`,
+`Confirmed`, `Direct`, the attributed net) AND currently reads `Out of service`. Both are real, both are
+asserted, and **that combination is a perfectly coherent state** — it is simply reached in the wrong order.
+`unitDetailOwner()` applied `condition_status` with the other columns, i.e. **before** the booking, and
+`out_of_service` is in `Unit::UNBOOKABLE_CONDITIONS`, so `AssignmentService` correctly refused to occupy the
+unit and the test errored on its own fixture before reaching a single assertion.
+
+**THE FIX IS ONE MOVED LINE: book first, then take the unit out of service** — which is how it happens in
+practice (a unit is booked, then damage is found). ⚠️ **The guard bites at BOOKING time only, and that is
+right**: it stops new inventory being sold, it does not retroactively erase a stay that already exists. So
+the fixture now models a real sequence instead of an impossible instant. **No assertion was deleted, weakened
+or rewritten**, and no application code was touched (`git diff --name-only` = `tests/` only).
+
+⚠️ **A PREMISE GUARD WAS ADDED SO IT CANNOT GO VACUOUS AGAIN** — read RAW, independently of the view under
+test (§N.18.1): the unit really is `out_of_service` AND really does hold a `reservation_units` row. Without
+it, a future fixture drift could satisfy every `assertSee` for the wrong reason.
+
+**NON-VACUOUS, PROVEN BY MUTATION — and it is the RECOVERED test that reds**, which is what shows the fixture
+fix reached real behaviour rather than merely stopping an exception: relabelling `'out_of_service' => 'Out of
+service'` to `'Available'` reds it, and forcing `conditionNotice('in_service')` reds it. 13/13, and the
+assertion count rose **93 → 119** — 26 assertions that had never executed.
+
+⚠️⚠️ **AND A CORRECTION TO MY OWN REPORTING IN THIS SESSION.** I have been quoting "the documented non-green
+6" from the suite's `failures` bucket alone. Parsing every bucket shows the real picture, and it always had
+more in it:
+
+    2394 tests · 2384 passed · 6 FAILED · 2 ERRORED · 2 SKIPPED  → 10 not passing
+
+The **errors** bucket is where `OwnerUnitDetailViewTest` and `PhaseBEndToEndTest` were living, which is
+exactly why a test the register called "consistently red" never appeared in the counts I reported. The true
+non-green figure was **9** (BookingImport ×6, OperatorGuestProfile ×1, OwnerUnitDetail ×1, PhaseBEndToEnd ×1)
+— matching the canon — and is now **8**. A summary that reads one bucket of a multi-bucket result is the
+same defect class as this session's other findings, committed by the reporter rather than the code.
+
+**REMAINING NON-GREEN (8):** `BookingImportTest` ×6 · `OperatorGuestProfileTest` ×1 · `PhaseBEndToEndTest` ×1
+(the other named cheapest-close; still `Call to a member function all() on array`). Plus 2 skipped.
+
+PHPStan L5 (0); Pint clean.
