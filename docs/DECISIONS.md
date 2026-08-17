@@ -12368,3 +12368,61 @@ same defect class as this session's other findings, committed by the reporter ra
 (the other named cheapest-close; still `Call to a member function all() on array`). Plus 2 skipped.
 
 PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — `PhaseBEndToEndTest`: there was no mis-shaped assertion. The message was being EATEN.
+
+⚠️⚠️ **THE REGISTER'S DIAGNOSIS WAS AN ARTEFACT OF THE BUG IT WAS DESCRIBING.** The item read "assertion-shape
+error: `Call to a member function all() on array` in `TestResponseAssert`". There is no mis-shaped assertion
+in this file, and nothing in it calls `->all()`. That crash is in the **framework**, in
+`Illuminate\Testing\TestResponseAssert::injectResponseContext()` — a method that runs **only after an
+assertion has already failed**, purely to enrich the message:
+
+    $session->get('errors')->all()
+
+`config/session.php` sets `'serialization' => 'json'` (the Laravel 12+ hardening against gadget-chain attacks
+if `APP_KEY` leaks). Under JSON serialization a `ViewErrorBag` round-trips through the session store as a
+plain **array**, so `->all()` fatals — **and takes the real failure message with it**. The register recorded
+the corpse, not the cause.
+
+**THE REAL FAILURE, recovered by temporarily guarding that framework line and re-running:**
+
+    Expected: http://localhost:8000/owner
+    Actual:   http://localhost:8000/invite/{token}
+    …because: "The password field must contain at least one number."
+
+⚠️ **A STALE FIXTURE — THE SAME CLASS AS THE PREVIOUS ITEM.** The fixture password was
+`'a-strong-owner-pass'`: letters and a symbol, **no digit**. `PasswordPolicy::rule()` gained `->numbers()`
+when the password work tightened the nine set-password paths, and this end-to-end fixture was never updated.
+The activation POST was rejected, the controller redirected back to the invite screen, and `assertRedirect`
+failed — correctly. **No assertion was wrong, none was deleted, and no application code was touched**
+(`git diff --name-only` = one test file).
+
+⚠️ **AND THE FIXTURE NOW PROVES ITSELF AGAINST THE LIVE POLICY** — it validates the password through
+`PasswordPolicy::rule()` before using it, so the next tightening fails **at that line with a sentence saying
+so**, instead of surfacing three hops later as an unreadable redirect mismatch. Mutation-proven: reverting the
+digit now reds with *"the end-to-end fixture password must satisfy the live PasswordPolicy"*.
+
+⚠️⚠️ **IS THE JSON-SERIALIZATION FINDING A PRODUCTION DEFECT? NO — AND THAT WAS VERIFIED, NOT ASSUMED.**
+`login.blade.php` calls `$errors->any()`, so a serialized bag reaching Blade would 500 every failed login. A
+real failed login against a running server (database driver, json serialization) returns **HTTP 200** and
+renders *"These credentials do not match"* — Blade's `$errors` is a genuine `ViewErrorBag` on the request
+path. Only the test helper's direct read of the **raw session store** sees the serialized form. Raising that
+alarm without checking would have been the worse error.
+
+⚠️ **BUT IT IS A SUITE-WIDE DIAGNOSTIC HAZARD, AND IT IS NOW DOCUMENTED IN THE TEST FILE ITSELF.** Any failed
+assertion on a redirect response carrying validation errors has its message replaced by that fatal — which is
+precisely how a stale password got filed as an assertion-shape bug. The recovery recipe (temporarily guard the
+framework line with `is_array($bag) ? $bag : $bag->all()`) is recorded at the foot of the test. **Not
+worked around**: changing session serialization in the test environment would diverge tests from production
+for a cosmetic gain, and vendor edits do not survive `composer install`.
+
+**NON-VACUOUS, MUTATION-PROVEN:** removing the activation auto-login (`Auth::guard('web')->login($user)`) reds
+it at 21 assertions; reverting the fixture password reds it with the readable message above. Green alone
+(**1/1, 40 assertions — up from 19 before it errored, so 21 had never executed**) and green in-suite.
+
+**BASELINE: 2385 / 2394 · 15,410 assertions — 6 failed + 1 errored + 2 skipped.** The non-green count is now
+**7**, down from 9 two commits ago: `BookingImportTest` ×6 · `OperatorGuestProfileTest` ×1. Both named
+cheapest-closes are shut, and **both turned out to be stale fixtures rather than what the register called
+them.** PHPStan L5 (0); Pint clean.

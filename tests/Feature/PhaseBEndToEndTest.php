@@ -7,10 +7,12 @@ use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\Auth\PasswordPolicy;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 
 uses(RefreshDatabase::class);
 
@@ -30,7 +32,18 @@ uses(RefreshDatabase::class);
 
 it('runs the full Phase B chain end-to-end: operator invite → email link → activate → owner portal → token spent', function () {
     $email = 'e2e-owner@example.test';
-    $password = 'a-strong-owner-pass';
+    // ⚠️ THE FIXTURE ROTTED WHEN THE POLICY TIGHTENED, AND THE ERROR THAT REPORTED IT WAS UNREADABLE.
+    // This was 'a-strong-owner-pass' — letters and a symbol, and NO DIGIT. PasswordPolicy::rule() now
+    // requires ->numbers(), so the activation POST was rejected, the controller redirected back to the
+    // invite screen instead of /owner, and the assertRedirect failed. The register recorded this test as an
+    // "assertion-shape error" only because the real message was hidden (see the note at the foot of this
+    // file) — the assertions were never wrong.
+    $password = 'a-strong-owner-pass-42';
+
+    // ⚠️ AND THE FIXTURE NOW PROVES ITSELF AGAINST THE LIVE POLICY, so the next tightening fails HERE, with
+    // a sentence that says what happened, instead of surfacing three hops later as a redirect mismatch.
+    expect(Validator::make(['password' => $password], ['password' => PasswordPolicy::rule()])->passes())
+        ->toBeTrue('the end-to-end fixture password must satisfy the live PasswordPolicy');
 
     // ── Operator, logged in + tenant-scoped, with a real unit to assign ──────────────────────────
     $s = seedScenario(1);
@@ -115,3 +128,28 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
         ->assertOk()->assertSee('isn’t valid');
     expect(OwnerInvite::query()->find($invite->id)->status)->toBe('accepted');
 });
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+// ⚠️⚠️ WHY THIS TEST WAS MIS-DIAGNOSED FOR SO LONG — READ THIS BEFORE TRUSTING A FAILURE MESSAGE HERE.
+//
+// It was recorded as an "assertion-shape error: Call to a member function all() on array". There is no
+// mis-shaped assertion in this file. That crash comes from the FRAMEWORK, in
+// Illuminate\Testing\TestResponseAssert::injectResponseContext(), which runs ONLY AFTER an assertion has
+// already failed, purely to enrich the message:
+//
+//     $session->get('errors')->all()
+//
+// `config/session.php` sets `'serialization' => 'json'` (the Laravel 12+ hardening against gadget-chain
+// attacks if APP_KEY leaks). Under JSON serialization a ViewErrorBag round-trips through the session store
+// as a plain ARRAY, so `->all()` fatals — and the REAL failure message is destroyed with it.
+//
+// ⚠️ THIS IS NOT A PRODUCTION DEFECT, AND THAT WAS VERIFIED RATHER THAN ASSUMED: a genuine failed login
+// against a running server (database driver, json serialization) returns HTTP 200 and renders "These
+// credentials do not match" — Blade's $errors is a real ViewErrorBag on the request path. Only the test
+// helper's direct read of the raw session store sees the serialized form.
+//
+// ⚠️ SO IT AFFECTS EVERY FAILED ASSERTION ON A REDIRECT RESPONSE THAT CARRIES VALIDATION ERRORS, SUITE-WIDE
+// — the message is replaced by the fatal, which is exactly how a stale fixture password got filed as an
+// assertion-shape bug. If you meet it again, the failure is real and its message is being eaten; recover it
+// by temporarily guarding that framework line (is_array($bag) ? $bag : $bag->all()) and re-running.
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
