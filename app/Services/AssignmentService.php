@@ -16,6 +16,7 @@ use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\ReservationUnit;
 use App\Models\Unit;
+use App\Models\UnitRateOverride;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use Carbon\CarbonImmutable;
@@ -298,6 +299,33 @@ class AssignmentService
     }
 
     /**
+     * Refuse an OTA-sourced stay a unit that carries its own nightly price (channel-sync option 1).
+     *
+     * ⚠️ THE SOURCE IS THE WHOLE TEST. `reservations.source` distinguishes direct/OTA on the ONE reservations
+     * table (there are no parallel per-channel tables), so "was this sold by a channel at the type rate?" is a
+     * single column read — no channel join, no heuristics.
+     *
+     * ⚠️ ANY overridden NIGHT of the stay disqualifies the unit, not merely the first. A stay that straddles
+     * an override is still a stay the OTA priced at the type rate for every one of its nights.
+     */
+    private function assertNotOverriddenForOtaStay(ReservationUnit $reservationUnit, string $unitId): void
+    {
+        if ((string) $reservationUnit->reservation->source !== 'ota') {
+            return;   // direct / walk-in / corporate / group — unaffected, any unit is fair game
+        }
+
+        $overridden = UnitRateOverride::query()
+            ->where('unit_id', $unitId)
+            ->whereDate('date', '>=', CarbonImmutable::parse($reservationUnit->check_in)->toDateString())
+            ->whereDate('date', '<', CarbonImmutable::parse($reservationUnit->check_out)->toDateString())
+            ->exists();
+
+        if ($overridden) {
+            throw UnitUnavailableException::blocked($unitId);
+        }
+    }
+
+    /**
      * Assign a physical unit to a line (or MOVE it to a different unit). Re-checks Level B on
      * the target unit; `sold` is unchanged (same room_type + nights). The old unit is released
      * implicitly (the same row now points to the new unit).
@@ -315,6 +343,18 @@ class AssignmentService
         if (! $unit->isBookable()) {
             throw UnitUnavailableException::blocked($unitId);
         }
+
+        // D18-5 · CHANNEL-SYNC OPTION 1 — an OTA-sourced stay may never sit on a unit that carries its own
+        // price. ⚠️ THIS IS A MONEY RULE WEARING AN ASSIGNMENT COSTUME. OTAs are structurally type-only
+        // (AriSnapshotBuilder has no unit concept), so the channel sold the ROOM TYPE at the TYPE rate. A unit
+        // with an override is priced for direct sale; seating an OTA booking on it means the property either
+        // eats the difference or dishonours what the guest was sold. Only a non-overridden unit honours the
+        // price the OTA actually quoted.
+        //
+        // ⚠️ IT GUARDS THE SELECTION, NOT THE LOCK. This runs BEFORE the transaction below and touches
+        // neither lockAvailability() nor assertUnitFree() — the certified no-double-booking guarantee
+        // (36666a8) is unchanged, and a DIRECT booking is deliberately unaffected: it may take any unit.
+        $this->assertNotOverriddenForOtaStay($reservationUnit, $unitId);
 
         $fromUnitId = $reservationUnit->unit_id;
 

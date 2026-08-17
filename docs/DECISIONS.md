@@ -12765,3 +12765,63 @@ calls. Fine at this inventory (8 units, ~112 calls) and honest; a large property
 but that must be a widening of `NightlyRate` itself, never a second precedence in the grid.
 
 Suite **2407 / 2410**, 15,511 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — channel-sync OPTION 1: the assignment rule — and the sufficiency trade-off is SURFACED, not resolved
+
+⚠️⚠️ **CONFIRM-FIRST RELOCATED THE RULE BEFORE A LINE WAS WRITTEN, AND THE CODE SAID SO ITSELF.**
+`AssignmentService::occupyOrFlag()` — the OTA import path — carries this: *"Level A only — **OTA imports are
+type-assigned (unit_id null)**, so there is no physical-unit (Level B) check; **a specific unit is assigned
+later during manual resolution / check-in**."* It writes `'unit_id' => null`. So **an OTA booking is never
+handed a unit at import at all**; the brief's "assignment" is the operator's LATER
+`assignUnit(ReservationUnit, unitId)`. That is where the rule lives, and putting it at the import would have
+guarded a decision nobody makes there.
+
+**THE RULE, and it is a money rule wearing an assignment costume.** OTAs are structurally type-only, so a
+channel sold the ROOM TYPE at the TYPE rate. A unit carrying an override is priced for direct sale; seating an
+OTA stay on it means the property either eats the difference or dishonours what the guest was sold. So
+`assignUnit()` refuses an OTA-sourced line a unit with an override on **any night of the stay** — not merely
+the first, since the OTA priced every night at the type rate.
+
+⚠️ **IT GUARDS THE SELECTION, NEVER THE LOCK.** The check runs **before** the transaction and reads a
+different table; `lockAvailability()`, `assertUnitFree()` and the transaction are untouched — the diff's only
+line mentioning them is a comment. `ConcurrentBookingTest` re-runs green, unmodified (1/1, 7 assertions).
+**A DIRECT booking is deliberately unaffected**: blocking it would forfeit a sale the property is entitled to
+make, which is over-permissiveness in the other direction.
+
+**SHOWN = ENFORCED:** the front-desk move picker drops the same units for an OTA stay, so the operator is
+never offered a move the write path will reject — the discipline the storefront picker already follows.
+
+⚠️⚠️ **THE SUFFICIENCY TRADE-OFF IS REAL, AND I AM SURFACING IT RATHER THAN RESOLVING IT — because resolving
+it would mean touching the concurrency spine.** The OTA snapshot pushes `availabilityRange()`, i.e. the
+`availability` table's per-(type, date) count, which **has no notion of overrides**. So **OTA availability can
+exceed the non-overridden pool**: price 2 of 3 units apart and the channel is still told 3 are free. Two OTA
+bookings then have one honourable unit between them, and the second is refused by this guard at assignment
+time.
+
+⛔ **THE FOUNDER'S CALL, AND WHY IT IS NOT MINE.** `available = total − sold − out_of_order − blocked`, read
+under `lockForUpdate()` by `assertCountsAvailable()` — **that number IS the no-double-booking spine, for every
+source.** Shrinking it to the non-overridden count would refuse **direct** bookings too, and would alter the
+certified core's inputs. The options are: **(a)** withhold OTA availability for overridden units — honourable
+by construction, costs bookings, and needs a mechanism that does *not* reduce `total` (a channel-facing
+adjustment, not an availability write); **(b)** accept the contradiction option 1 exists to avoid; **(c)**
+today's behaviour — the channel may oversell the honourable pool and the guard refuses the bad assignment,
+leaving the operator to resolve. **(c) is what ships**, because it is the only one that changes nothing about
+money or the lock. It is safe but not free: it can produce an OTA booking with no honourable unit.
+
+**FOUR MUTATIONS, EACH VERIFIED TO LAND:** removing the guard lets an OTA stay onto an overridden unit
+(reds 2) · making it catch every source blocks direct bookings (reds) · checking only the first night lets a
+later-night override through (reds) · dropping the picker filter offers a move the write path refuses (reds).
+
+⚠️ **AND TWO VACUOUS DRAFTS OF THE SHOWN=ENFORCED TEST, BOTH CAUGHT BY PROBING.** The first searched the
+front-desk HTML for `value="<unit id>"` — the page emits no such attribute, so **neither** unit was found and
+`not->toContain` passed proving nothing. The second asserted on the component's assembled view data, which
+depends on the day window, status and permission all lining up. The third calls the filter directly and
+asserts **both** directions — the plain unit IS offered, the overridden one is NOT — which is the only shape
+that cannot be vacuous.
+
+**Untouched:** the OTA snapshot (still type-only), the certified core, direct assignment, §G.1, isolation/RBAC,
+other channels. Demo money-as-seeded (0 overrides; `rate_calendar` `2bbdafccc3b5c1ee43f89fe313a3f02d`).
+
+Suite **2413 / 2416**, 15,523 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.

@@ -9,6 +9,7 @@ use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Models\UnitRateOverride;
 use App\Services\FrontDeskService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Schedule\BoardDate;
@@ -314,6 +315,12 @@ class FrontDesk extends Component
                         CarbonImmutable::parse($activeLine->check_in)->toDateString(),
                         CarbonImmutable::parse($activeLine->check_out)->toDateString(),
                         (string) $reservation->id,
+                        // D18-5 · channel-sync option 1 — SHOWN = ENFORCED. An OTA-sourced stay was sold at
+                        // the ROOM-TYPE rate, so a unit carrying its own price cannot honour it and
+                        // assignUnit() will refuse it. Filtering here means the operator is never offered a
+                        // move the write path would reject — the same discipline the storefront's unit picker
+                        // follows. A DIRECT booking is unfiltered: any unit remains fair game.
+                        (string) $reservation->source === 'ota',
                     ),
                 ];
             }
@@ -364,12 +371,26 @@ class FrontDesk extends Component
      *
      * @return list<array{id: string, code: string, name: string}>
      */
-    private function freeUnitsFor(string $propertyId, string $roomTypeId, string $checkIn, string $checkOut, string $reservationId): array
+    private function freeUnitsFor(string $propertyId, string $roomTypeId, string $checkIn, string $checkOut, string $reservationId, bool $excludeOverridden = false): array
     {
-        $key = implode('|', [$roomTypeId, $checkIn, $checkOut, $reservationId]);
+        $key = implode('|', [$roomTypeId, $checkIn, $checkOut, $reservationId, $excludeOverridden ? 'ota' : 'any']);
         if (! array_key_exists($key, $this->freeUnitsMemo)) {
-            $this->freeUnitsMemo[$key] = app(UnitAvailabilityService::class)
+            $free = app(UnitAvailabilityService::class)
                 ->freeUnitsForRoomType($propertyId, $roomTypeId, $checkIn, $checkOut, $reservationId);
+
+            if ($excludeOverridden && $free !== []) {
+                // ⚠️ Drop the units that carry their OWN price for any night of this stay — exactly the ones
+                // assignUnit() refuses for an OTA stay. One query for the set, not one per unit.
+                $priced = UnitRateOverride::query()
+                    ->whereIn('unit_id', array_map(fn (array $u): string => (string) $u['id'], $free))
+                    ->whereDate('date', '>=', $checkIn)
+                    ->whereDate('date', '<', $checkOut)
+                    ->pluck('unit_id')->map(fn ($id): string => (string) $id)->unique()->all();
+
+                $free = array_values(array_filter($free, fn (array $u): bool => ! in_array((string) $u['id'], $priced, true)));
+            }
+
+            $this->freeUnitsMemo[$key] = $free;
         }
 
         return $this->freeUnitsMemo[$key];
