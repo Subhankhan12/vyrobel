@@ -1,7 +1,12 @@
 {{-- Operator Units — the org's physical units (design pass · final operator stub). Styled on the
      shared operator design system via <x-operator.shell>. All data is REAL and tenant-scoped; the
      status tags are keyed to the real unit enums. Read-only. --}}
-<div>
+{{-- ⚠️ `unitPriceFor` LIVES ON THE ROOT, and that placement is the fix for a real defect: it was first
+     declared on the dialog wrapper at the foot of the page, which is a SIBLING of the table — so the row
+     buttons referenced a variable no ancestor owned and clicking them did nothing at all. Six green tests
+     missed it because they assert the markup is present, not that the interaction works; only opening the
+     page in a browser showed 0 dialogs on click (the item-21 blank-rows lesson, in a new costume). --}}
+<div x-data="{ unitPriceFor: null }">
     <x-operator.shell active="units" title="Units" subtitle="Inventory" :viewer="$viewer">
 
         @if (session('units_notice'))
@@ -70,7 +75,17 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $unit['room_type'] }}</td>
+                                    <td>{{ $unit['room_type'] }}
+                                        {{-- D18-5 · SINGLE-SET — the N=1 entry to the ONE per-unit pricing form.
+                                             ⚠️ It opens the SAME <x-rates.unit-price-form> the rates grid opens,
+                                             pre-selecting this unit, and posts to the SAME preview→apply routes,
+                                             so this surface adds no second writer and no second price rule (D4-1). --}}
+                                        @if ($canManageRates ?? false)
+                                            <button type="button" class="vy-u-priceind"
+                                                    style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
+                                                    x-on:click="unitPriceFor = '{{ $unit['id'] }}'">Price individually</button>
+                                        @endif
+                                    </td>
                                     <td>{{ $unit['kind'] }}</td>
                                     <td>{{ $unit['occupancy'] }}</td>
                                     <td><span class="vy-tag tone-{{ $unit['hk_tone'] }}"><span class="vy-dot"></span>{{ $unit['hk_label'] }}</span></td>
@@ -137,4 +152,33 @@
         @endif
 
     </x-operator.shell>
+
+{{-- D18-5 · the single-set dialog. ⚠️ One <x-rates.unit-price-form> per row with `preselect`, which is the
+     N=1 call of the very same component and routes the rates grid uses — the money path is the proven
+     UnitRateOverrideService in both cases, never a direct write. --}}
+@if ($canManageRates ?? false)
+    <div x-cloak>
+        @foreach ($units as $vyU)
+            <div x-show="unitPriceFor === '{{ $vyU['id'] }}'" x-cloak
+                 style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                 x-on:click.self="unitPriceFor = null">
+                <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;"
+                     x-data="{ unitMode: 'set', unitRt: '{{ $vyU['room_type_id'] }}' }">
+                    <x-rates.unit-price-form
+                        :room-types="$unitPriceRoomTypes"
+                        :units="$unitPriceUnits"
+                        :preselect="$vyU['id']"
+                        :from="now()->toDateString()"
+                        :to="now()->addDays(6)->toDateString()"
+                        heading="Price this unit individually"
+                        subheading="a price for this unit only — the rest of its room type is unchanged">
+                        <x-slot:actions>
+                            <button type="button" class="vy-btn" x-on:click="unitPriceFor = null" style="padding: 9px 16px;">Cancel</button>
+                        </x-slot:actions>
+                    </x-rates.unit-price-form>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
 </div>

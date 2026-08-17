@@ -301,47 +301,17 @@
                 @if (count($rows) > 0 && ! $readOnly)
                     <div x-show="unitOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="unitOpen = false">
                         <div class="vy-card" style="max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;">
-                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">Price units individually</h3>
-                            <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">{{ $window['label'] }} · a price for one unit, not the whole room type</div>
-                            <form method="POST" action="{{ route('app.rates.units.preview') }}">
-                                @csrf
-                                <input type="hidden" name="start_date" x-model="from">
-                                <input type="hidden" name="end_date" x-model="to">
-                                <div class="vy-field" style="margin: 0 0 12px;">
-                                    <label class="vy-field-label" for="ub_rt">Room type</label>
-                                    <select id="ub_rt" name="room_type_id" class="vy-input" x-model="unitRt">
-                                        @foreach ($roomTypeOptions as $opt)
-                                            <option value="{{ $opt['id'] }}">{{ $opt['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="vy-field" style="margin: 0 0 12px;">
-                                    <label class="vy-field-label">Units</label>
-                                    <div style="font-size: 11.5px; color: var(--vy-faint); margin-bottom: 6px;">Leave all unticked to apply to every unit of that room type.</div>
-                                    @foreach ($unitOptions as $rtId => $units)
-                                        <div x-show="unitRt === '{{ $rtId }}'" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                            @foreach ($units as $u)
-                                                <label class="vyr-check" style="margin: 0;"><input type="checkbox" name="unit_ids[]" value="{{ $u['id'] }}"> {{ $u['name'] }}</label>
-                                            @endforeach
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div class="vy-field" style="margin: 0 0 12px;">
-                                    <label class="vy-field-label">What to do</label>
-                                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="set" x-model="unitMode"> Set a per-unit rate</label>
-                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="clear" x-model="unitMode"> Clear per-unit rates</label>
-                                    </div>
-                                    <input type="text" name="amount" class="vy-input" inputmode="decimal" placeholder="e.g. 175.00" x-show="unitMode === 'set'">
-                                    {{-- ⚠️ CLEAR REMOVES THE OVERRIDE — it does not set €0. The units go back to
-                                         following their room type's rate, and the preview shows that figure. --}}
-                                    <div x-show="unitMode === 'clear'" style="font-size: 12px; color: var(--vy-muted);">Those units go back to following the room-type rate.</div>
-                                </div>
-                                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            {{-- ⚠️ THE ONE FORM (§N.8f) — the same component the Units list opens for a single
+                                 unit, so the two homes cannot drift. Dates bind to this grid's live window. --}}
+                            <x-rates.unit-price-form
+                                :room-types="$roomTypeOptions"
+                                :units="$unitOptions"
+                                :bind-dates="true"
+                                subheading="{{ $window['label'] }} · a price for one unit, not the whole room type">
+                                <x-slot:actions>
                                     <button type="button" class="vy-btn" x-on:click="unitOpen = false" style="padding: 9px 16px;">Cancel</button>
-                                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Preview changes</button>
-                                </div>
-                            </form>
+                                </x-slot:actions>
+                            </x-rates.unit-price-form>
                         </div>
                     </div>
                 @endif

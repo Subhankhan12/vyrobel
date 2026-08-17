@@ -12655,3 +12655,58 @@ test re-runs green (1/1, 7 assertions). `rate_calendar` hashes **`2bbdafccc3b5c1
 folio/quote/guest removed, 0 orphans).
 
 Suite **2395 / 2398**, 15,441 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — D18-5 · the single-set authoring UI: ONE form, two homes, no second writer
+
+⚠️ **CONFIRM-FIRST FOUND MOST OF THIS ALREADY EXISTED, WHICH CHANGED THE WORK FROM "BUILD A FORM" TO "GIVE
+THE FORM A SECOND HOME".** `UnitRateOverrideService::preview()/commit()` take **an array** of unit ids, so
+single-set is literally N=1 — no new API. And `UnitRateActionController` already handled it: one ticked
+checkbox in the bulk panel *is* a single set, through routes that are already proven. What was genuinely
+missing was **reach**: the form lived inline in the rates grid and could not be opened from a unit's own
+context. ⚠️ There is also **no operator unit-detail page** (only `app.units`, a list, and an *owner* unit
+detail), so the list row is the home.
+
+**BUILT — `<x-rates.unit-price-form>`, the ONE form (§N.8f), now used by both surfaces:**
+
+- **The rates grid** was re-pointed at the component (its inline markup deleted). ⚠️ **The extraction is
+  proven behaviour-neutral**: `BulkUnitRateOverrideTest` stayed **13/13, 86 assertions** across it.
+- **The Units list** opens the same component per row with `preselect`, submitting **one** `unit_ids[]` to the
+  **same** `app.rates.units.preview` → `apply` routes. `rates.manage`-gated, control hidden without it (#30).
+- The component takes room types + units + an optional preselect, so **D18-6's "price individually" can open
+  it later without a second form** — the home-agnostic requirement, satisfied by construction rather than by
+  intention.
+
+⚠️ **PROVING "NO SECOND WRITER" NEEDED A DIFFERENT SHAPE THAN PLANNED, AND THE FIRST ATTEMPT DIED SILENTLY.**
+The obvious test — a spy subclass counting `commit()` calls — **fatals**: `UnitRateOverrideService` is
+`final`, and the run produced **no output at all** (not a failure, a fatal). Inverted instead: **make the
+service unresolvable** and assert both that the surface *asked* for it and that **nothing was written** when
+it could not be had. If the form were a second writer the rows would appear anyway. That checks D4-1 from
+outside, with no test double.
+
+⚠️⚠️ **AND A CORRECTION TO MYSELF, WORTH MORE THAN THE FEATURE.** I declared the interaction "confirmed
+broken — 0 dialogs open on click" and **changed code on that basis**. The probe was wrong: `offsetParent` is
+`null` for anything inside a `position: fixed` ancestor, so my visibility check could never have returned
+anything else. Reading Alpine's actual state (`unitPriceFor` held the unit id; the wrapper computed
+`display: block`) showed it was working. **The lesson generalises: a negative from a probe is only evidence
+once the probe is shown capable of a positive** — the same rule I applied to the reference-grep two passes
+ago, forgotten here until the data contradicted me. The `x-data` hoist to the component root is kept on its
+own merits (the row buttons and the dialogs must share one scope; a sibling scope is wrong regardless), and
+the working state is now verified directly rather than by absence.
+
+**RENDERED, AS THE OPERATOR, END TO END:** the row action opens a dialog headed *"Price this unit
+individually"* naming **"101 · Double Room"** with exactly one `unit_ids[]`; **preview wrote 0 rows**; Apply
+wrote **3 nights × 24500 for unit 101 and nothing for any other unit**; the clear preview read
+**"€245.00 → €100.00 · room-type rate"** — not €0 — and removed the rows (**0 written at price 0**).
+`rate_calendar` hashed **`2bbdafccc3b5c1ee43f89fe313a3f02d`, 929 rows, 10,920,000 minor** throughout; the demo
+ends **money-as-seeded**.
+
+**FOUR MUTATIONS, EACH VERIFIED TO LAND:** the surface writing `unit_rate_overrides` directly reds two money
+tests · dropping the unit label reds the render test (the blank-rows defect, guarded) · clear writing €0 reds
+clear→type · dropping the preselected `unit_ids[]` reds the render test.
+
+**Untouched:** the service's logic, the money path, §G.1, the routes, isolation/RBAC. The rack safeguard
+follows for free (same table) — asserted.
+
+Suite **2401 / 2404**, 15,476 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.

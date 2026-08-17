@@ -61,6 +61,9 @@ class UnitsList extends Component
                 'code' => (string) $unit->code,
                 'name' => $unit->name !== null ? (string) $unit->name : null,
                 'room_type' => (string) $unit->roomType->name,
+                // D18-5 — the per-unit pricing form needs the TYPE the unit belongs to (an override is keyed
+                // on the room type's rate plan), so it travels with the row rather than being looked up again.
+                'room_type_id' => (string) $unit->room_type_id,
                 'kind' => $this->unitKindLabel((string) $unit->unit_kind),
                 'occupancy' => (int) $unit->max_occupancy,
                 'hk_label' => $hk['label'],
@@ -95,6 +98,19 @@ class UnitsList extends Component
         return view('livewire.units-list', [
             'viewer' => $this->viewer(),
             'units' => $units,
+            // D18-5 — the ONE per-unit pricing form is opened per row, so it needs the same shape the rates
+            // grid gives it: the room types and the units beneath them, labelled `name ?: code` (units carry
+            // a code and a NULL name, and an unlabelled money form is the bulk pass's blank-rows defect).
+            'unitPriceRoomTypes' => array_values(array_map(
+                fn (array $rt): array => ['id' => (string) $rt['id'], 'name' => (string) $rt['name']],
+                $roomTypes,
+            )),
+            'unitPriceUnits' => collect($units)->groupBy('room_type_id')
+                ->map(fn ($g): array => $g->map(fn (array $u): array => [
+                    'id' => (string) $u['id'],
+                    'name' => (string) ($u['name'] !== null && $u['name'] !== '' ? $u['name'] : $u['code']),
+                ])->values()->all())->all(),
+            'canManageRates' => (bool) auth()->user()?->can('rates.manage'),
             'roomTypes' => $roomTypes,
             'summary' => [
                 'total' => $models->count(),
