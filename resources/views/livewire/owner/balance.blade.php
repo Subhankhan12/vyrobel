@@ -94,7 +94,7 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:10px">
                     <div>
                         <h2 class="vy-card-title">Balance activity</h2>
-                        <div class="vy-line-sub">Every movement, newest first</div>
+                        <div class="vy-line-sub">Grouped by month, newest first — open a month for every movement in it</div>
                     </div>
                     @ownercan(\App\Support\Owner\OwnerTeamRole::CAP_EXPORTS)
                         <a class="vy-btn vy-btn--ghost" href="{{ route('owner.balance.export') }}" title="Export your balance activity as CSV">
@@ -114,33 +114,72 @@
                                 <th class="vy-num">Balance</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse ($entries as $entry)
+                        {{-- ⚠️ OWNER FIX 3 — ROLLED UP BY DEFAULT, EXPANDABLE TO THE REAL LINES.
+                             The summary row's figure is the SUM of the very rows revealed beneath it (the
+                             component groups already-computed values; it never re-derives one), so the two
+                             views cannot disagree. The expanded rows are byte-for-byte the list this table
+                             rendered before — same order, same amounts, same running balance, same provenance.
+                             ⚠️ The BALANCE on a summary is the group's most recent line's running balance, NOT
+                             a sum: a running balance is a position, and summing positions is meaningless. --}}
+                        {{-- ⚠️ ONE <tbody> PER GROUP — and that is load-bearing, not tidiness. The first cut put
+                             `x-data` on the summary <tr> with the line <tr>s as SIBLINGS: `open` was then out of
+                             scope for them, every `x-show` threw "Illegal invocation", and the rows rendered
+                             EXPANDED at all times. The tests still passed (they assert the data), so only opening
+                             the page caught it. HTML5 permits multiple tbody elements in one table; this puts a
+                             summary and its lines inside a single Alpine scope. --}}
+                        @forelse ($activityGroups as $group)
+                            <tbody x-data="{ open: false }">
                                 <tr>
-                                    <td class="vy-muted" style="white-space:nowrap">{{ $entry['date'] }}</td>
+                                    <td class="vy-muted" style="white-space:nowrap">{{ $group['span'] }}</td>
                                     <td>
-                                        <div class="vy-row-month">{{ $entry['description'] }}</div>
-                                        <div class="vy-row-sub">
-                                            {{ $entry['type_label'] }}
-                                            @if ($entry['statement_id'])
-                                                · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent-text);font-weight:600">on a statement</a>
-                                            @else
-                                                · <span class="vy-muted">not yet on a statement</span>
-                                            @endif
-                                            @if ($entry['prior_period'])<span class="vy-provisional" style="margin-left:6px">Prior-period adjustment</span>@endif
-                                            @if ($entry['unverified'])<span class="vy-provisional" style="margin-left:6px">Unverified</span>@endif
-                                        </div>
+                                        <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'"
+                                                aria-controls="vy-bal-{{ $loop->index }}"
+                                                style="display:flex;align-items:center;gap:7px;background:none;border:0;padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit">
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+                                                 :style="open ? 'transform:rotate(90deg);transition:transform .15s' : 'transition:transform .15s'"><path d="m9 18 6-6-6-6"/></svg>
+                                            <span>
+                                                <span class="vy-row-month">{{ $group['label'] }}</span>
+                                                <span class="vy-row-sub" style="display:block">
+                                                    <span x-text="open ? 'Hide the {{ $group['count_label'] }}' : 'Show the {{ $group['count_label'] }}'">Show the {{ $group['count_label'] }}</span>
+                                                    @if ($group['prior_period'])<span class="vy-provisional" style="margin-left:6px">Prior-period adjustment</span>@endif
+                                                    @if ($group['unverified'])<span class="vy-provisional" style="margin-left:6px">Unverified</span>@endif
+                                                </span>
+                                            </span>
+                                        </button>
                                     </td>
-                                    <td class="vy-num vy-mono @if ($entry['is_negative']) vy-net @endif">{{ $entry['amount_display'] }}</td>
-                                    <td class="vy-num">
-                                        <div class="vy-mono">{{ $entry['running_display'] }}</div>
-                                        <span class="vy-status vy-status--{{ $entry['state']['tone'] }}" style="margin-top:4px"><span class="vy-dot"></span>{{ $entry['state']['label'] }}</span>
-                                    </td>
+                                    <td class="vy-num vy-mono @if ($group['is_negative']) vy-net @endif">{{ $group['net_display'] }}</td>
+                                    <td class="vy-num"><div class="vy-mono">{{ $group['running_display'] }}</div></td>
                                 </tr>
-                            @empty
+
+                                @foreach ($group['lines'] as $entry)
+                                    <tr x-show="open" x-cloak id="vy-bal-{{ $loop->parent->index }}" style="background:rgba(255,255,255,.35)">
+                                        <td class="vy-muted" style="white-space:nowrap;padding-left:26px">{{ $entry['date'] }}</td>
+                                        <td>
+                                            <div class="vy-row-month">{{ $entry['description'] }}</div>
+                                            <div class="vy-row-sub">
+                                                {{ $entry['type_label'] }}
+                                                @if ($entry['statement_id'])
+                                                    · <a href="{{ route('owner.statements.show', $entry['statement_id']) }}" style="color:var(--vy-accent-text);font-weight:600">on a statement</a>
+                                                @else
+                                                    · <span class="vy-muted">not yet on a statement</span>
+                                                @endif
+                                                @if ($entry['prior_period'])<span class="vy-provisional" style="margin-left:6px">Prior-period adjustment</span>@endif
+                                                @if ($entry['unverified'])<span class="vy-provisional" style="margin-left:6px">Unverified</span>@endif
+                                            </div>
+                                        </td>
+                                        <td class="vy-num vy-mono @if ($entry['is_negative']) vy-net @endif">{{ $entry['amount_display'] }}</td>
+                                        <td class="vy-num">
+                                            <div class="vy-mono">{{ $entry['running_display'] }}</div>
+                                            <span class="vy-status vy-status--{{ $entry['state']['tone'] }}" style="margin-top:4px"><span class="vy-dot"></span>{{ $entry['state']['label'] }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        @empty
+                            <tbody>
                                 <tr><td colspan="4"><div class="vy-empty">No balance activity yet.</div></td></tr>
-                            @endforelse
-                        </tbody>
+                            </tbody>
+                        @endforelse
                     </table>
                 </div>
 
