@@ -12273,3 +12273,54 @@ invention and the fact are indistinguishable and a restored fallback would pass 
 data-as-seeded (both demo properties back to 15:00:00 / 11:00:00, verified by re-reading the row).
 
 Suite **2377 / 2388**, 15,338 assertions, the documented non-green 6; PHPStan L5 (0); Pint clean.
+
+---
+
+## 2026-08-17 — the Maintenance Costs silent cap: the register named ONE surface, the sweep found FOUR
+
+⚠️⚠️ **THE DEFECT WAS NEVER A WRONG TOTAL, AND CONFIRMING THAT FIRST DECIDED THE WHOLE FIX.** The brief posed
+the sharp fork — do the totals aggregate all rows or only the capped 60? Reading `MaintenanceCostService`
+settles it: `total_minor`/`labor_minor`/`parts_minor` are `SUM()`s over **every** resolved ticket in the
+window and always were; only `billable()` carries `->limit(60)`. So the total was **correct** and the
+**detail** was truncated. Had it been the other way round the fix would have been a corrected total; instead
+it is a corrected (or honestly-labelled) detail. No figure in this codebase was ever understated.
+
+⚠️⚠️ **THE REGISTER NAMED THE CSV; SWEEPING `report()`'s CALLERS FOUND FOUR SURFACES** (§N.27.1 — a register
+is a record of what one reader found). Every one printed a reconciling Total under the same capped set:
+**the CSV** (logged) · **the PDF** (not logged — it shows "Total spend" in its header *and* a Total row at the
+foot of the capped table, so it disagreed with itself) · **the emailed PDF** (not logged — the same template,
+and it is *sent*) · **the SCREEN itself** (not logged). Only the workbook was already correct, because
+D12b-1 had passed `null` for exactly this reason.
+
+⚠️ **I EXTENDED THE BRIEF'S SCOPE BY THREE SITES, DELIBERATELY.** It said to fix the CSV and log the rest. But
+these are not "other exports" — they are the same defect in the same report's sibling renderers, three lines
+apart in one controller, each a one-argument fix. Leaving a PDF that contradicts its own table, having just
+read it, is §N.13.1 ignored (the defect sits beside the flagged thing — held for five chapters). Recorded
+here plainly so the call can be reversed.
+
+**THE RESOLUTION SPLITS BY WHAT THE SURFACE IS, which is why it is not one change repeated four times:**
+
+- **A DOWNLOAD EXISTS TO HOLD THE DETAIL** — CSV, PDF and the emailed PDF now pass `null` (the complete set),
+  so the rows reconcile to the total beneath them. A CSV is not a preview; the whole reason to export it is
+  the detail.
+- **A SCREEN LEGITIMATELY PREVIEWS** — a page should not render thousands of rows, so the 60-row cap stays and
+  the page now **says so**: *"Showing the most recent 60 of 72 line items — the Total row above reflects all
+  72."* It renders only when there is genuinely something to disclose (proven by a test that it stays silent
+  at 5 rows). ⚠️ A new `billable_total` computes the true count **without the cap** — deriving it from
+  `count($billable)` would return 60 and re-tell the same lie in a quieter voice.
+
+**VERIFIED ON THE REAL EXPORTED BYTES (DO24-1), WITH 72 TICKETS — deliberately above the cap**, or none of it
+is exercised: the CSV streams `header + 72 rows + totals`, and **summing the last column back out of the bytes
+the way a reader would reaches the printed total to the cent**. ⚠️ The total is checked against a **raw**
+`SUM()` computed independently of the service (§N.18.1 — a check must not run through what it checks), and the
+test also pins what the capped set *would* have summed to, so the two are genuinely distinguishable.
+
+**FOUR MUTATIONS, EACH RED:** restoring the CSV's 60-row default reds the reconciliation test · making
+`total_minor` aggregate the capped set reds the service-contract test · computing `billable_total` from the
+capped rows reds the screen test · dropping the screen's indicator reds it too.
+
+**LOGGED, NOT CHANGED:** `MaintenanceCostService::BILLABLE_PREVIEW` stays 60 — it is now a *screen* preview
+only, which is what its name always claimed. The `TOP_UNITS`(8) and `MONTHS`(6) limits are genuine top-N
+displays with no reconciling total beneath them, not silent caps.
+
+Suite **2383 / 2394**, 15,363 assertions, the documented non-green 6; PHPStan L5 (0); Pint clean.

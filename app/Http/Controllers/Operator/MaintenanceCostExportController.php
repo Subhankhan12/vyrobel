@@ -63,7 +63,12 @@ class MaintenanceCostExportController extends Controller
     public function csv(Request $request, MaintenanceCostService $costs, AuditEventRecorder $audit): StreamedResponse
     {
         [$ids, $from, $to] = $this->scope($request);
-        $report = $costs->report($ids, $from, $to);
+        // ⚠️ NULL = THE COMPLETE LINE-ITEM SET. This took the 60-row default, so the reconciling totals row at
+        // the foot of the file sat under a SILENTLY truncated detail: above 60 tickets a reader summing the
+        // rows could not reach the total, and nothing in the file said why. A CSV is a DOWNLOAD, not a
+        // preview — the whole reason to export it is to hold the detail — so the cap does not belong here.
+        // Same fix, same reason as the workbook's (D12b-1).
+        $report = $costs->report($ids, $from, $to, null);
         $currency = $report['currency'];
         $audit->record('maintenance.costs_exported', null, null, ['format' => 'csv', 'orders' => $report['orders_closed']]);
 
@@ -193,7 +198,10 @@ class MaintenanceCostExportController extends Controller
     public function pdf(Request $request, MaintenanceCostService $costs, PdfService $pdf, AuditEventRecorder $audit): SymfonyResponse
     {
         [$ids, $from, $to] = $this->scope($request);
-        $report = $costs->report($ids, $from, $to);
+        // ⚠️ THE SAME DEFECT, FOUND BY SWEEPING THE CALLERS RATHER THAN FROM THE REGISTER (§N.27.1). The
+        // register named the CSV; the PDF prints "Total spend" in its header AND a reconciling Total row at
+        // the foot of the same capped table, so it disagreed with itself above 60 tickets.
+        $report = $costs->report($ids, $from, $to, null);
         $audit->record('maintenance.costs_exported', null, null, ['format' => 'pdf', 'orders' => $report['orders_closed']]);
 
         return $pdf->download('pdfs.maintenance-costs', ['report' => $report], 'Vyrobel-maintenance-costs.pdf');
@@ -208,7 +216,9 @@ class MaintenanceCostExportController extends Controller
         }
 
         [$ids, $from, $to] = $this->scope($request);
-        $report = $costs->report($ids, $from, $to);
+        // ⚠️ AND THIS ONE IS SENT. It renders the same PDF template, so it carried the same truncated detail
+        // under the same complete total — into an inbox, where it cannot be corrected after the fact.
+        $report = $costs->report($ids, $from, $to, null);
         $bytes = $pdf->raw('pdfs.maintenance-costs', ['report' => $report]);
         Mail::to($email)->send(new MaintenanceCostReportMail($bytes));
 

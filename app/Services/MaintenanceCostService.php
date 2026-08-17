@@ -33,7 +33,7 @@ class MaintenanceCostService
     public const BILLABLE_PREVIEW = 60;
 
     /**
-     * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, date_iso: ?string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
+     * @return array{currency: string, total_minor: int, labor_minor: int, parts_minor: int, billable_total: int, orders_closed: int, avg_minor: ?int, parts_on_order: int, owner_units_minor: int, operator_units_minor: int, by_category: list<array{category: string, total_minor: int, count: int}>, top_units: list<array{code: string, name: string, total_minor: int, count: int}>, by_month: list<array{month: string, total_minor: int, count: int}>, billable: list<array{id: string, date: string, date_iso: ?string, title: string, unit: string, category: string, labor_minor: int, parts_minor: int, total_minor: int}>}
      */
     /** @var list<string> the property read-set for this report — set by report(), read by every helper. */
     private array $propertyIds = [];
@@ -61,6 +61,10 @@ class MaintenanceCostService
         $this->billableLimit = $billableLimit;
 
         $ordersClosed = $this->resolved()->count();
+        // ⚠️ THE TRUE LINE-ITEM COUNT, DELIBERATELY COMPUTED WITHOUT THE PREVIEW CAP. A surface that shows a
+        // capped detail under a complete total needs this to say so honestly ("60 of N"); computing it from
+        // count($billable) would return 60 and re-tell the same lie in a quieter voice.
+        $billableTotal = (int) $this->resolved()->whereNotNull('cost_minor')->count();
         $totalMinor = (int) $this->resolved()->sum('cost_minor');
 
         // #89 — the REAL labor/parts split. A legacy ticket (resolved before the split existed) has null
@@ -73,6 +77,7 @@ class MaintenanceCostService
             'total_minor' => $totalMinor,
             'labor_minor' => $laborMinor,
             'parts_minor' => $partsMinor,
+            'billable_total' => $billableTotal,
             'orders_closed' => $ordersClosed,
             'avg_minor' => $ordersClosed > 0 ? intdiv($totalMinor, $ordersClosed) : null,
             // Real count of active tickets waiting on a part (the "Parts on order" KPI). A part on order has no

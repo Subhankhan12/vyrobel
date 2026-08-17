@@ -95,6 +95,14 @@
                                 </tbody>
                             </table>
                         </div>
+                        {{-- ⚠️ THE PREVIEW SAYS IT IS A PREVIEW. This page legitimately caps its detail at 60 rows
+                             — a screen should not render thousands — but the Total row above sums EVERY resolved
+                             ticket in the period, so above 60 the two silently disagreed and a reader summing the
+                             rows found a discrepancy that looked like a bug. The downloads were made complete
+                             instead; a page cannot be, so it states the gap rather than hiding it. --}}
+                        @if (($report['billable_total'] ?? 0) > count($report['billable']))
+                            <div class="vy-recon" style="padding: 12px 16px;">Showing the most recent {{ count($report['billable']) }} of {{ $report['billable_total'] }} line items — the Total row above reflects all {{ $report['billable_total'] }}. Export the CSV or workbook for the complete detail.</div>
+                        @endif
                         <div class="vy-recon" style="padding: 12px 16px;">Labour + parts reconcile to the total; owner-billed work orders match the amount charged on the owner statement.</div>
                     </div>
                 </div>
