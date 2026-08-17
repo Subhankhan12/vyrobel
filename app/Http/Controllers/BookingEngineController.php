@@ -18,9 +18,11 @@ use App\Payments\Stripe\StripeIdempotency;
 use App\Services\BookingEngineService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
+use App\Services\UnitAvailabilityService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
+use App\Support\Pricing\NightlyRate;
 use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
@@ -334,9 +336,29 @@ class BookingEngineController extends Controller
             'net_display' => $this->money(max(0, $grandMinor - $applyMinor), $currency),
         ] : null;
 
+        // D18-5 phase 3 — the units the guest may actually choose. ⚠️ SHOWN = ENFORCED: this is the SAME
+        // read `reserve()` re-validates against and the same one the operator path uses, so the page can
+        // never offer a unit the lock would refuse. Each carries its RESOLVED price through the ONE resolver
+        // (override → type), so what is offered is what is quoted is what is charged.
+        $unitChoices = [];
+        if ($offer !== null && $checkIn !== null && $checkOut !== null) {
+            $planId = (string) ($offer['rate_plan_id'] ?? '');
+            foreach (app(UnitAvailabilityService::class)->freeUnitsForRoomType((string) $property->getKey(), $roomTypeId, $checkIn, $checkOut) as $u) {
+                $stay = $planId !== '' ? NightlyRate::stayTotalForUnit($planId, (string) $u['id'], $checkIn, $checkOut) : null;
+                $unitChoices[] = [
+                    'id' => (string) $u['id'],
+                    'label' => (string) ($u['name'] !== '' ? $u['name'] : $u['code']),
+                    // ⚠️ NULL means "no price of its own" — the room-type rate already shown applies. We do
+                    // NOT restate it as a different number, and certainly not as €0.
+                    'price' => $stay !== null ? $this->money($stay, $currency) : null,
+                ];
+            }
+        }
+
         return view('booking.checkout', [
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'offer' => $offer,
+            'unitChoices' => $unitChoices,
             'wallet' => $wallet,
             'freeCancel' => $freeCancel,
             'search' => [
@@ -374,10 +396,28 @@ class BookingEngineController extends Controller
             'email' => ['required', 'email'],
             // The guest's REAL payment choice (never decorative): pay now by card, or settle on arrival.
             'payment_option' => ['sometimes', 'string', 'in:card,on_arrival'],
+            // D18-5 phase 3 — the SPECIFIC unit the guest chose, when they chose one.
+            'unit_id' => ['sometimes', 'nullable', 'string'],
         ]);
 
         $adults = (int) ($validated['adults'] ?? 2);
         $children = (int) ($validated['children'] ?? 0);
+
+        // ⚠️ SHOWN = ENFORCED, AND IT IS REUSE, NOT A NEW RULE. The submitted unit is re-checked against the
+        // SAME read the operator path validates against and the same set the page offered; anything that is
+        // not genuinely free for these dates is DROPPED rather than trusted, and the booking falls back to
+        // type-level. So a stale tab or a hand-edited form can never pick a unit the lock would refuse — and
+        // the lock remains the real guarantee, untouched.
+        $chosenUnitId = null;
+        $submitted = $validated['unit_id'] ?? null;
+        if (is_string($submitted) && $submitted !== '') {
+            $free = app(UnitAvailabilityService::class)->freeUnitsForRoomType(
+                (string) $property->getKey(), (string) $validated['room_type_id'],
+                (string) $validated['check_in'], (string) $validated['check_out'],
+            );
+            $freeIds = array_map(fn (array $u): string => (string) $u['id'], $free);
+            $chosenUnitId = in_array($submitted, $freeIds, true) ? $submitted : null;
+        }
 
         // Advisory hold (reserves NO inventory, has an expiry) — a price/availability snapshot only.
         $quote = $this->engine->quote(
@@ -389,6 +429,8 @@ class BookingEngineController extends Controller
             $adults,
             $children,
             $validated['email'],
+            null,
+            $chosenUnitId,
         );
 
         $guestData = [

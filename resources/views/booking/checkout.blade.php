@@ -118,6 +118,20 @@
             @csrf
             <input type="hidden" name="room_type_id" value="{{ $offer['room_type_id'] }}">
             <input type="hidden" name="rate_plan_id" value="{{ $offer['rate_plan_id'] }}">
+            {{-- D18-5 — pick a specific unit. ⚠️ Every option here is genuinely free for these dates (the same
+                 read the booking re-validates against), so a choice can never be refused at the lock. Leaving
+                 it on "Any" books exactly as this page always did. --}}
+            @if (count($unitChoices ?? []) > 1)
+                <label class="vy-field" style="display:block;margin:0 0 12px;">
+                    <span class="vy-field-label">Choose your {{ $property['type'] === 'hotel' ? 'room' : 'unit' }}</span>
+                    <select name="unit_id" class="vy-input">
+                        <option value="">Any available — {{ $offer['total'] }}</option>
+                        @foreach ($unitChoices as $vyUnit)
+                            <option value="{{ $vyUnit['id'] }}">{{ $vyUnit['label'] }}@if ($vyUnit['price']) — {{ $vyUnit['price'] }}@endif</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
             <input type="hidden" name="check_in" value="{{ $search['check_in'] }}">
             <input type="hidden" name="check_out" value="{{ $search['check_out'] }}">
             <input type="hidden" name="adults" value="{{ $search['adults'] }}">

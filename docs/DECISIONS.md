@@ -12592,3 +12592,66 @@ too**, so "exit 0" does not mean "ignored". Reading the exit code alone said the
 when it was in fact included; `git status --porcelain -uall` is what settled it.
 
 **Subsumes item 30.** PHPStan/Pint untouched (no code changed).
+
+---
+
+## 2026-08-17 — D18-5 phase 3 CLOSED: the storefront charges the chosen unit — proven control-first
+
+⚠️⚠️ **STEP ZERO PAID FOR ITSELF IMMEDIATELY: IT CORRECTED THE CANON BEFORE A LINE OF UNIT CODE WAS WRITTEN.**
+Both this brief and **my own note on `5329211`** recorded the storefront as TWO posts — `/checkout` mints the
+quote, `/book` reserves and charges. **It is ONE.** `POST book/{property}/checkout` (`booking.reserve`) calls
+`quote()` AND `book()` in the same request; the folio exists when it returns. `booking.book` is a JSON API
+returning `JsonResponse` that **no view posts to** — grep `resources/views` and nothing comes back. That wrong
+model is exactly why the reverted attempt could not book: it posted to `/book`, which demands a
+`payment_token` the storefront never sends. **A control-first test found in one run what a whole pass of
+reasoning had got backwards.**
+
+**STEP ZERO, green against UNCHANGED application code:** a type-only booking through the real route writes a
+folio of `2 × €120.00`. It stays in the suite as the zero-movement assertion.
+
+**THE WIRING** (seams re-verified exactly as `5329211` found them): the chosen `unit_id` rides the quote's
+`requested` JSON line (**no migration** — an older line simply lacks the key); `reserve()` re-validates it
+against `freeUnitsForRoomType()` and **drops** anything not genuinely free (**shown = enforced**, the same
+read the operator path and the lock use); it flows into `createBooking()` (**the core is free — untouched**);
+and both `quote()`'s total and `book()`'s `price_minor` resolve through `NightlyRate::stayTotalForUnit(…) ??
+priceOver(…)` — **zero movement by construction**, because the helper returns NULL without an override and the
+fallback is the identical call this code always made.
+
+⚠️⚠️ **A MUTATION STAYED GREEN, AND CHASING IT DOWN CHANGED WHAT THE GUARD ASSERTS.** Removing the resolver
+from `book()`'s `price_minor` left all four tests passing. The brief anticipated this and demanded the
+distinction — redundant guard, or unwired path? **Reading the source settled it:** `book()` posts the room
+charge as `postCharge($folio, 'room', …, $total)` where `$total` **is the quote's own total**, so the folio
+*cannot* disagree with the shown price — that guarantee is structural, and M2 (removing the **quote's** wrap)
+reds correctly. But `price_minor` is **not inert**: `AssignmentService` writes it to
+`reservation_units.price_minor`. So an unwrapped `book()` would have stored the **room-type** rate against a
+unit the guest paid its **own** rate for — a quiet second version of the truth. It was an **unwired path for
+that column**, and the guard simply had no assertion on it. Added; M1 now reds.
+
+⚠️ **AND THE BROWSER SURFACED A PRODUCT FACT NO TEST HAD:** the storefront books the **Weekly** plan, not the
+room type's default. An override is keyed `(rate_plan_id, unit_id, date)`, so **pricing a unit on one plan
+does not price it on the others** — the picker correctly showed no unit price until the override was moved to
+the plan actually being sold. Inherent to the phase-1 model; recorded because every prior test used a
+single-plan fixture and could never have shown it.
+
+⚠️ **A REGRESSION I CAUSED AND FIXED:** the new test file initially declared no `RefreshDatabase`, so it
+committed its orgs and properties — and `TenantIsolationTest` counts properties across all tenants under a
+super-admin context, so it went red. The storefront needs no genuine commit (unlike `BookingImportTest`, whose
+webhook enqueues afterCommit), so a transaction is correct here. Suite back to baseline.
+
+**MONEY, PROVEN IN A REAL BROWSER** (demo storefront, unit 102 given its own €275.00/night):
+the picker offered **"102 — €550.00"** beside "Any available — €170.00" and an unpriced 103; booking it gave
+
+    folio_items.amount_minor (room) = 55000
+    reservation_units.price_minor   = 55000
+    booking_quotes.total_minor      = 55000     ← charged = shown = resolved, to the cent
+
+**FOUR MUTATIONS, EACH VERIFIED TO LAND:** the charge path dropping the resolver reds (after the guard gap was
+closed) · the quote dropping it reds · the unit not riding the line into the core reds three tests · removing
+`shown = enforced` reds the stale-tab test.
+
+**CORE UNTOUCHED:** `AssignmentService` and `ConcurrentBookingTest` are absent from the diff; the concurrency
+test re-runs green (1/1, 7 assertions). `rate_calendar` hashes **`2bbdafccc3b5c1ee43f89fe313a3f02d`, 929 rows,
+10,920,000 minor** — unchanged. The demo ends **money-as-seeded** (0 overrides, the browser booking and its
+folio/quote/guest removed, 0 orphans).
+
+Suite **2395 / 2398**, 15,441 assertions, the documented 1 failed + 2 skipped; PHPStan L5 (0); Pint clean.

@@ -17,6 +17,7 @@ use App\Models\RoomType;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\PropertyCharges;
 use App\Support\Money\Money;
+use App\Support\Pricing\NightlyRate;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
 
@@ -86,12 +87,25 @@ class BookingEngineService
      * It does NOT touch availability.sold and reserves NO inventory — two holds on the last unit
      * both succeed; only one book() will seat.
      */
-    public function quote(Property $property, string $roomTypeId, string $ratePlanId, string $checkIn, string $checkOut, int $adults, int $children, ?string $email = null, ?string $sessionToken = null): BookingQuote
+    /**
+     * D18-5 phase 3 — `$unitId` is the SPECIFIC unit the guest chose, or NULL for a type-level quote.
+     *
+     * ⚠️ NO SCHEMA CHANGE: `requested` is already a JSON array of lines, so the unit rides INSIDE a line and
+     * a quote minted before this existed simply lacks the key — which is exactly the backward-compatibility a
+     * nullable column would have bought, at no cost.
+     */
+    public function quote(Property $property, string $roomTypeId, string $ratePlanId, string $checkIn, string $checkOut, int $adults, int $children, ?string $email = null, ?string $sessionToken = null, ?string $unitId = null): BookingQuote
     {
         $roomType = RoomType::query()->where('property_id', $property->getKey())->findOrFail($roomTypeId);
         $ratePlan = RatePlan::query()->where('room_type_id', $roomType->getKey())->findOrFail($ratePlanId);
 
-        $totalMinor = $this->priceOver($ratePlan->getKey(), $checkIn, $checkOut);
+        // ⚠️ THE ONE RESOLVER, AND ZERO MOVEMENT BY CONSTRUCTION (§N.8f / D4-1). stayTotalForUnit() returns
+        // NULL when the chosen unit carries no override anywhere in the stay — and NULL for a type-level
+        // quote — so the fallback is the identical priceOver() call this line has always made. A stay that
+        // nobody has priced individually is therefore quoted byte-for-byte as it is today.
+        $totalMinor = ($unitId !== null
+            ? NightlyRate::stayTotalForUnit((string) $ratePlan->getKey(), $unitId, $checkIn, $checkOut)
+            : null) ?? $this->priceOver($ratePlan->getKey(), $checkIn, $checkOut);
         if ($totalMinor === null) {
             throw new \InvalidArgumentException('No published rate for the selected dates.');
         }
@@ -110,6 +124,9 @@ class BookingEngineService
             'requested' => [[
                 'room_type_id' => $roomType->getKey(),
                 'rate_plan_id' => $ratePlan->getKey(),
+                // ⚠️ The chosen unit rides the line — no migration. NULL means "any unit of the type", which
+                // is what every quote meant before this feature existed.
+                'unit_id' => $unitId,
                 'qty' => 1,
             ]],
             'currency' => $currency,
@@ -160,14 +177,25 @@ class BookingEngineService
         $requested = $quote->requested;
         $lines = [];
         foreach ($requested as $line) {
+            // ⚠️ A LINE FROM AN OLDER QUOTE HAS NO `unit_id` KEY — it resolves type-level, exactly as before.
+            $lineUnitId = isset($line['unit_id']) && is_string($line['unit_id']) ? $line['unit_id'] : null;
+
             $lines[] = [
                 'room_type_id' => $line['room_type_id'],
                 'rate_plan_id' => $line['rate_plan_id'],
+                // ⚠️ THE CORE IS FREE: createBooking() already accepts an optional per-line unit_id, and
+                // occupy()/assertUnitFree() already guard it under the same lock. Nothing about the
+                // concurrency guarantee changes — this only tells it WHICH unit was chosen.
+                'unit_id' => $lineUnitId,
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
                 'adults' => $quote->adults,
                 'children' => $quote->children,
-                'price_minor' => $this->priceOver((string) $line['rate_plan_id'], $checkIn, $checkOut) ?? 0,
+                // ⚠️ CHARGED = SHOWN = RESOLVED — the same wrap the quote used, so the folio cannot disagree
+                // with the price the guest was shown. NULL (no override) falls through to today's path.
+                'price_minor' => (($lineUnitId !== null
+                    ? NightlyRate::stayTotalForUnit((string) $line['rate_plan_id'], $lineUnitId, $checkIn, $checkOut)
+                    : null) ?? $this->priceOver((string) $line['rate_plan_id'], $checkIn, $checkOut)) ?? 0,
                 'currency' => $quote->currency,
             ];
         }
