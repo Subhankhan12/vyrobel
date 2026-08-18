@@ -107,7 +107,7 @@
         <div class="vy-book-panel vy-fade">
             <div class="vy-card">
                 @if ($offer !== null)
-                    <div class="vy-book-price">{{ $offer['per_night'] }} <span class="vy-price-unit">/ night</span></div>
+                    <div class="vy-book-price">{{ $offer['per_night'] }} <span class="vy-price-unit">/ night{{ ($offer['nightly_note'] ?? '') !== '' ? ' · '.$offer['nightly_note'] : '' }}</span></div>
                     <div class="vy-book-total">{{ $offer['grand_total'] }} total · {{ $offer['nights'] }} {{ \Illuminate\Support\Str::plural('night', $offer['nights']) }}</div>
                     @if ($offer['fees_note'] !== '')
                         <div class="vy-book-total" style="color:var(--vy-faint);margin-top:0;">{{ $offer['fees_note'] }}</div>

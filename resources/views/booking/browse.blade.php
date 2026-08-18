@@ -246,7 +246,7 @@
                         </div>
                         <div class="vy2-foot">
                             <div>
-                                <span class="vy2-price-night">{{ $room['per_night'] }}</span> <span class="vy2-price-sub">/ night</span>
+                                <span class="vy2-price-night">{{ $room['per_night'] }}</span> <span class="vy2-price-sub">/ night{{ ($room['nightly_note'] ?? '') !== '' ? ' · '.$room['nightly_note'] : '' }}</span>
                                 <div class="vy2-price-sub" style="margin-top:2px;">{{ $room['grand_total'] }} total{{ $room['fees_note'] !== '' ? ' · '.$room['fees_note'] : '' }}</div>
                             </div>
                             <a class="vy2-reserve" href="{{ route('booking.room', [$property['slug'], $room['room_type_id']]) }}?{{ $q }}">Reserve</a>

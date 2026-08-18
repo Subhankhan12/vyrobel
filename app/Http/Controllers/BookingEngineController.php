@@ -98,7 +98,7 @@ class BookingEngineController extends Controller
                 $card['bedrooms'] = $rt?->bedrooms !== null ? (int) $rt->bedrooms : null;
                 $card['features'] = $this->roomFeatures($rt);
                 $card['amenities'] = $rt !== null ? $rt->amenities->pluck('name')->map('strval')->all() : [];
-                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
+                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note'], $card['nightly_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
                 $rooms[] = $card;
             }
             $rooms = $this->applyRefine($rooms, $bedrooms, $amenityFilter, $maxPrice, $sort);
@@ -131,12 +131,12 @@ class BookingEngineController extends Controller
     /**
      * The RECONCILING grand total for one offer = room + the property's real non-optional fees + charged
      * taxes, via the SAME {@see StayEstimator} the operator + the folio use (#17 to the cent). Also returns a
-     * short "incl. €X cleaning" note (the non-optional fee summary), or '' when the property has no such fee.
+     * short "incl. …" enumeration of what the total folds in, and the nightly's basis cue (F3).
      *
      * @param  Collection<int, Tax>  $taxes
      * @param  Collection<int, Fee>  $fees
      * @param  array<string, mixed>  $offer
-     * @return array{0: string, 1: int, 2: string}
+     * @return array{0: string, 1: int, 2: string, 3: string}
      */
     private function grandTotal(Collection $taxes, Collection $fees, array $offer, int $persons): array
     {
@@ -170,7 +170,30 @@ class BookingEngineController extends Controller
         }
         $note = $parts === [] ? '' : 'incl. '.implode(' · ', $parts);
 
-        return [$this->money($totalMinor, $currency), $totalMinor, $note];
+        // ⚠️ THE NIGHTLY'S BASIS, SAID OUT LOUD (F3 — the founder's ratification, guest fix pass 2).
+        //
+        // The deep-parity audit found the room nightly (VAT-EXCLUSIVE) sitting beside the add-ons
+        // (VAT-INCLUSIVE, captioned "Prices include VAT") with no cue that the two figures are on different
+        // bases. Pass 1 established that CONVERGING them is a reprice or a 929-row rate migration, so the
+        // bases were ratified and this cue closes the ambiguity instead — the per-night figure says it is
+        // shown before tax, while `$note` above says what the TOTAL already contains.
+        //
+        // ⚠️ GATED ON THE TAX BEING GENUINELY CHARGED, not merely configured. {@see StayEstimator::taxApplies}
+        // is false for an INCLUSIVE percentage tax — for such a property the nightly really is gross and this
+        // cue would be a lie. Reusing that predicate (rather than writing the rule a third time) is also why
+        // this cannot drift from what the total actually charges.
+        //
+        // ⚠️ THE TAX'S OWN NAME, never a hardcoded "VAT" — a property may levy IVA, MwSt or a sales tax, and
+        // the enumeration above already names them from the same source.
+        $nightlyNote = '';
+        foreach ($taxes as $tax) {
+            if ((string) $tax->mode === 'percentage' && StayEstimator::taxApplies($tax, $currency)) {
+                $nightlyNote = 'excl. '.(string) $tax->name;
+                break;
+            }
+        }
+
+        return [$this->money($totalMinor, $currency), $totalMinor, $note, $nightlyNote];
     }
 
     /**
@@ -755,7 +778,7 @@ class BookingEngineController extends Controller
                 $taxes = Tax::query()->where('property_id', $property->getKey())->get();
                 $fees = Fee::query()->where('property_id', $property->getKey())->get();
                 $persons = max(1, $adults + $children);
-                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
+                [$card['grand_total'], $card['grand_total_minor'], $card['fees_note'], $card['nightly_note']] = $this->grandTotal($taxes, $fees, $offer, $persons);
                 $card['breakdown'] = $this->breakdownLines($taxes, $fees, $offer, $persons);   // room + fees + taxes, reconciling (#17)
 
                 return $card;

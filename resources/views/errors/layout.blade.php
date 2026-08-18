@@ -77,7 +77,9 @@
         <h1>{{ $title }}</h1>
         <p>{{ $message }}</p>
         <a class="btn" href="{{ $homeUrl }}">{{ $homeLabel }}</a>
-        <p class="foot">If this keeps happening, contact your Vyrobel administrator.</p>
+        {{-- ⚠️ REALM-BRANCHED (A1). Renders on all six error views, so it read "contact your Vyrobel
+             administrator" to guests and owners, who have none. Same derivation as the back-link above. --}}
+        <p class="foot">{{ \App\Support\ErrorRealm::supportLine($realm) }}</p>
     </main>
 </body>
 </html>

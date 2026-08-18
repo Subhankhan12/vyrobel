@@ -13139,3 +13139,48 @@ OP-FIX-1 affordance *misleading UI* rather than a bypass.
 
 **Known item, not chased:** `OperatorPortfolioTest`'s *"add → select → book"* order-flake — passes in
 isolation and on re-run; it exercises property/booking isolation these fixes do not touch.
+
+---
+
+## 2026-08-18 — F3 RATIFIED: rooms stay VAT-EXCLUSIVE, add-ons stay VAT-INCLUSIVE, and a CUE closes the gap
+
+**The finding.** The guest deep-parity audit filed F3: on one journey a guest reads **`€85.00 / night`**
+(pre-tax) beside **`€65.00 each way` → €79.95** (post-tax, captioned *"Prices include VAT"*) with **no cue that
+the two figures are on different bases**. Each surface was individually correct, labelled, and reconciling.
+
+**⚠️ THE FIRST FIX ATTEMPT WAS STOPPED, AND THAT IS THE LOAD-BEARING PART.** Making the room display inclusive
+looked like a formatting change. It is not — `taxes.inclusive` is a **real, first-class mode**:
+`StayEstimator` treats an inclusive percentage tax as **NOT CHARGED** (informational only) and shows the
+**extracted** portion `base·rate/(100+rate)`. So:
+
+| Route | Total | Owner ex-VAT revenue |
+|---|---|---|
+| today (`inclusive = false`) | €373.65 | €255.00 |
+| flip `taxes.inclusive = true` | **€315.00** (−€58.65) | **€207.32** (−€47.68) |
+| gross the *display* only, VAT still charged | €373.65 ✓ | €255.00 ✓ but the label is **FALSE** |
+
+The first is a **reprice**. The second says "VAT included" on a figure the folio charges VAT *on top of* — and
+`StayEstimator` already uses "included" to mean the other thing, so one word would carry two meanings across
+surfaces, and the tax documents (which must itemise VAT) would disagree with the storefront about the nightly
+rate — **F3's own complaint, one surface over**.
+
+**⚠️ THE RULING — the two bases are RATIFIED, not a defect.** Rooms are VAT-exclusive and add-ons VAT-inclusive
+because **their taxes are configured that way**; both reconcile to the folio (#17). The ambiguity is closed by
+a **CUE**, not by converging them: the room nightly now reads **`€85.00 / night · excl. VAT`**, parallel to the
+add-ons' *"Prices include VAT"*, while the total keeps F2's enumeration (`incl. €58.65 VAT · €15.00 City tax ·
+€45.00 Cleaning fee`). **No number moved. The total is byte-identical at €373.65.**
+
+**The cue is gated on the tax being genuinely charged** (`StayEstimator::taxApplies`) — a property configured
+inclusive shows **no** cue, because for it the nightly really is gross. It names the property's **own** tax, so
+an IVA/MwSt property is described correctly.
+
+**⛔ THE DEFERRED PATH, recorded so it is not rediscovered as a bug.** Making room display inclusive **while
+holding the total** requires **re-authoring rates to gross** (gross `rate_calendar` rows + `taxes.inclusive =
+true`) across **929 materialised rows** through the certified `RateAndRestrictionService` — a **money-path
+migration**, not a display change. **Take it up ONLY if EU consumer-display compliance later requires
+tax-inclusive room display.** Not started.
+
+**Also this pass:** **A1 done** — the error-page footer (*"contact your Vyrobel administrator"*, shared layout,
+all six views) is realm-branched through the same `App\Support\ErrorRealm` derivation the back-link and the
+F5 403 body read. **A2 still open** — `StayEstimator::taxApplies()` duplicates `estimate()`'s inline
+`$inclusive` (same rule, written twice; they agree today). It belongs with the money-path pass.

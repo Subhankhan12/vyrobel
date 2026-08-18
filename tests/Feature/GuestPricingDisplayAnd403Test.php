@@ -134,3 +134,67 @@ it('derives the back-link and the 403 body from one realm source so they cannot 
     // derivation moved into one class instead of being matched twice.
     expect(ErrorRealm::forbiddenMessage('guest'))->not->toBe(ErrorRealm::forbiddenMessage('app'));
 });
+
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+// GUEST FIX PASS 2 — F3 ratified (the two bases stand; a CUE removes the ambiguity) + A1 (the error FOOTER
+// is realm-branched). Copy only: test 1 above is the money guard that pins the total across both passes.
+// ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+// ── 6. ⚠️⚠️ F3 CUE — the nightly says it is shown BEFORE tax (reds if the cue is removed) ─────────────────
+it('marks the room nightly as excluding the charged percentage tax, naming that tax', function () {
+    $s = gpdProperty();
+
+    $html = test()->get("/book/{$s['property']->slug}?check_in=2026-09-01&check_out=2026-09-04&adults=2")
+        ->assertOk()->getContent();
+
+    // ⚠️ THE PREMISE: a priced card really rendered, so an absent cue below would be a real absence.
+    expect($html)->toContain('/ night');
+
+    // ⚠️ THE CUE, NAMING THE REAL TAX — never a hardcoded "VAT", because a property may levy IVA or MwSt.
+    expect($html)->toContain('excl. VAT');
+
+    // ⚠️ AND IT IS ON THE NIGHTLY, NOT THE TOTAL. The total genuinely INCLUDES the tax — F2's enumeration
+    // says so — and marking it "excl." would be false. This is the assertion that catches that mistake.
+    //
+    // ⚠️ €82.80 IS THIS FIXTURE'S OWN VAT (3 nights × €120.00 × 23%), not the demo property's €58.65 — my
+    // first version asserted the figure from the audit's worked example, which is a DIFFERENT property. A
+    // real figure from the wrong fixture fails exactly like a broken feature.
+    expect($html)->toContain('incl. €82.80 VAT')
+        ->and($html)->not->toContain('total · excl.')
+        ->and($html)->not->toContain('total excl.');
+});
+
+// ── 7. ⚠️⚠️ THE CUE IS GATED ON THE TAX BEING CHARGED — an inclusive property must NOT see it ─────────────
+it('shows no ex-tax cue when the property already prices inclusively', function () {
+    $s = gpdProperty();
+
+    // ⚠️ FLIP THE PROPERTY TO INCLUSIVE VAT — now the nightly genuinely IS gross, and "excl. VAT" would be a
+    // lie. This is the case the cue must stay silent for, and the reason it is gated on taxApplies().
+    Tax::query()->where('property_id', $s['property']->id)->where('name', 'VAT')->update(['inclusive' => true]);
+
+    $html = test()->get("/book/{$s['property']->slug}?check_in=2026-09-01&check_out=2026-09-04&adults=2")
+        ->assertOk()->getContent();
+
+    // ⚠️ THE PREMISE: the card still rendered a priced offer — this is not passing on an empty page.
+    expect($html)->toContain('/ night');
+
+    expect($html)->not->toContain('excl. VAT');
+});
+
+// ── 8. ⚠️⚠️ A1 — the error FOOTER is realm-branched (reds before this pass) ───────────────────────────────
+it('never tells a guest to contact a Vyrobel administrator they do not have', function () {
+    $guest = ErrorRealm::supportLine('guest');
+
+    // ⚠️ BEFORE THIS PASS the footer read the operator line in EVERY realm, on all six error views.
+    expect($guest)->not->toContain('Vyrobel administrator')
+        // …and it points somewhere a guest can actually go.
+        ->and($guest)->toContain('booking confirmation');
+
+    expect(ErrorRealm::supportLine('owner'))->toContain('primary owner')
+        ->and(ErrorRealm::supportLine('owner'))->not->toContain('Vyrobel administrator');
+
+    // ⚠️ THE OPERATOR REALMS ARE UNCHANGED — they genuinely have a Vyrobel administrator.
+    expect(ErrorRealm::supportLine('app'))->toBe('If this keeps happening, contact your Vyrobel administrator.');
+    expect(ErrorRealm::supportLine('admin'))->toBe(ErrorRealm::supportLine('app'));
+    expect(ErrorRealm::supportLine('public'))->toBe(ErrorRealm::supportLine('app'));
+});

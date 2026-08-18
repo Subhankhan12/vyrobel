@@ -69,4 +69,24 @@ final class ErrorRealm
             default => 'Your role doesn’t include this area. If you need it, ask an administrator on your team to grant the permission.',
         };
     }
+
+    /**
+     * The "still stuck?" line in the error-page footer.
+     *
+     * ⚠️ THIS FOOTER RENDERS ON ALL SIX ERROR VIEWS, so it was telling every reader in every realm to
+     * "contact your Vyrobel administrator" (A1, found by RENDERING the realm-branched 403 — the defect sat
+     * six lines below the one being fixed). A guest has no Vyrobel administrator and no way to act on that;
+     * an owner's counterpart is their primary owner. Only the operator realms genuinely have one.
+     *
+     * ⚠️ IT READS THE SAME DERIVATION as the back-link and the 403 body — a third `match` on the path here
+     * would be exactly the drift {@see current()} was extracted to prevent.
+     */
+    public static function supportLine(?string $realm = null): string
+    {
+        return match ($realm ?? self::current()) {
+            'guest' => 'If this keeps happening, reply to your booking confirmation email and the property will help.',
+            'owner' => 'If this keeps happening, contact the primary owner on your account, or your property manager.',
+            default => 'If this keeps happening, contact your Vyrobel administrator.',
+        };
+    }
 }

@@ -13,6 +13,16 @@
 
 > **2026-08-01 — GUEST PORTAL: Booking storefront · Arrival Info + PDF · Add-ons · Account exact-match (Guest Portal, invariants #110–114; `docs/GUEST-PORTAL-AUDIT.md`, `DECISIONS.md`).** The five guest wireframes rebuilt exact-match on the peach-glass design + REAL data, BUILDING what was missing. **Booking** (`/book/{property}`) = the storefront rebuilt (frosted search pill, real bedrooms/amenities/max-price/sort filters, real-rating cards #76); grand total reconciles to the folio incl. the real cleaning fee (#17); Reserve-&-pay = certified `AssignmentService` + TEST-MODE hosted Stripe (D1). **Arrival Info** re-skinned + a new printable **PDF** (same window-gated `ArrivalPack` — a pre-window PDF omits the door code, #33). **Add-ons** = new page on the real `AddOn` catalogue, VAT-inclusive, operator-confirmed request → folio on confirm (#17, D4). **Account** = hero + 5-KPI + 3-col bento (real credit/stays/waitlists/consent), a REAL 14-day scheduled delete (D2), honest cards (no vault, D3) + honest SMS. **KIND-2 REFUSED (#39):** cross-property "Where" + map pins (no geo — single-property scope), the structured house-guide/checkout-steps/"Marco's local picks"/named-host+SLA+phone (only real `arrival_notes`), the wireframe's invented 6-extra catalogue (real = the property's AddOns), "····4242"/raw-PAN card entry (SAQ A/#28), the SMS send (no provider), the waitlist "#N in line". **KIND-3 (beyond boundary):** the storefront is single-property vs the wireframe's multi-property browse; the guest realm has no Alpine, so the peach-glass interactivity is pure CSS + progressive enhancement. All five browser-verified; 3 gated commits; suite green; PHPStan L5 (0); Pint clean.
 
+> **2026-08-18 — F3 RATIFIED (guest storefront VAT bases) + A1 (error-footer realm branch).** ⚠️ **Room rates
+> are VAT-EXCLUSIVE and add-ons VAT-INCLUSIVE — two legitimate CONFIGURED bases, NOT a formatting defect, and
+> NOT to be "fixed" by converging them.** Both reconcile to the folio (#17). The audit's F3 (two bases, no cue)
+> is closed by a **CUE**: the room nightly reads `€85.00 / night · excl. VAT`, parallel to the add-ons'
+> "Prices include VAT", while the total keeps the F2 enumeration. **No number moved — the total is
+> byte-identical (€373.65).** ⛔ **DEFERRED money-path decision:** making room display inclusive *while holding
+> the total* means re-authoring rates to gross + `taxes.inclusive = true` across **929 materialised rows** via
+> `RateAndRestrictionService` — take it up ONLY if EU consumer-display compliance later requires it.
+> (`DECISIONS.md` 2026-08-18; `docs/audits/GUEST-FIX-PASS-2026-08-18.md`.)
+
 > **2026-08-01 — GUEST EMAILS: Booking Confirmation + Cancellation + Email Previews exact-match (task #109;
 > `docs/GUEST-EMAILS-CONFIRMATION-CANCELLATION-PREVIEWS-AUDIT.md`)** — the two guest Mailables (existed but minimal)
 > rebuilt exact-match, email-safe, + threaded through the #86 editor (catalog 5→7, defaults byte-faithful so the
