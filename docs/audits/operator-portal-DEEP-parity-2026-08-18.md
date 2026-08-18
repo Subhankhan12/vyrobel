@@ -2729,6 +2729,119 @@ mutations surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
 
+# RUN 33 — THE SWEEP I RECOMMENDED, RUN AS DETECTION · ⚠️ FINDINGS 6 + 7, BOTH INVISIBLE TO THE PREVIOUS 32 RUNS
+
+Run 29 concluded that Findings 2–5 were *"one pass, not four patches"*, over a set that is **mechanically
+enumerable**: controls whose target route carries `Authorize:`. Run 32 then said the derived role table says
+*"nothing about which CONTROLS render"* — ⚠️ **that was too pessimistic.** Every `@can` is in the source, and
+every route's permission is in `route:list`. The control layer IS enumerable without rendering.
+
+## The sweep
+
+For each operator view: the permission-gated **write routes** it points a form at, versus the permission
+guards present in that file. **20 of 25 views flagged.**
+
+⚠️ **20 is not 20 findings.** A `@can` absence in a *file* is a hypothesis with three innocent explanations,
+and I checked all three mechanically before reporting anything:
+
+| Explanation | Views |
+|---|---|
+| The **page's own route** carries the same permission — controls inside need no further gate | **10** |
+| The component computes a **flag** (`$canManage = auth()->user()?->can(...)`) — gated, just not via a literal `@can` | **7** |
+| Neither | **3** |
+
+⚠️ **Two of the three survivors are Findings 2 and 5** — `reservation-rack.blade.php` (the `/app/calendar`
+component, `reservations.create`) and `operator-email-editor.blade.php` (`properties.manage`) — **re-derived
+independently, from source, without opening a browser.** That is the sweep validating itself: a method that
+re-finds the known cases is trustworthy on the unknown one.
+
+## ⚠️⚠️ FINDING 6 — the units photo controls are gated on the WRONG permission
+
+`units-list.blade.php:83` guards the whole photo-management block with:
+
+    @if ($canManageRates ?? false)
+
+and `UnitsList.php:113` defines that as **`rates.manage`**. The four forms inside post to
+`room-types.photos.cover` · `.move` · `.destroy`, all of which require **`units.manage`**.
+
+⚠️ **Two different permissions.** This is not a missing gate — it is a gate on the wrong thing, and it fails
+**in both directions**:
+
+| Role | `rates.manage` | `units.manage` | Effect |
+|---|---|---|---|
+| Property Owner · Group Admin · Hotel Manager | yes | yes | consistent |
+| **Revenue Manager** | **yes** | **no** | ⚠️ **sees the photo controls; every POST 403s** |
+| Front Desk · Reservation Agent · Housekeeping · Maintenance · Accountant · Marketing · Guest Support | no | no | consistent |
+
+⚠️⚠️ **EXACTLY ONE ROLE IS AFFECTED, AND IT IS ONE THAT WAS NEVER RENDERED.** Property Owner and Hotel
+Manager hold both permissions; Accountant and Housekeeping hold neither. **The four tested roles were
+structurally incapable of revealing this** — every one of them sees a self-consistent page. Run 32's actor
+gap was not theoretical; this is the defect that was hiding in it.
+
+⚠️ And note the **over-hidden** direction is live too: any role granted `units.manage` without `rates.manage`
+**cannot see controls it is entitled to use**. No seeded role is in that state today, so it is latent — but
+it is one permission edit away, and it is the first over-hidden case in this audit.
+
+## ⚠️ FINDING 7 — `/app/unit-requests` shows Approve/Decline to roles that cannot use them
+
+    GET  /app/unit-requests                     can:units.view
+    POST /app/unit-requests/{r}/approve         can:units.manage
+    POST /app/unit-requests/{r}/decline         can:units.manage
+
+The view carries **no guard at all** (no `@can`, no component flag), so the buttons render for anyone who can
+reach the page. `units.view` is strictly broader than `units.manage`:
+
+| Sees Approve/Decline, POST 403s | Rendered in this audit? |
+|---|---|
+| Revenue Manager · Front Desk · Maintenance | ⚠️ no |
+| **Housekeeping** | ✅ **yes — and the audit still missed it** |
+
+## ⚠️⚠️ AND THAT MISS IS THE LESSON: DATA-DEPENDENT ≠ VERIFIED
+
+Run 22 examined this exact page and recorded:
+
+> `unit_requests` has **0 rows**, so no request card renders for ANY role …
+> **RECORDED AS UNTESTABLE-WITHOUT-DATA, not as pass or fail.**
+
+That was correct and honest — and **incomplete**. The rule I was applying is *"data-dependent ≠ missing"*: an
+empty state is data, not a gap. ⚠️ **The corollary I did not draw is that an empty state is also not a
+PASS.** With zero rows the buttons never render, so the **gate on them was never exercised** — the page
+looked identically well-behaved for all four roles precisely because it showed nothing to anyone.
+
+⚠️ **An empty table conceals a control-gating defect perfectly**, and a browser-only method cannot tell
+"correctly gated" from "nothing to gate". Source enumeration can — which is why this run found in minutes
+what 32 runs of rendering could not.
+
+## ⚠️ Status of both — recorded, NOT fixed, and enforcement unverified
+
+Both are **UI-gated-only observations**: the routes *say* `units.manage`, and confirming that a POST is
+actually rejected requires POSTing a gated action. **Server-enforcement unverified-without-mutation**, per
+the standing rule. Neither is fixed — report-only.
+
+## The findings ledger, now 7
+
+| # | Severity | Shape |
+|---|---|---|
+| **1** | ⚠️ highest | **25 of 54** GET `/app` routes carry no permission gate — owner money, folio money — reachable by **all 11** back-office roles |
+| **5** | high | Email editor: 3 write controls, page ungated, no `@can` anywhere — all 11 roles |
+| **6** | ⚠️ **new** | Units photo controls gated on **`rates.manage`**, routes need **`units.manage`** — bidirectional; hits **Revenue Manager**, a never-rendered role |
+| **7** | ⚠️ **new** | Unit-requests Approve/Decline ungated under a `units.view` page — 4 roles, incl. **Housekeeping**; hidden by an empty table |
+| **2** | medium | `/app/calendar` `New reservation` without `@can` |
+| **4** | low | Work-order `Add update` offered to roles that cannot add |
+| **3** | low | Schedule drag instruction shown to a role that cannot drag |
+
+⚠️ **Findings 2 · 4 · 5 · 6 · 7 are ONE sweep** — now with an exact, mechanically-derived worklist rather
+than a list of screens someone remembered. Finding 1 remains the separate, larger question.
+
+## Tally
+
+Pages diffed **52 of 52** + 2 data-states · **findings 7** · views swept for control-gate mismatch **25 of
+25** · candidates generated 20 → **innocent 17, real 3** (2 already known) · roles rendered 4 of 11 · roles
+derived 11 of 11 · inventory corrections 8 · auditor self-corrections 12 · mutations surfaced/exercised
+41 / **0** · **code changed 0**.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
 ✅ **The audit is COMPLETE — 0 pages remain.** The recipe below is kept for re-verification. Everything below cost this audit real runs to learn.
