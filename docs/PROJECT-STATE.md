@@ -6,6 +6,11 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
+> ⚠️ **NEW SESSION? START WITH `docs/SESSION-HANDOFF.md` (2026-08-18)** — the full master state, reconciled
+> against the repo. ⚠️ Its §0 records four drifts found during reconciliation, the load-bearing one being that
+> **the operator audit REPORTS were never merged to main** — they exist only on `audit/operator-deep-parity`
+> (`57ea036`), so that branch must not be pruned.
+
 # ⚠️ CANONICAL STATE — **ELEVEN CHAPTERS CLOSED** (§N.13–§N.27) · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions, exactly THREE wrong-not-absent defects (all fixed) → the remaining feature work is ADDITIVE · ⚠️ **NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH — the gates are the DEPLOYMENT SPRINT (zero deploy artifacts + the ONE crontab line the GDPR deletion depends on) and the FOUNDER's Stripe/VAT steps** · Wave 0 + Wave 1 complete; Wave 2 complete except `DO3-3` (next, money-adjacent — prove idempotency) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2185 / 2194**, 6 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own**, §N.17.7 — and ⚠️ **run it ALONE**) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
