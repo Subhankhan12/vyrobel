@@ -29,13 +29,13 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Pages browser-diffed | **9 of 32** (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* |
+> | Pages browser-diffed | **13 of 32** (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
 > | Mutations exercised | **0** — `book()` UNVERIFIED-WITHOUT-MUTATION |
 >
-> ⚠️ **23 pages REMAIN.** This is a resumable ledger, not a completed sweep — the perimeter (the part unique to
+> ⚠️ **19 pages REMAIN.** This is a resumable ledger, not a completed sweep — the perimeter (the part unique to
 > the guest surface) is finished; the per-page element diffs are not.
 
 ---
@@ -372,3 +372,108 @@ risk inverted** — the correct verdict is EXTRA, not "wireframe incomplete".
 mentions), `Directions` (2) and `Share` (54) appear in the register; the wallet's membership/referral absence
 is an explicit ratified refusal. **None of the five should be filed without reading its register row first** —
 which is precisely why they were left unfiled.
+
+---
+
+## 10 · BATCH 3 — the reserve-adjacent flow (4 pages) · ⚠️ AND THE HEADLINE FINDING
+
+### 10.1 · `/book/{property}/checkout` — the last screen before the money moves · wf 467 / live 573
+
+⚠️ **This page settles the pricing question the room card only half-answered.** It itemises everything:
+
+    Room · €85.00 × 3        €255.00
+    VAT · 23% · added         €58.65
+    City tax                  €15.00
+    Cleaning                  €45.00
+    Total                    €373.65
+
+| Wireframe | Live | Verdict |
+|---|---|---|
+| Your details (name/email/phone) | ✅ FIRST/LAST NAME · EMAIL | **MATCH** |
+| Line-item price breakdown | ✅ **and more explicit** — a labelled **`VAT · 23% · added`** line the prototype lacks | **MATCH + EXTRA** |
+| Total | ✅ €373.65, reconciling to the components exactly | **MATCH** |
+| **`Pay with Apple Pay` · `CARD NUMBER / EXPIRY / CVC`** | **absent** — replaced by **"PAY ON ARRIVAL · Reserve now and settle at the property — no card is collected here."** | ✅ **RATIFIED REFUSAL** (#45 / SAQ A — no raw PAN) |
+| *"won't be charged until check-in"* | *"your room is only reserved once you confirm — **availability is re-checked at that moment**"* | ✅ **EXTRA — an honesty statement the prototype does not make** |
+| `Apply wallet credit €88.00` | absent at checkout (wallet apply exists on `/guest/wallet` against a booking) | **DIVERGENCE — placement** |
+| `Confirm & pay €501.00` | `Confirm reservation` → `POST /book/seaside-demo/checkout` | ⚠️ **LOCATED, NOT SUBMITTED — UNVERIFIED-WITHOUT-MUTATION** |
+
+⚠️ **This substantially DOWNGRADES divergence B** (§7). I recorded that the room card's *"incl. €45.00
+cleaning"* under-states the total's composition. It does — but the **checkout page, the last screen before
+commitment, itemises VAT and city tax explicitly**. The guest is therefore never surprised: the card gives a
+correct total, and the breakdown appears before any money moves. **B is a card-label nuance, not an honesty
+defect** — recorded as such, because over-filing is as wrong as under-filing.
+
+### 10.2 · `/guest/reservation/{r}/extras` (Add-ons) · wf 1,125 / live 632 — ⚠️ **0 register rows**
+
+| Wireframe | Live | Verdict |
+|---|---|---|
+| Extras catalogue | ✅ **the property's REAL `AddOn` rows** (Airport transfer · Baby cot · Breakfast · Late checkout) | **MATCH** |
+| Per-stay totals | ✅ real and basis-aware (€65.00 each way → **€79.95**; €18.00 per guest·night → **€132.84**) | **MATCH** |
+| "Prices include VAT" | ✅ present | **MATCH** |
+| "Nothing to pay now" | ✅ *"everything settles to your booking, nothing to pay at the door"* | **MATCH** |
+| The prototype's 6-extra catalogue + cart badge (`€56 In your cart · 1`) | real catalogue, no cart | ✅ **RATIFIED REFUSAL** — register line 14 refuses *"the wireframe's invented 6-extra catalogue (real = the property's AddOns)"* |
+
+⚠️ **A hypothesis I raised and then resolved AGAINST myself:** Baby cot shows €15.00/night → **€45.00** for 3
+nights with **no VAT**, while transfer and breakfast are multiplied by 1.23 — on a page captioned *"Prices
+include VAT"*. That reads as an inconsistency. **It is not:** `add_ons.taxable` is **`NO`** for Baby cot and
+`yes` for the other three. The per-item VAT treatment follows the real flag, and €45.00 is exactly right.
+**Not a finding.**
+
+### 10.3 · `/guest/reservation/{r}/manage` · wf 615 / live 700
+
+| Wireframe | Live | Verdict |
+|---|---|---|
+| Change dates · Guests & extras · Cancel | ✅ all three, real POSTs (`manage/date-change`, `manage/add-ons`, `manage/cancel`) | **MATCH** — ⚠️ **all UNEXERCISED** |
+| Interactive month calendar (tap check-in, then check-out) | date inputs + **`See price difference`** | **DIVERGENCE — ratified** (the guest realm has no Alpine; register line 14: *"peach-glass interactivity is pure CSS + progressive enhancement"*) |
+| — | *"Changes are confirmed by the property — we'll message you the moment they are."* | ✅ **EXTRA — honest**: a request, not a promise |
+| `booked via Booking.com` | absent | ✅ consistent with the **OTA-brand refusal** (#37) |
+
+### 10.4 · `/guest/reservation/{r}/check-in` · wf 1,066 / live 992
+
+| Wireframe | Live | Verdict |
+|---|---|---|
+| 3-step wizard (Details → ID → Arrival) | ✅ identical, real POST `check-in` | **MATCH** — ⚠️ **UNEXERCISED** |
+| Arrival rail, guest count, door-code timing | ✅ real (*"By email · Door code · pre-arrival"*) | **MATCH** |
+| **`By SMS`** door-code delivery | **`By email`** | ✅ **RATIFIED REFUSAL** — no SMS provider (register line 14) |
+| Live countdown `6d 05:35:57` | `in 18d` | **DIVERGENCE — minor** (no live ticker; no Alpine) |
+| Guest's own email rendered | `demo.traveller@vyrobel-demo.test` | ✅ **CORRECT under #28** — the account holder's own contact on their own page |
+
+---
+
+## 11 · ⚠️ NEW FINDING — TWO PRICING CONVENTIONS ON ONE GUEST JOURNEY
+
+This is what a **cross-page** pass surfaces that a page-by-page gate structurally cannot, and it is this
+audit's genuinely new contribution beyond GATE 3:
+
+| Surface | Convention | Evidence |
+|---|---|---|
+| **Room rates** | **VAT-EXCLUSIVE** — VAT added and labelled at checkout | `€85.00 / night`; checkout adds **`VAT · 23% · added` €58.65** |
+| **Add-ons** | **VAT-INCLUSIVE** — per the real `taxable` flag | `€65.00 each way` → **€79.95** (×1.23); page caption *"Prices include VAT"* |
+
+**Each surface is individually correct, labelled, and reconciles to the folio.** But a guest on one journey
+reads **`€85.00 / night`** (pre-tax) beside **`€65.00 each way`** (post-tax) and has no cue that the two
+figures are on different bases.
+
+**Class: DIVERGENCE (cross-page consistency), not a defect.** Nothing is fabricated, nothing is hidden, and
+both labels are true. ⚠️ **Not filed as a gap, and deliberately not "fixed"** — which convention should win is
+a product/tax-presentation decision (many jurisdictions mandate tax-inclusive display to consumers), and the
+register shows both were arrived at deliberately. **Surfaced for a founder ruling.**
+
+---
+
+## 12 · UPDATED TALLY (re-derived, not carried)
+
+| | |
+|---|---|
+| Pages browser-diffed | **13 of 32** |
+| Captures on disk | **14** |
+| Perimeter | ✅ complete |
+| Findings | 2 premise corrections · **1 new cross-page divergence** · 3 placement/minor divergences · 2 honest limits · 2 auditor self-corrections · 1 inventory correction · **1 hypothesis resolved against myself** (add-on VAT) |
+| Ratified refusals confirmed (not gaps) | **8** — card-on-file · saved cards · Apple Pay/raw PAN · multi-property browse · invented extras catalogue · SMS door code · loyalty/referral · OTA brand |
+| Backend gaps | **0** |
+| Mutations exercised | **0** |
+
+**REMAINING: 19 pages** — chiefly the money PDFs (receipt · invoice · statement · credit-note · refund ·
+arrival), the pre-auth pages (login · claim · forgot/reset), review, arrival info, and the two
+`/book/…/{quote}` confirmation routes (⚠️ which need a real quote — **unreachable without booking**, so they
+are **structurally unverifiable in a read-only pass** and belong to the deferred money-path proof).
