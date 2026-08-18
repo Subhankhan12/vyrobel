@@ -1216,3 +1216,49 @@ results and the reconciliation stand unaffected.
 | `book()` UNVERIFIED-WITHOUT-MUTATION | ✅ **unchanged — still the one thing this pass does not verify** |
 
 **Findings: 5 (unchanged). Auditor self-corrections: 11.**
+
+---
+
+## 29 · THE PER-PAGE BACKEND-WIRING MAP — the artifact §24.2 consolidated instead of producing
+
+The brief asks for a **backend-wiring table per page** — *what's real, what routes resolve, what's a real POST
+left unexercised*. §24.2 grouped the 29 writes **by function**, which answers "what writes exist" but not "what
+can **this page** do". Derived here by attaching each write to the GET page whose URI is its longest prefix —
+i.e. the page that actually owns the control.
+
+| Page | What's real behind it | Writes this page owns | Exercised |
+|---|---|---|---|
+| `/book/{property}` | real property · room types · **materialized `rate_calendar` prices** · real availability (`1 left`) · real review aggregates | `booking.quote` · `booking.book` ⚠️ **a JSON API no view posts to** (§28) | **0** |
+| `…/checkout` | the pre-reserve quote display; VAT + city tax + cleaning composition | **`booking.reserve`** — the storefront's ONE POST | **0** ⚠️ UNVERIFIED-WITHOUT-MUTATION |
+| `…/rooms/{roomType}` | real room, amenities, rating, nightly + stay total | *(none — `Book this room` links to checkout)* | — |
+| `/guest/trips` · `/guest/home` | real reservations, real states, real money | *(none — navigation only)* | — |
+| `/guest/reservation/{r}` | real dates, balance, real sub-page links | *(none — a hub)* | — |
+| `…/manage` | real change/cancel policy state | `manage.cancel` · `manage.date-change` · `manage.add-ons` | **0** |
+| `…/check-in` | real pre-check-in intent state | `checkin.submit` | **0** |
+| `…/extras` | real add-on catalogue (**0 register rows** — honest empty) | *(posts to `manage.add-ons`)* | **0** |
+| `…/arrival` | real gated arrival pack (**#33 verified pre-window**) | *(none)* | — |
+| `…/receipt` | **real folio: `folio_items` Σ 36,900 = `folios.total_minor` = €369.00** | *(none — documents are GETs)* | — |
+| `…/review` | real completed-stay tie | `review.submit` | **0** |
+| `/guest/payments` | real receipts, refs, states, totals | **`payments.pay`** ⚠️ a real charge path | **0** |
+| `/guest/wallet` | real append-only credit ledger | `wallet.apply` · `wallet.redeem` ⚠️ real money | **0** |
+| `/guest/saved` | real wishlist + waitlist rows | `wishlist.add/remove` · `waitlist.join/leave/reconfirm` | **0** |
+| `/guest/messages` · `{thread}` | real threads, real operator replies, real timestamps | `messages.start` · `messages.send` | **0** |
+| `/guest/account` | real profile · real credit KPI · real 14-day scheduled delete | `account.update` · `account.password` · `account.preferences` · `account.delete` · `account.delete.undo` | **0** |
+| `/guest/help` | real FAQ content | *(none)* | — |
+| `/guest/login` · `/guest/claim` · `…/claim/sent` | real auth surfaces, enumeration-neutral copy | `login` · `claim.store` | **0** (login = a session read, no domain write) |
+| `…/claim/verify/{guest}/{hash}` | **HMAC-signed expiring URL**; GET renders only | `claim.complete` ⚠️ **the claim write** | **0** |
+| `/guest/forgot-password` · `…/reset-password/{token}` | real reset surfaces | `password.email` · `password.update` | **0** |
+
+**27 of 29 writes belong to a page. The 2 that don't are both informative:**
+
+| Orphan write | Why it owns no page |
+|---|---|
+| `POST /guest/logout` | a **shell control** — rendered in every page's chrome, correctly page-less |
+| `POST /guest/reset-password` | ⚠️ **posts to a different URI than the page that renders it** (`GET …/reset-password/{token}`) |
+
+**⚠️ That second orphan independently corroborates §15.1.** The POST carries **no `{token}` in its URI** — the
+token travels in the **form body**. That is precisely why the GET renders for *any* token string and validation
+happens on the POST, which is what §15.1 concluded from behaviour. Two independent routes to the same
+conclusion: one from probing, one from the route table's shape.
+
+**Every page's writes: 0 exercised.** The money-as-seeded figures are the proof.
