@@ -57,7 +57,7 @@ second gate behind the page.
 | | |
 |---|---|
 | **Server-side enforcement of any gated write** | 41 mutations surfaced, **0 exercised**. Every POST is `UI-gated; server-enforcement unverified-without-mutation`. |
-| **7 of 11 roles were never rendered** | Group Admin · Front Desk · Revenue Manager · Reservation Agent · Guest Support Agent · Marketing Manager · Maintenance have **no demo account**. Their reach is **derived** from `role_has_permissions`; which *controls* render inside those pages is **unverified**. ⚠️ Finding 6 was found only because it was derived — it is invisible to all four rendered roles. |
+| **7 of 11 roles were never rendered IN THIS AUDIT** | They have **no demo account**, so this read-only pass could not render them; their reach is **derived** from `role_has_permissions`. ⚠️ **CORRECTED IN RUN 37:** they are NOT unverifiable — `operatorUser($s, [], '<Role>')` builds any of them in the test suite (Front Desk appears in **52** test files), so closing this needs one helper argument, **not** a demo write or a founder decision. |
 | **Screenshot coverage** | **60 operator captures** — every renderable page at the reference role + role-pairs on the findings. The 52 × 4 = 208 matrix was never attempted and is **not** claimed. 8 artifact routes are downloads, not renderable. |
 | **Cross-tenant isolation** | out of scope — this audit measured *intra-org* role gating only. |
 
@@ -3035,6 +3035,92 @@ rather than for status** — a 200 tells you a page rendered, not what it handed
 Findings **7** (Finding 1 now single-valued and measured) · ungated routes **25**, reachable **23**, money
 **11** + 2 artifacts · roles affected **11 of 11** · auditor self-corrections **13** · mutations
 surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
+# RUN 37 — THE RATIFIED-DIVERGENCE CROSS-CHECK · ⚠️ AND THE RECOMMENDATION I GOT WRONG
+
+The brief's orientation list names `DIVERGENCE-REGISTER.md` and `DECISIONS.md`, and its standing rules say
+*don't call a documented refusal a gap*. I applied that per page while diffing — **but never cross-checked the
+finished findings list against the 40 ratified divergences.** A finding that is already ratified as deliberate
+is not a defect; recommending its "fix" would be the exact error the rule exists to prevent.
+
+## Result: none of the 7 findings is ratified — and the register sharpens two of them
+
+| Finding | Register / DECISIONS | Verdict |
+|---|---|---|
+| 1 · 2 · 3 · 4 · 6 · 7 | no ratifying entry (`Add update`, `unit request`, `Rebook`, `security/export`, `email-previews` = **0 hits**) | **stands** |
+| 5 (email editor) | ⚠️ **context found, and it strengthens the finding** — see below | **stands, sharpened** |
+| `/app/notification-preferences` **ungated** (run 29: *"correctly open — self-only"*) | ✅ **RATIFIED** — `DECISIONS.md:6153`: *"this page carries **no permission gate** (it is self-only)"* | ⚠️ **my verdict matched the canon** — confirmed, not assumed |
+
+⚠️ **The one page I cleared as deliberately open really was deliberate**, and I can now cite the decision
+rather than my own reasoning. Over-crediting is as wrong as under-crediting; this is the check that separates
+them.
+
+## ⚠️ FINDING 5, SHARPENED — #30 was applied to a breadcrumb and not to the Save button beside it
+
+`DECISIONS.md:6209`, from the pass that rebuilt the email-templates surface:
+
+> **Fixed (design):** … the breadcrumb (**#30-gated** — `/app/settings` needs `properties.manage`, **this page
+> has no gate**) …
+
+⚠️ **That pass KNEW the email-templates page carries no gate.** It reasoned about it carefully — and applied
+the fix to a **navigation link**, gating the breadcrumb so it would not invite a 403. It never asked the same
+question of the editor's own **`Save template`** and **`Send me a test`**, which point at
+`properties.manage` endpoints and render for all 11 roles.
+
+⚠️ **§N.13.1 again — the defect sits beside the flagged thing.** The correct principle was identified, stated,
+and applied one control over. That is the fifth chapter running where this pattern has held, and it is why
+Finding 5 is worth more than its severity suggests: **the omission is not ignorance of the rule.**
+
+## ⚠️⚠️ AUDITOR SELF-CORRECTION #14 — MY LARGEST RECOMMENDATION WAS WRONG
+
+Run 32 said the seven unrendered roles could not be verified because *"rendering the other seven requires
+seeding a user per role — a write"*, and filed it as **the audit's single largest outstanding coverage item,
+awaiting a founder decision.**
+
+⚠️ **That is false.** `tests/Support/auth_helpers.php:69`:
+
+    function operatorUser(array $scenario, array $attributes = [], string $role = 'Hotel Manager'): User
+
+**The role is a parameter.** And the suite already uses it, extensively:
+
+| Role | Test files using it |
+|---|---|
+| **Front Desk** | **52** |
+| Group Admin | 13 |
+| Revenue Manager | 6 · e.g. `OperatorRatesTest.php:202` — `actingAs(operatorUser($s, ['name' => 'Ray Revenue'], 'Revenue Manager'))` |
+| Maintenance | 6 · Reservation Agent 5 · Marketing Manager 1 · Guest Support Agent 1 |
+
+Every one of the seven roles I called *"never rendered"* is **already rendered in the test suite**, against an
+isolated test database, touching the demo **not at all**.
+
+⚠️ **I conflated "unverifiable read-only against the DEMO" with "unverifiable".** The demo has four accounts;
+the *system* can produce any of the eleven with a one-argument helper. My repeated
+*"server-enforcement unverified-without-mutation"* is accurate about this audit's constraints and **misleading
+about the project's capabilities** — the POST that Findings 6 and 7 predict will 403 is provable in a test,
+today, with no founder decision and no demo write.
+
+**The coverage gap is one helper argument, not a permission request.** Recorded as a correction to run 32.
+
+## ⚠️ AND FINDINGS 6 AND 7 SIT UNDER EXISTING GREEN TESTS
+
+    tests/Feature/RoomTypePhotoUploadTest.php          ← Finding 6's controls
+    tests/Feature/OperatorUnitRequestWorkflowTest.php  ← Finding 7's controls
+
+Both features are tested. **Neither test asserts WHO MAY SEE THE CONTROL** — they exercise the happy path
+(upload a photo, approve a request) as an entitled role, so a gate on the *wrong* permission and a gate that
+is *absent* both pass silently.
+
+⚠️ **This is the `#26–#30` pattern exactly**, the one the canon records as the project's hardest-won lesson:
+*five security holes found by READING, none by a failing test — green tests are necessary, not sufficient.*
+Findings 6 and 7 are the sixth and seventh members of that family, found the same way, under a green suite.
+
+## Tally — final
+
+Findings **7**, none ratified, all confirmed at source · 1 verdict confirmed **against the canon**
+(`notification-preferences`) · auditor self-corrections **14** · missing regression guards **1** ·
+mutations surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
 
