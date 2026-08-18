@@ -13073,3 +13073,69 @@ failed once in a full run and passed both in isolation and on a second full run 
 order-dependent flake band, unrelated to this change (it exercises property/booking isolation). Recorded
 rather than reported as a clean first pass. Money as-seeded: `693e3237…` unchanged — this pass changes
 addressing, not folio money. **Not pushed.**
+
+---
+
+## 2026-08-18 — ✅ OPERATOR AUDIT SEALED · the three fix branches merged, composed and pushed
+
+`integrate/operator-fixes` = main + OP-FIX-1 + OP-FIX-2/2b + OP-FIX-3, merged **in dependency order**
+(OP-FIX-3's audience is derived from OP-FIX-2's gate). Merges were clean except `docs/DECISIONS.md`, which
+conflicted twice — resolved by **keeping every entry**, never dropping an intent.
+
+**Composed suite 2457 / 15748 green** · PHPStan L5 **0** · Pint clean.
+
+### ⚠️ The cross-branch invariant — verified where it is first verifiable
+
+OP-FIX-3 narrowed the finance-notification audience to `reports.view` **because** OP-FIX-2 gated
+`app.owners` — the URL those notifications carry — on `reports.view`. On either branch alone that reasoning
+was only half-present. `OperatorFinanceAudienceGateAgreementTest` now walks **all eleven back-office roles**
+and asserts **delivered == can-open-the-linked-page**, with a probe so neither side can pass vacuously.
+⚠️ **Mutation-proven from both directions:** widening `app.owners` reds it; widening the dispatch reds it.
+
+**RENDER-confirmed on the re-seeded demo:** Hotel Manager + Accountant see *"Statement finalized · Net
+payable"* and open `/app/owners` **200**; Housekeeping sees **no finance category at all** and gets **403**.
+⚠️ Housekeeping still sees **€332.10** — checked, and it is `BalanceDueNotification` (*"outstanding at
+check-out"*): **operational** money the ruling deliberately keeps open. Finance money gone, operational money
+kept — exactly the ruling.
+
+### ⚠️⚠️ A CANON CORRECTION: the "money-as-seeded" hash was never reproducible
+
+Re-seeding to render truthfully produced a different hash, which looked like a regression. It is not.
+**Two consecutive re-seeds of IDENTICAL clean-main code produce different hashes** (`7b0d632b…` vs
+`42e32017…`) because the hash includes **ULID primary keys**. And `DemoSeeder.php:97` builds the rate window
+from `CarbonImmutable::today()->addDays(180)`, so the **date** moves the money too: today's clean main yields
+`10,912,000`, not the audit's `10,920,000` — an €80 delta that is purely calendar.
+
+⚠️ **`693e3237…` was a snapshot of one persisted database, valid only while that database survived — not an
+invariant.** Proven by re-seeding clean main and getting the merged branch's exact figures:
+`10,912,000 / 929 rows / 0 overrides / 41 reservations / 16 payments / 0 seasons`. **The merge changed no
+money.** From here the money check after a re-seed is the **sums and counts**, or a ULID-free hash — never the
+id-hash.
+
+⚠️ Also recorded: `migrate:fresh --seed` **requires Mailpit on 127.0.0.1:1025**. Without it the seeder dies
+mid-run with a `TransportException` and leaves the demo half-populated — which reads exactly like a code
+failure. The stack frame even points into the notification dispatcher.
+
+### The operator audit outcome — 7 findings resolved
+
+| # | Outcome |
+|---|---|
+| **1** | Per the founder ruling: **owner/finance money gated** (`owners`/`owners/{owner}` → `reports.view`, `payouts/run` → `payouts.manage`, `folio.pdf` + `email-previews` → `folios.view`); **operational money left open** and pinned by a test; **`security/export` left open** — the payload is a GDPR **self-export**, pinned |
+| **2 · 4 · 5** | Control-gated to match their routes — **plus the two gaps the tests found that the audit missed**: the New-reservation **modal** (a gated button is not a gated surface) and the **editable email form** (Enter submits it) |
+| **6** | ⚠️ An **ADD, not the recorded swap** — the photo controls had no guard at all; `$canManageRates` correctly guards a different rates control, and the swap would have broken it |
+| **7** | ⚠️ **FALSE** — already gated by a component-computed flag the audit's grep could not see. Gate now pinned |
+
+Plus: the finance **dispatch narrowed** (not a route gate — the feed is self-scoped) and
+**`OperatorLivewireMutationBoundaryTest`** added, pinning run 34's 0/37 property — the guard that keeps every
+OP-FIX-1 affordance *misleading UI* rather than a bypass.
+
+### ⚠️ Two method canon lines this sweep earned
+
+1. **Gating a control means gating the SURFACE it opens.** A hidden button beside a live modal or an
+   Enter-submittable form is still an open door — both were found by the tests, not by the audit.
+2. **A control gated by a component-computed flag is not "ungated" for lacking a `@can` literal.** A
+   source grep that looks only for the literal manufactures findings (Finding 7) and misses real ones
+   (Finding 4, whose file uses the flag elsewhere).
+
+**Known item, not chased:** `OperatorPortfolioTest`'s *"add → select → book"* order-flake — passes in
+isolation and on re-run; it exercises property/booking isolation these fixes do not touch.
