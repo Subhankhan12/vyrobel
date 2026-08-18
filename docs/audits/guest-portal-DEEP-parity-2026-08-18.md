@@ -29,7 +29,7 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Coverage | **30 / 30 owed wireframes** (23 pages + 6 artifacts + 1 searched state) · **0 open** · closed at **§22** |
+> | Coverage | **30/30 owed wireframes** · **34/34 GET routes** accounted · **29 write routes surfaced, 0 exercised** · closed at **§25** |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
@@ -929,3 +929,123 @@ complete: **one dedicated money-path proof** closes every item above. Nothing fu
 read-only.
 
 **⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical, 30/30 covered.**
+
+---
+
+## 23 · ⚠️ THE CANON PREMISE IS IMPRECISE — the storefront is **three** write routes, not one
+
+The brief's premise — *"the storefront is ONE POST (`booking.reserve` = `quote()` + `book()` in the same
+request), **so you CANNOT pull a quote without also creating the reservation+folio**"* — shaped this entire
+pass's read-only constraint. **`route:list` disagrees, and the code confirms the routes, not the inference.**
+
+| Route | Action | What it actually does |
+|---|---|---|
+| `POST /book/{property}/checkout` | `reserve()` | **the UI form target** — calls `engine->quote()` then books, in one request |
+| `POST /book/{property}/quote` | `quote()` | ⚠️ **a standalone JSON endpoint** — `BookingEngineService::quote()` → **`BookingQuote::create([…])`**, returns **201**. Persists a **quote row only** — **no reservation, no folio, no inventory, no money moved** |
+| `POST /book/{property}/book` | `book()` | consumes an existing `BookingQuote` → creates the reservation |
+
+`routes/web.php:462-463` registers `quote` and `book` as first-class POST routes.
+
+**⚠️ So the inference is false as stated: a quote CAN be pulled without creating a reservation or folio.** What
+is true is narrower — *the UI* is one POST. The system exposes the two-step pair the UI collapses.
+
+**⚠️ AND I STILL DID NOT CALL IT.** `quote()` **writes** (a `booking_quotes` row), and this pass is
+money-as-seeded with **no writes of any kind** — `booking_quotes` must stay at **0**, and it did. Confirmed by
+**reading**, never by exercising. *This is also why §7 finding C holds: `booking_quotes` has 0 rows because the
+seeder never goes through this endpoint.*
+
+**⚠️ This materially improves the deferred money-path proof, which is the point of reporting it.** That proof
+was scoped as one atomic all-or-nothing POST. It can instead be **staged**:
+
+1. `POST …/quote` → asserts pricing/§G.1/D4-1 against a **persisted quote row**, with **no reservation, no
+   folio, no inventory, no money** — by far the cheapest and most reversible step.
+2. `POST …/book` → consumes that quote → reservation + folio; the point where `folio_items` =
+   `reservation_units.price_minor` = `booking_quotes.total_minor` becomes provable **end-to-end**.
+3. `POST …/checkout` (`reserve`) → the UI's combined path, proven last.
+
+That ordering lets the money chain be proven **one link at a time**, with the money-moving step isolated to
+stage 2 — which no reading of this pass could have suggested while the premise said the three were one.
+
+---
+
+## 24 · THE CONSOLIDATED LEDGER — 63 guest-facing routes (34 GET · 29 WRITE)
+
+Built from `route:list`, cross-mapped **both ways** against `docs/design/raw/`.
+
+### 24.1 · GET routes → wireframe → shell → status (34)
+
+| # | Route | Wireframe | Shell | Status |
+|---|---|---|---|---|
+| 1 | `/book/{property}` | Browse + Booking | public | ✅ §19.1 (2 states) |
+| 2 | `/book/{property}/rooms/{roomType}` | Villa Detail | public | ✅ §6.5 |
+| 3 | `/book/{property}/checkout` | Checkout | public | ✅ §10.1 |
+| 4 | `/book/{property}/search` | — | public | 📋 **JSON API, no page** — no diff owed |
+| 5 | `/book/{property}/confirmation/{quote}` | — | public | ⚠️ **needs a quote id** — unverifiable read-only |
+| 6 | `/book/{property}/reservation/{quote}` | — | public | ⚠️ **needs a quote id** — unverifiable read-only |
+| 7 | `/guest/login` · 8 `/guest/claim` · 9 `/guest/claim/sent` | Login · Signup · (Signup) | guest | ✅ §13.4 · §15 |
+| 10 | `/guest/claim/verify/{guest}/{hash}` | Verify Email | guest | ✅ §21 (signed URL, GET-only) |
+| 11 | `/guest/forgot-password` · 12 `/guest/reset-password/{token}` | — | guest | ✅ §15 (reset = form only; token gate on the POST) |
+| 13 | `/guest/home` | — | guest | ✅ §19.3 — **redirect to trips**, no diff owed |
+| 14 | `/guest/trips` | Trips | guest | ✅ §6.1 |
+| 15 | `/guest/reservation/{r}` | Reservation | guest | ✅ §6.2 |
+| 16 | `…/manage` · 17 `…/check-in` · 18 `…/extras` | Manage · Check-in · Add-ons | guest | ✅ §10.3 · §10.4 · §10.2 |
+| 19 | `…/arrival` · 20 `…/arrival/pdf` | Arrival Info · Arrival PDF | guest | ✅ §13.2 · §13.1 |
+| 21 | `…/receipt` | Folio Receipt | guest | ✅ §19.2 |
+| 22–25 | `…/receipt.pdf` · `invoice.pdf` · `statement.pdf` · `credit-note.pdf` | the 4 PDFs | guest | ✅ §13.1 |
+| 26 | `…/refund.pdf` | Refund Receipt PDF | guest | ✅ §13.1 |
+| 27 | `…/review` | Review | guest | ✅ §13.3 |
+| 28 | `/guest/payments` | Payments + Documents | guest | ✅ §6.3 |
+| 29 | `/guest/wallet` | Credits | guest | ✅ §9.4 |
+| 30 | `/guest/saved` | Wishlist + Waitlist | guest | ✅ §9.3 |
+| 31 | `/guest/messages` · 32 `/guest/messages/{thread}` | Messages | guest | ✅ §9.1 · §15 |
+| 33 | `/guest/account` | Account + Email Preferences | guest | ✅ §6.4 |
+| 34 | `/guest/help` | Help | guest | ✅ §9.2 |
+
+**Routes with no wireframe (4):** `search` (JSON API) · `home` (redirect) · the two `{quote}` routes. **No
+verdict invented for any of them** — each is recorded with the reason it is not diffable.
+
+### 24.2 · ⚠️ THE 29 WRITE ROUTES — every one surfaced, **every one UNEXERCISED**
+
+| Group | Routes | Status |
+|---|---|---|
+| **Booking / money** | `booking.quote` · `booking.book` · `booking.reserve` · `guest.payments.pay` | ⚠️ **UNEXERCISED** — the deferred proof (§23) |
+| **Reservation lifecycle** | `manage.cancel` · `manage.date-change` · `manage.add-ons` · `checkin.submit` · `review.submit` | ⚠️ **UNEXERCISED** |
+| **Wallet / promo** | `wallet.apply` · `wallet.redeem` | ⚠️ **UNEXERCISED** (real money into a real ledger) |
+| **Saved** | `wishlist.add` · `wishlist.remove` · `waitlist.join` · `waitlist.leave` · `waitlist.reconfirm` | ⚠️ **UNEXERCISED** |
+| **Messages** | `messages.start` · `messages.send` | ⚠️ **UNEXERCISED** |
+| **Account** | `account.update` · `account.password` · `account.preferences` · `account.delete` · `account.delete.undo` | ⚠️ **UNEXERCISED** |
+| **Auth / claim** | `login` · `logout` · `claim.store` · `claim.complete` · `password.email` · `password.update` | ⚠️ **UNEXERCISED** (login excepted — a session read, no domain write) |
+
+**29 write routes, 0 exercised.** The money-as-seeded figures at §22.1 are the proof.
+
+### 24.3 · The pure-marketing question — asked and answered
+
+The brief asks whether a distinct pure-marketing public area exists and is in scope. **It does not.** The
+non-guest public GET routes are the root, `/login`, `/forgot-password`, `/invite/{token}`, `/signup`, and
+Horizon (ops). There is **no `/about`, `/pricing`, `/legal`, `/terms`** — the "public" shell **is** the
+storefront. Operator auth + the signup wizard were covered by the design pass's GATE 4 and are **out of guest
+scope** — recorded, not silently skipped.
+
+---
+
+## 25 · FINAL STATUS
+
+| | |
+|---|---|
+| **Wireframe coverage** | ✅ **30 / 30 owed** · 0 open · 0 unaccounted (2 adjudicated, no route) |
+| **Route coverage** | ✅ **34 / 34 GET accounted for** (30 diffed · 4 recorded non-diffable with reasons) |
+| **Write routes** | ✅ **29 surfaced · 0 exercised** |
+| **Perimeter** | ✅ anonymous-leak (on the **priced** state) · guest isolation (pages · artifacts · threads · pay route) · #33 pre-window · signed-URL refusal with a positive control |
+| **Money chain** | ✅ reconciles on seeded folios (`folio_items` Σ = `folios.total_minor` = displayed) |
+| **Money as-seeded** | ✅ **byte-identical** — 929 / 10,912,000 / 0 / 41 / 16 / 0 / 40 / **0 quotes** / 10 / 0 |
+| **Mutations** | ✅ **0** |
+| **Captures** | **26** |
+| **Findings** | **5** + the §23 premise correction |
+| **Auditor self-corrections** | **9** |
+
+**⚠️ THE ONE THING THIS PASS DOES NOT VERIFY**, stated plainly and not implied-done: **the reserve → folio →
+charge chain**, together with the five other mutation-gated paths (§22.2). `book()` is
+**UNVERIFIED-WITHOUT-MUTATION**. §23 shows that proof can now be **staged** — quote (no money) → book
+(reservation+folio) → reserve (the UI path) — rather than attempted as one atomic step.
+
+**⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
