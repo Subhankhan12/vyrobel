@@ -29,13 +29,13 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Pages browser-diffed | **13 of 32** (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* |
+> | Pages browser-diffed | **17 of 32** + 6 money artifacts (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
 > | Mutations exercised | **0** — `book()` UNVERIFIED-WITHOUT-MUTATION |
 >
-> ⚠️ **19 pages REMAIN.** This is a resumable ledger, not a completed sweep — the perimeter (the part unique to
+> ⚠️ **15 pages REMAIN** (⚠️ 2 more are structurally unverifiable read-only — see §14). This is a resumable ledger, not a completed sweep — the perimeter (the part unique to
 > the guest surface) is finished; the per-page element diffs are not.
 
 ---
@@ -477,3 +477,99 @@ register shows both were arrived at deliberately. **Surfaced for a founder rulin
 arrival), the pre-auth pages (login · claim · forgot/reset), review, arrival info, and the two
 `/book/…/{quote}` confirmation routes (⚠️ which need a real quote — **unreachable without booking**, so they
 are **structurally unverifiable in a read-only pass** and belong to the deferred money-path proof).
+
+---
+
+## 13 · BATCH 4 — the money artifacts, arrival, review, and the pre-auth pages
+
+### 13.1 · ⚠️ THE MONEY PDFs — isolation proven on the ARTIFACTS, not just the pages
+
+Read through the request context (a `page.goto` aborts on a download — the operator run-29 lesson).
+
+| Artifact | Guest's OWN | Another guest's |
+|---|---|---|
+| `receipt.pdf` | ✅ **200 · real `%PDF`** · 879,525 B | 🔒 **404** |
+| `invoice.pdf` | ✅ **200 · real `%PDF`** · 879,559 B | 🔒 **404** |
+| `statement.pdf` | ✅ **200 · real `%PDF`** · 886,158 B | 🔒 **404** |
+| `arrival/pdf` | ✅ **200 · real `%PDF`** · 880,932 B | 🔒 **404** |
+| `credit-note.pdf` | **404** ⚠️ see below | 🔒 404 |
+| `refund.pdf` | **404** ⚠️ see below | 🔒 404 |
+
+⚠️ **The two 404s on the guest's OWN reservation are CORRECT, and I checked before concluding it.** That
+reservation has **0 refund payments** (queried first: `items=2 payments=1 refunds=0`). A credit note and a
+refund receipt for a booking that was never refunded would be fabricated documents. **DATA-DEPENDENT, not a
+gap** — and the honest behaviour.
+
+⚠️ **This is a stronger isolation proof than the page checks:** a guest cannot pull another guest's
+**financial documents**, which is where the real exposure would sit. All six 404, and the positive is
+established by four real PDFs on the guest's own booking.
+
+### 13.2 · `/guest/reservation/{r}/arrival` — ⚠️ **#33 verified in the harder (pre-window) state**
+
+The probed reservation arrives **5 Sep 2026 — 18 days out**, so the door code must be withheld.
+
+    GETTING IN
+    Your access details appear here closer to arrival
+    Your door code and WiFi unlock on Thu, 3 Sep — for your security.
+
+| Check | Result |
+|---|---|
+| Any door code rendered | ❌ **none** — the only 4+ digit run on the page is **`2026`**, the year |
+| Any WiFi password rendered | ❌ **none** |
+| Does it explain rather than silently omit | ✅ names the **exact unlock date** (3 Sep) and the reason |
+
+✅ **#33 holds, and does so articulately** — the page states the rule instead of leaving a blank.
+
+⚠️ **AUDITOR SELF-CORRECTION #3.** My first probe used `/door code|access code|\b\d{4,6}\b/i` and returned
+`doorCode: true` on **both** this page and the Review page. Both were the regex matching **`2026`**. A
+four-digit matcher fires on every year, and I nearly recorded a **#33 violation on the strongest page in the
+audit**. Fixed by reading the full text and listing the digit runs rather than testing a boolean.
+
+### 13.3 · `/guest/reservation/{r}/review` — live 196 chars
+
+| Element | Live | Verdict |
+|---|---|---|
+| Rating + review body | ✅ real published review (★5, real text) tied to a **checked-out** stay | **MATCH** |
+| `Published.` state | ✅ | **MATCH** — a real two-state control in its published state, **not** a refusal |
+| Reviewer byline | not the guest's full name | ✅ consistent with the register's *"review byline never your full name"* (#28) |
+
+### 13.4 · `/guest/login` (anon, 128 chars) · `/guest/claim` (anon, 174 chars)
+
+| Element | Live | Verdict |
+|---|---|---|
+| Email + password + Sign in | ✅ | **MATCH** |
+| `Forgot password?` · `Show` (password reveal) | ✅ | **MATCH** |
+| `Access your bookings` → `/guest/claim` | ✅ *"Enter the email from your booking and we'll send you a secure link"* | ✅ **RATIFIED** — booking-tied claim, **not** open self-signup (register: *"Signup/Claim (booking-tied claim vs open self-serve signup)"*, `DO-G11-3`) |
+| Property marketing hero / social login | absent | ✅ **RATIFIED DIVERGENCE** (register, GATE 3 line) |
+| ⚠️ Leak check | **no PII, no money, no internals** on either anonymous page | ✅ |
+
+---
+
+## 14 · SELF-CHECK AT THE CLOSE (re-derived, not carried)
+
+| Check | Result |
+|---|---|
+| Pages browser-diffed | **17 of 32** + **6 money artifacts** |
+| Captures on disk | ✅ **18** `deep-guest-*` files, re-counted at close |
+| Every DONE row has both-sides evidence | ✅ char counts recorded for every wireframe/live pair |
+| Perimeter probed positive-first | ✅ anonymous leak · guest isolation (pages **and** artifacts) · #33 pre-window |
+| Money as-seeded | ✅ byte-identical start → end |
+| Mutations exercised | ✅ **0** |
+| Auditor self-corrections | **3** — the CSP origin · the source-vs-render mis-read · **the year-matching door-code regex** |
+| Hypotheses resolved against myself | **2** — the add-on VAT (baby cot `taxable=NO`) · the bundler-shim suspicion |
+
+### ⚠️ What this pass still does NOT verify — stated, not implied
+
+1. **The reserve → folio → charge chain.** The reserve form was located (`POST /book/{property}/checkout`)
+   and **never submitted**. `book()` remains **UNVERIFIED-WITHOUT-MUTATION**.
+2. **`booking_quotes`** — 0 rows; the quote link of the money chain is unverifiable on seeded data.
+3. **`/book/{property}/confirmation/{quote}` and `/book/{property}/reservation/{quote}`** — ⚠️ these need a
+   **real quote id**, which only a booking creates. **Structurally unverifiable in a read-only pass.** They
+   belong to the deferred money-path proof, and are excluded from the denominator rather than counted as
+   un-diffed pages.
+4. **15 pages remain** — the residue after (3): chiefly `reset-password/{token}`, `claim/sent`,
+   `claim/verify/{guest}/{hash}`, `forgot-password`, `messages/{thread}`, `payments/{r}/pay`,
+   `email-preferences`, and the storefront `search` JSON endpoint (an API, no diff owed).
+
+**⚠️ Recommendation unchanged and now better evidenced:** the single highest-value next step is the
+**dedicated money-path proof** — it closes items 1, 2 and 3 together, and nothing else in this ledger can.
