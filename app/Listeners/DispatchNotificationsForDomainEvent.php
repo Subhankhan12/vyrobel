@@ -249,7 +249,10 @@ class DispatchNotificationsForDomainEvent
         }
 
         $payout->owner?->user?->notify(new PayoutSentNotification($payout));
-        $this->toOperators($orgId, new OwnerPayoutSentNotification($payout));
+        // ⚠️ FINANCE-GROUP (OP-FIX-3) — addressed only to roles that may read owner finance. It links to
+        // `/app/owners`, which OP-FIX-2 gated on `reports.view`; sending it wider would put an owner's
+        // payout figure in a housekeeper's feed and point them at a page they cannot open.
+        $this->toOperatorsWithPermission($orgId, 'reports.view', new OwnerPayoutSentNotification($payout));
     }
 
     /** An owner statement was finalized → the ONE owner it belongs to AND the org's operators. */
@@ -261,7 +264,8 @@ class DispatchNotificationsForDomainEvent
         }
 
         $statement->owner?->user?->notify(new StatementReadyNotification($statement));
-        $this->toOperators($orgId, new StatementFinalizedNotification($statement));
+        // ⚠️ FINANCE-GROUP (OP-FIX-3) — see payoutSent(): same audience, same linked page, same permission.
+        $this->toOperatorsWithPermission($orgId, 'reports.view', new StatementFinalizedNotification($statement));
     }
 
     /** A channel connection errored → the org's operators. */
@@ -369,6 +373,21 @@ class DispatchNotificationsForDomainEvent
     private function toOperators(string $orgId, object $notification): void
     {
         $operators = $this->recipients->operatorsForOrg($orgId);
+        if ($operators->isNotEmpty()) {
+            Notification::send($operators, $notification);
+        }
+    }
+
+    /**
+     * Send one notification only to back-office recipients who hold a permission — the audience for a
+     * notification whose CONTENT is gated on that permission (OP-FIX-3).
+     *
+     * ⚠️ This narrows WHO IS ADDRESSED, never WHAT IS SAID: the notification bodies are untouched, and they
+     * carry no guest contact before or after (#28).
+     */
+    private function toOperatorsWithPermission(string $orgId, string $permission, object $notification): void
+    {
+        $operators = $this->recipients->operatorsForOrgWithPermission($orgId, $permission);
         if ($operators->isNotEmpty()) {
             Notification::send($operators, $notification);
         }
