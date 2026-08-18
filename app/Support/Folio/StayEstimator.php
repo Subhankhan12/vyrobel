@@ -26,6 +26,19 @@ use Illuminate\Support\Collection;
  */
 final class StayEstimator
 {
+    /**
+     * ⚠️ THE ONE DERIVATION of "this percentage tax is ALREADY in the room price" (A2).
+     *
+     * It existed twice: here, inverted inside {@see taxApplies}, and again inline inside {@see estimate}. The
+     * two agreed — but a mutation that changed `taxApplies()` left `estimate()` untouched and the suite stayed
+     * GREEN, which is how the duplication was found: a money-path guard that cannot be mutated is a guard
+     * whose reach is unknown. Both callers now route through this, so mutating it reaches both.
+     */
+    public static function isInclusivePercentage(Tax $tax): bool
+    {
+        return (string) $tax->mode === 'percentage' && (bool) $tax->inclusive;
+    }
+
     /** True when this tax is charged on the folio (an inclusive percentage tax is informational, not charged). */
     public static function taxApplies(Tax $tax, string $currency): bool
     {
@@ -33,7 +46,7 @@ final class StayEstimator
             return false;
         }
 
-        return ! ((string) $tax->mode === 'percentage' && (bool) $tax->inclusive);
+        return ! self::isInclusivePercentage($tax);
     }
 
     /** True when this fee is auto-charged on every folio (an optional-at-booking fee is not). */
@@ -71,7 +84,7 @@ final class StayEstimator
             if (($tax->currency !== null && (string) $tax->currency !== $currency)) {
                 continue;
             }
-            $inclusive = (string) $tax->mode === 'percentage' && (bool) $tax->inclusive;
+            $inclusive = self::isInclusivePercentage($tax);   // ⚠️ A2 — the ONE derivation, not a second copy
             $amount = $inclusive
                 ? Money::of((int) round($room->amountMinor() * (float) $tax->rate / (100 + (float) $tax->rate)), $currency)
                 : $folios->computeTax($tax, $room, $nights, $persons);

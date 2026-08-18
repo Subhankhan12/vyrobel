@@ -13236,3 +13236,42 @@ file**, nothing lost. PHPStan L5 **0**; Pint clean. Money-as-seeded **byte-ident
 the F3 cue **and** the F2 enumeration with the total unchanged at **€373.65**; a signed-in guest 403 carries the
 F5 body **and** the A1 footer, both guest-framed, alongside the guest back-link — **three surfaces, one
 derivation**; the operator realm is unchanged.
+
+---
+
+## 2026-08-18 — ⚠️ CORRECTION to the guest seal: `book()` was NOT unverified. The money path is PROVEN.
+
+**The seal recorded above (same day) said *"reserve→folio money-path proof remains"*. That overstated the
+gap, and this corrects it** — an entry that leaves canon claiming a proof is missing when the suite already
+carries it is as harmful as one that claims a proof it lacks.
+
+**What was already true when the seal was written:** `StorefrontUnitChargeTest` "step zero" already books a
+type-only stay through the real `booking.reserve` route and asserts a real folio; `SeasonalRateTierTest:127-131`
+already asserts the **full canon chain** — folio room charge === `reservation_units.price_minor` ===
+**`booking_quotes.total_minor`** — through that same storefront path. **`book()` had been running live in the
+suite for some time.** The audit's *"UNVERIFIED-WITHOUT-MUTATION"* and **F4** were accurate statements about
+**what a READ-ONLY audit could observe on seeded data**, and were carried into the seal as if they described
+the system. ⚠️ *A limit of the instrument is not a gap in the build.*
+
+**The gap that WAS real, and is now closed.** Both existing proofs ran on `publicPropertyScenario`, which
+creates **no taxes and no fees**, and both summed **`folio_items.type = 'room'` only**. So the chain was proven
+for the room line on a tax-free property. **Now proven** (`StorefrontGrandTotalChargedTest`): the **grand total
+the storefront DISPLAYS** — read from the rendered card, not recomputed from the estimator — equals **Σ ALL
+`folio_items`** and the folio's own total, with **VAT, city tax and cleaning** present and landing as their own
+lines (€502.80 = 36000 + 8280 + 1500 + 4500). That is **#17 through the storefront path**, which is what the
+F2/F3 display work rests on. **F4 CLOSED**: 0 quote rows before, exactly 1 after — the seeder mints none
+because it books through the **operator** path (`AssignmentService`); only the storefront writes a quote.
+
+**A2 CLOSED, with its own correctness proof.** `StayEstimator::isInclusivePercentage()` is now the ONE
+derivation; `taxApplies()` negates it and `estimate()`'s inline copy is gone (behaviour-preserving).
+⚠️ **The proof is the mutation transition:** mutating the one derivation now reds **4** tests including the
+total-invariant money guard, whereas mutating `taxApplies()` alone leaves that guard **GREEN** — which is
+exactly the Pass-1 "mutation that missed". *A money-path guard whose reach you cannot mutate is a guard whose
+reach you do not know.*
+
+**Still genuinely out of scope:** a **live Stripe payment capture** (go-live keys not set; the proof books
+`on_arrival`, which keeps the folio local) and the **deferred F3 migrate-to-gross**. **No money-path bug was
+surfaced** — the chain reconciled first run.
+
+Full suite **2468 / 2466 / 2 skipped**; PHPStan L5 0; Pint clean; persisted money byte-identical with
+**quotes still 0**, since every booking lived and died inside a `RefreshDatabase` transaction.
