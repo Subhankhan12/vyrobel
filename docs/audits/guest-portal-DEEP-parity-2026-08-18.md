@@ -29,7 +29,7 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Pages browser-diffed | **20 of 32** + 6 money artifacts (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* · **closed at §18** |
+> | Pages browser-diffed | **22** + 6 money artifacts · **29/30 owed wireframes covered, 1 open** ⚠️ *§18 closed early — corrected in §19–§20* |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
@@ -700,3 +700,132 @@ remains the highest-value next step. Items 4 and 5 are **credential/charge gates
 prove** — they should ride along with it rather than becoming a third pass.
 
 **⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
+
+---
+
+## 19 · ⚠️ THE AUDIT WAS CLOSED TOO EARLY — three pages the self-check couldn't see
+
+§18 declared the pass closed. Re-deriving the tally **the way the brief requires** (a summary is a claim)
+showed the count of **20** was arithmetically right — 5+4+4+4+3 diff blocks — and **still wrong as a coverage
+claim**, because it counted *diff blocks* and never asked **which wireframes they covered**.
+
+⚠️ **THE SELF-CHECK VERIFIED THE WRONG DIRECTION.** It confirmed *every DONE row has evidence* — true — but
+never *every owed row is DONE*. Those are different claims, and only the second is coverage. Three pages fell
+through the gap:
+
+| Page | Why it was invisible to the self-check |
+|---|---|
+| **`/book/{property}` (Browse)** | ⚠️⚠️ its wireframe was consumed as the **harness probe** (§1: *"`Guest Browse.html` renders 1,931 chars"*) — so the name appeared in the report, "covered" to any grep, and the **page itself was never diffed**. The anonymous storefront entry: the highest-stakes surface in this audit. |
+| **`/guest/reservation/{r}/receipt`** | quoted in §3 as *pricing evidence*, never diffed against `Guest Folio Receipt.html` |
+| **`/guest/home`** | in `route:list`, in **no ledger row at all** |
+
+*A wireframe used to prove an instrument is not a wireframe that was audited.* Consuming it for the harness is
+exactly what made it look done.
+
+### 19.1 · `/book/{property}` vs `Guest Browse.html` + `Guest Booking.html` — ⚠️ TWO STATES, and the first one nearly broke the audit's headline check
+
+⚠️⚠️ **THE DATELESS STATE INVALIDATED MY OWN LEAK PROBE.** Opened bare, `/book/seaside-demo` renders **323
+chars** of a date-gated empty state — *"Pick dates above to see availability & prices"*, room names, and
+**zero prices** (`money: []`). My leak probe returned all-null against that — and **all-null on a page that
+rendered almost no data is worth nothing**. It is the probe rule failing on the single highest-stakes check
+here, and it would have shipped as *"the anonymous surface leaks nothing."*
+
+Re-run **with dates supplied**, so the page is capable of a positive:
+
+| State | Chars | Real data rendered |
+|---|---|---|
+| dateless | 323 | ⚠️ none — `PICK DATES`, no prices |
+| **`?check_in=2026-09-20&check_out=2026-09-23&adults=2`** | **596** | ✅ **€85.00/night · €373.65 total** · **€180.00/night · €724.20 total** · `★ 5 · 1 review` / `★ 4.5 · 6 reviews` · **`1 left` / `2 left`** real availability |
+
+**Only against that** is the leak assertion evidence — and it is clean on all five classes:
+
+| Leak class | Result on the **priced** page |
+|---|---|
+| Guest PII (emails / phones / other guests' names) | ✅ **none** |
+| Owner financials (net · commission · statement · payout · IBAN) | ✅ **none** |
+| Operator internals (margin · housekeeping · staff · role · organization) | ✅ **none** |
+
+✅ **THE ANONYMOUS SURFACE LEAKS NOTHING — now properly evidenced, positive-first.**
+
+**⚠️ And the filters were never missing — they are date-gated.** The dateless state shows no sort and no
+filters; the searched state renders **Recommended · Top rated · Price ↑ · Price ↓ · BEDROOMS · AMENITIES
+(8 real) · MAX PRICE** — i.e. `Guest Booking.html`'s entire results apparatus is **built**. Filing those from
+the first render would have been a phantom gap: **DOM-absence ≠ capability-absence, caught live.**
+
+| Wireframe (`Browse` + `Booking`) | Live | Verdict |
+|---|---|---|
+| Search: WHERE / WHEN / GUESTS | ✅ + **ADULTS / CHILDREN steppers** | **MATCH +** (finer than the wireframe) |
+| Sort · BEDROOMS · AMENITIES · MAX PRICE | ✅ all present in the searched state | **MATCH** |
+| Room cards: name, type, sleeps, rating, price, total | ✅ all **real** | **MATCH** |
+| Availability (`1 left` / `2 left`) | ✅ real | **MATCH +** — not in the wireframe |
+| `Select` → | `Reserve` | **MATCH** (⚠️ **not pressed** — UNVERIFIED-WITHOUT-MUTATION) |
+| **`List` / `Map` toggle** | absent | **MISSING-candidate** (map view; no geo data modelled) |
+| Multi-property collection: Faro/Lagos/Tavira, "3 villas", "from €110", featured stays, category tiles | single-property | ✅ **RATIFIED KIND-3** — register line 14 |
+| **"4.8 across 369 stays"**, "124 reviews" | real counts (★5 · 1 review) | ✅ **HONEST** — the prototype's aggregates are invented (#39) |
+
+**Price composition — the third independent confirmation of the two conventions (§11).** €373.65 =
+room **€255.00** (3 × €85) + **VAT €58.65** (23% of the room) + **city tax €15.00** + **cleaning €45.00**.
+VAT is charged on the room line only, and is **added**, not included.
+
+### 19.2 · `/guest/reservation/{r}/receipt` vs `Guest Folio Receipt.html` — wf 737 / live 410
+
+| Wireframe | Live | Verdict |
+|---|---|---|
+| Header, reference, stay dates, paid state | ✅ real (`R-E2AZQ1NX` · 5→8 Sep 2026 · **Balance settled**) | **MATCH** |
+| Charge lines | ✅ **Room stay €300.00 · VAT €69.00 · Subtotal €369.00** | **MATCH** — reconciles (below) |
+| Document downloads | ✅ **Folio receipt PDF · VAT invoice PDF · Statement of account PDF** | **MATCH +** — three real artifacts |
+| **`Visa ····4242`** | absent | ✅ **RATIFIED REFUSAL** — no card vault, register line 14 |
+| **Per-payment rows** (`Booking.com · prepaid €480.00`, `Visa · €229.00`) | only a scalar **`Total paid`** | **DIVERGENCE (minor)** — see below |
+| Letterhead (address, `VAT PT 512 034 776`), `RECEIPT NO.`, `Email me a copy`, `Message the property` | absent | **MISSING-candidate** (present on the **PDF**, which carries the letterhead) |
+| `of which VAT · 6%` (**VAT-INCLUSIVE** framing) | `VAT €69.00` **added**, 23% | ⚠️ **DIVERGENCE — the two conventions again** (§11) |
+
+**⚠️ The per-payment row nearly became a false finding, twice over.** The reservation has **exactly one
+payment**, so a one-row list and a scalar total render identically — I could not tell them apart from the DOM.
+Reading the view settles it: `receipt.blade.php:28` `@forelse ($folio['lines'] …)` loops **charges**, and
+`Total paid` is a **scalar** — there is no payment loop at all. So it is a **real divergence, not
+data-dependence** — but note part of what the wireframe shows there (`····4242`) is itself a **ratified
+refusal**, so this is "no per-payment breakdown", not "the card vault is missing."
+
+**Money chain, read-only, on this reservation:** `folio_items` **2 rows, Σ 36,900** = `folios.total_minor`
+**36,900** = displayed **€369.00** ✅ (#17 holds; Room €300 + VAT €69, 23% exactly).
+
+### 19.3 · `/guest/home` — an inventory omission with an explanation, not a page
+
+`GuestHomeController@index` is `return redirect()->route('guest.trips')`. That is why it rendered **431 chars,
+identical to `/guest/trips`**. ⚠️ I noticed the identical count and nearly recorded a duplicate diff — the
+route is an **alias**, owed no diff of its own. It was still missing from the ledger, which is the omission.
+
+---
+
+## 20 · ⚠️ CORRECTED COVERAGE — derived per wireframe, not counted from diff blocks
+
+| | |
+|---|---|
+| Guest wireframes | **32** |
+| ✅ Covered | **29** (22 pages browser-diffed + 6 money artifacts + 1 as a searched state) |
+| ⛔ Adjudicated, no route | **2** — ID Verification (account-gated KYC) · Referral Landing (DON'T-BUILD-as-drawn) |
+| ⚠️ Open | **1** — **Guest Verify Email** |
+| Unaccounted | **0** |
+
+**⚠️ The one open row, stated exactly.** `/guest/claim/verify/{guest}/{hash}` was **negative-probed only** — a
+forged hash returns **403**. The positive requires a real emailed link, which only a mutation produces. It is
+**UNVERIFIED-WITHOUT-MUTATION**, not diffed, and must not be read as covered.
+
+**Routes with no wireframe:** `/book/{property}/confirmation/{quote}` · `/book/{property}/reservation/{quote}`
+— still **structurally unverifiable read-only** (they need a quote id only a booking creates).
+
+### ⚠️ 20.1 — the corrected close-out (replaces §18's tally)
+
+| Check | §18 said | **Corrected** |
+|---|---|---|
+| Pages browser-diffed | 20 | **22** + 6 artifacts |
+| Wireframe coverage | *not asked* | **29 / 30 owed**, 1 open, 0 unaccounted |
+| Captures on disk | 21 | **25**, re-counted |
+| Findings | 5 | **5** (GUEST-F5; §19's items are divergences/candidates within existing classes) |
+| Auditor self-corrections | 5 | **8** — +§19 the harness-consumed wireframe · +**the dateless leak probe** · +the home/trips duplicate |
+| Mutations exercised | 0 | **0** |
+| Money as-seeded | byte-identical | **byte-identical** |
+
+⚠️ **The most valuable finding of this batch is about the method, not the build:** *a page named in a report is
+not a page audited*, and *a self-check that only validates its own DONE rows can never discover a row that was
+never opened.* Coverage must be derived from the **inventory**, page by page — the direction §18 skipped.
