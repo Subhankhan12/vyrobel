@@ -137,6 +137,11 @@ Accountant but NOT Hotel Manager** — a deliberate split, and a good probe for 
 | 14–20 | 7 further pages | mapped | **ACCESS-MATRIXED** (per-role reachability proven; element diff REMAINING) |
 | 21–50 | the rest | mostly mapped | **REMAINING** |
 
+> ⚠️ **THE TABLE ABOVE IS THE RUN-1 LEDGER AND IS SUPERSEDED.** Its "REMAINING" rows and its 50-page
+> denominator were both overtaken — see the complete 52-page ledger in run 29 and the derived denominator
+> (54 GET `/app` URIs − 2 aliases). **Kept, not deleted**, because the audit's record of what it believed at
+> run 1 is part of the evidence; a reader must not mistake it for current status.
+
 ⚠️ **Routes with no obvious wireframe** (noted, not assumed missing): `/app/email-previews`,
 `/app/guest-requests`, `/app/unit-requests`, `/app/notification-preferences`, `/app/security/export`,
 `/app/reports/export`, `/app/maintenance/costs/export`, `/app/schedule/pdf`, `/app/owners/invite/preview`.
