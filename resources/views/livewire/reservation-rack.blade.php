@@ -43,12 +43,18 @@
                         </select>
                     </form>
                 @endif
-                {{-- NEW RESERVATION — hidden when the workspace is read-only (writes are off when paused) --}}
+                {{-- NEW RESERVATION — hidden when the workspace is read-only (writes are off when paused).
+                     ⚠️ OPERATOR FIX 1 (audit Finding 2) — ALSO gated on `reservations.create`, the permission
+                     its target route requires. It was `! $readOnly` only, so a role without the permission was
+                     offered a button that 403s. The same control on `/app/reservations` is already
+                     permission-wrapped already — this reuses that sibling's gate (#30, §N.8f). --}}
                 @if (! $readOnly)
+                    @can('reservations.create')
                     <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}&new=1">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                         New reservation
                     </a>
+                    @endcan
                 @endif
             </div>
         </div>
@@ -62,7 +68,11 @@
              (GET "Check rack") → the REAL available units (UnitAvailabilityService) → pick one → Confirm = a POST
              to the certified ReservationCreateController → AssignmentService::createBooking (row-lock non-overlap)
              + the real confirmation email. The client NEVER sends a price (the server re-derives the total). --}}
-        @if (! $readOnly && $newRes['open'] && $property !== null)
+        {{-- ⚠️ OPERATOR FIX 1 (audit Finding 2, extended) — the MODAL is the real write surface: it holds a
+             form posting to `app.reservations.store`, which requires `reservations.create`. Gating only the
+             button left `?new=1` open to any role, so the permission is checked here too, not just on the
+             affordance that reveals it. --}}
+        @if (! $readOnly && $newRes['open'] && $property !== null && auth()->user()?->can('reservations.create'))
             <div x-data="{ open: true, dirty: false, gf: @js($newRes['form']['guest_first']), gl: @js($newRes['form']['guest_last']), adults: {{ (int) $newRes['form']['adults'] }}, source: '{{ $newRes['form']['source'] }}', sel: '', selTotal: '', selLabel: '', close() { this.open = false; history.replaceState({}, '', location.pathname + '?start={{ $window['start'] }}&days={{ $window['selected_days'] }}'); } }" x-cloak>
                 <div class="vy-modal-backdrop" x-show="open" @click="close()" style="z-index:60"
                      x-transition.opacity>

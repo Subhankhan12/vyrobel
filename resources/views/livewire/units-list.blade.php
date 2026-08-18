@@ -106,7 +106,14 @@
             </div>
 
             {{-- ROOM-TYPE PHOTOS — real uploads (secure: images only, size-limited, generated filenames).
-                 Photos attach to the room-type (what the storefront sells); unit cards derive their cover. --}}
+                 Photos attach to the room-type (what the storefront sells); unit cards derive their cover.
+                 ⚠️ OPERATOR FIX 1 (audit Finding 6) — every control in this card (Add photo · set cover ·
+                 reorder · remove) posts to `room-types.photos.*`, which require `units.manage`. The card
+                 carried NO guard, so all 11 back-office roles were offered writes that 403. Gated on the
+                 permission the routes themselves require (#30 — gate the CONTROL too).
+                 ⚠️ NOT `$canManageRates`: that flag is `rates.manage` and correctly guards the unrelated
+                 "Price individually" button above — swapping it would have broken a correct gate. --}}
+            @if ($canManageUnits ?? false)
             <div class="vy-card vy-fade" style="margin-top:16px;">
                 <div class="vy-detail-head" style="margin-bottom:6px;">
                     <h2 class="vy-card-title">Room-type photos</h2>
@@ -149,6 +156,8 @@
                     </div>
                 @endforeach
             </div>
+            @endif
+
         @endif
 
     </x-operator.shell>

@@ -53,10 +53,15 @@
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    {{-- ⚠️ OPERATOR FIX 1 (audit Finding 4) — gated on the SAME condition that wraps the
+                         composer this anchor targets. Ungated it was a DEAD affordance: an unentitled role
+                         clicked "Add update" and scrolled to a read-only timeline with no composer. --}}
+                    @if ($canManage && ! $readOnly)
                     <a href="#wo-composer" class="vy-btn vy-btn--ghost" style="padding:9px 16px;font-size:12.5px;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
                         Add update
                     </a>
+                    @endif
                     @if ($ticket['can_start'] && ! $readOnly)
                         <form method="POST" action="{{ route('app.maintenance.start', $ticket['id']) }}" style="margin:0;">
                             @csrf

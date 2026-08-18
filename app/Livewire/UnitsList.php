@@ -111,6 +111,11 @@ class UnitsList extends Component
                     'name' => (string) ($u['name'] !== null && $u['name'] !== '' ? $u['name'] : $u['code']),
                 ])->values()->all())->all(),
             'canManageRates' => (bool) auth()->user()?->can('rates.manage'),
+            // ⚠️ OPERATOR FIX 1 (audit Finding 6) — the room-type PHOTO controls post to
+            // `room-types.photos.*`, which require `units.manage`, NOT `rates.manage`. They carried no
+            // guard at all, so every back-office role rendered them. Computed the same way as the rates
+            // flag above so the view gates each control on the permission its OWN route requires (#30).
+            'canManageUnits' => (bool) auth()->user()?->can('units.manage'),
             'roomTypes' => $roomTypes,
             'summary' => [
                 'total' => $models->count(),

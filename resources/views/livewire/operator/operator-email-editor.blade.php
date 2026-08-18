@@ -25,15 +25,26 @@
                 <div class="vy-ee-sub">{{ $catalog['trigger'] }} · via {{ $catalog['channel'] }}@if ($lastEdited) · {{ $lastEdited }}@endif</div>
             </div>
 
-            <div class="vy-ee-actions">
-                <button type="submit" form="vy-ee-test" class="vy-btn vy-btn--ghost vy-ee-btn">Send me a test</button>
-                <button type="submit" form="vy-ee-save" class="vy-btn vy-btn--accent vy-ee-btn">Save template</button>
-            </div>
+            {{-- ⚠️ OPERATOR FIX 1 (audit Finding 5) — both controls submit to routes requiring
+                 `properties.manage`. This page carries NO route gate, so every back-office role reached it
+                 and was offered two writes that 403. The sibling LIST page already gates its edit/toggle
+                 controls this way and asserts it in OperatorEmailTemplatesTest — same pattern (#30, §N.8f). --}}
+            @can('properties.manage')
+                <div class="vy-ee-actions">
+                    <button type="submit" form="vy-ee-test" class="vy-btn vy-btn--ghost vy-ee-btn">Send me a test</button>
+                    <button type="submit" form="vy-ee-save" class="vy-btn vy-btn--accent vy-ee-btn">Save template</button>
+                </div>
+            @endcan
         </div>
 
         <div class="vy-email-editor" x-data>
             {{-- ── LEFT: the editor form ─────────────────────────────────────────────────────────── --}}
             <div>
+                {{-- ⚠️ OPERATOR FIX 1 (audit Finding 5, extended) — the FORM is gated, not merely its submit
+                     buttons: a single-line input submits its form on Enter, so leaving the form rendered kept
+                     the 403 invitation alive with the buttons hidden. An unentitled role now gets the live
+                     preview and no editable surface at all. --}}
+                @can('properties.manage')
                 <form id="vy-ee-save" method="POST" action="{{ route('app.email-templates.save', $templateKey) }}">
                     @csrf
 
@@ -93,12 +104,15 @@
                         <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 22px;">Save template</button>
                     </div>
                 </form>
+                @endcan
 
+                @can('properties.manage')
                 {{-- Test send — separate form; sends the SAVED template to your own inbox (Save first). --}}
                 <form id="vy-ee-test" method="POST" action="{{ route('app.email-templates.test', $templateKey) }}" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                     @csrf
                     <span style="font-size: 11.5px; color: var(--vy-faint);">“Send me a test” delivers the SAVED version to your own address — save your changes first.</span>
                 </form>
+                @endcan
             </div>
 
             {{-- ── RIGHT: the live preview ──────────────────────────────────────────────────────── --}}
