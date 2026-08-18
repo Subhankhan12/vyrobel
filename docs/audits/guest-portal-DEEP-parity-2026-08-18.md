@@ -1049,3 +1049,90 @@ charge chain**, together with the five other mutation-gated paths (§22.2). `boo
 (reservation+folio) → reserve (the UI path) — rather than attempted as one atomic step.
 
 **⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
+
+---
+
+## 26 · ⚠️ THE EVIDENCE INDEX — which this deliverable was missing entirely
+
+Running this audit's **own** self-check mechanically (rather than asserting it) found a real defect in the
+report: **26 captures existed on disk and the report cited ZERO of them.** Every per-page section said a
+screenshot was taken; **not one path was written down**, so a reader could not locate the evidence for any page.
+
+⚠️ **And §22.1's self-check verified the wrong direction — again.** It recorded *"Captures on disk ✅ 26,
+re-counted"*, which is true and **irrelevant**: counting files on disk proves nothing about whether the report
+references them. This is the **same error shape as §19** (verifying DONE rows have evidence, never that owed
+rows were done) — recurring in the same deliverable after being named in it. *A self-check must run in the
+direction of the claim being made.*
+
+| # | Capture (`.captures/`) | Page | § |
+|---|---|---|---|
+| 01 | `deep-guest-01-trips-live.png` | `/guest/trips` | §6.1 |
+| 02 | `deep-guest-02-reservation-live.png` | `/guest/reservation/{r}` | §6.2 |
+| 03 | `deep-guest-03-payments-live.png` | `/guest/payments` | §6.3 |
+| 04 | `deep-guest-04-account-live.png` | `/guest/account` | §6.4 |
+| 05 | `deep-guest-05-roomdetail-anon.png` | `/book/…/rooms/{roomType}` **(anon)** | §6.5 |
+| 06 | `deep-guest-06-home-live.png` | `/guest/home` | §19.3 |
+| 07 | `deep-guest-07-messages-live.png` | `/guest/messages` | §9.1 |
+| 08 | `deep-guest-08-help-live.png` | `/guest/help` | §9.2 |
+| 09 | `deep-guest-09-saved-live.png` | `/guest/saved` | §9.3 |
+| 10 | `deep-guest-10-wallet-live.png` | `/guest/wallet` | §9.4 |
+| 11 | `deep-guest-11-checkout-anon.png` | `/book/{property}/checkout` **(anon)** | §10.1 |
+| 12 | `deep-guest-12-addons-live.png` | `…/extras` | §10.2 |
+| 13 | `deep-guest-13-manage-live.png` | `…/manage` | §10.3 |
+| 14 | `deep-guest-14-checkin-live.png` | `…/check-in` | §10.4 |
+| 15 | `deep-guest-15-arrival-live.png` | `…/arrival` (#33 pre-window) | §13.2 |
+| 16 | `deep-guest-16-review-live.png` | `…/review` | §13.3 |
+| 17 | `deep-guest-17-login-anon.png` | `/guest/login` **(anon)** | §13.4 |
+| 18 | `deep-guest-18-claim-anon.png` | `/guest/claim` **(anon)** | §13.4 |
+| 19 | `deep-guest-19-forgot-anon.png` | `/guest/forgot-password` **(anon)** | §15 |
+| 20 | `deep-guest-20-claimsent-anon.png` | `/guest/claim/sent` **(anon)** | §15 |
+| 21 | `deep-guest-21-thread-live.png` | `/guest/messages/{thread}` | §15 |
+| — | **22 — deliberately absent** | `…/pay` is **POST-only (405)**; no page, **no capture owed** | §17.1 |
+| 23 | `deep-guest-23-browse-anon.png` | `/book/{property}` **dateless state (anon)** | §19.1 |
+| 24 | `deep-guest-24-home-live.png` | `/guest/home` (re-verified) | §19.3 |
+| 25 | `deep-guest-25-receipt-live.png` | `…/receipt` | §19.2 |
+| 26 | `deep-guest-26-browse-priced-anon.png` | `/book/{property}` **PRICED state (anon)** — the leak probe's positive | §19.1 |
+| 27 | `deep-guest-27-verify-live.png` | `/guest/claim/verify/{guest}/{hash}` (valid signature) | §21 |
+
+**All 26 files verified present and non-zero on disk** (233 KB – 539 KB). The numbering gap at 22 is explained
+above, not a lost file.
+
+**⚠️ An incidental corroboration.** `01-trips-live`, `06-home-live` and `24-home-live` are **byte-identical in
+size (353,863)** — independent evidence for §19.3's finding that `/guest/home` is a redirect to `/guest/trips`,
+arrived at from the filesystem rather than the controller.
+
+### 26.1 · ⚠️ SELF-CORRECTION #10 — a third false finding from a needle/pattern mismatch
+
+The same mechanical check reported **`§15.1` and `§15.2` referenced but non-existent**. **False.** Both exist
+(lines 594, 610); my heading pattern required a digit immediately after `### `, and those headings carry a ⚠️
+prefix. Re-run correctly, **all 38 § references resolve**.
+
+⚠️ **That is the THIRD false finding in this audit produced by a pattern not matching what it was aimed at** —
+after the `signed` middleware **alias vs resolved class** (§21.1, which would have been a false *critical
+security* finding) and the year-matching door-code regex (§14). *When a check greps for a name, the name it
+greps for and the name the system emits are two different things — and the failure mode is a confident false
+positive, not a blank.*
+
+---
+
+## 27 · CLOSING STATUS (re-derived a final time)
+
+| Check | Result |
+|---|---|
+| Wireframe coverage | ✅ **30 / 30 owed** · 0 open · 0 unaccounted |
+| Route coverage | ✅ **34 / 34 GET** accounted (30 diffed · 4 non-diffable, each with a recorded reason) |
+| Write routes | ✅ **29 surfaced · 0 exercised** |
+| **Evidence index** | ✅ **26 captures, every one cited (§26) and verified present + non-zero** |
+| § cross-references | ✅ **38 / 38 resolve** |
+| Perimeter | ✅ anonymous leak (on the **priced** state) · guest isolation (pages · artifacts · threads · pay route) · #33 pre-window · signed-URL refusal **with a positive control** |
+| Money chain | ✅ reconciles on seeded folios (`folio_items` Σ = `folios.total_minor` = displayed) |
+| Money as-seeded | ✅ **byte-identical** — 929 / 10,912,000 / 0 / 41 / 16 / 0 / 40 / **0 quotes** / 10 / 0 |
+| Mutations | ✅ **0** |
+| Findings | **5** + the §23 canon-premise correction |
+| Auditor self-corrections | **10** |
+
+**⚠️ THE ONE THING NOT VERIFIED**, stated plainly: the **reserve → folio → charge chain** and the five other
+mutation-gated paths (§22.2). `book()` remains **UNVERIFIED-WITHOUT-MUTATION**. §23 shows that proof can be
+**staged** — `quote` (no money) → `book` (reservation + folio) → `reserve` (the UI path).
+
+**⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
