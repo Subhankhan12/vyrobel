@@ -12911,3 +12911,52 @@ backing is worse than its absence:
 
 Each needs a **backend built first** (a real bulk-approve action; an expense-media capture path). Both are
 deferred **product decisions**, not launch work.
+
+---
+
+## 2026-08-18 — OPERATOR FIX 1 · the control-gate sweep (audit Findings 2·4·5·6·7) · `efd6299`
+
+Branch `fix/operator-control-gates`. Closes the five affordance defects from
+`docs/audits/operator-portal-DEEP-parity-2026-08-18.md`: the route was correctly gated, the **control that
+advertises it** was not. Bounded by audit run 34 to affordance level (116/116 operator writes controller-routed,
+0/37 Livewire components expose a mutating action) — **misleading UI, never privilege escalation**.
+
+⚠️ **CONFIRM-FIRST OVERTURNED TWO OF THE AUDIT'S OWN FINDINGS — the code decided, not the register.**
+
+- ⚠️ **Finding 6 was an ADD, not the recorded SWAP.** The audit said the photo controls were *"guarded by
+  `$canManageRates` while the routes need `units.manage`"*. They carried **no guard at all**; `$canManageRates`
+  (line 83) guards an unrelated **"Price individually"** rates button — **correctly**. **Performing the
+  instructed swap would have broken a correct gate while leaving the photo controls exposed.** Fixed by adding
+  a `canManageUnits` flag (computed exactly as `canManageRates` is) and gating the photos card on
+  `units.manage`. A test asserts *"Price individually" survives for Revenue Manager* — that assertion is what
+  makes this an add rather than a swap, and it **reds** if the swap is performed.
+- ⚠️ **Finding 7 was FALSE.** Approve/Decline already sit inside `@if ($canManage)` where
+  `$canManage = can('units.manage')` (`OperatorUnitRequests.php:37`). The audit's file-level grep missed it
+  because the view uses the **component-computed flag**, not a `@can` literal. No fix; a test now **pins** the
+  existing gate, which run 38 had recorded as untested.
+
+⚠️ **The tests then found two gaps the audit itself missed — both the same class:**
+
+- **Finding 2 extended — a gated button is not a gated surface.** The New-reservation **modal** holds the form
+  posting to `reservations.store` and was reachable by any role via `?new=1`. The permission is now checked on
+  the modal, not only on the affordance that reveals it.
+- **Finding 5 extended — a gated button is not a gated form.** A single-line input **submits its form on
+  Enter**, so hiding the buttons left the 403 invitation alive. The editable form is gated as a whole.
+
+**Fixed:** `reservation-rack` (button + modal · `reservations.create`) · `maintenance-ticket-detail`
+(`Add update` anchor · the same `$canManage && ! $readOnly` that wraps its own composer — it was a dead
+affordance scrolling to a read-only timeline) · `operator-email-editor` (save form, test form, header actions ·
+`properties.manage`) · `units-list` + `UnitsList` (photos card · `units.manage`).
+
+**Every fix carries a who-may-see assertion** (`OperatorControlGateTest`, 5 tests / 50 assertions), each with a
+**positive control first** so a vacuous absence cannot pass. Roles rendered via `operatorUser($s, [], '<Role>')`
+— **including Revenue Manager, which no seeded demo account can stand in for** and which is the only role
+separating `rates.manage` from `units.manage`. **8 of 8 mutations land.**
+
+⚠️ **A first mutation pass was VACUOUS and nearly shipped as proof:** four of five `--filter` strings matched
+**zero tests**, and a *"no tests found"* run reports failure — indistinguishable from a red assertion. **Verify
+a filter matches before believing what its red means.**
+
+Suite **2446 / 15687** · PHPStan L5 **0** · Pint clean. No product logic, route gate, mutation or PII surface
+touched; money + inventory as-seeded (`693e3237…` / 929 / 10,920,000 / 0 / 41 / 0 seasons).
+**Not pushed** — OP-FIX-2 (Finding 1 route gates) and OP-FIX-3 follow on their own branches.
