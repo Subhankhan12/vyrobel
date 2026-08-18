@@ -24,7 +24,7 @@ payments · **0** anonymized guests · users/role-assignments untouched.
 
 | # | Severity | Where | What | Who it affects |
 |---|---|---|---|---|
-| **1** | ⚠️ **highest** | `routes/web.php` — **25 of 54** GET `/app` routes carry no `Authorize:` | Org data readable with no permission check. `/app/owners/{owner}` renders **€4,653.60 gross · €2,804.40 commission · statements · payouts + an owner's email address**; `/app/reservations/{r}` renders folio money | ⚠️ **all 11 back-office roles** |
+| **1** | ⚠️ **highest** | `routes/web.php` — **25 of 54** GET `/app` routes carry no `Authorize:`; **23 return 200** to the least-privileged role, **11 render money**, **2 return a money/security artifact** (run 36, measured) | `/app/owners/{owner}` → **€4,653.60 · €2,804.40 · statements · payouts + an owner email** · `/app/payouts/run` · `/app/email-previews/{key}` (**real booking money in a "preview"**) · `/app/security/export` (**JSON security export**) · folio money | ⚠️ **all 11 back-office roles** |
 | **5** | high | `operator-email-editor.blade.php` (view has **no `@can` at all**) | Page ungated; renders **`Save template`**, **`Send me a test`**, merge-tags, 3 toggles — all pointing at `properties.manage` endpoints | ⚠️ **all 11 roles** |
 | **6** | ⚠️ high | `units-list.blade.php:83` + `UnitsList.php:113` | Photo controls guarded by **`rates.manage`**; the routes require **`units.manage`**. A gate on the **wrong permission** — fails **both** directions | **Revenue Manager** (sees → 403). Over-hidden direction latent |
 | **7** | medium | `unit-requests` view (no guard) | Page gated `units.view`; Approve/Decline require `units.manage` | Revenue Manager · Front Desk · Maintenance · **Housekeeping** |
@@ -2966,6 +2966,75 @@ Pages diffed **52 of 52** + 2 data-states · findings **7** (all bounded as affo
 missing regression guards **1** · Livewire components swept **37** · operator write paths verified routed
 **116 of 116** · roles rendered 4 of 11 · derived 11 of 11 · inventory corrections 8 ·
 auditor self-corrections 12 · mutations surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
+# RUN 36 — ⚠️ FINDING 1 CARRIED TWO NUMBERS IN THIS DOCUMENT. MEASURED ONCE, DEFINITIVELY.
+
+## ⚠️ The contradiction I shipped
+
+The rewritten header said **25 ungated routes**. Run 13's block said **13, and called itself definitive**.
+Both survived into a document whose entire discipline is *one authoritative figure per fact* — and neither
+sentence acknowledged the other. ⚠️ **Two numbers for one finding is the exact failure this audit corrected
+five times elsewhere**, and I introduced a sixth while writing the summary that was supposed to end them.
+
+They are not contradictory once decomposed — **they count different things** — but nothing said so:
+
+- **25** = routes with no `Authorize:` middleware (structural, from `route:list`).
+- **13** = routes that *returned 200 to Housekeeping* in run 13 — a sweep that **could not fetch a
+  parameterised URI** (run 28) and therefore silently omitted 7 of the 25.
+
+## ⚠️ MEASURED: all 25, as Housekeeping (4 permissions), ids substituted
+
+| Route | Status | Money rendered in content |
+|---|---|---|
+| `/app/owners/{owner}` | 200 | ⚠️ **€4,653.60 · €2,804.40 · €885.60 · €1,080.00** |
+| `/app/payouts/run` | 200 | ⚠️ **€885.60 · €2,804.40 · €442.80 · €656.00** |
+| `/app/reservations` | 200 | €738.00 · €184.50 · €1,082.40 |
+| `/app/notifications` | 200 | €332.10 · €721.60 · €467.40 |
+| `/app/email-previews/{key}` | 200 | ⚠️ **€540.00 · €124.20 · €664.20** |
+| `/app/reservations/{reservation}` | 200 | €300.00 · €69.00 · €369.00 |
+| `/app/maintenance` | 200 | €180.00 · €45.00 · €100.00 |
+| `/app/dashboard` | 200 | €113.33 · €100.00 |
+| `/app/owners` | 200 | €885.60 |
+| `/app/front-desk` | 200 | €140.00 |
+| `/app/email-templates/{key}/edit` | 200 | €0.00 |
+| `/app/reservations/{r}/folio.pdf` | 200 | ⚠️ **`application/pdf`** — a real folio document |
+| `/app/security/export` | 200 | ⚠️ **`application/json`** — a security export |
+| `/app/calendar` · `/app/rack` · `/app/housekeeping` · `/app/maintenance/{ticket}` · `/app/units` · `/app/profile` · `/app/security` · `/app/notification-preferences` · `/app/email-previews` · `/app/email-templates` | 200 | — |
+| `/app/channels` | **403** | refused by `EnsurePlanFeature` (plan, not permission) |
+| `/app/inbox/{thread}` | **403** | refused by its **redirect target** (`/app/inbox` is `guests.view`-gated) |
+
+## ⚠️ THE ONE AUTHORITATIVE STATEMENT OF FINDING 1
+
+> **25 GET `/app` routes carry no permission gate. 23 of them return 200 to the least-privileged seeded role.
+> 11 render money in page content; 2 more return a money/security ARTIFACT (`folio.pdf`, `security/export`).
+> The 2 that refuse do so for reasons unrelated to permissions — a plan gate and a redirect target.**
+>
+> ⚠️ And per run 32: a missing gate does not discriminate between actors, so this is reachable by **all 11
+> back-office roles**, not by Housekeeping alone.
+
+**Both earlier figures are SUPERSEDED**: "13 definitive" (run 13 — measured, but over an incomplete set) and
+the bare "25" (structural, never reconciled to behaviour). ⚠️ **Run 13 was not wrong; it was BOUNDED, and it
+did not say so.** A measurement that omits part of its domain and reports a clean total is more dangerous
+than one that fails loudly.
+
+## ⚠️ Two exposures this reconciliation surfaced that no page-diff had
+
+- **`/app/email-previews/{key}` renders REAL booking money** (€540.00 · €124.20 · **€664.20**) to a role with
+  4 permissions. It reads as a harmless template preview; it is populated from real data.
+- **`/app/security/export` returns `200 application/json`** to Housekeeping — a **security-events export**,
+  reachable with no permission gate. Run 20 diffed the security *page*; the export endpoint's per-role
+  reachability had only ever been recorded as a status, never as *what it is*.
+
+⚠️ Both were inside the 25 the whole time. **They surfaced only when the routes were measured for CONTENT
+rather than for status** — a 200 tells you a page rendered, not what it handed over.
+
+## Tally
+
+Findings **7** (Finding 1 now single-valued and measured) · ungated routes **25**, reachable **23**, money
+**11** + 2 artifacts · roles affected **11 of 11** · auditor self-corrections **13** · mutations
+surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
 
