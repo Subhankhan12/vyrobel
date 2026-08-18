@@ -25,7 +25,7 @@ payments · **0** anonymized guests · users/role-assignments untouched.
 | # | Severity | Where | What | Who it affects |
 |---|---|---|---|---|
 | **1** | ⚠️ **highest** | `routes/web.php` — **25 of 54** GET `/app` routes carry no `Authorize:`; **23 return 200** to the least-privileged role, **11 render money**, **2 return a money/security artifact** (run 36, measured) | `/app/owners/{owner}` → **€4,653.60 · €2,804.40 · statements · payouts + an owner email** · `/app/payouts/run` · `/app/email-previews/{key}` (**real booking money in a "preview"**) · `/app/security/export` (**JSON security export**) · folio money | ⚠️ **all 11 back-office roles** |
-| **5** | high | `operator-email-editor.blade.php` (view has **no `@can` at all**) | Page ungated; renders **`Save template`**, **`Send me a test`**, merge-tags, 3 toggles — all pointing at `properties.manage` endpoints | ⚠️ **all 11 roles** |
+| **5** | high | `operator-email-editor.blade.php` (view has **no `@can` at all**) | Page ungated; renders **`Save template`**, **`Send me a test`**, merge-tags, 3 toggles — all pointing at `properties.manage` endpoints. ⚠️ The **list** page gates its edit link correctly *and tests it* (run 38) — the **editor** does not gate its own controls, and a gated doorway is not a gated room | ⚠️ **all 11 roles** |
 | **6** | ⚠️ high | `units-list.blade.php:83` + `UnitsList.php:113` | Photo controls guarded by **`rates.manage`**; the routes require **`units.manage`**. A gate on the **wrong permission** — fails **both** directions | **Revenue Manager** (sees → 403). Over-hidden direction latent |
 | **7** | medium | `unit-requests` view (no guard) | Page gated `units.view`; Approve/Decline require `units.manage` | Revenue Manager · Front Desk · Maintenance · **Housekeeping** |
 | **2** | medium | `/app/calendar` → `New reservation` | Control without `@can`; route needs `reservations.create` | roles lacking `reservations.create` |
@@ -3121,6 +3121,77 @@ Findings 6 and 7 are the sixth and seventh members of that family, found the sam
 Findings **7**, none ratified, all confirmed at source · 1 verdict confirmed **against the canon**
 (`notification-preferences`) · auditor self-corrections **14** · missing regression guards **1** ·
 mutations surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
+# RUN 38 — WOULD ANY TEST HAVE CAUGHT THESE? · ⚠️ AND A CORRECTION TO RUN 37'S PHRASING
+
+Run 37 established that the suite can render all 11 roles. The completion of that question: **for each of the
+7 findings, does a test exist that would have caught it?** That separates *unguarded* from *merely undetected*.
+
+| Finding | Feature tested? | A test asserting WHO MAY SEE the control? |
+|---|---|---|
+| 1 · owners/{owner} ungated | 3 files | ⚠️ **no** |
+| 2 · calendar `New reservation` | 8 files | ⚠️ **no** |
+| 3 · schedule drag text | **none** | ⚠️ **no** |
+| 4 · work-order `Add update` | **none** | ⚠️ **no** |
+| 5 · editor `Save template` | 2 files | ⚠️ **no — but see the correction below** |
+| 6 · units photo controls | 1 file | ⚠️ **no** |
+| 7 · unit-requests Approve | 2 files | ⚠️ **no** |
+
+**Not one of the seven has a test that would fail if it regressed** — five have happy-path feature tests that
+exercise the action *as an entitled role*, and two have no test touching them at all.
+
+## ⚠️⚠️ CORRECTION TO RUN 37 — the #30 test EXISTS, and it is rigorous
+
+Run 37 wrote that the email-templates pass *"never asked the same question of the editor's own `Save
+template`"*. ⚠️ **Too strong, and unfair to the code.** I verified the mechanism instead of shipping the grep
+verdict, and `OperatorEmailTemplatesTest.php` contains this, in these words:
+
+> ⚠️ **Front Desk sees NO toggle and NO edit — the UI never offers a write the route would 403 (#30).**
+
+    $deskHtml = $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get(route('app.email-templates'))->assertOk()->getContent();
+    expect($deskHtml)->not->toContain(route('app.email-templates.toggle', 'booking-confirmation'))
+        ->and($deskHtml)->not->toContain('role="switch"');
+
+…plus a separate test proving the save route itself **403s for Front Desk** and writes no row.
+
+⚠️ **So the exact principle behind Finding 5 is understood, applied, and TESTED — on the LIST page.** What is
+uncovered is the **EDITOR page one click further in**, whose own `Save template` and `Send me a test` render
+for every role (measured, run 29).
+
+⚠️ **AND THE HIDDEN ENTRY POINT MAKES IT WORSE, NOT BETTER.** Because the list correctly hides the edit link
+from an unentitled role, the editor *looks* unreachable — but `/app/email-templates/{key}/edit` carries no
+gate, so a typed URL, a bookmark, a stale link or a browser autocomplete lands any of the 11 roles on a page
+offering two writes. **A gated doorway is not a gated room.**
+
+⚠️ §N.13.1, in its sharpest form yet: the defect does not sit beside a *flagged* thing — it sits beside a
+**correctly fixed and tested** thing. The neighbouring surface is the strongest evidence that the omission was
+an oversight of *scope*, not of principle.
+
+## ⚠️ And the probe that produced the table above nearly misled me
+
+My per-finding check grepped for the literal control name in the test files. For Finding 5 it returned
+*"asserts gate: NO"* — **substantively right** (no test covers the editor's Save) but one step from a summary
+sentence reading *"no gating test exists for email templates"*, which is **flatly false**.
+
+⚠️ **A per-control probe answers a per-control question, and its `NO` does not generalise to the surface.**
+Fifth instrument caution in this audit, and the reason run 37's claim got checked before this one shipped:
+**verify the mechanism, including your own** — the rule that has now corrected findings in both directions.
+
+## What this means for the fix pass
+
+The seven findings are **unguarded, not merely undetected** — closing them without adding the assertion leaves
+the next regression equally silent. The pattern to copy already exists, in the same repo, written by the same
+project: `OperatorEmailTemplatesTest`'s Front-Desk render assertion **is** the template for all seven, and
+run 37 established `operatorUser($s, [], '<Role>')` builds any of the 11 roles to write them with.
+
+## Tally — final
+
+Findings **7**, none ratified, **none covered by a test that would catch them** · auditor self-corrections
+**15** · missing regression guards **1** (+ 7 uncovered findings) · mutations surfaced/exercised 41 / **0** ·
+**code changed 0**.
 
 ---
 
