@@ -932,7 +932,7 @@ read-only.
 
 ---
 
-## 23 · ⚠️ THE CANON PREMISE IS IMPRECISE — the storefront is **three** write routes, not one
+## 23 · ⚠️⚠️ [RETRACTED IN §28 — THE CANON IS CORRECT] The storefront is three write routes, not one
 
 The brief's premise — *"the storefront is ONE POST (`booking.reserve` = `quote()` + `book()` in the same
 request), **so you CANNOT pull a quote without also creating the reservation+folio**"* — shaped this entire
@@ -1128,11 +1128,91 @@ positive, not a blank.*
 | Money chain | ✅ reconciles on seeded folios (`folio_items` Σ = `folios.total_minor` = displayed) |
 | Money as-seeded | ✅ **byte-identical** — 929 / 10,912,000 / 0 / 41 / 16 / 0 / 40 / **0 quotes** / 10 / 0 |
 | Mutations | ✅ **0** |
-| Findings | **5** + the §23 canon-premise correction |
-| Auditor self-corrections | **10** |
+| Findings | **5** (§23 was RETRACTED in §28) |
+| Auditor self-corrections | **11** |
 
 **⚠️ THE ONE THING NOT VERIFIED**, stated plainly: the **reserve → folio → charge chain** and the five other
-mutation-gated paths (§22.2). `book()` remains **UNVERIFIED-WITHOUT-MUTATION**. §23 shows that proof can be
-**staged** — `quote` (no money) → `book` (reservation + folio) → `reserve` (the UI path).
+mutation-gated paths (§22.2). `book()` remains **UNVERIFIED-WITHOUT-MUTATION**. ⚠️ §23's staged plan is **RETRACTED (§28.3)**; follow `DECISIONS.md:12147` — one
+type-only storefront booking through `booking.reserve` until a folio exists.
 
 **⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
+
+---
+
+## 28 · ⚠️⚠️ RETRACTION — §23's "canon premise correction" WAS WRONG. The canon is right.
+
+§23 filed the brief's *"the storefront is ONE POST"* as an imprecise premise, on the strength of `route:list`
+showing three booking writes. **I did not read the canon that the brief's own orientation step names.** Having
+read it, §23's framing is **retracted**. It is recorded here rather than deleted, because a retracted finding
+that quietly disappears is worse than one that was never filed.
+
+### 28.1 · What the canon actually says — and it is more precise than my finding
+
+`docs/DECISIONS.md:12602` (**D18-5 phase 3, 2026-08-17**) states it outright, and is itself a **correction of
+the very mistake I made, in mirror image**:
+
+> *"Both this brief and my own note on `5329211` recorded the storefront as TWO posts — `/checkout` mints the
+> quote, `/book` reserves and charges. **It is ONE.** `POST book/{property}/checkout` (`booking.reserve`) calls
+> `quote()` AND `book()` in the same request; the folio exists when it returns. **`booking.book` is a JSON API
+> returning `JsonResponse` that no view posts to** — grep `resources/views` and nothing comes back."*
+
+**Every part of that is verifiable, and I verified all three:**
+
+| Canon claim | My check | Result |
+|---|---|---|
+| No view posts to `booking.book` / `booking.quote` | `grep -rn` over `resources/views/` | ✅ **empty — confirmed** |
+| The storefront form posts to `booking.reserve` | `booking/checkout.blade.php:117` | ✅ **confirmed** |
+| `book()` demands a `payment_token` the storefront never sends | `book()` validation: `payment_token` ⇒ **`required`** | ✅ **confirmed** |
+
+**So `booking.quote` and `booking.book` are a JSON API surface no part of the guest UI uses.** The storefront —
+the thing this audit is about — **is genuinely ONE POST**, exactly as the brief said.
+
+### 28.2 · What survives of §23, stated narrowly
+
+Only this: the literal sub-inference *"you cannot pull a quote without also creating the reservation+folio"* is
+false **at the JSON API layer** — `booking.quote` persists a `booking_quotes` row with no reservation. The
+canon never claimed otherwise; it made a claim about **the storefront**, and that claim is correct. The gap was
+between the brief's compressed paraphrase and the canon's precise version — **not an error in the canon.**
+
+### 28.3 · ⚠️ AND MY STAGED-PROOF RECOMMENDATION WAS DEFECTIVE — retract that too
+
+§23 recommended staging the deferred money-path proof as `quote` → `book` → `reserve`. **Stage 2 cannot be
+driven the way I implied**: `book()` requires a `payment_token` the storefront never produces. Driving it would
+prove **a different path than the one guests actually use** — and `DECISIONS.md:12602` records that this exact
+mistake is why a previous attempt could not book at all: *"it posted to `/book`, which demands a
+`payment_token` the storefront never sends."*
+
+**The correct recommendation is the canon's, which already exists and which I should have surfaced instead of
+inventing one:** ⛔ *"THE NEXT ATTEMPT SHOULD START BY GETTING ONE TYPE-ONLY STOREFRONT BOOKING TO PRODUCE A
+FOLIO — no overrides, no unit, just the existing path — and only then add the unit."* (`DECISIONS.md:12147`.)
+That work also already has a green zero-movement assertion in the suite (a type-only booking writing a folio of
+`2 × €120.00`, D18-5 phase 3).
+
+### 28.4 · ⚠️ SELF-CORRECTION #11 — the most instructive one in this audit
+
+Two lessons, and the second is the one worth keeping:
+
+1. **`route:list` shows what EXISTS; it does not show what the UI USES.** An endpoint's existence is not
+   evidence of its role. Three routes in a table looked like three paths; two of them are an API no view
+   touches. **The view layer is the authority on which path is the product's.**
+2. ⚠️⚠️ **I skipped the orientation step and then "corrected" the canon with a finding the canon already
+   contained — in a passage that was itself the correction of my exact error, made in reverse.** The brief's
+   first instruction is to read `PROJECT-STATE` **and `DECISIONS`**. I read them for the audit's scope and not
+   for the booking model, then reasoned from a route table instead. *A confident finding against canon is the
+   strongest possible signal to go read the canon first.*
+
+**This does not change any page verdict, any perimeter result, any money figure, or any capture.** §23 was an
+addendum about the booking model, not a page diff. Every diffed row, the anonymous-leak result, the isolation
+results and the reconciliation stand unaffected.
+
+### 28.5 · Corrected status of the two claims
+
+| Claim | Status |
+|---|---|
+| "The canon premise is imprecise" (§23 headline) | ❌ **RETRACTED — the canon is correct and more precise than my finding** |
+| "A quote can be pulled without a reservation" | ⚠️ **True only of the JSON API**, which no view uses; irrelevant to the storefront |
+| "Stage the proof quote → book → reserve" (§23) | ❌ **RETRACTED — `book()` requires a `payment_token` the storefront never sends** |
+| **The deferred money-path proof** | ✅ **Follow `DECISIONS.md:12147`** — one type-only storefront booking through `booking.reserve` until a folio exists, then add the unit |
+| `book()` UNVERIFIED-WITHOUT-MUTATION | ✅ **unchanged — still the one thing this pass does not verify** |
+
+**Findings: 5 (unchanged). Auditor self-corrections: 11.**
