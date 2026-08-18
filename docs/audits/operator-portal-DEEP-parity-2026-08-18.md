@@ -71,8 +71,7 @@ second gate behind the page.
 
 **Tally:** findings **7** · honest refusals confirmed **34** · documented deferrals respected (incl. the
 seasonal apply-panel on `/app/rates`, and the no-show fee waiver — *no fee engine exists, locked decision 5*)
-· MISSING (frontend, minor) **1** (`Rebook guest`) · inventory corrections **8** · **auditor self-corrections
-12** · missing regression guards **1** · mutations surfaced/exercised **41 / 0** · **code changed 0**.
+· MISSING (frontend, minor) **1** (`Rebook guest`) · inventory corrections **8** · **auditor self-corrections 15** · missing regression guards **1** · mutations surfaced/exercised **41 / 0** · **code changed 0**.
 
 ---
 
@@ -2761,7 +2760,7 @@ largest outstanding coverage item, and deliberately **not** performed under a re
 ## Tally
 
 Pages diffed **52 of 52** + 2 data-states · findings **5** (blast radius widened) · roles rendered **4 of 11**
-· roles derived **11 of 11** · inventory corrections **8** · **auditor self-corrections 12** ·
+· roles derived **11 of 11** · inventory corrections **8** · **auditor self-corrections 15** ·
 mutations surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
