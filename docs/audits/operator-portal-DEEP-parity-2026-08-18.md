@@ -2842,6 +2842,96 @@ derived 11 of 11 · inventory corrections 8 · auditor self-corrections 12 · mu
 
 ---
 
+# RUN 34 — ⚠️ THE LIVEWIRE MUTATION BOUNDARY · the audit's strongest POSITIVE result, and the guard that does not pin it
+
+## Why this class was invisible to run 33
+
+Run 33 swept views for **routed** writes — `<form>` → a route carrying `Authorize:`. ⚠️ **A Livewire action
+has no route.** `wire:click="save"` posts to `/livewire/update`, which **does not run route middleware** — the
+same boundary `ResolvesCurrentProperty` exists to work around. So a permission enforced only as route
+middleware would be **completely bypassed** by a mutating Livewire action, and run 33's method could not see
+one: there is no route to read a gate from.
+
+This is not hypothetical. The owner realm has a dedicated test for exactly it
+(`OwnerCapabilityMutationBoundaryTest`), written to close a caveat `AUDIT-REPORT.md` left open:
+
+> the owner capability gates were confirmed at the ROUTE layer, but the `/livewire/update` mutation layer was
+> not exercised … a capability gated ONLY on a Livewire route would be bypassable if the mutation were a
+> Livewire action.
+
+⚠️ **The operator realm has no equivalent test.** So I measured it.
+
+## ⚠️⚠️ THE RESULT: THE OPERATOR LIVEWIRE SURFACE IS READ-ONLY BY CONSTRUCTION
+
+Across **37 operator Livewire components**, the public methods are:
+
+    render                      65   (all realms)
+    mount                       11
+    mountResolvesCurrentProperty 1   (a trait hook)
+
+**Not one component — in any realm — exposes a public action method.** And in the operator views:
+
+| Mechanism | Count |
+|---|---|
+| `<form method="POST">` | **116** |
+| `wire:click` / `wire:submit` action handlers | **0** |
+| `wire:model.live` (state binding only) | 5, all in the email editor's live preview |
+
+⚠️ **PROBE, BOTH WAYS — the negative is only trustworthy because the positive fired.** A sweep returning
+"zero mutating methods" is indistinguishable from a broken regex. The same expression returned **65 `render`
+and 11 `mount`**, so it demonstrably finds public methods; the zero is a fact about the code, not about my
+grep. This is the probe rule applied to a source sweep rather than a login.
+
+⚠️ The 5 `wire:model.live` bindings are **not** a hole: they sync component *state* for the editor's live
+preview, and persistence is a separate `<form method="POST">` to `app.email-templates.save`
+(`Authorize:properties.manage`). There is no method to persist them, so `/livewire/update` carries no write.
+
+## ⚠️ WHAT THIS BOUNDS — every finding in this audit is an AFFORDANCE problem, not a BYPASS
+
+This is the most reassuring measurement in 34 runs, and it changes how Findings 2–7 should be read:
+
+| | |
+|---|---|
+| **Findings 2 · 4 · 5 · 6 · 7** | a control **renders** for a role that cannot use it → the POST still hits a `Authorize:`-gated route. **Misleading UI, not privilege escalation.** |
+| **Finding 1** | ungated **read** pages. Bad — money and an owner email to 11 roles — but a read. |
+| **Bypass of a write gate** | ⚠️ **none found, and structurally none available** — 116 of 116 operator writes are controller-routed. |
+
+⚠️ Invariant #30 says *"Authorization: ROUTE, not service"*. That model is only sound **if every write is
+routed**. Measured: it is. The architecture and the authorization strategy actually agree — which is exactly
+what the owner audit proved for owners and nobody had confirmed for operators.
+
+## ⚠️ THE GAP: THE PROPERTY HOLDS, BUT NOTHING PINS IT
+
+`OwnerCapabilityMutationBoundaryTest` asserts this structurally **for the owner realm only**. There is **no
+operator equivalent**. So today's clean result is a fact about the current tree, not a guarantee:
+
+⚠️ **One future operator component adding `public function save()` silently creates a write path that route
+middleware never sees** — and every gate in Findings 2–7 becomes a real bypass rather than a cosmetic one,
+with nothing failing to announce it. The blast radius of that single edit is the whole authorization model.
+
+**Recorded as a MISSING REGRESSION GUARD** — not a defect (nothing is wrong today), and **not fixed**: writing
+the test is code, and this brief is report-only. It is the highest-leverage single test the operator realm
+could gain, because it protects a property the entire `can:`-middleware strategy rests on.
+
+## Verdict
+
+| Check | Result |
+|---|---|
+| Operator Livewire components exposing a mutating action | ✅ **0 of 37** |
+| Operator writes that are controller-routed | ✅ **116 of 116** |
+| `/livewire/update` carries an operator mutation to bypass a gate | ✅ **no** |
+| Harness proven both ways | ✅ 65 `render` + 11 `mount` found by the same sweep |
+| A test pinning this for the operator realm | ⚠️ **absent** — owner realm only |
+
+## Tally
+
+Pages diffed **52 of 52** + 2 data-states · findings **7** (all bounded as affordance-level by this run) ·
+missing regression guards **1** · Livewire components swept **37** · operator write paths verified routed
+**116 of 116** · roles rendered 4 of 11 · derived 11 of 11 · inventory corrections 8 ·
+auditor self-corrections 12 · mutations surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
 ✅ **The audit is COMPLETE — 0 pages remain.** The recipe below is kept for re-verification. Everything below cost this audit real runs to learn.
