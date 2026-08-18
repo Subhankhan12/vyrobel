@@ -80,13 +80,33 @@ it('refuses an owner-role user every /app route and leaks no operator or cross-o
 });
 
 // ── 2. The gate does NOT break staff — a real operator still works ───────────────────────────────
-it('lets a real staff member (Hotel Manager) into every /app route', function () {
+it('lets a real staff member (Hotel Manager) through the shell gate on every /app route', function () {
     $s = seedScenario(2);
     $b = gateOwner($s, 'Bruno Keller', 1, 42500);
     $staff = operatorUser($s, ['name' => 'Marcus Bellweather'], 'Hotel Manager');
 
+    // ⚠️ THIS TEST IS ABOUT THE SHELL GATE (EnsureBackOfficeAccess), not about per-route permissions.
+    // It asserted 200 on every route in the list, which held only while some of those routes carried NO
+    // permission middleware at all. OP-FIX-2 gated `/app/payouts/run` on `payouts.manage` (matching its own
+    // POST sibling) and Hotel Manager does not hold it — so a blanket 200 would now be asserting the
+    // ABSENCE of a gate the audit's Finding 1 exists to add.
+    //
+    // The shell-gate claim is unchanged and is what is asserted: a real staff member is never REFUSED BY THE
+    // SHELL. Where a permission legitimately excludes them the response is a 403 from the permission layer,
+    // not a redirect/refusal from the back-office gate — and test 3 already pins that Accountant, who does
+    // hold `payouts.manage`, reaches the payout run.
+    $permissionGated = ['/app/payouts/run'];
+
     foreach (backOfficeRoutes(['ownerId' => $b['owner']->id]) as $route) {
-        $this->actingAs($staff)->get($route)->assertOk();
+        $response = $this->actingAs($staff)->get($route);
+
+        if (in_array($route, $permissionGated, true)) {
+            $response->assertForbidden();      // refused by the PERMISSION, having passed the shell
+
+            continue;
+        }
+
+        $response->assertOk();
     }
 });
 
