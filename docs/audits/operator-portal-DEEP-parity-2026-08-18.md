@@ -7,7 +7,7 @@
 >
 > | | Authoritative |
 > |---|---|
-> | **Pages fully diffed** | ✅ **52 of 52 — COMPLETE** (denominator DERIVED in run 29: 54 GET `/app` URIs − 2 aliases) |
+> | **Pages fully diffed** | ✅ **52 of 52 + 2 data-states — COMPLETE both directions** (42 wireframes cross-checked, run 31) (denominator DERIVED in run 29: 54 GET `/app` URIs − 2 aliases) |
 > | **REMAINING** | ✅ **0** |
 > | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
 > | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
@@ -2526,6 +2526,105 @@ precisely because it looks like a bug and is not.
 
 Pages diffed **52 of 52** · findings **5** · inventory corrections 6 · **auditor self-corrections 10** ·
 mutations surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
+# RUN 31 — ⚠️⚠️ THE OTHER HALF OF RULE #1: WIREFRAMES WITH NO ROUTE
+
+## ⚠️⚠️ THE ROUTE SIDE WAS SWEPT 52/52. THE WIREFRAME SIDE NEVER WAS.
+
+Rule #1 asks for **both** directions — *"note routes with no wireframe **and wireframes with no route**"*.
+Every run of this audit walked routes → wireframes. **Nothing ever walked wireframes → routes.**
+
+Run 27 found `Operator Work Order.html` unmapped **by accident**, while looking for something else. That was
+the warning that the reverse direction was unswept, and I did not act on it until the route ledger hit N=M.
+
+Enumerated: **42 `Operator *.html` wireframes.** Mapping each to the run that diffed it leaves **five** that
+no run had ever compared:
+
+| Wireframe | Resolves to | Verdict |
+|---|---|---|
+| `Operator Messages.html` | `/app/inbox` (list) | ⚠️ **same page, different name** — run 11 |
+| `Operator Conversation.html` | `/app/inbox?c=` (thread pane) | ⚠️ **the same page's second pane** — run 11 |
+| `Operator Property Settings.html` | `/app/settings` | ⚠️ **same page** — run 20; live is a strict superset (11,669 chars vs 993) |
+| `Operator Reservation Cancelled.html` | `/app/reservations/{r}` in `cancelled` | ⚠️ **a STATE, not a route — never diffed** |
+| `Operator Reservation No-show.html` | `/app/reservations/{r}` in `no_show` | ⚠️ **a STATE, not a route — never diffed** |
+
+⚠️ **A route-driven ledger is structurally blind to a STATE.** `Operator Reservation Cancelled.html` and
+`Operator Reservation No-show.html` are not pages — they are the *same* URL rendered against different data,
+and no amount of `route:list` discipline will ever surface them. **Three of this audit's six inventory
+corrections came from routes; this one comes from the design side, which is the only side that can see it.**
+
+⚠️ And the demo happens to hold **exactly one** `cancelled` and **exactly one** `no_show` reservation — so
+both states were diffable **with no mutation at all**. Had the seed lacked them, the honest record would have
+been *"cannot diff without creating one, and creating one is a mutation"*.
+
+## `/app/reservations/{r}` — the CANCELLED state
+
+| # | Wireframe | Live | Verdict |
+|---|---|---|---|
+| 1 | `Cancelled` status chip | `CANCELLED` chip + **`CANCELLED AT`** timestamp | **MATCH +** |
+| 2 | `Refunded` line | real folio: €200.00 · €46.00 · €246.00 · €0.00 | **MATCH** |
+| 3 | `Cancellation fee` | **`Cancellation fee` · `SOON`** | ⚠️ **HONEST REFUSAL** — see below |
+| 4 | `Download receipt` / `View receipt` | the real `folio.pdf` (run 5) | **MATCH** |
+| 5 | `Rebook guest` | absent | **MISSING (frontend, minor)** — see below |
+
+## `/app/reservations/{r}` — the NO-SHOW state
+
+The wireframe carries a **complete fee-waiver workflow**: `Waive fee…` → `Full fee · €175.00` / `Half ·
+€87.50` → reason chips (`Goodwill` · `Guest rebooked` · `Travel disruption` · `Other`) → `Waive €175.00 ·
+refund to Expedia VC` / `Keep the fee`.
+
+**Live renders none of it — and that is CORRECT.** `ReservationDetail.php:71`:
+
+> the cancellation FEE and the no-show FEE/WAIVER are disabled "Soon": **no fee engine exists** (locked
+> decision 5 — it is a policy subsystem), so **NO fee figure is ever rendered, computed or implied**
+
+Measured in the live DOM:
+
+    deferrals: ["No-show fee · waiver SOON", "Void SOON", "Modify dates · guests SOON", "Export CSV · print SOON"]
+    anyFeeFigure: false
+
+⚠️ **The build names the exact thing it cannot do and marks it Soon** — it does not drop the concept, and it
+does not invent the €175.00 the prototype shows. **HONEST REFUSAL, and the strongest single example in this
+audit**: the wireframe hands over a specific number, four reason codes and a payment-rail phrase
+(*"refund to Expedia VC"*), and the build declines all of it because the subsystem behind it does not exist.
+
+⚠️ Note what the prototype's `€175.00` would have cost: a waiver figure shown to an operator is a number they
+would **quote to a guest**. Fabricating it is not a cosmetic sin.
+
+## ⚠️ AUDITOR SELF-CORRECTION #11 — a button-only harvest is blind to an honest refusal
+
+My first read of both states harvested `button, input[type=submit], [role=button]` and returned
+`Refund · Record · Add`. It saw **none** of the four deferrals, because **a deferral is a `<div>`, not a
+control** — `<div class="vy-defer-item"><span>{{ $terminal['fee_label'] }}</span><span class="vy-soon-tag">Soon</span></div>`.
+
+⚠️ **A harness that reads only interactive elements is structurally incapable of seeing the refusals this
+build is made of** — and would have written up the waiver as MISSING. The instrument would have
+systematically **under-credited exactly the honesty this audit exists to verify**, on every page carrying a
+`Soon`. Third instrument error in five runs (cap → filter → element-type), all in the same family: **a read
+narrower than the thing being read.**
+
+## The one real absence: `Rebook guest`
+
+No `rebook` anywhere in `app/`, `resources/`, `routes/`, `DECISIONS.md` or the divergence register — so
+unlike the waiver this is **not** a recorded refusal. **MISSING (frontend, minor)**: rebooking is
+*creating a reservation*, which exists and is gated (`/app/reservations/create`, run 26) — what is absent is
+the **shortcut from a dead booking to a new one**, not the capability. Recorded, not fixed.
+
+## Wireframe ↔ route cross-check — now complete in BOTH directions
+
+- **Routes with no wireframe:** the 8 artifact routes (6 exports · `folio.pdf` · `schedule/pdf`) and
+  `notification-preferences`' operator variant — all diffed by status and content, none are renderable prototypes.
+- **Wireframes with no route:** ⚠️ **0 remaining.** Of the 5 unmapped, 3 are alternate names for pages
+  already diffed and 2 are data-states of `/app/reservations/{r}`, both now diffed above.
+- **42 operator wireframes · 52 routes · 0 unexplained on either side.**
+
+## Tally
+
+Pages diffed **52 of 52** + **2 data-states** · findings **5** (unchanged — the waiver is a refusal, `Rebook`
+is a minor absence) · honest refusals confirmed **34** · inventory corrections **7** ·
+**auditor self-corrections 11** · mutations surfaced/exercised 41 / **0** · **code changed 0**.
 
 ---
 
