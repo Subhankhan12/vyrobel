@@ -82,19 +82,32 @@ it('gates the folio PDF on the folio read permission while keeping front desk in
         ->get(route('app.reservations.folio-pdf', $reservation->getKey()))->assertForbidden();
 });
 
-// ── 4 · ⚠️ EMAIL PREVIEWS — LEFT OPEN, and this pins WHY ──────────────────────────────────────────────
-it('leaves the email previews open to a back-office operator, money and all', function () {
+// ── 4 · EMAIL PREVIEWS — gated on `folios.view`, the same permission as the folio PDF ─────────────────
+it('gates the email previews on the folio read permission, keeping the operator workflow', function () {
     $s = seedScenario(1);
-    fgReservation($s);
+    fgReservation($s);   // the preview 404s honestly with no booking to sample
 
-    // ⚠️ The audit flagged these for rendering real booking money. Two existing tests encode the opposite
-    // intent — EmailScreensAccessTest treats previews as a back-office operator surface, and
-    // PaymentReminderBrandTest proves an operator previewing a payment reminder sees CORRECT arithmetic.
-    // The money is the point of the check. So previews are OPERATIONAL under the ruling, and gating them on
-    // properties.manage would 403 Hotel Manager and break a documented workflow.
+    // ⚠️ POSITIVE CONTROL, AND IT IS THE WHOLE ARGUMENT FOR THIS PERMISSION. The previews render real booking
+    // money — but that money is the POINT of the surface, not a leak: PaymentReminderBrandTest exists to
+    // prove an operator previewing a payment reminder sees correct arithmetic. Hotel Manager is the actor
+    // both existing preview tests use, and it holds `folios.view`, so the documented workflow survives.
+    // `properties.manage` would have 403'd exactly this role — which is why it was reverted in OP-FIX-2.
     $manager = operatorUser($s, [], 'Hotel Manager');
     $this->actingAs($manager)->get(route('app.email-previews'))->assertOk();
-    $this->actingAs($manager)->get(route('app.email-previews.show', 'booking-confirmation'))->assertOk();
+    $body = $this->actingAs($manager)
+        ->get(route('app.email-previews.show', 'booking-confirmation'))->assertOk()->getContent();
+    expect($body)->toContain('Booking confirmed');          // the preview really renders, not an empty 200
+
+    // …and a front-desk agent, the other operational role with folio business, keeps it too.
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))->get(route('app.email-previews'))->assertOk();
+
+    // ⚠️ EXCLUDED — BOTH roles rendered, not one. Finding 6 was invisible precisely because a role that is
+    // never rendered is where a gating defect hides.
+    foreach (['Housekeeping', 'Maintenance'] as $role) {
+        $excluded = operatorUser($s, [], $role);
+        $this->actingAs($excluded)->get(route('app.email-previews'))->assertForbidden();
+        $this->actingAs($excluded)->get(route('app.email-previews.show', 'booking-confirmation'))->assertForbidden();
+    }
 });
 
 // ── 5 · ⚠️ THE ROUTES DELIBERATELY LEFT OPEN — the founder ruling, pinned ──────────────────────────────

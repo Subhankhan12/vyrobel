@@ -724,17 +724,19 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/email-templates/{key}', [EmailTemplateActionController::class, 'save'])->middleware('can:properties.manage')->name('email-templates.save');
     Route::post('/email-templates/{key}/toggle', [EmailTemplateActionController::class, 'toggle'])->middleware('can:properties.manage')->name('email-templates.toggle');
     Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:properties.manage')->name('email-templates.test');
-    // ⚠️ OP-FIX-2 (audit Finding 1) — DELIBERATELY LEFT OPEN, against the fix set as briefed.
-    // Run 36 flagged these because they render real booking money (€540.00 · €124.20 · €664.20) inside what
-    // reads as a template sample. Confirm-first found two existing tests that encode the OPPOSITE intent:
-    // EmailScreensAccessTest treats the previews as a general back-office operator surface, and
-    // PaymentReminderBrandTest exists precisely to prove an operator previewing a payment reminder sees
-    // CORRECT money arithmetic — the money is the point of the check, not an accident of it.
-    // That puts previews in the ruling's OPERATIONAL bucket, not its owner/finance one. Gating them on
-    // properties.manage 403s Hotel Manager and breaks a documented workflow, so the gate was reverted and
-    // the question referred back. See DECISIONS 2026-08-18 (OP-FIX-2).
-    Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
-    Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
+    // ⚠️ OP-FIX-2b (audit Finding 1) — gated on `folios.view`, the SAME permission `folio.pdf` carries.
+    // The previews render REAL booking money (run 36: €540.00 · €124.20 · €664.20), but that money is the
+    // POINT of the surface, not a leak: PaymentReminderBrandTest exists to prove an operator previewing a
+    // payment reminder sees correct arithmetic, and EmailScreensAccessTest treats the previews as a general
+    // back-office operator screen. Both render as Hotel Manager, who HOLDS folios.view — confirmed before
+    // this gate was added, because a gate that reds a legitimate test is the wrong gate (the owners /
+    // users.manage catch, reprised).
+    // ⚠️ NOT `properties.manage`: that is Property Owner + Group Admin only, so it would 403 Hotel Manager
+    // and break the documented workflow. `folios.view` keeps every operational role that has folio business
+    // (front-desk-and-up) and excludes Housekeeping + Maintenance, who have none. (Revenue Manager and
+    // Marketing Manager are excluded too — they hold no folio permission and have no preview business.)
+    Route::get('/email-previews', [EmailPreviewController::class, 'index'])->middleware('can:folios.view')->name('email-previews');
+    Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->middleware('can:folios.view')->name('email-previews.show');
     // #109 — a REAL test send from the previews gallery, to the operator's OWN email only (MailSafetyGuard).
     Route::post('/email-previews/{key}/test', [EmailPreviewController::class, 'testSend'])->middleware('can:properties.manage')->name('email-previews.test');
 

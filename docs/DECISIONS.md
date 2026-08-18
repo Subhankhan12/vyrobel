@@ -12934,15 +12934,28 @@ per-user, and gating it would break a legitimate self-service affordance. A test
 (two roles, each sees only their own identity and never the other's) — turning a one-off manual verification
 into a standing guard.
 
-**⚠️ `/app/email-previews` + `{key}` — GATE REVERTED, referred back to the founder.** They were in the briefed
-set for rendering real booking money. Confirm-first found **two existing tests encoding the opposite intent**:
+**`/app/email-previews` + `{key}` — RESOLVED IN OP-FIX-2b: gated on `folios.view`.** They were briefed for
+`properties.manage`; confirm-first found **two existing tests encoding the opposite intent** —
 `EmailScreensAccessTest` treats the previews as a general **back-office operator** surface, and
 `PaymentReminderBrandTest` exists specifically to prove an operator previewing a payment reminder sees
-**correct money arithmetic** — *the money is the point of the check, not an accident of it*. That places
-previews in the ruling's **operational** bucket. Gating on `properties.manage` 403s Hotel Manager and breaks a
-documented workflow, so the gate was removed and a test pins the open state with the reason.
-⚠️ **Open question for the founder:** if previews should still exclude Housekeeping/Maintenance, the honest
-lever is a broader read permission (e.g. `folios.view`), not `properties.manage`.
+**correct money arithmetic**: *the money is the point of the check, not an accident of it*. That places
+previews in the ruling's **operational** bucket, so `properties.manage` (Property Owner + Group Admin only)
+would 403 Hotel Manager and break a documented workflow. The gate was reverted and referred back; the founder
+ruled **`folios.view`** — the same permission `folio.pdf` carries.
+
+⚠️ **The trap was checked BEFORE gating, and it is the owners/`users.manage` catch reprised:** both existing
+preview tests render as **Hotel Manager** (`EmailScreensAccessTest` via the helper's default,
+`PaymentReminderBrandTest` explicitly), and Hotel Manager **holds `folios.view`** — confirmed against the
+matrix first, because *a gate that reds a legitimate test is the wrong gate*. Both tests stay green.
+
+`folios.view` splits exactly as the ruling wants: **kept** — Property Owner · Group Admin · Hotel Manager ·
+Front Desk · Reservation Agent · Accountant · Guest Support Agent; **excluded** — Housekeeping · Maintenance
+(no folio business), and incidentally Revenue Manager · Marketing Manager, who hold no folio permission and
+have no preview business either.
+
+⚠️ **Mutation-proven, and one mutation is the argument itself:** over-tightening the previews to
+`properties.manage` **reds `PaymentReminderBrandTest`** — the exact break the OP-FIX-2 revert avoided,
+now demonstrated rather than argued.
 
 **LEFT OPEN by the ruling (pinned by test 5):** `dashboard` · `front-desk` · `reservations` ·
 `reservations/{reservation}` · `maintenance` · `calendar` · `rack` — a front-desk agent needs the balances and
