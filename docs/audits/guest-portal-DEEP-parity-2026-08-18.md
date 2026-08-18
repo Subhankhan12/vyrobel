@@ -29,7 +29,7 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Pages browser-diffed | **22** + 6 money artifacts · **29/30 owed wireframes covered, 1 open** ⚠️ *§18 closed early — corrected in §19–§20* |
+> | Coverage | **30 / 30 owed wireframes** (23 pages + 6 artifacts + 1 searched state) · **0 open** · closed at **§22** |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
@@ -829,3 +829,103 @@ forged hash returns **403**. The positive requires a real emailed link, which on
 ⚠️ **The most valuable finding of this batch is about the method, not the build:** *a page named in a report is
 not a page audited*, and *a self-check that only validates its own DONE rows can never discover a row that was
 never opened.* Coverage must be derived from the **inventory**, page by page — the direction §18 skipped.
+
+---
+
+## 21 · THE LAST OPEN ROW — `Guest Verify Email`, closed read-only
+
+§20 left one row open on the assumption its positive needed a mutation-produced link. **Reading the source
+retired that assumption**: `GuestClaimController::verify()` returns a `View` (renders `set-password`, or
+`claim-invalid`) — **the write lives in `claim()`, the POST**. So the GET is safe, and the link can be minted
+with the app's own generator without touching a row.
+
+### ⚠️ 21.1 — SELF-CORRECTION #9: I nearly filed a serious security finding on my own filter artefact
+
+Reading `resolveClaimable()` I found the credential is **`sha1($guest->email)`** — derivable from the email
+alone — and my `route:list` read reported **`mw=NONE`** for `signed`. That pointed at a real hole: anyone
+holding a guest ULID + their email could claim the account.
+
+**It was wrong, and the code says so plainly.** Both routes carry `Illuminate\Routing\Middleware\ValidateSignature`
+(`routes/web.php:324-325` → `->middleware('signed')`), and the link is minted by
+`URL::temporarySignedRoute('guest.claim.verify', now()->addHour(), …)` — **HMAC-signed and expiring**. The
+`sha1` is a *binding check inside* a signed URL, not the credential.
+
+⚠️ **My filter grepped the alias `signed`; `route:list` prints the RESOLVED CLASS.** The same needle-vs-what-runs
+mistake the canon records (§N.27.5) — and here it would have produced a **false critical security finding**.
+It also re-explains §15.1: that 403 was **the signature guard**, not the sha1 check.
+
+### 21.2 · The diff — wf 282 / live 215, and they are **different steps**
+
+| Probe | Result |
+|---|---|
+| **Valid signed URL** | ✅ **200** — *"Welcome, Demo Walker · Your email is confirmed. Set a password…"*, `NEW PASSWORD` + `CONFIRM PASSWORD`, form action = **the same signed URL** (matching the source comment) |
+| **Signature tampered** (same run) | ✅ **403** — refused |
+| **Rows written by the GET** | ✅ **none** — unclaimed guests **9 → 9** |
+
+| Wireframe (`Guest Verify Email`) | Live | Verdict |
+|---|---|---|
+| "Email verified" confirmation | ✅ *"Your email is confirmed"* | **MATCH** |
+| — | **Set-password form** (2 fields + strength rule) | **EXTRA** — the real next step |
+| **"Member rates active on every stay"** | absent | ✅ **DOCUMENTED DIVERGENCE** — see below |
+| **"€25 welcome credit ready in your wallet"** | absent | ✅ **HONEST REFUSAL** (#39) — `claim()` grants **no credit** |
+| **"Faster checkout with your saved details"** | absent | ✅ **RATIFIED REFUSAL** — no card vault (register line 14) |
+| `Explore stays` · `Go to my account` | absent here | **DIVERGENCE — step placement**: the wireframe is the **post-claim** celebration; live, `claim()` ends in `redirect()->route('guest.trips')`, so that screen is **collapsed into Trips** |
+
+**⚠️ And "all three are refusals" would itself be over-crediting.** The machinery partly exists:
+`GuestCreditEntry::TYPE_LOYALTY` is a real credit type, the wallet renders *"Loyalty reward"*, and a real
+`WELCOME10` promo (**€10.00**) is seeded. What does **not** exist is an **automatic welcome credit granted at
+claim time** — and inventing one would write fabricated money into a real ledger. The precise verdict is
+*"the mechanism exists; the automatic grant does not,"* not *"loyalty is refused."*
+
+**⚠️ The member-rates divergence is FORMALLY RECORDED IN THE SOURCE**, not an oversight —
+`GuestAccountService.php:18-20`: *"BOOKING-TIED: an account can be claimed ONLY for an email that has a real
+booking; there is no free anonymous sign-up (**a conscious divergence from the design's 'Join for member rates'
+framing**)."* ⚠️ A divergence the code documents against the wireframe is exactly what must not be filed as a gap.
+
+**GUEST-F5 reconfirmed:** the tampered-signature 403 rendered the same operator-framed body — a **second guest
+route** exhibiting it, which strengthens §16 (one view, two routes reached).
+
+---
+
+## 22 · ⚠️ FINAL COVERAGE — 30 / 30 owed, 0 open
+
+| | |
+|---|---|
+| Guest wireframes | **32** |
+| ⛔ Adjudicated, no route | **2** — ID Verification (account-gated KYC) · Referral Landing (DON'T-BUILD-as-drawn) |
+| **Owed a diff** | **30** |
+| ✅ **Covered** | **30** — 23 pages browser-diffed + 6 money artifacts + 1 searched state |
+| ⚠️ Open | **0** |
+| Unaccounted | **0** |
+
+**Routes with no wireframe (unchanged):** `/book/{property}/confirmation/{quote}` · `/book/{property}/reservation/{quote}`
+— **structurally unverifiable read-only**; they need a quote id only a booking creates.
+
+### 22.1 · Deliverable self-check (re-derived, N=M)
+
+| Check | Result |
+|---|---|
+| Wireframe coverage | ✅ **30/30 owed**, 0 open, 0 unaccounted |
+| Captures on disk | ✅ **26**, re-counted |
+| Every covered row has both-sides evidence | ✅ char counts recorded on both sides throughout |
+| Perimeter | ✅ anonymous leak (**on the priced state**) · guest isolation (pages · artifacts · threads · a pay route) · #33 pre-window · **forged-signature refusal with a valid-signature positive in the same run** |
+| Money as-seeded | ✅ **byte-identical** — 929 / 10,912,000 / 0 / 41 / 16 / 0 / 40 / 0 / 10 / 0 |
+| Rows written, all sources | ✅ **0** (incl. unclaimed guests 9 → 9) |
+| Mutations exercised | ✅ **0** |
+| Findings | **5** |
+| Auditor self-corrections | **9** |
+
+### 22.2 · ⚠️ What this pass does NOT verify — the complete list, stated not implied
+
+1. **`book()` / the reserve → folio → charge chain** — rendered up to the POST, never submitted. **DEFERRED.**
+2. **`booking_quotes`** — 0 rows; the quote link is unverifiable on seeded data.
+3. **`/book/{property}/confirmation/{quote}` · `/book/{property}/reservation/{quote}`** — need a real quote id.
+4. **`POST /guest/reset-password`** — the token gate lives on the POST (§15.1).
+5. **`POST /guest/claim/verify/{guest}/{hash}`** — `claim()`; the GET is now proven, the **write is not**.
+6. **`POST /guest/payments/{r}/pay`** — a real charge path.
+
+**⚠️ All six are mutation-gated, and they are one pass, not six.** The recommendation is unchanged and now
+complete: **one dedicated money-path proof** closes every item above. Nothing further can be learned about them
+read-only.
+
+**⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical, 30/30 covered.**
