@@ -561,7 +561,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // results follow the viewer's abilities inside the component. Tenant-scoped; NOT availability search.
     Route::get('/search', OperatorSearch::class)->middleware('can:reservations.view')->name('search');
     // Auth Phase B · Step 4 — operator Owners screen + the invite-owner write (POST → controller → PRG).
-    Route::get('/owners', OperatorOwners::class)->name('owners');
+    // ⚠️ OP-FIX-2 (audit Finding 1) — owner FINANCIALS + an owner's email address. Gated on the finance
+    // read permission, which keeps Property Owner / Group Admin / Hotel Manager / Accountant (and the
+    // analytics roles that hold it) and excludes every operational role. NOT `users.manage`: that is the
+    // owners surface's WRITE gate, and the detail page's rates.manage proposals panel is built for Hotel
+    // Manager, who does not hold users.manage — gating the page on it would strand a control by design.
+    Route::get('/owners', OperatorOwners::class)->middleware('can:reports.view')->name('owners');
     Route::post('/owners/invite', [InviteOwnerController::class, 'store'])
         ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.invite');
     // "Preview the invite email" (the invite modal) — renders the REAL OwnerInviteMail template (transient
@@ -572,7 +577,7 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // statements/payouts/balance). NOT owner-scoped: OwnerScope is inactive off-portal, so this
     // deliberately reads the whole owner relationship the operator manages, within their own org
     // (Owner is BelongsToOrganization → a cross-org id 404s).
-    Route::get('/owners/{owner}', OperatorOwnerDetail::class)->name('owners.show');
+    Route::get('/owners/{owner}', OperatorOwnerDetail::class)->middleware('can:reports.view')->name('owners.show');
     // Owner management writes (#93) — edit / pause-payouts / add-note / remove (archive). Gated users.manage,
     // read-only-respecting, audited; remove is a careful archive-not-destroy (financials/bookings retained).
     Route::post('/owners/{owner}/update', [OwnerManageController::class, 'update'])->middleware('can:users.manage')->name('owners.update');
@@ -605,7 +610,8 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // → REAL payouts through the certified OwnerPayoutService (ManualPayoutRail is the working rail;
     // the Stripe-Connect rail stays a config-gated skeleton that THROWS — never faked). The writes use
     // the operator-mutation pattern: POST → controller → service → PRG (CSRF + tenant re-scoped).
-    Route::get('/payouts/run', PayoutRun::class)->name('payouts.run');
+    // ⚠️ OP-FIX-2 (audit Finding 1) — payout figures. Matches its own POST sibling exactly (§N.8f).
+    Route::get('/payouts/run', PayoutRun::class)->middleware('can:payouts.manage')->name('payouts.run');
     Route::post('/payouts/create', [PayoutRunActionController::class, 'create'])
         ->middleware('can:payouts.manage')->name('payouts.create');
     Route::post('/payouts/pay', [PayoutRunActionController::class, 'pay'])
@@ -718,8 +724,19 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/email-templates/{key}', [EmailTemplateActionController::class, 'save'])->middleware('can:properties.manage')->name('email-templates.save');
     Route::post('/email-templates/{key}/toggle', [EmailTemplateActionController::class, 'toggle'])->middleware('can:properties.manage')->name('email-templates.toggle');
     Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:properties.manage')->name('email-templates.test');
-    Route::get('/email-previews', [EmailPreviewController::class, 'index'])->name('email-previews');
-    Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->name('email-previews.show');
+    // ⚠️ OP-FIX-2b (audit Finding 1) — gated on `folios.view`, the SAME permission `folio.pdf` carries.
+    // The previews render REAL booking money (run 36: €540.00 · €124.20 · €664.20), but that money is the
+    // POINT of the surface, not a leak: PaymentReminderBrandTest exists to prove an operator previewing a
+    // payment reminder sees correct arithmetic, and EmailScreensAccessTest treats the previews as a general
+    // back-office operator screen. Both render as Hotel Manager, who HOLDS folios.view — confirmed before
+    // this gate was added, because a gate that reds a legitimate test is the wrong gate (the owners /
+    // users.manage catch, reprised).
+    // ⚠️ NOT `properties.manage`: that is Property Owner + Group Admin only, so it would 403 Hotel Manager
+    // and break the documented workflow. `folios.view` keeps every operational role that has folio business
+    // (front-desk-and-up) and excludes Housekeeping + Maintenance, who have none. (Revenue Manager and
+    // Marketing Manager are excluded too — they hold no folio permission and have no preview business.)
+    Route::get('/email-previews', [EmailPreviewController::class, 'index'])->middleware('can:folios.view')->name('email-previews');
+    Route::get('/email-previews/{key}', [EmailPreviewController::class, 'show'])->middleware('can:folios.view')->name('email-previews.show');
     // #109 — a REAL test send from the previews gallery, to the operator's OWN email only (MailSafetyGuard).
     Route::post('/email-previews/{key}/test', [EmailPreviewController::class, 'testSend'])->middleware('can:properties.manage')->name('email-previews.test');
 
@@ -848,7 +865,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::get('/reservations/{reservation}', ReservationDetail::class)->name('reservations.show');
     // Demo-readiness · Part B — operator folio PDF. TENANT-scoped (string id → findOrFail → cross-org 404).
     // Real append-only ledger; reconciles to the cent; streams application/pdf.
-    Route::get('/reservations/{reservation}/folio.pdf', [FolioPdfController::class, 'download'])->name('reservations.folio-pdf');
+    // ⚠️ OP-FIX-2 (audit Finding 1) — the downloadable folio DOCUMENT. Gated on the folio read permission,
+    // which keeps Front Desk / Reservation Agent (a guest's folio is operational, per the ruling) and
+    // excludes Housekeeping / Maintenance, who have no folio business.
+    Route::get('/reservations/{reservation}/folio.pdf', [FolioPdfController::class, 'download'])->middleware('can:folios.view')->name('reservations.folio-pdf');
     // Wave 2 · Sub-gate 3 — the dedicated REFUND screen. Read-only; the write reuses the existing
     // `reservations.refund` POST below (now amount-aware). The screen exists to RESPECT the #27 cumulative
     // guard at the UI: it shows the real remaining-refundable per payment, caps the input at it, and offers

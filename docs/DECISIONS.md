@@ -12960,3 +12960,64 @@ a filter matches before believing what its red means.**
 Suite **2446 / 15687** · PHPStan L5 **0** · Pint clean. No product logic, route gate, mutation or PII surface
 touched; money + inventory as-seeded (`693e3237…` / 929 / 10,920,000 / 0 / 41 / 0 seasons).
 **Not pushed** — OP-FIX-2 (Finding 1 route gates) and OP-FIX-3 follow on their own branches.
+## 2026-08-18 — OPERATOR FIX 2 · Finding 1 route gates, per the founder ruling
+
+Branch `fix/operator-finding1-route-gates`. Implements the ruling: **gate the routes that render OWNER/FINANCE
+money; leave OPERATIONAL money open to the roles that already reach it.**
+
+**GATED (4):**
+
+| Route | Permission | Why that one |
+|---|---|---|
+| `/app/owners` · `/app/owners/{owner}` | `reports.view` | The finance read. ⚠️ **Not `users.manage`** — that is the owners surface's WRITE gate, and the detail page's own rate-proposals panel is `rates.manage`-gated **for Hotel Manager**, who holds no `users.manage`; gating the page on it would strand a control the page was built to show. `reports.view` keeps PO / Group Admin / Hotel Manager / Accountant and excludes every operational role. |
+| `/app/payouts/run` | `payouts.manage` | Exact sibling match — its own POST already requires it, so read and write now agree (§N.8f). |
+| `/app/reservations/{reservation}/folio.pdf` | `folios.view` | The folio read. Keeps Front Desk + Reservation Agent (a guest's folio is operational, per the ruling); excludes Housekeeping + Maintenance. |
+
+**⚠️ `/app/security/export` — LEFT OPEN, and the re-verify is why.** The stop-and-confirm read the payload, not
+the status: `AuditEvent::where('actor_id', $user->getKey())`, `exported_for` = the requesting user, filename
+`my-vyrobel-data-…`. **It is a GDPR self-export.** A 200 across roles is not a leak when the payload is
+per-user, and gating it would break a legitimate self-service affordance. A test now **pins** the self-scope
+(two roles, each sees only their own identity and never the other's) — turning a one-off manual verification
+into a standing guard.
+
+**`/app/email-previews` + `{key}` — RESOLVED IN OP-FIX-2b: gated on `folios.view`.** They were briefed for
+`properties.manage`; confirm-first found **two existing tests encoding the opposite intent** —
+`EmailScreensAccessTest` treats the previews as a general **back-office operator** surface, and
+`PaymentReminderBrandTest` exists specifically to prove an operator previewing a payment reminder sees
+**correct money arithmetic**: *the money is the point of the check, not an accident of it*. That places
+previews in the ruling's **operational** bucket, so `properties.manage` (Property Owner + Group Admin only)
+would 403 Hotel Manager and break a documented workflow. The gate was reverted and referred back; the founder
+ruled **`folios.view`** — the same permission `folio.pdf` carries.
+
+⚠️ **The trap was checked BEFORE gating, and it is the owners/`users.manage` catch reprised:** both existing
+preview tests render as **Hotel Manager** (`EmailScreensAccessTest` via the helper's default,
+`PaymentReminderBrandTest` explicitly), and Hotel Manager **holds `folios.view`** — confirmed against the
+matrix first, because *a gate that reds a legitimate test is the wrong gate*. Both tests stay green.
+
+`folios.view` splits exactly as the ruling wants: **kept** — Property Owner · Group Admin · Hotel Manager ·
+Front Desk · Reservation Agent · Accountant · Guest Support Agent; **excluded** — Housekeeping · Maintenance
+(no folio business), and incidentally Revenue Manager · Marketing Manager, who hold no folio permission and
+have no preview business either.
+
+⚠️ **Mutation-proven, and one mutation is the argument itself:** over-tightening the previews to
+`properties.manage` **reds `PaymentReminderBrandTest`** — the exact break the OP-FIX-2 revert avoided,
+now demonstrated rather than argued.
+
+**LEFT OPEN by the ruling (pinned by test 5):** `dashboard` · `front-desk` · `reservations` ·
+`reservations/{reservation}` · `maintenance` · `calendar` · `rack` — a front-desk agent needs the balances and
+a maintenance lead needs the costs. ⚠️ A mutation that gates `front-desk` **reds** that pin, so a later sweep
+cannot quietly tighten what the ruling deliberately left open.
+
+**`/app/notifications` untouched** — its money is a dispatch-audience bug (OP-FIX-3); a route gate would block
+the user's own notifications.
+
+**One existing test narrowed, with the reason recorded.** `BackOfficeAccessTest`'s *"Hotel Manager into every
+`/app` route"* asserted 200 everywhere — true only while some of those routes carried no permission middleware
+at all. Its claim is about the **shell gate**, which is unchanged; it now asserts that Hotel Manager passes the
+shell everywhere and is refused by the **permission layer** on `payouts/run`, which test 3 already pins as an
+Accountant surface.
+
+**Mutation-proven, 8 of 8:** removing each gate reds its 403 half; over-tightening each reds its 200 half; and
+gating an operational route reds the ruling pin. Suite **2447 / 15665** · PHPStan L5 **0** · Pint clean.
+Routing + tests only — no content, control, query, mutation or money changed; baseline `693e3237…` intact.
+**Not pushed.**
