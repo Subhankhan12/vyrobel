@@ -57,4 +57,30 @@ class NotificationRecipients
             ->filter(fn (User $u): bool => $u->hasAnyRole($backOffice))
             ->values();
     }
+
+    /**
+     * The subset of an org's back-office users who ALSO hold a given permission — the audience for a
+     * notification whose content is gated on that permission.
+     *
+     * ⚠️ WHY THIS EXISTS (operator deep audit, Finding 1 · OP-FIX-3). `operatorsForOrg()` is ONE bucket for
+     * all eleven back-office roles, so a Finance-group notification carrying an owner's net payable reached a
+     * housekeeper exactly as it reached the accountant. That was never a scope bug — every user genuinely owns
+     * their own rows — so a route gate on `/app/notifications` would have been the wrong instrument: it would
+     * block the operational notifications a housekeeper legitimately has. **The leak closes at the addressing
+     * layer: a role that may not read the money is never sent it.**
+     *
+     * ⚠️ AND THE PERMISSION IS NOT A GUESS. Both finance notifications link to `/app/owners`, which carries
+     * `reports.view` (OP-FIX-2). A recipient must be able to open the page their notification points at, or
+     * the notification is the same dead affordance this audit fixed at the control layer one pass earlier.
+     *
+     * @return Collection<int, User>
+     */
+    public function operatorsForOrgWithPermission(?string $orgId, string $permission): Collection
+    {
+        // The team is already pinned by operatorsForOrg(); permission checks are team-scoped the same way, and
+        // a null team fails SILENTLY to false — so this must never run ahead of that pinning (#30).
+        return $this->operatorsForOrg($orgId)
+            ->filter(fn (User $u): bool => $u->can($permission))
+            ->values();
+    }
 }

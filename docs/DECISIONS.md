@@ -13021,3 +13021,55 @@ Accountant surface.
 gating an operational route reds the ruling pin. Suite **2447 / 15665** · PHPStan L5 **0** · Pint clean.
 Routing + tests only — no content, control, query, mutation or money changed; baseline `693e3237…` intact.
 **Not pushed.**
+## 2026-08-18 — OPERATOR FIX 3 · dispatch-audience narrowing + the Livewire mutation-boundary guard
+
+Branch `fix/operator-dispatch-and-livewire-guard`. The two write/dispatch-layer items OP-FIX-1 (controls) and
+OP-FIX-2 (routes) structurally could not reach.
+
+### (A) The `/app/notifications` finance money — closed at the ADDRESSING layer, not the route
+
+⚠️ **It was never a scope bug.** Run 21 proved every user genuinely owns their own notification rows
+(self-scoped by `notifiable_id`). A housekeeper saw an owner's net payable because
+`NotificationRecipients::operatorsForOrg()` is **one bucket for all eleven back-office roles**, and the two
+Finance-group types (`statement_finalized`, `owner_payout_sent`) were addressed to every one of them.
+
+⚠️ **A route gate would have been the wrong instrument** — it would block the operational notifications that
+same housekeeper legitimately owns, while leaving the finance rows sitting in their feed. `/app/notifications`
+stays correctly **ungated**; the fix is that a role which may not read the money is **never sent it**.
+
+New `operatorsForOrgWithPermission($orgId, $permission)` narrows the audience; the two finance dispatches use
+it. ⚠️ **The permission is not a guess: both notifications link to `/app/owners`, which OP-FIX-2 gated on
+`reports.view`.** A recipient must be able to open the page their notification points at — otherwise it is the
+same dead affordance this audit fixed at the control layer one pass earlier.
+
+**Kept:** Property Owner · Group Admin · Hotel Manager · Accountant · Revenue Manager · Marketing Manager
+(all hold `reports.view`). **Excluded:** Housekeeping · Front Desk · Reservation Agent · Maintenance · Guest
+Support Agent. The **owner realm is untouched** — owners are addressed by a different path and still receive
+`StatementReadyNotification`, asserted in the same test.
+
+⚠️ **#28 — narrowing WHO receives it did not change WHAT it says.** A second test plants real guest contact on
+the fixture and asserts the body carries none of it, while still carrying its operator-useful content. No
+audience key was flipped and no type was dropped (the owner-Fix-2 single-audience canon).
+
+### (B) The operator Livewire mutation-boundary guard — the highest-leverage operator test
+
+Run 34 **measured** the property (0 of 37 operator components expose a public mutating action; every operator
+write is a controller-routed `<form>`), and that measurement is what bounds all five OP-FIX-1 findings to
+**misleading UI rather than privilege escalation**. ⚠️ **Nothing pinned it.** One future `public function
+save()` silently creates a write path `/livewire/update` reaches and route middleware cannot see — turning
+every one of those affordances into a real bypass, with nothing failing to announce it.
+
+`OperatorLivewireMutationBoundaryTest` sweeps the operator realm by reflection and reds on any declared public
+method outside Livewire's lifecycle surface. ⚠️ **Proven both ways, because a guard that cannot see a positive
+proves nothing:** test 1 asserts the sweep finds >25 components and their real `render`/`mount` publics
+(a blind sweep would pass test 2 vacuously); test 2 asserts zero mutating actions. A planted
+`public function save()` on `UnitsList` **reds** it.
+
+**Mutation-proven both items:** reverting the narrowing reds the audience test; the planted `save()` reds the
+guard. Filters verified to match one test each first (the OP-FIX-1 vacuous-mutation lesson).
+
+Suite **2445 / 15656**, PHPStan L5 **0**, Pint clean. ⚠️ `OperatorPortfolioTest`'s *"add → select → book"*
+failed once in a full run and passed both in isolation and on a second full run — the documented
+order-dependent flake band, unrelated to this change (it exercises property/booking isolation). Recorded
+rather than reported as a clean first pass. Money as-seeded: `693e3237…` unchanged — this pass changes
+addressing, not folio money. **Not pushed.**
