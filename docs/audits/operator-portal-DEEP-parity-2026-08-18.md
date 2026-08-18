@@ -1,41 +1,78 @@
-# Operator-portal DEEP parity audit — 2026-08-18 (RESUMABLE · READ-ONLY)
+# Operator-portal DEEP parity audit — 2026-08-18 · ✅ COMPLETE (READ-ONLY · REPORT-ONLY · NO CODE CHANGED)
 
-> ## ⚠️ READ THIS FIRST — THE AUTHORITATIVE STATE (everything below is a dated running log)
+> ## ⚠️ THIS HEADER WAS REWRITTEN AT RUN 35, BECAUSE IT HAD DECAYED INTO THE THING IT WARNED AGAINST
 >
-> This report was written across 13 runs and **several figures in the middle sections are SUPERSEDED**. A
-> reader landing mid-document will otherwise take a stale number as current. The authoritative values are:
+> The previous version of this block existed to stop a reader taking a stale number as current. By run 34 it
+> said *"written across 13 runs"* (there were 34), called run 13 **definitive** on Finding 1 (superseded twice
+> since), listed **3** findings (there are **7**), asserted *"write routes 135/135 — no gap"* (Findings 6 and 7
+> are write-route gaps), and carried **two contradictory screenshot paragraphs**, both superseded.
 >
-> | | Authoritative |
-> |---|---|
-> | **Pages fully diffed** | ✅ **52 of 52 + 2 data-states — COMPLETE both directions** (42 wireframes cross-checked, run 31) (denominator DERIVED in run 29: 54 GET `/app` URIs − 2 aliases) |
-> | **REMAINING** | ✅ **0** |
-> | **Finding 1 (READ exposure)** | ⚠️ **RUN 13 IS DEFINITIVE: 13 org-data routes reachable by Housekeeping, 7 rendering money, +1 document.** Earlier statements — "one decision not six" (run 1), "19 actionable" (run 8), "25 ungated" (run 8) — are **SUPERSEDED**; they were swept, run 13 is measured. |
-> | **Finding 2** | one control without `@can` (`/app/calendar` → `New reservation`) |
-> | ⚠️ **Finding 3 (runs 18–19)** | **CONFIRMED AT SOURCE** — `schedule.blade.php:179` gates *"Click a cell to add or change a shift."* inside `@if ($canManage)` but leaves *"Drag a shift to move it…"* OUTSIDE it, in the same span. Housekeeping is told to drag; the move route 403s. Bounded by sweep to **one line in one file**. Open candidate: zero `draggable="true"` nodes for ANY role. |
-> | **Candidate 3** | **WITHDRAWN** on evidence (run 10) |
-> | **Write routes** | 135/135 swept — **no gap** |
-> | **#28 PII perimeter** | measured correct on 7 surfaces |
-> | **Code changed** | **0** · demo money+inventory identical start→end |
->
-> ✅ **DELIVERABLE GAP CLOSED (run 14) — 21 screenshots captured.** See the closing section. The text below
-> records the gap as it was found, because how it was found is the point.
->
-> ⚠️ **DELIVERABLE GAP (as found at the self-check) — NO SCREENSHOTS HAD BEEN TAKEN.** The brief required
-> `.captures/deep-operator-NN-{page}-{role}.png` per page per role. **`.captures/` contains ZERO
-> `deep-operator-*` files.** Every diff in this report rests on hydrated DOM reads (character counts, control
-> sets and visibility measurements are recorded per page, and those reads were real) — **but the screenshot
-> artifact the brief asked for does not exist.** Recorded here rather than left as an unmet requirement the
-> summary silently implies was met. ⚠️ This is the same class of gap the OWNER audit found in itself at
-> N=M — and it was found the same way, by self-checking the deliverable instead of trusting it.
+> ⚠️ **A summary maintained by APPENDING decays exactly like the thing it summarises** — the fifth instance of
+> this failure in one audit (the RESUME block, the denominator, the self-check, the capture count, and now the
+> header). **Rewritten from the evidence, not patched.** Everything below the ledger is the dated evidence log.
 
+**Scope:** 52 pages + 2 data-states · 4 of 11 roles rendered, 11 of 11 derived · 42 wireframes cross-checked
+in both directions · 41 mutations surfaced, **0 exercised** · **0 lines of code changed.**
 
-**No code changed · no mutation exercised · money + inventory as-seeded.**
-Baseline held at start and end: `rate_calendar` md5 `693e3237…` / 929 rows / 10,920,000 minor ·
-0 unit overrides · 41 reservations · 0 seasons · 40 folio items · 16 payments.
+**Demo integrity, start → end:** `rate_calendar` md5 **`693e3237b51205e5373e9833b23c8b34`** · 929 rows ·
+10,920,000 minor · **0** unit overrides · **41** reservations · **0** seasons · 40 folio items · **16**
+payments · **0** anonymized guests · users/role-assignments untouched.
 
-Counterpart to `docs/audits/owner-portal-DEEP-parity-2026-08-17.md`, inheriting its method notes. Two
-dimensions the owner audit did not have: **per-role gating** (the difference between roles IS the evidence)
-and **operator pages mutate as their job** (surfaced, never exercised).
+---
+
+## ⚠️ THE FINDINGS — 7, ranked, each confirmed at source
+
+| # | Severity | Where | What | Who it affects |
+|---|---|---|---|---|
+| **1** | ⚠️ **highest** | `routes/web.php` — **25 of 54** GET `/app` routes carry no `Authorize:` | Org data readable with no permission check. `/app/owners/{owner}` renders **€4,653.60 gross · €2,804.40 commission · statements · payouts + an owner's email address**; `/app/reservations/{r}` renders folio money | ⚠️ **all 11 back-office roles** |
+| **5** | high | `operator-email-editor.blade.php` (view has **no `@can` at all**) | Page ungated; renders **`Save template`**, **`Send me a test`**, merge-tags, 3 toggles — all pointing at `properties.manage` endpoints | ⚠️ **all 11 roles** |
+| **6** | ⚠️ high | `units-list.blade.php:83` + `UnitsList.php:113` | Photo controls guarded by **`rates.manage`**; the routes require **`units.manage`**. A gate on the **wrong permission** — fails **both** directions | **Revenue Manager** (sees → 403). Over-hidden direction latent |
+| **7** | medium | `unit-requests` view (no guard) | Page gated `units.view`; Approve/Decline require `units.manage` | Revenue Manager · Front Desk · Maintenance · **Housekeeping** |
+| **2** | medium | `/app/calendar` → `New reservation` | Control without `@can`; route needs `reservations.create` | roles lacking `reservations.create` |
+| **4** | low | `maintenance-ticket-detail.blade.php:56` | `Add update` anchor ungated; its composer is `$canManage`-gated | Accountant · Housekeeping |
+| **3** | low | `schedule.blade.php:179` | *"Drag a shift to move it"* sits **outside** the `@if ($canManage)` that wraps the rest of the sentence | Housekeeping |
+
+### ⚠️ How to read these — bounded by run 34
+
+**Findings 2 · 4 · 5 · 6 · 7 are AFFORDANCE defects, not privilege escalation.** Run 34 measured that **116 of
+116** operator writes are controller-routed and **0 of 37** operator Livewire components expose a mutating
+action — so a control that renders for the wrong role still hits an `Authorize:`-gated POST. **Misleading UI,
+not a bypass.** **Finding 1 is different in kind:** it is ungated *reads* of money and PII, where there is no
+second gate behind the page.
+
+### The fix shape
+
+- **Findings 2 · 4 · 5 · 6 · 7 = ONE sweep**, over a mechanically enumerable set: *every control whose target
+  route carries `Authorize:`*. Run 33 built that worklist from source. ⚠️ **Finding 6 is not "add a `@can`" —
+  it is "change `rates.manage` to `units.manage`"**; a sweep that only adds guards would leave it wrong.
+- **Finding 1 is a separate, larger product question**: which of the 25 ungated pages *should* carry a gate.
+- **1 missing regression guard** (run 34): no operator equivalent of `OwnerCapabilityMutationBoundaryTest`.
+  Nothing is wrong today; one future `public function save()` in an operator component would silently create a
+  write path route middleware never sees, and would turn every affordance defect above into a real bypass.
+
+---
+
+## ⚠️ WHAT THIS AUDIT COULD NOT ESTABLISH — stated, not implied
+
+| | |
+|---|---|
+| **Server-side enforcement of any gated write** | 41 mutations surfaced, **0 exercised**. Every POST is `UI-gated; server-enforcement unverified-without-mutation`. |
+| **7 of 11 roles were never rendered** | Group Admin · Front Desk · Revenue Manager · Reservation Agent · Guest Support Agent · Marketing Manager · Maintenance have **no demo account**. Their reach is **derived** from `role_has_permissions`; which *controls* render inside those pages is **unverified**. ⚠️ Finding 6 was found only because it was derived — it is invisible to all four rendered roles. |
+| **Screenshot coverage** | **60 operator captures** — every renderable page at the reference role + role-pairs on the findings. The 52 × 4 = 208 matrix was never attempted and is **not** claimed. 8 artifact routes are downloads, not renderable. |
+| **Cross-tenant isolation** | out of scope — this audit measured *intra-org* role gating only. |
+
+---
+
+## ✅ THE LEDGER
+
+**52 of 52 pages diffed** (denominator derived: 54 GET `/app` URIs − 2 aliases) **+ 2 data-states**
+(`cancelled`, `no_show`). **Aliases, not pages:** `/app/rack` → `calendar` · `/app/inbox/{thread}` → `inbox`.
+**42 operator wireframes cross-checked** — 0 unmapped in either direction.
+
+**Tally:** findings **7** · honest refusals confirmed **34** · documented deferrals respected (incl. the
+seasonal apply-panel on `/app/rates`, and the no-show fee waiver — *no fee engine exists, locked decision 5*)
+· MISSING (frontend, minor) **1** (`Rebook guest`) · inventory corrections **8** · **auditor self-corrections
+12** · missing regression guards **1** · mutations surfaced/exercised **41 / 0** · **code changed 0**.
 
 ---
 
