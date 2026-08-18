@@ -13184,3 +13184,55 @@ tax-inclusive room display.** Not started.
 all six views) is realm-branched through the same `App\Support\ErrorRealm` derivation the back-link and the
 F5 403 body read. **A2 still open** — `StayEstimator::taxApplies()` duplicates `estimate()`'s inline
 `$inclusive` (same rule, written twice; they agree today). It belongs with the money-path pass.
+
+---
+
+## 2026-08-18 — SEALED: the GUEST deep-parity audit + the four fixes. ⚠️ The money path is NOT sealed.
+
+**All three realms are now deep-audited and sealed** — owner (`2026-08-17`), operator (`4569f0f`), guest (here).
+
+**⚠️⚠️ READ THE SCOPE BEFORE THE RESULT. This seals the AUDIT and the FIXES. It does NOT claim the guest
+surface is money-verified.** `book()` / the **reserve → folio → charge chain** remains
+**UNVERIFIED-WITHOUT-MUTATION** and is deferred to a separate money-path pass. A false "money-verified" in
+canon would be worse than an honest "audit + fixes sealed, money-path pending".
+
+### The audit (`docs/audits/GUEST-AUDIT-FINDINGS-COMPLETE.md`)
+
+30/30 owed wireframes browser-diffed · 34/34 GET routes accounted · 29 write routes surfaced, **0 exercised** ·
+**0 backend gaps** · **0 fabrications** · money byte-identical throughout. The perimeter passed on all four
+checks: the **anonymous surface leaks nothing** (probed on the PRICED state — the dateless state proves
+nothing), **guest isolation** holds on pages, threads **and the financial PDFs** (a guest cannot pull another
+guest's invoice — 404, with four real PDFs on their own booking as the positive), **#33** verified in the harder
+pre-window state, and the money chain reconciles (`folio_items` Σ = `folios.total_minor` = displayed).
+
+### The five findings, all resolved
+
+| # | Outcome |
+|---|---|
+| **F1** | ⚠️ **premise correction** — **§G.1 does not govern guest pricing**; it is the SaaS subscription model, whose own text has Stripe Tax *add* the customer's tax. The storefront's invariant is **#17**, and it holds to the cent. Filing the brief's check as written would have produced a false headline finding |
+| **F2** | ✅ the storefront card **enumerates** what the total folds in (`incl. €58.65 VAT · €15.00 City tax · €45.00 Cleaning fee`), built from the estimate's own lines so it cannot drift from the checkout breakdown or the folio |
+| **F3** | ✅ **RATIFIED + CUE** — rooms VAT-exclusive, add-ons VAT-inclusive are **two legitimate configured bases**, not a formatting defect. The nightly now reads `€85.00 / night · excl. VAT`, gated on the tax being genuinely charged and naming the property's own tax. **No number moved** |
+| **F5** | ✅ the **403 body** is realm-branched through the ONE `App\Support\ErrorRealm` derivation |
+| **A1** | ✅ the **error footer** (shared layout, all six views) reads the **same** derivation — guests are sent to their booking confirmation email, owners to their primary owner, operators keep theirs |
+
+### ⚠️ WHAT REMAINS — the money-path pass (three items, one pass)
+
+1. **`book()` / reserve → folio → charge — UNVERIFIED-WITHOUT-MUTATION.** The recipe already exists and is the
+   canon's, not an invented one: **`DECISIONS.md:12147`** — *get ONE type-only storefront booking to produce a
+   folio, no overrides, no unit, then add the unit.* ⚠️ Do **not** drive `booking.book` instead: it demands a
+   `payment_token` the storefront never sends, which is why an earlier attempt could not book at all.
+2. **A2** — `StayEstimator::taxApplies()` duplicates `estimate()`'s inline `$inclusive`: one rule written
+   twice. They agree today; a mutation that changed one and not the other is how it was found.
+3. **The deferred F3 migrate-to-gross** — inclusive room display *while holding the total* means re-authoring
+   rates to gross + `taxes.inclusive = true` across **929 materialised rows** via `RateAndRestrictionService`.
+   **Only if EU consumer-display compliance later requires it.**
+
+### The seal evidence
+
+Baseline on main `4569f0f`: **2457 tests / 2455 passed / 2 skipped**. Composed on merged main `eb49d73`:
+**2465 / 2463 / 2 skipped / 0 failed**, 15,790 assertions — **+8 tests, +42 assertions, exactly the guest test
+file**, nothing lost. PHPStan L5 **0**; Pint clean. Money-as-seeded **byte-identical** (929 / 10,912,000 / 0 /
+41 / 16 / 0 / 40, quotes 0 — sums and counts, never a hash). RENDER-confirmed on merged main: the card carries
+the F3 cue **and** the F2 enumeration with the total unchanged at **€373.65**; a signed-in guest 403 carries the
+F5 body **and** the A1 footer, both guest-framed, alongside the guest back-link — **three surfaces, one
+derivation**; the operator realm is unchanged.

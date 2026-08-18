@@ -13,6 +13,14 @@
 
 > **2026-08-01 — GUEST PORTAL: Booking storefront · Arrival Info + PDF · Add-ons · Account exact-match (Guest Portal, invariants #110–114; `docs/GUEST-PORTAL-AUDIT.md`, `DECISIONS.md`).** The five guest wireframes rebuilt exact-match on the peach-glass design + REAL data, BUILDING what was missing. **Booking** (`/book/{property}`) = the storefront rebuilt (frosted search pill, real bedrooms/amenities/max-price/sort filters, real-rating cards #76); grand total reconciles to the folio incl. the real cleaning fee (#17); Reserve-&-pay = certified `AssignmentService` + TEST-MODE hosted Stripe (D1). **Arrival Info** re-skinned + a new printable **PDF** (same window-gated `ArrivalPack` — a pre-window PDF omits the door code, #33). **Add-ons** = new page on the real `AddOn` catalogue, VAT-inclusive, operator-confirmed request → folio on confirm (#17, D4). **Account** = hero + 5-KPI + 3-col bento (real credit/stays/waitlists/consent), a REAL 14-day scheduled delete (D2), honest cards (no vault, D3) + honest SMS. **KIND-2 REFUSED (#39):** cross-property "Where" + map pins (no geo — single-property scope), the structured house-guide/checkout-steps/"Marco's local picks"/named-host+SLA+phone (only real `arrival_notes`), the wireframe's invented 6-extra catalogue (real = the property's AddOns), "····4242"/raw-PAN card entry (SAQ A/#28), the SMS send (no provider), the waitlist "#N in line". **KIND-3 (beyond boundary):** the storefront is single-property vs the wireframe's multi-property browse; the guest realm has no Alpine, so the peach-glass interactivity is pure CSS + progressive enhancement. All five browser-verified; 3 gated commits; suite green; PHPStan L5 (0); Pint clean.
 
+> **2026-08-18 — GUEST DEEP-PARITY AUDIT + FIXES SEALED (⚠️ NOT money-verified).** 30/30 owed wireframes
+> diffed · 0 backend gaps · 0 fabrications · perimeter clean on all four checks. Five findings resolved: F1
+> (premise correction — §G.1 is the SaaS subscription model, the storefront invariant is #17), F2 (enumerated
+> card sublabel), **F3 (RATIFIED: two legitimate VAT bases + a cue — do NOT "fix" by converging them)**, F5
+> (realm-branched 403 body), A1 (realm-branched error footer). ⚠️ **`book()` / reserve→folio→charge remains
+> UNVERIFIED-WITHOUT-MUTATION** — deferred to the money-path pass with A2 and the F3 migrate-to-gross.
+> (`DECISIONS.md` 2026-08-18; `docs/audits/GUEST-AUDIT-FINDINGS-COMPLETE.md`.)
+
 > **2026-08-18 — F3 RATIFIED (guest storefront VAT bases) + A1 (error-footer realm branch).** ⚠️ **Room rates
 > are VAT-EXCLUSIVE and add-ons VAT-INCLUSIVE — two legitimate CONFIGURED bases, NOT a formatting defect, and
 > NOT to be "fixed" by converging them.** Both reconcile to the folio (#17). The audit's F3 (two bases, no cue)
