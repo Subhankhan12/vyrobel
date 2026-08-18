@@ -164,13 +164,18 @@ conflicts with the repo, **trust the repo** and fix this file.
 > ⚠️ **Shipping features does not move launch closer.** Feature-completeness and launch-readiness are different
 > axes (§N.27.12). Per the audit (§3.11 of the ledger):
 >
-> **① THE DEPLOYMENT SPRINT (size L) — the real gate.** There are **zero deploy artifacts**: no Dockerfile, no
->   CI/CD, no `.github/`, no deploy script, no backup strategy. `docs/DEPLOYMENT.md` is a **runbook, not
->   automation**. ⚠️ **Inside it, the single highest-consequence line is the crontab entry**
->   `* * * * * php artisan schedule:run` — without it **8 scheduled commands silently never run, including the
->   GDPR 14-day guest deletion and the 30-day ID purge**. The command IS scheduled in code
->   (`routes/console.php:38`), so the exposure is purely deployment. ⚠️ **Claude has offered a
->   DEPLOYMENT-SCOPING PASS — the audit-equivalent for shipping. It has not been run.**
+> **① THE DEPLOYMENT SPRINT (size L) — the real gate. ⚠️ SCOPED AND HALF-BUILT: §7.1, §7.2 and §7.3 are DONE.**
+>   `docs/DEPLOYMENT.md` §7 is the scoping pass, ranked by harm. **Built:** §7.1 backups + a *proven* restore
+>   (`ops/backup.sh` · `ops/restore-drill.sh`) · §7.2 scheduler/queue liveness alerting (`ops/liveness-drill.sh`)
+>   · **§7.3 the deploy script (`ops/deploy.sh`, 2026-08-18)** — 12 ordered steps, refuses without a backup
+>   passphrase, refuses `APP_DEBUG=true` in production, **contains no destructive command on any executable
+>   line**, and carries a code-only rollback (a DB restore stays a deliberate human decision).
+>   ⚠️ **The crontab is now INSTALLED AND VERIFIED BY THE DEPLOY** — `* * * * * php artisan schedule:run`,
+>   without which **8 scheduled commands silently never run, including the GDPR 14-day guest deletion and the
+>   30-day ID purge**. ⚠️ *Configuration checks (`crontab -l`, `schedule:list`) prove it is set up; only the
+>   schedule log proves it FIRED.*
+>   **⬅ REMAINING: §7.4 secrets · §7.5 Dockerfile/pinned runtime · §7.6 CI.** ⛔ The founder runs the deploy —
+>   `--dry-run`, then staging, then a rollback rehearsal, then production.
 > **⛔ ② THE FOUNDER'S STRIPE/VAT GO-LIVE STEPS.** The billing code *and* build are COMPLETE (§N.17–§N.19).
 >   Remaining: enable Stripe Tax + register jurisdictions (⚠️ `automatic_tax` is **INERT** until then), create
 >   the Prices per `docs/BILLING-STRIPE-PRICES.md`, and fill the prod env — plus the open **VAT-validation
