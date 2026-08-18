@@ -147,14 +147,28 @@ class BookingEngineController extends Controller
         $estimate = StayEstimator::estimate($taxes, $fees, $room, $nights, $persons, $currency);
         $totalMinor = $estimate['total']->amountMinor();
 
-        // "incl. €45 cleaning" — sum the real non-optional fees (they're what the wireframe surfaces).
-        $feeMinor = 0;
-        foreach ($fees as $fee) {
-            if (StayEstimator::feeApplies($fee, $currency)) {
-                $feeMinor += app(FolioService::class)->computeFee($fee, $room, $nights, $persons)->amountMinor();
+        // "incl. €58.65 VAT · €15.00 City tax · €45.00 Cleaning fee" — ENUMERATE what the total folds in (F2).
+        //
+        // ⚠️ THE OLD NOTE NAMED ONLY THE CLEANING FEE, and the guest deep-parity audit filed that: a reader
+        // saw "€85.00 / night" beside "€373.65 total · incl. €45.00 cleaning" and could not account for the
+        // remaining €73.65 (VAT + city tax). Nothing was hidden — the total was always correct and shown
+        // before reserve — but the label under-stated what it was "incl." of.
+        //
+        // ⚠️ BUILT FROM THE ESTIMATE'S OWN LINES, NOT RE-SUMMED. These are the same lines the pre-reserve
+        // checkout breakdown and the folio use, so the card cannot drift from them (§N.8f) — the previous
+        // version recomputed the fees separately, which is precisely how two surfaces start to disagree.
+        //
+        // ⚠️ INFORMATIONAL LINES ARE SKIPPED, and that is load-bearing. A percentage tax marked `inclusive`
+        // is NOT charged ({@see StayEstimator::taxApplies}) — it is already inside the room price and is not
+        // part of this total. Listing it after "incl." would make the enumeration fail to sum to the total.
+        $parts = [];
+        foreach ($estimate['lines'] as $i => $line) {
+            if ($i === 0 || $line['informational'] || $line['amount']->amountMinor() <= 0) {
+                continue;   // [0] is the room itself; the total is what the rest is "incl." of
             }
+            $parts[] = $this->money($line['amount']->amountMinor(), $currency).' '.$line['label'];
         }
-        $note = $feeMinor > 0 ? 'incl. '.$this->money($feeMinor, $currency).' cleaning' : '';
+        $note = $parts === [] ? '' : 'incl. '.implode(' · ', $parts);
 
         return [$this->money($totalMinor, $currency), $totalMinor, $note];
     }

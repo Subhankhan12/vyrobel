@@ -16,16 +16,13 @@
     The "back" link is realm-aware so the page returns the user to somewhere they can actually use.
 --}}
 @php
-    // Realm detection from the path, so a guest is never sent to the operator app and vice versa.
-    $path = request()->path();
-    [$homeUrl, $homeLabel] = match (true) {
-        str_starts_with($path, 'admin') => ['/admin', 'Back to the console'],
-        str_starts_with($path, 'guest') => ['/guest/trips', 'Back to your trips'],
-        str_starts_with($path, 'owner') => ['/owner', 'Back to your portal'],
-        str_starts_with($path, 'app') => ['/app/dashboard', 'Back to the dashboard'],
-        default => ['/', 'Back to safety'],
-    };
-    $isAdmin = str_starts_with($path, 'admin');
+    // Realm detection, so a guest is never sent to the operator app and vice versa.
+    //
+    // ⚠️ READ FROM THE ONE DERIVATION ({@see \App\Support\ErrorRealm}) rather than matching here, so the
+    // back-link and the 403 BODY can never disagree about which realm the reader is in (F5).
+    $realm = \App\Support\ErrorRealm::current();
+    [$homeUrl, $homeLabel] = \App\Support\ErrorRealm::home($realm);
+    $isAdmin = $realm === 'admin';
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
