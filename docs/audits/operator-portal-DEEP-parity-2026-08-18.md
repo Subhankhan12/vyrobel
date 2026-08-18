@@ -2628,6 +2628,107 @@ is a minor absence) · honest refusals confirmed **34** · inventory corrections
 
 ---
 
+# RUN 32 — ⚠️⚠️ THE GATING DIMENSION WAS MEASURED AGAINST 4 OF 11 ACTORS
+
+## ⚠️⚠️ THE DEMO SEEDS FOUR ACCOUNTS. THE BACK-OFFICE ALLOW-LIST HOLDS ELEVEN ROLES.
+
+Rule #1 says *enumerate every operator role that can log in*. I enumerated the four **demo accounts** and
+treated that as the role set. It is not. `config('authorization.back_office_roles')`:
+
+    Property Owner | Group Admin | Hotel Manager | Revenue Manager | Front Desk | Reservation Agent
+    Housekeeping | Maintenance | Accountant | Marketing Manager | Guest Support Agent
+
+**Eleven roles.** The demo assigns a user to **four** of them; the other seven exist as real role definitions
+with **zero users**:
+
+| Role | Perms | Demo account |
+|---|---|---|
+| Property Owner | 49 | ✅ `demo-admin` |
+| **Group Admin** | **42** | ⚠️ **none — never rendered** |
+| Hotel Manager | 37 | ✅ `demo-staff` |
+| **Front Desk** | **19** | ⚠️ **none — never rendered** |
+| Accountant | 12 | ✅ `demo-accountant` |
+| **Revenue Manager** | **10** | ⚠️ **none** |
+| **Reservation Agent** | **10** | ⚠️ **none** |
+| **Guest Support Agent** | **7** | ⚠️ **none** |
+| **Marketing Manager** | **5** | ⚠️ **none** |
+| Housekeeping | 4 | ✅ `demo-housekeeper` |
+| **Maintenance** | **4** | ⚠️ **none** |
+
+⚠️ **Every gating verdict in the preceding 31 runs is therefore bounded by 4 of 11 actors.** §N.19.6 exactly:
+*an invariant is only as strong as the set of ACTORS it was checked against* — four billing passes never
+checked the platform admin, and thirty-one parity runs never checked Front Desk.
+
+⚠️ **And the audit could not have caught this by rendering harder.** No amount of browser work reaches a role
+with no user. It is visible **only** from the role table, and only if you go looking for the difference
+between *"roles the demo logs in as"* and *"roles the system permits"*. CLAUDE.md itself names Front Desk
+(*"schedule.manage is manager-level, NOT Front Desk"*) — the role was in the canon the whole time.
+
+⚠️ **Creating a user for each is a WRITE**, so this run does not do it. What follows is **DERIVED from
+`role_has_permissions` cross `route:list` middleware** — computed, never rendered, and labelled as such.
+
+## Derived reach — all 11 roles across the 54 GET `/app` routes
+
+**25 of 54 carry no `Authorize:` middleware at all.**
+
+| Role | Perms | Reaches (of 29 gated) | Plus ungated | Rendered? |
+|---|---|---|---|---|
+| Property Owner | 49 | 29 | all 25 | ✅ |
+| Group Admin | 42 | **27** | all 25 | ⚠️ **no** |
+| Hotel Manager | 37 | 23 | all 25 | ✅ |
+| Revenue Manager | 10 | 12 | all 25 | ⚠️ **no** |
+| Front Desk | 19 | 10 | all 25 | ⚠️ **no** |
+| Reservation Agent | 10 | 10 | all 25 | ⚠️ **no** |
+| Marketing Manager | 5 | **9** | all 25 | ⚠️ **no** |
+| Maintenance | 4 | **8** | all 25 | ⚠️ **no** |
+| Guest Support Agent | 7 | 8 | all 25 | ⚠️ **no** |
+| Accountant | 12 | **6** | all 25 | ✅ |
+| Housekeeping | 4 | 3 | all 25 | ✅ |
+
+⚠️ **PERMISSION COUNT DOES NOT PREDICT REACH.** Marketing Manager holds **5** permissions and reaches **9**
+gated pages; Accountant holds **12** and reaches **6**. Maintenance and Housekeeping both hold **4** and reach
+**8** and **3**. So *"I tested the least-privileged role"* was never a bound on the others — I tested the role
+with the smallest **count**, which is not the role with the smallest **reach**, and neither is a superset test
+for a role holding a *different* permission.
+
+## ⚠️ WHAT THIS DOES TO THE FIVE FINDINGS
+
+| Finding | Measured as | Actually |
+|---|---|---|
+| **1** — ungated pages incl. owner money + folio money | *"reachable by Housekeeping"* | ⚠️ **reachable by ALL ELEVEN back-office roles** — the exposure is org-wide, not a housekeeping curiosity |
+| **5** — email editor write controls | *"Accountant and Housekeeping see Save template"* | ⚠️ **all 11 see it**; the page is ungated, so every role renders the write controls |
+| **2 · 3 · 4** — controls without `@can` | verified on 4 roles | ⚠️ the *omission* is role-independent (the control has no gate at all), so the conclusion holds for 11 — **but the specific render was only ever seen on 4** |
+
+⚠️ **The findings get WIDER, not weaker.** Finding 1 and Finding 5 are ungated *pages* — a missing gate does
+not discriminate between actors, so every role in the allow-list is inside them. What was reported as a
+4-role observation is an 11-role fact.
+
+## ⚠️ WHAT REMAINS GENUINELY UNVERIFIED
+
+The seven unrendered roles could each carry a **role-specific over-exposure** that the four tested roles
+cannot reveal — a control gated on a permission that only, say, Front Desk or Guest Support Agent holds. My
+derived table says which *pages* they reach; it says **nothing** about which *controls render inside them*,
+because a control's `@can` is evaluated at render time against that user.
+
+⚠️ **Rendering the other seven requires seeding a user per role — a write.** Recorded as the audit's single
+largest outstanding coverage item, and deliberately **not** performed under a read-only brief.
+
+## Updated self-check
+
+| Check | Result |
+|---|---|
+| Every seeded operator role enumerated | ⚠️ **CORRECTED — 11 roles exist, 4 have demo accounts.** The earlier "four demo roles" table described the *accounts*, not the *role set*. |
+| Gating verdicts mapped to the capability matrix | ✅ for 4 rendered roles · ⚠️ **derived only** for the other 7 |
+| Findings' blast radius | ⚠️ **widened** — Findings 1 and 5 apply to all 11 back-office roles |
+
+## Tally
+
+Pages diffed **52 of 52** + 2 data-states · findings **5** (blast radius widened) · roles rendered **4 of 11**
+· roles derived **11 of 11** · inventory corrections **8** · **auditor self-corrections 12** ·
+mutations surfaced/exercised 41 / **0** · **code changed 0**.
+
+---
+
 # ⚠️ HOW TO RESUME — the recipe, so the next session does not rediscover the traps
 
 ✅ **The audit is COMPLETE — 0 pages remain.** The recipe below is kept for re-verification. Everything below cost this audit real runs to learn.
@@ -2683,7 +2784,7 @@ identical in a status table. Substitute a real id for every `{...}` before belie
 and read the status. Run 13 replaced four revisions of inference with one pass of ground truth, and only then
 found `/app/notifications` leaking money.
 
-## 5 · The four demo roles (all password `password`)
+## 5 · ⚠️ ELEVEN back-office roles exist — only these FOUR have demo accounts (all password `password`)
 
     demo-admin@vyrobel-demo.test         Property Owner   49 perms
     demo-staff@vyrobel-demo.test         Hotel Manager    37
