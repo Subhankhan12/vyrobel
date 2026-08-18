@@ -29,7 +29,7 @@ operator (52 pages, 7 findings, sealed).
 >
 > | | |
 > |---|---|
-> | Pages browser-diffed | **17 of 32** + 6 money artifacts (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* |
+> | Pages browser-diffed | **20 of 32** + 6 money artifacts (+ the full perimeter) ⚠️ *and largely re-diffing a completed gate — see the premise correction* · **closed at §18** |
 > | Perimeter checks | ✅ **COMPLETE** — anonymous-leak · guest isolation · pricing reconciliation · money chain |
 > | Findings | **2 premise corrections · 1 divergence · 2 honest limits · 2 auditor self-corrections · 1 inventory correction** |
 > | Money as-seeded | ✅ **byte-identical**: 929 rate rows · 10,912,000 minor · 0 overrides · 41 reservations · 16 payments · 0 seasons · 40 folio items · 0 quotes |
@@ -573,3 +573,130 @@ audit**. Fixed by reading the full text and listing the digit runs rather than t
 
 **⚠️ Recommendation unchanged and now better evidenced:** the single highest-value next step is the
 **dedicated money-path proof** — it closes items 1, 2 and 3 together, and nothing else in this ledger can.
+
+---
+
+## 15 · BATCH 5 — the final pages, and two probes that had to be run *negatively*
+
+Three pages diffed, plus two credential-bearing routes that can only be probed by forging the credential.
+
+| Page | Live | Verdict |
+|---|---|---|
+| `/guest/forgot-password` | 136 ch · 1 form → `POST /guest/forgot-password` | ✅ real; copy is enumeration-neutral |
+| `/guest/claim/sent` | 242 ch · no form; 2 recovery links | ✅ real — **and the copy is the security-correct one** (below) |
+| `/guest/messages/{thread}` | 263 ch · real 2-message conversation, real timestamps, `Send` → `POST` same id | ✅ real |
+
+**⚠️ `claim/sent` states the enumeration-safe thing, deliberately.** The body reads *"**If** this email has a
+booking with us, we've just sent a secure link"* — it does **not** confirm whether the address exists. That is
+the same neutral-enumeration discipline the signup and login paths were credited for. Recorded as a **credit**,
+not a finding.
+
+### ⚠️ 15.1 — the two credential routes, probed with FORGED credentials
+
+Both are GET routes carrying a secret in the URL. The positive case needs a real emailed credential, which only
+a mutation produces — so the only read-only proof available is the **negative**: a forged value must be refused.
+
+| Probe | Result | Reading |
+|---|---|---|
+| `/guest/claim/verify/{bogus-ulid}/{bogus-hash}` | **403** | ✅ **refused** |
+| `/guest/reset-password/{bogus-token}` | **200 — the form renders** | ⚠️ **not a defect; see below** |
+
+**⚠️ The reset-password 200 is by design, and the honest record is that its real gate is unproven here.** The
+token is validated on the **POST**, not on the GET — standard Laravel, and arguably the better choice, since a
+GET that 404'd on a bad token would be a token-enumeration oracle. But it does mean **the gate itself sits on a
+path this pass did not exercise**: `reset-password` POST is **UNVERIFIED-WITHOUT-MUTATION**, exactly like
+`book()`. Rendering the form proves nothing about whether a forged token can actually reset a password.
+
+### ⚠️ 15.2 — SELF-CORRECTION #5: a dead server is indistinguishable from a refusal
+
+The first run of the probes above returned `err` for both — which reads exactly like "the route refused me", and
+would have been recorded as a *stronger* result than the truth. **It was my own app server, which I had stopped
+two steps earlier.** The re-run therefore leads with a **control probe** (`/guest/login` → 200); only against a
+proven-live server is a 403 a refusal rather than a dial tone. *A negative probe needs a positive control in the
+same run, or it proves nothing.*
+
+---
+
+## 16 · ⚠️ FINDING GUEST-F5 (low, presentation) — the 403 body is OPERATOR-framed in every realm
+
+The forged-hash probe refused correctly, but rendered:
+
+> "**Your role** doesn't include this area. If you need it, ask an **administrator on your team** to grant the
+> permission."
+
+A guest has no role, no team, and no administrator. Neither does an owner. This is the operator RBAC vocabulary
+shown to two realms it does not describe.
+
+**⚠️ The realm mechanism already exists one file over — the body just doesn't use it.**
+`resources/views/errors/layout.blade.php:18-28` matches on the path across **four** realms to pick the
+back-link, which is why the same page correctly ends with *"Back to your trips"*. `errors/403.blade.php:6`
+hardcodes one message with **no branch at all**. (⚠️ §N.13.1 again: the defect sits beside the correct thing.)
+
+**Swept, not sampled — and the sweep is what bounds it.** All six error views checked:
+
+| View | Realm-branches | Body |
+|---|---|---|
+| **403** | **0** | ⚠️ **operator-framed — the only one** |
+| 404 | 1 | ✅ neutral ("…or it isn't part of your account") |
+| 419 · 429 · 500 · 503 | 0 | ✅ neutral — read correctly to any actor |
+
+So this is **one view**, not "the error pages are wrong" — five of six are already realm-safe by being written
+neutrally. **Presentation only; the refusal itself is correct.** Fix shape: branch the message the way the
+layout already branches the link. **Not fixed here — this pass is read-only.**
+
+---
+
+## 17 · INVENTORY RE-VERIFICATION AT CLOSE — run both ways, and it moved the denominator
+
+Re-derived from `route:list` and `docs/design/raw/`, not carried forward.
+
+### 17.1 ⚠️ Two inventory corrections — both *shrink* what was owed
+
+1. **`/guest/payments/{reservation}/pay` is `POST`-only.** A GET returns **405**. It is a **mutation endpoint,
+   not a page**, and no diff is owed. It was carried in §14's residue as an un-diffed page — wrong.
+   *(It was, correctly, never POSTed.)*
+2. **There is no guest `email-preferences` route.** §14's residue named one. The *Guest Email Preferences*
+   wireframe maps into **`/guest/account`**, which was diffed in batch 2. Also wrong, also removes an item.
+
+⚠️ **Both errors were in a list I wrote myself, one section earlier** — the same lesson the operator audit
+recorded and the canon states as *"a register is a record of what one reader found."* Re-derivation caught
+them; carrying the list forward would not have.
+
+### 17.2 Wireframes → routes: 32 · mapped 30 · unmapped 2 — both already adjudicated
+
+| Unmapped wireframe | Status | Not a gap because |
+|---|---|---|
+| **Guest ID Verification** | account-gated | guest ID/KYC is on `CLAUDE.md`'s account-gated tail — deferred honestly, never faked |
+| **Guest Referral Landing** | ⛔ DON'T-BUILD-as-drawn | `DIVERGENCE-REGISTER.md` — 5 absent subsystems behind it (#39) |
+
+**Neither is an un-built page.** Both are prior rulings, re-confirmed rather than re-litigated.
+
+---
+
+## 18 · FINAL SELF-CHECK (re-derived at close)
+
+| Check | Result |
+|---|---|
+| Pages browser-diffed | **20 of 32** + **6 money artifacts** |
+| Denominator after corrections | 32 wireframes − 2 adjudicated-unmapped = **30 pages a diff is owed on**; of the 10 not diffed, **2 are structurally unverifiable read-only** (the `{quote}` pair) |
+| Captures on disk | ✅ **21** `deep-guest-*`, re-counted |
+| Perimeter | ✅ anonymous · guest-vs-guest isolation (pages, **artifacts**, **threads**, **and a pay route**) · #33 pre-window · forged-credential refusal |
+| Money as-seeded | ✅ **byte-identical start → end** — `rate_calendar` 929 / €109,120.00 · overrides 0 · reservations 41 · payments 16 · seasons 0 · folio_items 40 · quotes 0 · guests 10 · anonymized 0 |
+| Mutations exercised | ✅ **0** |
+| Findings | **5** (4 prior + GUEST-F5) |
+| Auditor self-corrections | **5** — CSP origin · source-vs-render · door-code regex · **the residue list (×2, §17.1)** · **the dead-server false negative (§15.2)** |
+
+### ⚠️ What this pass still does NOT verify — carried forward unchanged, plus one addition
+
+1. **The reserve → folio → charge chain** — `book()` **UNVERIFIED-WITHOUT-MUTATION**.
+2. **`booking_quotes`** — 0 rows.
+3. **`/book/{property}/confirmation/{quote}` · `/book/{property}/reservation/{quote}`** — need a real quote id;
+   **structurally unverifiable read-only**.
+4. **⚠️ NEW — `POST /guest/reset-password`** — the token gate is on the POST, which was not exercised (§15.1).
+5. **`POST /guest/payments/{r}/pay`** — a real charge path; never submitted, by constraint.
+
+**⚠️ Recommendation, now with a second item.** The **dedicated money-path proof** still closes 1–3 together and
+remains the highest-value next step. Items 4 and 5 are **credential/charge gates that only a mutation pass can
+prove** — they should ride along with it rather than becoming a third pass.
+
+**⚠️ AUDIT CLOSED — read-only, report-only, no code changed, 0 mutations, money byte-identical.**
