@@ -18,7 +18,10 @@
 > (premise correction — §G.1 is the SaaS subscription model, the storefront invariant is #17), F2 (enumerated
 > card sublabel), **F3 (RATIFIED: two legitimate VAT bases + a cue — do NOT "fix" by converging them)**, F5
 > (realm-branched 403 body), A1 (realm-branched error footer). ⚠️ **`book()` / reserve→folio→charge remains
-> UNVERIFIED-WITHOUT-MUTATION** — deferred to the money-path pass with A2 and the F3 migrate-to-gross.
+> UNVERIFIED-WITHOUT-MUTATION** — ⚠️ **THIS LINE IS SUPERSEDED (2026-08-18): the money path is PROVEN and the
+> guest surface is MONEY-VERIFIED** — the full-tax-stack chain reconciles through the storefront path (#17),
+> F4 and A2 are CLOSED. `book()` was never unverified; that claim was a read-only-instrument limit carried into
+> the seal without its scope. See `DECISIONS.md` 2026-08-18 and `docs/audits/GUEST-MONEY-PATH-PROOF-2026-08-18.md`.
 > (`DECISIONS.md` 2026-08-18; `docs/audits/GUEST-AUDIT-FINDINGS-COMPLETE.md`.)
 
 > **2026-08-18 — F3 RATIFIED (guest storefront VAT bases) + A1 (error-footer realm branch).** ⚠️ **Room rates

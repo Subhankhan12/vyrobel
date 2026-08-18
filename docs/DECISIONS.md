@@ -13275,3 +13275,42 @@ surfaced** — the chain reconciled first run.
 
 Full suite **2468 / 2466 / 2 skipped**; PHPStan L5 0; Pint clean; persisted money byte-identical with
 **quotes still 0**, since every booking lived and died inside a `RefreshDatabase` transaction.
+
+---
+
+## 2026-08-18 — GUEST SURFACE: **MONEY-VERIFIED**. The "money-path proof remains" caveat is RETIRED.
+
+**This supersedes the caveat in the guest seal earlier today.** That seal ended *"reserve→folio money-path
+proof remains"* — a mischaracterisation, corrected in the entry above and retired here.
+
+### What is now proven, on merged main
+
+| Proof | Evidence |
+|---|---|
+| **#17 through the STOREFRONT path, full tax stack** | the grand total a guest is **SHOWN** — parsed from the **rendered card**, never recomputed from `StayEstimator` (which would agree by construction and prove nothing) — equals **Σ ALL `folio_items`** and the folio's own `total_minor`: **€502.80 = room 36000 + VAT 8280 + city tax 1500 + cleaning 4500**, each landing as its **own line** |
+| **The canon chain, with taxes present** | folio room charge === `reservation_units.price_minor` === `booking_quotes.total_minor` |
+| **F4 CLOSED** | 0 `booking_quotes` before → **exactly 1** after; the storefront writes the quote, the seeder's operator path (`AssignmentService`) never does |
+| **A2 CLOSED** | one derivation (`StayEstimator::isInclusivePercentage`); mutating it reds **4** tests **including the total-invariant money guard**, where the pre-A2 shape left that guard **green** |
+
+Composed suite on merged main **2468 / 2466 / 2 skipped** (baseline 2465 → **+3, exactly the new file**);
+PHPStan L5 **0**; Pint clean; persisted money byte-identical with **quotes still 0** — every booking lived and
+died inside a `RefreshDatabase` transaction.
+
+### ⚠️ The lesson this chapter is actually about
+
+**A limit of the instrument is not a gap in the build.** The read-only audit was *structurally* incapable of
+the positive: it could not book without mutating, and the seeder mints quotes through the operator path, so
+`booking_quotes` was empty for reasons that had nothing to do with the storefront. Its negative was evidence
+about **the instrument**, not the system — and the audit **said so**, scoping every claim
+(*"UNVERIFIED-**WITHOUT-MUTATION**"*, *"unverifiable **on seeded data**"*). **The seal dropped the qualifier**,
+and a correctly-scoped observation became a false claim about the product one document later.
+⚠️ *When a scoped finding is promoted into canon, the scope is the part most likely to be lost — and the part
+that was carrying all the truth.*
+
+### What genuinely remains — and it is not a gap
+
+- **A live Stripe payment capture** — out of scope by construction (go-live keys unset; the proof books
+  `on_arrival`, which keeps the folio local). The founder's go-live flip.
+- **The deferred F3 migrate-to-gross** — a **PARKED decision**, taken up **only if** EU consumer-display
+  compliance later requires tax-inclusive room display. Not a defect, not owed.
+- **The deployment gate** — now the **only remaining pre-go-live engineering work**.
