@@ -13,6 +13,7 @@ use App\Models\MaintenanceTicket;
 use App\Models\MessageThread;
 use App\Models\Owner;
 use App\Models\OwnerStatement;
+use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
@@ -20,7 +21,11 @@ use App\Models\Review;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\FeedNotification;
+use App\Notifications\Guest\GuestBookingCancelledNotification;
 use App\Notifications\Guest\GuestBookingConfirmedNotification;
+use App\Notifications\Guest\GuestMessageReceivedNotification;
+use App\Notifications\Guest\GuestRefundProcessedNotification;
+use App\Notifications\Guest\GuestReviewRequestNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
 use App\Notifications\Operator\LowRatingNotification;
@@ -75,6 +80,11 @@ class DispatchNotificationsForDomainEvent
         // ⚠️ OWNER FIX 2 — the OPERATOR's direction only. The owner's own reply is recorded `inbound` by
         // InboxService::postOwnerMessage(), so an owner is never notified about their own message.
         'inbox.message_sent',
+        // ⚠️ GUEST NOTIFICATIONS · GATE 2 — two events this dispatcher did not previously handle. Both already
+        // fire today and already email the guest (SendGuestTransactionalEmails); they are added here so the
+        // IN-APP row is dispatched from the notification dispatcher, leaving that email listener untouched.
+        'reservation.cancelled',
+        'payment.refunded',
     ];
 
     /**
@@ -117,7 +127,7 @@ class DispatchNotificationsForDomainEvent
             // Exhaustive over HANDLED (the early return above guarantees one of these).
             match ($domainEvent->event_type) {
                 'reservation.confirmed' => $this->newBooking($domainEvent, $orgId),
-                'reservation.checked_out' => $this->balanceDue($domainEvent, $orgId),
+                'reservation.checked_out' => $this->checkedOut($domainEvent, $orgId),
                 'unit.condition_changed' => $this->unitOutOfOrder($domainEvent, $orgId),
                 'maintenance_ticket.opened' => $this->urgentWorkOrder($domainEvent, $orgId),
                 'payout.paid' => $this->payoutSent($domainEvent, $orgId),
@@ -127,8 +137,40 @@ class DispatchNotificationsForDomainEvent
                 'review.submitted' => $this->newReview($domainEvent, $orgId),
                 'inbox.thread_assigned' => $this->threadAssigned($domainEvent),
                 'inbox.message_sent' => $this->ownerMessage($domainEvent),
+                'reservation.cancelled' => $this->guestBookingCancelled($domainEvent),
+                'payment.refunded' => $this->guestRefundProcessed($domainEvent),
             };
         });
+    }
+
+    /**
+     * ⚠️ GUEST NOTIFICATIONS · GATE 2 — `reservation.checked_out` now serves TWO independent audiences, so it
+     * fans out rather than nesting.
+     *
+     * ⚠️ THIS SHAPE IS THE FIX FOR A REAL BUG, not tidiness. G7 was first appended to the END of
+     * {@see balanceDue()}, which returns early when there is no folio or the balance is settled — so the
+     * guest's review invitation would have fired ONLY for guests who still owed money, and most stays are
+     * settled at check-out. The operator's balance-due notice and the guest's review invitation are unrelated
+     * conditions; nesting one inside the other silently made the second depend on the first.
+     */
+    private function checkedOut(DomainEvent $domainEvent, string $orgId): void
+    {
+        $this->balanceDue($domainEvent, $orgId);
+        $this->guestReviewRequest($domainEvent);
+    }
+
+    /**
+     * G7 — invite the GUEST to review the stay they just completed. Additive: `SendGuestTransactionalEmails`
+     * still sends ReviewRequestMail on this same event and is untouched.
+     */
+    private function guestReviewRequest(DomainEvent $domainEvent): void
+    {
+        $stay = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
+        if (! $stay instanceof Reservation) {
+            return;
+        }
+
+        $stay->leadGuest?->notify(new GuestReviewRequestNotification($stay));
     }
 
     /** A new confirmed booking → the org's operator staff. */
@@ -351,7 +393,18 @@ class DispatchNotificationsForDomainEvent
 
         $ownerId = $thread->owner_id;
         if (! is_string($ownerId) || $ownerId === '') {
-            return;   // an operator↔guest thread — not the owner's conversation
+            // ⚠️ GUEST NOTIFICATIONS · GATE 2 — THE `else` NOBODY WROTE. This branch used to just return.
+            // `message_threads` is `guest_id` XOR `owner_id`, so a thread with no owner is the operator↔GUEST
+            // conversation: the guest is notified instead, from the property (never from an owner — owner↔guest
+            // messaging does not exist).
+            //
+            // ⚠️⚠️ THIS ONE WIRE COVERS BOTH SENDING PATHS. The BULK send (GuestBulkActionController) posts
+            // through `InboxService::sendOutbound()`, which records this same `inbox.message_sent` — so a bulk
+            // send to N guests already reaches here N times, once per recipient, each self-scoped. Adding a
+            // second notify in the bulk controller would give every bulk recipient TWO rows for one message.
+            $thread->guest?->notify(new GuestMessageReceivedNotification($thread));
+
+            return;
         }
 
         Owner::query()->find($ownerId)?->user?->notify(new OwnerMessageReceivedNotification($thread));
@@ -404,5 +457,43 @@ class DispatchNotificationsForDomainEvent
         if ($operators->isNotEmpty()) {
             Notification::send($operators, $notification);
         }
+    }
+
+    /**
+     * ⚠️ GUEST NOTIFICATIONS · GATE 2 · G5 — the guest's booking was cancelled.
+     *
+     * Additive: `SendGuestTransactionalEmails` still sends CancellationMail on this same event and is
+     * untouched. Only the LEAD guest is notified, resolved FROM the reservation — never a request id.
+     */
+    private function guestBookingCancelled(DomainEvent $domainEvent): void
+    {
+        $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
+        if (! $reservation instanceof Reservation) {
+            return;
+        }
+
+        $reservation->leadGuest?->notify(new GuestBookingCancelledNotification($reservation));
+    }
+
+    /**
+     * ⚠️ GUEST NOTIFICATIONS · GATE 2 · G6 — a refund was processed on the guest's booking.
+     *
+     * ⚠️ SUCCEEDED REFUNDS ONLY — the same condition the email applies. A refund that failed tells the guest
+     * nothing true, and a row claiming otherwise would be worse than none.
+     */
+    private function guestRefundProcessed(DomainEvent $domainEvent): void
+    {
+        $refund = Payment::query()->with(['folio.reservation.leadGuest', 'folio.reservation.property'])
+            ->find($domainEvent->subject_id);
+        if (! $refund instanceof Payment || (string) $refund->status !== 'succeeded') {
+            return;
+        }
+
+        $reservation = $refund->folio?->reservation;
+        if (! $reservation instanceof Reservation) {
+            return;
+        }
+
+        $reservation->leadGuest?->notify(new GuestRefundProcessedNotification($reservation));
     }
 }

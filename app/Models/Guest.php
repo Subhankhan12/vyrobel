@@ -361,6 +361,22 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
             // + this clause the organiser name lingered in plaintext after anonymize.
             Group::query()->where('organiser_guest_id', $this->getKey())->update(['contact->name' => null]);
 
+            // ⚠️ GDPR · GUEST NOTIFICATIONS (GATE 2) — the guest's own in-app notification rows are a durable
+            // store ABOUT this guest: `data->title` is the resolved email SUBJECT (operator-customisable, and
+            // its declared vars include {guest_name}/{first_name}), and `data->context` is their stay — the
+            // property and the dates they were there. That is exactly the "free-text store about a guest" the
+            // erase rule covers, so it is cleared here.
+            //
+            // ⚠️ DELETED, NOT BLANKED. The message/note stores above blank a BODY and keep the row because the
+            // thread skeleton carries operator audit value. A notification has no such value once its subject
+            // is erased — it exists only to be shown to this guest, who no longer exists — so an empty row
+            // would be residue, not a record. The audit trail of what happened lives in `audit_events` and
+            // `domain_events`, which record WHICH fields changed and never their values.
+            //
+            // ⚠️ Gate 1 shipped the first guest-notification writer WITHOUT this clause; it is added here with
+            // the seven writers that follow, restoring the rule that an erase never leaves a store behind.
+            $this->notifications()->delete();
+
             // NOTE: never put the erased PII into the audit before/after — that would re-retain it.
             app(AuditEventRecorder::class)->record(
                 action: 'guest.anonymized',

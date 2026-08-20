@@ -8,6 +8,7 @@ use App\Mail\PaymentReminderMail;
 use App\Models\Folio;
 use App\Models\Organization;
 use App\Models\Reservation;
+use App\Notifications\Guest\GuestPaymentDueNotification;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Folio\FolioTotals;
 use App\Support\Tenancy\TenantContext;
@@ -56,6 +57,11 @@ class SendPaymentReminders extends Command
                     if ($balance <= 0) {
                         continue;   // settled — no reminder
                     }
+
+                    // ⚠️ GUEST NOTIFICATIONS · GATE 2 · G4 — the IN-APP row, dispatched only once the balance
+                    // is known to be OUTSTANDING (the `continue` above already skipped settled folios), but
+                    // BEFORE the email's own address/template guards — separate channels.
+                    $reservation->leadGuest?->notify(new GuestPaymentDueNotification($reservation, $balance));
 
                     $email = $reservation->leadGuest?->email;   // encrypted cast → plaintext here
                     if (! is_string($email) || $email === '') {

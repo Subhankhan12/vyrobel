@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Mail\AccountDeletionScheduledMail;
 use App\Models\Guest;
+use App\Notifications\Guest\GuestAccountSecurityNotification;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -45,6 +46,11 @@ class GuestDeletionService
             $guest->forceFill(['scheduled_deletion_at' => $effective])->save();
             $this->audit->record('guest.deletion_scheduled', $guest, null, ['fields' => ['scheduled_deletion_at']]);
             $this->email($guest);
+            // ⚠️ GUEST NOTIFICATIONS · GATE 2 · G8 — the IN-APP row, ADDITIVE to the email above (which is
+            // untouched). Always-on: a pending erasure of your own account is not a preference. The row
+            // carries NO date — the account page reads the authoritative one, which can change if the request
+            // is cancelled and re-made.
+            $guest->notify(new GuestAccountSecurityNotification('scheduled'));
         }
 
         return $guest->scheduled_deletion_at instanceof CarbonInterface ? $guest->scheduled_deletion_at : $effective;
@@ -58,6 +64,7 @@ class GuestDeletionService
         }
         $guest->forceFill(['scheduled_deletion_at' => null])->save();
         $this->audit->record('guest.deletion_cancelled', $guest, null, ['fields' => ['scheduled_deletion_at']]);
+        $guest->notify(new GuestAccountSecurityNotification('cancelled'));
     }
 
     /**

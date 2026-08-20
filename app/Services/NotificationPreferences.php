@@ -82,6 +82,18 @@ class NotificationPreferences
         // exact audience match, so this entry never appears on the operator or owner preferences screen,
         // and NotificationPreferenceController still hard-asserts in_array($audience, ['operator','owner']).
         'guest_booking_confirmed' => ['label' => 'Booking confirmed', 'description' => 'Your booking is confirmed', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_checkin_ready' => ['label' => 'Check-in details ready', 'description' => 'Your self check-in details are available', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_message_received' => ['label' => 'Message from your host', 'description' => 'The property replied to you', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_payment_due' => ['label' => 'Balance due', 'description' => 'A balance is outstanding before your stay', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_booking_cancelled' => ['label' => 'Booking cancelled', 'description' => 'Your booking was cancelled', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_refund_processed' => ['label' => 'Refund processed', 'description' => 'A refund was processed on your booking', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        'guest_review_request' => ['label' => 'Review your stay', 'description' => 'An invitation to review a completed stay', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+        // ⚠️ ALWAYS-ON, mirroring the owner's `account_security`: a pending erasure of your own account is not
+        // a preference. allows() short-circuits an always_on key to true BEFORE consulting the defaults, so
+        // `email_default` is not read for this one — the double-email guard for G8 is proven by test (the
+        // erasure email fires exactly once), not by this value. It is still false, so the row is honest about
+        // which channel it means.
+        'guest_account_security' => ['label' => 'Account security', 'description' => 'A change to your account or a scheduled deletion', 'group' => 'Account', 'audience' => 'guest', 'always_on' => true, 'default' => true, 'email_default' => false],
 
         'owner_new_booking' => ['label' => 'New booking', 'description' => 'A booking is confirmed on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'owner_review_posted' => ['label' => 'Review posted', 'description' => 'A guest review is published on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],

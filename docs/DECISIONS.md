@@ -13416,3 +13416,83 @@ forked controller reds it.
 
 **Not built, deliberately:** G2–G8, the `/guest/notifications` screen, the bell placement in the guest shell,
 guest preference toggles. No email was replaced, no owner/operator catalog entry flipped.
+
+---
+
+## 2026-08-20 — GUEST NOTIFICATIONS · GATE 2: G2–G8, the remaining seven types
+
+Gate 1 (`aa1a91e`) proved the foundation and G1. This gate replicates it across the other seven, each on its
+**own already-live trigger**, each **additive** to an email that still fires. The feed screen, the bell
+placement and guest preference toggles remain the (un-wireframed) frontend gate.
+
+| | Type | Live trigger | Points at |
+|---|---|---|---|
+| G2 | `guest_checkin_ready` | `emails:send-pre-arrival` (#33 arrival-window day) | `guest.arrival` |
+| G3 | `guest_message_received` | `inbox.message_sent` (operator direction) | `guest.messages.show` |
+| G4 | `guest_payment_due` | `emails:send-payment-reminders` | `guest.payments` |
+| G5 | `guest_booking_cancelled` | `reservation.cancelled` | ⚠️ `guest.trips` |
+| G6 | `guest_refund_processed` | `payment.refunded` (succeeded only) | `guest.payments` |
+| G7 | `guest_review_request` | `reservation.checked_out` | `guest.review` |
+| G8 | `guest_account_security` | `GuestDeletionService` (always-on) | `guest.account` |
+
+### ⚠️⚠️ THE BRIEF'S G3 INSTRUCTION WAS WRONG — and following it would have doubled every bulk message
+
+The founder ruled that G3 notifies on **both** the personal reply and the BULK send, and the brief described
+the bulk path as *"a separate path that does NOT go through the inbox thread"*, asking for a second wire in
+`GuestBulkActionController`.
+
+**It does go through the thread.** The bulk loop calls `$inbox->sendOutbound($thread, …)`, and
+`InboxService::sendOutbound()` records `inbox.message_sent`. So the bulk path **already** reaches the single
+G3 handler, once per recipient, each row self-scoped.
+
+> **The ruling is satisfied by ONE wire. A second one would have given every bulk recipient TWO rows for one
+> message — a bulk send to fifty guests producing a hundred notifications.**
+
+The ruling's *intent* (both directions notify) is implemented in full; only its stated mechanism was wrong.
+`GuestNotificationsGate2Test` pins it: a bulk-shaped send yields **exactly one** row.
+
+### ⚠️ The double-email hazard, guarded per type
+
+`allows()` falls back to the catalog default for a non-User notifiable, and **every one of these events
+already emails the guest** — so an `email_default => true` on any guest key emails them **twice**. All eight
+guest entries set it `false`, and the guard is **per type**: each type asserts the catalog value AND the
+resolved channel list AND that its existing Mailable sent **exactly once**. Mutation-proven seven times —
+flipping any one key reds that type's test and the family-wide guard.
+
+⚠️ **G8 is the documented exception.** It is always-on (a pending erasure of your own account is not a
+preference), and `allows()` short-circuits an always-on key **before** reading the defaults — so
+`email_default` is not consulted for it. Its guard is the send-count assertion instead. Recorded rather than
+papered over.
+
+### ⚠️ A real placement bug the tests caught
+
+G7 was first appended to the end of `balanceDue()` — which returns early when the folio is settled. The
+review invitation would have fired **only for guests who still owed money**, and most stays are settled at
+check-out. `reservation.checked_out` now fans out to two **independent** handlers.
+
+> **Nesting one audience's dispatch inside another's conditional silently makes the second depend on the
+> first.** The two conditions were unrelated; the nesting was not visible in review, only in the failing test.
+
+### ⚠️ GDPR: guest notification rows now die with the guest
+
+`Guest::anonymize()` did **not** clear notifications. `data->title` is the resolved email SUBJECT
+(operator-customisable, its declared vars including `{guest_name}`) and `data->context` is the guest's stay —
+a durable store ABOUT the guest, squarely inside the erase rule. **Gate 1 shipped the first writer without
+this clause;** it is added here with the seven that follow. Rows are **deleted, not blanked** — unlike a
+message thread, a notification has no operator audit value once its subject is erased, so an empty row would
+be residue. What happened is still recorded in `audit_events` / `domain_events`, which carry field names and
+never values.
+
+⚠️ **The first version of that test was vacuous** and stayed green when the clause was deleted: it filtered
+`notifiable_type` on `Guest::class`, but `Relation::enforceMorphMap` stores **`'guest'`**, so the query matched
+nothing before or after — 0 == 0 forever. Fixed to the alias, and the probe must now show a **positive**
+before the erasure for its later zero to mean anything.
+
+### Anti-drift
+
+Six reservation-scoped types share one `GuestReservationNotification` base holding the single copy rule (the
+row title IS the matching email template's subject, same resolver call, same merge vars). G1 was refactored
+onto it, so seven types cannot drift apart. G3 and G8 are not reservation-scoped and stay standalone.
+
+Realm boundary held: operator **16** and owner **9** catalog entries unchanged, and no `guest_*` key surfaces
+on either preferences screen (`catalogFor()` filters on exact audience).

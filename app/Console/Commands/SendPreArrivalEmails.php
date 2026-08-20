@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Mail\PreArrivalMail;
 use App\Models\Organization;
 use App\Models\Reservation;
+use App\Notifications\Guest\GuestCheckinReadyNotification;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Guest\ArrivalPack;
 use App\Support\Tenancy\TenantContext;
@@ -45,6 +46,13 @@ class SendPreArrivalEmails extends Command
                     ->get();
 
                 foreach ($reservations as $reservation) {
+                    // ⚠️ GUEST NOTIFICATIONS · GATE 2 · G2 — the IN-APP row, dispatched BEFORE the email's own
+                    // guards. Deliberate: the email is skipped when there is no address on file or the operator
+                    // disabled that template (#86), and neither is a reason to withhold the in-app row — they
+                    // are separate channels. The row does NOT carry the door code or wifi; it points at Arrival
+                    // Info, which reads them through the window-gated ArrivalPack (#33).
+                    $reservation->leadGuest?->notify(new GuestCheckinReadyNotification($reservation));
+
                     $email = $reservation->leadGuest?->email;   // encrypted cast → plaintext here; guest-only
                     if (! is_string($email) || $email === '') {
                         continue;   // no address on file — nothing to send to
