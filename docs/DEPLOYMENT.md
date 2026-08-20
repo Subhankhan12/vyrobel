@@ -428,6 +428,152 @@ full `--dry-run`, and an executable-line inspection proving no destructive comma
 
 ---
 
+### 7.4 SECRETS — ✅ DOCUMENTED 2026-08-20 (rank 4)
+
+⚠️ **This section contains NO secret values and never will.** It records what each secret is *for*, *where* it
+is read, whether production *requires* it, and what breaks *without* it. Every real value is the founder's,
+on the founder's infrastructure. `.env.example` carries **placeholders only** — every secret slot in it is
+blank by design.
+
+#### ⚠️ 7.4.0 The finding: the template was already adequate — the INVENTORY was what was missing
+
+`.env.example` already holds **85 keys**, grouped, with 60 lines of comment, every secret slot blank, and a
+Stripe block that already documents the safety guard and the two distinct webhook endpoints. §7's own gap map
+called it *"Present and adequate"* and that survives inspection. **What did not exist was this inventory** —
+purpose, read-site, requirement and consequence per secret — and the two custody procedures below.
+
+⚠️ **`BACKUP_PASSPHRASE` is deliberately NOT in `.env.example`, and adding it would be a regression.** See
+§7.4.4.
+
+#### 7.4.1 What the deploy pre-flight refuses without — the inventory must agree with this
+
+`ops/deploy.sh` refuses to proceed on exactly four conditions. **All four are reconciled in the table below.**
+
+| Pre-flight check | Line | Behaviour |
+|---|---|---|
+| `APP_KEY` empty | `:84` | `fail` + **exit 2** — *"Encrypted guest PII is unreadable without it (§7.4)"* |
+| `APP_ENV=production` **and** `APP_DEBUG=true` | `:87` | refuses — leaks stack traces, env values and query contents publicly |
+| `BACKUP_PASSPHRASE` unset **in the shell env** | `:104` | `fail` — no pre-migration backup can be taken, so a migration would have no way back |
+| Database unreachable | `:92` | `php artisan db:monitor --max=1000` → **exit 2** |
+
+✅ **Inventory ↔ pre-flight: AGREE.** No secret the pre-flight checks is missing from the inventory, and no
+inventory entry claims a pre-flight guard that does not exist.
+
+#### 7.4.2 THE SECRET INVENTORY
+
+**Legend — consequence:** 🔴 won't boot / unusable · 🟠 boots insecure · 🟡 a feature silently fails · ⛔ the
+deploy pre-flight refuses.
+
+| Key | Purpose | Read at | Prod | Consequence if missing / wrong |
+|---|---|---|---|---|
+| `APP_KEY` | Laravel encryption key — **encrypts `guests.email` / `guests.phone`** | `config/app.php` | **required** | ⛔🔴 pre-flight exits 2. ⚠️ **Lost ⇒ every encrypted guest record is permanently unreadable.** See §7.4.3 |
+| `APP_ENV` | environment | `config/app.php` | `production` | 🟠 and ⚠️ **load-bearing for LIVE Stripe** — see §7.4.5 |
+| `APP_DEBUG` | debug output | `config/app.php` | `false` | ⛔🟠 `true` + prod is refused by the pre-flight |
+| `DB_PASSWORD` · `DB_USERNAME` · `DB_HOST` · `DB_DATABASE` · `DB_PORT` | database credentials | `config/database.php` | **required** | ⛔🔴 pre-flight `db:monitor` fails → exit 2 |
+| `REDIS_PASSWORD` (+ `REDIS_HOST`/`PORT`) | cache · sessions · **queue/Horizon** | `config/database.php` | **required** | 🔴 queue stops: emails, payout runs and every scheduled job stop being processed |
+| `MAIL_MAILER` | transport selector | `config/mail.php` | **required** | 🟡 defaults to **`log`** — ⚠️ mail silently goes to a logfile and no guest ever receives anything |
+| `POSTMARK_TOKEN` | production mail (Postmark) | `config/services.php` | **required** *(with the postmark mailer)* | 🟡 every transactional email fails to send |
+| `MAIL_PASSWORD` · `MAIL_USERNAME` | SMTP credentials (dev/Mailpit or an SMTP provider) | `config/mail.php` | only if `MAIL_MAILER=smtp` | 🟡 sends fail |
+| `STRIPE_FAKE` | **master switch** for the payment gateway | `config/services.php` | **`false`** | 🟡 while `true` **no other Stripe secret is read at all** — nothing charges. See §7.4.5 |
+| `STRIPE_SECRET` · `STRIPE_KEY` | Stripe API keys | `config/services.php` | **required** | 🟡 no charge can be created. ⚠️ Guard interaction in §7.4.5 |
+| `STRIPE_WEBHOOK_SECRET` | signature secret for `/webhooks/stripe` | `config/services.php` | **required** | ⚠️⚠️ **THE SILENT FAILURE** — see §7.4.5 |
+| `STRIPE_CONNECT_WEBHOOK_SECRET` | signature secret for `/webhooks/stripe/connect` | `config/services.php` | **required for PAYOUTS** | ⚠️ **currently ABSENT from `.env`**. Owner-payout rail only — does **not** block a guest paying a folio |
+| `STRIPE_PRICE_*` (×4) | subscription price ids | `config/services.php` | required for billing | 🟡 subscription checkout cannot price a plan |
+| `PASSPORT_PRIVATE_KEY` · `PASSPORT_PUBLIC_KEY` | OAuth signing keypair | `config/passport.php` | **required** *(if the owner API is used)* | 🔴 token issue/verify fails. Normally **files** generated per environment by `php artisan passport:keys` (gitignored), not env values |
+| `BACKUP_PASSPHRASE` | AES-256 passphrase for the encrypted DB dump | ⚠️ **the shell env**, not `.env` — `ops/backup.sh:73` `openssl … -pass env:BACKUP_PASSPHRASE` | **required at deploy time** | ⛔ pre-flight refuses. ⚠️ **Lost ⇒ every backup is permanently unreadable.** See §7.4.4 |
+| `AWS_ACCESS_KEY_ID` · `AWS_SECRET_ACCESS_KEY` (+ bucket/region) | object storage / offsite backup target | `config/filesystems.php` | required *if* S3 is the disk or the offsite target | 🟡 uploads / offsite copies fail |
+| `CHANNEX_API_KEY` · `CHANNEX_WEBHOOK_SECRET` | channel manager | `config/services.php` | account-gated | 🟡 `CHANNEX_FAKE` defaults **true**; live sync stays off until set |
+| `ANTHROPIC_API_KEY` | LLM features | `config/services.php` | optional | 🟡 `LLM_FAKE` defaults **true** |
+| `SLACK_BOT_USER_OAUTH_TOKEN` · `LOG_SLACK_WEBHOOK_URL` | ops alerting | `config/logging.php` | optional | 🟡 alerts do not arrive |
+
+⚠️ **Safe-by-default posture, worth keeping:** `STRIPE_FAKE`, `CHANNEX_FAKE` and `LLM_FAKE` **all default to
+`true`**. An environment provisioned with none of those secrets runs harmlessly on fakes rather than
+half-integrating with live third parties. Going live is a series of deliberate opt-ins, never an accident of
+a missing variable.
+
+⚠️ **The `MAIL_MAILER` trap deserves its own line:** its default is **`log`**. A production box that forgets
+it does not error — it writes every guest email to a file and reports success. That is a silent failure of
+the same family as the Stripe webhook below.
+
+#### 7.4.3 APP_KEY — CUSTODY PROCEDURE (a procedure, never the key)
+
+**What it protects.** `guests.email` and `guests.phone` are encrypted casts. `APP_KEY` is the only thing that
+can read them back.
+
+- **Where it lives.** One of: the platform's secret manager (Fly/Render/Heroku config, AWS Secrets Manager,
+  1Password/Bitwarden), or the server's environment. ⚠️ **Never in git, never in a screenshot, never pasted
+  into a chat or an issue.** It reaches the server as an environment variable, and `.env` on the box is the
+  only file that should ever hold it.
+- **Generate** with `php artisan key:generate` **on the target environment**, once, at provisioning.
+- **Back it up separately from the database.** ⚠️ A backup encrypted with a key stored *only* alongside that
+  database is one incident away from being unreadable.
+- **Rotation.** Laravel supports `APP_PREVIOUS_KEYS` (already referenced in `config/app.php`): set the new
+  `APP_KEY`, move the old value into `APP_PREVIOUS_KEYS`, re-encrypt, then retire the old one. ⚠️ **Rotating
+  without `APP_PREVIOUS_KEYS` orphans every existing encrypted value.**
+- **Recovery.** ⚠️ **There is none.** Lost ⇒ encrypted guest PII is permanently unreadable. Leaked ⇒ treat
+  every encrypted value as exposed: rotate via `APP_PREVIOUS_KEYS`, then assess disclosure obligations.
+
+#### 7.4.4 BACKUP_PASSPHRASE — ITS HOME (a home, never the value)
+
+⚠️ **It is deliberately NOT in `.env`, and must not be added there.** `ops/deploy.sh:104` reads
+`${BACKUP_PASSPHRASE:-}` from the **shell environment**, and `ops/backup.sh:73` passes it to
+`openssl enc -aes-256-cbc -pbkdf2 -pass env:BACKUP_PASSPHRASE`. It is an **invocation-time** secret that never
+rests in a file on the server:
+
+```bash
+BACKUP_PASSPHRASE='…' ops/deploy.sh
+```
+
+- **Where it lives.** The founder's password manager, and nowhere on the deploy host.
+- **It is the SAME passphrase `ops/backup.sh` uses** — the path `ops/restore-drill.sh` proves. Its custody
+  *is* the restore's custody.
+- ⚠️ **Losing it makes every encrypted backup permanently unreadable.** A backup you cannot decrypt is not a
+  backup. Rehearse with `ops/restore-drill.sh` **before** you need it.
+- **Rotation** re-encrypts future archives only. ⚠️ **Old archives remain bound to the old passphrase — keep
+  it for as long as you keep them.**
+
+#### ⚠️ 7.4.5 THE STRIPE GROUP — verified, with exact consequences
+
+Verified at source by `docs/audits/STRIPE-CAPTURE-CONFIRM-2026-08-20.md` and the probe runbook's (A) bracket.
+
+**`STRIPE_FAKE` is the master switch.** `StripeSafetyGuard::forceFakeOutsideProduction()` returns early on it:
+while `true`, **no other Stripe secret is even read** and `FakeStripeClient` is bound. Production: `false`.
+
+**The guard keys on the KEY PREFIX, not on "any key off-production":**
+
+```php
+isLiveKey($s) => str_starts_with($s,'sk_live_') || str_starts_with($s,'rk_live_')
+forceFake     => $configuredFake || ($environment !== 'production' && isLiveKey($secret))
+```
+
+- ⚠️ **`APP_ENV=production` is load-bearing for LIVE keys specifically.** A `sk_live_` key anywhere else is
+  **refused** — the fake binds and **nothing charges**. This is why the go-live checklist requires it.
+- ⚠️ **A `sk_test_` key does NOT require it** — test keys are permitted off-production by design, for the
+  manual live-test checkpoint.
+
+**⚠️⚠️ `STRIPE_WEBHOOK_SECRET` — THE ONE THAT FAILS SILENTLY.** Fulfilment happens on the webhook, never on
+the redirect: `'payment_intent.succeeded' => FolioService::settlePayment()`. If the secret is wrong, or **the
+live endpoint was never registered**, then:
+
+> **The guest is charged by Stripe and the folio never settles — money taken, balance still showing.**
+> Everything else in this inventory fails loudly. This one does not.
+
+**The paired non-secret step (a go-live checklist item, not just a variable):** register the endpoint in the
+Stripe dashboard at `POST https://<host>/webhooks/stripe`, subscribed to **`payment_intent.succeeded`**,
+`payment_intent.payment_failed` and `payment_intent.canceled`.
+
+**`STRIPE_CONNECT_WEBHOOK_SECRET` — absent today.** It signs `/webhooks/stripe/connect`, a **separate**
+endpoint with its **own** secret, serving the **owner-payout Connect rail**. Required before payouts go live;
+it does **not** affect a guest paying a folio.
+
+#### 7.4.6 Provisioning, in one line
+
+Copy `.env.example` → `.env`, then fill in: `APP_KEY` (generate) · the five `DB_*` · `REDIS_PASSWORD` ·
+`MAIL_MAILER` + `POSTMARK_TOKEN` · the Stripe group · `AWS_*` if used. Export `BACKUP_PASSPHRASE` at deploy
+time. Run `ops/deploy.sh --dry-run` first — it prints all twelve steps and executes none.
+
+---
+
 ### Ranked by harm if missing at launch — the recommended build order
 
 Each of these is **its own pass**; they are deliberately not built together.
@@ -441,7 +587,10 @@ Each of these is **its own pass**; they are deliberately not built together.
 3. ✅ **A deploy script — BUILT 2026-08-18, see §7.3 above** (`ops/deploy.sh`). §5 is order-sensitive
    (migrate before caching, `horizon:terminate` after) and was executed by hand. The risk was a skipped or
    reordered step under pressure, not ignorance — the script encodes the order and refuses unsafe states.
-4. **Secrets management.** Moves credentials off the filesystem; real, but the exposure is narrower than 1–3.
+4. ✅ **Secrets management — DOCUMENTED 2026-08-20, see §7.4 above.** The inventory (every secret: purpose ·
+   read-site · prod-required · consequence), the APP_KEY custody procedure and the BACKUP_PASSPHRASE home,
+   reconciled to exactly what the pre-flight refuses without. ⚠️ Moving credentials off the filesystem into a
+   managed secret store is the remaining *infrastructure* half and is the founder's platform choice.
 5. **Dockerfile / pinned runtime.** Now that **PHP ≥ 8.4.1** is a hard floor (§0), a pinned image removes an
    entire class of provisioning error — but the pre-flight in §0 already catches it.
 6. **CI pipeline.** Regression safety and convenience. Valuable, and the least harmful of the six to lack on

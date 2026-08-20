@@ -7962,3 +7962,40 @@ isolation fixture. And one weak MUTATION: the order-dependent wrong-actor that r
 
 ⚠️ **Ten of the eleven were written in the same feature that then caught them.** Writing a guard and trusting
 it are one motion; only the mutation separates them.
+
+---
+
+# (N.30) 🏁 TWO NAMES THE CANON HAD WRONG — carry these, not the phantoms (2026-08-20)
+
+Both are small, both were load-bearing in a probe, and both produced a **zero that could not fail**.
+
+## §N.30.1 ⚠️ THE PAYMENTS COLUMNS ARE `gateway` AND `gateway_ref` — there is no `provider_ref`, no `method`
+
+`STRIPE-CAPTURE-CONFIRM-2026-08-20.md` §3 reported the 16 seeded payments as *"`method = (null)`, zero Stripe
+intent ids"*, measured with `!empty($r->provider_ref ?? null)`.
+
+⚠️ **Neither column exists.** The `?? null` fallback meant the probe asked about a property that was not
+there and returned **0 for every row, unfailably** — the §N.29 LABEL form, committed one pass after §N.29 was
+written, by its author.
+
+Re-measured on the real columns: **16 payments · `gateway = 'manual'` on all · all 16 carry a non-null
+`gateway_ref` · 0 real Stripe intents (`pi_`/`cs_`)**. The verdict was unchanged and never rested on the bad
+probe — `DemoSeeder:1567`'s `recordPayment(…, 'tok_demo_card')` and `gateway='manual'` are independent
+evidence — but the supporting figure did.
+
+> **A probe that names a field which does not exist does not error in PHP — it returns a falsy zero. Any
+> `?? null` on an unverified column name is an unfailable question. Confirm the column exists before you
+> trust its emptiness.**
+
+⚠️ The committed audit still carries the phantom in its §3; it is flagged there for correction rather than
+silently rewritten, so the audit trail shows the mistake and the fix.
+
+## §N.30.2 ⚠️ "0 OVERRIDES" MEANS `unit_rate_overrides`
+
+The money-as-seeded shorthand **929 / 10,912,000 / 0 / 41 / 16 / 0** names its third figure "0 overrides".
+That is **`unit_rate_overrides`**. ⚠️ There is **no `rate_calendar.override_reason` column** — reading the
+shorthand literally throws `SQLSTATE[42S22] Unknown column`.
+
+The full reading: `rate_calendar` rows · `SUM(rate_calendar.price_minor)` · `unit_rate_overrides` ·
+`reservations` · `payments` · `rate_seasons`.
+

@@ -91,6 +91,13 @@ Per the probe rule, that makes the demo an **instrument that cannot produce a po
 
 ---
 
+> ⚠️ **CORRECTION (2026-08-20, §7.4 pass).** The figures above cite `provider_ref` and `method`. **Neither
+> column exists** — they are `gateway_ref` and `gateway`, and the probe's `?? null` made it return 0
+> unfailably (§N.30.1). Re-measured: 16 payments, `gateway='manual'` on all, all 16 with a non-null
+> `gateway_ref`, **0 real Stripe intents**. The verdict is unchanged — the seeder call and `gateway='manual'`
+> are independent evidence — but the supporting figure was reached by a probe incapable of failing. Left in
+> place with this note rather than rewritten, so the audit trail shows both.
+
 ## §4 — WHAT GO-LIVE ACTUALLY NEEDS: **KEYS ONLY**
 
 No build. The founder's checklist:
