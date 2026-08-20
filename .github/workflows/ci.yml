@@ -1,0 +1,181 @@
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+#  Vyrobel CI — the gates this project has run BY HAND on every pass, now run by the machine.
+#
+#  ⚠️ FOUR GATES, AND EVERY ONE OF THEM CAN FAIL THE BUILD:
+#       1. the full Pest suite     2. PHPStan L5     3. Pint     4. money-as-seeded
+#
+#  ⚠️⚠️ §N.29 APPLIED TO CI. A step that reports green WITHOUT running its gate is the runtime form of the
+#  label-vs-protection failure this project has been bitten by repeatedly. So: no `|| true`, no
+#  `continue-on-error`, no swallowed exit code, and no narrowed test filter anywhere in this file. Each of
+#  the four gates was individually proven to RED the build when violated before this workflow was committed
+#  (the proofs are recorded in docs/DECISIONS.md).
+#
+#  ⚠️⚠️ THE RUNTIME IS NOT DESCRIBED HERE. It comes from Dockerfile.ci (the §7.5 parity image) and is
+#  ASSERTED by ops/runtime-contract.sh, which runs before any gate. If the image ever drifts from the
+#  §7.5 contract, that script reds this build — which is the entire reason the image lives where CI
+#  consumes it (§N.8f: one enforced definition, never two free to disagree).
+#
+#  ⚠️ STRIPE. phpunit.xml:49 pins STRIPE_FAKE=true and the contract script asserts that pin still exists.
+#  CI can never reach real Stripe, and no Stripe secret is available to it (#45).
+# ══════════════════════════════════════════════════════════════════════════════════════════════════
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# Supersede in-flight runs on the same ref — a solo founder pushing twice should not pay for both.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # ── The §7.5 parity image. Rebuilt ONLY when Dockerfile.ci changes (the tag is its hash), so the
+  #    usual push pays nothing for it and every run still executes the identical runtime.
+  image:
+    name: Parity image (§7.5)
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      ref: ${{ steps.tag.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: tag
+        run: |
+          TAG="$(sha256sum Dockerfile.ci | cut -c1-16)"
+          OWNER="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "ref=ghcr.io/${OWNER}/vyrobel-ci:${TAG}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push if this exact runtime is not already published
+        run: |
+          set -euo pipefail
+          if docker manifest inspect '${{ steps.tag.outputs.ref }}' > /dev/null 2>&1; then
+            echo "Runtime ${{ steps.tag.outputs.ref }} already published — reusing it unchanged."
+            exit 0
+          fi
+          docker build -f Dockerfile.ci -t '${{ steps.tag.outputs.ref }}' .
+          docker push '${{ steps.tag.outputs.ref }}'
+
+  gates:
+    name: Gates
+    needs: image
+    runs-on: ubuntu-latest
+
+    # ⚠️ THE GATES RUN INSIDE THE PARITY IMAGE — not on whatever the runner happens to have installed.
+    # That is the whole point: a green build here means green on the runtime production is contracted to
+    # provide, and nowhere else.
+    container:
+      image: ${{ needs.image.outputs.ref }}
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    services:
+      # ⚠️ GENUINE MySQL 8, never MariaDB — the no-double-booking guarantee is InnoDB SELECT … FOR UPDATE
+      # (§7.5.3). The contract script reads the live server banner and REDS on a MariaDB string, so this
+      # is enforced rather than merely requested here.
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: vyrobel_test
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+
+    env:
+      # ⚠️ Service hostnames, NOT 127.0.0.1: inside a job container, localhost is the container itself.
+      # phpunit.xml declares DB_HOST=127.0.0.1 WITHOUT force="true", and PHPUnit does not overwrite an
+      # env var that already exists — verified, not assumed — so these win for the suite too.
+      DB_HOST: mysql
+      DB_PORT: '3306'
+      DB_USERNAME: root
+      DB_PASSWORD: ''
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      # ⚠️ Belt and braces on top of phpunit.xml:49. CI holds no Stripe secret of any kind.
+      STRIPE_FAKE: 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare the environment
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          php artisan key:generate
+          # A second schema for the seed gate, so it never touches the suite's database.
+          mysql -h "$DB_HOST" -u root -e 'CREATE DATABASE IF NOT EXISTS vyrobel;'
+
+      # ══ GATE 0 — THE RUNTIME ITSELF ═══════════════════════════════════════════════════════════════
+      # ⚠️ FIRST, and deliberately so. Every gate below is only as meaningful as the machine it ran on.
+      # This asserts the §7.5 contract: the PHP floor, every cited extension, the pcntl/posix FUNCTIONS
+      # (§7.5.1c), the Redis client (§7.5.1a), the ini ceilings, and that STRIPE_FAKE is still pinned.
+      - name: 'Gate 0 · the §7.5 runtime contract'
+        env:
+          CI_IMAGE: '1'
+        run: ./ops/runtime-contract.sh --services
+
+      - name: Build front-end assets
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run build
+
+      # ══ GATE 1 — STYLE ════════════════════════════════════════════════════════════════════════════
+      # `--test` reports a diff and exits non-zero; it never rewrites a file in CI.
+      - name: 'Gate 1 · Pint'
+        run: ./vendor/bin/pint --test
+
+      # ══ GATE 2 — STATIC ANALYSIS ══════════════════════════════════════════════════════════════════
+      # Level 5 over app/ and database/, per phpstan.neon. One error fails the build.
+      - name: 'Gate 2 · PHPStan L5'
+        run: ./vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      # ══ GATE 3 — THE FULL SUITE ═══════════════════════════════════════════════════════════════════
+      # ⚠️ NO FILTER, NO --group, NO --parallel. The whole suite or nothing: a narrowed run is the exact
+      # shape of a green that did not test what it claimed. (Parallel is also excluded on purpose — the
+      # workers share one database and corrupt each other's fixtures.)
+      - name: 'Gate 3 · the full Pest suite'
+        run: php artisan test
+
+      # ══ GATE 4 — MONEY AS SEEDED ══════════════════════════════════════════════════════════════════
+      # ⚠️ Runs against the SEPARATE `vyrobel` schema created above, never the suite's. The baseline is
+      # six sums and counts held in ops/money-as-seeded.sh — one definition, which the founder runs
+      # unchanged before a release.
+      - name: 'Gate 4 · money as seeded'
+        env:
+          DB_DATABASE: vyrobel
+        run: |
+          set -euo pipefail
+          php artisan migrate:fresh --seed --force
+          ./ops/money-as-seeded.sh

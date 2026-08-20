@@ -131,8 +131,34 @@ it('supports add → select → book, isolated to the new property', function ()
         ->assertSessionHasNoErrors();
     expect(session('current_property_id'))->toBe($new->id);
 
+    // ⚠️ A LEAK-PROOF NEEDLE, AND IT IS NOT COSMETIC — this is the fix for the long-documented
+    // "order-dependent" flake (§7.6). `seedScenario` codes units `U1`, `U2`…, and every page carries a
+    // 40-char random CSRF token; `Str::random(40)` is alphanumeric, so it contains the two-character string
+    // "U1" roughly 1% of the time. `assertDontSee('U1')` therefore failed on a page that had leaked NOTHING
+    // — the assertion was testing the NEEDLE, not the behaviour. ⚠️ It is randomness-dependent, not
+    // order-dependent: the token is redrawn every run regardless of test order.
+    //
+    // The remedy is this repo's own established one, not a new invention: OperatorReservationsListTest
+    // renames the foreign unit to `FOREIGNUNIT9` and BackOfficeAccessTest to `BRUNOUNIT9` for exactly this
+    // reason (both fixed 2026-07-17). A leak-proof needle is one that could ONLY appear by leaking.
+    $original = $s['units'][0];
+    $original->update(['code' => 'ORIGINALUNIT9']);
+    $original->refresh();
+
+    // ⚠️ THE POSITIVE FIRST (§N.29) — the needle must be capable of appearing at all, or the negative below
+    // proves nothing. On the ORIGINAL property the code really does render.
+    $this->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])
+        ->get('/app/units')->assertOk()->assertSee($original->code);
+
+    // ⚠️ AND THE WORST CASE IS PINNED, NOT LEFT TO CHANCE. The token below is a legal `Str::random(40)`
+    // shape that deliberately CONTAINS the old needle, so the collision that used to happen ~1 run in 50
+    // now happens on EVERY run. A leak-proof needle sails through it; a short one reds immediately and
+    // deterministically instead of flaking months later. The protection RUNS here — it is not merely
+    // described in a comment (§N.29).
+    $adversarialToken = 'U1'.str_repeat('a', 38);
+
     // The new property is empty, so its rack/units render but offer nothing yet — the honest empty state,
     // and definitely NOT the original property's inventory bleeding through.
-    $this->actingAs($manager)->withSession(['current_property_id' => $new->id])
-        ->get('/app/units')->assertOk()->assertDontSee((string) $s['units'][0]->code);
+    $this->actingAs($manager)->withSession(['current_property_id' => $new->id, '_token' => $adversarialToken])
+        ->get('/app/units')->assertOk()->assertDontSee($original->code);
 });

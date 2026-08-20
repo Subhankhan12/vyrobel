@@ -13710,3 +13710,111 @@ chokepoint every caller passes through, and now **both** always-on tests bite it
 
 > **Defence-in-depth that cannot be independently tested is not depth — it is a second copy of a rule, free to
 > drift, whose presence hides whether the first copy works.**
+
+---
+
+## 2026-08-20 — ✅ DEPLOYMENT §7.6 CI: the by-hand gates become a control · the flake was never order-dependent
+
+**The deploy track is COMPLETE.** Six items, six built (§7.1 backups → §7.6 CI).
+
+### What §7.6 actually changes
+
+Every gate in this project — the full suite, PHPStan L5, Pint, the money-as-seeded re-measure — has been run
+**by hand** and reported in prose. That worked because one person ran them every time. ⚠️ **It is a habit,
+not a control, and a habit has no failure mode that announces itself.** `.github/workflows/ci.yml` now runs
+all four on every push and every PR, inside the §7.5 parity image.
+
+**Founder's call: a live workflow, not a documented-only spec.**
+
+### ⚠️ §N.29 applied to CI — each gate was VIOLATED and observed to red
+
+A step that reports green without running its gate is the runtime form of the label-vs-protection failure.
+So none of the four was taken on trust:
+
+| Gate | Violated by | Result |
+|---|---|---|
+| 0 · runtime (`ops/runtime-contract.sh`) | run against this dev machine | ❌ **3 genuine failures** — see below |
+| 1 · Pint | a malformed class planted in `app/` | exit **1** → removed → **0** |
+| 2 · PHPStan L5 | a call to an undefined method | exit **1** (`method.notFound`) → removed → **0** |
+| 3 · the suite | reverting the flake fix under the pinned token | **1 failed, deterministically** → restored → 6/6 |
+| 4 · money-as-seeded | baseline moved to 17 payments | exit **1**, both figures printed → restored → **0** |
+
+No `|| true`, no `continue-on-error`, no swallowed exit, and **no test filter** — Gate 3 is `php artisan test`
+whole, with no `--parallel` (the workers share one database).
+
+### ⚠️ The runtime is CONSUMED from §7.5, never restated (§N.8f)
+
+Three files, one direction of authority: **§7.5** is the contract in prose · **`ops/runtime-contract.sh`** is
+its **executable** form (asserts it against a live machine, exits non-zero) · **`Dockerfile.ci`** merely
+*installs*, and Gate 0 runs the script inside it, so an image that drifts reds the build. The script
+deliberately checks the two things `composer check-platform-reqs` **cannot** see — §7.5.1(a) the
+`REDIS_CLIENT`/`phpredis` default needing an undeclared `ext-redis`, and §7.5.1(c) `pcntl`/`posix`
+**functions** neutered by `disable_functions` while the extension still reports loaded — and reds on a
+**MariaDB** banner, so "genuine MySQL 8" is enforced rather than requested.
+
+⚠️ **One honest residue, recorded rather than hidden:** §7.5.6 lists the same checks in prose and this pass
+was scoped not to edit §7.5, so two expressions of that list exist (one enforced, one read). They agree
+today. A one-line pointer from §7.5.6 to the script would collapse them — the founder's call, and the only
+§N.8f duplication §7.6 leaves behind.
+
+### ⚠️⚠️ THE FLAKE WAS NOT ORDER-DEPENDENT — and it had been solved here twice already
+
+`OperatorPortfolioTest`'s *"add → select → book"* has sat in the register as an **order-dependent** flake for
+a year. It is nothing of the kind.
+
+`seedScenario` codes units `U1`, `U2`… (`tests/Support/booking_helpers.php:50`), and the test asserted
+`assertDontSee('U1')` on the new empty property's page. Every page carries a 40-char random CSRF token, and
+`Str::random(40)` is alphanumeric — so it contains the two-character string `U1` **~1% of the time**, twice
+per page. **Measured, not assumed: 212 hits in 20,000 draws = 1.06%**, matching the 0.95% this repo had
+already computed. The assertion was failing on a page that had leaked **nothing**: it was testing the
+**needle**, not the behaviour.
+
+> ⚠️ **It is randomness-dependent. The token is redrawn every run regardless of test order.** The distinction
+> is not pedantry: an ordering fix — deterministic sort, isolated fixtures, an explicit `orderBy` — would
+> have changed **nothing**, and the test would have kept flaking with a "fix" recorded against it.
+
+⚠️⚠️ **And this exact flake was diagnosed and fixed twice in this repo on 2026-07-17.**
+`OperatorReservationsListTest:86` renames its foreign unit to `FOREIGNUNIT9`; `BackOfficeAccessTest:132`
+renames to `BRUNOUNIT9` and carries the full arithmetic in its comment. `OperatorPortfolioTest` is simply the
+site that sweep missed — **§N.13.1 again: the defect sat beside the flagged thing**, one file over, for a
+year. A register entry is one reader's finding (§N.27.1); the remedy existed and the third site did not get it.
+
+**The fix reuses that remedy rather than inventing one**, plus two hardenings:
+
+1. **A leak-proof needle** — `ORIGINALUNIT9`, a string that could only appear **by leaking**.
+2. **The positive first** (§N.29) — the test now asserts the code *does* render on the original property
+   before asserting it does not on the new one. Without that, a needle that can never appear passes forever
+   while guarding nothing.
+3. ⚠️ **The worst case is PINNED.** The negative assertion runs with a CSRF token deliberately containing
+   `U1`, so the 1-in-50 collision now happens on **every run**: a leak-proof needle sails through, a short
+   one reds **immediately and deterministically** instead of flaking months later. The protection RUNS.
+
+**Mutation proof:** with the token pinned, reverting the needle to `U1` fails **1/6 every time**; restoring
+passes **6/6**. Assertions **29 → 31** — two added, none removed. ⚠️ **No product code touched.** It was a
+fixture-and-needle defect, never an ordering bug; nothing was papered over.
+
+### The parity image — and where it deliberately exceeds §7.5
+
+`Dockerfile.ci` is **dev/CI only, never deployed** (production is pull-in-place, §7.3). No app code, no
+`.env`, no secrets. ⚠️ It installs **one** extension §7.5 excludes — **`ext-gd`** — and that is a real
+asymmetry, not drift: §7.5.2 rightly excludes gd from production (only `PlaceholderImage` uses it, reached
+solely by `DemoSeeder` and one test, and production is never seeded), but that "one test" is
+`tests/Feature/RoomPhotosTest.php:79`, which calls `PlaceholderImage::jpeg()` and **throws without gd**. The
+**suite** needs what production does not. The contract script prints it under a separate `CI-ONLY` heading so
+the sets never blur. ⚠️ **`ext-intl` is deliberately NOT installed** (§7.5.1b), so CI runs as a host without
+it does and any future *unguarded* `intl` use fails here rather than in production.
+
+⚠️ **Status: written, NOT built.** Docker is not installed on the dev machine. **Gate 0 is what verifies it** —
+the first CI run either satisfies the contract or reds with the exact requirement it missed. Not assumed.
+
+### ⚠️ Gate 0 found something on its very first run — on this machine
+
+`upload_max_filesize` **2M** (needs ≥ 12M) · `post_max_size` **8M** (needs ≥ 14M) · `memory_limit` **128M**
+(needs ≥ 256M). `php artisan serve` runs on the CLI SAPI, so these are local development's real limits.
+
+> ⚠️ **The 8 MB guest ID upload and the 10 MB message attachment cannot be exercised on this machine at
+> all** — PHP rejects the file before Laravel sees it. Those paths have only ever been tested below 2 MB.
+> A local `php.ini`/`conf.d` change, so the founder's; the parity image already sets all three.
+
+**Files:** `.github/workflows/ci.yml` · `Dockerfile.ci` · `ops/runtime-contract.sh` ·
+`ops/money-as-seeded.sh` · `tests/Feature/OperatorPortfolioTest.php` (the flake) · `docs/DEPLOYMENT.md` §7.6.
