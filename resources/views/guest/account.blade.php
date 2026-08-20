@@ -169,6 +169,66 @@
                 </form>
             </section>
 
+            {{-- ═══ EMAILS ABOUT YOUR STAY (Guest Email Preferences) ═══════════════════════════════════
+                 The `Guest Email Preferences` wireframe's six rows, in their REAL states.
+
+                 ⚠️ THIS IS THE EMAIL PROGRAMME, NOT THE IN-APP FEED. The guest transactional emails never
+                 consult NotificationPreferences::allows() — they are gated at their SEND SITES, and these
+                 toggles are that gate. Switching an email off does NOT remove the in-app notification: a
+                 guest still sees it in their feed, they just are not mailed about it.
+
+                 ⚠️ TWO ARE TOGGLEABLE. `txn` and pre-arrival are LOCKED by ruling — a booking confirmation
+                 is a transactional record, and the pre-arrival email carries the door code, so a guest who
+                 could switch it off could arrive unable to get in. They are rendered ON and inert.
+
+                 ⚠️ MARKETING IS THE SEPARATE CONTROL ABOVE ("Trip offers & news" → marketing_consent, with
+                 its own unsubscribe flow). Different legal basis; deliberately NOT collapsed into these, and
+                 not duplicated here as a second offers switch that would contradict it.
+
+                 ⚠️ #39 — push is rendered honestly disabled, exactly like the SMS row above: there is no
+                 push channel and no provider, so a working-looking switch would control nothing. --}}
+            <section class="vy-card">
+                <div class="vy-eyebrow" style="margin-bottom:4px">Emails about your stay</div>
+                <div style="font-size:11.5px;color:var(--vy-muted);margin-bottom:6px">You will always get the essentials</div>
+
+                {{-- LOCKED — a transactional record. --}}
+                <div class="ac-row" style="border-top:none">
+                    <div><div style="font-size:13.5px;font-weight:500">Booking confirmations &amp; receipts</div><div style="font-size:11.5px;color:var(--vy-muted);margin-top:2px">Confirmations, payment receipts and cancellations — always sent</div></div>
+                    <span class="ac-toggle" style="background:var(--vy-accent-3);opacity:.55;cursor:not-allowed" title="Always sent — this is your booking record" aria-label="Booking confirmations and receipts — always sent"><span class="knob" style="left:20px"></span></span>
+                </div>
+
+                {{-- LOCKED — the door-code nudge. --}}
+                <div class="ac-row">
+                    <div><div style="font-size:13.5px;font-weight:500">Pre-arrival &amp; check-in</div><div style="font-size:11.5px;color:var(--vy-muted);margin-top:2px">Door code, directions and arrival details — always sent so you can get in</div></div>
+                    <span class="ac-toggle" style="background:var(--vy-accent-3);opacity:.55;cursor:not-allowed" title="Always sent — it carries your access details" aria-label="Pre-arrival and check-in — always sent"><span class="knob" style="left:20px"></span></span>
+                </div>
+
+                {{-- LIVE — the two the guest controls. --}}
+                @foreach (['payment' => ['Payment reminders', 'A nudge when a balance is due before check-in'], 'reviews' => ['Review requests', 'A note after your stay asking how it went']] as $cat => $copy)
+                    <form method="POST" action="{{ route('guest.account.preferences') }}" style="margin:0">
+                        @csrf
+                        <input type="hidden" name="email_pref" value="{{ $cat }}">
+                        <div class="ac-row">
+                            <div><div style="font-size:13.5px;font-weight:500">{{ $copy[0] }}</div><div style="font-size:11.5px;color:var(--vy-muted);margin-top:2px">{{ $copy[1] }}</div></div>
+                            <button type="submit" name="receiving" value="{{ $emailPrefs[$cat] ? '0' : '1' }}" class="ac-toggle"
+                                    aria-label="{{ $copy[0] }}" aria-pressed="{{ $emailPrefs[$cat] ? 'true' : 'false' }}"
+                                    style="background:{{ $emailPrefs[$cat] ? 'var(--vy-accent-3)' : 'rgba(120,70,40,.2)' }}"><span class="knob" style="left:{{ $emailPrefs[$cat] ? '20px' : '3px' }}"></span></button>
+                        </div>
+                    </form>
+                @endforeach
+
+                {{-- HONESTLY DISABLED — no push channel exists (#39), same treatment as SMS above. --}}
+                <div class="ac-row">
+                    <div><div style="font-size:13.5px;font-weight:500;color:var(--vy-muted)">Push notifications</div><div style="font-size:11.5px;color:var(--vy-faint);margin-top:2px">Not available yet — coming when push is set up</div></div>
+                    <span class="ac-toggle" style="background:rgba(120,70,40,.12);cursor:not-allowed" title="Not available yet"><span class="knob" style="left:3px;opacity:.6"></span></span>
+                </div>
+
+                <div style="font-size:11px;color:var(--vy-faint);padding:10px 2px 2px;line-height:1.5">
+                    Turning an email off does not hide it in the app — you will still see it in your notifications.
+                    Marketing emails are controlled separately by <strong>Trip offers &amp; news</strong> above.
+                </div>
+            </section>
+
             <section class="vy-card" style="padding:8px">
                 <a href="{{ route('guest.wallet') }}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;text-decoration:none;color:var(--vy-ink)">
                     <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">Credits &amp; wallet</span><span style="display:block;font-size:11.5px;color:var(--vy-muted)">Your credit balance &amp; history</span></span>

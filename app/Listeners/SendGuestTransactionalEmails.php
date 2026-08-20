@@ -14,6 +14,7 @@ use App\Models\Guest;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\GuestEmailPreferences;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Mail\Mailable;
@@ -153,6 +154,11 @@ class SendGuestTransactionalEmails
         }
         // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
         if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'review-request')) {
+            return;
+        }
+        // ⚠️ AND THE GUEST'S OWN CHOICE — a SECOND, INDEPENDENT gate (see the payment-reminder command for
+        // the same pair). A guest who does not want to be asked how their stay went is not asked.
+        if (! GuestEmailPreferences::mayReceive($reservation->leadGuest, 'reviews')) {
             return;
         }
         $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));

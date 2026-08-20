@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Reservation;
 use App\Notifications\Guest\GuestPaymentDueNotification;
 use App\Support\Email\EmailTemplateResolver;
+use App\Support\Email\GuestEmailPreferences;
 use App\Support\Folio\FolioTotals;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Console\Command;
@@ -69,6 +70,12 @@ class SendPaymentReminders extends Command
                     }
                     // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
                     if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'payment-reminder')) {
+                        continue;
+                    }
+                    // ⚠️ AND THE GUEST'S OWN CHOICE — a SECOND, INDEPENDENT gate. The operator's #86 switch
+                    // is about the property; this is about the person. Both must pass. The in-app row above
+                    // is unaffected: switching the EMAIL off does not blind the guest inside the portal.
+                    if (! GuestEmailPreferences::mayReceive($reservation->leadGuest, 'payment')) {
                         continue;
                     }
 

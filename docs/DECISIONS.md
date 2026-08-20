@@ -13656,3 +13656,57 @@ invokes the script, its pre-flight refuses unsafe states, and the founder's read
 The label-vs-protection rule is promoted to **§N.29** — *a guard's green must depend on the protection
 RUNNING* — with its three forms (label / location / missed-mutation) and the eleven instances this feature
 produced.
+
+---
+
+## 2026-08-20 — GUEST EMAIL PREFERENCES: the two toggles, gated at the SEND SITE
+
+The scope pass (`docs/audits/GUEST-TOGGLES-SCOPE-2026-08-20.md`) established the shape and the founder ruled.
+Built on merged main after the notifications seal (`2ed497a`).
+
+### ⚠️ THE MODEL: this is EMAIL, and it is NOT `allows()`
+
+The `Guest Email Preferences` wireframe governs the guest EMAIL programme — **a different feature from the
+in-app notifications shipped in Gates 1–3.** And the architectural fact that shapes the whole build:
+
+> **The guest transactional emails never consult `NotificationPreferences::allows()`.**
+> `SendGuestTransactionalEmails::sendToGuest()` and the two scheduled commands call `Mail::to()->send()`
+> directly, gated only by `EmailTemplateResolver::enabled()` — the operator's per-org #86 switch.
+
+So a guest email opt-out is **a new gate at each send site**, not a preference-service change. `allows()` is
+untouched (confirmed by diff), and the operator/owner in-app path with it.
+
+### What shipped
+
+| | |
+|---|---|
+| **Store** | `guest_email_preferences` — **sparse, deviations-only**: a row exists ONLY when a guest opted out. The default therefore lives in the ABSENCE of data, so a guest who never opens the screen cannot be unsubscribed by a backfill that never ran. |
+| **Gate** | ONE shared `GuestEmailPreferences::mayReceive()`, shaped deliberately like `EmailTemplateResolver::enabled()` (§N.8f), called at BOTH send sites. The two gates are **independent and both must pass** — the operator's property-level switch, and the person's own choice. |
+| **Toggles** | exactly two: `payment` (PaymentReminderMail) and `reviews` (ReviewRequestMail) |
+| **Locked** | `txn` and `pre-arrival`, rendered ON and inert. A booking confirmation is a transactional record; the pre-arrival email carries the **door code**, so a guest able to switch it off could arrive unable to get in. G8 is unreachable by design (`always_on` short-circuits `allows()`). |
+| **Honestly disabled** | `push` — no channel, no provider (#39), rendered exactly like the existing SMS row |
+| **Untouched** | `marketing_consent` + `marketing.unsubscribe` — a separate legal basis. Proven both ways: a transactional opt-out does not revoke marketing consent, and revoking marketing does not clear a transactional choice. |
+
+⚠️ **One deviation from the ruling, reasoned.** The ruling said render `offers` and `winback` disabled. The
+account page **already carries a LIVE "Trip offers & news" toggle** on `marketing_consent`. Adding a disabled
+"Offers & news" row directly beneath a working one would have been the contradiction the ruling exists to
+prevent, so the marketing rows are **not duplicated**; the section footnote points at the existing control
+instead. The two controls stay separate, as ruled — they are simply not shown twice.
+
+### ⚠️ §N.29 — the guards prove the EMAIL DOES NOT SEND
+
+Every test asserts what the **mailer** did. None asserts that a toggle renders, a column exists, or a route is
+declared. Four mutations, each verified to apply and reach the path: removing either send-site gate reds the
+matching "does NOT email" test; breaking the self-scoping reds #28; removing the always-on guard reds both
+always-on tests.
+
+### ⚠️ A redundant layer removed BECAUSE mutation-testing exposed it as unprovable
+
+The account controller re-checked `array_key_exists(..., OPTIONAL)` before calling the helper. **Deleting that
+check left the suite fully green** — the helper still refused. So the layer was both redundant *and*
+incapable of having a per-layer test without mocking the chokepoint (§N.13). It was removed rather than
+papered over with a source-reading assertion: one definition of "which categories are storable", in the
+chokepoint every caller passes through, and now **both** always-on tests bite it.
+
+> **Defence-in-depth that cannot be independently tested is not depth — it is a second copy of a rule, free to
+> drift, whose presence hides whether the first copy works.**

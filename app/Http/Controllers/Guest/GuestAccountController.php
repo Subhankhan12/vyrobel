@@ -10,6 +10,7 @@ use App\Models\GuestWaitlistEntry;
 use App\Services\GuestDeletionService;
 use App\Services\GuestWalletService;
 use App\Services\GuestWishlistService;
+use App\Support\Email\GuestEmailPreferences;
 use App\Support\Guest\GuestName;
 use App\Support\Money\MoneyFormatter;
 use Illuminate\Contracts\View\View;
@@ -40,6 +41,10 @@ class GuestAccountController extends Controller
         $waitlist = $saved->waitlist($guest);
 
         return view('guest.account', [
+            // ⚠️ GUEST EMAIL PREFERENCES — the guest's own opt-outs for the OPTIONAL transactional emails.
+            // Separate from `marketingConsent` below on purpose: different consent basis, different store,
+            // different gate. Collapsing them would let a transactional opt-out revoke marketing consent.
+            'emailPrefs' => GuestEmailPreferences::forGuest($guest),
             'hero' => [
                 'initials' => $this->initials((string) $guest->first_name, (string) $guest->last_name),
                 'member_since' => $guest->created_at?->format('Y') ?? '—',
@@ -101,6 +106,24 @@ class GuestAccountController extends Controller
         }
         if ($request->filled('language')) {
             $guest->update(['language' => (string) $request->string('language')->substr(0, 10)]);
+        }
+
+        // ⚠️ THE GUEST'S OWN EMAIL OPT-OUTS. Only the OPTIONAL categories are storable — the helper refuses
+        // anything else, so posting `email_pref=txn` or `pre_arrival` cannot switch off a transactional
+        // record or the door-code nudge. Self-scoped by construction: it writes through $guest, which came
+        // from the GUARD (ResolvesGuest), never from the request.
+        //
+        // ⚠️ NOT ROUTED THROUGH `marketing_consent` — that flag and its unsubscribe flow are a separate
+        // control on a separate legal basis, and are untouched by this write.
+        // ⚠️ ONE CHOKEPOINT, NOT TWO. This used to re-check `array_key_exists(..., OPTIONAL)` before calling
+        // the helper — a second copy of "which categories are storable". Mutation-testing showed the cost:
+        // deleting THIS check left the suite green (the helper still refused), so the layer was redundant AND
+        // unprovable, and a second copy of one rule is how the two drift (§N.8f, §N.13 — defence-in-depth
+        // needs per-layer tests, and this layer could not have one without mocking the chokepoint).
+        // The helper refuses a non-optional category itself, and THAT refusal is mutation-proven.
+        $category = (string) $request->string('email_pref');
+        if ($category !== '') {
+            GuestEmailPreferences::set($guest, $category, $request->boolean('receiving'));
         }
 
         return redirect()->route('guest.account')->with('status', 'Your preferences have been saved.');
