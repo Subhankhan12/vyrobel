@@ -572,6 +572,179 @@ Copy `.env.example` → `.env`, then fill in: `APP_KEY` (generate) · the five `
 `MAIL_MAILER` + `POSTMARK_TOKEN` · the Stripe group · `AWS_*` if used. Export `BACKUP_PASSPHRASE` at deploy
 time. Run `ops/deploy.sh --dry-run` first — it prints all twelve steps and executes none.
 
+
+---
+
+### 7.5 RUNTIME — ✅ DOCUMENTED 2026-08-20 (rank 5)
+
+⚠️ **The deploy is server PULL-IN-PLACE + maintenance mode (§7.3), not containers.** So this is the contract
+the **host** must satisfy — what must be installed and configured for the app to boot and run correctly — not
+a production image. Any Dockerfile here would be dev/CI parity only (§7.5.5).
+
+⚠️ **Every line below is derived from source and cited.** A requirement *claimed but never exercised* is as
+wrong as one *exercised but undocumented* — §N.29 applied to a runtime doc: assert the requirement **runs**,
+not that it is named.
+
+#### ⚠️ 7.5.1 THREE FINDINGS THIS DERIVATION PRODUCED
+
+**(a) ⚠️ `REDIS_CLIENT` defaults to `phpredis`, which needs an extension nothing declares.**
+
+| Fact | Source |
+|---|---|
+| The config default is **`phpredis`** | `config/database.php:148` — `env('REDIS_CLIENT', 'phpredis')` |
+| `phpredis` is the **C extension** `ext-redis` | — |
+| `composer.json` ships **`predis/predis ^3.5`** — the *pure-PHP* client, needing no extension | `composer.json` require |
+| `.env.example` correctly advises **`REDIS_CLIENT=predis`** | `.env.example:50` |
+
+> ⚠️ **A production `.env` that omits `REDIS_CLIENT` falls back to `phpredis` and needs `ext-redis`.** Because
+> that extension is not in `composer.json`, **`composer check-platform-reqs` cannot catch it** — the very
+> pre-flight §0 recommends is blind here. The failure surfaces as the queue refusing to connect: no emails,
+> no payout runs, no scheduled work.
+
+**Resolution — one of two, both safe:** set `REDIS_CLIENT=predis` explicitly in the production `.env` (what
+`.env.example` already advises, needs no extension), **or** install `ext-redis` and keep the default.
+⚠️ Do not leave it unset and uninstalled. It has never bitten here only because this dev machine happens to
+have `ext-redis` installed — an instrument masking the default.
+
+**(b) ✅ `ext-intl` is OPTIONAL — a nicety, never a requirement.** Money does **not** need it: it is formatted
+with plain `number_format` (`app/Support/Money/MoneyFormatter.php:17`), and there is no `NumberFormatter`,
+`IntlDateFormatter` or `Collator` anywhere in `app/`.
+
+⚠️ **But it is not unused, and my first pass said it was.** There is exactly one call —
+`\Locale::getDisplayRegion()` at `app/Livewire/Operator/Concerns/FormatsOperatorData.php:129`, turning a
+guest's `IE` into `Ireland` on the Guests CRM. It is **guarded** by `extension_loaded('intl')` at `:128` with
+a real fallback: without the extension the page shows the true alpha-2 code instead of the prettier name.
+Both outputs are correct; one is nicer. The code says so itself at `:112`.
+
+> ⚠️ **The correction is the point (§N.29).** My first probe searched for `NumberFormatter`, `IntlDateFormatter`
+> and `Collator` — a needle set drawn from what I *expected* intl to be used for. `Locale` was not in it, so
+> the search returned nothing and "unused" looked proven. **A grep proves the absence of its needles, not the
+> absence of the thing.** It is installed on this machine, so nothing would have contradicted it either.
+
+**Decision: do not declare it.** A hard requirement to gild one display label is not a trade worth making —
+the same reasoning §0 applied to `ext-gd`. Install it if you want country names spelled out; the app is
+correct without it.
+
+**(c) ⚠️ Horizon needs `ext-pcntl` + `ext-posix` — and `disable_functions` can defeat them invisibly.**
+
+`vendor/laravel/horizon/composer.json` requires **`ext-pcntl`** and **`ext-posix`**. Because they *are*
+declared, `composer check-platform-reqs` catches a **missing** extension — so far so good.
+
+> ⚠️ **What it cannot catch: a loaded extension whose functions are disabled.** Shared and hardened hosts
+> routinely put `pcntl_fork`, `pcntl_signal`, `posix_kill` or `proc_open` in php.ini's **`disable_functions`**.
+> `extension_loaded('pcntl')` still returns **true**, Composer still reports success, and Horizon still
+> *starts* — then cannot fork or signal its workers. This machine has `disable_functions` empty, so nothing
+> here would ever have shown it.
+
+**Verify the functions, not the extension** (§7.5.6 does this):
+
+```bash
+php -r 'var_dump(function_exists("pcntl_fork"), function_exists("posix_kill"), function_exists("proc_open"));'
+php -r 'echo "disable_functions=[", ini_get("disable_functions"), "]", PHP_EOL;'
+```
+
+All three must be `true` and the list must not name them. ⚠️ If the host refuses to allow them, Horizon
+cannot run there — and with it go the queued emails, the payout runs, and every scheduled job.
+
+#### 7.5.2 PHP — version and extensions, each cited to a usage site
+
+| Requirement | Source of the constraint | Exercised by |
+|---|---|---|
+| **PHP ≥ 8.4.1** | `composer.json` → `"php": "^8.4.1"` | the whole graph; `openspout` needs `~8.4.0\|~8.5.0`, `symfony/*` v8.1 needs `>= 8.4.1` (§0) |
+| **`ext-zip`** | declared: `composer.json` → `"ext-zip": "*"` | ✅ `app/Http/Controllers/Owner/OwnerArchiveZipController.php` (`ZipArchive`) — **and** required transitively by `openspout` |
+| `ext-mbstring` | framework baseline | ✅ `app/Models/Guest.php`, `app/Livewire/Owner/OwnerSettings.php` (`mb_str*`). ⚠️ Composer reports it *"provided by symfony/polyfill-mbstring"* — the app works without the C extension, but the polyfill is markedly slower; install the real one |
+| `ext-json` | bundled with PHP ≥ 8 | ✅ used throughout; 34 migrations declare `->json()` columns |
+| `ext-openssl` | framework baseline | ✅ `Crypt` (encrypted guest PII + encrypted ID blobs); `ops/backup.sh:73` shells to the `openssl` **binary** — a separate host requirement |
+| `pdo_mysql` | `config/database.php` (`DB_CONNECTION=mysql`) | ✅ every query |
+| ⚠️ **`ext-pcntl` · `ext-posix`** | `laravel/horizon` require | ✅ Horizon's supervisor forks/signals workers — see §7.5.1(c) for the `disable_functions` trap |
+| `ext-sodium` | `firebase/php-jwt` + `lcobucci/jwt` (via **Passport**) | ✅ OAuth token signing (§N — the OAuth server) |
+| `ext-curl` · `ext-fileinfo` | framework / SDK baseline | ✅ the Stripe + Postmark HTTP clients; upload MIME detection |
+| `ext-iconv` · `ext-hash` · `ext-pcre` · `ext-session` · `ext-ctype` | transitive (`openspout`, `bacon-qr-code`, framework) | Composer enforces each |
+| `ext-dom` · `ext-filter` · `ext-libxml` · `ext-xmlreader` | required transitively by `openspout`; Composer enforces them | (§0) |
+| ⚠️ `ext-redis` | **only if** `REDIS_CLIENT` is left at its `phpredis` default | see §7.5.1(a) — **not** in composer, so unchecked by the pre-flight |
+
+**Deliberately NOT requirements:**
+
+- ⚠️ **`ext-intl`** — **optional, not unused** (§7.5.1(b)): one guarded `\Locale` call with a correct fallback.
+- ⚠️ **`ext-gd`** — §0 already establishes this: its only caller is `PlaceholderImage`, reached solely by
+  `DemoSeeder` and a test, and **production is never seeded (§4)**. That reasoning survives re-checking.
+- **`ext-bcmath`** — no `bc*` call exists in `app/`. Money is **integer minor units**, so arbitrary-precision
+  arithmetic is never needed. That is the money design working: no float, no bcmath.
+
+#### 7.5.3 Services
+
+| Service | Floor | What pins it |
+|---|---|---|
+| **MySQL 8 (InnoDB), genuine — not MariaDB** | 8.x | `SELECT … FOR UPDATE` row locks on the no-double-booking and money paths (`AssignmentService`, `FolioService`, `GuestWalletService`, and the payout double-transfer guard in `OwnerPayoutService`); a **generated column** (`2026_08_21_000000_add_unique_identity_to_guest_waitlist_entries.php`); 34 migrations with `->json()` columns |
+| **Redis** | any current | cache · sessions · **queue + Horizon**. ⚠️ Client selection: §7.5.1(a) |
+| **Horizon (long-running)** | — | `config/horizon.php:200` `supervisor-1` on the `redis` connection, queues `['default','sync']`; production `maxProcesses: 10` (`:225`). The host must keep it running under **systemd or Supervisor** — §2 has the block |
+| **The `schedule:run` cron** | every minute | ⚠️⚠️ **LOAD-BEARING — see below** |
+| Node/npm | build only | `npm ci && npm run build`; **not needed at runtime** (§0) |
+| `openssl` **binary** | — | `ops/backup.sh:73` — `openssl enc -aes-256-cbc -pbkdf2`; without it there is no encrypted backup and the deploy pre-flight has nothing to take |
+
+⚠️⚠️ **THE CRON IS NOT OPTIONAL.** All **eight** scheduled commands run *only* via `schedule:run`
+(`routes/console.php`), and every one of them fires on a wall-clock time — so the host's **server timezone**
+is part of this contract too:
+
+| Time | Command | `routes/console.php` |
+|---|---|---|
+| 02:00 | `properties:process-removals` | `:36` |
+| **03:00** | ⚠️ **`guests:process-deletions`** — the GDPR 14-day erasure | `:40` |
+| **03:30** | ⚠️ **`guest-documents:purge-expired`** — the 30-day ID purge | `:45` |
+| 06:00 | `payouts:run` | `:33` |
+| 09:00 | `emails:send-payment-reminders` | `:19` |
+| 09:00 | `emails:send-pre-arrival` | `:24` |
+| daily | `invites:prune-expired` | `:15` |
+| daily | `platform:prune-activity` | `:28` |
+
+> **The last two are the GDPR 14-day erasure and the 30-day ID purge. Without the cron there is no error, no
+> failed job and no alert — erasure requests are accepted and silently never served.** §7.3's deploy script
+> installs the entry for exactly this reason, and §1 documents the three independent checks (only the third,
+> reading `storage/logs/schedule-*.log`, proves it actually *fired*).
+
+#### 7.5.4 PHP configuration the app actually assumes
+
+Derived from real paths; anything the app does not need is omitted rather than listed for completeness.
+
+| Setting | Value | Why — cited |
+|---|---|---|
+| `upload_max_filesize` | **≥ 12M** | The largest accepted upload is **10 MB** — `OwnerMessageActionController:38` `ATTACH_MAX_KB = 10240`. Others: guest ID photo 8 MB (`GuestCheckinController:41`), unit-request photo and room-type photo 5 MB, avatar 4 MB. ⚠️ PHP's default **2M silently truncates**, and Laravel then reports a validation error that looks like the guest's fault |
+| `post_max_size` | **≥ 14M** | must exceed `upload_max_filesize` plus the rest of the form |
+| `memory_limit` | **≥ 256M** | ⚠️ **The ID-document path is the driver:** `app/Services/Guest/GuestIdDocumentService.php:63` does `Crypt::encryptString((string) $file->get())` — the whole file is read into memory **and** its base64 ciphertext (~1.37×) held alongside it. An 8 MB ID is ~20 MB transient before framework overhead. The test suite already needs `512M` (`phpunit.xml:27`) |
+| `opcache.enable` | **1** | Performance only, not correctness — but a production PHP without it re-parses every file on every request |
+| `max_execution_time` | default is fine | No long-running **web** path: exports and PDFs are queued, and Horizon workers are CLI (no limit) |
+
+#### 7.5.5 A parity image — deferred to §7.6, deliberately
+
+⚠️ **No Dockerfile is written here.** A parity image only earns its place when something consumes it, and
+that consumer is CI (§7.6). Writing one now would create a second declaration of the runtime with nothing
+exercising it — a copy free to drift from this contract, which is worse than none (§N.8f).
+
+When §7.6 lands, its image must match **this** section exactly: PHP **8.4.1+**, `ext-zip`, `pdo_mysql`, the
+`openspout` XML set, MySQL **8**, Redis, and `REDIS_CLIENT=predis` (or `ext-redis`). ⚠️ And CI must pin
+`STRIPE_FAKE=true` — `phpunit.xml:49` already does.
+
+#### 7.5.6 Verifying the contract on the target host
+
+```bash
+php -v                                   # ≥ 8.4.1
+composer check-platform-reqs --no-dev    # every line "success"
+php -m | grep -E '^(zip|mbstring|openssl|pdo_mysql|pcntl|posix|sodium|curl|fileinfo)$'
+# ⚠️ Horizon: the FUNCTIONS, not just the extension (§7.5.1c)
+php -r 'var_dump(function_exists("pcntl_fork"), function_exists("posix_kill"), function_exists("proc_open"));'
+php -r 'echo "disable_functions=[", ini_get("disable_functions"), "]", PHP_EOL;'
+php -r 'echo ini_get("upload_max_filesize"), " ", ini_get("post_max_size"), " ", ini_get("memory_limit"), PHP_EOL;'
+mysql --version                          # genuine MySQL 8.x, not MariaDB
+redis-cli ping                           # PONG
+grep -E '^REDIS_CLIENT=' .env            # predis, or install ext-redis
+crontab -l | grep schedule:run           # the entry exists
+```
+
+⚠️ **`composer check-platform-reqs` is necessary but not sufficient.** It validates only what a
+`composer.json` **declares**, so it is blind to both traps above: the undeclared `ext-redis` (§7.5.1a) and a
+declared-but-**function-disabled** `pcntl`/`posix` (§7.5.1c). Both report clean and both break the queue. That
+is why those lines are in this list and not left to the pre-flight.
+
 ---
 
 ### Ranked by harm if missing at launch — the recommended build order
@@ -591,8 +764,11 @@ Each of these is **its own pass**; they are deliberately not built together.
    read-site · prod-required · consequence), the APP_KEY custody procedure and the BACKUP_PASSPHRASE home,
    reconciled to exactly what the pre-flight refuses without. ⚠️ Moving credentials off the filesystem into a
    managed secret store is the remaining *infrastructure* half and is the founder's platform choice.
-5. **Dockerfile / pinned runtime.** Now that **PHP ≥ 8.4.1** is a hard floor (§0), a pinned image removes an
-   entire class of provisioning error — but the pre-flight in §0 already catches it.
+5. ✅ **Runtime contract — DOCUMENTED 2026-08-20, see §7.5 above.** Derived from source and cited: the PHP
+   floor and extensions (each tied to a usage site), the services, the load-bearing cron, and the PHP ini the
+   app actually assumes. ⚠️ It surfaced a real gap the §0 pre-flight cannot see — the `REDIS_CLIENT`
+   `phpredis` default needing an undeclared `ext-redis` (§7.5.1a). A **pinned parity image is deferred to
+   §7.6**, where CI will consume it.
 6. **CI pipeline.** Regression safety and convenience. Valuable, and the least harmful of the six to lack on
    day one. ⚠️ Note the suite must run **alone** (a parallel run corrupts the shared test database) and the
    clock is frozen for determinism.
