@@ -84,7 +84,31 @@
         .vy-nav a { font-size: 13px; font-weight: 500; color: var(--vy-muted); text-decoration: none; padding: 6px 11px; border-radius: 20px; }
         .vy-nav a.is-active { color: var(--vy-accent-text); background: rgba(194, 65, 12, 0.08); font-weight: 600; }   /* 4.20 -> 5.01 on its own wash (G1, rendered pixels) */
         .vy-nav a:hover { color: var(--vy-ink); }
-        .vy-signout { background: none; border: none; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-faint); cursor: pointer; padding: 6px 4px; }
+        /* ⚠️ VISUALLY-HIDDEN, DEFINED NOT ASSUMED. An undefined `.vy-sr-only` does not hide anything — it
+           renders the label as stray visible text. It was defined only in the owner/operator layouts and
+           LOCALLY inside guest/help.blade.php, which is a page that already hit this. Hoisted to the shell so
+           every guest page inherits it, rather than each one rediscovering the trap. */
+        .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+            clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+        /* ⚠️ The bell — the owner/operator glass recipe at 36px, sized for this lighter header. The shared
+           component owns the glyph + badge; this rule owns the surface, exactly as in the other two shells. */
+        .vy-bell {
+            position: relative; width: 36px; height: 36px; padding: 0; border-radius: 50%; flex: none;
+            display: grid; place-items: center;
+            background: rgba(255, 252, 248, 0.58); border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 10px 30px rgba(150, 90, 50, .10), inset 0 1px 0 rgba(255, 255, 255, .65);
+            backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
+            color: var(--vy-ink); transition: transform .14s ease;
+            --vy-bell-badge-top: 7px; --vy-bell-badge-right: 8px;   /* tuned for 36px, not the 42px default */
+        }
+        .vy-bell:hover { transform: translateY(-1px); }
+
+        /* ⚠️ `white-space: nowrap` + `flex: none` added with the bell (GATE 3): the extra 36px header action
+           squeezed this flex item below its single-line width and "Sign out" wrapped onto two lines. The row
+           does not overflow — the item was simply being compressed — so holding it at its natural width is the
+           whole fix. Caught by RENDER, not by any test. */
+        .vy-signout { background: none; border: none; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-faint); cursor: pointer; padding: 6px 4px; white-space: nowrap; flex: none; }
         .vy-signout:hover { color: var(--vy-accent); }
         .vy-wrap { max-width: 760px; margin: 0 auto; padding: 26px 20px 60px; animation: vyFadeUp .5s cubic-bezier(.2, .7, .2, 1) both; }
         .vy-h1 { font-family: var(--vy-display); font-weight: 700; font-size: 25px; letter-spacing: -0.02em; margin: 0 0 4px; }
@@ -155,6 +179,10 @@
             .vy-brand { flex: 0 0 auto; }
             .vy-signout { margin-left: auto; }
 
+            /* ⚠️ The bell stays on the FIRST row, pinned right — `.vy-nav` becomes a scrollable strip below,
+               and a bell inside it could scroll out of view on the surface guests most use. */
+            .vy-bell { order: 2; margin-left: auto; }
+
             .vy-nav {
                 order: 3; flex: 1 0 100%;
                 overflow-x: auto; -webkit-overflow-scrolling: touch;
@@ -206,6 +234,15 @@
                     <button type="submit" class="vy-signout">Sign out</button>
                 </form>
             </nav>
+
+            {{-- ⚠️ GUEST NOTIFICATIONS · GATE 3 — the bell. PLACEMENT IS A PROPOSAL (there is no guest
+                 notifications wireframe): top-right of the header, after the nav. At desktop `space-between`
+                 pins it right; at mobile it holds the FIRST row beside the brand while `.vy-nav` scrolls on
+                 its own row below — so it can never scroll out of reach on a phone, which is the surface a
+                 guest actually reads notifications on.
+                 ⚠️ `:panel="false"` — LINK mode. This shell loads no Alpine, so the popover the operator and
+                 owner shells use would be a dead control here. --}}
+            <x-notifications.bell :open-all-url="route('guest.notifications')" :panel="false" />
         </div>
     </header>
 

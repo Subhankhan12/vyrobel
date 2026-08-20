@@ -15,15 +15,25 @@
      square category tile via <x-notifications.category-icon>, bold-if-unread title, uppercase REAL category
      tag, one-line context, relative time, unread dot + faint row wash). RAW-BLADE RULE: every `@` follows a
      space, newline or tag. --}}
-@props(['openAllUrl'])
+@props(['openAllUrl', 'panel' => true])
 @php
     $feed = \App\Support\Notifications\NotificationFeed::recentForUser(auth()->user());
     $unread = (int) $feed['unread'];
 @endphp
+{{-- ⚠️ LINK MODE (`:panel="false"`) — for a shell that loads NO ALPINE. The guest portal is exactly that:
+     its shell pulls in no Livewire/Alpine bundle at all ("all interactivity is native GET / progressive
+     enhancement"), so the popover below would render a control that LOOKS right and does NOTHING on click.
+     In that realm the bell is a LINK straight to the full feed — the same mark, the same badge, the same
+     unread read, one honest click. The default stays the popover, so the operator and owner shells are
+     byte-identical to before. --}}
+@unless ($panel)
+    <a href="{{ $openAllUrl }}" class="vy-bell" title="Notifications" aria-label="Notifications{{ $unread > 0 ? ' ('.$unread.' unread)' : '' }}" style="position:relative;text-decoration:none">
+        <x-notifications.bell-glyph :unread="$unread" />
+    </a>
+@else
 <div x-data="{ open: false }" @keydown.escape.window="open = false" style="position:relative;display:inline-flex">
     <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" class="vy-bell" title="Notifications" aria-label="Notifications" style="position:relative;cursor:pointer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
-        @if ($unread > 0)<span aria-label="{{ $unread }} unread" style="position:absolute;top:var(--vy-bell-badge-top,9px);right:var(--vy-bell-badge-right,10px);min-width:15px;height:15px;padding:0 3px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid #FBEEE3;box-sizing:border-box">{{ $unread > 9 ? '9+' : $unread }}</span>@endif
+        <x-notifications.bell-glyph :unread="$unread" />
     </button>
 
     <div x-cloak x-show="open" x-transition.opacity.duration.150ms @click.outside="open = false" role="menu" aria-label="Notifications"
@@ -74,3 +84,4 @@
         </div>
     </div>
 </div>
+@endunless

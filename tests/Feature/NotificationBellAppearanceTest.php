@@ -1,9 +1,23 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
 
 uses(RefreshDatabase::class);
+
+/** One unread notification, so the badge actually renders in the guard above. */
+if (! function_exists('makeBellNotif')) {
+    function makeBellNotif(object $notifiable): void
+    {
+        $notifiable->notifications()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'App\\Notifications\\Test\\Fake',
+            'data' => ['title' => 'T', 'context' => 'c', 'url' => '/app', 'category' => 'front_desk'],
+            'read_at' => null,
+        ]);
+    }
+}
 
 // NOTIFICATION BELL — APPEARANCE GUARD (2026-08-20).
 //
@@ -23,8 +37,11 @@ uses(RefreshDatabase::class);
 // 1.8-stroke bell glyph, and the unread badge INSIDE the circle with a `140deg #E8703A→#C2410C` gradient
 // and a 1.5px `#FBEEE3` ring. The operator prototype imports the same bell at `hint-size 38px,38px`.
 //
-// These are SOURCE assertions, not render assertions: a computed style needs a browser and this suite has
-// none. The render was verified separately in the browser (both realms, all seven demo roles).
+// ⚠️ MIXED, DELIBERATELY. Guards 1–3 are SOURCE assertions (a computed style needs a browser this suite does
+// not have). Guards 4–5 assert the RENDERED page instead — they were source assertions too until extracting
+// the glyph into <x-notifications.bell-glyph> broke them while the output stayed byte-identical. A guard that
+// names a FILE tracks a location; one that reads the render tracks the thing. Full computed-style
+// verification still happens in the browser (both realms, all seven demo roles).
 //
 // ⚠️ Assertions use PHPUnit's Assert (not Pest's `toContain`) deliberately: `toContain()` accepts MULTIPLE
 // needles, so passing a failure message as a second argument silently asserts the message itself — a
@@ -74,22 +91,34 @@ it('no longer needs !important on the owner bell, because nothing fights it any 
 });
 
 // ── 4. The unread badge matches the prototype ───────────────────────────────────────────────────
-it('renders the unread badge inside the circle with the prototype gradient and ring', function () use ($bell) {
-    $src = $bell();
+it('renders the unread badge inside the circle with the prototype gradient and ring', function () {
+    // ⚠️ ASSERTS THE RENDER, NOT A FILE. This read `bell.blade.php` as a string and broke the moment the
+    // glyph+badge were extracted into <x-notifications.bell-glyph> for the guest realm's link mode — the
+    // markup was byte-identical, the guard was just looking in the wrong file. It tracked a LOCATION, not the
+    // thing. Rendering a real page follows the definition wherever it moves next.
+    $s = seedScenario(1);
+    $user = operatorUser($s, ['name' => 'Mara Manager'], 'Hotel Manager');
+    makeBellNotif($user);
 
-    Assert::assertStringContainsString('linear-gradient(140deg,#E8703A,#C2410C)', $src, 'badge lost the prototype gradient fill');
-    Assert::assertStringContainsString('1.5px solid #FBEEE3', $src, 'badge lost the prototype ring that separates it from the glyph');
-    Assert::assertStringContainsString('font-size:9px', $src, 'badge type size drifted from the prototype');
+    $html = test()->actingAs($user)->get('/app/dashboard')->assertOk()->getContent();
+
+    Assert::assertStringContainsString('linear-gradient(140deg,#E8703A,#C2410C)', $html, 'badge lost the prototype gradient fill');
+    Assert::assertStringContainsString('1.5px solid #FBEEE3', $html, 'badge lost the prototype ring that separates it from the glyph');
+    Assert::assertStringContainsString('font-size:9px', $html, 'badge type size drifted from the prototype');
 
     // The badge sits INSIDE the button (positive offsets), never hung off the corner.
-    Assert::assertStringNotContainsString('top:-3px', $src, 'badge is positioned outside the button again');
-    Assert::assertStringNotContainsString('right:-3px', $src, 'badge is positioned outside the button again');
+    Assert::assertStringNotContainsString('top:-3px', $html, 'badge is positioned outside the button again');
+    Assert::assertStringNotContainsString('right:-3px', $html, 'badge is positioned outside the button again');
 });
 
 // ── 5. The glyph is the prototype's bell, not the old one ───────────────────────────────────────
-it('draws the prototype bell glyph at 18px / 1.8 stroke', function () use ($bell) {
-    $src = $bell();
+it('draws the prototype bell glyph at 18px / 1.8 stroke', function () {
+    // Rendered, for the same reason as the badge guard above.
+    $s = seedScenario(1);
+    $user = operatorUser($s, ['name' => 'Mara Manager'], 'Hotel Manager');
 
-    Assert::assertStringContainsString('M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z', $src, 'the prototype bell path is gone');
-    Assert::assertStringContainsString('stroke-width="1.8"', $src, 'glyph stroke weight drifted from the prototype');
+    $html = test()->actingAs($user)->get('/app/dashboard')->assertOk()->getContent();
+
+    Assert::assertStringContainsString('M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z', $html, 'the prototype bell path is gone');
+    Assert::assertStringContainsString('stroke-width="1.8"', $html, 'glyph stroke weight drifted from the prototype');
 });

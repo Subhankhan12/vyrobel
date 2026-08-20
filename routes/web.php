@@ -35,6 +35,7 @@ use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
 use App\Http\Controllers\Guest\GuestMessagesController;
+use App\Http\Controllers\Guest\GuestNotificationsController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
 use App\Http\Controllers\Guest\GuestPaymentsController;
 use App\Http\Controllers\Guest\GuestReceiptController;
@@ -395,6 +396,9 @@ Route::prefix('guest')->name('guest.')->group(function () {
         //
         // ⚠️ No GET feed page yet: the guest notifications SCREEN + bell placement are a follow-on gate (there
         // is no guest notifications wireframe to build against).
+        // ⚠️ GATE 3 — the FEED SCREEN the bell's link opens. Read-only + self-scoped; the writes below are
+        // the shared controller, reused.
+        Route::get('/notifications', [GuestNotificationsController::class, 'index'])->name('notifications');
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('/notifications/{notification}/dismiss', [NotificationController::class, 'dismiss'])->name('notifications.dismiss');

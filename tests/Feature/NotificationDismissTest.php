@@ -246,11 +246,34 @@ it('⚠️ ONE mechanism serves both realms — one route, one controller, one f
     // ⚠️ So the RULE is unchanged and the PROXY was too narrow: what matters is one mechanism, not one line.
     // Asserted directly below — both registrations name the same action, and no guest controller exists.
     expect(substr_count($routes, "[NotificationController::class, 'dismiss']"))->toBe(2);
-    expect(file_exists(app_path('Http/Controllers/Guest/GuestNotificationsController.php')))->toBeFalse();
 
-    // ...and exactly one implementation of the dismiss write, in that one controller.
+    // ⚠️ THE RULE IS "ONE WRITE MECHANISM", NOT "ONE FILENAME". This asserted that no
+    // Guest/GuestNotificationsController.php exists — a fair proxy while the only reason to have one would
+    // have been a forked write. GATE 3 then added that class for the read-only FEED SCREEN, and the proxy
+    // failed on a change that broke nothing. Asserted directly instead: EVERY notification write route points
+    // at the shared controller, and no other controller implements the dismiss write.
+    foreach (["'dismiss'", "'markRead'", "'markAllRead'"] as $action) {
+        $total = substr_count($routes, "NotificationController::class, {$action}");
+        $shared = substr_count($routes, "[NotificationController::class, {$action}]");
+        expect($shared)->toBe($total, "a notification {$action} route points somewhere other than the shared controller");
+    }
+
+    // Exactly one implementation of the dismiss write, in that one controller — and nowhere else in app/.
     $controller = (string) file_get_contents(app_path('Http/Controllers/NotificationController.php'));
     expect(substr_count($controller, "forceFill(['dismissed_at' => now()])"))->toBe(1);
+
+    $others = 0;
+    $dir = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Http/Controllers')));
+    foreach ($dir as $file) {
+        if (! $file->isFile() || $file->getFilename() === 'NotificationController.php') {
+            continue;
+        }
+        $body = (string) file_get_contents($file->getPathname());
+        if (str_contains($body, "'dismissed_at' => now()") && str_contains($body, 'notifications()')) {
+            $others++;
+        }
+    }
+    expect($others)->toBe(0, 'another controller implements the notification dismiss write — that is the fork this rule forbids');
 
     // Both feed reads filter dismissed, in the ONE shared builder.
     expect(substr_count($feed, "whereNull('dismissed_at')"))->toBeGreaterThanOrEqual(3);

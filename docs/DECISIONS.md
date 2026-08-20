@@ -13496,3 +13496,103 @@ onto it, so seven types cannot drift apart. G3 and G8 are not reservation-scoped
 
 Realm boundary held: operator **16** and owner **9** catalog entries unchanged, and no `guest_*` key surfaces
 on either preferences screen (`catalogFor()` filters on exact audience).
+
+---
+
+## 2026-08-20 — GUEST NOTIFICATIONS · GATE 3 (FINAL): the feed screen + the bell placement
+
+The backend was done at `d866837`. This is the part a guest sees. There is **no guest notifications
+wireframe** (19 guest prototypes import a bell; the surface it opens was never drawn), so the screen MIRRORS
+the proven owner/operator feed and the confirmation was a **RENDER**, not a wireframe diff.
+
+### ⚠️⚠️ THE FINDING THAT CHANGED THE BUILD — the guest realm loads NO Alpine
+
+The brief said to reuse `bell.blade.php`. Reused literally, it would have shipped a **dead control**: that
+component is an Alpine popover (`x-data` / `x-show` / `@click`), and the guest shell pulls in **no Livewire and
+no Alpine at all** — only a submit-guard partial. The button would have rendered perfectly, with the right
+frosted circle and badge, and done **nothing** on click.
+
+> **"Reuse the component" is only safe once you have checked the host can run it. A shared component carries
+> its runtime assumptions with it, and a shell that cannot satisfy them turns reuse into a dead affordance.**
+
+Resolved by giving the shared component a **mode**, not a fork: `:panel="false"` renders the bell as a plain
+LINK to the feed, reusing the same glyph, badge and unread read. The glyph+badge moved into
+`<x-notifications.bell-glyph>` so both modes render byte-identically. The default stays the popover, so the
+operator and owner shells are unchanged — verified by render (the operator panel still opens) and pinned.
+
+That also matches the guest realm's own documented rule: no Alpine, all interactivity native GET /
+progressive enhancement.
+
+### The placement — A PROPOSAL, awaiting the founder
+
+**Header top-right, after the nav.** At desktop `space-between` pins it right; at mobile it holds the FIRST
+row beside the brand while `.vy-nav` scrolls on its own row below — so it can never scroll out of reach on a
+phone, which is the surface a guest actually reads notifications on. Rendered at 1280px and at 390px.
+A move is a one-line change, not a rebuild.
+
+### ⚠️ Two defects the RENDER caught that no test would have
+
+1. **The bell wrapped "Sign out" onto two lines.** The extra 36px header action squeezed that flex item below
+   its single-line width. The row does not overflow — the item was being compressed — so `white-space: nowrap`
+   + `flex: none` is the whole fix. Invisible to every green test; obvious in one screenshot.
+2. **`.vy-sr-only` was not defined in the guest shell.** It existed only in the operator/owner layouts and
+   *locally* inside `guest/help.blade.php` — a page that had already hit this. An undefined visually-hidden
+   class hides nothing; the "Unread" label would have printed as stray visible text on every row. Hoisted to
+   the shell so every guest page inherits it.
+
+### ⚠️ Two more label-not-protection guards, and one bad MUTATION
+
+Continuing the pattern from Gates 1–2:
+
+- The sr-only test asserted the bare string `.vy-sr-only` — which appears in every `class="vy-sr-only"`
+  **attribute in the markup**, so it stayed green when the CSS **rule** was renamed away. Now matches the rule
+  *and* its `clip: rect(...)` declaration.
+- The #28 test emptied the guest's own rows and asserted the page was empty — satisfiable by a wrong-actor
+  resolution purely by row order. Now both guests hold **distinguishable** rows, so only the correctly
+  resolved actor passes.
+
+⚠️ **And the mirror-image lesson.** The first wrong-actor mutation (`orderByDesc('created_at')->first()`) left
+the suite GREEN — but the guard was fine; the **mutation** was order-dependent and had resolved the *right*
+guest by luck. A deterministic wrong actor (`whereKeyNot(<authed id>)`) reds **four** tests.
+
+> **A green under mutation means the mutation missed OR the test is weak — and you must establish which.
+> Gate 3 hit one of each, in the same hour.**
+
+### What shipped
+
+`GET /guest/notifications` → `guest.notifications`, read-only and self-scoped through the guard
+(`ResolvesGuest`); the writes reuse the shared `NotificationController` via the Gate-1 guest routes. The
+screen mirrors the owner/operator feed — same shared category tile, row shape, unread wash + dot, category
+filters, mark-read / dismiss / mark-all — in the guest realm's warm-glass chrome, with an honest empty state
+(the demo persists zero guest rows, so that is the state a real guest sees).
+
+Render-confirmed end to end: bell at both widths · feed empty · feed populated (4 transient rows, **removed
+afterwards**) · badge 4 → 3 and hero "4 unread" → "3 unread" on mark-read · operator popover unchanged.
+
+### ⚠️ Three of our OWN guards failed on the full suite — and all three were tracking a LOCATION
+
+The full suite reported three failures. None was a product defect; all three were guards written in Gates 1–2
+whose *locator* went stale, and each was rewritten to assert the thing rather than where the thing lives.
+
+| Guard | What it read | Why it broke | Now |
+|---|---|---|---|
+| badge gradient | `bell.blade.php` **as a file** | the glyph+badge moved to `<x-notifications.bell-glyph>` for link mode; the OUTPUT was byte-identical | asserts the **rendered page** |
+| prototype glyph | same | same | asserts the **rendered page** |
+| "ONE mechanism" | `file_exists(Guest/GuestNotificationsController.php)` — must be **false** | GATE 3 added that class for the read-only FEED SCREEN; the writes never forked | asserts **every write route points at the shared controller**, and that no other controller implements the dismiss write |
+
+> **A guard that names a FILE tracks a location. A guard that reads the render, or the route table, tracks the
+> thing. Refactoring moves locations; it does not move behaviour — so a location-guard fails on safe changes
+> and, worse, passes when the behaviour moves somewhere it is not watching.**
+
+Both rewrites are **stronger**, not merely relocated — mutation-proven: breaking the gradient inside the
+*extracted* file now reds (the old guard could not see that file at all), and forking a single write route to
+another controller now reds.
+
+That is the same family as the earlier findings in Gates 1–3 — guards that assert the label rather than the
+protection. Across the three gates: `actingAs` rebinding the guard · the route pin reading declarations not
+exclusions · the dismiss count pinning a line · the morph-alias erasure query · the sr-only class read from
+markup · the order-dependent isolation fixture · and these three locators. **Worth its own §N entry.**
+
+**Not built:** guest preference toggles. The backend is defaults-only and a toggle needs
+`NotificationPreference` (keyed on `user_id`) extended to guests — a separate decision with its own
+`Guest Email Preferences.html` wireframe.
