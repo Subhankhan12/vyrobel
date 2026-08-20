@@ -20,6 +20,7 @@ use App\Models\Review;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\FeedNotification;
+use App\Notifications\Guest\GuestBookingConfirmedNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
 use App\Notifications\Operator\LowRatingNotification;
@@ -146,6 +147,18 @@ class DispatchNotificationsForDomainEvent
         foreach ($this->ownersOfReservation($reservation) as [$owner, $unit]) {
             $owner->user?->notify(new OwnerNewBookingNotification($reservation, $unit));
         }
+
+        // ⚠️ GUEST NOTIFICATIONS · G1 — and the GUEST whose booking this is. The third audience on the same
+        // event, dispatched from the same place the operator and owner fan-outs already live.
+        //
+        // ⚠️ THIS DOES NOT REPLACE THE EMAIL. `SendGuestTransactionalEmails` sends BookingConfirmationMail on
+        // this same event and is untouched — it still fires. The catalog entry's `email_default => false`
+        // keeps this row IN-APP ONLY so the guest is not emailed twice.
+        //
+        // ⚠️ THE LEAD GUEST ONLY, resolved FROM THE RESERVATION — never a request id, and never every guest on
+        // the stay. `Guest` already uses `Notifiable`, so this needs no schema change (#28: the notifiable IS
+        // the subject of the booking, so no third party is told anything).
+        $reservation->leadGuest?->notify(new GuestBookingConfirmedNotification($reservation));
     }
 
     /**

@@ -4,16 +4,27 @@ declare(strict_types=1);
 
 namespace App\Support\Notifications;
 
+use App\Models\Guest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
- * Maps a user's OWN notifications to the shape the in-app feed renders (Phase 3). Reads only through
- * {@see User::notifications()} — the per-user Notifiable relation — so a feed is ALWAYS the authenticated user's
- * own; there is no way here to reach another user's rows. Shared by the operator + owner feed screens so they
- * render identically.
+ * Maps a notifiable's OWN notifications to the shape the in-app feed renders (Phase 3). Reads only through
+ * the per-notifiable `Notifiable` relation — so a feed is ALWAYS the authenticated actor's own; there is no way
+ * here to reach another actor's rows. Shared by the operator + owner feed screens so they render identically.
+ *
+ * ⚠️ WIDENED, NOT FORKED (guest notifications · GATE 1). These signatures were `User`-typed. The guest realm
+ * needed the same feed, and a parallel `GuestNotificationFeed` is exactly how two surfaces drift (§N.8f) — so
+ * the TYPES widened to `User|Guest` and the BODIES did not change by one character. That is safe precisely
+ * because every read here goes through `notifications()` / `unreadNotifications()`, which come from Laravel's
+ * `Notifiable` trait — and {@see Guest} already uses it. The `notifications` table is `ulidMorphs('notifiable')`
+ * and both models are ULID-keyed, so a guest row needs NO schema change.
+ *
+ * ⚠️ THIS FILE IS DEPENDED ON BY BOTH SEALED REALMS (operator + owner). The widening is additive by
+ * construction — a union type accepts strictly more than the old one — and `NotificationFeedRealmTest` pins
+ * the operator + owner behaviour so a future change that breaks them cannot pass silently.
  */
 final class NotificationFeed
 {
@@ -36,7 +47,7 @@ final class NotificationFeed
      *
      * @return array{items: list<array{id: string, title: string, context: string, url: ?string, category: string, read: bool, when: ?string}>, paginator: LengthAwarePaginator<int, DatabaseNotification>, unread: int, categories: list<string>}
      */
-    public static function forUser(User $user, ?string $category = null, int $perPage = self::PER_PAGE): array
+    public static function forUser(User|Guest $user, ?string $category = null, int $perPage = self::PER_PAGE): array
     {
         $filter = ($category === null || $category === '' || $category === 'all') ? null : $category;
 
@@ -81,7 +92,7 @@ final class NotificationFeed
      *
      * @return array{items: list<array{id: string, title: string, context: string, url: ?string, category: string, read: bool, when: ?string}>, unread: int}
      */
-    public static function recentForUser(User $user, int $limit = 6): array
+    public static function recentForUser(User|Guest $user, int $limit = 6): array
     {
         /** @var Collection<int, DatabaseNotification> $recent */
         // ⚠️ The panel filters dismissed too — same rule, same builder, so the bell and the page agree.

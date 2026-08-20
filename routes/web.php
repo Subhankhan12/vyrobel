@@ -382,6 +382,23 @@ Route::prefix('guest')->name('guest.')->group(function () {
         // this page). Guest-guarded because it renders in the guest shell and every answer links a guest
         // screen — it holds no guest data, so there is nothing to scope.
         Route::get('/help', [GuestHelpController::class, 'show'])->name('help');
+        // GUEST NOTIFICATIONS · GATE 1 — mark-read / dismiss, on the SHARED NotificationController.
+        // ⚠️ REUSED, NOT FORKED (§N.8f). A separate guest controller was written first, on the belief that
+        // `$request->user()` is null for a guest — that belief was WRONG and a probe corrected it: Laravel's
+        // `Authenticate` middleware calls `shouldUse($guard)` for the guard that succeeded, so INSIDE an
+        // `auth:guest` route the default guard IS `guest` and `$request->user()` returns the Guest. The
+        // controller's self-scoping (`$request->user()->notifications()`) therefore holds for this realm too.
+        //
+        // ⚠️⚠️ THAT MAKES `auth:guest` LOAD-BEARING FOR ISOLATION, not just for access. These three routes
+        // MUST stay inside this group: outside it, `$request->user()` would resolve on the `web` guard and a
+        // signed-in OPERATOR could reach a guest mark-read route. `GuestNotificationsRouteGuardTest` pins that.
+        //
+        // ⚠️ No GET feed page yet: the guest notifications SCREEN + bell placement are a follow-on gate (there
+        // is no guest notifications wireframe to build against).
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+        Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+        Route::post('/notifications/{notification}/dismiss', [NotificationController::class, 'dismiss'])->name('notifications.dismiss');
+
         Route::get('/messages', [GuestMessagesController::class, 'index'])->name('messages');
         Route::post('/messages', [GuestMessagesController::class, 'start'])->middleware('throttle:12,1')->name('messages.start');
         Route::get('/messages/{thread}', [GuestMessagesController::class, 'show'])->name('messages.show');

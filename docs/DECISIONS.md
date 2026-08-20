@@ -13314,3 +13314,105 @@ that was carrying all the truth.*
 - **The deferred F3 migrate-to-gross** — a **PARKED decision**, taken up **only if** EU consumer-display
   compliance later requires tax-inclusive room display. Not a defect, not owed.
 - **The deployment gate** — now the **only remaining pre-go-live engineering work**.
+
+---
+
+## 2026-08-20 — GUEST NOTIFICATIONS · GATE 1: the foundation + G1 (booking confirmed), end-to-end
+
+**The founder ruled all eight guest notification types.** Gate 1 de-risks the foundation and proves the
+pattern on ONE type before the rest replicate it. G2–G8 and the bell/feed frontend are follow-on gates.
+
+### ⚠️ The system model, as it actually is (the scope pass corrected the brief; this gate confirmed it)
+
+There is **no `audience` column and no custom `Notification` model**. These are Laravel-native
+`DatabaseNotification` rows on a `ulidMorphs('notifiable')` table, and **the `notifiable` morph is the
+recipient discriminator**. `Guest` already used `Notifiable` — unused until now — so **a guest notification
+needed ZERO schema change**. `audience` is a key inside `NotificationPreferences::CATALOG` that decides which
+portal's *preferences screen* lists a toggle; it routes nothing. "ADD, never flip" still holds, and for the
+reason `OwnerNewBookingNotification`'s docblock already records: a single-string audience means one key cannot
+serve two portals.
+
+### ⚠️⚠️ THE CORRECTION THAT CHANGED THE BUILD — risk 2 was FALSE, and it was our own claim
+
+The scope pass recorded, and this gate's brief repeated, that `NotificationController` could not serve guests
+because `$request->user()` resolves on the `web` guard and is **null** for an authenticated guest. **That is
+wrong.** A probe inside a real request settled it: Laravel's `Authenticate` middleware calls
+`shouldUse($guard)` for the guard that succeeded, so **inside an `auth:guest` route the DEFAULT guard IS
+`guest`** and `$request->user()` returns the Guest (`default_guard_name => "guest"`, `web_user_null => true`,
+`default_user_null => false`).
+
+A separate `GuestNotificationsController` was written on the false premise, then **deleted** once the probe
+disproved its reason to exist. The guest routes now point at the **shared `NotificationController`** (§N.8f).
+
+> ⚠️ **A finding is one reader's hypothesis — including when the reader was us, one document earlier.** The
+> claim was plausible, was written down, was repeated into a build brief, and was still false. What settled it
+> was a probe inside a real request, not more reading.
+
+⚠️ **The cost of that reuse is an IMPLICIT, and it is now a checked invariant.** The controller derives WHO
+you are from the request's resolved guard, so **the route's guard middleware is load-bearing for isolation,
+not merely for access** — a guest notification route placed outside `auth:guest` would resolve
+`$request->user()` on the `web` guard and hand a signed-in operator a guest's mark-read endpoint.
+`GuestNotificationsRouteGuardTest` pins it.
+
+### What shipped
+
+| Item | Decision |
+|---|---|
+| **`NotificationFeed`** | **WIDENED, not forked** (§N.8f): the two signatures now take `User\|Guest`; the bodies did not change by one character, because every read already went through `Notifiable`'s `notifications()` / `unreadNotifications()`. |
+| **Sealed-realm regression** | `NotificationFeedRealmTest` pins the operator + owner behaviour that nothing pinned tightly before — order, counts, categories, row shape, self-only. Mutation-proven. |
+| **Guest routes** | `guest.notifications.{read,read-all,dismiss}` on the shared controller, inside `auth:guest`. **No GET feed page** — the guest realm has no notifications wireframe, so the screen and the bell placement are a follow-on gate. |
+| **G1** | `GuestBookingConfirmedNotification`, dispatched from `DispatchNotificationsForDomainEvent::newBooking()` — the same `reservation.confirmed` handler where the operator and owner fan-outs already live. |
+| **Copy** | Single-sourced from the email: the title resolves through the SAME `EmailTemplateResolver` key and merge vars `BookingConfirmationMail` uses, so an operator customising the subject (#86) moves both surfaces at once. |
+| **Preferences** | **Defaults-only.** `NotificationPreference` keys on `user_id`, so a Guest cannot hold one; guests run on catalog defaults. Not extended — per-guest toggles stay a later decision. |
+
+### ⚠️ Two guards worth naming
+
+**The email still fires, and there is no second one.** `SendGuestTransactionalEmails` is untouched —
+`BookingConfirmationMail` sends exactly as before, proven in the same test as the in-app row. And the catalog
+entry carries **`email_default => false`**, which is **load-bearing, not a preference**: `allows()` falls back
+to `defaultFor()` for a non-User notifiable, so `email_default => true` would have added the `mail` channel in
+`FeedNotification::via()` and **emailed every guest twice**. Mutation-proven.
+
+**#28 self-scoped, both directions.** A guest sees nothing of another guest's; naming a foreign id 404s on
+read and dismiss; and the foreign row is verified untouched by a **raw** query rather than through the scope
+that just refused it (§N.18.1 — a check must be independent of what it checks).
+
+### ⚠️ Two instrument faults caught in this gate (both are the §N.4p family)
+
+1. **`actingAs($g, 'guest')` REBINDS THE DEFAULT GUARD.** A mutation swapping the guest-guard resolver for the
+   default one stayed **GREEN** under `actingAs` — the mutation applied but never reached the path. Chasing
+   that green is what led to the probe that overturned risk 2. *A test harness can pre-arrange the very answer
+   the test is asking for.*
+2. **A middleware pin that read only the DECLARATION.** The first `GuestNotificationsRouteGuardTest` asserted
+   `gatherMiddleware()` contains `auth:guest` — and stayed green through
+   `->withoutMiddleware('auth:guest')`, which leaves the declaration intact and the guard gone. It asserted
+   the label, not the protection. Now reads `excludedMiddleware()` too, and bites.
+
+### Verification
+
+Six mutations, each verified to apply, each redding a coherent set: remove the dispatch · break self-scoping
+in the shared controller (#28) · flip `email_default` · hardcode the title · break the widened feed's User
+path · strip `auth:guest` from a guest route. PHPStan L5 **0**; Pint clean. Demo money untouched and
+byte-identical by **sums and counts** — **929 rate rows / 10,912,000 minor / 41 reservations / 16 payments**,
+with **0** guest notifications persisted (the tests roll back).
+
+### ⚠️ One pre-existing guard had to be re-calibrated — the RULE stood, its PROXY was too narrow
+
+`NotificationDismissTest`'s *"ONE mechanism serves both realms (§N.8f)"* asserted **exactly one** route
+registration of `[NotificationController::class, 'dismiss']`. It failed on the full suite.
+
+It was not a false alarm to wave through, and not a rule to weaken. Checked at source: both registrations name
+**the same controller action**, there is exactly **one** dismiss implementation, and no forked controller — but
+the guest route **must** register separately because it sits behind a **different guard** (`auth:guest`) under a
+different URI prefix, and one registration cannot carry two guards.
+
+> **The rule was "one mechanism"; the proxy was "one line". The proxy was correct while both realms shared the
+> `web` guard, and a third realm on a different guard made it too narrow without making the rule wrong.**
+
+So the count moved 1 → 2 **with its cause established** (§N.14.5 — a number that moves is not automatically a
+correction), and the assertion was **strengthened** rather than relaxed: it now also asserts no forked guest
+controller exists and that the dismiss write has exactly one implementation. Mutation-proven — re-creating the
+forked controller reds it.
+
+**Not built, deliberately:** G2–G8, the `/guest/notifications` screen, the bell placement in the guest shell,
+guest preference toggles. No email was replaced, no owner/operator catalog entry flipped.

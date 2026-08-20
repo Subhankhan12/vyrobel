@@ -235,9 +235,22 @@ it('⚠️ ONE mechanism serves both realms — one route, one controller, one f
     $routes = (string) file_get_contents(base_path('routes/web.php'));
     $feed = (string) file_get_contents(app_path('Support/Notifications/NotificationFeed.php'));
 
-    // ⚠️ EXACTLY ONE dismiss route for notifications — a second, realm-prefixed one would be the duplication
-    // this project keeps paying for.
-    expect(substr_count($routes, "[NotificationController::class, 'dismiss']"))->toBe(1);
+    // ⚠️ ONE CONTROLLER ACTION, now exposed to THREE realms (guest notifications · GATE 1).
+    //
+    // This asserted exactly ONE route registration, which was the right proxy while both realms shared the
+    // `web` guard: a second line then really would have meant a second mechanism. The guest realm reuses the
+    // SAME `NotificationController::dismiss` — no forked controller, no second filter, no second builder —
+    // but it MUST register its own route, because it sits behind a DIFFERENT guard (`auth:guest`) under a
+    // different URI prefix, and one registration cannot carry two guards.
+    //
+    // ⚠️ So the RULE is unchanged and the PROXY was too narrow: what matters is one mechanism, not one line.
+    // Asserted directly below — both registrations name the same action, and no guest controller exists.
+    expect(substr_count($routes, "[NotificationController::class, 'dismiss']"))->toBe(2);
+    expect(file_exists(app_path('Http/Controllers/Guest/GuestNotificationsController.php')))->toBeFalse();
+
+    // ...and exactly one implementation of the dismiss write, in that one controller.
+    $controller = (string) file_get_contents(app_path('Http/Controllers/NotificationController.php'));
+    expect(substr_count($controller, "forceFill(['dismissed_at' => now()])"))->toBe(1);
 
     // Both feed reads filter dismissed, in the ONE shared builder.
     expect(substr_count($feed, "whereNull('dismissed_at')"))->toBeGreaterThanOrEqual(3);

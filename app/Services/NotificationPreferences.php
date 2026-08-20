@@ -65,6 +65,24 @@ class NotificationPreferences
         // ⚠️ THEY CARRY THEIR OWN KEYS BECAUSE `audience` IS A SINGLE STRING. `new_booking` and `new_review`
         // already exist as `operator`, and one key cannot serve two portals here — reusing them would have
         // meant flipping the audience and silently stranding every operator. The operator keys are untouched.
+        // ── GUEST (guest notifications · GATE 1) ──────────────────────────────────────────────────
+        // ⚠️ A NEW KEY, NEVER A FLIP — the same reasoning OwnerNewBookingNotification's docblock records:
+        // `audience` is a SINGLE string, so one key cannot serve two portals. Reusing the operator's
+        // `new_booking` (or the owner's `owner_new_booking`) would have meant flipping its audience and
+        // stranding everyone who relies on it. The guest gets its own key; the other 25 are untouched.
+        //
+        // ⚠️ `email_default => false` IS LOAD-BEARING, NOT A PREFERENCE. The guest ALREADY receives
+        // BookingConfirmationMail on this exact event. NotificationPreferences::allows() falls back to
+        // defaultFor() for a non-User notifiable, so an `email_default => true` here would add the 'mail'
+        // channel in FeedNotification::via() and the guest would be emailed TWICE. This notification is
+        // IN-APP ONLY, additive to the existing email — never a replacement for it.
+        //
+        // ⚠️ NO PER-GUEST TOGGLE (defaults-only, deliberate). NotificationPreference keys on `user_id`, so
+        // a Guest cannot hold a stored preference; guests run on these defaults. catalogFor() filters on an
+        // exact audience match, so this entry never appears on the operator or owner preferences screen,
+        // and NotificationPreferenceController still hard-asserts in_array($audience, ['operator','owner']).
+        'guest_booking_confirmed' => ['label' => 'Booking confirmed', 'description' => 'Your booking is confirmed', 'group' => 'Trips', 'audience' => 'guest', 'always_on' => false, 'default' => true, 'email_default' => false],
+
         'owner_new_booking' => ['label' => 'New booking', 'description' => 'A booking is confirmed on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'owner_review_posted' => ['label' => 'Review posted', 'description' => 'A guest review is published on one of your units', 'group' => 'Performance', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         // ⚠️ NOT "Guest message" (the wireframe's label): owner↔guest messaging does not exist — a thread is
