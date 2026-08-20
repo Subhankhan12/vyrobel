@@ -6,12 +6,12 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-> ⚠️ **NEW SESSION? START WITH `docs/SESSION-HANDOFF.md` (2026-08-18)** — the full master state, reconciled
-> against the repo. ⚠️ Its §0 records four drifts found during reconciliation, the load-bearing one being that
-> **the operator audit REPORTS were never merged to main** — they exist only on `audit/operator-deep-parity`
-> (`57ea036`), so that branch must not be pruned.
+> ⚠️ **NEW SESSION? START WITH `docs/SESSION-HANDOFF.md` (2026-08-21)** — the full master state, reconciled
+> against the repo. ⚠️ Its §0 records the drifts found during reconciliation. ⛔ **Still open and carried
+> since 2026-08-18: the operator audit REPORTS were never merged to main** — they exist only on
+> `audit/operator-deep-parity`, so **that branch must not be pruned**.
 
-# ⚠️ CANONICAL STATE — **ELEVEN CHAPTERS CLOSED** (§N.13–§N.27) · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions, exactly THREE wrong-not-absent defects (all fixed) → the remaining feature work is ADDITIVE · ⚠️ **NOTHING ON THE FEATURE BACKLOG BLOCKS LAUNCH — the gates are the DEPLOYMENT SPRINT (zero deploy artifacts + the ONE crontab line the GDPR deletion depends on) and the FOUNDER's Stripe/VAT steps** · Wave 0 + Wave 1 complete; Wave 2 complete except `DO3-3` (next, money-adjacent — prove idempotency) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2185 / 2194**, 6 non-green = the documented set (⚠️ the count **walks a 5–10 band on its own**, §N.17.7 — and ⚠️ **run it ALONE**) · ⚠️ **"closed" = closed everywhere a pass could REACH** · deployment + scale-perf REMAIN
+# ⚠️ CANONICAL STATE (SAVE v18, 2026-08-21) — **THE PRODUCT IS COMPLETE AND THE DEPLOY TRACK IS COMPLETE.** All three realms (owner · operator · guest) AUDITED · FIXED · SEALED · **MONEY-VERIFIED** · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions → remaining feature work is ADDITIVE · ⚠️⚠️ **NOTHING THAT REMAINS IS A PRODUCT GAP: every open item is FOUNDER-SIDE** (the CI first run · the Stripe test-mode probe (B)/(C) · go-live wiring and switches · parked compliance decisions) · **THE DEPLOYMENT SPRINT IS DONE** — `DEPLOYMENT.md` **§7.1–§7.6 all BUILT**, including the ONE crontab line the GDPR erasure and the ID purge silently depend on, and a CI pipeline enforcing four gates each **proven to red the build** (§N.29) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2,524 / 2,522 passed / 2 skipped / 0 failed**, 16,075 assertions, exit 0 (⚠️ the documented non-green band did not appear in that run — one observation, not a proof; ⚠️ **run it ALONE**) · PHPStan L5 **0** · Pint clean · ⚠️ **"closed" = closed everywhere a pass could REACH**
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -7709,6 +7709,19 @@ sits beside the other two probe pieces at **`tools/contrast-report.php`** — th
 a **regression** on any of it would have been filed as "accepted exception" and never read as a defect.
 
 ---
+
+<!-- SAVE v18 (2026-08-21) — supersedes v17's RESUME; §N.13–§N.28 stand unchanged. v18 closes TWO chapters:
+     ⑫ THE GUEST ENGAGEMENT SURFACE (guest fix pass · the money-path proof · guest notifications, 8 types,
+     sealed at 2ed497a · guest email preferences at 8dd2cbf, a SEND-SITE gate not an allows() change · the
+     Stripe capture confirmed BUILT-AND-DORMANT at 9b6a948 — go-live is a key-flip, not a build), and
+     ⑬ THE DEPLOY TRACK, now COMPLETE: §7.4 secrets (e37f417) · §7.5 the runtime contract (2b37bf3) ·
+     §7.6 CI (895dea5). Its new canon is §N.29 (LABEL-vs-PROTECTION — the engagement's defining lesson,
+     three forms: label / location / missed-mutation; caught 13+ times, almost none by review) and §N.30
+     (the payments columns are `gateway`/`gateway_ref`; "0 overrides" means `unit_rate_overrides`).
+     ⚠️ §N.29 caught its OWN author repeatedly — the provider_ref phantom read, the ext-intl grep, several
+     verification probes. ⚠️ The OperatorPortfolioTest "order-dependent" flake was a NEEDLE defect, not an
+     ordering one, and had already been fixed twice in this repo one file over (§N.13.1).
+     ⚠️ THE FULL NARRATIVE STATE IS `docs/SESSION-HANDOFF.md` (2026-08-21) — start there. -->
 
 # (N.27) 🏁 THE BACKEND AUDIT + THE FEATURE WAVES — **THE PIVOT FROM REPAIR TO SHIPPING** (SAVE v17, 2026-08-15)
 
