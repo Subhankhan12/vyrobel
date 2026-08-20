@@ -178,11 +178,12 @@
         .vy-topbar h1.is-greeting { font-size: 30px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 10px; }
 
-        /* Notification bell — 42px frosted glass (exact-match). Scoped to the owner topbar; the `!important`
-           beats the shared bell component's inline background:none/border:none (operator shell is a separate file). */
+        /* Notification bell — 42px frosted glass, exact-match to the Owner Dashboard prototype.
+           The `!important` that used to be here is GONE: it existed only to beat the shared bell
+           component's inline background:none/border:none, and the component no longer sets them. */
         .vy-topbar .vy-bell {
-            width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center;
-            background: rgba(255, 252, 248, 0.62) !important; border: 1px solid rgba(255, 255, 255, 0.75) !important;
+            width: 42px; height: 42px; padding: 0; border-radius: 50%; display: grid; place-items: center;
+            background: rgba(255, 252, 248, 0.58); border: 1px solid rgba(255, 255, 255, 0.75);
             box-shadow: 0 14px 40px rgba(150, 90, 50, .12), inset 0 1px 0 rgba(255, 255, 255, .65);
             backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
             color: var(--vy-ink); transition: transform .14s ease;
