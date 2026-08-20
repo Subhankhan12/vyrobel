@@ -7900,3 +7900,65 @@ storefront and folio need no change, and the per-unit override still wins with n
 ⚠️ **The cost of materializing is that applying OVERWRITES real prices for the range** — which is what setting
 a seasonal rate means. So it is a money mutation: `rates.manage`-gated, with a computed blast-radius preview,
 and season-over-weekend is **authoring order (last write wins)**, stated legibly rather than left to surprise.
+
+---
+
+# (N.29) 🏁 A GUARD'S GREEN MUST DEPEND ON THE PROTECTION *RUNNING* (2026-08-20)
+
+The guest-notifications feature (three gates, `aa1a91e` → `d866837` → `f623bb8`) produced **ten weak guards
+and one weak mutation**. Every one was caught by a mutation or by the full suite. **None was caught by
+review** — and that is the whole lesson, because review reads what a test *says* it checks. Only a mutation
+shows whether the green *depends* on the protection.
+
+> **A guard is only worth its green if removing the protection turns it red. Assert the protection RUNNING —
+> never where it lives, never what it is named.**
+
+## §N.29.1 ⚠️ THE THREE FORMS — establish WHICH before you touch anything
+
+**(a) LABEL — it asserts the name of the thing, not the thing.**
+The class is present in the markup, but nothing proves it *hides* (`.vy-sr-only` matched inside
+`class="vy-sr-only"`, so renaming the CSS rule away changed nothing it read). The middleware is *declared*,
+but nothing proves it cannot be *stripped* (`gatherMiddleware()` still lists `auth:guest` after
+`->withoutMiddleware('auth:guest')`). The filter *names* a class while the column stores a **morph alias**
+(`notifiable_type = Guest::class` under `enforceMorphMap` matches **zero rows — before and after**, so the
+erasure test asserted `0 === 0` forever). ⚠️ **A zero-matching filter is unfailable. Show the instrument
+capable of a POSITIVE first, or its later zero is evidence about the instrument, not the system** (§N.20).
+
+**(b) LOCATION — it asserts where the thing lives.**
+"the gradient is in `bell.blade.php`" · "no `GuestNotificationsController.php` exists" · "exactly one route
+LINE". Each was true when written and each failed on a **safe refactor** — extracting a sub-component, adding
+a read-only controller, registering a second route for a different guard. ⚠️ **The dangerous half is the
+mirror: a location-guard also goes SILENT when the behaviour moves somewhere it is not watching.** It fails
+loudly on safe change and quietly on real change — exactly backwards.
+
+**(c) MISSED-MUTATION — the mutation never reached the path.**
+A green under mutation means the guard is weak **or** the mutation missed, and the two are indistinguishable
+until you check. `actingAs($g, 'guest')` **rebinds the default guard**, so swapping a guard-resolver for the
+default one stayed green — the harness had pre-arranged the answer. An order-dependent wrong-actor
+(`orderByDesc('created_at')->first()`) resolved the *right* guest by fixture luck; a deterministic one
+(`whereKeyNot($authedId)`) reddened **four** tests. ⚠️ **One of the eleven was a weak MUTATION, not a weak
+guard** — the guard was fine. Diagnose which; do not "fix" a healthy guard.
+
+## §N.29.2 THE RULE
+
+**Guard the RENDERED behaviour, or a ROUTE-TABLE fact — never a file path.** A render follows the definition
+wherever it moves next; a route-table assertion states the mechanism ("every notification write route points
+at the shared controller") rather than a proxy for it ("this filename must not exist"). When a guard breaks
+on a refactor, the fix is **re-calibration to the protection, never relaxation** — and the re-calibrated
+guard should end up **stronger**: after the bell guards moved to the render, breaking the gradient *inside the
+extracted file* reds, which the old guard could not see at all.
+
+**Mutation-prove every guard, and verify every mutation twice:** that it APPLIED (assert the substitution
+matched exactly once — a `git checkout` that silently reverts to HEAD, or a needle matching a comment as well
+as the code, both produce a meaningless run), and that it HITS THE PATH the test exercises, deterministically.
+
+## §N.29.3 THE ELEVEN
+
+Label: the `.vy-sr-only` markup match · the `gatherMiddleware()` declaration read · the `Guest::class`
+morph-alias filter · Pest's `toContain($needle, $message)` silently asserting the *message* as a second
+needle. Location: the badge-gradient file read · the glyph file read · the `file_exists(...)` fork proxy · the
+one-route-LINE count. Missed-mutation: `actingAs` rebinding the default guard · the order-dependent
+isolation fixture. And one weak MUTATION: the order-dependent wrong-actor that resolved correctly by luck.
+
+⚠️ **Ten of the eleven were written in the same feature that then caught them.** Writing a guard and trusting
+it are one motion; only the mutation separates them.

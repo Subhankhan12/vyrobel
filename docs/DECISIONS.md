@@ -13596,3 +13596,63 @@ markup · the order-dependent isolation fixture · and these three locators. **W
 **Not built:** guest preference toggles. The backend is defaults-only and a toggle needs
 `NotificationPreference` (keyed on `user_id`) extended to guests — a separate decision with its own
 `Guest Email Preferences.html` wireframe.
+
+---
+
+## 2026-08-20 — GUEST NOTIFICATIONS: **MERGED TO MAIN AND SEALED**
+
+The complete feature — three gates, `aa1a91e` → `d866837` → `f623bb8` — is on `main`.
+
+### The merge
+
+⚠️ **A FAST-FORWARD, not a real merge, and that is worth stating plainly.** `main` never moved after the branch
+was cut (`merge-base == main`), so merged main is **byte-identical to the branch tip**. The composition risk
+this seal was designed to catch — the owner-Fix-5 lesson, a shared file integrating onto a moved main — **did
+not materialise, because there was nothing to compose with.** The re-confirmation below is therefore a
+re-run on the same tree, not a new composition; recorded as such rather than dressed up as more.
+
+### What shipped
+
+**All eight guest notification types**, each on an already-live trigger, each ADDITIVE to an email that still
+fires exactly once, each self-scoped (#28), each erased under GDPR:
+
+`guest_booking_confirmed` (reservation.confirmed) · `guest_checkin_ready` (emails:send-pre-arrival, #33) ·
+`guest_message_received` (inbox.message_sent — one wire covering both the personal reply AND the bulk send) ·
+`guest_payment_due` (emails:send-payment-reminders) · `guest_booking_cancelled` (reservation.cancelled →
+`guest.trips`, never the dead reservation) · `guest_refund_processed` (payment.refunded, succeeded only) ·
+`guest_review_request` (reservation.checked_out) · `guest_account_security` (GuestDeletionService, always-on).
+
+Plus `GET /guest/notifications` — self-scoped, mirroring the owner/operator feed — and the bell in the guest
+shell at the **approved** placement (header top-right; mobile row 1), in **link mode** because that realm
+loads no Alpine.
+
+### The cross-cutting invariants, re-confirmed on merged main
+
+| | |
+|---|---|
+| Owner + operator feeds | **byte-identical.** Operator: 58 unread, 25 rows, categories Finance/Front Desk/Maintenance/Reputation — no guest category. Owner: 16 unread, 16 dismiss + 16 mark-read forms, **all on the web-guard routes, zero posting to `/guest/…`** |
+| Prefs boundary | operator **16**, owner **9**, guest **8**; **0** `guest_*` keys on either screen; `abort_unless(in_array($audience, ['operator','owner'], true), 404)` intact |
+| Shared bell | popover mode unchanged in BOTH realms (`:panel` default) — the guest link mode is opt-in |
+| Money-as-seeded | **929 / 10,912,000 / 0 / 41 / 16** and **0 guest notifications persisted** |
+
+⚠️ A note on the money shorthand: the canon's "0 overrides" is **`unit_rate_overrides`**. There is no
+`rate_calendar.override_reason` column — reading the shorthand literally errors.
+
+### ⚠️ DEFERRED, not a gap: guest preference toggles
+
+Guests run on **catalog defaults**. `NotificationPreference` keys on `user_id`, so a Guest cannot hold a
+stored row; a toggle needs that table extended to guests. That is a **separate decision with its own
+`Guest Email Preferences.html` wireframe** — deliberately not built here, and **not** a hole in the feature.
+
+### §7.3 deploy script — reconciled
+
+`d13a6e6` (`ops/deploy.sh`) had been held local-unpushed pending the founder's read. It sits **beneath** this
+feature in a linear history, so the seal push publishes it too. ⚠️ **Publishing is not running:** nothing
+invokes the script, its pre-flight refuses unsafe states, and the founder's read remains the gate on
+*executing* a deploy. Recorded so the state is not silently changed by a push aimed at something else.
+
+### Canon
+
+The label-vs-protection rule is promoted to **§N.29** — *a guard's green must depend on the protection
+RUNNING* — with its three forms (label / location / missed-mutation) and the eleven instances this feature
+produced.
