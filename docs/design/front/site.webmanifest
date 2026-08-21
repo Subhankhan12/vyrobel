@@ -1,0 +1,27 @@
+{
+  "name": "Vyrobel",
+  "short_name": "Vyrobel",
+  "description": "Property management for hotels, serviced apartments, villas and short-stay operators.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1B896",
+  "theme_color": "#C2410C",
+  "icons": [
+    {
+      "src": "/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}

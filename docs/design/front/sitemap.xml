@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://vyrobel.com/</loc>
+    <changefreq>weekly</changefreq><priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/"/>
+  </url>
+  <url><loc>https://vyrobel.com/nl/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/es/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/el/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <url>
+    <loc>https://vyrobel.com/product</loc><changefreq>monthly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/product"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/product"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/product"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/product"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/product"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/product</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/product"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/product"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/product"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/product"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/product"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/product</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/product"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/product"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/product"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/product"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/product"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/product</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/product"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/product"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/product"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/product"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/product"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/features</loc><changefreq>monthly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/features"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/features"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/features"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/features"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/features"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/features</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/features"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/features"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/features"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/features"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/features"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/features</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/features"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/features"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/features"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/features"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/features"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/features</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/features"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/features"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/features"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/features"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/features"/>
+  </url>
+  <url><loc>https://vyrobel.com/modules</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://vyrobel.com/nl/modules</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/modules"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/modules"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/modules"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/modules"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/modules"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/modules</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/modules"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/modules"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/modules"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/modules"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/modules"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/modules</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/modules"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/modules"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/modules"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/modules"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/modules"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/pricing</loc><changefreq>monthly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/pricing"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/pricing</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/pricing"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/pricing</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/pricing"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/pricing</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/pricing"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/pricing"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/how-it-works</loc><changefreq>monthly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/how-it-works"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/how-it-works</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/how-it-works"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/how-it-works</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/how-it-works"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/how-it-works</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/how-it-works"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/how-it-works"/>
+  </url>
+  <url><loc>https://vyrobel.com/try-booking</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <url><loc>https://vyrobel.com/alternatives</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url>
+    <loc>https://vyrobel.com/nl/alternatives</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/alternatives"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/alternatives</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/alternatives"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/alternatives</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/alternatives"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/alternatives"/>
+  </url>
+  <url><loc>https://vyrobel.com/compare</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url>
+    <loc>https://vyrobel.com/switching</loc><changefreq>monthly</changefreq><priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/switching"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/switching"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/switching"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/switching"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/switching"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/switching</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/switching"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/switching"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/switching"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/switching"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/switching"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/switching</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/switching"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/switching"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/switching"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/switching"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/switching"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/switching</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/switching"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/switching"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/switching"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/switching"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/switching"/>
+  </url>
+
+  <url><loc>https://vyrobel.com/for-hotels</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://vyrobel.com/for-villas</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://vyrobel.com/for-apartments</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <url><loc>https://vyrobel.com/case-studies</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/case-studies/cyclades</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/case-studies/rotterdam</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/case-studies/lisbon</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+
+  <url><loc>https://vyrobel.com/resources</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/growing-direct-bookings</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/owner-statement</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/housekeeping-at-forty-units</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/pricing-levers</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/out-of-service</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/booking-direct-trust</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/resources/winning-owners</loc><changefreq>yearly</changefreq><priority>0.7</priority></url>
+
+  <url><loc>https://vyrobel.com/glossary</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/faq</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://vyrobel.com/docs</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/docs/taking-a-reservation</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/check-in-and-folio</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/housekeeping-board</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/rate-plans</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/reports-and-exports</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/owner-statements</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/payout-runs</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/invites-and-access</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/online-check-in</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/refunds-and-changes</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/settings</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/first-property</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/connecting-channels</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/storefront</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/account-security</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/docs/gdpr-and-data</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <url><loc>https://vyrobel.com/integrations</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/security</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://vyrobel.com/changelog</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+
+  <url><loc>https://vyrobel.com/about</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://vyrobel.com/careers</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url>
+    <loc>https://vyrobel.com/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/contact"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/nl/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/contact"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/es/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/contact"/>
+  </url>
+  <url>
+    <loc>https://vyrobel.com/el/contact</loc><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://vyrobel.com/contact"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://vyrobel.com/nl/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://vyrobel.com/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="el" href="https://vyrobel.com/el/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vyrobel.com/contact"/>
+  </url>
+
+  <url><loc>https://vyrobel.com/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://vyrobel.com/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+
+</urlset>

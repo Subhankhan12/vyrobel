@@ -75,4 +75,3 @@ CLAUDE.local.md
 
 # Gated build browser-verification screenshots (not part of the regression net)
 gate*.png
-/docs/design/front/
