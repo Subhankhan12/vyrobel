@@ -330,9 +330,9 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 8px; padding: 7px 0;">
-                      <span style="width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(140deg,var(--vy-peach),var(--vy-accent-2)); display: flex; align-items: center; justify-content: center; font-family: var(--vy-display); font-size: 8.5px; font-weight: 600; color: #fff; flex-shrink: 0;">AM</span>
+                      <span style="width: 22px; height: 22px; border-radius: 7px; background: linear-gradient(140deg,var(--vy-peach),var(--vy-accent-2)); display: flex; align-items: center; justify-content: center; font-family: var(--vy-display); font-size: 8.5px; font-weight: 600; color: #fff; flex-shrink: 0;">NF</span>
                       <div style="flex: 1; min-width: 0;">
-                        <div style="font-size: 10.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Amara Mensah</div>
+                        <div style="font-size: 10.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nadia Farouk</div>
                         <div style="font-size: 9px; color: var(--vy-muted);">Apt 102 · 6 nights</div>
                       </div>
                       <span style="font-size: 9.5px; color: var(--vy-muted); font-variant-numeric: tabular-nums; flex-shrink: 0;">17:15</span>
@@ -827,7 +827,7 @@
                 <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">James Okonkwo</span><span style="display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px;">Villa Dunes · 15:30</span></span>
                 <span style="flex-shrink: 0; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: linear-gradient(140deg, rgba(232,112,58,.22), rgba(194,65,12,.16)); color: var(--vy-accent-text);">VIP</span>
               </div>              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(150,90,50,.09);">
-                <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Amara Mensah</span><span style="display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px;">Apt 102 · 6 nights</span></span>
+                <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nadia Farouk</span><span style="display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px;">Apt 102 · 6 nights</span></span>
                 <span style="flex-shrink: 0; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(120,70,40,.09); color: var(--vy-faint);">Due 17:15</span>
               </div>              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0;">
                 <span style="min-width: 0;"><span style="display: block; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tomas Berg</span><span style="display: block; font-size: 11.5px; color: var(--vy-faint); margin-top: 2px;">Apt 210 · room not ready</span></span>

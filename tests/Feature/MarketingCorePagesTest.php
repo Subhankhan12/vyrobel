@@ -22,24 +22,8 @@ use PHPUnit\Framework\AssertionFailedError;
 const MK_PAGES = ['/' => 'home', '/product' => 'product', '/features' => 'features',
     '/modules' => 'modules', '/how-it-works' => 'how-it-works', '/pricing' => 'pricing'];
 
-/** Render a marketing page in the CURRENT environment. */
-function mkPage(string $view): string
-{
-    return view('marketing.'.$view)->render();
-}
-
-/** Render a marketing page as PRODUCTION sees it — the filtered shape. */
-function mkProdPage(string $view): string
-{
-    $app = app();
-    $original = $app->environment();
-    $app->detectEnvironment(fn (): string => 'production');
-    try {
-        return view('marketing.'.$view)->render();
-    } finally {
-        $app->detectEnvironment(fn (): string => $original);
-    }
-}
+// ⚠️ mkPage() / mkProdPage() live in tests/Support/marketing_helpers.php — ONE definition shared by
+// every marketing gate suite (§N.8f), rather than a copy per file free to drift.
 
 // ══ ROUTES — all six resolve, and NOTHING shadows the sealed money path ════════════════════════════
 it('serves all six Core pages', function () {
@@ -49,10 +33,16 @@ it('serves all six Core pages', function () {
     // ⚠️ COUNT-PINNED (Gate 1 lesson b): exactly six marketing page routes exist — no more (a stray
     // registration is a surface nobody reviewed), no fewer (a silently dropped page).
     // ⚠️ `marketing.page.*`, not `marketing.*` — the shorter namespace already belongs to the guest
-    // EMAIL-marketing unsubscribe routes. This count-pin is what surfaced that collision.
+    // EMAIL-marketing unsubscribe routes, and a count-pin is what surfaced that collision.
+    //
+    // ⚠️ THE TOTAL is pinned ONCE, in MarketingSalesPagesTest — not here as well. This file pinned 6 until
+    // Gate 3 registered four more, and two files each asserting "the total" is a second definition of one
+    // fact, free to drift (§N.8f). This suite owns only its own six.
     $named = collect(app('router')->getRoutes()->getRoutesByName())
         ->keys()->filter(fn (string $n): bool => str_starts_with($n, 'marketing.page.'));
-    Assert::assertSame(6, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
+    foreach (MK_PAGES as $path => $key) {
+        Assert::assertTrue($named->contains('marketing.page.'.$key), "the Core route [{$key}] disappeared");
+    }
 });
 
 it('⚠️ never shadows the sealed money-carrying storefront', function () {

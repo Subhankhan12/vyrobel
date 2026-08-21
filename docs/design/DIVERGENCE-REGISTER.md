@@ -420,3 +420,21 @@ invented.
 | **The newsletter, cookie dialog, support widget, demo booker** | 📐 **NOT THIS GATE** | D11 (own pass) · D4 · D5. |
 | ⚠️ **Named people in UI MOCKUPS** | ⛔ **FOUNDER DECISION D13** | Two unconsented names survive into production **outside** the ledger's reach: **"Amara Mensah"** in Home's front-desk mockup (a guest row) and **"Marco Reyes"** in How-It-Works' team-roster mockup. These are product-screenshot sample data, not endorsement claims — but they are the *same* names the ledger lists as unconsented testimonial authors. ⚠️ **This is exactly the limit Gate 0 stated:** a name typed into page markup carries no flags, so the content-honesty gate cannot see it. |
 | **Try Booking** | ⛔ **NOT BUILT — D3** | See the recommendation in `DECISIONS.md`. Its route is unregistered, so every link to it renders as a marked non-link. |
+
+---
+
+## FRONT WEBSITE · Gate 3 — four Sales pages built, six pages HELD after two honesty audits (2026-08-21)
+
+Built: **Switching · For Hotels · For Apartments · For Villas**. ⚠️ **Held pending founder rulings:**
+`Alternatives` · `Compare` · `/case-studies` + its three stories. Full analysis:
+`docs/audits/FRONT-GATE3-HONESTY-AUDITS-2026-08-21.md`.
+
+| item | verdict | detail |
+|---|---|---|
+| **Switching · For Hotels · For Apartments · For Villas** | ✅ **REPRODUCED** | Gate 2's discipline exactly: design markup verbatim, tokens bound, self-hosted fonts, 0 dc-remnants, 0 CDN, 0 refused tones, 0 pre-AA greys — all asserted. **Image slots: 1 each on the three "For …" pages, 0 on Switching.** |
+| ⚠️ **`Alternatives`** | ⛔ **HELD — NOT BUILT (Audit B)** | Its subject **is** unsourced positioning of four named competitors. ⚠️ The design's own disclaimer concedes *"We have not tested these products against ours"* — so under the refuse-the-unverifiable rule the claims go, and removing them removes the page. Held rather than shipped hollow. |
+| ⚠️ **`Compare`** | ⛔ **HELD — NOT BUILT (Audit B)** | Carries **"Typical cost: 15–18% of every booking"** (unsourced third-party pricing) and **NO disclaimer at all** while naming five companies. |
+| ⚠️ **`/case-studies` + Cyclades / Lisbon / Rotterdam** | ⛔ **HELD — NOT BUILT (Audit A)** | Their subject **is** D1's three invented, unconsented customers. ⚠️ The index offers *"Want to talk to one of them?"* — an offer to introduce a prospect to a business that does not exist. Recommended: defer until a real customer consents. |
+| ⚠️ **The nav's Alternatives row** | ✅ **KIND-1 FIX (found by my own new guard)** | Its description listed **"Mews, Cloudbeds, Guesty, Hostaway"** — meaning **every page on the site** named four competitors while `/alternatives` itself is held. A nav row cannot advertise a comparison the site does not serve. Replaced with that page's **own section heading** (*"Where we'd tell you to buy something else"* — the design's words). Restorable when the page is built with cited, dated claims. |
+| ⚠️ **D13 — ledger names in page markup** | ✅ **FIXED, and the scope was 3× what D13 named** | D13 named **two** instances found by inspection. A sweep found **six across five pages** — including three of the four pages built this gate (`Joris van Dijk` on For Apartments, `Marco Reyes` on For Hotels and How It Works, `Elena Kastellis` on For Villas, `Amara Mensah` ×2 on Home). All replaced with names carrying **no ledger overlap** (Bram Hoekstra · Petar Novak · Chara Melis · Nadia Farouk), avatar initials updated with them. Now permanently swept by a test, because the honesty gate reads the ledger and **can never see a name typed into markup**. |
+| ⚠️ **B12 — a live pricing contradiction** | ⛔ **FOUNDER DECISION** | `/pricing` (**live since Gate 2**) advertises **Starter €6 / Pro €4 per unit / Enterprise**, while `config/billing.php` charges **€9/unit** under tiers named **Essential / Pro**. The per-unit *model* matches; the *rate* and the *plan names* do not. Both are placeholders — but they are two placeholders that disagree, on the money surface. |

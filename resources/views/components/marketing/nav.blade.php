@@ -91,7 +91,12 @@
                             <div class="vy-mk-megalabel">Deciding</div>
                             <x-marketing.mega-row key="case-studies" title="Customer stories" desc="Three operators who switched" icon="stories" />
                             <x-marketing.mega-row key="compare" title="Compare the options" desc="Against OTAs and spreadsheets" icon="compare" />
-                            <x-marketing.mega-row key="alternatives" title="Vyrobel vs the alternatives" desc="Mews, Cloudbeds, Guesty, Hostaway" icon="alternatives" />
+                            {{-- ⚠️ GATE 3: the design's description here listed four named competitors — which meant EVERY page on
+                                 the site named them, while `/alternatives` itself is HELD pending the claim audit. A nav row
+                                 cannot advertise a comparison the site does not serve. The description is now that page's
+                                 OWN section heading (the design's words, not invented copy); the founder may restore the
+                                 names when the page is built with cited, dated claims. --}}
+                            <x-marketing.mega-row key="alternatives" title="Vyrobel vs the alternatives" desc="Where we&rsquo;d tell you to buy something else" icon="alternatives" />
                             <x-marketing.mega-row key="switching" title="Switching to Vyrobel" desc="What migrates, and the cutover" icon="switching" />
                         </div>
                     </div>

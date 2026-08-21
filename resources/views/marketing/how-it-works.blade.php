@@ -136,8 +136,8 @@
           <div style="font-family: var(--vy-display); font-size: 14.5px; font-weight: 600; color: var(--vy-ink); margin-bottom: 16px;">Team &amp; roles</div>
           <div style="display: flex; flex-direction: column; gap: 9px;">
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.82);">
-              <span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(140deg,var(--vy-peach),var(--vy-accent-2)); display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--vy-display); font-size: 12px; font-weight: 600;">MR</span>
-              <span style="flex: 1; font-size: 13.5px; color: var(--vy-ink);">Marco Reyes</span>
+              <span style="width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(140deg,var(--vy-peach),var(--vy-accent-2)); display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--vy-display); font-size: 12px; font-weight: 600;">PN</span>
+              <span style="flex: 1; font-size: 13.5px; color: var(--vy-ink);">Petar Novak</span>
               <span style="font-size: 11.5px; color: var(--vy-muted);">Front desk</span>
             </div>
             <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 13px; background: rgba(255,255,255,.62); border: 1px solid rgba(255,255,255,.82);">

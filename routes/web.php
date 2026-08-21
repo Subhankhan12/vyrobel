@@ -541,6 +541,19 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     Route::get('/modules', 'modules')->name('modules');
     Route::get('/how-it-works', 'howItWorks')->name('how-it-works');
     Route::get('/pricing', 'pricing')->name('pricing');
+
+    // ── Gate 3 · the Sales pages that make no third-party claims ────────────────────────────────────
+    // ⚠️ `alternatives` and `compare` are deliberately ABSENT. Both pages' subject IS a set of unsourced
+    // claims about named competitors (Mews / Cloudbeds / Guesty / Hostaway), which sit entirely outside
+    // the content-honesty gate's reach — nothing in CI can see them. Audited and surfaced instead of
+    // shipped: docs/audits/FRONT-GATE3-HONESTY-AUDITS-2026-08-21.md.
+    // ⚠️ The three case studies + their index are absent for the same class of reason: their SUBJECT is
+    // D1's three invented, unconsented customers. Their links stay pending, which is the correct state —
+    // an empty publicly-routed URL would be worse than no page.
+    Route::get('/switching', 'switching')->name('switching');
+    Route::get('/for-hotels', 'forHotels')->name('for-hotels');
+    Route::get('/for-apartments', 'forApartments')->name('for-apartments');
+    Route::get('/for-villas', 'forVillas')->name('for-villas');
 });
 
 /*

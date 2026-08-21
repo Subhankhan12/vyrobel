@@ -14150,3 +14150,88 @@ pending-ness to **reachability** so a vanished row can no longer look identical 
 **Mutations, each violate → RED → restore → GREEN:** the stats band made to render when empty (the exact
 launch-day hole) → RED · a figure value taken from the design script instead of the ledger → RED · ⚠️ **CI
 Gate 5 re-proven now that pages consume the ledger** → RED with all 13 entries named.
+
+---
+
+## 2026-08-21 — FRONT WEBSITE · GATE 3: two honesty audits, four pages built, six HELD
+
+Full analysis: `docs/audits/FRONT-GATE3-HONESTY-AUDITS-2026-08-21.md`. **Built:** Switching · For Hotels ·
+For Apartments · For Villas. ⚠️ **Held for a ruling:** Alternatives · Compare · the case-study index and its
+three stories.
+
+### ⚠️ AUDIT (A) — the case studies ARE the invented customers
+
+Each story asserts a named business that the ledger flags `real: null, consent: false` (Kastellis Villas ·
+Hotel Alfama Reyes · Van Dijk Stays), its size and city, a before/after narrative — Rotterdam carries a
+**quantified outcome claim** (*"~20% → 50%+ share of nights arriving direct, across one season"*) — and a
+direct quote. ⚠️ **And the index offers *"Want to talk to one of them?"*** — an offer to introduce a
+prospect to a business that does not exist. That is where an invented case study stops being copy and
+becomes a representation someone could act on.
+
+⚠️ **What survives D1's filter: nothing — and worse, the filter cannot reach these pages at all.** The
+ledger governs DATA; these pages are MARKUP. Built the Gate-2 way, three invented businesses publish
+straight to production untouched by any gate. Built ledger-driven, all four pages render EMPTY — and an
+empty publicly-routed, sitemapped URL is worse than no page (dead weight, a visitor landing on nothing, and
+a URL that outlives its fix). **Recommended: defer until a real customer consents.** Not built.
+
+### ⚠️ AUDIT (B) — twelve named-competitor claims, none sourced
+
+`Alternatives` names Mews, Cloudbeds, Guesty and Hostaway. ⚠️ **The design is unusually careful here** —
+it calls them *"good products with real customers"*, has a section titled *"Where we'd tell you to buy
+something else"*, and carries a real disclaimer including a trademark notice. The claims are POSITIONING,
+not feature comparisons, and several are self-deprecating.
+
+**But every one is unsourced — the disclaimer says so itself: *"We have not tested these products against
+ours."*** Six characterisations (B1–B4 per vendor, B5 *"the market clusters in a similar band"* — an
+unsourced claim about **competitor pricing**, B6 on booking engines), plus ⚠️ **B7: the disclaimer says
+"at the time of writing" with no date anywhere — unfalsifiable, and it ages invisibly.**
+
+`Compare` is worse: ⚠️ **"Typical cost: 15–18% of every booking"** (unsourced third-party pricing) and
+⚠️ **no disclaimer, no trademark notice, no date at all** while naming five companies.
+
+⚠️ **Under the refuse-the-unverifiable rule, removing these claims does not trim the pages — it removes
+their subject.** Both are held. What would make each defensible: a citation + a *verified on* date, or
+softening to a non-comparative statement about ourselves, or removal.
+
+**Recommended mechanism (a sibling of Gate 5):** a `resources/marketing/claims.json` ledger — one entry per
+external claim with `source_url` and `verified_on` — rendered through, and a CI gate that **fails the build
+when a claim is past review or missing a source**. Otherwise a competitor claim rots exactly the way
+`MAIL_MAILER=log` fails: silently, for a year.
+
+### ⚠️ B12 — a live pricing contradiction, and I missed it in Gate 2
+
+`/pricing` has been live since Gate 2 advertising **Starter €6 / Pro €4 per unit / Enterprise custom**.
+`config/billing.php` charges **`per_unit_minor = 900` → €9/unit** under tiers named **Essential (€49/mo)**
+and **Pro (€99/mo)**. The per-unit *model* matches; the *rate* is 50–125% out and the *plan names* do not
+exist in the billing system. Both sides are labelled placeholder, so neither lies — but they are **two
+placeholders that disagree on the money surface**, and a prospect quoted €9 after reading €4 has been
+misled by an inconsistency nobody intended. ⚠️ Gate 2 reproduced the page faithfully and never reconciled
+it against the app. **Founder's reconciliation required.**
+
+### ⚠️ My own new guard caught the nav — every page was naming four competitors
+
+The Gate-1 nav's Alternatives row described itself as *"Mews, Cloudbeds, Guesty, Hostaway"*, so **every
+page on the site named four competitors** while `/alternatives` is held. A nav row cannot advertise a
+comparison the site does not serve. Replaced with that page's **own section heading** (the design's words,
+not invented copy); restorable when the page ships with cited claims.
+
+### ⚠️ D13 — the ruling named two instances; a sweep found SIX
+
+Amara Mensah ×2 (Home), Marco Reyes (How It Works **and** For Hotels), Joris van Dijk (For Apartments),
+Elena Kastellis (For Villas) — **three of them on pages built this very gate.** All replaced with
+non-overlapping names (Bram Hoekstra · Petar Novak · Chara Melis · Nadia Farouk) and their avatar initials.
+⚠️ **A register entry is one reader's finding — sweep.** Now a permanent test, because the content-honesty
+gate reads the ledger and can never see a name typed into markup.
+
+### Verification
+
+`MarketingSalesPagesTest` 10 tests / 256 assertions; all four marketing suites **42 / 726** green.
+⚠️ **The storefront control was written STRUCTURALLY CAPABLE this time** (Gate 2's lesson): it asserts
+first that an EARLY `/{locale}/{page}` really does swallow `/book/seaside-demo` — the control proving it
+can produce the failure — and only then that our registration order does not. Route-name collisions checked
+before naming (all four free). The total route count is pinned in **one** file, not two (Gate 2's pin went
+stale here — two files asserting one fact is a second definition, §N.8f).
+
+**Mutations, each violate → RED → restore → GREEN:** a ledger name reintroduced into a page → RED on the
+D13 sweep · a held page routed without a ruling → RED on both the count-pin and the held-pages guard · a
+competitor name reintroduced → RED on the competitor guard.

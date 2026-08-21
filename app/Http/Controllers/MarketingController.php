@@ -50,4 +50,24 @@ class MarketingController extends Controller
     {
         return view('marketing.pricing');
     }
+
+    public function switching(): View
+    {
+        return view('marketing.switching');
+    }
+
+    public function forHotels(): View
+    {
+        return view('marketing.for-hotels');
+    }
+
+    public function forApartments(): View
+    {
+        return view('marketing.for-apartments');
+    }
+
+    public function forVillas(): View
+    {
+        return view('marketing.for-villas');
+    }
 }
