@@ -13937,3 +13937,98 @@ closes that, and it is a build/review rule recorded here, not a property of this
 **Verification:** gate green 6/6 (53 assertions) after every restore · full suite green · PHPStan L5 (0) ·
 Pint clean · money as seeded **929 / 10,912,000 / 0 / 41 / 16 / 0** · no page/route/shell/component built ·
 storefront, sealed realms, auth and the deploy track untouched.
+
+---
+
+## 2026-08-21 — FRONT WEBSITE · GATE 1: ruling (a) executed · the FOUNDATION built and render-proven
+
+**No page, no public route, no `/` change** — those are Gate 2. Two commits: the masters, then the foundation.
+
+### Ruling (a) — the design masters committed, and CI kept from paying for them
+
+⚠️ **PERMANENT:** `docs/design/front/` (94 files, 102.2 MB raw) is now history-resident forever — every
+future clone carries the objects; removal later would need a history rewrite + force-push. The founder
+ruled (a) with that stated: durability in origin beats clone size, git IS the backup. Git delta-packed the
+directory to **~51 MiB** (the per-page inlined fonts delta-compress across files). Gate 0's protective
+`.gitignore` line was removed so the add is intentional.
+
+**CI never reads the masters, so it no longer downloads or materialises them:** both `actions/checkout`
+steps gained `filter: blob:none` + a non-cone `sparse-checkout` (`/*` + `!docs/design/front/`).
+⚠️ **CONFIRM-FIRST, locally, with the real mechanism** (a `file://` partial clone with
+`uploadpack.allowfilter` on): the working tree excludes the masters, **every Gate-5 input is present**
+(`resources/marketing/content.json` + the honesty test — Gate 5 reads the tracked ledger, NOT the
+masters), and the filtered clone downloaded **77.5 MiB vs 97.1 MiB** unfiltered (the delta = exactly the
+masters' packed blobs; on Actions' depth-1 fetch the saving is proportionally larger). The six gate steps:
+**zero deletions** in the diff — additions only.
+
+### The foundation — the SIXTH shell, nav + footer extracted ONCE, tokens BOUND, the SEO emitter
+
+- **`components/marketing/shell.blade.php`** — a NEW sixth shell (public/guest/owner/operator/admin/
+  marketing). ⚠️ The sealed storefront `public/shell` is **untouched** (E3): `git diff` for it is empty.
+- **`<x-marketing.nav>` + `<x-marketing.footer>`** — the design's `Site Nav`/`Site Footer` partials
+  (decoded from the masters' `__bundler` manifests, where they ship base64+gzip), extracted ONCE (§N.8f)
+  instead of inlined 84×. Product + Solutions mega-panels with **all 15 of the design's own SVG glyphs**,
+  the popular-guides strip, the mobile menu (a checkbox toggle — no JS). ⚠️ The dc-runtime handlebars
+  (`{{ openProduct }}`, `sc-if`, refs) were **REMOVED, not escaped** — they are React state wiring, not
+  content; rendering them literally would ship framework syntax as text. Interactivity is CSS-native
+  (hover/focus-within); Alpine can layer on later without markup changes.
+- **`MarketingUrls`** — the ONE key→path map (the design's own sitemap slugs, which are NOT
+  filename-derived) + `pending()`: an unregistered page renders as a **marked non-link**
+  (`data-vy-pending`, `aria-disabled`), never an href that 404s while looking fine; items light up
+  automatically as Gate 2+ registers `marketing.{key}` routes. Log in / Start free / Reset password point
+  at the already-real `/login` / `/signup` / `/forgot-password`, and the footer carries the **D9 guest
+  entry** (`/guest/login`) as a registered addition.
+- **Tokens BOUND (D6/E4, §N.8f):** `<x-design.tokens />` first; the marketing CSS binds `var(--vy-*)` and
+  copies **no design hex**. The four divergent tones are NOT adopted — `#4A403A`→`--vy-muted`,
+  `#A8380B`→`--vy-accent-text`, the icon-stroke `#B4400F`→`--vy-accent-text`, the logo cream
+  `#FFF7F0`→`#fff` (the app's own `.vy-brand-mark` precedent). ⚠️ **Their absence is test-asserted.**
+  Two genuine token gaps surfaced (not silently invented): the design's icon-stroke and cream have no app
+  token; resolved by binding to the nearest semantic token + the app's precedent, registered.
+- **`<x-marketing.seo>`** — title · description · canonical · OG · Twitter · robots; **og:image only when
+  given** (no default pointing at a not-yet-placed asset); **hreflang is a designed slot** (pass
+  `:alternates`, get link tags; omit, get nothing) so D7's four locales are a data change later, not a
+  rewrite. ⚠️ Canonicals derive from `APP_URL` → **`DEPLOYMENT.md` §7.4.5b** records it as load-bearing at
+  go-live (a wrong `APP_URL` mis-canonicalises every page silently).
+- **Fonts: self-hosted only** (`/fonts/fonts.css`, the F6-6 posture). **No React, no CDN** (E9).
+
+### The render proof — `MarketingFoundationTest`, 9 tests / 42 assertions (§N.29 discipline)
+
+Shell+nav+footer render around a probe body · the tokens **RESOLVE in the rendered output**
+(`--vy-ink: rgb(43, 35, 32)` present AND `var(--vy-ink)` bound — never "a file was included") · the four
+refused tones **absent** · the SEO tags emit (canonical/OG/Twitter URL-exact) · hreflang emits with
+alternates and not without · og:image absent when not given · pending pages render marked non-links while
+real auth routes render real links · **no `fonts.googleapis.com`/`fonts.gstatic.com`/`unpkg.com` anywhere —
+⚠️ with a POSITIVE CONTROL feeding the detector poisoned output and requiring it to throw** · `/` still
+serves the welcome view (the D2 swap has NOT happened) · **`/book/{property}` still resolves to
+`booking.browse`** — the standing E1 baseline for when the locale route eventually lands.
+
+**Verification:** suite green · PHPStan L5 (0) · Pint clean · money as seeded
+**929 / 10,912,000 / 0 / 41 / 16 / 0** · the five CI gates' steps untouched (proofs stand) + Gate 5's
+inputs verified present under the sparse checkout.
+
+### ⚠️ Gate 1 — the fidelity round, and a vacuous guard caught by mutation
+
+An adversarial review of the Gate-1 diff ran across three lenses. ⚠️ **Two lenses and all eight verifiers
+died on an API session limit — so the run's `confirmed: []` was an ARTEFACT, not a verdict.** Reporting it
+as "no defects found" would have been the §N.29 label failure in reviewer form. The one lens that completed
+returned six findings; **I verified all six by hand against the decoded design partials, and all six were
+real:**
+
+- ⚠️ **The mobile drawer was a reduced subset** — 13 links / 2 unlabelled groups against the design's
+  **21 links / 5 labelled groups**, leaving **About, Contact, FAQ, Glossary, Resources and Changelog
+  unreachable on mobile**. A genuine navigational hole. **Fixed** to the design's structure and copy.
+- **Footer column membership** diverged in three places. **Fixed** to the design's grouping. (The design's
+  "(draft)" badge on Privacy/Terms is deliberately not reproduced — ours are unwritten, and "(draft)"
+  would imply a document exists.)
+- **"Commission calculator"** footer link restored as a pending link (the calculator partial stays
+  deferred with D1).
+- ⛔ **Two became founder decisions rather than silent drops: D11** the cookie-settings button + consent
+  dialog (the site sets no analytics/marketing cookies today — a dialog would be theatre, #39), and
+  **D12** the legal-row social icons (an icon labelled "LinkedIn" implies a profile that does not exist).
+- 📐 The **active-page indicator** is deferred to Gate 2 — nothing can be active before any page exists.
+
+⚠️⚠️ **And the guard I wrote for the drawer defect was itself vacuous.** It asserted the missing keys
+page-wide; `contact` also renders in the desktop nav and the footer, so **deleting it from the drawer left
+the test green.** Mutation caught it, review did not — the same lesson, in the same session, for the third
+time. The guard now scopes its read to the drawer REGION and pins the row count at 21; re-mutated → RED,
+restored → green. **Suite 2540 / 2538 passed / 2 skipped / 0 failed.**

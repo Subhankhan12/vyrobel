@@ -566,6 +566,14 @@ Stripe dashboard at `POST https://<host>/webhooks/stripe`, subscribed to **`paym
 endpoint with its **own** secret, serving the **owner-payout Connect rail**. Required before payouts go live;
 it does **not** affect a guest paying a folio.
 
+#### 7.4.5b ⚠️ `APP_URL` — promoted to load-bearing by the front website (Gate 1, 2026-08-21)
+
+`APP_URL` was cosmetic for the app realms (links in emails aside). ⚠️ **The marketing site's SEO derives
+every `<link rel="canonical">` and `og:url` from it** (`<x-marketing.seo>` → `url()`), so a wrong `APP_URL`
+in production emits wrong canonicals on every marketing page — a silent SEO failure (nothing errors; Google
+just indexes the wrong origin). **Go-live: `APP_URL=https://vyrobel.com` exactly, before the marketing
+routes are registered.**
+
 #### 7.4.6 Provisioning, in one line
 
 Copy `.env.example` → `.env`, then fill in: `APP_KEY` (generate) · the five `DB_*` · `REDIS_PASSWORD` ·

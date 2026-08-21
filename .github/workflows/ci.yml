@@ -48,7 +48,18 @@ jobs:
       tag: ${{ steps.tag.outputs.tag }}
       ref: ${{ steps.tag.outputs.ref }}
     steps:
+      # ⚠️ The 102 MB design masters (docs/design/front/, founder ruling (a)) live in git but CI never
+      # reads them: blob:none defers all blob downloads, and the non-cone sparse exclusion keeps the
+      # masters out of the working tree, so their blobs are never lazily fetched either. ⚠️ Gate 5 reads
+      # resources/marketing/content.json — NOT the masters — verified by a filtered local clone in which
+      # the content-honesty inputs are all present while docs/design/front/ is absent.
       - uses: actions/checkout@v4
+        with:
+          filter: 'blob:none'
+          sparse-checkout: |
+            /*
+            !docs/design/front/
+          sparse-checkout-cone-mode: false
 
       - id: tag
         run: |
@@ -119,7 +130,18 @@ jobs:
       STRIPE_FAKE: 'true'
 
     steps:
+      # ⚠️ The 102 MB design masters (docs/design/front/, founder ruling (a)) live in git but CI never
+      # reads them: blob:none defers all blob downloads, and the non-cone sparse exclusion keeps the
+      # masters out of the working tree, so their blobs are never lazily fetched either. ⚠️ Gate 5 reads
+      # resources/marketing/content.json — NOT the masters — verified by a filtered local clone in which
+      # the content-honesty inputs are all present while docs/design/front/ is absent.
       - uses: actions/checkout@v4
+        with:
+          filter: 'blob:none'
+          sparse-checkout: |
+            /*
+            !docs/design/front/
+          sparse-checkout-cone-mode: false
 
       - name: Cache Composer packages
         uses: actions/cache@v4
