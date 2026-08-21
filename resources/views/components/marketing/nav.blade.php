@@ -41,8 +41,13 @@
                             {{-- ⚠️ GATE 4: was desc="A real booking, no signup" — a promise repeated on EVERY page, and false: the
                                  sandbox books nothing. Found by sweeping the CHROME, which the ruling (scoped to
                                  /try-booking) did not reach — the same way Gate 3b found three live Sales pages
-                                 carrying a deleted claim. --}}
-                            <x-marketing.mega-row key="try-booking" title="Try the booking engine" desc="A preview on our real demo property" icon="try" />
+                                 carrying a deleted claim.
+                                 ⚠️ GATE 4b re-swept it the other way: with the picker restored, "A preview on our
+                                 real demo property" had become an UNDERSTATEMENT of a page that now prices real
+                                 dates. Sharpened — and deliberately NOT to "Pick your dates", which is an
+                                 INVITATION and belongs only where the picker actually is (this row renders on
+                                 every page; MarketingTryBookingTest sweeps for exactly that). --}}
+                            <x-marketing.mega-row key="try-booking" title="Try the booking engine" desc="Real dates and real prices — nothing booked" icon="try" />
                         </div>
                         <div>
                             <div class="vy-mk-megalabel">Connect &amp; learn</div>

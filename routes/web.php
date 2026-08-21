@@ -545,7 +545,15 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     // ⚠️ Gate 4 · the try-booking SANDBOX (ruling D3 = (b)). It mirrors the real `seaside-demo` property,
     // prices from the engine's own read-only `priceOver()`, and renders the REAL BookingConfirmationMail
     // with every link defused (#33). It creates NO reservation, no quote row, and sends no mail.
-    Route::get('/try-booking', 'tryBooking')->name('try-booking');
+    //
+    // ⚠️ GATE 4b — IT NOW TAKES DATES (`?from=&to=&m=`), and that is the whole interactive picker: a click
+    // is a GET, and the server re-prices through `priceOver()`. ⚠️ THERE IS NO PROPERTY PARAMETER, by
+    // construction — `TryBookingSandbox::DEMO_SLUG` is a constant, so this URL cannot be pointed at another
+    // organisation's rates. An endpoint that took a property id would be a pricing oracle over every
+    // customer on the platform; this one is a fixed demo property with two dates.
+    // ⚠️ THROTTLED ON THE PARAMETERISED PATH ONLY — a dated request prices ~60 nights, the plain page
+    // prices none and must stay crawlable. See the `try-booking` limiter in AppServiceProvider.
+    Route::get('/try-booking', 'tryBooking')->middleware('throttle:try-booking')->name('try-booking');
 
     // ── Gate 3 · the Sales pages that make no third-party claims ────────────────────────────────────
     // ⚠️ `alternatives` and `compare` are deliberately ABSENT. Both pages' subject IS a set of unsourced

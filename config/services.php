@@ -131,6 +131,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Marketing — the try-booking sandbox
+    |--------------------------------------------------------------------------
+    |
+    | ⚠️ Applies to the PARAMETERISED path only (`?from=&to=&m=`). The plain page is unlimited; see the
+    | `try-booking` limiter in AppServiceProvider for why. Bounds the per-request pricing work, not the
+    | exposure — the sandbox has no property parameter and can only ever read the demo property.
+    |
+    */
+
+    'marketing' => [
+        'try_booking_rate_limit' => env('TRY_BOOKING_RATE_LIMIT', 40),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Auth throttle
     |--------------------------------------------------------------------------
     |

@@ -1,17 +1,23 @@
-{{-- TRY BOOKING — the HONEST SANDBOX (front-website Gate 4, ruling D3 = (b)).
+{{-- TRY BOOKING — the HONEST SANDBOX (front-website Gate 4, ruling D3 = (b); INTERACTIVE from Gate 4b).
 
      ⚠️ The design's page simulated a booking on a FICTIONAL property and ended in a FABRICATED
      confirmation email, under a meta description promising "Make a real booking on a demo property".
      Nothing was booked and no such email existed. Every honesty transform lives in the CONVERTER, not
      here, because a post-generation patch is undone by the next generation (Gate 3b proved that twice).
 
-     ⚠️ Guarded by tests/Feature/MarketingTryBookingTest.php — written in the same change as this comment. --}}
+     ⚠️ GATE 4b — THE DATE PICKER IS BACK, READ-ONLY. Gate 4 removed it on the grounds that real
+     interactivity means driving the engine, and the engine writes; that is true of `quote()` and not of
+     `priceOver()`, so the founder ruled it back. ⚠️ The hero copy below invites a picker BECAUSE the
+     picker renders — MarketingTryBookingTest pins that biconditional in both directions, which is the
+     defect Gate 4 found by reading the render ("Pick your dates" left standing over nothing).
+
+     ⚠️ Guarded by tests/Feature/MarketingTryBookingTest.php. --}}
 @php
     $testimonialQuotes = [];
 @endphp
 <x-marketing.shell
     title="Try the booking engine — a Vyrobel direct-booking preview"
-    description="See exactly what your guests see: the real demo property, priced by the live engine, and the real confirmation email. ⚠️ A preview only — nothing is reserved, charged or sent. The live demo storefront is one click away."
+    description="Pick your dates on our real demo property and see the price the live engine quotes — and the real confirmation email your guest would receive. ⚠️ A preview only: nothing is reserved, charged or sent."
     canonical="/try-booking">
 <div data-screen-label="Marketing — Try booking" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -31,7 +37,7 @@
           Sandbox · nothing is charged, no card needed
         </div>
         <h1 data-h1="" style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 46px; line-height: 1.08; letter-spacing: -.035em; color: var(--vy-ink); text-wrap: balance; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .06s both;">See what a direct booking looks like</h1>
-        <p style="margin: 20px 0 0; font-size: 17px; line-height: 1.62; color: var(--vy-muted); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .12s both;">This is a preview of a direct booking on our real demo property: the rate the engine actually quotes, and the confirmation email a guest actually receives.</p>
+        <p style="margin: 20px 0 0; font-size: 17px; line-height: 1.62; color: var(--vy-muted); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .12s both;">Pick your dates on our real demo property and the live engine prices them, from the same rate calendar it charges from — then see the confirmation email a guest actually receives. Nothing is reserved and nothing is charged.</p>
       </div>
     </section>
 

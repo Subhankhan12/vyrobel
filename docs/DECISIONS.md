@@ -14383,3 +14383,110 @@ did not yet exist. Removed; the guard is referenced by path and was written in t
 `MarketingTryBookingTest` 9 tests / 121 assertions; all seven marketing suites **68 / 1,404** green.
 Route-name collision checked; the storefront proof reuses the structurally-capable `/{locale}/{page}`
 control. Earlier gates' route-count and pending-page pins updated **with the ruling**, never silently.
+
+---
+
+## 2026-08-22 — FRONT WEBSITE · GATE 4b: the sandbox picker restored, read-only (D3 = (b), continued)
+
+⚠️ **The founder's ruling: a page called Try Booking where nothing can be tried is materially weaker than
+D3 = (b) asked for.** Gate 4 removed the date picking on the grounds that real interactivity means driving
+the engine, and the engine writes. ⚠️ **That was true of `quote()` and not of `priceOver()`** — the
+read-only half the page was already pricing from. Gate 4's own report established the possibility; the
+founder ruled the picker back.
+
+### #1 — `priceOver()` proven read-only, by reading it
+
+`app/Services/BookingEngineService.php:309-331` is one `RateCalendar::query()->…->get()` and an in-memory
+sum. No `create`, `save`, `update`, `delete` or `DB::` statement; it calls nothing that has one. ⚠️ Read,
+not inherited from Gate 4's summary — **a finding is a hypothesis**. `quote()` (`:97`) persists a
+`booking_quotes` row and is never called.
+
+### #2 — ⚠️⚠️ THE NEW RISK, AND WHY THERE IS NO ORACLE
+
+Restoring the picker means prices reach the browser somehow, and **any server path that takes a property id
+prices every customer on the platform for anyone who asks** — enumeration plus competitive intelligence on
+our own customers' rates.
+
+**Taken: the page itself accepts `?from=&to=&m=`. Not a client-side precompute, and not a new endpoint.**
+⚠️ A client-side picker would have had to **sum nightly prices in JavaScript** — a second implementation of
+the engine's own rule ("Σ nightly, refuse if any night is unpriced"), which is precisely how two surfaces
+come to disagree about money (§N.8f) — and it would have let the confirmation email show a different stay
+from the total above it. Server-side re-pricing means **one `priceOver()` call, one number, both surfaces**.
+There is no JavaScript on the page at all, so the picker also works with scripting off.
+
+⚠️ **The property is a CONSTANT, never an argument.** `TryBookingSandbox::DEMO_SLUG` cannot be reached by a
+request. **Mutation-proven by attack**: a second organisation's property is seeded with distinct rates, and
+`?property=` / `?slug=` / `?property_id=` / `?organization=` in seven shapes leaves the page pricing the demo
+property only — while still pricing it, so the refusal is a refusal and not a blank page. Making the slug
+request-readable turns the guard RED immediately. Proven again **in the browser** against the dev database's
+real second property. The parameterised path is rate-limited (`throttle:try-booking`, ~60 reads per request);
+the plain page is `Limit::none()` so crawlers are never 429ed — observed live: 429s on the dated path while
+`/try-booking` and `/pricing` stayed 200.
+
+### #3 — framing stronger, and copy pinned to control
+
+Interactivity raises the illusion risk, so there are now **two refusals**: the banner **above the control**
+(positionally asserted — a footnote under a picked total is too late by definition) and a second one landing
+**with the number the visitor just produced**.
+
+⚠️ Gate 4 found the hero still saying *"Pick your dates"* over a picker that no longer existed. The picker is
+back, so the line is true again — and **the copy and the control are now pinned as a BICONDITIONAL**,
+mutation-proven in both directions: removing the picker reds ("the copy invites a date picker that does not
+render"), removing the copy reds ("a date picker renders but no copy invites it"), and a non-vacuity anchor
+stops `false === false` satisfying it with the whole feature gone.
+
+### #4 — every price is the engine's
+
+Ten ranges of differing length and start agree with an independent `priceOver()` call to the cent, and each
+of the ~60 visible calendar nights is compared against a fresh single-night call. Positive controls on the
+data: at least six ranges must actually price, and not all to the same figure — a flat rate would let a wrong
+sum look right. Re-deriving the total from the calendar rows instead of asking the engine reds.
+
+**Unpriced dates are refused, not filled.** No total, no confirmation, no zero — the page says how many
+nights have no published rate. **Sold-out dates too**: the real published rate is shown, the confirmation is
+withheld, and the calendar marks the night **Booked** from real availability.
+
+### #5 — ⚠️⚠️ MY OWN GUARD WAS VACUOUS AGAIN, AND MUTATION FOUND IT AGAIN
+
+Gate 4's lesson was that a guard over empty data passes while checking nothing. Writing that lesson down did
+not prevent it: **"⚠️ writes nothing, however hard the picker is used" passed on an empty database**, because
+with no demo property every call returns null immediately, nothing is priced, and the counts match trivially.
+The loop counted its own *requests*, which is not the same as counting its *work*. Fixed with positive
+controls on what was actually done — stays really priced, confirmations really rendered — and re-proven: the
+vacuity mutation now reds **12 of 20** tests with diagnostic messages, and the 8 that still pass are the
+genuinely data-independent ones (two needle controls, the money descriptor, the rate limiter, the generated
+file, three absence sweeps). Three further tests were erroring on a null offset instead of saying why; they
+now refuse with a reason.
+
+⚠️ **And the fixture now contains the dangerous shapes, not only the happy one** — a sold-out night, a gap in
+the rate calendar, varying nightly prices, and a second organisation. Each is itself mutation-proven: fill the
+gap and the unpriced test reds *"the fixture has no gap"*; remove the sold-out night and its test reds;
+price the rival identically and the oracle test reds *"a leak would be invisible to every assertion here"*.
+
+### ⚠️ #6 — TWO DEFECTS THE SUITE COULD NOT SEE
+
+1. ⚠️ **The picker rendered perfectly and could not be used.** With a check-in chosen, every later cell
+   **restarted** the range instead of completing it — the halfway state carries `picked => true` and a
+   placeholder check-out, and the calendar keyed off `picked` alone. "The calendar renders a pickable date"
+   passed throughout. **Found by clicking twice in a browser.** A guard that follows the page's own hrefs
+   through two clicks to a priced stay now exists and reds on the reintroduced defect. *A control is only
+   proven by following it to its outcome.*
+2. ⚠️ **The two month grids collided.** In the half-width column October's last weekday was clipped and the
+   digits overlapped. Every rendered *value* was correct; the page was simply unusable. **Found in a
+   screenshot.** — the standing lesson that **static checks cannot see a rendered page**, twice in one gate.
+
+### The converter and the sweep
+
+Every transform lives in the converter; regenerating produced a **byte-identical** file and the guards stayed
+green. The sitewide sweep was re-run: the nav's row had become an **understatement** of a page that now prices
+real dates and was sharpened — ⚠️ deliberately **not** to "Pick your dates", because that is an *invitation*
+and belongs only where the picker is (the row renders on every page, and a test now sweeps for exactly that).
+
+### Nothing written
+
+30 distinct picks against the live server plus a 429 burst, and 27 in-suite exercises with positive controls.
+Reservations, quotes, folios, payments, `unit_rate_overrides`, `rate_calendar` (rows **and** sum) and
+`availability` identical. Money as seeded `929 / 10,912,000 / 0 / 41 / 16 / 0` unchanged throughout.
+
+**Still refused (#39):** the design's animated "watch the rate build itself", and its *"an OTA would have
+taken €X"* comparison — no OTA commission rate is modelled for a direct booking.

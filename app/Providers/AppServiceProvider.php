@@ -452,6 +452,22 @@ class AppServiceProvider extends ServiceProvider
             (int) config('services.booking.rate_limit', 60)
         )->by($request->ip() ?? 'unknown'));
 
+        // ⚠️ THE TRY-BOOKING SANDBOX — the PARAMETERISED path only (front-website Gate 4b).
+        //
+        // ⚠️ WHY IT NEEDS ONE AT ALL. Restoring the date picker made /try-booking accept `?from=&to=&m=`,
+        // and a parameterised request re-prices a two-month calendar night by night through the engine —
+        // roughly sixty reads. That is a small amplification factor on an anonymous, uncached URL, so the
+        // interactive path is capped per IP. ⚠️ It is NOT a pricing oracle: there is no property parameter
+        // (TryBookingSandbox::DEMO_SLUG is a constant), so no request can point it at another customer's
+        // rates — the throttle bounds the WORK, not the exposure.
+        //
+        // ⚠️ AND THE PLAIN PAGE IS DELIBERATELY UNLIMITED. /try-booking with no query string is an ordinary
+        // marketing page that crawlers and share-preview fetchers hit; throttling it would 429 them for no
+        // safety gain. Limit::none() says that in the one place the decision lives.
+        RateLimiter::for('try-booking', fn (Request $request): Limit => $request->hasAny(['from', 'to', 'm'])
+            ? Limit::perMinute((int) config('services.marketing.try_booking_rate_limit', 40))->by($request->ip() ?? 'unknown')
+            : Limit::none());
+
         // PER-IP AUTH THROTTLE (audit 2026-08-07 · F-2a-04).
         //
         // ⚠️ THE FINDING WAS HALF RIGHT, and the difference decides the fix. The audit reported "no rate limit
