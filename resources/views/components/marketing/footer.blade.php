@@ -11,13 +11,16 @@
      entry without touching auth. --}}
 @php use App\Support\Marketing\MarketingUrls; @endphp
 <footer class="vy-mk-footer">
-    <div class="vy-mk-whatsnew">
-        <x-marketing.nav-link key="changelog" class="vy-mk-whatsnew-link">
-            <span class="vy-mk-whatsnew-pill"><span class="vy-mk-whatsnew-dot" aria-hidden="true"></span>New</span>
-            <span><strong>Multi-currency pricing and a documentation library</strong> &mdash; prices in EUR, GBP or USD, and sixteen written guides.</span>
-            <span class="vy-mk-whatsnew-cta">All releases <x-marketing.arrow /></span>
-        </x-marketing.nav-link>
-    </div>
+    {{-- ⚠️ GATE 5 · THE CHROME SWEEP — THE "WHAT'S NEW" STRIP IS REMOVED, AND BOTH HALVES OF IT WERE FALSE.
+         It read: "Multi-currency pricing and a documentation library — prices in EUR, GBP or USD, and
+         sixteen written guides." ⚠️ `config/billing.php` has ONE `default_currency` ('EUR') and all four
+         plan rows are EUR — there is no GBP or USD price. ⚠️ And zero guides are published; Gate 5's
+         doc-truth audit defers all sixteen. It announced a release that did not happen, on EVERY page.
+         ⚠️ KIND-2 (fabricated content) is REFUSED, not restyled — so the strip goes rather than gaining a
+         softer sentence. Real release notes belong on the Changelog page, which is Gate 6's.
+         ⚠️ This is the FOURTH time the chrome has carried a claim a page-scoped ruling could not reach
+         (competitor names · "Three operators who switched" · "A real booking, no signup" · this).
+         See docs/audits/FRONT-GATE5-DOC-TRUTH-AUDIT-2026-08-22.md §6. --}}
 
     <div class="vy-mk-footgrid">
         <div class="vy-mk-footbrand">

@@ -54,7 +54,11 @@
                             <x-marketing.mega-row key="integrations" title="Integrations &amp; channels" desc="OTAs, payments and apps" icon="integrations" />
                             <x-marketing.nav-link key="faq" class="vy-mk-megasmall"><span>FAQ</span><span>Straight answers, including the awkward ones</span></x-marketing.nav-link>
                             <x-marketing.nav-link key="glossary" class="vy-mk-megasmall"><span>Glossary</span><span>ADR, RevPAR, folio and the rest</span></x-marketing.nav-link>
-                            <x-marketing.mega-row key="docs" title="Documentation" desc="Sixteen written guides" icon="docs" />
+                            {{-- ⚠️ GATE 5 · was desc="Sixteen written guides" — asserted on EVERY page, and false: zero are
+                                 published, and the doc-truth audit defers all sixteen. The row itself already
+                                 renders as a marked non-link (the page is unrouted); the DESCRIPTION was still
+                                 claiming the content exists. Replaced with something that asserts no count. --}}
+                            <x-marketing.mega-row key="docs" title="Documentation" desc="Guides and reference — not published yet" icon="docs" />
                             <x-marketing.mega-row key="changelog" title="Changelog" desc="What shipped, every two weeks" icon="changelog" />
                             <x-marketing.mega-row key="security" title="Security &amp; GDPR" desc="EU-ready, data minimisation" icon="security" />
                         </div>

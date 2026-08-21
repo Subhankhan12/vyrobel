@@ -494,3 +494,20 @@ writes — true of `quote()`, and **not** of `priceOver()`, the read-only half t
 | ⚠️ **The two month grids collided** | ✅ **FIXED — FOUND IN A SCREENSHOT** | In the half-width column, October's last weekday was clipped and the digits overlapped. ⚠️ Every rendered *value* was correct; the page was simply unusable. The picker now takes the full width. |
 | **The nav's row** | ✅ **RE-SWEPT** | *"A preview on our real demo property"* had become an **understatement** of a page that now prices real dates → *"Real dates and real prices — nothing booked"*. ⚠️ Deliberately **not** "Pick your dates": that is an *invitation*, and it belongs only where the picker is (the row renders on every page). |
 | **Money** | ✅ **BYTE-IDENTICAL UNDER HEAVY USE** | 30 distinct picks against the live server plus a 429 burst, and 27 in-suite exercises with positive controls on the work actually done. `929 / 10,912,000 / 0 / 41 / 16 / 0` unchanged throughout. |
+
+
+## FRONT WEBSITE · Gate 5 — Docs 19 + Resources 8: the doc-truth audit (2026-08-22)
+
+⚠️ **27 pages audited against the actual product BEFORE any was built. 0 built.** Documentation is a claim
+about behaviour and no CI gate can see it; the full audit is
+`docs/audits/FRONT-GATE5-DOC-TRUTH-AUDIT-2026-08-22.md` with a per-claim appendix beside it.
+
+| item | verdict | detail |
+|---|---|---|
+| **All 16 guides · `/docs` · `/faq` · `/glossary`** | ⛔ **DEFERRED — doc-truth** | 591 claims audited; **220 FALSE, 59 critical**. Every link to them already renders as a **marked non-link** through `MarketingUrls::pending()` — the designed state, never a silent 404. |
+| **All 7 articles · `/resources`** | ⛔ **DEFERRED — doc-truth** | Five came back `PUBLISHABLE_WITH_DOC_FIX`; a doc fix is one of the three founder options and is not the session's to pick. |
+| ⚠️ **The self-referential counters** | 📐 **DOCUMENTED — why no subset can publish** | Every guide/article carries "Guide N of 16" / "Article N of 7" and each guide renders the full sixteen-item sibling list; `/faq` says "18 questions". Each page asserts the whole set exists, so a partial publication lies about the set. Found by **reading**, not grep. |
+| ⚠️ **Glossary + FAQ content is JS-only** | 📐 **DOCUMENTED — cannot degrade** | Both pages' content lives in a `DCLogic` class (`static T` / `static QS`), and the converter strips every `<script>` (Gate 1's rule). Built as-is they render a search box and an empty state. Publishing them needs the arrays lifted into a server-rendered source — a build, not a port. |
+| ⚠️ **The chrome's release strip** | ✅ **KIND-2 REFUSED → REMOVED** | *"Multi-currency pricing and a documentation library — prices in EUR, GBP or USD, and sixteen written guides"*, **on every page**. Both halves false (one currency; zero guides). Fabricated content is refused, not restyled; the CSS stays in the shell for the Changelog's return (Gate 6). |
+| ⚠️ **The nav's Documentation row** | ✅ **KIND-1 FIX** | `desc="Sixteen written guides"` → `"Guides and reference — not published yet"`. The row was already a pending non-link; only the description still claimed the content. |
+| **The `/docs/*` and `/resources/*` slugs** | 📐 **READ, NOT GUESSED** | All 27 canonicals were read from each master's own `<helmet>`, matching the design's `sitemap.xml`. ⚠️ Two would have been guessed wrong from filenames: *Guide Arrival* → `/docs/online-check-in` and *Guide Checkin* → `/docs/check-in-and-folio`. Recorded here so the SEO long tail is right when they do publish. |

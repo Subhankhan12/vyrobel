@@ -14490,3 +14490,101 @@ Reservations, quotes, folios, payments, `unit_rate_overrides`, `rate_calendar` (
 
 **Still refused (#39):** the design's animated "watch the rate build itself", and its *"an OTA would have
 taken €X"* comparison — no OTA commission rate is modelled for a direct booking.
+
+---
+
+## 2026-08-22 — FRONT WEBSITE · GATE 5: THE DOC-TRUTH AUDIT (27 pages) — **0 BUILT**
+
+⚠️ **Documentation is a claim about how the product behaves, and no existing CI gate can see it.** The
+content ledger governs DATA; these 27 pages are PROSE ABOUT BEHAVIOUR. Every guide asserts a feature exists
+and works a particular way, and a wrong one generates support burden, refund disputes and — for Security,
+GDPR and Payouts — legal exposure.
+
+**All 27 were audited against the actual product before any was built. 591 claims: 142 TRUE · 188 PARTIAL ·
+220 FALSE · 41 UNVERIFIABLE, 59 critical. Not one page can publish as written, and 0 were built.**
+`docs/audits/FRONT-GATE5-DOC-TRUTH-AUDIT-2026-08-22.md` + the per-claim appendix beside it.
+
+### ⚠️ The three sharpest, audited hardest
+
+**PAYOUTS** — `STRIPE_CONNECT_WEBHOOK_SECRET` is absent (`config/services.php:184` → null) and the engine is
+test-mode by design, so "Processing — submitted to the bank" describes a rail whose confirming webhook cannot
+verify a signature. "Paused funds … **withdrawable on demand**" is false: there is no owner-initiated
+transfer rail, and the product says so itself. ⚠️ **`DO3-3` (failed-payout retry) turned out to be BUILT** —
+`owner.payouts.retry` → `OwnerPayoutService::retry()`, row-locked and idempotent; the register was stale.
+
+**SECURITY** — four claims are security properties the product does not have: **SMS 2FA** (no provider
+anywhere; every SMS surface is honestly gated), **"Admins can require 2FA account-wide"** (no tenant-level
+enforcement exists — only `PlatformAdmin`'s), **"approximate location"** in the session list (there is no
+geolocation in the application), and ⚠️ **a "write availability" OAuth scope** — `OAuthScopes` is read-only
+with exactly three scopes, so the page tells a reader an app can be granted a write the authorisation server
+refuses to issue. ⚠️ A security claim is either backed by code or it is false; it is never softened.
+
+**GDPR** — the entire Retention section navigates to **"Settings, Data and privacy"**, which does not exist
+(the operator Settings screen has twelve sections; none is it), to set a **statutory period** that is not a
+setting, for a **statutory anonymisation sweep that was never built** (`guests:process-deletions` executes
+*guest-requested* deletions after a 14-day grace). ⚠️ And both "automatically" claims are true **only** under
+the single `schedule:run` crontab line — which the page never mentions.
+
+### ⚠️ Seven product findings — SURFACED, NEVER FIXED
+
+⚠️⚠️ **P-6 and P-7 are the two that most deserve the founder's attention, and neither is about docs.**
+**P-6:** `RoomType::create`, `RatePlan::create` and `Channel::create` appear **nowhere in `app/`** (only in
+`DemoSeeder`), and the one `Unit::create` in `app/` is the owner add-unit approval path — so a tenant
+provisioned through `/signup` has a property with **no room types, no units and no rate plans and no product
+surface to add any**. **P-7:** the `property_user` allow-list's ONLY write (`PropertyController.php:73`) is
+gated `if ($user->propertyAssignments()->exists())`, a condition nothing else can make true, so per-property
+staff scoping is **unreachable in production** and every back-office user falls to the "all properties"
+branch of #38.
+
+**P-1** No operator UI writes `units.door_code` / `wifi_ssid` / `wifi_password` / `arrival_notes`; every
+reference outside the model, seeders and tests is a READ. The arrival-secrets feature cannot be populated by
+a real operator. **P-2** The door code releases on a **date** (`ArrivalPack::LEAD_DAYS = 2`), not on check-in
+— a deliberate design, but not what three pages describe. **P-4** The operator Channels screen ships
+hardcoded third-party commission rates (Booking.com 15% · Airbnb 3% · Expedia 15% · Vrbo 8%) — ledger entry
+**B5**'s class, inside the app where the ledger cannot see it. **P-5** The GDPR page names no sub-processor;
+Postmark is live and an Anthropic LLM seam is declared (inert by default — a disclosure obligation before it
+is switched on).
+
+⚠️ **Verification is honest about its own gap:** nineteen adversarial agents re-checked the sharp pages and
+every FALSE call and **overturned nothing**; ⚠️ **eight more died on a session limit** — the seven
+`/resources` articles and `/docs/settings` — so those eight stand **un-refuted, not verified**, and it is
+recorded rather than glossed.
+
+⚠️ **Two questions are the founder's and block everything else:** whether *"we never hold client funds"* can
+stand when `createPaymentCheckout` opens the Session on the **platform's own Stripe account** and owners are
+paid by a `transfer` out of the platform balance; and whether the **DPA** two pages assert actually exists.
+
+### ⚠️ Why no subset could publish
+
+Every one of the 23 guide/article pages carries **"Guide N of 16"** / **"Article N of 7"** and each guide
+renders the full sixteen-item sibling list; `/faq` announces "18 questions". **Each page asserts the whole
+set exists**, so publishing two articles would put "Article 4 of 7" on a site with two — the same false-count
+shape as the chrome below. Removing the counters is a *doc fix*, which is the founder's option to pick.
+
+### ⚠️ The chrome sweep — the fourth instance, and this time already LIVE
+
+`footer.blade.php:17` announced *"Multi-currency pricing and a documentation library — **prices in EUR, GBP
+or USD**, and **sixteen written guides**"* **on every page**. Both halves false: `config/billing.php` has one
+`default_currency` ('EUR') and all four plan rows are EUR; zero guides are published. `nav.blade.php:57` read
+`desc="Sixteen written guides"`, likewise sitewide. **Both fixed** — the strip removed (KIND-2 is refused,
+not restyled; real release notes are the Changelog's, Gate 6) and the nav description stripped of its count.
+
+### ⚠️ The lessons this gate re-taught
+
+⚠️ **A content sweep is blind to the absence it seeks (§N.27.1).** I swept the seven articles for `%`, `€`
+and "Vyrobel", found almost nothing, and provisionally called five clean. **They are not** — the claims that
+matter contain no number and no brand: *"Most operators answer no to at least two"*, *"Marketplaces treat
+operator-side cancellations badly, and repeated ones affect your ranking"*, *"Most OTA contracts in Europe no
+longer enforce strict price parity"*. 210 unsourced figures were extracted in total. ⚠️ And the same blindness
+hid the **closing CTA card on every article**, each of which is a product claim — found only by reading.
+
+⚠️ **Confirm-first cuts both ways (§N.27.11) — five times in one session.** `DO3-3` was built · recovery
+codes exist · `payout_currency`/`fx_rate` are modelled · an editable role-permission matrix exists · all four
+housekeeping CTA capabilities are real. ⚠️ **And once it saved a false product finding from reaching the
+founder:** a proposed defect — *"a failed payout appears in none of the Balance page's four buckets"* — was
+withdrawn on opening the file, because there is a **fifth** bucket, *Carried forward*, defined in the code as
+covering exactly *"one whose only payout failed"*.
+
+⚠️ **A needle that cannot match proves nothing.** A grep for `logoutOtherDevices` found nothing and would
+have made "changing a password signs out other sessions" FALSE; the file says `changePasswordTo($password,
+$currentSessionId)` and terminates every other session. **TRUE, and only opening it showed that.**
