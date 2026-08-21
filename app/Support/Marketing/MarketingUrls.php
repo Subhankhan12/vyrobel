@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
  * footer, sitemap and canonicals can never disagree about where a page lives.
  *
  * ⚠️ PENDING-AWARE BY CONSTRUCTION: a marketing page EXISTS once Gate 2+ registers its named route
- * (`marketing.{key}`). Until then {@see self::pending()} is true and the nav/footer render the item as a
+ * (`marketing.page.{key}`). Until then {@see self::pending()} is true and the nav/footer render the item as a
  * clearly-marked non-link — never an href that 404s while looking fine. Auth entries (login/signup/reset)
  * point at ALREADY-REAL app routes and are never pending (ruling D9, Tier 1 — no auth change).
  *
@@ -80,10 +80,14 @@ final class MarketingUrls
 
     /**
      * Is this marketing page still PENDING (its route not yet registered by a later gate)?
-     * The convention: Gate 2+ names each page route `marketing.{key}`.
+     *
+     * ⚠️ The convention is `marketing.page.{key}` — NOT `marketing.{key}`. That namespace was already
+     * occupied by the guest EMAIL-marketing routes (`marketing.unsubscribe`,
+     * `marketing.unsubscribe.confirm`), so the shorter prefix would have let an unrelated route answer
+     * this question for a page key that happened to collide.
      */
     public static function pending(string $key): bool
     {
-        return ! Route::has('marketing.'.$key);
+        return ! Route::has('marketing.page.'.$key);
     }
 }

@@ -112,11 +112,15 @@ it('emits hreflang alternates through the D7-deferred slot when given — and no
 it('renders not-yet-registered marketing pages as marked non-links and real routes as links', function () {
     $html = mkShell();
 
-    // No marketing.* routes exist in Gate 1 → every nav page item is pending, and NO href may point at a
-    // marketing path that would 404.
-    Assert::assertTrue(MarketingUrls::pending('product'));
-    Assert::assertStringContainsString('data-vy-pending="product"', $html);
-    Assert::assertStringNotContainsString('href="/product"', $html);
+    // ⚠️ UPDATED BY GATE 2, which registered the six Core pages: `product` is now a REAL link, while
+    // everything still unbuilt stays pending. This test's job is the MECHANISM — that the two states
+    // render differently — so it pins one of each instead of assuming the whole set is pending.
+    Assert::assertFalse(MarketingUrls::pending('product'), 'Gate 2 registered /product — it should no longer be pending');
+    Assert::assertStringContainsString('href="/product"', $html);
+
+    Assert::assertTrue(MarketingUrls::pending('docs'), '/docs is not built until a later gate');
+    Assert::assertStringContainsString('data-vy-pending="docs"', $html);
+    Assert::assertStringNotContainsString('href="/docs"', $html);
 
     // …while the REAL app routes render as real links (D9 Tier 1 — no auth change).
     Assert::assertStringContainsString('href="'.route('login').'"', $html);
@@ -126,10 +130,13 @@ it('renders not-yet-registered marketing pages as marked non-links and real rout
 });
 
 // ══ SCOPE GUARDS — nothing public changed ══════════════════════════════════════════════════════════
-it('leaves `/` serving the welcome view — the D2 swap has NOT happened yet', function () {
+it('serves the marketing home at `/` — the D2 swap, executed in Gate 2', function () {
+    // ⚠️ This asserted the OPPOSITE until Gate 2 executed ruling D2, and was correct then. Updated rather
+    // than deleted: the guard's real job is that something DELIBERATE answers `/`, and it now pins the
+    // marketing chrome instead of Laravel's scaffold splash.
     $response = $this->get('/');
     $response->assertOk();
-    Assert::assertStringNotContainsString('vy-mk-nav', $response->getContent());   // no marketing chrome on / yet
+    Assert::assertStringContainsString('vy-mk-nav', $response->getContent());
 });
 
 it('still resolves /book/{property} to booking.browse — the standing E1 baseline', function () {
@@ -156,13 +163,20 @@ it('reaches every design mobile-drawer destination — the drawer is not a reduc
     foreach (['Product', 'Solutions', 'Deciding', 'Learn', 'Company'] as $label) {
         Assert::assertStringContainsString('>'.$label.'</div>', $drawer, "the mobile drawer lost the \"{$label}\" group label");
     }
+    // ⚠️ REACHABILITY, not pending-ness. Gate 2 turned six of these into REAL links, so demanding
+    // `data-vy-pending` on every row would now fail for the WRONG reason — and worse, a row that vanished
+    // entirely would look identical to one that became a link. Each must be present in ONE of the two
+    // shapes, and the TOTAL must still be the design's 21.
     foreach (['product', 'features', 'modules', 'how-it-works', 'for-hotels', 'for-villas', 'for-apartments',
         'pricing', 'alternatives', 'compare', 'switching', 'case-studies', 'docs', 'guide-reservation',
         'guide-statements', 'faq', 'glossary', 'resources', 'changelog', 'about', 'contact'] as $key) {
-        Assert::assertStringContainsString('data-vy-pending="'.$key.'"', $drawer, "\"{$key}\" is unreachable ON MOBILE — it is missing from the drawer");
+        $reachable = str_contains($drawer, 'data-vy-pending="'.$key.'"')
+            || str_contains($drawer, 'href="'.MarketingUrls::path($key).'"');
+        Assert::assertTrue($reachable, "\"{$key}\" is unreachable ON MOBILE — neither a link nor a pending row in the drawer");
     }
     // …and the drawer really carries all 21 of the design's rows, not a subset that happens to name them.
-    Assert::assertSame(21, substr_count($drawer, 'data-vy-pending='), 'the mobile drawer no longer carries the design\'s 21 links');
+    $rows = substr_count($drawer, 'vy-mk-mrow') + substr_count($drawer, 'vy-mk-msub');
+    Assert::assertSame(21, $rows, 'the mobile drawer no longer carries the design\'s 21 links');
 });
 
 it('keeps the footer columns as the design groups them', function () {

@@ -118,6 +118,19 @@
             .vy-mk-mobile-ctas { display: flex; gap: 10px; }
         }
 
+        /* ── Image placeholders (D8 open — photography pending, never a stock photo) ─────────── */
+        .vy-mk-slot { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; width: 100%; height: 100%; min-height: 130px; padding: 18px; box-sizing: border-box; text-align: center; background: repeating-linear-gradient(135deg, rgba(255,252,248,.72), rgba(255,252,248,.72) 11px, rgba(240,165,122,.16) 11px, rgba(240,165,122,.16) 22px); border: 1px dashed rgba(194,65,12,.34); }
+        .vy-mk-slot-mark { color: var(--vy-accent-text); opacity: .8; }
+        .vy-mk-slot-brief { font-size: 12.5px; font-weight: 600; color: var(--vy-ink); max-width: 240px; line-height: 1.45; }
+        .vy-mk-slot-note { font-size: 10.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); }
+
+        /* ── The deferred commission calculator (honest, not a fake number) ───────────────────── */
+        .vy-mk-roi { display: flex; gap: 16px; align-items: flex-start; padding: 24px 26px; border-radius: 22px; background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
+        .vy-mk-roi-mark { width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px; background: rgba(217,102,46,.12); display: grid; place-items: center; color: var(--vy-accent-text); }
+        .vy-mk-roi-title { font-family: var(--vy-display); font-weight: 600; font-size: 17px; letter-spacing: -.02em; color: var(--vy-ink); }
+        .vy-mk-roi-body { margin: 8px 0 12px; font-size: 13.5px; line-height: 1.6; color: var(--vy-muted); max-width: 560px; }
+        .vy-mk-roi-cta { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; }
+
         /* ── Page body ────────────────────────────────────────────────────────────────────────── */
         .vy-mk-main { position: relative; padding-top: 74px; min-height: 60vh; }
 

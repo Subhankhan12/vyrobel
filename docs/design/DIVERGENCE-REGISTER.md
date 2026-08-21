@@ -388,3 +388,35 @@ and all six were real.** Four were fixed; two became founder decisions.
 where `contact` also appears in the desktop nav and footer, so deleting it from the drawer left the
 assertion **green**. Caught by mutation, not by review (§N.29 again). The guard now reads the **drawer
 region only** and additionally pins the row count at 21; re-mutated → **RED**, restored → green.
+
+---
+
+## FRONT WEBSITE · Gate 2 — the CORE PAGES, the first routes, and the `/` swap (2026-08-21)
+
+Six pages built from the masters: **Home · Product · Features · Modules · How It Works · Pricing**, on
+Gate 1's shell/nav/footer/SEO. `/` now serves the marketing home (**D2**) in place of Laravel's welcome
+splash. ⚠️ **Try Booking is NOT built** — blocked on D3 (recommendation below).
+
+### How the pages were reproduced
+
+⚠️ **The design's own markup and inline styles are kept verbatim** — the pages are 45–52% inline style, and
+preserving it is what makes the render faithful. Only what MUST change was changed, mechanically and
+identically across all six: dc-runtime wiring removed (React refs/handlers/`sc-*` — state plumbing, not
+content); the palette **and the font stacks** bound to `<x-design.tokens />`; design page links → the
+pending-aware `<x-marketing.nav-link>`; `<image-slot>` → the placeholder component; `<dc-import>` for nav
+and footer dropped (the shell renders them once); each page's SEO taken from **its own `<helmet>`**, never
+invented.
+
+| item | verdict | detail |
+|---|---|---|
+| **The six pages** | ✅ **REPRODUCED** | Design markup verbatim; 0 dc-runtime remnants, 0 CDN references, 0 refused tones, 0 hard-coded font stacks — all test-asserted across every page. |
+| **`/` → marketing home** | ✅ **D2 EXECUTED** | The old route returned `view('welcome')` and was its **only** reference anywhere; `resources/views/welcome.blade.php` is left in place untouched (Laravel scaffold, harmless). |
+| ⚠️ **The stats band** ("Vyrobel by the numbers") | ✅ **LEDGER-DRIVEN, two shapes** | Reads `MarketingContent`. **Local:** four figures + the design's OWN `Illustrative` badge (reproduced, driven by the real flags so it clears itself). **Production:** every figure is filtered → the **whole section omits**, heading included. The design's own script already hid a stat with no figure; this is that rule at its limit. |
+| ⚠️ **The figure VALUES** | 🚫 **THE DESIGN'S PAGE SCRIPT REFUSED** | ⚠️ **The design contradicts itself:** its page script says `direct: 63` / `hours: 11`; its ledger (which the script's own comment calls the mirror) says **62** and **9**. Gate 0 made the ledger the ONE source, so the pages read the ledger and the script's values are not copied. Test-pinned. |
+| **The sparklines** | 🚫 **KIND-2 REFUSED** | Each figure animates a 12-month series — 48 points of invented trend data with **no entry in the guarded ledger**, so rendering them would put illustrative content outside the content-honesty gate's reach. Not reproduced. |
+| ⚠️ **The testimonials** ("What operators tell us") | ✅ **LEDGER-DRIVEN, two shapes** | **Local:** six people + the design's own note *"Illustrative of the conversations we have during onboarding…"*. **Production:** every unconsented person is filtered → the **section omits entirely**, and no quote can survive detached from its attribution. The design's 24-card scrolling marquee is flattened to a grid (the marquee duplicated each card 4× for the animation). |
+| **The ROI / commission calculator** | 🚫 **KIND-2 → HONEST DEFERRAL** | It computes from occupancy/ADR/commission **assumptions that exist nowhere and are not in the ledger** — an invented money figure on the site's most persuasive number. The section keeps its place and says so, with a real link to ask for the number. |
+| **`<image-slot>` placeholders** | 📐 **D8 OPEN — intentional placeholder** | **Home: 6. All other Core pages: 0.** Rendered as a token-consistent dashed panel showing the design's own photo brief + "Photography pending". ⚠️ Not an `<img>`, no alt text describing a picture that does not exist. **No stock photo, no generated image** — D8 is the founder's. |
+| **The newsletter, cookie dialog, support widget, demo booker** | 📐 **NOT THIS GATE** | D11 (own pass) · D4 · D5. |
+| ⚠️ **Named people in UI MOCKUPS** | ⛔ **FOUNDER DECISION D13** | Two unconsented names survive into production **outside** the ledger's reach: **"Amara Mensah"** in Home's front-desk mockup (a guest row) and **"Marco Reyes"** in How-It-Works' team-roster mockup. These are product-screenshot sample data, not endorsement claims — but they are the *same* names the ledger lists as unconsented testimonial authors. ⚠️ **This is exactly the limit Gate 0 stated:** a name typed into page markup carries no flags, so the content-honesty gate cannot see it. |
+| **Try Booking** | ⛔ **NOT BUILT — D3** | See the recommendation in `DECISIONS.md`. Its route is unregistered, so every link to it renders as a marked non-link. |

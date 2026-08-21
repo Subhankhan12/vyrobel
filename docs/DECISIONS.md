@@ -14032,3 +14032,121 @@ page-wide; `contact` also renders in the desktop nav and the footer, so **deleti
 the test green.** Mutation caught it, review did not — the same lesson, in the same session, for the third
 time. The guard now scopes its read to the drawer REGION and pins the row count at 21; re-mutated → RED,
 restored → green. **Suite 2540 / 2538 passed / 2 skipped / 0 failed.**
+
+---
+
+## 2026-08-21 — FRONT WEBSITE · GATE 2: the Core pages, the first public routes, and the `/` swap
+
+Six pages live — **Home · Product · Features · Modules · How It Works · Pricing** — on Gate 1's foundation,
+with `/` now serving the marketing home (**D2**). ⚠️ **Try Booking is not built** (D3 — recommendation below).
+
+### The routes, and the mutation proof that the money path is safe
+
+Whitelisted slugs only, **read from the design's own `sitemap.xml`** (they are not filename-derived), named
+`marketing.page.{key}`, registered **after** the storefront group. **No wildcard, no `Route::fallback`, no
+`/{locale}` prefix** — the locale route is deferred with D7 precisely because it is risk **E1**.
+
+⚠️ **Proven, not asserted.** `/book/{property}` → `booking.browse`, `/book/{property}/checkout` →
+`booking.checkout`, `/stay/{organization}` → `storefront.landing`, all pinned. Then the control: ⚠️ **my
+first version of it was vacuous** — it planted a ONE-segment `/{shadow}`, which cannot match a two-segment
+URI at all, so it "passed" while proving nothing. The real shape of E1 is `/{locale}/{page}`; with that, a
+throwaway router proves an **early** two-segment wildcard **does** swallow `/book/seaside-demo`, while a
+late one cannot. Registration order is the protection, and it is now demonstrated rather than assumed.
+
+⚠️ **A real collision, caught by count-pinning:** the name `marketing.*` was **already taken** by the guest
+EMAIL-marketing routes (`marketing.unsubscribe`), so `MarketingUrls::pending()` could have had an unrelated
+route answer for a colliding page key. Renamed to **`marketing.page.*`**. A test that merely checked "the
+six exist" would have sailed past this; the count-pin (§N.29, Gate 1 lesson b) is what surfaced it.
+
+**The `/` swap:** the old route was `Route::get('/', fn () => view('welcome'))` and was the **only**
+reference to that view anywhere (grepped; `/owner/welcome` is an unrelated Livewire route). The view file is
+**left in place** — Laravel scaffold, harmless, and deleting it is not this gate's business.
+
+### ⚠️ The launch-day trap: every page proven in BOTH shapes
+
+D1's gate filters unreal figures and unconsented people in production, so each page has two shapes. Today
+the ledger filters to **nothing** — 4 figures → 0, 6 testimonials → 0 — so the production shape is the real
+launch shape, and every page was rendered and asserted in it:
+
+| section | local | production |
+|---|---|---|
+| Stats band | 4 figures + the design's own `Illustrative` badge | ⚠️ **the whole section omits** — heading included |
+| Testimonials | 6 people + the design's own illustrative note | ⚠️ **the whole section omits** |
+| Everything else | unchanged | unchanged |
+
+Asserted in production: no dangling heading, no empty `data-fig` slot, no `NaN`, no orphaned quote, and no
+unconsented testimonial author anywhere. **All six pages stay > 20 KB and coherent.**
+
+> ⚠️⚠️ **THE CONSEQUENCE THE FOUNDER MUST SEE — this is not a build defect:** until D1's content is
+> replaced with real, consented material, **the production home page has no numbers and no social proof.**
+> That is D1 working exactly as ruled; it is also the strongest argument for prioritising real figures and
+> two or three consented quotes before launch.
+
+### What was refused, and why
+
+- ⚠️ **The design contradicts itself on the figures.** Its page script says `direct: 63` / `hours: 11`; the
+  ledger its own comment calls "the mirror" says **62** and **9**. Gate 0 made the ledger the ONE source, so
+  the pages read the ledger — and a test pins it, so the drift cannot re-enter through the markup.
+- **The sparklines** (48 points of invented trend data) — refused: they have **no entry in the guarded
+  ledger**, so rendering them would put illustrative content beyond the content-honesty gate's reach.
+- **The ROI / commission calculator** — honestly deferred. It computes from occupancy/ADR/commission
+  assumptions that exist nowhere and are not in the ledger; an invented money figure on the most persuasive
+  number on the site is the #39 shape. The section says so and links to a real ask.
+- **Image slots:** Home **6**, every other Core page **0** — rendered as intentional dashed placeholders
+  carrying the design's own photo brief. No stock photo, no generated image (D8 is the founder's).
+
+### ⛔ D13 (new) — unconsented names in UI mockups
+
+⚠️ Two survive into production **outside the ledger's reach**: **"Amara Mensah"** in Home's front-desk
+mockup and **"Marco Reyes"** in How-It-Works' roster mockup. They are product-screenshot sample data, not
+endorsement claims — but they are the same names the ledger lists as unconsented testimonial authors.
+⚠️ **This is precisely the limit Gate 0 stated in the gate's own docs:** a name typed into markup carries no
+flags, so the honesty gate cannot see it. **Founder's call:** accept them as mockup data, or swap them for
+obviously-illustrative names. Not changed unilaterally — the instruction was to invent no copy.
+
+### ⛔ D3 — Try Booking: the recommendation (analysed, NOT built)
+
+**What the design's page actually does:** a **self-contained client-side simulation** — a fictional property
+"Villa Azure", a month-stepping calendar, guest counters, name/email inputs, add-on toggles, then
+*"Confirm and pay"* → *"Booked. This is what lands in the guest's inbox."* with a fabricated confirmation
+email. It is honest in one place (a `Sandbox · nothing is charged, no card needed` badge) and **dishonest in
+another**: its own meta description promises *"Make a **real** booking on a demo property."* Nothing is
+booked and no email lands.
+
+⚠️ **And Vyrobel already has the real thing:** `/book/seaside-demo` and `/book/vista-demo` are live demo
+storefronts on the certified booking engine — a genuine reservation, on demo data, on the sealed money path.
+
+| | Option | Verdict |
+|---|---|---|
+| (a) | **Point `/try-booking` at the real demo storefront** | ✅ Honest and real; near-zero build. ⚠️ Loses the design's guided narrative and drops the visitor into the guest storefront chrome. |
+| (b) | **Rebuild the simulation as drawn** | ⛔ **Recommend against.** Controls that promise a booking and deliver theatre, plus a confirmation email that never sends — #39, on the page whose entire purpose is "see that it's real". |
+| (c) | **Hybrid — the design's page as a framed hand-off** *(recommended)* | Keep the design's layout and copy as an introduction, then hand off to the **real** `/book/seaside-demo`; and make *"what lands in the guest's inbox"* a preview of the **real `BookingConfirmationMail`** rather than a drawn one. Every element becomes true, the narrative survives, and the meta description's promise finally holds. |
+
+**Not built this gate.** Its route stays unregistered, so every link to it renders as a marked non-link.
+
+### ⚠️ A CERTIFIED GUARD CAUGHT THE FIRST GENERATED PAGE
+
+The full suite reddened on `RoleCoverageContrastTest` — *"leaves the two superseded greys nowhere in any
+view"* — because the design's markup carries **`#9C9089`**, one of the pre-remediation prototype greys this
+codebase removed in the accessibility pass (DECISIONS 2026-08-11: all four fail AA → *"the token values
+`#5F5853` / `#6C645F`"*).
+
+⚠️ **The right response was to fix the colour, not the test** — and checking the other three found **eight
+more instances the existing guard does not even sweep for** (`#8A8079` ×3, `#A69A92` ×5). All four are now
+mapped to the ratified tokens in the converter, and pinned for all six pages in `MarketingCorePagesTest`,
+so a regenerated page cannot reintroduce any of them.
+
+> ⚠️ **This is the case for repo-wide guards.** A rule established for the owner realm eleven days earlier,
+> that nothing in this pass knew about, stopped an accessibility regression from entering the highest-traffic
+> page in the product. It cost one test run.
+
+### Verification
+
+`MarketingCorePagesTest` **14 tests / 253 assertions** + the Gate-1 foundation suite updated to Gate-2
+reality (⚠️ three of its assertions encoded "Gate 2 hasn't happened" — the `/` splash, `product` being
+pending, and the drawer being all-pending; **updated, not deleted**, and the drawer guard re-scoped from
+pending-ness to **reachability** so a vanished row can no longer look identical to one that became a link).
+
+**Mutations, each violate → RED → restore → GREEN:** the stats band made to render when empty (the exact
+launch-day hole) → RED · a figure value taken from the design script instead of the ledger → RED · ⚠️ **CI
+Gate 5 re-proven now that pages consume the ledger** → RED with all 13 entries named.

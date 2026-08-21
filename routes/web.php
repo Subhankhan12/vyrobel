@@ -46,6 +46,7 @@ use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\Guest\GuestWalletController;
 use App\Http\Controllers\Guest\MarketingUnsubscribeController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Operator\BillingActionController;
@@ -208,9 +209,18 @@ use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+ * ⚠️ `/` IS THE MARKETING HOME (front-website ruling D2, 2026-08-21). It previously returned the stock
+ * Laravel `welcome` splash — grepped before replacing: `routes/web.php:212` was the ONLY reference to that
+ * view anywhere, and the only test touching `/` was the Gate-1 foundation guard. (`/owner/welcome` is an
+ * unrelated Livewire onboarding route.) The view file is LEFT IN PLACE, untouched: it is Laravel's own
+ * scaffold, harmless, and deleting it is not this gate's business.
+ *
+ * ⚠️ The marketing routes live in ONE group registered BELOW the storefront (see "THE MARKETING SITE"),
+ * so they are read after `/book/*` and `/stay/*`. `/` cannot collide with either — different prefixes —
+ * but the ordering is explicit so a reviewer can see it rather than infer it.
+ */
+Route::get('/', [MarketingController::class, 'home'])->name('marketing.page.home');
 
 /*
  * Shared Vyrobel login (operator + owner) — real, session-based auth (Auth Phase A). The login POST is
@@ -498,6 +508,40 @@ Route::prefix('stay/{organization}')
         Route::get('/', [StorefrontLandingController::class, 'show'])->name('landing');
         Route::get('/search', [StorefrontLandingController::class, 'search'])->name('search');
     });
+
+/*
+ * ══ THE MARKETING SITE (front-website Gate 2) ══════════════════════════════════════════════════════
+ *
+ * ⚠️ REGISTERED AFTER THE STOREFRONT, DELIBERATELY. Everything above this line is the SEALED,
+ * MONEY-CARRYING guest path — `/book/{property}` (…/checkout is `booking.reserve`, the money route) and
+ * `/stay/{organization}`. Laravel matches in registration order, so putting marketing below makes it
+ * structurally impossible for a marketing route to be reached first. `MarketingRouteIsolationTest`
+ * proves it, and was itself proven capable of failing (a shadowing route was introduced, observed RED,
+ * and removed).
+ *
+ * ⚠️ EVERY SLUG IS WHITELISTED — read from the design's OWN `sitemap.xml`, not derived from filenames
+ * (they differ: "Vyrobel Guide Setup" is `/docs/first-property`). ⚠️ There is NO free `/{slug}` wildcard,
+ * NO `Route::fallback`, and NO `/{locale}` prefix — the locale route is deferred with D7 precisely
+ * because an unconstrained `/{locale}/...` is the one pattern that could swallow `/book/...` (risk E1).
+ *
+ * ⚠️ Route names are `marketing.page.{key}`, which is the contract `MarketingUrls::pending()` reads: a
+ * page not registered here renders across the whole site as a MARKED non-link, never a silent 404 — so
+ * this list is also the switch that lights the nav up. ⚠️ The `page.` segment is NOT decoration: the
+ * name `marketing.*` was ALREADY taken by the guest EMAIL-marketing unsubscribe routes, and sharing the
+ * namespace made an unrelated route answer `Route::has('marketing.unsubscribe')`. Caught by a
+ * count-pinned test, which is exactly what count-pinning is for.
+ *
+ * NOT registered yet, on purpose: `/try-booking` (⚠️ blocked on D3 — a simulated booking flow would be
+ * #39), and every page from Gates 3–6.
+ */
+Route::controller(MarketingController::class)->name('marketing.page.')->group(function () {
+    // `/` is registered at the top of this file (it must read before everything) — see ruling D2 there.
+    Route::get('/product', 'product')->name('product');
+    Route::get('/features', 'features')->name('features');
+    Route::get('/modules', 'modules')->name('modules');
+    Route::get('/how-it-works', 'howItWorks')->name('how-it-works');
+    Route::get('/pricing', 'pricing')->name('pricing');
+});
 
 /*
  * THE OPERATOR APP (/app) — `auth` + the BACK-OFFICE GATE.
