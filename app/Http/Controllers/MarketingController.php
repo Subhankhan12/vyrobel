@@ -51,6 +51,15 @@ class MarketingController extends Controller
         return view('marketing.pricing');
     }
 
+    /**
+     * ⚠️ THE SANDBOX — read-only. It resolves the real demo property and renders the real confirmation
+     * mail; it creates nothing. See App\Support\Marketing\TryBookingSandbox for why nothing is written.
+     */
+    public function tryBooking(): View
+    {
+        return view('marketing.try-booking');
+    }
+
     public function switching(): View
     {
         return view('marketing.switching');

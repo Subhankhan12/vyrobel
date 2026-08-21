@@ -455,3 +455,20 @@ Built: **Switching · For Hotels · For Apartments · For Villas**. ⚠️ **Hel
 | **The home gallery's orphan `<figcaption>`s** | 📐 **THE DESIGN'S OWN** | The design ships **29 figcaptions against 24 figures** — 5 gallery captions sit outside any `<figure>`. Faithfully reproduced, not "fixed". |
 | **"Alfama" on the home gallery** | 📐 **KEPT — a place, not a business** | A Lisbon district in an image-placeholder caption ("Alfama / Lisbon"). Condition 1 permits real place names as context; it is also the root of the deleted "Hotel Alfama Reyes", so an adversarial reviewer flagged it. **Kept and surfaced, rather than silently swept or silently deleted.** |
 
+
+---
+
+## FRONT WEBSITE · Gate 4 — `/try-booking`, the honest sandbox (2026-08-22)
+
+| item | verdict | detail |
+|---|---|---|
+| ⚠️ **The invented property** | 🚫 **REFUSED → MIRRORED** | "Villa Azure, Paros, Greece · sleeps 6" replaced by the **real `seaside-demo`**: *Demo Seaside Property*, Faro · Algarve · Portugal, its real *Double Room* (3 units) on its real *Flexible* plan. Every name and number is now true of a property that exists. |
+| ⚠️ **The fabricated confirmation email** | 🚫 **REFUSED → THE REAL MAIL** | The design drew an email the product does not send. Replaced by the **real `BookingConfirmationMail`**, rendered from its own `content()` through its own template. |
+| ⚠️ **The 25,000-char booking simulation** | 🚫 **REMOVED** | ⚠️ **The simulation *was* the fabrication** — a client-side flow ending in a fake confirmation, touching no engine. It could not be corrected in place, so it is replaced by the real property, the real price and the real email, plus a path to the live storefront. **Surfaced: the interactive date-picking is gone.** Making it real would mean driving the live engine, which writes. |
+| ⚠️ **The meta description** | ✅ **FIXED IN THE CONVERTER** | Was *"Make a **real booking** on a demo property"* — false; nothing was booked. |
+| ⚠️ **The page's own copy** | ✅ **SWEPT** | The `<h1>` *"Make a booking, the way your guests would"* and the hero's *"This is the real direct booking engine running against a demo property"* both promised what the page cannot do. ⚠️ And *"Pick your dates, watch the rate build itself"* invited an interaction that no longer exists — a **false affordance found by reading the render**, not by grep. |
+| ⚠️ **The nav's own row** | ✅ **KIND-1 FIX (found by the sweep)** | It read **"A real booking, no signup"** — on **every page**, promising exactly what the rebuilt page refuses. ⚠️ A ruling scoped to one page reaches neither the chrome nor its neighbours; the sweep is now a permanent test. |
+| **The price** | ✅ **THE ENGINE'S OWN** | `BookingEngineService::priceOver()` — the method `quote()` itself calls, over the same `rate_calendar` rows. ⚠️ `quote()` is never called: it persists a row. Pinned against a second, independent engine call. |
+| ⚠️ **#33 — the mail's live links** | ✅ **DEFUSED, MUTATION-PROVEN** | The real mail embeds five live URLs including **`arrivalUrl`, the arrival-secrets page**. All are neutralised before render, on a never-saved reservation with a synthetic key. Removing the defusing puts five `/guest/reservation/…` links back — asserted, and observed RED. |
+| **Nothing written, nothing sent** | ✅ **PROVEN** | Reservations · quotes · folios · payments counted before and after two renders: identical. Money as seeded unchanged. |
+| **No demo property present** | 📐 **HONEST EMPTY STATE** | Production is never seeded, so the page must handle having nothing to mirror: it says so and offers a walkthrough, rather than inventing a stand-in. |

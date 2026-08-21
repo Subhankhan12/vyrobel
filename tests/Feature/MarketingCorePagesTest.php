@@ -100,7 +100,9 @@ it('uses the slugs from the design’s own sitemap, not filename guesses', funct
         Assert::assertFalse(MarketingUrls::pending($key), "[{$key}] should now be a real link, not pending");
     }
     // …and the pages NOT built this gate are still pending, so their links stay marked.
-    foreach (['try-booking', 'docs', 'contact', 'about'] as $unbuilt) {
+    // ⚠️ `try-booking` left this list in Gate 4, which rebuilt it as an honest sandbox (ruling D3 = (b)).
+    // The pin moves with a ruling, never silently.
+    foreach (['docs', 'contact', 'about', 'careers'] as $unbuilt) {
         Assert::assertTrue(MarketingUrls::pending($unbuilt), "[{$unbuilt}] must remain pending until its gate builds it");
     }
 });

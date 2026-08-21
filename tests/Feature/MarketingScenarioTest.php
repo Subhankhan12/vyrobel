@@ -28,7 +28,9 @@ function mkAllMarketingViews(): array
         ->sort()->values()->all();
 
     // ⚠️ COUNT-PINNED: a page added without extending these sweeps is a page nothing checks.
-    Assert::assertCount(14, $views, 'the marketing page set changed: '.implode(', ', $views));
+    // ⚠️ 15 since Gate 4 added the try-booking sandbox. A page added without extending these sweeps is a
+    // page nothing checks, so the count moves only when a gate says so.
+    Assert::assertCount(15, $views, 'the marketing page set changed: '.implode(', ', $views));
 
     return $views;
 }

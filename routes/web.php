@@ -542,6 +542,11 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     Route::get('/how-it-works', 'howItWorks')->name('how-it-works');
     Route::get('/pricing', 'pricing')->name('pricing');
 
+    // ⚠️ Gate 4 · the try-booking SANDBOX (ruling D3 = (b)). It mirrors the real `seaside-demo` property,
+    // prices from the engine's own read-only `priceOver()`, and renders the REAL BookingConfirmationMail
+    // with every link defused (#33). It creates NO reservation, no quote row, and sends no mail.
+    Route::get('/try-booking', 'tryBooking')->name('try-booking');
+
     // ── Gate 3 · the Sales pages that make no third-party claims ────────────────────────────────────
     // ⚠️ `alternatives` and `compare` are deliberately ABSENT. Both pages' subject IS a set of unsourced
     // claims about named competitors (Mews / Cloudbeds / Guesty / Hostaway), which sit entirely outside

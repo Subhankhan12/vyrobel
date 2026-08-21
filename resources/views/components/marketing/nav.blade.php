@@ -38,7 +38,11 @@
                             <x-marketing.mega-row key="product" title="Platform overview" desc="Operators, owners and guests" icon="overview" />
                             <x-marketing.mega-row key="features" title="Features" desc="Every capability in detail" icon="features" />
                             <x-marketing.mega-row key="modules" title="Modules" desc="All eighteen, in every plan" icon="modules" />
-                            <x-marketing.mega-row key="try-booking" title="Try the booking engine" desc="A real booking, no signup" icon="try" />
+                            {{-- ⚠️ GATE 4: was desc="A real booking, no signup" — a promise repeated on EVERY page, and false: the
+                                 sandbox books nothing. Found by sweeping the CHROME, which the ruling (scoped to
+                                 /try-booking) did not reach — the same way Gate 3b found three live Sales pages
+                                 carrying a deleted claim. --}}
+                            <x-marketing.mega-row key="try-booking" title="Try the booking engine" desc="A preview on our real demo property" icon="try" />
                         </div>
                         <div>
                             <div class="vy-mk-megalabel">Connect &amp; learn</div>

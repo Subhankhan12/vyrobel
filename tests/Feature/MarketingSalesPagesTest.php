@@ -31,7 +31,8 @@ it('serves the four claim-free Sales pages', function () {
         ->filter(fn (string $n): bool => str_starts_with($n, 'marketing.page.'));
     // ⚠️ 14 since Gate 3b: the six Core + four Sales + the four ILLUSTRATIVE SCENARIOS, which ruling (A)
     // reframed and routed under /example-scenarios. The pin moves with a ruling; it never moves silently.
-    Assert::assertSame(14, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
+    // ⚠️ 15 since Gate 4: the six Core + four Sales + four scenarios + the try-booking SANDBOX.
+    Assert::assertSame(15, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
 });
 
 it('⚠️ leaves the audited pages UNROUTED — an empty or unsourced page must not be publicly reachable', function () {

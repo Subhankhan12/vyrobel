@@ -14303,3 +14303,83 @@ Six marketing suites **59 tests / 1,261 assertions** green. Mutations, each viol
 GREEN: a real ledger claim sourced-but-expired → RED · sourced with no expiry → RED · a quote reintroduced
 into a scenario → RED · the scenario label removed → RED. Gate 3's route-count pin and held-page set were
 **updated, not deleted**, to ruling A's new truth. Seven CI gates; the existing six untouched.
+
+---
+
+## 2026-08-22 — FRONT WEBSITE · GATE 4: `/try-booking` rebuilt as an honest sandbox (D3 = (b))
+
+### The design-vs-truth gap
+
+The design's page was a **client-side simulation** of a booking on **"Villa Azure, Paros, Greece · sleeps
+6"** — a property that does not exist — ending in a **fabricated confirmation email**, under a meta
+description promising *"Make a real booking on a demo property"*. Nothing was booked, nothing was sent, and
+no such email existed. What is actually true: **`seaside-demo`** is *Demo Seaside Property*, Faro · Algarve
+· Portugal, with a real *Double Room* (3 units) on a real *Flexible* plan at **€100.00/night**; the engine's
+quote comes from `rate_calendar`; and `BookingConfirmationMail` is a real, branded template that embeds
+**five live URLs — including `arrivalUrl`, the arrival-secrets page (#33)**.
+
+### The five constraints
+
+Every figure now mirrors the real property; the price comes from **`BookingEngineService::priceOver()`**,
+the engine's own method (⚠️ `quote()` is never called — it persists a `booking_quotes` row); the
+confirmation is the **real mail**; the meta and the page copy promise nothing; and the sandbox framing sits
+**above** the preview, positionally asserted, because the confirmation step is where the illusion is
+strongest.
+
+⚠️ **What could NOT be mirrored, surfaced rather than invented:** the interactive date-picking. The
+simulation *was* the fabrication — 25,000 characters of flow that touched no engine and ended in a fake
+email — so it was removed rather than corrected. Making it genuinely interactive means driving the live
+engine, which writes. The page instead shows the real thing and links to the live storefront.
+
+### ⚠️ Nothing written, nothing sent, nothing leaked
+
+Reservations, quotes, folios and payments are counted before and after **two** renders and are identical;
+money as seeded is unchanged. Every URL the real mail computes is neutralised before the template sees it,
+on a reservation built in memory and never saved.
+
+### ⚠️⚠️ THE GUARD I WROTE WAS VACUOUS — and mutation, not review, found it
+
+The first version of `MarketingTryBookingTest` ran against the empty test database, where the sandbox has
+no property to mirror, so **every meaningful assertion hit an early `return`**. Removing the #33
+URL-defusing entirely — which really does put five `/guest/reservation/…` links, including the arrival
+page, into the preview — **left the file passing.** Its own header even claimed it ran against the demo
+database.
+
+⚠️ **That is Gate 3b's lesson repeating inside the guard written to honour it.** Fixed properly: the test
+seeds the demo property, and `tbAssertNotVacuous()` now **fails** when there is nothing to check.
+
+**Three more vacuity defects surfaced in the same battery, each caught by a mutation:**
+
+1. ⚠️ **A needle that could never match.** The page guard searched for `/guest/arrival` — the real path is
+   `/guest/reservation/{id}/arrival`. The needles are now **derived from the routes themselves**.
+2. ⚠️ **A needle keyed to the sandbox reference**, so a leak carrying a *real* reservation id — the leak
+   that would actually matter — sailed past. Now matches the **route pattern**, not one key.
+3. ⚠️ **A needle too broad**: a blanket `http://` fired on `xmlns="http://www.w3.org/1999/xhtml"`, and a
+   blanket `/guest/` fired on the footer's legitimate D9 sign-in link. A guard that cries wolf gets
+   loosened by the next person; both were narrowed to what is actually forbidden.
+
+**Six mutations, each violate → RED → restore → GREEN:** the URL defusing removed (RED, naming the leaked
+path) · a live arrival deep link planted with an arbitrary id · the sandbox banner removed · the invented
+property reintroduced · the engine price replaced with a literal · the sandbox made to write a quote row.
+
+### ⚠️ The sweep found what the ruling could not reach
+
+D3 was scoped to `/try-booking`. The **nav's own row for it** read **"A real booking, no signup"** — on
+**every page**, promising exactly what the rebuilt page refuses to do. Fixed, and the sitewide sweep is now
+a permanent test. ⚠️ Same shape as Gate 3b's three live Sales pages: *a ruling scoped to one page reaches
+neither the chrome nor its neighbours.*
+
+### The generation lesson, applied
+
+Every honesty transform — the meta rewrite, the property mirroring, the copy sweep, the mail substitution —
+lives **in the converter**, and a test reads the generated FILE so a regeneration that dropped them reds.
+
+⚠️ **And it nearly bit again:** Pint auto-imported `Tests\Feature\MarketingTryBookingTest` into
+`TryBookingSandbox` because a docblock referenced it — app code depending on a test class, for a test that
+did not yet exist. Removed; the guard is referenced by path and was written in the same change.
+
+### Verification
+
+`MarketingTryBookingTest` 9 tests / 121 assertions; all seven marketing suites **68 / 1,404** green.
+Route-name collision checked; the storefront proof reuses the structurally-capable `/{locale}/{page}`
+control. Earlier gates' route-count and pending-page pins updated **with the ruling**, never silently.
