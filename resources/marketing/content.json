@@ -1,0 +1,103 @@
+{
+  "updated": "2026-08-06",
+  "status": "ILLUSTRATIVE — replace before launch",
+  "figures": {
+    "unitsManaged": {
+      "value": 1400,
+      "label": "Units on the platform",
+      "where": "Home stats band",
+      "real": null
+    },
+    "directNights": {
+      "value": 62,
+      "label": "% nights arriving direct",
+      "where": "Home stats band",
+      "real": null
+    },
+    "commissionKept": {
+      "value": 2.1,
+      "label": "€M commission kept",
+      "where": "Home stats band",
+      "real": null
+    },
+    "hoursSaved": {
+      "value": 9,
+      "label": "Hours saved per week",
+      "where": "Home stats band",
+      "real": null
+    }
+  },
+  "customers": [
+    {
+      "id": "cyclades",
+      "name": "Kastellis Villas",
+      "real": null,
+      "segment": "Villas",
+      "size": "42 villas, 31 owners",
+      "place": "Cyclades, Greece",
+      "consent": false
+    },
+    {
+      "id": "rotterdam",
+      "name": "Van Dijk Stays",
+      "real": null,
+      "segment": "Apartments",
+      "size": "18 apartments",
+      "place": "Rotterdam",
+      "consent": false
+    },
+    {
+      "id": "lisbon",
+      "name": "Hotel Alfama Reyes",
+      "real": null,
+      "segment": "Hotel",
+      "size": "96 keys",
+      "place": "Lisbon",
+      "consent": false
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "ek",
+      "name": "Elena Kastellis",
+      "role": "Ops director, 42 units · Cyclades",
+      "real": null,
+      "consent": false
+    },
+    {
+      "id": "jv",
+      "name": "Joris van Dijk",
+      "role": "Owner-operator, 18 apartments · Rotterdam",
+      "real": null,
+      "consent": false
+    },
+    {
+      "id": "mr",
+      "name": "Marco Reyes",
+      "role": "Front desk manager, 96 keys · Lisbon",
+      "real": null,
+      "consent": false
+    },
+    {
+      "id": "sn",
+      "name": "Sofia Neri",
+      "role": "General manager, 64 keys · Puglia",
+      "real": null,
+      "consent": false
+    },
+    {
+      "id": "am",
+      "name": "Amara Mensah",
+      "role": "Housekeeping lead, 30 units · Algarve",
+      "real": null,
+      "consent": false
+    },
+    {
+      "id": "tb",
+      "name": "Thomas Brandt",
+      "role": "Property owner, 4 villas · Mallorca",
+      "real": null,
+      "consent": false
+    }
+  ]
+}

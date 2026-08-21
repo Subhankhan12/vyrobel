@@ -1,8 +1,10 @@
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 #  Vyrobel CI — the gates this project has run BY HAND on every pass, now run by the machine.
 #
-#  ⚠️ FOUR GATES, AND EVERY ONE OF THEM CAN FAIL THE BUILD:
+#  ⚠️ FIVE GATES, AND EVERY ONE OF THEM CAN FAIL THE BUILD:
 #       1. the full Pest suite     2. PHPStan L5     3. Pint     4. money-as-seeded
+#       5. marketing content honesty (front-website ruling D1 — no unconsented/unreal content
+#          may be declared production-ready; see tests/Feature/MarketingContentHonestyTest.php)
 #
 #  ⚠️⚠️ §N.29 APPLIED TO CI. A step that reports green WITHOUT running its gate is the runtime form of the
 #  label-vs-protection failure this project has been bitten by repeatedly. So: no `|| true`, no
@@ -179,3 +181,14 @@ jobs:
           set -euo pipefail
           php artisan migrate:fresh --seed --force
           ./ops/money-as-seeded.sh
+
+      # ══ GATE 5 — MARKETING CONTENT HONESTY (front-website Gate 0, ruling D1) ══════════════════════
+      # The design's own ledger flags every figure `real: null` and every named person `consent: false`
+      # ("ILLUSTRATIVE — replace before launch"). The founder ruled: keep it for the build, replace before
+      # launch — ENFORCED here, because a note in a JSON file has no failure mode. This step reds the build
+      # if resources/marketing/content.json is ever declared production-ready while an unreal or
+      # unconsented entry remains (and the same test runs inside Gate 3, so neither path can be filtered
+      # away). ⚠️ Honest scope: it guards the FLAGGED entries in the one tracked ledger — a fabrication
+      # typed directly into a page carries no flags and is a Gate 1+ review rule, not this step.
+      - name: 'Gate 5 · marketing content honesty'
+        run: ./vendor/bin/pest tests/Feature/MarketingContentHonestyTest.php

@@ -13818,3 +13818,122 @@ the first CI run either satisfies the contract or reds with the exact requiremen
 
 **Files:** `.github/workflows/ci.yml` · `Dockerfile.ci` · `ops/runtime-contract.sh` ·
 `ops/money-as-seeded.sh` · `tests/Feature/OperatorPortfolioTest.php` (the flake) · `docs/DEPLOYMENT.md` §7.6.
+
+---
+
+## 2026-08-21 — FRONT WEBSITE · GATE 0: five rulings recorded, the content-honesty CI gate built + proven, the design directory settled
+
+Pass 1 (`c441a9d`) surfaced D1–D10. The founder ruled on five; Gate 0 records them, builds the one
+enforcement they require, and settles the design directory. ⚠️ **No page, route, shell or component was
+built — that is Gate 1.**
+
+### The rulings
+
+- **D1 — KEEP the illustrative figures/customers/testimonials for now; replace with real ones later —
+  ENFORCED BY CI.** The design's own ledger already says `"status": "ILLUSTRATIVE — replace before launch"`,
+  `"real": null` on all 4 figures, `"consent": false` on all 3 named customers and all 6 named testimonial
+  authors. ⚠️ **The gate exists because a note in a JSON file has no failure mode** — the same
+  silent-failure family as `MAIL_MAILER=log` and an unregistered Stripe webhook: nothing errors, the harm
+  just ships. See the gate below.
+- **D2 — the marketing home takes `/`.** `vyrobel.com` will show the marketing site. It displaces ONLY the
+  stock Laravel welcome splash (Pass 1 confirmed the sealed storefront never had `/` — it lives on
+  `/book/{property}` and `/stay/{organization}`). ⚠️ Recorded now; the actual route swap lands with the
+  home page in Gate 1+.
+- **D6 — ONE palette (§N.8f).** Marketing pages bind to the app's `<x-design.tokens />`. The design's two
+  divergent hex tones (`#4A403A` muted, `#A8380B` link) are **NOT adopted** — a second palette copied as hex
+  is exactly the drift §N.8f exists to prevent.
+- **D7 — ENGLISH FIRST.** The 27 translated pages are deferred — **and with them the `/{locale}/…` route,
+  which is E1: the only change in this project capable of shadowing `/book/…` and breaking the money path.**
+  Deferring the translations defers the risk; when the locale route does land, it ships constrained
+  (`whereIn`) + mutation-proven (`/book/seaside-demo` still resolves).
+- **D9 — TIER 1 LOGIN, zero auth change.** One **Log in** → `/login` (already role-dispatching operator vs
+  owner via the existing `RedirectsByRole::homeFor` — one definition, four callers) plus a small "Booked a
+  stay? Guest sign-in" → `/guest/login`. **Tiers 2/3 declined:** merging guest into `/login` would newly
+  enable cross-realm account enumeration, and exposing `/admin` behind a public marketing entry widens the
+  platform's most sensitive surface — neither is worth a cosmetic gain.
+
+**Still open (each blocks the gate that would build it):** D3 `/try-booking` (Gate 2) · D4 support widget ·
+D5 demo booker (both Gate 5 of the plan) · D8 photography (visual quality of every page) · D10 storefront
+SEO (a separate pass — possibly worth more than the marketing site).
+
+### The content source — ONE, tracked, flags intact
+
+`resources/marketing/content.json` — a **byte-identical** copy of the design's
+`docs/design/front/data/vyrobel-figures.json` (`cmp` clean; nothing invented, nothing "fixed", every
+`real`/`consent`/`status` flag exactly as the designer wrote it). It is the single source every marketing
+page must render from (§N.8f); in-repo there is exactly one copy. Read through
+`App\Support\Marketing\MarketingContent` — which also carries the runtime half of the guard: in the
+production environment, unpublishable entries are **filtered out** (an honest empty section, never an
+invented number or a named person who does not exist, #39). Fail-closed throughout (§N.18.4): missing
+`status` = production-declared; missing `real`/`consent` = unreal/unconsented.
+
+### ⚠️ THE CONTENT-HONESTY GATE — CI Gate 5, mutation-proven
+
+**The rule in one sentence:** *the marketing ledger cannot be declared production-ready while any entry in
+it is unreal (`real` null/false/absent) or unconsented (`consent` !== true on a named person) — and
+production rendering filters such entries out regardless.*
+
+**Mechanism:** `tests/Feature/MarketingContentHonestyTest.php` (**7 tests / 106 assertions**) — run TWICE
+per push: as the new dedicated **Gate 5** step in `.github/workflows/ci.yml` AND inside Gate 3's full suite,
+so neither path can be filtered away. Same no-`||true`, no-swallowed-exit style as the four existing gates,
+**whose steps are untouched** (the diff shows zero deletions in the gate steps; only the header count
+comment changed 4→5). ⚠️ **Two implementations, one arbiter (the §N.18.1/§N.8f resolution):** the test
+re-implements the rule in raw helpers independent of the class, and a **pinned fixture table** is the
+arbiter BOTH must satisfy shape-by-shape — an agreement test turns any drift between them into a red build.
+
+### ⚠️⚠️ THE GATE'S FIRST VERSION WAS ITSELF CAUGHT — by an adversarial review, before commit
+
+The first version passed its own three mutation proofs and was still defeasible — **§N.29 catching its own
+author again, this time on the very gate built to embody it.** A 3-lens/19-verifier adversarial review of
+the uncommitted diff confirmed seven real defects; all fixed in the same pass:
+
+| # | The hole (confirmed with a concrete failing input) | The fix |
+|---|---|---|
+| 1 | ⚠️ **HIGH — a closed reject-set `{null,false,absent}`:** `real: "no"` / `""` / `"TBD"` / `"false"` / a numeric string read as REAL in **both** layers (test and class shared the identical rule — code-path independence, not rule independence) | `real` is now an **ALLOW-LIST**: exactly `true` or an explicit int/float. Every rejected shape pinned in the fixture table |
+| 2 | **the illustrative check was a loose substring:** `"Production ready — illustrative content replaced"` — a good-faith production declaration — kept the teeth OFF | illustrative ⇔ the status **BEGINS** with the word; merely containing it is production-declared |
+| 3 | **the runtime-filter test was predicate-as-oracle**, its only independent assertions gated on customers alone (one legitimate consent would retire them forever), and figures had NO independent check | the expected output is now derived from the **raw JSON** via the independent rule and compared **unconditionally**, figures included |
+| 4 | ⚠️ **the filter keyed on `environment === 'production'` exactly** — a `staging`/`prod`/`Production` host rendered every fabricated entry **unfiltered** (fail open) | inverted allow-list: only `local`/`development`/`testing` render unfiltered; every other or unknown environment **filters** |
+| 5 | **a hardcoded section list:** a new ledger section (`"partners"`) would ship unguarded | unknown top-level sections now FAIL the gate (`MarketingContent::SECTIONS`) |
+| 6 | a `use Tests\…` import of a class that does not exist (Pest files declare none) | dropped; the doc references the file path |
+| 7 | `consent: "pending"` / `1` / `"true"` shapes unpinned | pinned refused in the fixture table (consent must be strictly `true`) |
+
+**The full mutation battery, re-run against the hardened gate (violate → observed RED · restore → observed GREEN, every restore `cmp` byte-identical):**
+
+| # | Mutation | Observed |
+|---|---|---|
+| M1 | `status` → `"PRODUCTION"` while everything is flagged | ❌ RED — all 13 entries named → ✅ |
+| M1b | ⚠️ hole 2's input: `status` → `"Production ready — illustrative content replaced 2026-09-01"` | ❌ RED — production-declared despite mentioning "illustrative" → ✅ |
+| M2 | a `consent` key **deleted** (testimonials[2]) | ❌ RED — fail closed → ✅ |
+| M4 | ⚠️ hole 1's input: `real: "no"` + production-declared | ❌ RED — the figure named → ✅ |
+| M4b | ⚠️ hole 5's input: an unknown `"partners"` section added | ❌ RED — "extend the gate before adding a section" → ✅ |
+| M3 | the class predicate sabotaged → always true (`php -l` clean, applied verified) | ❌ RED on **two** tests — expected-vs-actual AND the agreement table → ✅ |
+| M5 | ⚠️ hole 4's direction: `filtersFor()` sabotaged → never filter | ❌ RED — the environment fail-closed test → ✅ |
+
+⚠️ **The stated limit (an honest scope beats an overclaimed one):** the gate guards the FLAGGED entries in
+the one tracked ledger. A fabrication typed directly into a future Blade page carries no flags and is
+invisible to it — the Gate 1+ discipline (marketing claims render ONLY through `MarketingContent`) is what
+closes that, and it is a build/review rule recorded here, not a property of this test.
+
+### The design directory — settled + measured
+
+- **Casing:** renamed `docs/design/Front/` → **`docs/design/front/`** (canonical lowercase, matching
+  `raw/`/`decoded/`; safe — the directory was untracked). Every tracked reference updated (Pass-1 report).
+  A Linux host no longer has anything to mis-resolve.
+- **A protective `.gitignore` entry** (`/docs/design/front/`) so a stray `git add -A` can never sweep
+  102 MB into history silently. Reversible the day the founder picks a tracking option.
+- **The measured options (real numbers, not guesses):**
+
+| Option | Raw | Compressed (tar.gz proxy) | Notes |
+|---|---|---|---|
+| (a) full directory | **102.2 MB** | **74.7 MB** | permanent in history; every clone carries it; the inlined per-page fonts/React defeat compression |
+| (b) **extracted-content subset** | **4.3 MB** | **1.4 MB** | **84/84** `__bundler/template` blocks decoded to semantic HTML (0 failures) + sitemap + robots + webmanifest + favicons + og-cover + the ledger — everything a Blade port reads |
+| (c) git-lfs | — | — | ⚠️ **not installed** on this machine; adds an LFS dependency to every clone + GitHub LFS bandwidth quotas |
+
+- **Recommendation (surfaced, NOT committed): (b)** — track the extracted subset (e.g.
+  `docs/design/front-extracted/`) as the build-input the gates diff against, keep the full 102 MB masters
+  untracked with a founder-side backup (they remain the only *browsable* form of the design). ⚠️ **The
+  founder decides; nothing beyond the 4 KB ledger was committed.**
+
+**Verification:** gate green 6/6 (53 assertions) after every restore · full suite green · PHPStan L5 (0) ·
+Pint clean · money as seeded **929 / 10,912,000 / 0 / 41 / 16 / 0** · no page/route/shell/component built ·
+storefront, sealed realms, auth and the deploy track untouched.

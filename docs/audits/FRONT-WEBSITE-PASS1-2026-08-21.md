@@ -35,11 +35,15 @@ HTML, extractable — see §A.7.
 
 ---
 
-# PART A — THE DESIGN (`docs/design/Front/`)
+# PART A — THE DESIGN (`docs/design/front/`)
 
-⚠️ **Note the path.** It is `docs/design/**Front**/` (capital F). `docs/design/front/` resolves only because
-macOS is case-insensitive; **on the Linux production host it would not.** ⚠️ **And the whole directory is
-UNTRACKED** — 102 MB, not in git. It exists on this machine only.
+⚠️ **Note the path.** At audit time it was `docs/design/**Front**/` (capital F), resolving as lowercase only
+because macOS is case-insensitive — a Linux host would not forgive that. ✅ **Gate 0 (2026-08-21) renamed it
+to the canonical lowercase `docs/design/front/`** (matching its siblings `raw/`, `decoded/`) and updated the
+references here. ⚠️ **The directory remains UNTRACKED by design** — 102 MB; Gate 0 measured the tracking
+options and surfaced the choice to the founder (see `DECISIONS.md`), and added a protective `.gitignore`
+entry so a stray `git add -A` cannot sweep it in silently. The honesty ledger itself IS tracked:
+`resources/marketing/content.json`.
 
 ## A.1 Scale
 
@@ -336,7 +340,7 @@ KIND-2 finding in this project's history** and every one needs an explicit rulin
 
 | Gate | Covers |
 |---|---|
-| **0** | ⛔ **The content ruling** (§D.1) — no page can be built until the fabricated figures are resolved. **And `git add docs/design/Front/`** before anything depends on 102 MB of untracked files. |
+| **0** | ⛔ **The content ruling** (§D.1) — no page can be built until the fabricated figures are resolved. **And settle the design directory** (casing + a measured tracking decision) before anything depends on 102 MB of untracked files. *(Done in Gate 0 — renamed to `front/`, tracking options measured and surfaced.)* |
 | **1** | Foundation: the marketing shell, nav, footer, tokens, SEO component, the constrained locale route + **the storefront-still-resolves proof** |
 | **2** | Core 7 (Home · Product · Features · Modules · How It Works · Pricing · Try Booking) |
 | **3** | Sales 6 + Customer stories 4 (⚠️ gated on Gate 0) |
@@ -375,7 +379,7 @@ KIND-2 finding in this project's history** and every one needs an explicit rulin
 | **E5** | **robots.txt replaced carelessly** — disallowing `/book/` would de-index the money pages | **HIGH** | ⚠️ the storefront must be **allowed and sitemapped**, never disallowed |
 | **E6** | ⚠️ **Publishing fabricated figures / named testimonials** | **HIGH — legal + reputational** | D1, before any build |
 | **E7** | **84 pages × ~600 lines of Blade** balloons the repo and the suite | MEDIUM | shared components; assert-render tests, not per-page snapshots |
-| **E8** | ⚠️ **`docs/design/Front/` is untracked and case-mismatched** (`Front` vs `front`) — 102 MB living on one machine, and a Linux host would not resolve the lowercase path | MEDIUM | commit it (or an extracted-content subset) and settle the casing **before** Gate 1 |
+| **E8** | ⚠️ **`docs/design/front/` is untracked** — 102 MB living on one machine *(casing settled in Gate 0: renamed `Front`→`front`; tracking measured + surfaced as the founder's call; `.gitignore`-guarded against an accidental sweep)* | MEDIUM | founder picks a tracking option before Gate 1 leans on the files |
 | **E9** | **CDN React/fonts** left in a port | MEDIUM | server-render; self-hosted fonts (the F6-6 decision) |
 
 ---
