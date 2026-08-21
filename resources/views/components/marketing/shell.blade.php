@@ -41,6 +41,8 @@
     <x-design.tokens />
     <style>
         html { scroll-behavior: smooth; }
+        /* Visually hidden, still announced — the cookie table's caption uses it (Gate 6). */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
         html, body { margin: 0; padding: 0; }
         body { font-family: var(--vy-sans); color: var(--vy-ink); background: var(--vy-bg); background-attachment: fixed; min-height: 100vh; }
         a { color: var(--vy-accent-text); }
@@ -168,5 +170,13 @@
         {{ $slot }}
     </main>
     <x-marketing.footer />
+    {{-- ⚠️ THE COOKIE NOTICE (Gate 6, D11) — rendered LAST in the document so a keyboard or screen-reader
+         user reaches the page's own content first and meets the notice at the end, rather than being
+         intercepted by it. It is fixed to the bottom visually but late in the DOM deliberately, and it
+         traps nothing: the page stays fully operable with the notice ignored.
+         ⚠️ Shown only until the visitor answers THIS version of the disclosure. --}}
+    @if (\App\Support\Privacy\CookieConsent::shouldPrompt(request()))
+        <x-marketing.cookie-notice mode="banner" />
+    @endif
 </body>
 </html>

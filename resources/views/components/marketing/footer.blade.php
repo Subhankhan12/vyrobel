@@ -94,6 +94,18 @@
         </div>
     </div>
 
+    {{-- ⚠️ THE COOKIE DISCLOSURE, ALWAYS REACHABLE (Gate 6, D11). The banner appears once; this is here on
+         every page for ever, so a visitor can read what is set and change their answer without hunting for
+         it. Same component, same disclosure, same form — one definition (§N.8f). --}}
+    <div class="vy-mk-footnote" style="padding-top:18px;border-top:1px solid var(--vy-hairline);">
+        <details>
+            <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--vy-faint);">Cookies &amp; your choice</summary>
+            <div style="margin-top:14px;">
+                <x-marketing.cookie-notice mode="panel" />
+            </div>
+        </details>
+    </div>
+
     <div class="vy-mk-legal">
         <span>&copy; 2026 Vyrobel. Built for hospitality operators in the EU and beyond.</span>
         {{-- ⚠️ The design pairs this line with three social icons (LinkedIn / X / Email us) — all three

@@ -228,3 +228,23 @@ jobs:
       # straight into a page carries no entry, which is why the page suites sweep for competitor names too.
       - name: 'Gate 6 · external-claim freshness'
         run: ./vendor/bin/pest tests/Feature/MarketingClaimsTest.php tests/Feature/MarketingScenarioTest.php
+
+      # ══ GATE 7 — THE COOKIE FORWARD-GUARD (front-website Gate 6, ruling D11) ══════════════════════
+      # Gates 5 and 6 guard what the site SAYS. This guards what it DOES, and it guards the future rather
+      # than the present: today Vyrobel sets four cookies, all strictly necessary, and has no analytics,
+      # marketing or third-party script anywhere — so the cookie notice has nothing to gate, and its
+      # honesty rests entirely on the next change respecting it. ⚠️ WITHOUT THIS STEP THE NOTICE IS
+      # THEATRE: the first analytics snippet pasted in silently overrides every visitor who declined, no
+      # test fails, nothing is logged, and the harm is invisible until somebody happens to look — the
+      # MAIL_MAILER=log failure family exactly.
+      # It reds if a cookie reaches a browser that the disclosure does not describe, if app/ writes one
+      # outside the catalogue, if a third-party vendor appears in a file that does not consult the stored
+      # consent, or if a non-essential cookie is declared with nothing calling CookieConsent::allows().
+      # ⚠️ It is SATISFIABLE BY COMPLIANCE, deliberately: gate the script on the stored consent and the
+      # step goes green. A guard that cannot be satisfied gets deleted by the first person who needs the
+      # thing it forbids.
+      # ⚠️ Honest scope: the vendor and cookie sweeps pattern-match, so a novel injection path (a new
+      # vendor, a runtime-built URL, a dynamically-named cookie) escapes them and is a review rule. What
+      # cannot escape is the disclosure check — it reads the real Set-Cookie header of a real response.
+      - name: 'Gate 7 · cookie forward-guard'
+        run: ./vendor/bin/pest tests/Feature/CookieConsentForwardGuardTest.php

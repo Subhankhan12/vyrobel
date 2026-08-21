@@ -22,6 +22,7 @@ use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
 use App\Http\Controllers\ChannexWebhookController;
+use App\Http\Controllers\CookieChoiceController;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Http\Controllers\Guest\GuestAccountController;
 use App\Http\Controllers\Guest\GuestArrivalController;
@@ -534,6 +535,19 @@ Route::prefix('stay/{organization}')
  * NOT registered yet, on purpose: `/try-booking` (⚠️ blocked on D3 — a simulated booking flow would be
  * #39), and every page from Gates 3–6.
  */
+/*
+ * ══ THE COOKIE NOTICE (front-website Gate 6, ruling D11) ═══════════════════════════════════════════
+ *
+ * ⚠️ DELIBERATELY OUTSIDE the `marketing.page.*` group: it is not a page, and the group's name prefix is a
+ * contract that {@see App\Support\Marketing\MarketingUrls::pending()} reads and a count-pinned test guards.
+ *
+ * ⚠️ A POST, and the ONLY writer of the consent cookie. Accept and decline are the same route with a
+ * different value, so declining can never be made to cost more than accepting. Throttled because it is an
+ * unauthenticated write; generous, because a visitor changing their mind twice is not abuse.
+ */
+Route::post('/cookie-choice', [CookieChoiceController::class, 'store'])
+    ->middleware('throttle:20,1')->name('cookies.choice');
+
 Route::controller(MarketingController::class)->name('marketing.page.')->group(function () {
     // `/` is registered at the top of this file (it must read before everything) — see ruling D2 there.
     Route::get('/product', 'product')->name('product');

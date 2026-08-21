@@ -14588,3 +14588,108 @@ covering exactly *"one whose only payout failed"*.
 ⚠️ **A needle that cannot match proves nothing.** A grep for `logoutOtherDevices` found nothing and would
 have made "changing a password signs out other sessions" FALSE; the file says `changePasswordTo($password,
 $currentSessionId)` and terminates every other session. **TRUE, and only opening it showed that.**
+
+---
+
+## 2026-08-22 — FRONT WEBSITE · GATE 6: the honest cookie notice (D11) + the DPA claims removed
+
+### ⚠️ What is actually set — enumerated from the code AND read off the wire
+
+| cookie | purpose | lifetime | set when | strictly necessary? |
+|---|---|---|---|---|
+| `vyrobel-session` | the session (sign-in, a booking in progress) | 2 h | every first page view | yes |
+| `XSRF-TOKEN` | CSRF protection for every form | 2 h | every first page view | yes |
+| `vy_td` | remembers a device the user chose to trust, so 2FA does not re-ask | 30 d | only on ticking "trust this device" at a 2FA prompt | yes — security, at the user's own request |
+| `vy_cookie_choice` | the answer to this notice | 365 d | only on answering | yes — it exists to honour a privacy choice |
+
+Confirmed empirically: `/`, `/pricing`, `/book/seaside-demo` and `/guest/login` each set **exactly two** —
+`XSRF-TOKEN` and `vyrobel-session`. **No analytics, no marketing, no third-party cookie, and no third-party
+request at all** (fonts are self-hosted, F6-6). There is **no `remember` checkbox in any login form**, so the
+framework's remember-me cookie is never issued through the UI — a latent path in `GuestLoginRequest`, noted.
+
+### ⚠️ WHY THERE IS NO "ANALYTICS" TOGGLE — the design's own spec, refused
+
+The design's Launch Checklist specifies *"Per-category cookie consent … marketing off by default"*.
+⚠️ **Per-category consent cannot be reproduced faithfully, because there is exactly one category.** A
+"Marketing — off" switch that stores nothing and gates nothing is the #39 shape, and here it is **worse than
+no dialog at all**: a visitor who switched it off would believe they had opted out, and the first analytics
+snippet added later without reading that choice would override them silently — with no failing test, no log
+line and no monitor. So the notice states what is true (*"there is nothing on this notice to switch off
+today"*) and records the answer anyway, because the answer is **forward-binding**.
+
+### ⚠️ THE FORWARD-GUARD IS THE FEATURE — CI Gate 7 (the eighth gate)
+
+`CookieConsentForwardGuardTest` reds if: a cookie reaches a browser that the disclosure does not describe ·
+`app/` writes one outside the catalogue · a third-party vendor appears in a file that does not consult the
+stored consent · a non-essential cookie is declared with nothing calling `CookieConsent::allows()`.
+
+⚠️ **It is SATISFIABLE BY COMPLIANCE, deliberately.** The first version forbade every vendor outright — which
+makes a wall, not a gate, and the first person who genuinely needs analytics deletes it instead of complying
+(§N.17.5). Mutation-proven both ways: an ungated `googletagmanager` snippet → **RED**; the same snippet
+wrapped in `CookieConsent::allows()` → **GREEN**.
+
+⚠️ **Its own vacuity check, because check D is inert today.** Three consecutive gates shipped a fresh guard
+that inherited the previous blind spot, so the forward-binding predicate is extracted and run **on every
+run** against a synthetic catalogue containing an ungated `_ga`, and required to fire. ⚠️ Honest limit,
+stated in the file and in CI: the vendor and cookie sweeps pattern-match, so a novel injection path escapes
+them and is a review rule — but the disclosure check reads the real `Set-Cookie` of a real response and
+cannot be evaded by whatever route a cookie took.
+
+**Twelve mutations, each violate → RED → restore → GREEN:** ungated analytics · gated analytics (GREEN, the
+point) · a non-essential cookie with no `allows()` caller · a cookie outside the catalogue · decline styled
+quieter than accept · consent failing OPEN · the record exposed to script · the notice removed sitewide · an
+open redirect · the source scanner neutered (the vacuity check) · the DPA claim reintroduced · a hardcoded
+cookie count.
+
+### ⚠️ Three defects no assertion caught
+
+1. ⚠️ **The banner shipped a fabricated number.** It read *"3 cookies"* — neither the catalogue size (4) nor
+   what a visitor receives (2) — on every page, in the chrome of the gate about not fabricating things.
+   **Found in a screenshot.** Every figure is now derived from the catalogue and pinned to both the catalogue
+   and the wire.
+2. ⚠️ **The notice reflected the whole request URI into a hidden field**, so any query a visitor arrived with
+   was echoed into the HTML. Blade escapes it, so not an injection — but needless reflected surface, and
+   **found by ANOTHER gate's guard**: Gate 4b's pricing-oracle test failed with *"leaked another property's
+   slug"* because this field had put it there. It carries the path only now.
+3. ⚠️ **PHPStan proved the forward-binding branch was dead code** — read as a `const`, every category folds to
+   the literal `'essential'`. Correct today and exactly what must not stay true. The catalogue is now reached
+   through a typed accessor that declares `category` as the open string it genuinely is.
+
+### The mechanics
+
+Persisted and demonstrable (**choice + timestamp + disclosure version**; a record against an older version is
+refused and re-prompts). **Nothing non-essential is set before the answer** — there is nothing non-essential
+to set. **Decline is the same control as accept**: same route, same method, same one click, and the two
+buttons carry a byte-identical style string, asserted. No checkboxes, so nothing pre-ticked. **No
+JavaScript** — a server-rendered form, working with scripting off, with no client state a persistent worker
+could leak. **No third-party CMP** (F6-6). **Not a modal**: `role="region"`, last in the DOM and last in tab
+order, no focus trap, no `aria-modal`, no full-screen overlay — the page stays operable with the notice
+ignored, which is both the accessible choice and the non-coercive one. Verified in a browser at 390px and
+1200px: keyboard-only decline → recorded; reopened from the footer on another page → changed to accept;
+choice shown back with its date and version; 49% / 32% of the viewport after the copy was tightened.
+
+⚠️ **SURFACED, NOT DECIDED: the notice renders on the MARKETING shell only.** The same two cookies are set on
+the storefront and in the guest/owner/operator/admin realms — the disclosure is true everywhere, but the
+notice is not shown there. Extending it touches the sealed storefront (E3) and the app shells, which is a
+founder call and its own change.
+
+### ⚠️ The DPA claims — removed; Article 28 is a GO-LIVE item
+
+The DPA does not exist. ⚠️ It appears in **no built page and no ledger entry** — only in `/docs/gdpr-and-data`
+and the FAQ, both deferred by Gate 5. So the removal went into the **converter**, where a page generated
+later cannot inherit it, and what survives is true (Vyrobel *is* the processor, acting on the operator's
+instruction); only the assertion that an agreement sets it out is gone.
+
+⚠️ **The converter cannot cover every path, and the gap is named.** The FAQ's copy lives inside a `DCLogic`
+`<script>` the converter strips wholesale, so the transform never sees that sentence. Gate 5 recorded that
+publishing the FAQ requires lifting that array into a server-rendered source — a lift that happens outside
+the converter, on which day the claim returns. A sweep in `MarketingContentHonestyTest` (CI Gate 5) reds on
+the phrase in any built marketing view, with its own positive control.
+
+⚠️⚠️ **REMOVING THE CLAIM DOES NOT REMOVE THE DUTY. Article 28 requires the agreement to exist before a
+customer's guest data is processed — a GO-LIVE BLOCKER, alongside the Stripe live-key flip and the
+`schedule:run` crontab entry.** Not drafted here: that is legal work, not a build step.
+
+⚠️ **Untouched, as ruled:** the *"never hold client funds"* claim (awaiting its flow-verification pass — not
+published, not softened) and product findings **P-6** and **P-7**, which remain recorded in the Gate 5 audit
+and are their own gates.

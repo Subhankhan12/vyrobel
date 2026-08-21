@@ -2,6 +2,7 @@
 
 use App\Support\Marketing\MarketingContent;
 use PHPUnit\Framework\Assert;
+use PHPUnit\Framework\AssertionFailedError;
 
 // FRONT-WEBSITE GATE 0 · THE CONTENT-HONESTY GATE (ruling D1) — CI Gate 5 runs this file directly, and it
 // also runs inside the full suite (Gate 3), so the protection cannot be filtered away by either path.
@@ -226,4 +227,54 @@ it('filters in every environment except the explicit dev list — unknown enviro
     foreach (['local', 'development', 'testing'] as $env) {
         Assert::assertFalse(MarketingContent::filtersFor($env), "dev environment \"{$env}\" renders unfiltered (D1)");
     }
+});
+
+// ══ ⚠️ THE DPA CLAIM — REMOVED, AND KEPT REMOVED (front-website Gate 6, founder ruling 2026-08-22) ═════
+it('⚠️ claims no data processing agreement anywhere, because there is not one', function () {
+    // ⚠️ Gate 5's audit asked whether the DPA two pages assert actually exists. It does not, and the
+    // founder ruled the claim removed. Both pages are still unbuilt, so there was nothing shipped to
+    // correct — the removal went into the CONVERTER so a page generated later cannot inherit it.
+    //
+    // ⚠️ BUT THE CONVERTER CANNOT COVER EVERY PATH, AND THIS IS THE GAP IT LEAVES. The FAQ's copy lives
+    // inside a `DCLogic` <script> that the converter strips wholesale, so the transform never sees that
+    // sentence — it disappears for an unrelated reason. Gate 5 recorded that publishing the FAQ requires
+    // LIFTING that array into a server-rendered source, and a lift happens outside the converter. On the
+    // day someone does it, the claim comes back and no converter rule would notice. THIS test would.
+    //
+    // ⚠️ Removing the claim does not remove the duty: Article 28 still requires the agreement to exist
+    // before a customer's guest data is processed. That is a go-live item in DECISIONS.md, not a code fix.
+    $needles = ['data processing agreement', 'data-processing agreement', 'our DPA'];
+
+    $files = array_merge(
+        (array) glob(resource_path('views/marketing/*.blade.php')),
+        (array) glob(resource_path('views/components/marketing/*.blade.php')),
+    );
+
+    Assert::assertGreaterThan(20, count($files),
+        'almost no marketing views were scanned — this sweep would pass on an empty search');
+
+    foreach ($files as $file) {
+        // ⚠️ Comments do not ship, and this repository's guards have read their own documentation three
+        // times now (§N.27.5). Strip them before searching.
+        $source = (string) preg_replace('/\{\{--.*?--\}\}/s', '', (string) file_get_contents($file));
+
+        foreach ($needles as $needle) {
+            Assert::assertStringNotContainsStringIgnoringCase($needle, $source,
+                basename($file).' claims a data processing agreement. There is not one — the founder ruled '
+                .'the claim removed (Gate 6). If a DPA now exists, this test is the place to record that it does.');
+        }
+    }
+});
+
+it('PROVES the DPA sweep can fire (the positive control)', function () {
+    // ⚠️ The sweep above passes trivially today because no built page carries the sentence. A needle never
+    // seen to match proves nothing about the day one does.
+    $failed = false;
+    try {
+        Assert::assertStringNotContainsStringIgnoringCase('data processing agreement',
+            '<p>We are your processor, under a Data Processing Agreement.</p>');
+    } catch (AssertionFailedError) {
+        $failed = true;
+    }
+    expect($failed)->toBeTrue('the DPA needle cannot fire — it proves nothing');
 });
