@@ -1,10 +1,12 @@
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 #  Vyrobel CI — the gates this project has run BY HAND on every pass, now run by the machine.
 #
-#  ⚠️ FIVE GATES, AND EVERY ONE OF THEM CAN FAIL THE BUILD:
+#  ⚠️ SIX GATES, AND EVERY ONE OF THEM CAN FAIL THE BUILD:
 #       1. the full Pest suite     2. PHPStan L5     3. Pint     4. money-as-seeded
 #       5. marketing content honesty (front-website ruling D1 — no unconsented/unreal content
 #          may be declared production-ready; see tests/Feature/MarketingContentHonestyTest.php)
+#       6. external-claim freshness (front-website audit B — no claim about a third party may publish
+#          without a source, and none may outlive its review date; MarketingClaimsTest.php)
 #
 #  ⚠️⚠️ §N.29 APPLIED TO CI. A step that reports green WITHOUT running its gate is the runtime form of the
 #  label-vs-protection failure this project has been bitten by repeatedly. So: no `|| true`, no
@@ -214,3 +216,15 @@ jobs:
       # typed directly into a page carries no flags and is a Gate 1+ review rule, not this step.
       - name: 'Gate 5 · marketing content honesty'
         run: ./vendor/bin/pest tests/Feature/MarketingContentHonestyTest.php
+
+      # ══ GATE 6 — EXTERNAL-CLAIM FRESHNESS (front-website audit B) ═════════════════════════════════
+      # Gate 5 guards what we say about OURSELVES. This guards what we say about ANYONE ELSE: every
+      # assertion about a third party must carry a source and the date it was read, and must not have
+      # outlived its review date. ⚠️ THE EXPIRY IS THE POINT — a competitor changes their pricing and
+      # tells nobody; no test fails, no error logs, no monitor fires, and the page is simply wrong until
+      # somebody happens to look. That is the MAIL_MAILER=log failure shape, and a date something checks
+      # is the only defence. The design's own disclaimer said "at the time of writing" with NO date, so
+      # it could never be shown stale. ⚠️ Honest scope: it guards LEDGERED claims — an assertion typed
+      # straight into a page carries no entry, which is why the page suites sweep for competitor names too.
+      - name: 'Gate 6 · external-claim freshness'
+        run: ./vendor/bin/pest tests/Feature/MarketingClaimsTest.php tests/Feature/MarketingScenarioTest.php

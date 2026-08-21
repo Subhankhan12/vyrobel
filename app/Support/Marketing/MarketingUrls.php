@@ -37,7 +37,12 @@ final class MarketingUrls
         'for-hotels' => '/for-hotels',
         'for-villas' => '/for-villas',
         'for-apartments' => '/for-apartments',
-        'case-studies' => '/case-studies',
+        // ⚠️ THE URL IS ITSELF A CLAIM (Gate 3b, ruling A). The design's slug was `/case-studies/{story}`,
+        // which asserts real customers — and the pages are explicitly ILLUSTRATIVE SCENARIOS. Nothing is
+        // published yet, so this is the free moment to change it: after launch it costs SEO and leaves dead
+        // URLs behind. ⚠️ This deliberately DIVERGES from the design's own sitemap, because the page's
+        // identity changed and the sitemap slug is not binding when it does. Surfaced to the founder.
+        'case-studies' => '/example-scenarios',
         'resources' => '/resources',
         'docs' => '/docs',
         'faq' => '/faq',
@@ -67,9 +72,9 @@ final class MarketingUrls
         'guide-security' => '/docs/account-security',
         'guide-settings' => '/docs/settings',
         'guide-storefront' => '/docs/storefront',
-        'story-cyclades' => '/case-studies/cyclades',
-        'story-lisbon' => '/case-studies/lisbon',
-        'story-rotterdam' => '/case-studies/rotterdam',
+        'story-cyclades' => '/example-scenarios/villa-portfolio',
+        'story-lisbon' => '/example-scenarios/city-hotel',
+        'story-rotterdam' => '/example-scenarios/serviced-apartments',
     ];
 
     /** The canonical path for a marketing page key. */

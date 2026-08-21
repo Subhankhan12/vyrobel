@@ -70,4 +70,28 @@ class MarketingController extends Controller
     {
         return view('marketing.for-villas');
     }
+
+    /**
+     * ⚠️ THE ILLUSTRATIVE SCENARIOS (ruling A) — not case studies. Each page carries a prominent label in
+     * its own voice saying so, and MarketingScenarioTest holds all six honesty conditions in place.
+     */
+    public function exampleScenarios(): View
+    {
+        return view('marketing.case-studies');
+    }
+
+    public function scenarioVillas(): View
+    {
+        return view('marketing.story-cyclades');
+    }
+
+    public function scenarioHotel(): View
+    {
+        return view('marketing.story-lisbon');
+    }
+
+    public function scenarioApartments(): View
+    {
+        return view('marketing.story-rotterdam');
+    }
 }

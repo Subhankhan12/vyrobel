@@ -554,6 +554,18 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     Route::get('/for-hotels', 'forHotels')->name('for-hotels');
     Route::get('/for-apartments', 'forApartments')->name('for-apartments');
     Route::get('/for-villas', 'forVillas')->name('for-villas');
+
+    // ── Gate 3b · the illustrative scenarios (ruling A) ─────────────────────────────────────────────
+    // ⚠️ NOT `/case-studies`. These were drawn as customer stories about three invented, unconsented
+    // businesses; they are rebuilt as explicitly labelled ILLUSTRATIVE SCENARIOS, and a URL that says
+    // "case study" would re-assert the very claim the rewrite removed. The slug diverges from the design's
+    // sitemap deliberately — the page's identity changed. Changed now, while nothing is published and it
+    // is free; after launch it costs SEO and leaves dead URLs.
+    // ⚠️ Guarded by MarketingScenarioTest: the label, no identities, no quotes, no achieved outcomes.
+    Route::get('/example-scenarios', 'exampleScenarios')->name('case-studies');
+    Route::get('/example-scenarios/villa-portfolio', 'scenarioVillas')->name('story-cyclades');
+    Route::get('/example-scenarios/city-hotel', 'scenarioHotel')->name('story-lisbon');
+    Route::get('/example-scenarios/serviced-apartments', 'scenarioApartments')->name('story-rotterdam');
 });
 
 /*

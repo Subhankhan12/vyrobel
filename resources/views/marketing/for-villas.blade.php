@@ -187,19 +187,16 @@
         <div style="position: relative;">
           <div data-nums="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 40px;">
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="42" data-suffix=" villas">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Across the Cyclades, 19 different owners</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="0" data-suffix=" hrs">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Spent building owner statements last month</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="58" data-suffix="%">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Of peak-season nights now booked direct</div>
+              
             </div>
           </div>
-          <blockquote style="margin: 0; padding-top: 32px; border-top: 1px solid rgba(255,247,240,.16); font-size: 18px; line-height: 1.66; color: #fff; max-width: 760px;">"We went from three tools and a shared spreadsheet to one screen. The part I didn't expect: our owners stopped calling at month end, because they can just look."</blockquote>
+          
           <div style="margin-top: 18px; font-size: 13.5px; color: rgba(255,247,240,.6);">Chara Melis · Ops director, 42 units · Cyclades</div>
         </div>
       </div>

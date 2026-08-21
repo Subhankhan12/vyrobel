@@ -148,19 +148,16 @@
         <div style="position: relative;">
           <div data-nums="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 40px;">
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="96" data-suffix=" keys">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">A Lisbon property running the whole operation on Vyrobel</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="41" data-suffix="%">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Of their nights now booked direct, up from 12%</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="18" data-suffix=" min">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Average room turnaround, visible per cleaner</div>
+              
             </div>
           </div>
-          <blockquote style="margin: 0; padding-top: 32px; border-top: 1px solid rgba(255,247,240,.16); font-size: 18px; line-height: 1.66; color: #fff; max-width: 760px;">"Housekeeping runs itself now. The board tells the team what's urgent, and a maintenance ticket takes the unit off sale without anyone remembering to."</blockquote>
+          
           <div style="margin-top: 18px; font-size: 13.5px; color: rgba(255,247,240,.6);">Petar Novak · Front desk manager, 96 keys · Lisbon</div>
         </div>
       </div>

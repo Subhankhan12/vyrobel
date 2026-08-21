@@ -152,19 +152,16 @@
         <div style="position: relative;">
           <div data-nums="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 40px;">
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="18" data-suffix=" flats">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Across four buildings in Rotterdam, run by two people</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="52" data-suffix="%">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Of nights direct, from roughly a fifth a year ago</div>
+              
             </div>
             <div>
-              <div style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: #fff; letter-spacing: -.03em; font-variant-numeric: tabular-nums;"><span data-count="94" data-suffix="%">0</span></div>
-              <div style="margin-top: 8px; font-size: 13.5px; color: rgba(255,247,240,.66);">Of guests complete check-in before they arrive</div>
+              
             </div>
           </div>
-          <blockquote style="margin: 0; padding-top: 32px; border-top: 1px solid rgba(255,247,240,.16); font-size: 18px; line-height: 1.66; color: #fff; max-width: 760px;">"Direct went from about a fifth of our nights to over half in a season. That's not a feature list, that's payroll."</blockquote>
+          
           <div style="margin-top: 18px; font-size: 13.5px; color: rgba(255,247,240,.6);">Bram Hoekstra · Owner-operator, 18 apartments · Rotterdam</div>
         </div>
       </div>

@@ -14235,3 +14235,71 @@ stale here — two files asserting one fact is a second definition, §N.8f).
 **Mutations, each violate → RED → restore → GREEN:** a ledger name reintroduced into a page → RED on the
 D13 sweep · a held page routed without a ruling → RED on both the count-pin and the held-pages guard · a
 competitor name reintroduced → RED on the competitor guard.
+
+---
+
+## 2026-08-21 — FRONT WEBSITE · GATE 3b: the scenarios rewritten, the claims gate built, the price reconciled
+
+Full detail: `docs/audits/FRONT-GATE3-HONESTY-AUDITS-2026-08-21.md` (Gate 3b section).
+
+### (A) A rewrite, not a badge — and the URL was part of the claim
+
+All six conditions met on four pages. Removed: three invented business identities with their city+size
+pins · **four attributed quotes** (three blockquotes plus three quoted `<h2>` headings on the index) · the
+`~20% → 50%+` stat block and the `4 days → 1 afternoon` callout · **nine animated result counters** · and
+the **"Want to talk to one of them?"** section with its "Ask for a reference" CTA. Added: a prominent
+label immediately after each `<h1>`.
+
+⚠️ **The slug changed: `/case-studies/…` → `/example-scenarios/…`**, and the old URLs are asserted to 404.
+A URL that says "case study" re-asserts exactly what the rewrite removed. This **deliberately diverges from
+the design's sitemap** — a sitemap slug is not binding once the page's identity changes — and it was free
+only because nothing had shipped.
+
+### (B) The claims ledger + CI Gate 6 — the mechanism, not the sourcing
+
+`claims.json` holds all 12 claims with `source_url` / `verified_on` / `review_by` / `disposition`; Gate 6
+refuses anything unsourced, past review, or **missing an expiry** — a missing `review_by` **fails closed**,
+because that is the B7 shape in code: *"at the time of writing"* with no date can never be shown stale.
+**Nine sourceable · one requires-testing (Hostaway's "without heavy setup" — soften or drop) · two
+page-level safeguards.** ⚠️ Sourcing is not testing, and the founder supplies the sources: `Alternatives`
+and `Compare` stay unrouted and 404 until they do.
+
+### ⚠️ (B12) The divergence was bigger than Gate 3 reported — correcting my own finding
+
+I reported "billing charges €9/unit". **It does not.** Every seeded plan is `pricing_type = 'flat'`
+(**€49 / €99**) with `unit_rate_minor` null; `config('billing.per_unit_minor')` seeds a column no plan
+uses. So the site was advertising a **pricing MODEL the system does not run** — and its four-tier per-unit
+ladder cannot express two flat plans, so the grid was rebuilt from the catalogue rather than re-numbered.
+Names, amounts, the per-unit-vs-flat **suffix**, the feature gates and even the headline now derive from
+`MarketingPricing`, pinned against `Plan::chargeFor()` — the method that actually bills. No third price
+representation remains.
+
+### ⚠️⚠️ THE LESSON OF THIS GATE: AN HONESTY FIX APPLIED AFTER GENERATION IS UNDONE BY THE NEXT GENERATION
+
+D13's name fix and B12's home bindings were both applied by patching generated files. **Regenerating
+reverted both** — the ledger names came back, and the hard-coded prices came back — and each was caught
+only because a guard existed. Both now live **in the converter**, where regeneration preserves them.
+⚠️ A fix downstream of a generator is not a fix; it is a delay.
+
+### ⚠️ Four more things the adversarial verifiers and mutation caught
+
+1. ⚠️ **I wrote a FALSE CLAIM into the four rewritten pages** — *"Guarded by MarketingScenarioTest"* — when
+   no such test existed. Stub-and-pretend, in the files whose entire subject is not claiming things that
+   are not true. **The honest repair was to write the guard, not soften the comment.**
+2. ⚠️ **Three LIVE routed Sales pages were carrying the same fabricated testimonials** the case-study
+   ruling was written about — blockquotes attributed to ledger people, including the very `~20% → 50%+`
+   claim ordered deleted. The ruling named the case studies; the defect was one page over, live.
+3. ⚠️ **The claims gate was VACUOUS on the real ledger.** Its fixtures proved the predicate; nothing
+   asserted the actual data was clean, so marking a real entry sourced-but-expired left everything green.
+   Mutation exposed it — in the gate built to prevent exactly that.
+4. ⚠️ **My first `<figure>` strip was over-broad**, eating the home gallery's wrappers and orphaning their
+   captions; and my first quote-sweep needle (`<figcaption`) conflated **photo captions** with attributed
+   speech. Both narrowed. *(The design itself ships 29 figcaptions against 24 figures — those orphans are
+   the designer's, faithfully reproduced.)*
+
+### Verification
+
+Six marketing suites **59 tests / 1,261 assertions** green. Mutations, each violate → RED → restore →
+GREEN: a real ledger claim sourced-but-expired → RED · sourced with no expiry → RED · a quote reintroduced
+into a scenario → RED · the scenario label removed → RED. Gate 3's route-count pin and held-page set were
+**updated, not deleted**, to ruling A's new truth. Seven CI gates; the existing six untouched.

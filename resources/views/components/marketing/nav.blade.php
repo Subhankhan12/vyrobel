@@ -89,7 +89,10 @@
                         </div>
                         <div>
                             <div class="vy-mk-megalabel">Deciding</div>
-                            <x-marketing.mega-row key="case-studies" title="Customer stories" desc="Three operators who switched" icon="stories" />
+                            {{-- ⚠️ GATE 3b: was title="Customer stories" desc="Three operators who switched" — on EVERY page.
+                                 Both claim real reference customers, and the pages behind them are explicitly
+                                 ILLUSTRATIVE SCENARIOS (ruling A). A nav label is a label for its content. --}}
+                            <x-marketing.mega-row key="case-studies" title="Example scenarios" desc="Three shapes of operation, illustrated" icon="stories" />
                             <x-marketing.mega-row key="compare" title="Compare the options" desc="Against OTAs and spreadsheets" icon="compare" />
                             {{-- ⚠️ GATE 3: the design's description here listed four named competitors — which meant EVERY page on
                                  the site named them, while `/alternatives` itself is HELD pending the claim audit. A nav row
@@ -149,7 +152,7 @@
                 <x-marketing.nav-link key="alternatives" class="vy-mk-mrow">Vs alternatives</x-marketing.nav-link>
                 <x-marketing.nav-link key="compare" class="vy-mk-mrow">Compare</x-marketing.nav-link>
                 <x-marketing.nav-link key="switching" class="vy-mk-mrow">Switching to Vyrobel</x-marketing.nav-link>
-                <x-marketing.nav-link key="case-studies" class="vy-mk-mrow">Customer stories</x-marketing.nav-link>
+                <x-marketing.nav-link key="case-studies" class="vy-mk-mrow">Example scenarios</x-marketing.nav-link>
             </div>
             <div class="vy-mk-mgroup">
                 <div class="vy-mk-mlabel">Learn</div>

@@ -9,7 +9,12 @@
        · the ROI calculator → an honest deferral; the ledger-driven sections → their components
      ⚠️ The SEO values are the design's OWN (from its `<helmet>`), not invented copy. --}}
 @php
+    // ⚠️ THE ONE PRICE SOURCE (B12, §N.8f). Names, amounts, the per-unit-vs-flat suffix and the feature
+    // gates all come from `MarketingPricing`, which reads the same `plans` rows `Plan::chargeFor()` bills
+    // from. Nothing about a price may be typed into this page.
     $testimonialQuotes = [];
+    $mkSuffix = \App\Support\Marketing\MarketingPricing::suffix();
+    $mkTiers = \App\Support\Marketing\MarketingPricing::tiersForDisplay();
 @endphp
 <x-marketing.shell
     title="Pricing — per-unit plans for hotels, apartments and short-stays | Vyrobel"
@@ -24,14 +29,14 @@
     <div data-printhead="" style="display: none; border-bottom: 1pt solid #B8ADA5; padding-bottom: 8pt; margin-bottom: 14pt;">
       <div style="font-family: var(--vy-display); font-size: 15pt; font-weight: 600; color: var(--vy-accent);">Vyrobel</div>
       <div style="font-size: 8.5pt; color: var(--vy-muted); margin-top: 3pt;">Property management platform · Pricing summary · <span data-printdate=""></span></div>
-      <div style="font-size: 8pt; color: var(--vy-muted); margin-top: 2pt;">Prices are per unit per month, illustrative and exclusive of VAT. For a firm quote: sales@vyrobel.com · vyrobel.com/pricing</div>
+      <div style="font-size: 8pt; color: var(--vy-muted); margin-top: 2pt;">{{ \App\Support\Marketing\MarketingPricing::priceNote() }} For a firm quote: sales@vyrobel.com · vyrobel.com/pricing</div>
     </div>
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 74px 28px 44px; text-align: center;">
       <div data-orb="" style="position: absolute; top: -50px; left: 30%; width: 420px; height: 420px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(70px); opacity: .42; animation: vyDrift 24s ease-in-out infinite; pointer-events: none;"></div>
       <div style="position: relative; max-width: 660px; margin: 0 auto;">
         <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8F2F09; margin-bottom: 16px; animation: vyFadeUp .7s cubic-bezier(.22,.7,.3,1) both;">Pricing</div>
-        <h1 data-h1="" style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 52px; line-height: 1.08; letter-spacing: -.035em; color: var(--vy-ink); text-wrap: balance; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .06s both;">One price per unit. The direct channel pays for it.</h1>
+        <h1 data-h1="" style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 52px; line-height: 1.08; letter-spacing: -.035em; color: var(--vy-ink); text-wrap: balance; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .06s both;">{{ \App\Support\Marketing\MarketingPricing::headline() }}</h1>
         <p style="margin: 22px 0 0; font-size: 17.5px; line-height: 1.62; color: var(--vy-muted); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .13s both;">Every plan includes the booking engine, the owner portal and the guest app. Figures below are illustrative — we'll quote your portfolio properly.</p>
 
         <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 30px; padding: 5px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 8px 22px rgba(150,90,50,.12); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .2s both;">
@@ -61,64 +66,35 @@
 
     <section data-sec="" aria-labelledby="vy-plans-h" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 80px;">
       <h2 id="vy-plans-h" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;">Plans and prices</h2>
-      <div data-plans="" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; align-items: stretch; padding-top: 14px;">
-
-        <div data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 26px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
-          <div data-planname="starter" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Starter</div>
-          <div style="font-size: 13px; color: var(--vy-muted); margin-top: 5px;">1 property, up to 10 units</div>
+      <div data-plans style="display: grid; grid-template-columns: repeat({{ count($mkTiers) + 1 }}, 1fr); gap: 18px; align-items: stretch; padding-top: 14px;">
+        {{-- ⚠️ REBUILT FROM THE REAL CATALOGUE (B12). The design drew FOUR per-unit tiers
+             (Starter €6 / Growth €5 / Pro €4 / Enterprise) with feature gates of its own. The billing
+             engine runs TWO FLAT plans and gates on `channels` and a `team` seat limit — so the drawn
+             table did not merely carry wrong numbers, it described a product shape the system does not
+             implement. Numbers, names, the price suffix AND the feature gates now all come from
+             `MarketingPricing` → the same `plans` rows `Plan::chargeFor()` bills from. The card styling
+             is the design's own, verbatim. --}}
+        @foreach ($mkTiers as $mkTier)
+        <div data-reveal style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 26px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
+          <div data-planname="{{ $mkTier['code'] }}" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">{{ $mkTier['name'] }}</div>
+          <div style="font-size: 13px; color: var(--vy-muted); margin-top: 5px;">{{ $mkTier['sub'] }}</div>
           <div style="margin: 24px 0 4px; display: flex; align-items: baseline; gap: 5px;">
-            <span style="font-family: var(--vy-display); font-size: 42px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums;"><span data-cur="">€</span><span data-price="" data-plan="starter">6</span></span>
-            <span style="font-size: 13px; color: var(--vy-muted);">/ unit / mo</span>
+            <span style="font-family: var(--vy-display); font-size: 42px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums;"><span data-cur>&euro;</span><span data-price data-plan="{{ $mkTier['code'] }}">{{ number_format($mkTier['amount_minor'] / 100, 2) }}</span></span>
+            <span style="font-size: 13px; color: var(--vy-muted);">{{ $mkSuffix }}</span>
           </div>
-          <div data-cyclenote="" style="font-size: 12px; color: var(--vy-muted); margin-bottom: 18px;">Billed monthly</div>
+          <div data-cyclenote style="font-size: 12px; color: var(--vy-muted); margin-bottom: 18px;">{{ $mkTier['cycle'] }}</div>
           <ul style="margin: 0 0 24px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Direct booking storefront</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Reservations &amp; front desk</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Calendar &amp; housekeeping</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Guest stay portal</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Up to 3 team members</li>
+            @foreach ($mkTier['features'] as $mkFeature)
+            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg><span>{{ $mkFeature }}</span></li>
+            @endforeach
           </ul>
-          <a data-plancta="starter" href="Vyrobel Signup.dc.html" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease;">Start free</a>
-        </div>
 
-        <div data-reveal="" data-reveal-delay="70" style="position: relative; z-index: 1; background: rgba(255,252,248,.74); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1.5px solid rgba(217,102,46,.42); border-radius: 22px; padding: 30px 26px; box-shadow: 0 22px 56px rgba(194,65,12,.22); display: flex; flex-direction: column;">
-          <span style="position: absolute; top: -13px; left: 26px; z-index: 2; white-space: nowrap; padding: 5px 12px; border-radius: 999px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(194,65,12,.34);">Most popular</span>
-          <div data-planname="growth" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Growth</div>
-          <div style="font-size: 13px; color: var(--vy-muted); margin-top: 5px;">10–60 units, owners included</div>
-          <div style="margin: 24px 0 4px; display: flex; align-items: baseline; gap: 5px;">
-            <span style="font-family: var(--vy-display); font-size: 42px; font-weight: 600; color: #8F2F09; letter-spacing: -.035em; font-variant-numeric: tabular-nums;"><span data-cur="">€</span><span data-price="" data-plan="growth">5</span></span>
-            <span style="font-size: 13px; color: var(--vy-muted);">/ unit / mo</span>
-          </div>
-          <div data-cyclenote="" style="font-size: 12px; color: var(--vy-muted); margin-bottom: 18px;">Billed monthly</div>
-          <ul style="margin: 0 0 24px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-ink); font-weight: 500;"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Everything in Starter</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Owner portal, statements &amp; payouts</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Maintenance &amp; work orders</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Channel manager &amp; reports</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Unlimited team &amp; shift scheduling</li>
-          </ul>
-          <a data-plancta="growth" href="Vyrobel Signup.dc.html" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.3); transition: transform .2s ease, box-shadow .2s ease;">Start free</a>
+          <a data-plancta="{{ $mkTier['code'] }}" href="{{ route('signup') }}" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease;">Start free</a>
         </div>
-
-        <div data-reveal="" data-reveal-delay="140" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 26px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
-          <div data-planname="pro" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Pro</div>
-          <div style="font-size: 13px; color: var(--vy-muted); margin-top: 5px;">60–250 units, multi-property</div>
-          <div style="margin: 24px 0 4px; display: flex; align-items: baseline; gap: 5px;">
-            <span style="font-family: var(--vy-display); font-size: 42px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums;"><span data-cur="">€</span><span data-price="" data-plan="pro">4</span></span>
-            <span style="font-size: 13px; color: var(--vy-muted);">/ unit / mo</span>
-          </div>
-          <div data-cyclenote="" style="font-size: 12px; color: var(--vy-muted); margin-bottom: 18px;">Billed monthly</div>
-          <ul style="margin: 0 0 24px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-ink); font-weight: 500;"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Everything in Growth</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Multi-property switching</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Granular roles &amp; audit trail</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Insights, goals &amp; tax centre</li>
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Priority support</li>
-          </ul>
-          <a data-plancta="pro" href="Vyrobel Contact.dc.html" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease;">Talk to us</a>
-        </div>
-
-        <div data-reveal="" data-reveal-delay="210" style="background: linear-gradient(160deg, var(--vy-dark), #251C17); border-radius: 22px; padding: 30px 26px; box-shadow: 0 22px 56px rgba(60,35,20,.3); display: flex; flex-direction: column; position: relative; overflow: hidden;">
+        @endforeach
+        {{-- The design's Enterprise card, verbatim: it quotes no price and gates no feature, so it makes
+             no claim the system must honour — it is an invitation to talk. --}}
+<div data-reveal="" data-reveal-delay="210" style="background: linear-gradient(160deg, var(--vy-dark), #251C17); border-radius: 22px; padding: 30px 26px; box-shadow: 0 22px 56px rgba(60,35,20,.3); display: flex; flex-direction: column; position: relative; overflow: hidden;">
           <div style="position: absolute; top: -70px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(60px); opacity: .34;"></div>
           <div style="position: relative; display: flex; flex-direction: column; flex: 1;">
             <div data-planname="enterprise" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: #fff;">Enterprise</div>
@@ -339,7 +315,7 @@
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">Do owners or guests pay anything?</summary>
-          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">No. Owner portal access and the guest app are included in your plan. You pay per unit; nobody else is billed.</p>
+          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">No. Owner portal access and the guest app are included in your plan. {{ \App\Support\Marketing\MarketingPricing::whoPays() }}</p>
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">What happens in the off-season?</summary>

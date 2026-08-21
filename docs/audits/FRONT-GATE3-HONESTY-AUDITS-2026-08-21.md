@@ -154,3 +154,67 @@ pricing, and nobody notices for a year. Recommended, and cheap:
 | **Alternatives / Compare** | ⚠️ **NOT built.** 12 competitor claims inventoried; B1–B6 and B8 refused as unsourced (the page's own disclaimer concedes they are untested). Removing them removes the pages' subject — surfaced rather than shipped hollow. |
 | ⚠️ **B12** | A live contradiction: `/pricing` advertises €4–6/unit under plan names the billing system does not have, against `config/billing.php`'s €9/unit and Essential/Pro. **Founder's reconciliation required.** |
 | **Built this gate** | `Switching` · `For Hotels` · `For Apartments` · `For Villas` — the four Sales pages that make no third-party claims. |
+
+---
+
+# ⚠️ GATE 3b — the three held items, resolved (2026-08-21)
+
+## (A) The scenarios — rewritten, routed, and guarded
+
+All six mandatory conditions met on all four pages. **Removed:** three invented business identities and
+their city+size pins · **four attributed quotes** (three story blockquotes + three quoted `<h2>` headings on
+the index) · **the "~20% → 50%+" stat block and the "4 days → 1 afternoon" callout** · **nine animated
+result counters** on the index · **the "Want to talk to one of them?" section** with its "Ask for a
+reference" CTA. **Added:** a prominent label immediately after each `<h1>`, in the page's own voice.
+
+⚠️ **THE SLUG WAS CHANGED — `/case-studies/…` → `/example-scenarios/…`.** The URL is itself a claim, and
+nothing was published yet, so this was the free moment. The old, claim-bearing URLs are asserted to 404.
+⚠️ **This diverges from the design's own sitemap deliberately** — the page's identity changed, and a
+sitemap slug is not binding when it does. **Surfaced: the founder may prefer a different honest slug; after
+launch, changing it costs SEO and leaves dead URLs.**
+
+## (B) The claims ledger + the freshness gate — built; the pages stay held
+
+`resources/marketing/claims.json` holds all 12 claims with `source_url` / `verified_on` / `review_by` /
+`disposition`. `MarketingClaims` + **CI Gate 6** refuse to publish anything unsourced, past review, or
+missing an expiry (a missing `review_by` **fails closed** — it is the B7 unfalsifiable shape in code).
+
+### ⚠️ What the founder must supply, per claim, to unblock each page
+
+| claim | subject | classification | what unblocks it |
+|---|---|---|---|
+| **B1** | Mews | sourceable | Their API/marketplace page + date. Soften **"large"** to a count or their own wording. |
+| **B2** | Cloudbeds | sourceable | Their bundle page + date. ⚠️ **"broad installed base"** needs a published figure or must be dropped. |
+| **B3** | Guesty | sourceable | Their positioning page + date. |
+| **B4** | Hostaway | ⚠️ **requires testing** | ⛔ **Cannot be sourced.** "Automation without heavy setup" is a claim about another product's ease of use. **Soften to their own positioning, or drop the setup clause.** |
+| **B5** | the market | sourceable in principle | ⛔ **Recommended REMOVAL.** Unsourced competitor pricing — sharpest exposure, fastest decay. ⚠️ It also says "per unit", which **is no longer true of us** (B12). |
+| **B6** | all four | sourceable | ⚠️ **One source PER vendor**, not one for the sentence. |
+| **B7** | the disclaimer | sourceable | **A real date.** "At the time of writing" with none can never be shown stale. |
+| **B8** | OTAs | sourceable | ⚠️ The page's most load-bearing number. Cite the marketplaces' own commission pages, **state the basis** (rates vary by market/programme), short `review_by`. |
+| **B9** | categories | sourceable | Keep it categorical — naming a vendor in a cell turns it into a per-vendor claim. |
+| **B10** | Airbnb | sourceable | Asserts nothing about their product; ledgered for completeness. |
+| **B11** | Compare itself | — | ⚠️ **A missing safeguard, not a claim:** Compare needs Alternatives' disclaimer + trademark notice, dated. |
+| **B-not-tested** | our disclaimer | — | ⚠️ **Keep it.** It is true, and sourcing public prices does not make it false. |
+
+**Nine sourceable · one requires-testing · two page-level safeguards.** `Alternatives` and `Compare` stay
+unrouted and 404 until sourced — asserted, not assumed.
+
+## (B12) `/pricing` now reads from billing — and the divergence was bigger than Gate 3 reported
+
+⚠️ **Correcting my own Gate-3 finding.** I reported "billing charges €9/unit". It does not: every seeded
+plan is **`pricing_type = 'flat'`** — **Essential €49/mo, Pro €99/mo** — and `unit_rate_minor` is null.
+`config('billing.per_unit_minor') = 900` seeds a column no plan uses. **The marketing site was advertising
+a pricing MODEL the system does not run**, not merely different numbers.
+
+| surface | was | now |
+|---|---|---|
+| `/pricing` | Starter €6 / Growth €5 / Pro €4 **per unit**, 4 tiers | **Essential €49 / Pro €99 `/ mo`**, from the plan rows |
+| `/home` | €6 / €5 per unit (a **third** representation) | the same source |
+| feature lists | "Up to 3 team members", a 4-tier ladder | the engine's **real** gates (`channels` Pro-only, `team` limit 5) |
+| the framing | "One price per unit", "You pay per unit" | derived from the shape — flat today |
+
+⚠️ **The design's four-tier per-unit ladder cannot express two flat plans**, so the grid is rebuilt from the
+catalogue rather than re-numbered. ⚠️ **Surfaced: the headline copy is placeholder** — plain by design,
+because writing marketing copy is the founder's, but a false headline could not stay on a live page.
+⚠️ **No third price representation remains** (swept: `per_unit_minor` / `prices_minor` appear only in
+billing code, its seeder and its tests).

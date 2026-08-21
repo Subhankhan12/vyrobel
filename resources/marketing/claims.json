@@ -1,0 +1,161 @@
+{
+  "_comment": "EXTERNAL CLAIMS LEDGER (front-website Gate 3b, audit B). Every assertion this site makes ABOUT A THIRD PARTY lives here, with the source that supports it and the date it was checked. Rendered only through App\\Support\\Marketing\\MarketingClaims; guarded by MarketingClaimsTest + CI Gate 6. A claim with source_url null is UNSOURCED and may not publish. A claim past review_by is STALE and reds the build — because a competitor changes their pricing without telling us, and nothing else in this system would ever notice.",
+  "_status": "AWAITING SOURCES — the founder supplies source_url + verified_on + review_by per claim. Until then every entry is unpublishable and the two pages carrying them stay held.",
+  "_schema": {
+    "id": "stable key",
+    "page": "which marketing page carries it",
+    "subject": "the third party the claim is about",
+    "claim": "the exact assertion, as it would appear",
+    "kind": "sourceable | requires_testing",
+    "source_url": "a public page that supports it — null until supplied",
+    "verified_on": "YYYY-MM-DD the source was actually read — null until supplied",
+    "review_by": "YYYY-MM-DD after which the claim must be re-checked — null until supplied",
+    "disposition": "publish | soften | remove — what audit B ruled for this claim"
+  },
+  "claims": [
+    {
+      "id": "B1-mews-positioning",
+      "page": "alternatives",
+      "subject": "Mews",
+      "claim": "API-first architecture and a large integration marketplace; built for boutique hotels and groups with technical resourcing.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "The API and marketplace are publicly documented. 'Large' is a judgement — soften to a factual count, or quote the vendor's own wording."
+    },
+    {
+      "id": "B2-cloudbeds-bundle",
+      "page": "alternatives",
+      "subject": "Cloudbeds",
+      "claim": "PMS, channel manager, booking engine and payments bundled under one subscription, with a broad installed base among independent properties.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "The bundle is on their public site. 'Broad installed base' is an unsourced MARKET claim — cite a published figure or drop that clause."
+    },
+    {
+      "id": "B3-guesty-positioning",
+      "page": "alternatives",
+      "subject": "Guesty",
+      "claim": "Vacation-rental automation and marketplace distribution depth; built for short-term rental managers at scale.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "Cite the vendor's own positioning page; the wording is close to how they describe themselves."
+    },
+    {
+      "id": "B4-hostaway-setup",
+      "page": "alternatives",
+      "subject": "Hostaway",
+      "claim": "Automation without heavy setup; built for growing rental portfolios.",
+      "kind": "requires_testing",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "soften",
+      "note": "'Without heavy setup' is a claim about ANOTHER PRODUCT'S EASE OF USE. No public page establishes it and we have not run their onboarding — it cannot be sourced, only tested. Soften to their own positioning, or drop the setup clause."
+    },
+    {
+      "id": "B5-market-price-band",
+      "page": "alternatives",
+      "subject": "the PMS market",
+      "claim": "Per unit, the market clusters in a similar band and we sit inside it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "remove",
+      "note": "An unsourced claim about COMPETITOR PRICING — the sharpest legal exposure and the fastest decay on the page. Recommend REMOVAL: nothing is gained that a statement about our own pricing does not say, without asserting anything about anyone else. NOTE ALSO: it says 'per unit', which is no longer even true of us — billing charges flat (B12)."
+    },
+    {
+      "id": "B6-booking-engine-models",
+      "page": "alternatives",
+      "subject": "Mews, Cloudbeds, Guesty, Hostaway",
+      "claim": "Some platforms bundle a booking engine; others expect you to bring one from their marketplace.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "Checkable per vendor from public product pages. Needs one source PER vendor, not one for the sentence."
+    },
+    {
+      "id": "B7-disclaimer-date",
+      "page": "alternatives",
+      "subject": "the page's own disclaimer",
+      "claim": "Positioning on this page reflects publicly available category analysis at the time of writing.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "UNFALSIFIABLE AS DRAWN. 'At the time of writing' with no date can never be shown stale, so it ages invisibly forever. A real date is mandatory — this ledger's verified_on becomes it."
+    },
+    {
+      "id": "B8-ota-commission-band",
+      "page": "compare",
+      "subject": "OTAs (Booking.com, Airbnb, Expedia)",
+      "claim": "Typical cost: 15-18% of every booking.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "The single most load-bearing number on the page. Sourceable — the marketplaces publish commission structures — but rates vary by market, property type and programme (a Preferred Partner pays more), so the citation must state the basis and review_by should be short."
+    },
+    {
+      "id": "B9-category-table",
+      "page": "compare",
+      "subject": "OTAs / channel-manager stacks (categories, unnamed)",
+      "claim": "Side-by-side table: OTAs lack a booking engine, front desk, housekeeping board and owner statements; a channel-manager stack has them as add-ons, separate apps or manual work.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "A CATEGORY generalisation naming no specific product — the lowest-risk item here. Keep it categorical; the moment a vendor is named in a cell it becomes a per-vendor claim needing a per-vendor source."
+    },
+    {
+      "id": "B10-airbnb-stay-put",
+      "page": "compare",
+      "subject": "Airbnb",
+      "claim": "If you run one apartment and Airbnb sends you all the bookings you want, a PMS is overhead. Stay where you are.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "Advice AGAINST buying, asserting nothing about Airbnb's product. Arguably needs no source at all; ledgered so the sweep stays complete."
+    },
+    {
+      "id": "B11-compare-disclaimer",
+      "page": "compare",
+      "subject": "the page itself",
+      "claim": "(absent) — Compare names five companies and carries NO disclaimer, NO trademark notice and NO date.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "NOT A CLAIM TO SOURCE — a MISSING SAFEGUARD to add. Compare needs the same disclaimer + trademark notice Alternatives already carries, dated."
+    },
+    {
+      "id": "B-alternatives-not-tested",
+      "page": "alternatives",
+      "subject": "the page's own disclaimer",
+      "claim": "We have not tested these products against ours, and none of the vendors named have reviewed this page.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "THIS ONE STAYS AND NEEDS NO EXTERNAL SOURCE — it is TRUE, it is about us, and sourcing the other claims from public pages does not make it false. Ledgered so nobody 'tidies' it away when the sources land."
+    }
+  ]
+}

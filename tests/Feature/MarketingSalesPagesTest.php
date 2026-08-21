@@ -29,17 +29,30 @@ it('serves the four claim-free Sales pages', function () {
     // name collision in Gate 2.
     $named = collect(app('router')->getRoutes()->getRoutesByName())->keys()
         ->filter(fn (string $n): bool => str_starts_with($n, 'marketing.page.'));
-    Assert::assertSame(10, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
+    // ⚠️ 14 since Gate 3b: the six Core + four Sales + the four ILLUSTRATIVE SCENARIOS, which ruling (A)
+    // reframed and routed under /example-scenarios. The pin moves with a ruling; it never moves silently.
+    Assert::assertSame(14, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
 });
 
 it('⚠️ leaves the audited pages UNROUTED — an empty or unsourced page must not be publicly reachable', function () {
-    // The two competitor pages and the four case-study pages are held pending a founder ruling. Their
-    // absence is the deliverable, so it is asserted rather than assumed.
-    foreach (['alternatives', 'compare', 'case-studies', 'story-cyclades', 'story-lisbon', 'story-rotterdam'] as $held) {
-        Assert::assertTrue(MarketingUrls::pending($held), "[{$held}] became routable without a ruling");
+    // ⚠️ UPDATED BY GATE 3b. The scenario pages were held in Gate 3 because their subject was three
+    // invented customers; ruling (A) reframed them as labelled illustrative scenarios and they are now
+    // routed — under /example-scenarios, NOT /case-studies, because the URL was itself part of the claim.
+    // The two COMPETITOR pages remain held: their claims are still unsourced.
+    foreach (['alternatives', 'compare'] as $held) {
+        Assert::assertTrue(MarketingUrls::pending($held), "[{$held}] became routable while its claims are unsourced");
     }
-    foreach (['/alternatives', '/compare', '/case-studies', '/case-studies/cyclades'] as $path) {
+    foreach (['/alternatives', '/compare'] as $path) {
         $this->get($path)->assertNotFound();
+    }
+
+    // ⚠️ AND THE OLD, CLAIM-BEARING URLs MUST NOT RESOLVE — a live /case-studies/… would re-assert the
+    // very thing the rewrite removed, whatever the page now says.
+    foreach (['/case-studies', '/case-studies/cyclades', '/case-studies/lisbon', '/case-studies/rotterdam'] as $oldClaimUrl) {
+        $this->get($oldClaimUrl)->assertNotFound();
+    }
+    foreach (['/example-scenarios', '/example-scenarios/villa-portfolio'] as $path) {
+        $this->get($path)->assertOk();
     }
 });
 

@@ -51,7 +51,7 @@
             <x-marketing.nav-link key="for-hotels">For hotels</x-marketing.nav-link>
             <x-marketing.nav-link key="for-villas">For villas</x-marketing.nav-link>
             <x-marketing.nav-link key="for-apartments">For apartments</x-marketing.nav-link>
-            <x-marketing.nav-link key="case-studies">Customer stories</x-marketing.nav-link>
+            <x-marketing.nav-link key="case-studies">Example scenarios</x-marketing.nav-link>
             <x-marketing.nav-link key="compare">Compare</x-marketing.nav-link>
             {{-- The design's sixth entry — the home page's ROI/commission calculator anchor. The calculator
                  PARTIAL is deferred (D1 figures / Gate 2+), but the nav item is preserved as a pending link

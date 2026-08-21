@@ -989,7 +989,7 @@
 
     <!-- ═══ MODULES (link band) ═══ -->
     <section data-sec="" id="modules" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 84px;">
-      <a data-reveal="" href="Vyrobel Modules.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px; padding: 36px 38px; border-radius: 24px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 16px 44px rgba(150,90,50,.15); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.22,.7,.3,1), box-shadow .26s ease;">
+      <x-marketing.nav-link key="modules" data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px; padding: 36px 38px; border-radius: 24px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 16px 44px rgba(150,90,50,.15); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.22,.7,.3,1), box-shadow .26s ease;">
         <div style="max-width: 640px;">
           <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 14px;">Modules</div>
           <h2 style="margin: 0 0 12px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">Sixteen modules, and every one is in every plan</h2>
@@ -998,7 +998,7 @@
         <span style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); font-size: 14.5px; font-weight: 500; color: var(--vy-ink); flex-shrink: 0;">Browse the catalogue
           <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
         </span>
-      </a>
+      </x-marketing.nav-link>
     </section>
 
     <!-- ═══ TESTIMONIALS — full-bleed dark band ═══ -->
@@ -1008,7 +1008,7 @@
     <section data-sec="" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 84px;">
       <div data-reveal="" style="text-align: center; max-width: 600px; margin: 0 auto 44px;">
         <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 14px;">Pricing</div>
-        <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 42px; line-height: 1.12; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">Priced per unit, not per headache</h2>
+        <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 42px; line-height: 1.12; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">{{ \App\Support\Marketing\MarketingPricing::headline() }}</h2>
         <p style="margin: 18px 0 0; font-size: 17px; line-height: 1.62; color: var(--vy-muted);">Every plan includes the direct booking engine, the owner portal and the guest app. Illustrative pricing — talk to us for your portfolio.</p>
       </div>
 
@@ -1016,7 +1016,7 @@
         <div data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 28px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
           <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Starter</div>
           <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">Up to 10 units</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">€6</span><span style="font-size: 13.5px; color: var(--vy-muted);">/ unit / month</span></div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
           <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Direct bookings, front desk, calendar and housekeeping for a single property.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease;">See what's included</x-marketing.nav-link>
         </div>
@@ -1025,7 +1025,7 @@
           <span style="position: absolute; top: -12px; left: 28px; padding: 5px 12px; border-radius: 999px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(194,65,12,.34);">Most popular</span>
           <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Growth</div>
           <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">10–60 units</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">€5</span><span style="font-size: 13.5px; color: var(--vy-muted);">/ unit / month</span></div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
           <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Everything in Starter plus maintenance, the owner portal, payouts, channels and reports.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.3); transition: transform .2s ease, box-shadow .2s ease;">Compare plans</x-marketing.nav-link>
         </div>
