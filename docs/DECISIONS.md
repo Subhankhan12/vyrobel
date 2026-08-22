@@ -14693,3 +14693,122 @@ customer's guest data is processed — a GO-LIVE BLOCKER, alongside the Stripe l
 ⚠️ **Untouched, as ruled:** the *"never hold client funds"* claim (awaiting its flow-verification pass — not
 published, not softened) and product findings **P-6** and **P-7**, which remain recorded in the Gate 5 audit
 and are their own gates.
+
+---
+
+## 2026-08-22 — P-6 · GATE 1: THE BOOKING BLOCKERS — a real tenant can now sell
+
+⚠️ The reachability sweep proved `BookingEngineService::search()` iterates `RoomType` rows and **no creation
+path existed anywhere in `app/`**, so a `/signup` tenant reached a property they could never make sellable.
+⚠️ And the application **instructed the impossible** — *"Finish setup — add units, rates & channels — to go
+live"* — which is worse than an absent feature, because the tenant concludes they are failing.
+
+### #1 The minimum sellable chain, derived from the code
+
+`search()` (`app/Services/BookingEngineService.php:48-96`) offers a room type only when **all four** hold:
+**(a)** a `RoomType` on the property with `max_adults >= adults` and `max_children >= children` · **(b)**
+`minAvailable() >= 1`, which reads `availability` rows and treats a **missing row as zero** · **(c)** an
+**active** `RatePlan` · **(d)** `rate_calendar` rows for **every** night (`priceOver()` returns null if one
+is unpriced).
+
+⚠️ **So the chain is larger than "three screens": a unit only becomes sellable once availability is
+MATERIALISED.** `AvailabilityService::recompute()` is what does it, and `OwnerUnitRequestService:231` was the
+existing precedent — reused, not reinvented. ⚠️ **`RateCalendar` was confirmed genuinely reachable**
+(`POST /app/rates` → `RateActionController@apply` → `RateAndRestrictionService`); the sweep's naive grep had
+been wrong about it, and re-checking cost nothing.
+
+### ⚠️ #2 THE ACCEPTANCE CRITERION — a fresh tenant completes a booking
+
+`tests/Feature/TenantCanBecomeSellableTest.php` provisions through `TenantProvisioningService` exactly as
+`/signup` does, asserts it starts with **zero** room types, units and rate plans, then goes through the
+app's own HTTP paths: room type → unit → rate plan → rates → `search()` returns an offer → `quote()` →
+`book()` returns a reservation with a reference. ⚠️ **No seeder, no factory, no direct model write anywhere
+on that path** — a factory call would substitute for the very path being proved.
+
+### #3 The pattern, and the wireframe
+
+`InventoryActionController` is `PropertyController` in every respect that matters: workspace read-only guard,
+`$request->validate()`, parent resolved from the actor's own scope, `Model::create()` with `organization_id`
+auto-filled, PRG redirect. ⚠️ **No operator wireframe exists** for these screens (only OWNER unit ones) —
+registered in `DIVERGENCE-REGISTER.md` rather than passed over.
+
+### ⚠️ #4 Tenancy — and a FALSE GREEN mutation found in my own guard
+
+The cross-org test looked correct and **passed under a broken scoping**. ⚠️ Two reasons, both instructive:
+the 404 it observed came from **`AvailabilityService`'s own** tenant-scoped `findOrFail` deep inside
+`recompute()` — *after* `Unit::create` had already run — and the "nothing landed" assertion counted rows
+**inside the victim's org**, while a cross-org write auto-fills `organization_id` from the **attacker's**
+context, so the row landed in the attacker's org and the victim's scope reported zero.
+⚠️ **A tenancy check must be independent of the tenancy it checks (§N.18.1)** — it uses raw `DB::table()`
+queries now, and **M2b (every scope in the action removed) REDs with a 302 where a 404 belongs**.
+
+That mutation also exposed a real ordering weakness: `Unit::create` ran before the recompute, so a throw in
+between would leave a unit with no availability — **inventory that exists and is silently unsellable, the
+exact defect this gate removes.** Both are now in one transaction.
+
+**RatePlan touches money**: currency is taken from the **property**, never the request, and `is_active` is
+forced true or `cheapestRatePlan()` silently skips the plan. A newly created plan prices at **298.50 for
+three nights at 99.50**, checked through the engine's own `priceOver()` — independent of the creation path.
+
+⚠️ **P-7 is not depended on and not fixed.** Scoping is by ORGANISATION, which works. `resolveProperty()`
+carries the note naming the one place a later P-7 fix must touch.
+
+### ⚠️ #5 The reachability guard
+
+A separate test states the rule directly: every entity a tenant must create has a **registered, POST,
+permission-gated** route. Mutation-proven (removing the room-type route REDs it with the P-6 diagnosis), and
+**extensible — the other eleven seeder-only entities are one row each.**
+
+### ⚠️ #6 RENDER-VERIFY caught what nothing else could
+
+⚠️ **`/app/rates` returned a 500 while the suite, PHPStan and Pint were all green.** Three directives written
+as `yet@endunless`, `it@else` and `one@endif` were never compiled — **Blade ignores a directive whose `@`
+follows a word character** (the `\B` rule that lets `foo@bar.com` render literally), leaving an unclosed `if`
+that blew up on the next `@endforeach`. ⚠️ I made the same mistake **three times in one edit**, and it is
+documented in CLAUDE.md. A render guard now asserts both screens return 200 and leak no raw directive, with
+its own positive control; reintroducing the trap REDs it.
+
+Browser-verified as the demo operator: created a room type, then a unit, saw both flashes and the new row,
+and confirmed the rates page offers the plan form with the room type marked *"— no plan yet"*. The
+verification rows were removed afterwards.
+
+### #7 The guidance is now true — and the sweep found FIVE sites, not two
+
+`OnboardingController:81` (the first sentence a new tenant reads) · `PropertyController:81` ·
+`portfolio.blade.php:253` · `onboarding.blade.php:175` · `RateActionController`'s post-apply summary.
+⚠️ **Channels are no longer instructed anywhere in the setup path**, because they remain impossible
+(decision ④, where *remove* is still a live option).
+
+**Out of scope and untouched:** channels · statement finalisation (⚠️ decision ② — the ledger accrues on
+CHARGES not receipts, so finalisation alone would pay owners against uncollected revenue; that pair must be
+fixed together) · P-7 · the seeder (money-as-seeded byte-identical).
+
+### ⚠️ #8 Two more found while VERIFYING, not while building
+
+⚠️ **A hidden `std_occupancy="2"` would have PUBLISHED A FIGURE NOBODY TYPED.** The room-type form carried it
+as a constant to satisfy validation — and `std_occupancy` is **rendered to guests** on the public room page as
+*"Standard occupancy"*. A room type sleeping 4 would have advertised 2. Found by grepping where the column is
+READ before committing, not by any test. It is derived from `max_adults` now, and the acceptance test pins
+**the payload the form actually posts**, not one only a test sends (§N.27.9 in reverse — a dormant input
+feeding a live display).
+
+⚠️ **THE IMPOSSIBLE INSTRUCTION HAD A SIXTH SITE.** I fixed five, then swept for the phrase instead of
+trusting the count: `portfolio.blade.php:219` — *"You'll set up units, rates & channels next"* — **34 lines
+above one I had already edited, in the same modal** (§N.13.1, §N.27.1). ⚠️ Left alone deliberately:
+`channels.blade.php`'s *"connect one below"* points at a panel that says **"Setup required — needs your
+Channex partner account"**, so it signposts an honest deferral, not an impossible action.
+
+### #9 Verification
+
+Full suite **2625 tests · 2623 passed · 2 skipped · 18,041 assertions**, run ALONE. PHPStan L5 **0**; Pint
+clean; every view compiles; **money as seeded unchanged**; the **eight CI gates and the seeder untouched**
+(0 changed files under `.github/`, `ops/`, `database/seeders/`). Browser-verified as the demo operator:
+a room type, a unit **and** a rate plan created through the real forms, each flash and each new row correct;
+verification rows removed afterwards and the money check re-run.
+
+⚠️ **MOBILE, HONESTLY:** the forms add **no** overflow — the card measures exactly the width of the main
+column. But the operator shell is **desktop-fixed**: at a 390px viewport `/app/units` has a 754px scroll
+width and `/app/reservations`, which this gate never touched, has **850px**. That is a pre-existing property
+of the realm, not of this change, and is not "fixed" here. (The console errors on `/app/units` are equally
+pre-existing: demo photo URLs are absolute `localhost:8000` while the page is served from `127.0.0.1`, so
+CSP `img-src 'self'` blocks them.)

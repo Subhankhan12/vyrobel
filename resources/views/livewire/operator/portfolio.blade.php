@@ -216,7 +216,10 @@
                                     @else
                                         included in your plan.
                                     @endif
-                                    You'll set up units, rates &amp; channels next; all your team roles carry over.</p>
+                                    {{-- ⚠️ P-6 · Gate 1 — A SIXTH SITE, found by sweeping for the phrase rather than trusting the
+                         five already fixed (§N.27.1). It sits 34 lines above one of them, in the same modal
+                         (§N.13.1). Channels dropped: still no creation path (decision ④). --}}
+                    You'll set up a room type, a unit and a rate plan next; all your team roles carry over.</p>
                             </div>
                             <button type="button" class="vy-modal-x" @click="addOpen = false" aria-label="Close">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -250,7 +253,9 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="vy-help">A new property starts empty — finish setup (units, rates &amp; channels) to go live.</div>
+                            {{-- ⚠️ P-6 · Gate 1 — channels dropped: they still have no creation path (decision ④), and naming a
+                                 step the tenant cannot take is the defect this gate exists to remove. --}}
+                            <div class="vy-help">A new property starts empty — add a room type and a unit, then a rate plan with prices, and it can take bookings.</div>
                         </div>
                         <div class="vy-modal-foot">
                             <button type="button" class="vy-btn vy-btn--ghost" @click="addOpen = false">Cancel</button>

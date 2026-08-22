@@ -78,6 +78,8 @@ class OnboardingController extends Controller
         $request->session()->regenerate();
 
         return redirect()->to('/app/portfolio')->with('portfolio_notice',
-            'Welcome to Vyrobel! '.$result['property']->name.' is ready — add units, rates & channels to go live.');
+            // ⚠️ P-6 · Gate 1 — the very first sentence a new tenant reads. It used to name three steps, none of
+            // which was possible. Now it names the two that are, in the order the storefront needs them.
+            'Welcome to Vyrobel! '.$result['property']->name.' is ready — add a room type and a unit, then a rate plan with prices, and you can take bookings.');
     }
 }

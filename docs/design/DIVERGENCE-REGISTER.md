@@ -525,3 +525,20 @@ about behaviour and no CI gate can see it; the full audit is
 | ⚠️ **The "3 cookies" count** | ✅ **KIND-1 FIX — found in a screenshot** | The banner shipped a number that was neither the catalogue size (4) nor what a visitor receives (2), on every page. Every figure is now derived from the catalogue and pinned to both the catalogue and the real `Set-Cookie`. |
 | ⚠️ **The reflected request URI** | ✅ **FIXED — found by another gate's guard** | The hidden `return` field echoed the whole request URI, so any query a visitor arrived with was reflected into the HTML (escaped, so not an injection). Gate 4b's pricing-oracle test failed with *"leaked another property's slug"* because this field had put it there. Path only now. |
 | **The DPA claim** | 🚫 **REMOVED (founder ruling)** | Present in no built page and no ledger entry — only in the two Gate-5 pages that are deferred. Removed **in the converter** so a page generated later cannot inherit it, plus a sweep in CI Gate 5 for the FAQ-lift path the converter cannot see. ⚠️ **Article 28 remains a go-live blocker**; the claim went, the duty did not. |
+
+
+## P-6 · Gate 1 — the booking blockers: operator inventory creation (2026-08-22)
+
+⚠️ **BUILT WITHOUT A WIREFRAME, AND THAT IS THE DIVERGENCE.** `docs/design/raw/` holds 126 prototypes,
+including `Operator Rates.html` — but **no operator wireframe exists for creating a room type, a unit or a
+rate plan**. The only unit wireframes are the OWNER ones (`Owner Add Unit`, `Owner My Units`,
+`Owner Unit Detail`). Registered rather than passed over: this realm enforces parity, so building without a
+prototype is a divergence even when the work is necessary.
+
+| item | verdict | detail |
+|---|---|---|
+| **Operator room-type / unit / rate-plan creation** | 📐 **NO WIREFRAME — built to the realm's design system** | Forms use the existing operator shell, `vy-card` / `vy-field` / `vy-btn` classes and `<x-design.tokens />`. No new palette, no copied hex. Placed on the pages that already own the concepts (`/app/units`, `/app/rates`) rather than inventing new screens. |
+| ⚠️ **"Add unit · Soon"** on `/app/units` | ✅ **KIND-1 — the Soon became real** | The affordance existed as an honest deferred stub. It is now a real `+ Add inventory` link to a real form, gated on the same `units.manage` the route enforces, so a viewer never sees a form they cannot submit. |
+| ⚠️ **"Finish setup — add units, rates & channels — to go live"** | ✅ **FIXED — it instructed three impossible things** | Five copy sites named steps a tenant could not take. Units and rate plans are possible now; ⚠️ **channels are not** (decision ④, where *remove* is still live), so channels are no longer instructed anywhere in the setup path. |
+| ⚠️ **The empty state on `/app/units`** | ✅ **FIXED** | Read *"add a property and room types to see its units"* — room types could not be created at all. It now names the two real steps in order, with the forms directly below. |
+| ⚠️ **"No rate plan — add one to price it"** | ✅ **FIXED** | `RateActionController` could report the state but offered no remedy. The line now links to the form, and the post-apply summary says "add one below". |

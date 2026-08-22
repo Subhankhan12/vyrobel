@@ -285,7 +285,9 @@ class RateActionController extends Controller
         $message = 'Updated '.implode(' + ', $what).' for '.$roomTypes.' across '.$nightsLabel.'.';
 
         if ($missingPlan > 0) {
-            $message .= ' '.$missingPlan.' had no rate plan and were skipped for the rate.';
+            // ⚠️ P-6 · Gate 1 — this reported the state and offered no remedy, because none existed. There
+            // is a rate-plan form on this page now, so the message says where to go.
+            $message .= ' '.$missingPlan.' had no rate plan and were skipped for the rate — add one below.';
         }
 
         return $message;

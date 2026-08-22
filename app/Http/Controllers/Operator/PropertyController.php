@@ -78,7 +78,11 @@ class PropertyController extends Controller
         }
 
         return redirect()->to(route('app.portfolio'))
-            ->with('portfolio_notice', $property->name.' added to your portfolio. Finish setup — add units, rates & channels — to go live.');
+            // ⚠️ P-6 · Gate 1 — WAS "add units, rates & channels — to go live". All three were impossible: room
+            // types and rate plans had no creation path at all, and units only behind an owner's request. The
+            // first two are real now; ⚠️ CHANNELS ARE STILL NOT, so they are no longer instructed. A signposted
+            // step a tenant cannot take is worse than no signpost — they conclude they are failing.
+            ->with('portfolio_notice', $property->name.' added to your portfolio. Next: add a room type and a unit, then a rate plan with prices — then it can take bookings.');
     }
 
     public function update(Request $request): RedirectResponse

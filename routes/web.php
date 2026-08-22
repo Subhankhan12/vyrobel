@@ -60,6 +60,7 @@ use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\GuestBulkActionController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
+use App\Http\Controllers\Operator\InventoryActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\InviteOwnerPreviewController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
@@ -741,6 +742,16 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // rack component. `/rack` is kept as an alias for existing deep-links (front desk / maintenance / groups).
     Route::get('/calendar', ReservationRack::class)->name('calendar');
     Route::get('/units', UnitsList::class)->name('units');
+    // ── P-6 · Gate 1 — INVENTORY CREATION. Before this, RoomType and RatePlan had NO creation path in
+    //    app/ at all and Unit had one only behind an OWNER's request, so a /signup tenant reached a
+    //    property they could never make sellable (BookingEngineService::search() iterates RoomType rows).
+    //    ⚠️ Same shape as the Property writes above: POST → controller → PRG, `can:` on the ROUTE (#30).
+    //    ⚠️ TenantCanBecomeSellableTest pins these route names — it is the guard against the whole class
+    //    silently returning, so a rename must move the test with it, not around it.
+    Route::post('/units/room-types', [InventoryActionController::class, 'storeRoomType'])
+        ->middleware('can:units.manage')->name('inventory.room-types.store');
+    Route::post('/units', [InventoryActionController::class, 'storeUnit'])
+        ->middleware('can:units.manage')->name('inventory.units.store');
     // Operator Channels exact-match — the OTA channel-manager surface. Pro-gated (`plan.feature:channels` →
     // an Essential org gets the honest "not in your plan" page). HONEST-GATED: real channel STATE, but live
     // OTA two-way sync/import is account-gated (no real Channex integration) — never a fabricated sync.
@@ -755,6 +766,10 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // RatesGrid gates the editor off the SAME permission so the UI never offers a write the route refuses).
     Route::get('/rates', RatesGrid::class)->middleware('can:rates.view')->name('rates');
     Route::post('/rates', [RateActionController::class, 'apply'])->middleware('can:rates.manage')->name('rates.update');
+    // P-6 · Gate 1 — a rate plan is what rate_calendar rows hang off; without one a room type has nowhere
+    // to store a price, which RateActionController could report but not remedy.
+    Route::post('/rates/plans', [InventoryActionController::class, 'storeRatePlan'])
+        ->middleware('can:rates.manage')->name('inventory.rate-plans.store');
     // #100 — bulk edit (increase%/decrease%/set-exact across units/nights, skip booked, update derived plans).
     Route::post('/rates/bulk', [RateActionController::class, 'bulkApply'])->middleware('can:rates.manage')->name('rates.bulk');
 

@@ -130,7 +130,13 @@
                                                 {{ $row['units_label'] }}@if ($row['plan_name']) · {{ $row['plan_name'] }}@endif
                                             </div>
                                             @unless ($row['has_plan'])
-                                                <div class="vyr-rt-sub" style="color: var(--vy-accent);">No rate plan — add one to price it</div>
+                                                {{-- ⚠️ P-6 · Gate 1 — this line used to say "add one to price it" while there was
+                                                     NO way to add one anywhere in the application. It now points at the form that
+                                                     exists. --}}
+                                                <div class="vyr-rt-sub" style="color: var(--vy-accent);">
+                                                    No rate plan —
+                                                    @if ($canManage)<a href="#vy-add-rate-plan">add one</a> to price it @else ask an administrator to add one @endif
+                                                </div>
                                             @endunless
                                         </td>
                                         @foreach ($row['cells'] as $cell)
@@ -487,6 +493,45 @@
             <div style="font-family: var(--vy-display); font-size: 26px; font-weight: 700; color: var(--vy-ink);">{{ $pacing['booked_pct'] !== null ? $pacing['booked_pct'].'%' : '—' }}</div>
             <div style="font-size: 12.5px; color: var(--vy-muted); margin-top: 4px;">{{ $pacing['insight'] }}</div>
         </div>
+
+
+        {{-- ══ P-6 · Gate 1 — RATE PLAN CREATION ═══════════════════════════════════════════════════════
+             ⚠️ Before this, RatePlan had NO creation path in the application. RateActionController could
+             REPORT that a room type had no plan ("nowhere to store a price") but offered no remedy, and
+             `search()` skips any room type whose plans cannot price the stay — so the room type was
+             silently unsellable. Same POST → controller → PRG pattern as everything else here (§N.8f).
+             ⚠️ No price is set here: prices are rate_calendar rows, written by the grid above through the
+             existing certified RateAndRestrictionService path. --}}
+        @if ($canManage && count($roomTypeOptions) > 0)
+            <div class="vy-card vy-fade" id="vy-add-rate-plan" style="margin-top:18px">
+                <h2 class="vy-card-title">Add a rate plan</h2>
+                <p class="vy-line-sub" style="margin-bottom:14px">
+                    A rate plan is what nightly prices hang off. Create one per room type, then set its
+                    prices in the grid above. It inherits the property's currency.
+                </p>
+                <form method="POST" action="{{ route('app.inventory.rate-plans.store') }}"
+                      style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end">
+                    @csrf
+                    <label class="vy-field"><span class="vy-label">Room type</span>
+                        <select class="vy-input" name="room_type_id" required>
+                            @foreach ($roomTypeOptions as $rt)
+                                {{-- ⚠️ THE SPACE BEFORE @endunless IS LOAD-BEARING. Blade does not compile a directive whose
+                                     `@` follows a word character (the \B rule that lets foo@bar.com render literally), so
+                                     "yet@endunless" shipped as literal text, left the @unless unclosed, and the page 500'd
+                                     on the next @endforeach. Tests, PHPStan and Pint were all green; only opening the page
+                                     showed it. --}}
+                                <option value="{{ $rt['id'] }}">{{ $rt['name'] }}@unless ($rt['has_plan']) — no plan yet @endunless</option>
+                            @endforeach
+                        </select></label>
+                    <label class="vy-field"><span class="vy-label">Plan name</span>
+                        <input class="vy-input" name="name" required maxlength="255" placeholder="Flexible"></label>
+                    <label class="vy-field" style="flex-direction:row;align-items:center;gap:8px">
+                        <input type="checkbox" name="is_refundable" value="1" checked>
+                        <span class="vy-label" style="margin:0">Refundable</span></label>
+                    <button type="submit" class="vy-btn">Add rate plan</button>
+                </form>
+            </div>
+        @endif
 
     </x-operator.shell>
 

@@ -33,15 +33,33 @@
             <div class="vy-right">
                 <span class="vy-pill is-soon" aria-disabled="true">Filters <span class="vy-soon-tag">Soon</span></span>
                 <span class="vy-pill is-soon" aria-disabled="true">Export <span class="vy-soon-tag">Soon</span></span>
-                <span class="vy-btn is-soon" aria-disabled="true">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                    Add unit <span class="vy-soon-tag">Soon</span>
-                </span>
+                {{-- ⚠️ P-6 · Gate 1 — WAS "Add unit · Soon". It is real now, and it had to become real:
+                     RoomType and RatePlan had NO creation path in the whole application, so a /signup
+                     tenant reached a property they could never make sellable while the app told them to
+                     "add units, rates & channels to go live". ⚠️ Gated on the SAME permission as the route
+                     (#30), so a viewer never sees a form they cannot submit. --}}
+                @can('units.manage')
+                    <a class="vy-btn" href="#vy-add-inventory">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        Add inventory
+                    </a>
+                @endcan
             </div>
         </div>
 
         @if (count($units) === 0)
-            <div class="vy-card vy-fade"><div class="vy-empty">No units yet — add a property and room types to see its units.</div></div>
+            {{-- ⚠️ WAS: "add a property and room types to see its units" — an instruction the tenant could
+                 not follow, because room types could not be created at all. It now names the two real steps
+                 in order, and the forms are directly below. --}}
+            <div class="vy-card vy-fade"><div class="vy-empty">
+                No units yet.
+                @can('units.manage')
+                    Add a <strong>room type</strong> first (what you sell — “Double Room”), then a
+                    <strong>unit</strong> in it (the physical room — “101”). Both are below.
+                @else
+                    Ask an administrator to add a room type and a unit.
+                @endcan
+            </div></div>
         @else
             <div class="vy-card vy-card--flush vy-fade">
                 <div class="vy-utable-wrap">
@@ -159,6 +177,61 @@
             @endif
 
         @endif
+
+
+        {{-- ══ P-6 · Gate 1 — INVENTORY CREATION ═══════════════════════════════════════════════════════
+             ⚠️ WHY THIS IS PLAIN HTML AND NOT A LIVEWIRE ACTION: it reuses the operator realm's locked
+             mutation pattern (POST → controller → PRG) exactly as the Portfolio's Add-property does, so
+             there is ONE pattern for this kind of work (§N.8f). Nothing new is invented here.
+             ⚠️ NO WIREFRAME EXISTS for an operator room-type/unit/rate-plan screen — the only unit
+             wireframes in docs/design/raw are the OWNER ones. Built to the realm's existing design system
+             instead, and registered as a divergence rather than passed over silently. --}}
+        @can('units.manage')
+            <div class="vy-card vy-fade" id="vy-add-inventory" style="margin-top:18px">
+                <h2 class="vy-card-title">Add inventory</h2>
+                <p class="vy-line-sub" style="margin-bottom:14px">
+                    A <strong>room type</strong> is what a guest books (“Double Room”). A <strong>unit</strong>
+                    is the physical room inside it (“101”). You need at least one of each, plus a rate plan
+                    with prices, before the storefront will offer anything.
+                </p>
+
+                <form method="POST" action="{{ route('app.inventory.room-types.store') }}" class="vy-form-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end;margin-bottom:18px">
+                    @csrf
+                    <label class="vy-field"><span class="vy-label">Room type name</span>
+                        <input class="vy-input" name="name" required maxlength="255" placeholder="Double Room"></label>
+                    <label class="vy-field"><span class="vy-label">Kind</span>
+                        <select class="vy-input" name="kind">
+                            @foreach (['room' => 'Room', 'apartment' => 'Apartment', 'villa' => 'Villa', 'dorm' => 'Dorm'] as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select></label>
+                    <label class="vy-field"><span class="vy-label">Sleeps (adults)</span>
+                        <input class="vy-input" type="number" name="max_adults" value="2" min="1" max="30" required></label>
+                    <label class="vy-field"><span class="vy-label">Children</span>
+                        <input class="vy-input" type="number" name="max_children" value="0" min="0" max="30" required></label>
+                    <button type="submit" class="vy-btn">Add room type</button>
+                </form>
+
+                @if (count($roomTypes) === 0)
+                    <p class="vy-line-sub">Add a room type above, and the unit form appears here.</p>
+                @else
+                    <form method="POST" action="{{ route('app.inventory.units.store') }}" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;align-items:end">
+                        @csrf
+                        <label class="vy-field"><span class="vy-label">Room type</span>
+                            <select class="vy-input" name="room_type_id" required>
+                                @foreach ($roomTypes as $rt)
+                                    <option value="{{ $rt['id'] }}">{{ $rt['name'] }}</option>
+                                @endforeach
+                            </select></label>
+                        <label class="vy-field"><span class="vy-label">Unit code</span>
+                            <input class="vy-input" name="code" required maxlength="60" placeholder="101"></label>
+                        <label class="vy-field"><span class="vy-label">Name (optional)</span>
+                            <input class="vy-input" name="name" maxlength="255" placeholder="Room 101"></label>
+                        <button type="submit" class="vy-btn">Add unit</button>
+                    </form>
+                @endif
+            </div>
+        @endcan
 
     </x-operator.shell>
 

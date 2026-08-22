@@ -172,7 +172,7 @@
                     <label class="vy-label" for="property_name">Your first property</label>
                     <input class="vy-input" id="property_name" name="property_name" value="{{ old('property_name') }}" placeholder="e.g. Seaside Villas" required>
                 </div>
-                <p class="vy-note">We'll create your organization + this property and sign you in. You'll add units, rates &amp; channels next — connecting channels is optional (<span class="vy-soon-tag">Soon</span>), finish without them anytime.</p>
+                <p class="vy-note">We'll create your organization + this property and sign you in. You'll add a room type, a unit and a rate plan next — connecting channels is optional (<span class="vy-soon-tag">Soon</span>), finish without them anytime.</p>
                 <div class="vy-actions" data-nav>
                     <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
                     <button type="submit" class="vy-btn">Create my account</button>
