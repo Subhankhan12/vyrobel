@@ -468,6 +468,19 @@ class AppServiceProvider extends ServiceProvider
             ? Limit::perMinute((int) config('services.marketing.try_booking_rate_limit', 40))->by($request->ip() ?? 'unknown')
             : Limit::none());
 
+        // ⚠️ THE PUBLIC CONTACT FORM (front-website Gate 7) — per IP, on an unauthenticated WRITE that
+        // sends mail. The two properties that make it worth a limiter of its own: it is the only public
+        // endpoint that persists a row a stranger composed, and it is the only one that can cause an email
+        // to be sent. Left ungoverned it is a free mail relay and a free disk-filler.
+        //
+        // ⚠️ SET FOR THE HONEST MISTAKE, NOT THE ATTACK. Five a minute is far above anything a person
+        // writing a message does — including mistyping their address and resubmitting twice — and far below
+        // what makes the endpoint useful to anyone else. The abusive case is caught by the honeypot before
+        // it reaches validation; this bounds the merely noisy one.
+        RateLimiter::for('marketing-contact', fn (Request $request): Limit => Limit::perMinute(
+            (int) config('services.marketing.contact_rate_limit', 5)
+        )->by($request->ip() ?? 'unknown'));
+
         // PER-IP AUTH THROTTLE (audit 2026-08-07 · F-2a-04).
         //
         // ⚠️ THE FINDING WAS HALF RIGHT, and the difference decides the fix. The audit reported "no rate limit

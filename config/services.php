@@ -142,6 +142,16 @@ return [
 
     'marketing' => [
         'try_booking_rate_limit' => env('TRY_BOOKING_RATE_LIMIT', 40),
+
+        // ⚠️ WHERE A CONTACT-FORM SUBMISSION IS ANNOUNCED. The founder's real mailbox, set in the
+        // environment — deliberately NOT defaulted to an invented address. ⚠️ Unset is a supported state,
+        // not a broken one: the message is written to `marketing_contact_messages` first and the email is
+        // only a notification, so an unconfigured destination costs the notification and never the message.
+        'contact_to' => env('MARKETING_CONTACT_TO'),
+
+        // Per-IP cap on the public contact POST. Generous enough that a person who mistypes their email and
+        // resubmits is never blocked; low enough that the endpoint is not a free mail relay.
+        'contact_rate_limit' => env('MARKETING_CONTACT_RATE_LIMIT', 5),
     ],
 
     /*

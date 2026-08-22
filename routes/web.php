@@ -47,6 +47,7 @@ use App\Http\Controllers\Guest\GuestTripsController;
 use App\Http\Controllers\Guest\GuestWalletController;
 use App\Http\Controllers\Guest\MarketingUnsubscribeController;
 use App\Http\Controllers\HousekeepingActionController;
+use App\Http\Controllers\MarketingContactController;
 use App\Http\Controllers\MarketingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
@@ -533,8 +534,14 @@ Route::prefix('stay/{organization}')
  * namespace made an unrelated route answer `Route::has('marketing.unsubscribe')`. Caught by a
  * count-pinned test, which is exactly what count-pinning is for.
  *
- * NOT registered yet, on purpose: `/try-booking` (⚠️ blocked on D3 — a simulated booking flow would be
- * #39), and every page from Gates 3–6.
+ * ⚠️ NOT registered yet, and each absence is a RULING, not a backlog item — see the group below for the
+ * current list (`alternatives` / `compare`, the 27 docs, and the four Gate 7 pages refused on 2026-08-22).
+ *
+ * ⚠️ THIS COMMENT WAS STALE AND SAID THE OPPOSITE OF THE CODE. It read "NOT registered yet, on purpose:
+ * `/try-booking` … and every page from Gates 3–6" while `/try-booking` (Gate 4) and the four Gate 3b
+ * scenario pages were registered thirty lines below it. Found by the Gate 7 audit reading the file rather
+ * than the comment. ⚠️ A comment that outlives its subject is a claim like any other: nothing fails when it
+ * goes stale, and the next reader believes it.
  */
 /*
  * ══ THE COOKIE NOTICE (front-website Gate 6, ruling D11) ═══════════════════════════════════════════
@@ -575,9 +582,10 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     // claims about named competitors (Mews / Cloudbeds / Guesty / Hostaway), which sit entirely outside
     // the content-honesty gate's reach — nothing in CI can see them. Audited and surfaced instead of
     // shipped: docs/audits/FRONT-GATE3-HONESTY-AUDITS-2026-08-21.md.
-    // ⚠️ The three case studies + their index are absent for the same class of reason: their SUBJECT is
-    // D1's three invented, unconsented customers. Their links stay pending, which is the correct state —
-    // an empty publicly-routed URL would be worse than no page.
+    // ⚠️ The three case studies were absent for the same class of reason — their SUBJECT was D1's three
+    // invented, unconsented customers — until Gate 3b REBUILT them as explicitly-labelled illustrative
+    // scenarios and registered them below under `/example-scenarios`. (This paragraph still claimed they
+    // were absent; corrected by the Gate 7 audit, which read the routes rather than the prose.)
     Route::get('/switching', 'switching')->name('switching');
     Route::get('/for-hotels', 'forHotels')->name('for-hotels');
     Route::get('/for-apartments', 'forApartments')->name('for-apartments');
@@ -594,7 +602,45 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     Route::get('/example-scenarios/villa-portfolio', 'scenarioVillas')->name('story-cyclades');
     Route::get('/example-scenarios/city-hotel', 'scenarioHotel')->name('story-lisbon');
     Route::get('/example-scenarios/serviced-apartments', 'scenarioApartments')->name('story-rotterdam');
+
+    // ── Gate 7 · the COMPANY pages ─────────────────────────────────────────────────────────────────
+    // ⚠️ FOUR OF TEN. The doc-truth audit rated 147 claims across the ten and found 75 FALSE
+    // (docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-2026-08-22.md). These four survive because their false
+    // claims could be CORRECTED against the code; the other six could not, and each absence is a ruling:
+    //
+    //  • `careers`  — its SUBJECT is a company that does not exist. Four "open roles" at a business with one
+    //    person, a studio in Rotterdam, published salary bands, a four-day fortnight that "survived two
+    //    release crunches" (there have been zero releases), twice-yearly on-sites "at a property that runs on
+    //    Vyrobel" (there are no customers), and "the best hires we've made". Removing the false claims
+    //    removes the page. ⚠️ NOTHING IS DISCARDED BY ITS ABSENCE: the page has no form and no file input —
+    //    all five of its CTAs point at /contact, which now works.
+    //  • `changelog` — a changelog asserts a RELEASE HISTORY. There are zero git tags across 863 commits and
+    //    the product has never been deployed. ⚠️ THREE of its eight dated entries PREDATE the repository's
+    //    first commit (2026-07-02) and TWO are dated in the FUTURE — the newest, presented as most recently
+    //    shipped, is 45 days ahead of today. No labelling cures a date that cannot have happened.
+    //  • `demo-confirmed` — the post-submit state of the demo booker, refused with D5.
+    //  • `privacy` / `terms` — LEGAL DOCUMENTS. Their structure and a cited data inventory are prepared for
+    //    counsel in docs/legal/; the text is not this pass's to draft, and a plausible-looking privacy policy
+    //    is worse than none because the founder and their customers' auditors would rely on it.
+    Route::get('/integrations', 'integrations')->name('integrations');
+    Route::get('/security', 'security')->name('security');
+    Route::get('/about', 'about')->name('about');
+    Route::get('/contact', 'contact')->name('contact');
 });
+
+/*
+ * ══ THE CONTACT FORM'S WRITE (front-website Gate 7) ════════════════════════════════════════════════
+ *
+ * ⚠️ DELIBERATELY OUTSIDE the `marketing.page.*` group, for the same reason the cookie POST is: that name
+ * prefix is a contract {@see App\Support\Marketing\MarketingUrls::pending()} reads to decide whether a page
+ * exists, and a count-pinned test guards it. This is a write, not a page.
+ *
+ * ⚠️ THE ONLY PUBLIC ENDPOINT THAT PERSISTS A STRANGER'S PROSE AND CAN CAUSE MAIL TO BE SENT, so it carries
+ * its own limiter rather than borrowing one. No `can:` — there is no actor to authorize; a throttle, a
+ * honeypot and hard length caps stand in its place.
+ */
+Route::post('/contact', [MarketingContactController::class, 'store'])
+    ->middleware('throttle:marketing-contact')->name('marketing.contact.store');
 
 /*
  * THE OPERATOR APP (/app) — `auth` + the BACK-OFFICE GATE.

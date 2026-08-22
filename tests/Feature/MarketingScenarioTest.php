@@ -30,7 +30,11 @@ function mkAllMarketingViews(): array
     // ⚠️ COUNT-PINNED: a page added without extending these sweeps is a page nothing checks.
     // ⚠️ 15 since Gate 4 added the try-booking sandbox. A page added without extending these sweeps is a
     // page nothing checks, so the count moves only when a gate says so.
-    Assert::assertCount(15, $views, 'the marketing page set changed: '.implode(', ', $views));
+    // ⚠️ 19 since Gate 7: + about, security, integrations, contact. The other six company pages are
+    // REFUSED, not pending — careers and changelog because their subjects (a company with staff, a release
+    // history) do not exist; demo-confirmed with D5; privacy and terms because drafting legal text is not a
+    // build step. See docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-2026-08-22.md. The pin moves with a ruling.
+    Assert::assertCount(19, $views, 'the marketing page set changed: '.implode(', ', $views));
 
     return $views;
 }

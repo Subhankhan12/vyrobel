@@ -14812,3 +14812,134 @@ width and `/app/reservations`, which this gate never touched, has **850px**. Tha
 of the realm, not of this change, and is not "fixed" here. (The console errors on `/app/units` are equally
 pre-existing: demo photo URLs are absolute `localhost:8000` while the page is served from `127.0.0.1`, so
 CSP `img-src 'self'` blocks them.)
+
+---
+
+## 2026-08-22 — FRONT WEBSITE · GATE 7: THE COMPANY PAGES (audit-first, with a legal boundary)
+
+Ten prototypes audited against the code before a line was built. **147 claims, 75 FALSE.** Four pages
+published with every false claim corrected; six refused, each on a ruling.
+Full detail: `docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-2026-08-22.md`.
+
+### ⚠️ #1 The legal boundary held — structure and a cited inventory, no drafted text
+
+⚠️ **NO PRIVACY-POLICY OR TERMS TEXT WAS WRITTEN**, and neither page is published or routed. A
+plausible-looking policy is worse than none: the founder would rely on it, and so would their customers'
+auditors. What was produced instead is the thing only this codebase can produce — **`docs/legal/DATA-INVENTORY.md`,
+142 cited entries across five domains**, plus `PRIVACY-STRUCTURE.md` and `TERMS-STRUCTURE.md` giving the
+design's own section order with what the code supports under each.
+
+⚠️ **They are DOCUMENTS, not unrouted Blade views.** An unrouted view is dead code one route away from being
+live, and the one thing these must never do is get published by accident.
+
+⚠️ **96 of the 142 entries have no retention rule, no deletion path, or both** — the single most useful output.
+Five are GDPR-material today, and the first is the worst shape a gap can take:
+
+⚠️ **A CODE COMMENT DEFERS A GDPR CASE TO A MECHANISM THAT DOES NOT EXIST.** `Guest::anonymize()` states at
+`app/Models/Guest.php:349-351` that abandoned booking quotes *"are cleared by the scheduled retention purge,
+not from here."* **There is no scheduled retention purge** — the eight scheduled commands are enumerated in
+`routes/console.php:15-72` and none touches `BookingQuote`. A prospective guest's encrypted email, phone and
+snapshot are retained indefinitely and are unreachable by erasure, while the code reads as though handled.
+⚠️ **Not an absence — an absence with a comment saying it is covered.** The next reader ticks the box.
+
+Also: **no account deletion exists for any human account or organisation** (`SoftDeletes` is declared on
+`User` and never called) · `audit_events` holds IP and user-agent permanently with no prune ·
+`webhook_events.payload` retains OTA guest name/email/phone verbatim, unreachable by erasure · **backups are
+an unfiltered `mysqldump`, so a restore reinstates erased data** · staff leave requests carry a free-text
+`reason` (possible Article 9) with no retention and no delete route · and **`localStorage` is undisclosed
+terminal-equipment storage**, in ePrivacy scope on the same footing as a cookie.
+
+✅ Two corrections in the founder's favour, both found by re-checking: **`ops/deploy.sh:168` now installs the
+scheduler cron itself and refuses to deploy if told to skip it** — the "GDPR depends on a crontab line nobody
+installs" caveat is out of date; and **backups exist with a proven restore drill**.
+
+### ⚠️ #2 Two findings are PRODUCT defects, not copy defects — reported, not fixed
+
+⚠️ **NINETEEN OPERATOR SCREENS CARRY NO PERMISSION GATE, AND THREE RENDER MONEY.** The design claims *"a
+housekeeper sees rooms, not revenue."* The role catalogue models that correctly and the dedicated Reports,
+Insights and Guests screens refuse Housekeeping — but `routes/web.php:620` registers `/app/dashboard` with no
+`can:`, and `OperatorDashboard.php:123` computes "Revenue today" unconditionally. The marketing sentence was
+cut back to the two clauses that ARE enforced. ⚠️ **The gate itself is a separate change and the founder's
+call.** The second is the phantom retention purge above.
+
+### #3 The six refusals
+
+⚠️ **`careers`** — its subject is a company that does not exist: four openings at a one-person business, a
+studio in Rotterdam, published salary bands, a four-day fortnight that *"survived two release crunches"*
+(**zero releases**), on-sites *"at a property that runs on Vyrobel"* (**no customers**), *"the best hires
+we've made"* (**no hires**), and one role card asserting *"two operator customers"*. Removing the false claims
+removes the page. ⚠️ **Nothing is discarded by refusing it** — verified, not assumed: the page has **no form
+and no file input**; all five CTAs point at `/contact`, which now works. Rule #4's premise is not met.
+
+⚠️ **`changelog`** — ⚠️ **the brief said seven entries; there are EIGHT.** Three predate the repository's
+first commit (2026-07-02): 26 May, 9 June, 23 June. **Two are dated in the FUTURE** — 22 September and
+6 October — and the 6 October one is presented as most recently shipped, 45 days ahead of today. Nothing has
+ever shipped: zero tags across 863 commits, no deploy run, `APP_ENV=local`. ⚠️ **No labelling cures a date
+that cannot have happened.** A real DEVELOPMENT log could later be derived from `DECISIONS.md`; that is a
+different claim and a founder decision.
+
+⚠️ **`demo-confirmed`** — the post-submit state of the demo booker refused with D5.
+⚠️ **`privacy` / `terms`** — the legal boundary above.
+
+### #4 Contact — built, because a form that does not send is #39
+
+⚠️ The design's submit was an `sc-camel-on-click` handler with no `<form>`, no `action` and no endpoint —
+**and `key="contact"` appears 21 times across nine PUBLISHED pages**, so it is the destination of nearly every
+call to action the site makes. It now posts to a real route: validated, throttled per IP, honeypotted, and
+written to `marketing_contact_messages` **inside a transaction BEFORE any mail is attempted**.
+
+⚠️ **THE ROW IS THE SYSTEM OF RECORD; THE EMAIL IS A NOTIFICATION** — because `MailSafetyGuard` downgrades
+every sending transport to `log` outside production, so a mail-only form would silently destroy every message
+sent before go-live. ⚠️ It also works with **no destination configured** (`MARKETING_CONTACT_TO` is blank in
+`.env.example` — the address is the founder's and no placeholder is shipped): an unset address costs the
+notification, never the message.
+
+⚠️ Refused with it: **no auto-reply** (a reply-time promise nothing keeps — the design asserted one twice),
+**no demo slot picker** (D5; there is no scheduling package, no meeting provider and no invite generator, so
+it would name a time and book nothing), **no support widget** (D4; it would be the first third-party request
+on a site that deliberately makes none). Also removed: an invented `support@vyrobel.com`, two offices, and a
+*"Quoting the GROWTH plan"* banner for a plan that does not exist.
+
+### ⚠️ #5 The generator now refuses to finish on a silent no-op
+
+⚠️ **THE GATE-6 DPA TRANSFORM — written explicitly so "a page built later would otherwise inherit the
+sentence" — MATCHED NONE OF THE SIX DPA MENTIONS ON THE THREE GATE-7 PAGES IT WAS MEANT TO PROTECT.** It
+looked like forward protection and was a record of the four phrasings one reader had seen. That is the third
+silent no-op in this project (the B12 price needle, this, and Gate 7's own first draft).
+
+So the converter gained a **reporting matcher**: it normalises the punctuation the design mixes and **records
+every needle**, and the generator **exits non-zero when one matched nothing**. Mutation-proven — a
+one-character change to a needle makes it refuse. It immediately earned itself three times: a needle that
+no-oped because an *earlier transform in the same pipeline* had already rewritten its text; four needles left
+dead by a later element cut; and a needle transcribed from a truncated dump.
+
+⚠️ **AND IT CANNOT CATCH EVERYTHING.** Three Integrations corrections were **lost in a refactor** — the hero
+still asserted a live channel sync directly above three pills reading "Not connected". A needle that was
+never written matches nothing to report. **Only opening the page found it.**
+
+### ⚠️ #6 ALL NINETEEN MARKETING PAGES HAD LOST THE DESIGN'S RESPONSIVE RULES
+
+⚠️ The prototypes are inline-styled, but their **responsive behaviour lives in a `<style>` block — and the
+converter strips `<style>` with `<script>`.** Every page kept the design's hooks (`data-h1` and `data-sec` on
+all 19, `data-two` on 9, `data-bandinner` on 8) and **nothing read one of them.** The public marketing site
+was non-responsive below 980px for six gates.
+
+⚠️ **NO ASSERTION COULD HAVE FOUND IT.** The pages returned 200, leaked no raw Blade, and **did not even
+overflow** — a grid squeezes its columns rather than overflowing, so `document.scrollWidth` looked perfect
+while the contact card sat at 241px on a phone. **Layout does not fail loudly.** Found by taking a screenshot
+at 390px.
+
+Fixed by extracting the **114 declarations across 10 breakpoints** from the 19 masters' own stylesheets into
+the shared shell — the design's rules, not invented ones, all `max-width`, so no desktop rendering changes.
+Guarded and mutation-proven.
+
+### #7 Verification
+
+Suite green, run ALONE. PHPStan L5 **0**; Pint clean; **money as seeded unchanged**; the **eight CI gates,
+`ops/` and the seeder untouched** (0 changed files). **Nine mutations, all RED**, each guard with its own
+vacuity check. All four pages browser-verified at desktop and 390px, and a real POST proven end to end
+through the running server.
+
+**Out of scope and untouched:** the 19 ungated operator screens · the phantom retention purge · channels ·
+statement finalisation (②) · P-7 · the seeder · **and NO SEO artifacts** — the published set is still moving,
+and when the sitemap comes the storefront must end up ALLOWED and SITEMAPPED.

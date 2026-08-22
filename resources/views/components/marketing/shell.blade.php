@@ -161,6 +161,174 @@
         .vy-mk-legal-links { display: inline-flex; gap: 16px; }
         .vy-mk-legal-links a, .vy-mk-legal-links span[data-vy-pending] { color: var(--vy-faint); text-decoration: none; }
         .vy-mk-legal-links a:hover { color: var(--vy-accent-text); }
+
+        /* ── The contact form's chips (Gate 7) ─────────────────────────────────────────────────
+           ⚠️ RADIOS STYLED AS CHIPS, not buttons. The design drew these as <button>s whose selection lived
+           in React state — which posts nothing. A real radio posts its value, is keyboard-navigable with
+           the arrow keys and announces its group to a screen reader, all of which a styled button would
+           have to reimplement badly. The input is hidden visually but never with display:none, which would
+           take it out of the focus order. */
+        /* ══ ⚠️⚠️ THE DESIGN'S OWN RESPONSIVE RULES, RESTORED FOR EVERY PAGE (Gate 7) ═══════════════
+           ⚠️⚠️ ALL NINETEEN BUILT MARKETING PAGES HAD LOST THESE, AND NOBODY NOTICED FOR SIX GATES. The
+           prototypes are inline-styled throughout — but their RESPONSIVE behaviour lives in a `<style>`
+           block, and the converter strips `<style>` along with `<script>`. So every page kept the design's
+           hooks (`data-h1` and `data-sec` are on all 19; `data-two` on 9; `data-bandinner` on 8) and
+           nothing read a single one of them. A two-column layout drawn as `1.35fr .85fr` stayed two columns
+           at 390px, with the contact card squeezed to 241px and the right rail beside it.
+
+           ⚠️ THESE ARE THE DESIGN'S OWN RULES, extracted from the 19 masters' stylesheets and deduplicated
+           — 114 declarations across 10 breakpoints. Not one is invented here. The `!important` markers are
+           the design's too, and they are load-bearing: the columns they override are declared in an inline
+           style, which no class or attribute selector can outrank.
+
+           ⚠️ ORDERED WIDEST-FIRST so a narrower breakpoint wins, and every condition is `max-width`, so
+           nothing here can change a desktop rendering.
+
+           ⚠️ FOUND BY TAKING A SCREENSHOT AT A PHONE WIDTH — not by any assertion, and not by the earlier
+           check that measured `document.scrollWidth` and reported no overflow. It reported none because a
+           grid does not overflow: it dutifully squeezes its columns to fit. ⚠️ LAYOUT DOES NOT FAIL LOUDLY,
+           which is exactly why the render step of this gate exists. */
+        @media (max-width: 1040px) {
+            [data-fgrid] { grid-template-columns: 1fr 1fr !important; }
+            [data-jump] { position: static !important; }
+            [data-mgrid] { grid-template-columns: 1fr 1fr !important; }
+            [data-plans] { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 1020px) {
+            [data-fwrap] { grid-template-columns: 1fr !important; gap: 26px !important; }
+            [data-fcol] { position: relative !important; top: auto !important; height: 500px !important; }
+            [data-fstep] { min-height: 0 !important; padding: 22px 0 !important; }
+            [data-day-card] { left: 0 !important; bottom: -20px !important; }
+            [data-hero] { grid-template-columns: 1fr !important; gap: 46px !important; }
+            [data-split] { grid-template-columns: 1fr !important; }
+            [data-split-rev] { grid-template-columns: 1fr !important; }
+            [data-trio] { grid-template-columns: 1fr !important; }
+            [data-plans] { grid-template-columns: 1fr !important; }
+            [data-gallery] { grid-template-columns: 1fr 1fr !important; grid-template-rows: 300px 300px !important; }
+            [data-gallery] > div:first-child { grid-column: span 2 !important; height: 100% !important; min-height: 0 !important; }
+            [data-gallery] > div:not(:first-child) { height: 100% !important; min-height: 0 !important; display: grid !important; grid-template-columns: 1fr 1fr !important; grid-template-rows: 1fr !important; gap: 14px !important; }
+            [data-gallery] > div > div { height: auto !important; min-height: 0 !important; }
+            [data-morphwrap] { grid-template-columns: 1fr !important; gap: 24px !important; }
+            [data-morphtrack] { position: static !important; }
+            [data-morphcol] { position: relative !important; top: auto !important; height: 580px !important; }
+            [data-morphstep] { min-height: auto !important; padding: 26px 0 !important; }
+            [data-split-rev] > * { order: 0 !important; }
+        }
+        @media (max-width: 1000px) {
+            [data-story] { grid-template-columns: 1fr !important; }
+            [data-story] [data-side] { order: 2; }
+            [data-three] { grid-template-columns: 1fr !important; }
+            [data-quad] { grid-template-columns: 1fr !important; }
+            [data-two] { grid-template-columns: 1fr !important; }
+            [data-shifts] { grid-template-columns: 1fr !important; }
+            [data-ownernotes] { grid-template-columns: 1fr !important; }
+            [data-yeargrid] { grid-template-columns: repeat(6, 1fr) !important; }
+            [data-book] { grid-template-columns: 1fr !important; }
+            [data-summary] { position: static !important; }
+        }
+        @media (max-width: 980px) {
+            [data-two] { grid-template-columns: 1fr !important; }
+            [data-trio] { grid-template-columns: 1fr !important; }
+            [data-team] { grid-template-columns: 1fr 1fr !important; }
+            [data-clayout] { grid-template-columns: 1fr !important; }
+            [data-frow] { grid-template-columns: 1fr !important; }
+            [data-steprow] { grid-template-columns: 1fr !important; gap: 24px !important; }
+            [data-steprow] [data-stepart] { order: 2; }
+            [data-igrid] { grid-template-columns: 1fr 1fr !important; }
+            [data-sgrid] { grid-template-columns: 1fr 1fr !important; }
+            [data-estwrap] { grid-template-columns: 1fr !important; }
+            [data-split] { grid-template-columns: 1fr !important; }
+            [data-timeline] { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 860px) {
+            [data-stats] { grid-template-columns: 1fr 1fr !important; }
+            [data-steps] { grid-template-columns: 1fr !important; }
+            [data-quotes] { grid-template-columns: 1fr !important; }
+            [data-flowrow] { flex-direction: column !important; gap: 0 !important; }
+            [data-flowarrow] { width: 100% !important; padding: 14px 0 !important; flex-direction: row !important; gap: 12px !important; justify-content: center !important; }
+            [data-flowarrow] svg { transform: rotate(90deg); width: 46px !important; }
+            [data-gallery] { grid-template-columns: 1fr 1fr !important; grid-template-rows: 200px 340px !important; }
+            [data-gallery] > div { height: 100% !important; min-height: 0 !important; }
+            [data-gallery] > div > div { height: auto !important; min-height: 0 !important; }
+            [data-gallery] > div:not(:first-child) { display: grid !important; grid-template-columns: 1fr !important; grid-template-rows: 1fr 1fr !important; gap: 12px !important; }
+            [data-gallery] > div > div { grid-row: auto !important; }
+            [data-gallery] > div:first-child { grid-row: span 1 !important; grid-column: span 2 !important; }
+            [data-mockrail] { display: none !important; }
+            [data-mockstats] { grid-template-columns: repeat(3, 1fr) !important; }
+            [data-mockstats] > div:nth-child(n+4) { display: none !important; }
+            [data-mockbody] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 44px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-h1] { font-size: 42px !important; }
+            [data-sec]:has([data-bandinner]) { padding-left: 0 !important; padding-right: 0 !important; }
+            [data-bandinner] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-probs] { grid-template-columns: 1fr !important; }
+            [data-facts] { grid-template-columns: 1fr 1fr !important; }
+            [data-two] { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 760px) {
+            [data-plans] { grid-template-columns: 1fr !important; }
+            [data-cmpscroll] { overflow-x: auto; }
+            [data-cmp] thead th { position: static !important; }
+            [data-h1] { font-size: 40px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-sec]:has([data-bandinner]) { padding-left: 0 !important; padding-right: 0 !important; }
+            [data-bandinner] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-cmp] { font-size: 12px !important; }
+        }
+        @media (max-width: 720px) {
+            [data-fgrid] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 40px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-sec]:has([data-bandinner]) { padding-left: 0 !important; padding-right: 0 !important; }
+            [data-bandinner] { padding-left: 20px !important; padding-right: 20px !important; }
+        }
+        @media (max-width: 700px) {
+            [data-h1] { font-size: 40px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-sec]:has([data-bandinner]) { padding-left: 0 !important; padding-right: 0 !important; }
+            [data-bandinner] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-mgrid] { grid-template-columns: 1fr !important; }
+            [data-incl] { grid-template-columns: 1fr !important; }
+            [data-stagerail] { gap: 6px !important; }
+            [data-stagebtn] { padding: 9px 13px !important; }
+            [data-h1] { font-size: 34px !important; }
+            [data-pn] { flex-direction: column !important; }
+            [data-pull] { font-size: 20px !important; padding-left: 20px !important; }
+            [data-facts] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 38px !important; }
+            [data-step] { flex-direction: column !important; gap: 14px !important; }
+            [data-stepnum] { margin-bottom: 0 !important; }
+        }
+        @media (max-width: 640px) {
+            [data-team] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 40px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-h1] { font-size: 38px !important; }
+            [data-nums] { grid-template-columns: 1fr 1fr !important; }
+            [data-sec]:has([data-bandinner]) { padding-left: 0 !important; padding-right: 0 !important; }
+            [data-bandinner] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-nums] { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 620px) {
+            [data-fcol] { height: 540px !important; }
+            [data-morphcol] { top: auto !important; }
+            [data-modgrid] { grid-template-columns: 1fr 1fr !important; }
+            [data-h1] { font-size: 36px !important; }
+            [data-igrid] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 38px !important; }
+            [data-sec] { padding-left: 20px !important; padding-right: 20px !important; }
+            [data-sgrid] { grid-template-columns: 1fr !important; }
+            [data-h1] { font-size: 34px !important; }
+            [data-sec] { padding-left: 18px !important; padding-right: 18px !important; }
+        }
+
+        .vy-chip { display: inline-flex; cursor: pointer; }
+        .vy-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+        .vy-chip span { display: inline-block; padding: 10px 15px; border-radius: 11px; border: 1px solid rgba(150,90,50,.2); background: rgba(255,255,255,.6); font-family: var(--vy-sans); font-size: 13px; color: var(--vy-ink); transition: all .2s ease; }
+        .vy-chip input:checked + span { border-color: var(--vy-accent); background: rgba(217,102,46,.12); color: var(--vy-accent-text); font-weight: 600; }
+        .vy-chip input:focus-visible + span { outline: 2.5px solid var(--vy-accent); outline-offset: 3px; }
+        @media (prefers-reduced-motion: reduce) { .vy-chip span { transition: none; } }
     </style>
     {{ $head ?? '' }}
 </head>

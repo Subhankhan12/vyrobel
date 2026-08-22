@@ -99,6 +99,39 @@ class MarketingController extends Controller
         return view('marketing.story-lisbon');
     }
 
+    // ── Gate 7 · the company pages ──────────────────────────────────────────────────────────────────
+    //
+    // ⚠️ FOUR OF THE TEN GATE 7 PAGES ARE HERE, and the other six are absent on rulings recorded in
+    // docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-2026-08-22.md — Careers and Changelog because their SUBJECT is
+    // a company and a release history that do not exist; Demo Confirmed because it is the post-submit state
+    // of a demo booker refused with D5; and Privacy and Terms because they are legal documents whose text is
+    // the founder's lawyer's to write, not this pass's.
+
+    public function integrations(): View
+    {
+        return view('marketing.integrations');
+    }
+
+    public function security(): View
+    {
+        return view('marketing.security');
+    }
+
+    public function about(): View
+    {
+        return view('marketing.about');
+    }
+
+    /**
+     * ⚠️ THE FORM ON THIS PAGE POSTS FOR REAL — see {@see MarketingContactController}.
+     * The demo booker the design drew alongside it is deliberately absent (D5 open): there is no scheduling
+     * integration anywhere in the product, so a slot picker would name a time and book nothing.
+     */
+    public function contact(): View
+    {
+        return view('marketing.contact');
+    }
+
     public function scenarioApartments(): View
     {
         return view('marketing.story-rotterdam');

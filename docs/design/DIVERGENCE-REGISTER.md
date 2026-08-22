@@ -542,3 +542,21 @@ prototype is a divergence even when the work is necessary.
 | ⚠️ **"Finish setup — add units, rates & channels — to go live"** | ✅ **FIXED — it instructed three impossible things** | Five copy sites named steps a tenant could not take. Units and rate plans are possible now; ⚠️ **channels are not** (decision ④, where *remove* is still live), so channels are no longer instructed anywhere in the setup path. |
 | ⚠️ **The empty state on `/app/units`** | ✅ **FIXED** | Read *"add a property and room types to see its units"* — room types could not be created at all. It now names the two real steps in order, with the forms directly below. |
 | ⚠️ **"No rate plan — add one to price it"** | ✅ **FIXED** | `RateActionController` could report the state but offered no remedy. The line now links to the form, and the post-apply summary says "add one below". |
+
+## FRONT WEBSITE · Gate 7 — the company pages (2026-08-22)
+
+Ten prototypes; four published, six refused. Every divergence below is a **content** divergence forced by the
+doc-truth audit, except the last, which is a presentation defect found in the whole marketing realm.
+
+| page | verdict | divergence |
+|---|---|---|
+| **Security** | ✅ **KIND-2 → corrected, not softened** | 7 FALSE + 11 PARTIAL claims rewritten against cited code. ⚠️ "Hosted in the EU" → "Encryption and isolation" (nothing is deployed) · 2FA enforcement, account deletion, the DPA and the sub-processor list all corrected to what exists. ⚠️ The page's **restraint is kept** — it claims no certification, pen-test, uptime or SLA, and every one of those would have been false. |
+| **Integrations** | ✅ **KIND-2 → corrected** | The three OTA channels are **UNREACHABLE**, so their cards say so and the three "Synced" pills read **"Not connected"** — which is what the operator Channels screen shows. Stripe, exports, connected apps and the 0%-commission direct storefront are real and kept. |
+| **About** | 🚫 **KIND-2 → the team block DELETED** | Four named "team members" for a **one-person company** — two already in the honesty ledger as invented CUSTOMER testimonial authors, a third a recombination of two more. ⚠️ **Deleted, not renamed:** renaming an invented co-founder invents a different one, so the D13 rename transform is explicitly scoped away from this page. The three D1 customers (Cyclades / Rotterdam / Lisbon) de-specified to the pattern. |
+| **Contact** | ✅ **KIND-1 → the form became real** | Posts to a real route with a real store. ⚠️ The **demo booker is removed** (D5 open) with its rail card — removing a feature and leaving its advertisement is how a dead control survives a cleanup. |
+| **Careers** | 🚫 **REFUSED** | Its subject is a company that does not exist. ⚠️ **No control was discarded** — the page has no form and no file input; all five CTAs point at `/contact`. |
+| **Changelog** | 🚫 **REFUSED** | ⚠️ **Eight entries, not the seven expected.** Three predate the first commit, two are dated in the future. Zero releases have ever happened. |
+| **Demo Confirmed** | 🚫 **REFUSED** | The post-submit state of a booker refused with D5. |
+| **Privacy · Terms** | 📐 **BEYOND THE BOUNDARY** | Legal documents. Structure + a **cited 142-entry data inventory** prepared in `docs/legal/`; **not drafted, not routed, not published.** |
+| **404** | 📐 **DOCUMENTED, not rebuilt** | ⚠️ A branded, **realm-aware** error page already exists (`resources/views/errors/`, via `App\Support\ErrorRealm`) and serves operator, owner, guest, storefront and admin. Replacing it with the marketing 404 would give an operator a marketing-branded error with marketing nav, and would show a guest who mistyped a storefront URL a Vyrobel sales page. ⚠️ **The existing page is better than the prototype for every realm but one**; a marketing-only variant needs a realm split (`/book/*` and `/stay/*` are also "public") and is a founder call, not a silent swap. |
+| ⚠️ **ALL 19 marketing pages** | ✅ **KIND-1 — the design's own responsive CSS restored** | ⚠️ The converter strips `<style>` with `<script>`, so **every page had lost its master's media queries** while keeping their hooks. The site was non-responsive below 980px for six gates. 114 declarations across 10 breakpoints restored from the masters into the shared shell. |

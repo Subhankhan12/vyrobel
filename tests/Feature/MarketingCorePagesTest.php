@@ -102,7 +102,10 @@ it('uses the slugs from the design’s own sitemap, not filename guesses', funct
     // …and the pages NOT built this gate are still pending, so their links stay marked.
     // ⚠️ `try-booking` left this list in Gate 4, which rebuilt it as an honest sandbox (ruling D3 = (b)).
     // The pin moves with a ruling, never silently.
-    foreach (['docs', 'contact', 'about', 'careers'] as $unbuilt) {
+    // ⚠️ Gate 7 built `contact` and `about` (plus `security` and `integrations`), so they leave this list —
+    // and `careers` STAYS, because its refusal is a ruling, not a backlog item: the page's subject is a
+    // company with staff, offices and a hiring history that do not exist.
+    foreach (['docs', 'careers', 'changelog', 'privacy', 'terms'] as $unbuilt) {
         Assert::assertTrue(MarketingUrls::pending($unbuilt), "[{$unbuilt}] must remain pending until its gate builds it");
     }
 });
@@ -145,7 +148,12 @@ it('renders the illustrative shape locally, with the design’s own honesty labe
         Assert::assertStringContainsString($figure['label'], $home);
     }
     // ⚠️ COUNT-PINNED, REGION-SCOPED (Gate 1 lessons b + c): exactly the ledger's figures, inside the band.
-    $start = strpos($home, 'data-stats');
+    // ⚠️ ANCHORED ON THE ELEMENT, NOT THE BARE STRING — §N.27.5, hit for the fourth time in this project.
+    // This read `strpos($home, 'data-stats')`, which was unambiguous until Gate 7 restored the design's own
+    // media queries into the shell: the stylesheet in the <head> now contains `[data-stats] { … }`, which
+    // matches FIRST, so "the band" became a slice of the document head containing zero figures. ⚠️ The guard
+    // was right and its needle had become ambiguous — a page's own stylesheet is part of the page.
+    $start = strpos($home, '<div data-stats');
     Assert::assertNotFalse($start, 'the stats band did not render locally');
     $band = substr($home, $start, strpos($home, '</section>', $start) - $start);
     Assert::assertSame(count(MarketingContent::figures(filtered: false)), substr_count($band, 'data-fig='));
@@ -168,7 +176,8 @@ it('⚠️ takes the figure VALUES from the ledger, never from the design’s di
     // The design's own script and its ledger disagree (63%/11h vs 62/9). Gate 0 made the ledger the ONE
     // source; this pins that the page follows it, so the drift can never re-enter through the markup.
     $home = mkPage('home');
-    $start = strpos($home, 'data-stats');
+    // ⚠️ The element, not the bare attribute name — see the note in the test above.
+    $start = strpos($home, '<div data-stats');
     $band = substr($home, $start, strpos($home, '</section>', $start) - $start);
 
     foreach (MarketingContent::figures(filtered: false) as $key => $figure) {

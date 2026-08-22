@@ -32,7 +32,11 @@ it('serves the four claim-free Sales pages', function () {
     // ⚠️ 14 since Gate 3b: the six Core + four Sales + the four ILLUSTRATIVE SCENARIOS, which ruling (A)
     // reframed and routed under /example-scenarios. The pin moves with a ruling; it never moves silently.
     // ⚠️ 15 since Gate 4: the six Core + four Sales + four scenarios + the try-booking SANDBOX.
-    Assert::assertSame(15, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
+    // ⚠️ 19 since Gate 7: + about, security, integrations and contact. ⚠️ `marketing.contact.store` — the
+    // form's POST — is deliberately NOT in this count: it sits outside the `marketing.page.*` group because
+    // that prefix is the contract MarketingUrls::pending() reads to decide whether a PAGE exists, and a
+    // write is not a page. That separation is what this pin caught a name collision over in Gate 2.
+    Assert::assertSame(19, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
 });
 
 it('⚠️ leaves the audited pages UNROUTED — an empty or unsourced page must not be publicly reachable', function () {
