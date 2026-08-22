@@ -8309,3 +8309,43 @@ moment it enters version control destroys the provenance that made committing it
 
 ⚠️ **§N.31.4 STANDS, but with its precondition now stated:** *fixes live in the converter — **and the
 converter lives in git**. A transform in an unversioned generator is a transform that can evaporate.*
+
+## §N.33.4 ✅ RUNNABLE — and ⚠️ PRESERVING A TOOLCHAIN IS NOT THE SAME AS PROVING ONE (2026-08-23)
+
+The preservation commit was byte-identical **on purpose**, so the exposure MOVED rather than closed: the
+toolchain was readable but not runnable. Closed as a **separate commit**, so the diff shows what changed
+between *what ran* and *what runs*.
+
+⚠️ **THE REPORTED DEFECT WAS ONE PATH. THERE WERE SIX** — `convert.py:5` · `pxbuild.py:12`, `:13`, `:14`,
+`:18` · `g7build.py:12`, `:15`. All derived from `__file__` now.
+
+⚠️⚠️ **AND TWO PROBLEMS NO PATH AUDIT COULD HAVE FOUND. ONLY RUNNING IT DID:**
+
+1. ⚠️ **`heads_px.py` was MISSING from the preservation commit.** `pxbuild.py` imports `HEADS` from it via a
+   second `sys.path.insert` into a `g7/` subdirectory. **The driver could not have run from the repo at all.**
+   ⚠️ I committed a driver without its dependency *because I did not run it* — the same failure as not
+   reading a file before relying on it.
+2. ⚠️⚠️ **`decode.js` BECAME BROKEN BY BEING COMMITTED.** The repo's `package.json` declares
+   `"type": "module"`, so a `.js` file there is ESM and `require` is undefined; the scratchpad had no
+   `package.json`, so it ran as CommonJS. **Its contents never changed — its CONTEXT did.** Renamed `.cjs`.
+   ⚠️ **A file can be correct in isolation and broken in place.**
+
+### §N.33.5 ⚠️⚠️ THE REGENERATION PROOF CAUGHT A POST-GENERATION EDIT — MINE
+
+Six of seven pages regenerated **byte-identical** — the strongest evidence available that the converter
+doctrine actually held across the arc. ⚠️ **`switching.blade.php` did not.**
+
+⚠️⚠️ **The `Alternatives`/`Compare` drop (`fa62f82`) removed a dead CTA by editing the GENERATED BLADE
+DIRECTLY instead of adding the transform to the converter.** Regenerating `/switching` puts the dropped link
+back. **That is §N.31.4 violated by the very pass that was executing the ruling**, and it was invisible until
+a pass actually ran the generator.
+
+- ⚠️ **The committed Blade was NOT overwritten** — the regenerated file was discarded and the honest version
+  restored. The converter is what is wrong.
+- ✅ **The backstop held:** the drop guard went RED on the regenerated output, so it cannot ship silently.
+- ⛔ **OPEN:** the drop transform must move into `convert.py` before `/switching` is regenerated again.
+
+⚠️ **THE RULE THIS EARNS:** *a preserved generator is an artefact; a **proven** generator is a control. Run
+it and diff the output, or you do not know which one you have.* ⚠️ And when the regeneration differs, **the
+difference is the finding** — the committed output is not automatically wrong, and overwriting it destroys
+the evidence.

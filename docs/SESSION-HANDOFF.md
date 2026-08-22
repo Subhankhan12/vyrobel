@@ -151,7 +151,13 @@ service commitments, tier names — the founder rules; the build records the rul
   honesty transform) existed only in a garbage-collected `/private/tmp` scratchpad. Found intact and committed
   to `tools/marketing/` on 2026-08-23; had it cleared first, all 19 marketing pages would have been
   un-regenerable. ⚠️ Canon called it `pxbuild.py` for the entire arc — that is a 35-line driver, not the
-  converter. See §N.33.
+  converter. See §N.33. ⚠️ **Made RUNNABLE 2026-08-23** (`tools/marketing/`, six path assumptions not one;
+  `decode.cjs` because a `.js` file is ESM in this repo; `heads_px.py` had been missing entirely).
+  ⚠️⚠️ **The regeneration proof then caught a POST-GENERATION EDIT on `/switching`** — the drop was made in
+  the generated Blade, not the converter, so regenerating restores the dropped link. Reported, not
+  overwritten; the guard reds on it. **⛔ Open: move that transform into `convert.py`.** §N.33.4–.5.
+  ⚠️ `tools/audit/reach.py` (the reachability instrument that produced P-6, P-7 and the 12 seeder-only
+  entities) is committed too.
 - ⚠️⚠️ **AND THE CONVERSE: a fix living ONLY in generated output makes the generator a DESTRUCTOR.**
   `/pricing` had become **un-regenerable** — B12's binding existed nowhere in the converter, so running it
   would have silently restored four hardcoded tiers **on the cards too**.

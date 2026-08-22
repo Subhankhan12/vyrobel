@@ -2,7 +2,12 @@
 transforms only what MUST change (dc-runtime wiring, palette hex, links, slots, imports)."""
 import re, io, json, sys, os
 
-SRC = "/private/tmp/claude-501/-Applications-XAMPP-xamppfiles-htdocs-vyrobel/af05ac42-2005-46d3-adbc-b1ad64cde87a/scratchpad/core"
+# ⚠️ PORTABILITY ONLY (2026-08-23). This was an absolute path into a garbage-collected /private/tmp
+# scratchpad, which made the committed toolchain readable but NOT RUNNABLE from a fresh checkout. Derived
+# from __file__ so it follows the repo; override with VY_MARKETING_CORE if you keep `core/` elsewhere.
+# ⚠️ `core/` is DERIVED and gitignored — regenerate it with decode.js from docs/design/front/*.dc.html.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.environ.get("VY_MARKETING_CORE", os.path.join(_HERE, "core"))
 
 # ── the palette map: the design's literals → the app's canonical tokens (D6/E4/§N.8f) ────────────
 HEX = {

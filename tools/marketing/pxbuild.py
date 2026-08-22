@@ -8,14 +8,18 @@ without losing the fix.
 
 Run: python3 pxbuild.py
 """
-import sys, io, html
-SP = "/private/tmp/claude-501/-Applications-XAMPP-xamppfiles-htdocs-vyrobel/af05ac42-2005-46d3-adbc-b1ad64cde87a/scratchpad"
-sys.path.insert(0, SP)
-sys.path.insert(0, SP + "/g7")
+import sys, io, html, os
+
+# ⚠️ PORTABILITY ONLY (2026-08-23). Was TWO absolute scratchpad paths — the second pointed at a `g7/`
+# subdirectory holding `heads_px.py`, a REQUIRED module the preservation commit did not include, so this
+# driver could not have run from the repo at all. Both now resolve to this directory.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(os.path.dirname(_HERE))
+sys.path.insert(0, _HERE)
 import convert as C
 from heads_px import HEADS
 
-VIEWS = "/Applications/XAMPP/xamppfiles/htdocs/vyrobel/resources/views/marketing/%s.blade.php"
+VIEWS = os.path.join(_ROOT, "resources", "views", "marketing", "%s.blade.php")
 
 for key in ("pricing", "home", "switching"):
     meta, page, left = C.convert(key)

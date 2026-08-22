@@ -75,3 +75,7 @@ CLAUDE.local.md
 
 # Gated build browser-verification screenshots (not part of the regression net)
 gate*.png
+
+# The marketing converter's DERIVED input — regenerate with tools/marketing/decode.js from
+# docs/design/front/*.dc.html. Not committed: it would be a second copy of the masters (§N.8f).
+/tools/marketing/core/
