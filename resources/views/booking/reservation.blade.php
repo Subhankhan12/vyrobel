@@ -1,6 +1,6 @@
 {{-- Public confirmation (design pass · Booking Screen 3, step 3). Shows the REAL reservation
      reference for a genuinely-created booking (via AssignmentService + FolioService). Read-only. --}}
-<x-public.shell :property="$property" title="Booking confirmed">
+<x-public.shell :property="$property" title="Booking confirmed" :seo="$seo">
 
     <div class="vy-confirm vy-fade">
         <div class="vy-confirm-check">

@@ -15088,3 +15088,61 @@ Both ends fixed: the comment spells the tag names as words, and the helper requi
 ⚠️ `pxText()` now has **its own vacuity check** (`pxTextIsSane()` plus a length floor on a real page),
 because every assertion in the file reads its output — a stripper that removes too much makes all of them
 vacuous while they still report green.
+
+---
+
+## 2026-08-22 — STOREFRONT SEO (D10): the direct-booking pages made findable
+
+⚠️ **The gap, stated plainly.** Vyrobel's core promise is commission-free DIRECT bookings, and the direct
+booking pages carried a bare `<title>` and nothing else — no description, no canonical, no OG/Twitter, no
+structured data — and appeared in no sitemap. Every marketing page that ranks was pointing at a site whose
+actual product pages a crawler could not find or interpret.
+
+**Founder ruling applied:** index ALL tenant storefronts by default.
+
+### What shipped — additive only, on a sealed money-carrying surface
+
+- `App\Support\Storefront\StorefrontOffer` — the ONE definition of "sellable, and at what price". A thin
+  probe over `BookingEngineService::search()` (the P-6 Gate 1 chain: capacity · availability · an active
+  rate plan · a price for every night), read by BOTH the page's `Offer` and the sitemap's inclusion test, so
+  the two cannot disagree (§N.8f).
+- `App\Support\Storefront\StorefrontSeo` — the ONE builder of `<head>` + JSON-LD.
+- `<x-public.seo>` — the single emitter. The storefront shell gained ONE prop (`:seo`, default null →
+  byte-identical prior output) and suppresses its own bare `<title>` when a payload arrives, so there is
+  exactly one title element per page.
+- `GET /sitemap-storefront.xml` — route-generated, `runAsSuperAdmin`, cached 10 min.
+- ⚠️ Checkout and the booking confirmation are now `noindex, nofollow`. **They were indexable by default
+  before this pass** — a confirmation page carries a real reference and a real guest email.
+
+### ⚠️ The three traps, and what was actually done about them
+
+1. **`aggregateRating` / `starRating`.** Emitted ONLY from the certified `ReviewRating` helper and only on
+   `has_reviews === true`; `starRating` only when the tenant set one (it is NULL for every property this
+   product creates). ⚠️ Note this is a REAL rating where real published reviews exist — not a refusal to
+   emit one. The refusal is of the *fabricated* kind: mutation M1 planted a default and two tests went RED.
+2. **Price from the engine (B12).** ⚠️ **AND CORRECTED MID-PASS:** `search()` returns the room-only,
+   VAT-EXCLUSIVE subtotal (the ratified F3 basis), which is NOT what the page displays. Quoting it would
+   have advertised a figure lower than anything a guest can pay. The quoted figure is now the GRAND TOTAL
+   via the certified `StayEstimator` — the same estimator the browse card, the checkout breakdown and the
+   folio use. Verified equal to the cent against the rendered page (€152.05 / €268.90, and €264.10 on the
+   room page).
+3. **Only sellable properties sitemapped**, mutation-proven in BOTH directions.
+
+### ⛔ SURFACED, NOT DECIDED
+
+- **Tenant opt-out / foreign canonical.** The ruling is index-all-by-default, so no opt-out was built. Note
+  that `organizations.custom_domain` already exists as an unused nullable column — the natural home for this
+  when it is decided.
+- **`APP_URL` is load-bearing** and re-flagged for go-live: every canonical, `og:url` and sitemap entry
+  resolves against it, and a wrong value mis-canonicalises the whole storefront SILENTLY. Observed live this
+  pass — serving on `:8901` with `APP_URL` at `:8000` produced CSP-blocked images from the mismatch.
+- **The EU consumer-display question is untouched.** Room rates remain VAT-exclusive on display (ratified
+  F3); the structured data now quotes the all-in total, which is the stricter of the two. If EU display
+  compliance later forces the page itself inclusive, that is the deferred 929-row rate migration, not this.
+
+**NOT this pass:** the marketing sitemap, `robots.txt` and marketing JSON-LD (SEO finalisation is LAST, once
+the page set stops moving — the storefront was CONFIRMED already ALLOWED: `robots.txt` disallows only
+`/admin`) · the 27 docs · `Alternatives`/`Compare` (ruled DROP) · D4/D5 · ②/accrual · GDPR.
+
+Suite **2662 / 2660 passed / 2 skipped / 0 failed · 18,497 assertions** (+16 tests, +133 assertions);
+PHPStan L5 **0**; Pint clean; **money as seeded byte-identical**; the eight CI gates untouched.

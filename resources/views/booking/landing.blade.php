@@ -7,7 +7,7 @@
 @php
     $heroTowns = collect($towns)->pluck('town')->filter()->take(4)->values();
 @endphp
-<x-public.shell :property="['name' => $org['name'], 'type' => 'Book direct']" title="Stays">
+<x-public.shell :property="['name' => $org['name'], 'type' => 'Book direct']" title="Stays" :seo="$seo">
     <x-slot:head>
         <style>
             .vy-lp-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.6); border: 1px solid var(--vy-glass-border); font-size: 11.5px; font-weight: 500; color: #b4400f; margin-bottom: 18px; }

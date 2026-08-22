@@ -7,7 +7,7 @@
         'adults' => $search['adults'], 'children' => $search['children'],
     ]));
 @endphp
-<x-public.shell :property="$property" :title="$room['name']">
+<x-public.shell :property="$property" :title="$room['name']" :seo="$seo">
 
     <a class="vy-back vy-fade" href="{{ route('booking.browse', $property['slug']) }}?{{ $q }}">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>

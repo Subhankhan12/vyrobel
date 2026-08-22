@@ -125,6 +125,7 @@ use App\Http\Controllers\Owner\OwnerUnitsExportController;
 use App\Http\Controllers\Owner\OwnerUnitStatusController;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Http\Controllers\StorefrontLandingController;
+use App\Http\Controllers\StorefrontSitemapController;
 use App\Http\Controllers\StripeConnectWebhookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnforceIpAllowlist;
@@ -511,6 +512,21 @@ Route::prefix('stay/{organization}')
         Route::get('/', [StorefrontLandingController::class, 'show'])->name('landing');
         Route::get('/search', [StorefrontLandingController::class, 'search'])->name('search');
     });
+
+/*
+ * STOREFRONT SEO (D10) — the generated storefront sitemap.
+ *
+ * A LITERAL path with no parameters, so it cannot shadow `/book/{property}` or `/stay/{organization}`, and
+ * it is registered here (above marketing) purely to keep the whole public storefront surface in one place.
+ *
+ * It lists ONLY sellable properties: the inclusion test is the booking engine's own search, borrowed via
+ * StorefrontOffer rather than re-derived, so the sitemap and the property pages can never disagree about
+ * what is actually on sale.
+ *
+ * It is NOT `sitemap.xml` — that name belongs to the marketing sitemap, which is SEO finalisation and out
+ * of scope until the marketing page set stops moving.
+ */
+Route::get('/sitemap-storefront.xml', StorefrontSitemapController::class)->name('storefront.sitemap');
 
 /*
  * ══ THE MARKETING SITE (front-website Gate 2) ══════════════════════════════════════════════════════

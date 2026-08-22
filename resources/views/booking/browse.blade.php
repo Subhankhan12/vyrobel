@@ -10,7 +10,7 @@
 @php
     $carry = ['check_in' => $search['check_in'], 'check_out' => $search['check_out'], 'adults' => $search['adults'], 'children' => $search['children']];
 @endphp
-<x-public.shell :property="$property" title="Book your stay">
+<x-public.shell :property="$property" title="Book your stay" :seo="$seo">
     <x-slot:head>
         <style>
             main { max-width: 940px; }

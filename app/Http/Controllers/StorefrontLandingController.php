@@ -12,6 +12,7 @@ use App\Models\RateCalendar;
 use App\Models\RoomType;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
+use App\Support\Storefront\StorefrontSeo;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,9 @@ use Illuminate\View\View;
  */
 class StorefrontLandingController extends Controller
 {
+    // STOREFRONT SEO (D10) — presentation only; it reads the org and its properties, and writes nothing.
+    public function __construct(private readonly StorefrontSeo $seo) {}
+
     public function show(Request $request): View
     {
         $organization = $this->organization($request);
@@ -49,7 +53,21 @@ class StorefrontLandingController extends Controller
 
         $rating = ReviewRating::forOrganization((string) $organization->getKey());
 
+        $propertyList = $properties->map(fn (Property $p): array => [
+            'slug' => (string) $p->slug,
+            'name' => (string) $p->name,
+            'town' => $this->town($p),
+        ])->values()->all();
+
         return view('booking.landing', [
+            // STOREFRONT SEO (D10) — additive. An ORGANISATION page, canonical to itself: it is a different
+            // entity from a property, not a duplicate of one, so nothing here self-canonicalises across.
+            'seo' => $this->seo->forOrganization(
+                (string) $organization->name,
+                (string) $organization->slug,
+                (string) $organization->getKey(),
+                $propertyList,
+            ),
             'org' => [
                 'name' => (string) $organization->name,
                 'slug' => (string) $organization->slug,
@@ -57,11 +75,9 @@ class StorefrontLandingController extends Controller
             'signedInGuest' => $request->user('guest') !== null,
             'rating' => $rating,
             'towns' => $this->towns($properties, $roomTypes),
-            'properties' => $properties->map(fn (Property $p): array => [
-                'slug' => (string) $p->slug,
-                'name' => (string) $p->name,
-                'town' => $this->town($p),
-            ])->all(),
+            // ⚠️ THE SAME LIST THE SEO PAYLOAD WAS BUILT FROM — mapped once, read twice, so the page and its
+            // structured data cannot disagree about which properties this organisation offers (§N.8f).
+            'properties' => $propertyList,
             'featured' => $this->featured($properties, $roomTypes),
             'vibes' => $this->vibes($properties, $roomTypes),
             'perks' => $this->perks($properties),

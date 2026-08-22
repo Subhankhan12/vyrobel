@@ -26,6 +26,7 @@ use App\Support\Pricing\NightlyRate;
 use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
+use App\Support\Storefront\StorefrontSeo;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -46,6 +47,9 @@ class BookingEngineController extends Controller
     public function __construct(
         private readonly BookingEngineService $engine,
         private readonly FolioService $folios,
+        // STOREFRONT SEO (D10) — presentation only. It reads the property, its room types and the certified
+        // engine probe to build <head> output; it touches no quote, no availability and no reserve path.
+        private readonly StorefrontSeo $seo,
     ) {}
 
     /**
@@ -109,6 +113,12 @@ class BookingEngineController extends Controller
         $amenityOptions = $roomTypes->flatMap(fn (RoomType $rt): array => $rt->amenities->pluck('name')->all())->map('strval')->unique()->sort()->values()->all();
 
         return view('booking.browse', [
+            // STOREFRONT SEO (D10) — an additive presentation key. Nothing above it changed.
+            'seo' => $this->seo->forProperty(
+                $property,
+                $roomTypes->map(fn (RoomType $rt): string => (string) $rt->name)->values()->all(),
+                $this->firstPhotoUrl($roomTypes),
+            ),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'search' => [
                 'check_in' => $checkIn,
@@ -299,6 +309,17 @@ class BookingEngineController extends Controller
             : null;
 
         return view('booking.room', [
+            // STOREFRONT SEO (D10) — additive. `$offer` is the page's OWN real engine offer (null unless the
+            // visitor searched real dates), so no price is claimed for the canonical dateless URL.
+            'seo' => $this->seo->forRoom($property, $rt, $offer === null ? null : [
+                // ⚠️ THE GRAND TOTAL, not the room subtotal — the all-in figure this page itself displays and
+                // the folio reconciles to (#17). Advertising the VAT-exclusive room price would have quoted a
+                // number lower than anything a guest can actually pay.
+                'total_minor' => (int) $offer['grand_total_minor'],
+                'currency' => (string) $property->currency,
+                'check_in' => (string) $checkIn,
+                'check_out' => (string) $checkOut,
+            ], $rt->coverPhoto()?->url),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'room' => [
                 'id' => (string) $rt->getKey(),
@@ -393,6 +414,9 @@ class BookingEngineController extends Controller
         }
 
         return view('booking.checkout', [
+            // ⚠️ STOREFRONT SEO (D10) — NOINDEX. The checkout is per-visitor and per-quote; before this pass
+            // it carried no robots directive at all, which means indexable by default.
+            'seo' => $this->seo->forTransactionalPage('Checkout — '.$property->name, (string) $property->name),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'offer' => $offer,
             'unitChoices' => $unitChoices,
@@ -629,6 +653,9 @@ class BookingEngineController extends Controller
         };
 
         return view('booking.reservation', [
+            // ⚠️ STOREFRONT SEO (D10) — NOINDEX. A booking confirmation carries a real reference and a real
+            // guest email; it must never be indexable, and it was, by default, before this pass.
+            'seo' => $this->seo->forTransactionalPage('Booking confirmed — '.$property->name, (string) $property->name),
             'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
             'reservation' => [
                 'reference' => (string) $reservation->reference,
@@ -883,5 +910,26 @@ class BookingEngineController extends Controller
             'expires_at' => $quote->expires_at !== null ? CarbonImmutable::parse($quote->expires_at)->toIso8601String() : null,
             'reservation_reference' => $quote->convertedReservation?->reference,
         ];
+    }
+
+    /**
+     * The first REAL room photo across a property's room types, for `og:image` — or NULL.
+     *
+     * ⚠️ NULL IS A NORMAL, EXPECTED RESULT and must stay one: a property whose room types have no photos
+     * gets NO `og:image` rather than a placeholder. A stock or platform-default image on a social card is a
+     * fabricated impression of somewhere a guest is deciding whether to sleep (#39).
+     *
+     * @param  Collection<string, RoomType>  $roomTypes
+     */
+    private function firstPhotoUrl(Collection $roomTypes): ?string
+    {
+        foreach ($roomTypes as $roomType) {
+            $url = $roomType->coverPhoto()?->url;
+            if (is_string($url) && $url !== '') {
+                return $url;
+            }
+        }
+
+        return null;
     }
 }

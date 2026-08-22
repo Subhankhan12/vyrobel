@@ -15,13 +15,25 @@
     'title' => '',
     'head' => null,
     'nav' => null,
+    // STOREFRONT SEO (D10) — the per-page SEO payload from App\Support\Storefront\StorefrontSeo.
+    // ⚠️ ADDITIVE AND BACKWARD-COMPATIBLE: null (the default) leaves this shell's output byte-identical to
+    // what it emitted before D10, which is what lets the change be proven inert for any page not passing it.
+    // ⚠️ When present it supplies the page's ONLY <title> (see below) plus description/canonical/robots/
+    // OG/Twitter and the JSON-LD graph.
+    'seo' => null,
 ])
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- ⚠️ EXACTLY ONE <title> PER PAGE. With a :seo payload the SEO component emits it (so the title and
+         og:title can never disagree); without one, the original bare composition is emitted unchanged. --}}
+    @if ($seo !== null)
+    <x-public.seo :seo="$seo" />
+    @else
     <title>{{ $title !== '' ? $title.' · ' : '' }}{{ $property['name'] }}</title>
+    @endif
 
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">

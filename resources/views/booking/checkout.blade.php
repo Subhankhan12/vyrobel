@@ -15,7 +15,7 @@
     $fmtDate = fn (?string $d): string => $d ? \Illuminate\Support\Carbon::parse($d)->format('D j M') : '';
     $guests = (int) $search['adults'] + (int) $search['children'];
 @endphp
-<x-public.shell :property="$property" title="Checkout">
+<x-public.shell :property="$property" title="Checkout" :seo="$seo">
     <x-slot:head>
         <style>
             .vy-co-h1 { margin: 0 0 22px; font-family: var(--vy-display); font-weight: 600; font-size: 30px; letter-spacing: -0.02em; }
