@@ -170,11 +170,16 @@
            take it out of the focus order. */
         /* ══ ⚠️⚠️ THE DESIGN'S OWN RESPONSIVE RULES, RESTORED FOR EVERY PAGE (Gate 7) ═══════════════
            ⚠️⚠️ ALL NINETEEN BUILT MARKETING PAGES HAD LOST THESE, AND NOBODY NOTICED FOR SIX GATES. The
-           prototypes are inline-styled throughout — but their RESPONSIVE behaviour lives in a `<style>`
-           block, and the converter strips `<style>` along with `<script>`. So every page kept the design's
-           hooks (`data-h1` and `data-sec` are on all 19; `data-two` on 9; `data-bandinner` on 8) and
-           nothing read a single one of them. A two-column layout drawn as `1.35fr .85fr` stayed two columns
-           at 390px, with the contact card squeezed to 241px and the right rail beside it.
+           prototypes are inline-styled throughout — but their RESPONSIVE behaviour lives in a stylesheet
+           block, and the converter strips stylesheet and script blocks alike. So every page kept the
+           design's hooks (`data-h1` and `data-sec` are on all 19; `data-two` on 9; `data-bandinner` on 8)
+           and nothing read a single one of them. A two-column layout drawn as `1.35fr .85fr` stayed two
+           columns at 390px, with the contact card squeezed to 241px and the right rail beside it.
+
+           ⚠️ THE TAG NAMES ABOVE ARE DELIBERATELY SPELLED OUT AS WORDS. A CSS comment SHIPS to the browser,
+           unlike a Blade one — so writing them in angle brackets put literal markup-looking text into every
+           marketing page, and an HTML-scanning test then opened a match on it and swallowed the page body.
+           §N.27.5, in a stylesheet: a guard reads whatever the page says, including prose about markup.
 
            ⚠️ THESE ARE THE DESIGN'S OWN RULES, extracted from the 19 masters' stylesheets and deduplicated
            — 114 declarations across 10 breakpoints. Not one is invented here. The `!important` markers are

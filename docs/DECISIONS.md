@@ -14943,3 +14943,126 @@ through the running server.
 **Out of scope and untouched:** the 19 ungated operator screens · the phantom retention purge · channels ·
 statement finalisation (②) · P-7 · the seeder · **and NO SEO artifacts** — the published set is still moving,
 and when the sitemap comes the storefront must end up ALLOWED and SITEMAPPED.
+
+---
+
+## 2026-08-22 — `/pricing`: THE INVENTED TIER TABLE (live · money · one source)
+
+B12 rebuilt `/pricing`'s CARDS to read from `config/billing.php` and pinned them against `Plan::chargeFor()`.
+⚠️ **The comparison table ONE SECTION BELOW, on the same page, kept a hand-drawn ladder of four invented
+tiers and twelve invented feature differences** — §N.13.1 at its tightest radius yet, live, and about money.
+
+### ⚠️ #1 The sweep found ELEVEN representations, of which B12 had bound two
+
+⚠️ **And the sweep had to be redone twice**, each time by checking a category rather than a count: a first
+pass grepped `description=` and missed the **SEO title** asserting the model in three words; probing the
+rendered page then found the FAQ describing per-unit *mechanics* — a third class entirely, neither a price
+nor a name.
+
+| # | where | what | now |
+|---|---|---|---|
+| 1–2 | `/pricing` cards, headline/priceNote/whoPays | price + suffix + model | ✅ bound (B12) — **and see #5** |
+| 3 | `/pricing` **comparison table** | 4 invented tiers × 12 rows | **rebuilt from the config** |
+| 4 | `/pricing` **Enterprise card** | a fifth tier + segment + 4 bullets | **removed** |
+| 5 | `/pricing` **SEO title** | *"per-unit plans"* | bound to the real model |
+| 6 | `/pricing` **SEO description** | *"simple per-unit plans"* | bound |
+| 7–8 | `/pricing` **FAQ ×2** | per-unit billing mechanics | rewritten from the flat model |
+| 9 | `/` teaser **prices** | €49 / €99 + suffix | ✅ **still bound — verified** |
+| 10 | `/` teaser **names, bands, ladder** | Starter / Growth / "Pro & Enterprise", *"Up to 10 units"* | **bound / removed** |
+| 11 | `/switching` **h2 + body + meta** | *"included on Growth and above"* | **removed** |
+
+⚠️ **#10 IS THE SHARPEST.** Gate 3b bound the home teaser's PRICES and left its NAMES hand-written beside
+them — so the page rendered **the real €49 under the invented label "Starter"**. Worse than either being
+wrong alone: the number is authoritative and the label is fiction. **Binding half a representation leaves
+the other half free to drift.**
+
+### #2 A four-column ladder cannot express two flat plans
+
+The engine charges **two FLAT tiers — Essential €49.00/mo (€490/yr), Pro €99.00/mo (€990/yr)** — every
+seeded row `pricing_type = 'flat'`, `unit_rate_minor` NULL (`per_unit_minor = 900` seeds a column no plan
+uses). Counted against the config, **the real differences are exactly TWO**: `channels` (Pro only) and
+`team` (5 seats vs unlimited). `analytics` is on both, so it is not a difference. ⚠️ **The drawn table
+manufactured ten more**, and re-numbering would not have fixed it: four columns assert three upgrade steps
+and the product has one boundary. Rebuilt at the size the truth actually is via a new
+`MarketingPricing::comparison()`, whose rows ARE the catalogue the paywall and `planAllows()` read.
+
+⚠️ **IT WAS ALSO BROKEN, AND ONLY THE BROWSER SHOWED IT.** The design's `<sc-raw-table>` is not a table —
+it is an unknown element with `display: inline`, so `border-collapse` did nothing and the section rendered
+as **inline soup**: four tier headers jumbled over each other, check cells floating as orphaned dashes.
+Zero real `<table>` elements were in it.
+
+### ⚠️ #3 `/pricing` HAD BECOME UN-REGENERABLE — the deeper finding
+
+⚠️ **B12's binding lived only in the GENERATED file.** The inline-PHP block and the tier loop existed nowhere
+in the converter, so running the generator over `/pricing` would have **silently restored the design's four
+hardcoded tiers on the CARDS too**. That is the converter's own doctrine — *a post-generation patch is undone
+by the next generation* — turned on the FIX rather than the defect. Found only because Gate 7's zero-match
+rule was extended to the B12 price needle and it came back a no-op.
+
+⚠️ **AND I THEN WALKED INTO THE OTHER HALF OF IT.** Having ported the cards into `<x-marketing.plan-cards />`
+and regenerated, the page came back saying *"One price per unit"* under a table correctly reading €49/€99 —
+because `headline()`, `priceNote()` and `whoPays()` were **also** hand-bound and I had not checked. **Having
+found one hand-edit, DIFF for the rest rather than assuming it was the only one.** All four now live in the
+converter; `pxbuild.py` proves the page rebuilds without losing them.
+
+### #4 Three real bugs found on the way, two of them latent since Gate 7
+
+⚠️ **`_element_span()` had an off-by-length bug.** `rfind(sub, 0, i + 1)` cannot match a `<div` that BEGINS
+at `i`, so a needle starting with its own tag cut the **previous sibling** — and reported success, because a
+span *was* found. Fixed, plus an enclosure check that refuses a span not containing its needle. ⚠️ **The
+report proves a match, not the right match** — an honest limit, now narrowed.
+
+⚠️ **Blade compiles STATEMENTS BEFORE it strips COMMENTS**, so a directive written inside a Blade comment is
+compiled anyway. An inline-PHP directive in a docblock opened a real PHP block that swallowed the block
+defining `$mkTiers`, and `/pricing` 500'd. ⚠️ A sweep found **17 directives inside comments** across the
+views; only that one was fatal, and `pdfs/owner-statement.blade.php` documents this exact bug **in a comment
+that still contains the directive causing it** (checked: currently harmless).
+
+⚠️ **The home teaser's prices were bound but UNMARKED**, so the new guard could not see them and counted two
+price nodes where four exist. A binding nothing can find is a binding nothing protects.
+
+### #5 The durable guard — mutation-proven, and one mutation exposed it blind
+
+`MarketingPriceSourceTest`: no plan name the config does not define · no `data-price` value the engine would
+not charge · the model wording derived from `shape()` · the rendered comparison row count equal to the gated
+feature count.
+
+⚠️ **SIX MUTATIONS, and the third one PASSED first time.** The comparison guard compared
+`comparison()` against the config — the source checked against itself — so inventing a row **in the view**
+left it green (§N.18.1). It now counts `<th scope="row">` in the RENDERED table. Two more holes came out of
+the same run: `unit_rate_minor ?? 0` had put **"0.00" in the allow-list**, so a binding resolving to nothing
+would have passed; and the vacuity check caught that `plans` is EMPTY under `RefreshDatabase`, which made the
+whole price comparison run against an empty allow-list until the real seeder was added.
+
+⚠️ **ITS LIMIT, STATED:** it pattern-matches. A price written in words, inside an image or in an SVG path is
+invisible to it, as is copy in an unrendered branch. Those remain a review rule. It also deliberately ignores
+product figures — a mocked folio total of €8,412.60 is not a subscription price, which is why the model check
+is scoped to `/pricing` (`/modules` legitimately says "per-unit **performance**" about owner reporting).
+
+### #6 Verification
+
+Suite green, run ALONE. PHPStan L5 0; Pint clean; **money as seeded unchanged**; the **eight CI gates, `ops/`
+and the seeder untouched**; **`config/billing.php` NOT modified** — the page conforms to it. Six mutations
+RED. Render-verified at **1440px and 390px**: the table is a real `<table>`, 337px wide inside a 339px
+wrapper at phone width — **no horizontal scroll, readable rather than merely present** — and the design's own
+`[data-cmp] { font-size: 12px }` rule survived regeneration, confirming the restored responsive CSS holds.
+
+**Out of scope and untouched:** the GDPR gaps · the 19 ungated operator screens · ② and the accrual pair ·
+SEO finalisation · P-7 · the held pages.
+
+### ⚠️ #7 A postscript: the new guard's own instrument ate the page
+
+⚠️ The guard passed alone and FAILED in the full suite, reporting *"/pricing renders no price node"* about a
+page that renders two. The cause was its own helper: `pxText()` opened its strip on `<script` **anywhere in
+the HTML** — including the literal text `` `<script>` `` that a **CSS comment in the marketing shell was
+shipping into every page**. The match then ran to the next real closing tag and removed the whole body.
+
+⚠️ **A CSS comment goes to the browser; a Blade comment does not.** Gate 7's own responsive-CSS note was
+therefore publishing markup-looking prose onto 19 pages, and the first thing to read it was a guard written
+one gate later. §N.27.5 — *a source-scanning guard reads its own needle* — for the **fifth** time in this
+project, and the first time in a stylesheet.
+
+Both ends fixed: the comment spells the tag names as words, and the helper requires a real tag boundary.
+⚠️ `pxText()` now has **its own vacuity check** (`pxTextIsSane()` plus a length floor on a real page),
+because every assertion in the file reads its output — a stripper that removes too much makes all of them
+vacuous while they still report green.

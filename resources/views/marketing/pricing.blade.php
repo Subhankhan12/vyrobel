@@ -9,16 +9,11 @@
        · the ROI calculator → an honest deferral; the ledger-driven sections → their components
      ⚠️ The SEO values are the design's OWN (from its `<helmet>`), not invented copy. --}}
 @php
-    // ⚠️ THE ONE PRICE SOURCE (B12, §N.8f). Names, amounts, the per-unit-vs-flat suffix and the feature
-    // gates all come from `MarketingPricing`, which reads the same `plans` rows `Plan::chargeFor()` bills
-    // from. Nothing about a price may be typed into this page.
     $testimonialQuotes = [];
-    $mkSuffix = \App\Support\Marketing\MarketingPricing::suffix();
-    $mkTiers = \App\Support\Marketing\MarketingPricing::tiersForDisplay();
 @endphp
 <x-marketing.shell
-    title="Pricing — per-unit plans for hotels, apartments and short-stays | Vyrobel"
-    description="Vyrobel pricing: simple per-unit plans for property managers. Every plan includes the commission-free direct booking engine, the owner portal and the guest stay app. Monthly or annual, no setup fee."
+    title="Pricing — one price per property account | Vyrobel"
+    description="Vyrobel pricing: one price per property account, whatever your unit count. Every plan includes the commission-free direct booking engine, the owner portal and the guest stay app. Monthly or annual, no setup fee."
     canonical="/pricing">
 <div data-screen-label="Marketing — Pricing" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -66,51 +61,7 @@
 
     <section data-sec="" aria-labelledby="vy-plans-h" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 80px;">
       <h2 id="vy-plans-h" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;">Plans and prices</h2>
-      <div data-plans style="display: grid; grid-template-columns: repeat({{ count($mkTiers) + 1 }}, 1fr); gap: 18px; align-items: stretch; padding-top: 14px;">
-        {{-- ⚠️ REBUILT FROM THE REAL CATALOGUE (B12). The design drew FOUR per-unit tiers
-             (Starter €6 / Growth €5 / Pro €4 / Enterprise) with feature gates of its own. The billing
-             engine runs TWO FLAT plans and gates on `channels` and a `team` seat limit — so the drawn
-             table did not merely carry wrong numbers, it described a product shape the system does not
-             implement. Numbers, names, the price suffix AND the feature gates now all come from
-             `MarketingPricing` → the same `plans` rows `Plan::chargeFor()` bills from. The card styling
-             is the design's own, verbatim. --}}
-        @foreach ($mkTiers as $mkTier)
-        <div data-reveal style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 26px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
-          <div data-planname="{{ $mkTier['code'] }}" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">{{ $mkTier['name'] }}</div>
-          <div style="font-size: 13px; color: var(--vy-muted); margin-top: 5px;">{{ $mkTier['sub'] }}</div>
-          <div style="margin: 24px 0 4px; display: flex; align-items: baseline; gap: 5px;">
-            <span style="font-family: var(--vy-display); font-size: 42px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums;"><span data-cur>&euro;</span><span data-price data-plan="{{ $mkTier['code'] }}">{{ number_format($mkTier['amount_minor'] / 100, 2) }}</span></span>
-            <span style="font-size: 13px; color: var(--vy-muted);">{{ $mkSuffix }}</span>
-          </div>
-          <div data-cyclenote style="font-size: 12px; color: var(--vy-muted); margin-bottom: 18px;">{{ $mkTier['cycle'] }}</div>
-          <ul style="margin: 0 0 24px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
-            @foreach ($mkTier['features'] as $mkFeature)
-            <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: var(--vy-muted);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg><span>{{ $mkFeature }}</span></li>
-            @endforeach
-          </ul>
-
-          <a data-plancta="{{ $mkTier['code'] }}" href="{{ route('signup') }}" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease;">Start free</a>
-        </div>
-        @endforeach
-        {{-- The design's Enterprise card, verbatim: it quotes no price and gates no feature, so it makes
-             no claim the system must honour — it is an invitation to talk. --}}
-<div data-reveal="" data-reveal-delay="210" style="background: linear-gradient(160deg, var(--vy-dark), #251C17); border-radius: 22px; padding: 30px 26px; box-shadow: 0 22px 56px rgba(60,35,20,.3); display: flex; flex-direction: column; position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -70px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(60px); opacity: .34;"></div>
-          <div style="position: relative; display: flex; flex-direction: column; flex: 1;">
-            <div data-planname="enterprise" style="font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: #fff;">Enterprise</div>
-            <div style="font-size: 13px; color: rgba(255,247,240,.6); margin-top: 5px;">250+ units, multi-brand groups</div>
-            <div style="margin: 24px 0 4px;"><span style="font-family: var(--vy-display); font-size: 34px; font-weight: 600; color: #fff; letter-spacing: -.035em;">Custom</span></div>
-            <div style="font-size: 12px; color: rgba(255,247,240,.7); margin-bottom: 18px;">Annual agreement</div>
-            <ul style="margin: 0 0 24px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
-              <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: #fff; font-weight: 500;"><svg width="16" height="16" fill="none" stroke="var(--vy-accent-3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Everything in Pro</li>
-              <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: rgba(255,247,240,.72);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent-3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Custom management agreements</li>
-              <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: rgba(255,247,240,.72);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent-3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Guided migration &amp; onboarding</li>
-              <li style="display: flex; gap: 10px; font-size: 13.5px; line-height: 1.5; color: rgba(255,247,240,.72);"><svg width="16" height="16" fill="none" stroke="var(--vy-accent-3)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M20 6L9 17l-5-5"></path></svg>Named contact &amp; SLA</li>
-            </ul>
-            <a data-plancta="enterprise" href="Vyrobel Contact.dc.html" style="margin-top: auto; text-align: center; padding: 13px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.4); transition: transform .2s ease, box-shadow .2s ease;">Talk to sales</a>
-          </div>
-        </div>
-      </div>
+      <x-marketing.plan-cards />
 
       <div data-portfolionote="" style="display: none; margin-top: 20px; text-align: center; font-family: var(--vy-display); font-size: 15px; font-weight: 500; color: #8F2F09;"></div>
 
@@ -132,172 +83,7 @@
     </section>
 
     <!-- COMPARISON -->
-    <section data-sec="" id="compare-table" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 90px;">
-      <div data-reveal="" style="max-width: 620px; margin-bottom: 30px;">
-        <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 32px; letter-spacing: -.03em; color: var(--vy-ink);">What's in each plan</h2>
-        <p style="margin: 14px 0 0; font-size: 15.5px; line-height: 1.64; color: var(--vy-muted);">Grouped by what it changes for you. Everything in a lower plan is in every plan above it.</p>
-      </div>
-      <div data-reveal="" data-cmpscroll="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.75); border-radius: 24px; box-shadow: 0 14px 40px rgba(150,90,50,.16); padding: 8px 10px 16px;">
-        <sc-raw-table data-cmp="" style="width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 660px;">
-          <sc-raw-caption style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Feature comparison across the Starter, Growth, Pro and Enterprise plans</sc-raw-caption>
-          <sc-raw-thead>
-            <sc-raw-tr>
-              <sc-raw-th scope="col" style="text-align: left; padding: 16px 16px; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); position: sticky; top: 74px; z-index: 3; background: rgba(250,241,233,.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">Capability</sc-raw-th>
-              <sc-raw-th scope="col" style="text-align: center; padding: 16px 12px; font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); background: rgba(250,241,233,.96); position: sticky; top: 74px; z-index: 3; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">Starter</sc-raw-th>
-              <sc-raw-th scope="col" style="text-align: center; padding: 16px 12px; font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: #8F2F09; background: linear-gradient(rgba(217,102,46,.08), rgba(217,102,46,.08)), rgba(250,241,233,.96); position: sticky; top: 74px; z-index: 3; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">Growth<span style="display: block; font-family: var(--vy-sans); font-size: 9.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #8F2F09; margin-top: 3px;">Most chosen</span></sc-raw-th>
-              <sc-raw-th scope="col" style="text-align: center; padding: 16px 12px; font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); background: rgba(250,241,233,.96); position: sticky; top: 74px; z-index: 3; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">Pro</sc-raw-th>
-              <sc-raw-th scope="col" style="text-align: center; padding: 16px 12px; font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); background: rgba(250,241,233,.96); position: sticky; top: 74px; z-index: 3; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">Enterprise</sc-raw-th>
-            </sc-raw-tr>
-          </sc-raw-thead>
-          <sc-raw-tbody>
-            <sc-raw-tr>
-              <sc-raw-th colspan="5" scope="colgroup" style="text-align: left; padding: 26px 16px 12px; border-top: 1px solid rgba(150,90,50,.16);">
-                <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--vy-ink);">Bookings &amp; front desk</span>
-                <span style="display: block; font-size: 12.5px; font-weight: 400; color: var(--vy-muted); margin-top: 3px;">Everything you need to sell and run a stay.</span>
-              </sc-raw-th>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Commission-free direct bookings</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Your own storefront, no commission on what it takes</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Reservations, front desk &amp; calendar</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Booking engine that cannot double-book, arrivals board, rack calendar</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Guest stay portal &amp; online check-in</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Registration, ID capture, door codes released on your schedule</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Channel manager (OTA sync)</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Airbnb and Booking.com, mapped per unit and rate plan</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr>
-              <sc-raw-th colspan="5" scope="colgroup" style="text-align: left; padding: 26px 16px 12px; border-top: 1px solid rgba(150,90,50,.16);">
-                <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--vy-ink);">Operations</span>
-                <span style="display: block; font-size: 12.5px; font-weight: 400; color: var(--vy-muted); margin-top: 3px;">The daily work, and the inventory it protects.</span>
-              </sc-raw-th>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Housekeeping board</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Four states, auto-balanced assignment, proof photos</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Maintenance &amp; work orders</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Tickets that take a unit off sale across every channel</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Shift scheduling &amp; coverage</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Drag shifts, see coverage gaps before they happen</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr>
-              <sc-raw-th colspan="5" scope="colgroup" style="text-align: left; padding: 26px 16px 12px; border-top: 1px solid rgba(150,90,50,.16);">
-                <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--vy-ink);">Owners &amp; money</span>
-                <span style="display: block; font-size: 12.5px; font-weight: 400; color: var(--vy-muted); margin-top: 3px;">What makes the owner relationship a product rather than a spreadsheet.</span>
-              </sc-raw-th>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Owner portal, statements &amp; payouts</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Statements that assemble themselves; owners log in instead of emailing</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Reports, exports &amp; VAT summaries</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Occupancy, ADR, RevPAR, tax summary, CSV and PDF</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr>
-              <sc-raw-th colspan="5" scope="colgroup" style="text-align: left; padding: 26px 16px 12px; border-top: 1px solid rgba(150,90,50,.16);">
-                <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; letter-spacing: -.01em; color: var(--vy-ink);">Scale &amp; control</span>
-                <span style="display: block; font-size: 12.5px; font-weight: 400; color: var(--vy-muted); margin-top: 3px;">What changes once more than one person and one property are involved.</span>
-              </sc-raw-th>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Multi-property switching</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Several properties in one account, each with its own timezone and tax</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Granular roles &amp; audit trail</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">Permissions down to the individual action, with who did what</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-            <sc-raw-tr data-cmprow="" style="border-top: 1px solid rgba(150,90,50,.09); transition: background .18s ease;">
-              <sc-raw-th scope="row" style="text-align: left; padding: 15px 16px; font-weight: 400;">
-                <span style="display: block; font-size: 13.5px; color: var(--vy-ink);">Guided migration &amp; named contact</span>
-                <span style="display: block; font-size: 12px; line-height: 1.5; color: var(--vy-muted); margin-top: 2px;">A person who knows your portfolio, through cutover and after</span>
-              </sc-raw-th>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Starter</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px; background: rgba(217,102,46,.05);"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Growth</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-block; width: 12px; height: 2px; border-radius: 2px; background: rgba(120,70,40,.26);"></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Not included in Pro</span></sc-raw-td>
-              <sc-raw-td style="text-align: center; padding: 15px 12px;"><span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; border-radius: 7px; background: rgba(217,102,46,.14);"><svg width="12" height="12" fill="none" stroke="var(--vy-accent-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Included in Enterprise</span></sc-raw-td>
-            </sc-raw-tr>
-          </sc-raw-tbody>
-        </sc-raw-table>
-      </div>
-    </section>
+    <x-marketing.plan-comparison />
 
     <!-- FAQ -->
     <section data-sec="" style="max-width: 880px; margin: 0 auto; padding: 0 28px 90px;">
@@ -307,7 +93,7 @@
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">What counts as a unit?</summary>
-          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">Anything you sell a night of: a hotel room, an apartment, a villa. If a villa is sold whole, that's one unit — not one per bedroom.</p>
+          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">A unit is anything you sell a night of — a hotel room, an apartment, a villa. ⚠️ It does not change your price: the subscription is one figure per account whatever your unit count.</p>
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">Is there a free trial?</summary>
@@ -319,7 +105,7 @@
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">What happens in the off-season?</summary>
-          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">Seasonal portfolios can scale units down between seasons on monthly billing. Annual plans price the whole year against your peak count, which usually works out cheaper.</p>
+          <p style="margin: 14px 0 0; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">The subscription does not move with your unit count, so a quiet season costs the same as a busy one. Annual billing is the cheaper of the two cycles.</p>
         </details>
         <details data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 16px; padding: 20px 24px;">
           <summary style="font-family: var(--vy-display); font-size: 16px; font-weight: 500; color: var(--vy-ink); cursor: pointer; list-style: none;">Can we cancel?</summary>

@@ -144,6 +144,98 @@ final class MarketingPricing
     }
 
     /**
+     * THE PLAN COMPARISON — every row derived from the engine's own feature gates (§N.8f).
+     *
+     * ⚠️ WHY THIS EXISTS, AND WHY IT IS THE WHOLE POINT OF THIS PASS. B12 rebuilt `/pricing`'s CARDS to read
+     * from here and pinned them against `Plan::chargeFor()` — and the comparison table ONE SECTION BELOW,
+     * on the same page, kept a hand-drawn ladder of FOUR invented tiers (Starter / Growth / Pro /
+     * Enterprise) and TWELVE invented feature differences. Live, and about money.
+     *
+     * ⚠️ THE SHAPE OF THE LIE WAS STRUCTURAL, NOT NUMERIC. Re-numbering the columns would not have fixed it:
+     * a four-column ladder asserts three upgrade steps, and the product has ONE tier boundary. Counted
+     * against `config('billing.tiers')`, the real differences are exactly TWO — `channels` (Pro only) and
+     * `team` (5 seats vs unlimited). `analytics` is enabled on both, so it is not a difference at all. The
+     * drawn table manufactured ten more.
+     *
+     * ⚠️ SO THE ROWS ARE NOT COPY. They are the catalogue the paywall and `Organization::planAllows()` read,
+     * which means a marketing table can no longer promise a capability the org will not get, and adding a
+     * real gate to the config puts a real row here the same day — and not one day earlier.
+     *
+     * ⚠️ A row that the config does not gate CANNOT appear. That is the guarantee; it is also the limit —
+     * see `differences` below, which is how a caller tells "two plans that genuinely differ" from "two
+     * plans that do not", rather than assuming a table is worth drawing.
+     *
+     * @return array{
+     *     tiers: list<array<string, mixed>>,
+     *     rows: list<array{key: string, label: string, cells: list<array{has: bool, note: string}>, differs: bool}>,
+     *     differences: int
+     * }
+     */
+    public static function comparison(string $interval = 'monthly'): array
+    {
+        $catalogue = (array) config('billing.tiers', []);
+        $tiers = self::tiersForDisplay($interval);
+
+        // ⚠️ The union of feature keys, in the catalogue's own order — never a hand-written row list.
+        $keys = [];
+        foreach ($catalogue as $tier) {
+            foreach ((array) ($tier['features'] ?? []) as $key => $_) {
+                if (! in_array($key, $keys, true)) {
+                    $keys[] = $key;
+                }
+            }
+        }
+
+        $rows = [];
+        foreach ($keys as $key) {
+            $label = '';
+            $cells = [];
+
+            foreach ($tiers as $tier) {
+                // The plan CODE carries its interval (`essential_monthly`); the catalogue is keyed by tier.
+                $feature = (array) ($catalogue[(string) str($tier['code'])->before('_')]['features'][$key] ?? []);
+                $label = $label !== '' ? $label : (string) ($feature['label'] ?? $key);
+                $has = ($feature['enabled'] ?? false) === true;
+                // ⚠️ `array_key_exists`, NOT `?? null` — and the difference is visible on the page. A purely
+                // boolean gate declares no `limit` at all, so `?? null` made "Insights & reports" render as
+                // "Unlimited", which is a quantity nobody claimed about a feature that has none. Only a
+                // feature that actually DECLARES a limit gets a quantity.
+                $hasLimit = array_key_exists('limit', $feature);
+                $limit = $feature['limit'] ?? null;
+
+                $cells[] = [
+                    'has' => $has,
+                    // ⚠️ A LIMIT IS PART OF THE ANSWER, not a footnote. "Team members ✓ / ✓" would hide the
+                    // only other real difference in the product — five seats against unlimited.
+                    'note' => match (true) {
+                        ! $has => '',
+                        ! $hasLimit => '',
+                        $limit === null => 'Unlimited',
+                        default => 'Up to '.$limit,
+                    },
+                ];
+            }
+
+            $notes = array_column($cells, 'note');
+            $flags = array_column($cells, 'has');
+
+            $rows[] = [
+                'key' => $key,
+                'label' => $label,
+                'cells' => $cells,
+                // ⚠️ DERIVED, never asserted: a row differs when the tiers do not all answer it identically.
+                'differs' => count(array_unique($flags, SORT_REGULAR)) > 1 || count(array_unique($notes)) > 1,
+            ];
+        }
+
+        return [
+            'tiers' => $tiers,
+            'rows' => $rows,
+            'differences' => count(array_filter($rows, fn (array $r): bool => $r['differs'])),
+        ];
+    }
+
+    /**
      * The page headline, DERIVED from the model the engine runs.
      *
      * ⚠️ PLACEHOLDER COPY, DELIBERATELY PLAIN — and it is the one thing here the founder should replace.

@@ -9,14 +9,7 @@
        · the ROI calculator → an honest deferral; the ledger-driven sections → their components
      ⚠️ The SEO values are the design's OWN (from its `<helmet>`), not invented copy. --}}
 @php
-    $testimonialQuotes = [
-        'ek' => 'We went from three tools and a shared spreadsheet to one screen. The part I didn’t expect: our owners stopped calling at month end, because they can just look.',
-        'jv' => 'Direct went from about a fifth of our nights to over half in a season. That’s not a feature list, that’s payroll.',
-        'mr' => 'Housekeeping runs itself now. The board tells the team what’s urgent, and a maintenance ticket takes the unit off sale without anyone remembering to.',
-        'sn' => 'The migration was the bit I dreaded. We ran both systems for a week, found two rate mappings that were wrong, and cut over on a Tuesday morning without losing a booking.',
-        'am' => 'My cleaners have a phone and a board. That’s the whole training. The week we switched, nobody called me to ask which room was next.',
-        'tb' => 'I own four villas and I used to get a PDF and a shrug. Now I can see what each one earned, what it cost, and why. It changed the relationship.',
-    ];
+    $testimonialQuotes = [];
 @endphp
 <x-marketing.shell
     title="Vyrobel — Property management software with commission-free direct bookings"
@@ -1014,27 +1007,27 @@
 
       <div data-plans="" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch;">
         <div data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 28px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
-          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Starter</div>
-          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">Up to 10 units</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
-          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Direct bookings, front desk, calendar and housekeeping for a single property.</p>
+          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['name'] ?? '' }}</div>
+          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">One property account</div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-0" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
+          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Direct bookings, front desk, calendar and housekeeping — one price, any number of units.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease;">See what's included</x-marketing.nav-link>
         </div>
 
         <div data-reveal="" data-reveal-delay="90" style="position: relative; background: rgba(255,252,248,.72); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1.5px solid rgba(217,102,46,.42); border-radius: 22px; padding: 30px 28px; box-shadow: 0 22px 56px rgba(194,65,12,.22); display: flex; flex-direction: column;">
           <span style="position: absolute; top: -12px; left: 28px; padding: 5px 12px; border-radius: 999px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(194,65,12,.34);">Most popular</span>
-          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Growth</div>
-          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">10–60 units</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
-          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Everything in Starter plus maintenance, the owner portal, payouts, channels and reports.</p>
+          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['name'] ?? '' }}</div>
+          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">Adds the channel manager</div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-1" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
+          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Everything in the lower plan, plus the channel manager and unlimited team members.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.3); transition: transform .2s ease, box-shadow .2s ease;">Compare plans</x-marketing.nav-link>
         </div>
 
         <div data-reveal="" data-reveal-delay="180" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 28px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
-          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Pro &amp; Enterprise</div>
-          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">60+ units, multi-brand</div>
+          <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">Larger portfolios</div>
+          <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">Multi-property groups</div>
           <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">Talk</span><span style="font-size: 13.5px; color: var(--vy-muted);">to us</span></div>
-          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Multi-property groups, granular roles, custom agreements, onboarding and a named contact.</p>
+          <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Running several properties, or want the numbers checked against your portfolio before you commit? Talk to us.</p>
           <x-marketing.nav-link key="contact" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease;">Talk to sales</x-marketing.nav-link>
         </div>
       </div>

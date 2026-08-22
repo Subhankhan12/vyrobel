@@ -12,7 +12,7 @@
 @endphp
 <x-marketing.shell
     title="Switching to Vyrobel — migrate your PMS without losing a booking | Vyrobel"
-    description="How to move from your current property management system to Vyrobel: what migrates, what doesn't, the parallel-running cutover, and a realistic timeline. Free migration support on Growth and above."
+    description="How to move from your current property management system to Vyrobel: what migrates, what does not, the parallel-running cutover, and a realistic timeline."
     canonical="/switching">
 <div data-screen-label="Marketing — Switching" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
@@ -221,8 +221,8 @@
     <section data-sec="" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 78px;">
       <div data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 34px; border-radius: 20px; background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 14px 38px rgba(150,90,50,.14);">
         <div style="max-width: 620px;">
-          <h2 style="margin: 0 0 8px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; color: var(--vy-ink);">Migration is included on Growth and above</h2>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.64; color: var(--vy-muted);">The import, the reconciliation, the training and the channel cutover are part of onboarding, not a professional services line. Starter customers self-serve with a CSV importer and written guides, which is fine for one property.</p>
+          <h2 style="margin: 0 0 8px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; color: var(--vy-ink);">Moving your data across</h2>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.64; color: var(--vy-muted);">Vyrobel imports from a CSV, and the reconciliation step below is how you check it landed correctly before you cut over. ⚠️ What hands-on help comes with a plan is not settled yet — ask us rather than assume it importer and written guides, which is fine for one property.</p>
         </div>
         <x-marketing.nav-link key="pricing" style="display: inline-flex; align-items: center; gap: 9px; padding: 14px 24px; border-radius: 13px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; flex-shrink: 0; transition: transform .22s ease, box-shadow .22s ease;">See the plans</x-marketing.nav-link>
       </div>
