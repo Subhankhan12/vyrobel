@@ -32,8 +32,17 @@ final class MarketingUrls
         'pricing' => '/pricing',
         'try-booking' => '/try-booking',
         'switching' => '/switching',
-        'alternatives' => '/alternatives',
-        'compare' => '/compare',
+        // ⚠️ `alternatives` and `compare` were DROPPED (founder ruling, executed 2026-08-22). They are not
+        // "held pending sources" any more — they are gone, so their keys are gone with them.
+        //
+        // ⚠️ REMOVING THE KEY IS NOT SELF-ENFORCING, AND THE FIRST DRAFT OF THIS COMMENT CLAIMED IT WAS.
+        // `path()` falls back to '/' on an unknown key, and `<x-marketing.nav-link>` only calls `path()` on
+        // the NON-pending branch — so a leftover `key="compare"` renders as a marked dead non-link rather
+        // than a wrong link. Quiet, not loud. The actual guard is therefore a TEST that no marketing view
+        // may name a dropped key (MarketingFoundationTest), mutation-proven by re-adding a row.
+        //
+        // The 12 audited competitor claims are KEPT in resources/marketing/claims.json as the audit record
+        // — the drop removes the PAGES, not the finding that those claims were unsourced.
         'for-hotels' => '/for-hotels',
         'for-villas' => '/for-villas',
         'for-apartments' => '/for-apartments',
@@ -94,5 +103,54 @@ final class MarketingUrls
     public static function pending(string $key): bool
     {
         return ! Route::has('marketing.page.'.$key);
+    }
+
+    /**
+     * ⚠️ S2 — THE PUBLISHED MEMBERS OF A PAGE SERIES, IN MAP ORDER.
+     *
+     * ⚠️⚠️ WHY THIS EXISTS. Every guide and article master carries a footer counter — "Guide 3 of 16",
+     * "Article 2 of 7" — and each one asserts THE WHOLE SET EXISTS. Sixteen guides were audited and none
+     * published, so any partial publication would ship a page announcing fifteen siblings that are not
+     * there. That made the publishable set ZERO under every policy, whatever else was fixed.
+     *
+     * ⚠️ THE COUNT IS DERIVED FROM THE ROUTE TABLE, NOT WRITTEN DOWN. It reads exactly what
+     * {@see pending()} reads, so there is ONE definition of "is this page published" (§N.8f): publish a
+     * guide and every sibling's counter grows by itself; defer one and it shrinks. A hardcoded sixteen
+     * would be a second source, and a second source of one fact is how these pages became false in the
+     * first place.
+     *
+     * ⚠️ AND IT IS DELIBERATELY A RUNTIME DERIVATION RATHER THAN A CONVERTER TRANSFORM. The doctrine says
+     * a fix belongs IN the converter (§N.31.4) because a post-generation patch is undone by the next
+     * generation — but the converter (`pxbuild.py`) was NEVER COMMITTED; it exists only in a session
+     * scratchpad under /private/tmp. A rule enforced by an unversioned script is not enforced. Deriving at
+     * runtime means there is no literal count in any generated file for a regeneration to restore, and the
+     * guard in MarketingDocSeriesTest forbids one from appearing.
+     *
+     * @return list<string> the ordered keys with this prefix whose route actually exists
+     */
+    public static function publishedSeries(string $prefix): array
+    {
+        $published = [];
+
+        foreach (array_keys(self::MAP) as $key) {
+            if (str_starts_with($key, $prefix) && ! self::pending($key)) {
+                $published[] = $key;
+            }
+        }
+
+        return $published;
+    }
+
+    /**
+     * The 1-based position of a page within its PUBLISHED series, or null when it is not published.
+     *
+     * ⚠️ NULL IS THE IMPORTANT RETURN. An unpublished page has no honest position — it is not "1 of 0" and
+     * it is not "3 of 3". The caller renders nothing.
+     */
+    public static function seriesPosition(string $key, string $prefix): ?int
+    {
+        $index = array_search($key, self::publishedSeries($prefix), true);
+
+        return $index === false ? null : $index + 1;
     }
 }

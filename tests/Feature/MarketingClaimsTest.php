@@ -37,6 +37,35 @@ function mkClaim(array $overrides = []): array
     ], $overrides);
 }
 
+// ══ ⚠️ THE VACUITY FLOOR — added 2026-08-22, when the two pages carrying every claim were DROPPED ═══
+//
+// ⚠️ THE PREMISE THAT SENT ME HERE WAS HALF WRONG, AND CONFIRM-FIRST SHRANK IT. The concern was that
+// dropping /alternatives and /compare would empty the ledger and leave Gate 6 passing forever with nothing
+// to check. ⚠️ But the gate's PREDICATE tests were already synthetic — `proves the gate both refuses and
+// accepts` and `clears a page only when…` run entirely on `mkClaim()` fixtures and survive an empty ledger
+// intact. So the consent-guard's synthetic-positive pattern was ALREADY here, and copying it again would
+// have been a second definition of one idea (§N.8f).
+//
+// ⚠️ WHAT WAS GENUINELY MISSING IS THIS: five tests below iterate the REAL ledger. On an emptied ledger
+// every one of those loops asserts nothing and reports green — the "guard over EMPTY data" shape (§N.31.1
+// #5). This floor closes that, and it is why the 12 audited claims were KEPT rather than deleted with the
+// pages: the drop removes the PAGES, not the finding that those claims were unsourced.
+it('⚠️ has a NON-EMPTY ledger — every real-data test below is vacuous without one', function () {
+    $claims = MarketingClaims::all();
+
+    Assert::assertNotEmpty($claims,
+        '⚠️ THE CLAIMS LEDGER IS EMPTY. Five tests in this file iterate it; with no entries they all pass '
+        .'while checking nothing, and CI Gate 6 becomes theatre. If the last claim was legitimately removed, '
+        .'delete this file and the gate step together — do not leave a green gate guarding nothing.');
+
+    // ⚠️ And the fields the gate keys on must be present, or the predicate reads null on every claim and
+    // "no unsourced claims" passes for the wrong reason.
+    foreach ($claims as $claim) {
+        Assert::assertArrayHasKey('source_url', $claim, "[{$claim['id']}] has no source_url key at all");
+        Assert::assertArrayHasKey('review_by', $claim, "[{$claim['id']}] has no review_by key at all");
+    }
+});
+
 // ══ THE LEDGER ITSELF ══════════════════════════════════════════════════════════════════════════════
 it('holds every audited claim, each carrying the fields the gate keys on', function () {
     $claims = MarketingClaims::all();

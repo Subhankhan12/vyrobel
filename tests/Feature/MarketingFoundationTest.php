@@ -168,7 +168,7 @@ it('reaches every design mobile-drawer destination — the drawer is not a reduc
     // entirely would look identical to one that became a link. Each must be present in ONE of the two
     // shapes, and the TOTAL must still be the design's 21.
     foreach (['product', 'features', 'modules', 'how-it-works', 'for-hotels', 'for-villas', 'for-apartments',
-        'pricing', 'alternatives', 'compare', 'switching', 'case-studies', 'docs', 'guide-reservation',
+        'pricing', 'switching', 'case-studies', 'docs', 'guide-reservation',
         'guide-statements', 'faq', 'glossary', 'resources', 'changelog', 'about', 'contact'] as $key) {
         $reachable = str_contains($drawer, 'data-vy-pending="'.$key.'"')
             || str_contains($drawer, 'href="'.MarketingUrls::path($key).'"');
@@ -176,7 +176,9 @@ it('reaches every design mobile-drawer destination — the drawer is not a reduc
     }
     // …and the drawer really carries all 21 of the design's rows, not a subset that happens to name them.
     $rows = substr_count($drawer, 'vy-mk-mrow') + substr_count($drawer, 'vy-mk-msub');
-    Assert::assertSame(21, $rows, 'the mobile drawer no longer carries the design\'s 21 links');
+    // ⚠️ 21 → 19: `alternatives` and `compare` were DROPPED (2026-08-22). The pin moves DELIBERATELY and
+    // with the key list above — a count that drifts on its own is the defect this pin exists to catch.
+    Assert::assertSame(19, $rows, 'the mobile drawer no longer carries the design\'s 19 remaining links');
 });
 
 it('keeps the footer columns as the design groups them', function () {

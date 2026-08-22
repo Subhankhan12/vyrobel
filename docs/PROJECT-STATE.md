@@ -88,7 +88,8 @@ conflicts with the repo, **trust the repo** and fix this file.
 > resolves, there are zero stubbed actions and zero dead controls, and exactly **three** items were *wrong*
 > rather than *absent* (all three fixed). So the remaining feature work is **additive**, and ⚠️ **none of it
 > blocks launch** — the launch gates are **infrastructure and founder steps**, nothing else (see LAUNCH GATES).
-> **Wave 0 (correctness) and Wave 1 are complete. Wave 2 is complete except `DO3-3`, which is next.**
+> **Wave 0 (correctness) and Wave 1 are complete. ⚠️ Wave 2 is COMPLETE — `DO3-3` closed 2026-08-15
+> (corrected here 2026-08-22; this line said it was "next" for a week). The next item is Waves 3–4.**
 >
 > **ELEVEN CHAPTERS ARE CLOSED, IN ORDER** (①–⑨ unchanged from v16 — see §N.13–§N.21):
 > **① THE DESIGN-PARITY WALK** (§N.13) · **② THE CLEANUP SEQUENCE** (§N.14) · **③ THE FIRST BUILD + ITS
@@ -161,11 +162,14 @@ conflicts with the repo, **trust the repo** and fix this file.
 >
 > ## ⬅ WHAT TO DO NEXT — the backlog, in order
 >
-> **① `DO3-3` — failed-payout Retry / recovery.** ⚠️ **The last Wave-2 item, size M, and MONEY-ADJACENT.** The
->   payout status exists; the owner-facing recovery affordance does not (`OwnerPayouts.php:44` is a comment).
->   ⚠️ **CONFIRM FIRST what "retry" actually does, and prove IDEMPOTENCY — a retry must not double-pay.** The
->   certified rail already has a unique idempotency key + a ledger row-lock (#45): **orchestrate it, never
->   re-implement it.** Anything touching live Stripe stays founder-gated.
+> **① ~~`DO3-3` — failed-payout Retry / recovery.~~ 🏁 CLOSED 2026-08-15 — CORRECTED 2026-08-22.**
+>   ⚠️⚠️ **THIS ENTRY WAS STALE FOR A WEEK AND OPENED THE NEXT-ACTIONS LIST THE WHOLE TIME.** The retry is
+>   BUILT: `owner.payouts.retry` → `OwnerPayoutService::retry()` (`:240-282`), row-locked, re-checked inside
+>   the lock, idempotent, audited. `docs/BACKEND-REMAINING-WORK.md:216` recorded the closure on 2026-08-15
+>   — including that the service already existed with **no idempotency at all**, a dormant double-payment
+>   waiting for its first caller. ⚠️ Gate 5's doc-truth audit flagged this line as stale on 2026-08-22 and
+>   **the correction still did not reach this file**; the docs-triage pass found it again. Hence the process
+>   rule in §N.32.
 > **② WAVES 3–4 — features + de-duplication.** `D1-1` · `D8-2` · `DO9-2`/`DO9-3` · `D18-5`/`D18-6` · `D23-2` ·
 >   `DO24-1` · Excel exports · the `DO25-1`/`DO23-2` §N.8f drift · hand-rolled star colours · `DO20-1` PDF page
 >   numbering · delete the dead `guest/partials/trip-card.blade.php` · **unify the two operator payout maps**.
@@ -8154,3 +8158,72 @@ told to skip the cron"*, written in one report, copied to a second, and carried 
 ⚠️ **A statement written once and never re-read against the code becomes indistinguishable from a fact.**
 The rule for every session: **treat the brief as a starting point, verify against the repo, and say plainly
 when the brief is wrong.**
+
+---
+
+# ⚠️⚠️ §N.32 — A CORRECTION THAT STAYS IN A REPORT IS NOT A CORRECTION (2026-08-22)
+
+> **THE RULE:** ⚠️ **when a pass corrects a prior finding, it must propagate the correction to
+> `docs/SESSION-HANDOFF.md` and `docs/PROJECT-STATE.md` IN THE SAME PASS.** Reports under `docs/audits/` are
+> **append-only history**; the handoff and this file are what a session actually consults. A correction
+> written only into a report is invisible to every future reader.
+
+## §N.32.1 The three instances that earned it
+
+| # | the correction | where it was written | where it failed to arrive |
+|---|---|---|---|
+| 1 | ⚠️ **`DO3-3` is BUILT** — `owner.payouts.retry` → `OwnerPayoutService::retry()`, row-locked and idempotent. | `BACKEND-REMAINING-WORK.md:216`, **2026-08-15** | ⚠️ `PROJECT-STATE.md` **opened its next-actions list with it for a week.** Gate 5 flagged it stale on 08-22 and *that* correction did not land either. Fixed here. |
+| 2 | ⚠️ **The deploy does NOT refuse when told to skip the cron** — `fail()` at `ops/deploy.sh:53` only prints; `DEPLOY_NO_CRON_INSTALL=1` warns and the deploy COMPLETES. | SAVE v2 §0 #1 + `DECISIONS.md:14870` | ⚠️ Corrected in the docs — **and then re-introduced by the next brief**, which asserted the refusal as fact. See §N.32.2. |
+| 3 | ⚠️ **`PropertyBrand` is real** and applied to guest emails, the guest review page, the schedule PDF and the Settings preview. Gate 5 read it as "branding does not work". | the docs-triage report, 2026-08-22 | propagated here, same pass — §N.32.3. |
+
+## §N.32.2 ⚠️ THE THIRD INSTANCE CAME FROM THE BRIEF, AND THAT IS THE SHARPEST FORM
+
+The prompt commissioning **this** pass — a pass whose whole purpose is propagating corrections — asserted
+that `ops/deploy.sh:168` *"installs the cron **and refuses to deploy if told to skip**."*
+
+⚠️ **It does not, and this was already corrected twice.** Re-verified again here, line by line: `fail()` at
+`:53` is a bare `printf … >&2`; the `DEPLOY_NO_CRON_INSTALL=1` branch calls `fail` then `note` and falls
+through; the script's `exit` statements are at `:45 :46 :74 :79 :84 :89 :92 :108 :203` and **none is in the
+cron branch**. The deploy prints red and completes. §7.2's heartbeat is what catches it.
+
+⚠️ **So the caveat is NOT obsolete, and this pass did not "verify it gone" — it refused to re-introduce it.**
+The correct three-part statement, which `CLAUDE.md` and SAVE v2 both already carry:
+
+1. the deploy **installs** the cron (`:168-179`, idempotent append) — the old "a crontab nobody installs"
+   risk is genuinely retired;
+2. the escape hatch is **not fatal** — `DEPLOY_NO_CRON_INSTALL=1` warns and completes;
+3. the **§7.2 liveness heartbeat** is the control that catches a scheduler that never fires.
+
+⚠️ **A correction can be undone by the next brief.** Propagating into the canon is necessary but not
+sufficient — a session must still verify the brief against the code and say plainly when it is wrong.
+
+## §N.32.3 The other corrections propagated in this pass
+
+- ⚠️ **BRANDING (Gate 5 overstated it).** `PropertyBrand` is real and consumed by
+  `Mail/Concerns/BrandsGuestMail.php:24`, `GuestReviewController.php:58`, the schedule PDF and
+  `OperatorSettings.php:83`. The operator configures it under a **"Guest-facing brand"** Settings section.
+  ⚠️ **Only the public booking storefront ignores it** — `components/public/shell.blade.php:249` hardcodes
+  `Powered by Vyrobel`. So that cluster is *plumbing an existing helper into an existing shell*, not a
+  subsystem.
+- ⚠️ **THE SETTINGS RECOUNT, AND THE FINDING THAT RESTED ON IT.** Gate 5 enumerated **twelve** operator
+  Settings sections. There are **fourteen** — it missed *"Who can access …"* and *"Guest-facing brand"*.
+  ⚠️⚠️ **Its GDPR finding — "there is no Data and privacy section" — rested on that same wrong list, so it
+  was RE-CONFIRMED here rather than inherited.** The fourteen headings are: Property basics · Policies ·
+  Tax & fees · Invoice details · Your plan · Notification routing · Guest messages · Owner · Property
+  status · Who can access … · Guest-facing brand · Guest support · Taxes · Organization. ⚠️ **There is no
+  "Data and privacy" section, and no privacy, retention, erasure or anonymisation heading anywhere on the
+  screen. The finding stands — now on a correct enumeration.**
+
+## §N.32.4 ⚠️ THE 12th SEEDER-ONLY ENTITY — arrival secrets
+
+The reachability sweep found **eleven** entities the demo seeder creates that the application cannot.
+⚠️ **There is a twelfth: `units.door_code`, `wifi_ssid`, `wifi_password` and `arrival_notes`.**
+
+Every reference in `app/` is a **READ** — `Mail/PreArrivalMail.php` (renders it), `Models/Unit.php`
+(`fillable` + `encrypted` cast), `Support/Guest/ArrivalPack.php` (resolves it). **No operator UI writes any
+of the four.** They hold data only because `DemoSeeder` puts it there.
+
+⚠️ **So invariant #33 — the door code is withheld until the arrival window — is correctly enforced on data a
+real operator cannot enter.** The gate works; the field behind it is unreachable. ⚠️ **The form is NOT built
+here** — it belongs to an unruled cluster (docs-triage cluster E), and it is that report's cheapest
+high-value item.

@@ -106,13 +106,13 @@
                                  Both claim real reference customers, and the pages behind them are explicitly
                                  ILLUSTRATIVE SCENARIOS (ruling A). A nav label is a label for its content. --}}
                             <x-marketing.mega-row key="case-studies" title="Example scenarios" desc="Three shapes of operation, illustrated" icon="stories" />
-                            <x-marketing.mega-row key="compare" title="Compare the options" desc="Against OTAs and spreadsheets" icon="compare" />
-                            {{-- ⚠️ GATE 3: the design's description here listed four named competitors — which meant EVERY page on
-                                 the site named them, while `/alternatives` itself is HELD pending the claim audit. A nav row
-                                 cannot advertise a comparison the site does not serve. The description is now that page's
-                                 OWN section heading (the design's words, not invented copy); the founder may restore the
-                                 names when the page is built with cited, dated claims. --}}
-                            <x-marketing.mega-row key="alternatives" title="Vyrobel vs the alternatives" desc="Where we&rsquo;d tell you to buy something else" icon="alternatives" />
+                            {{-- ⚠️ THE DROP, EXECUTED (2026-08-22). Two rows stood here — "Compare the options" and
+                                 "Vyrobel vs the alternatives". Gate 3 removed the four named COMPETITORS from their
+                                 descriptions but left the ROWS, so every page on the site went on advertising two pages
+                                 that were never going to be served: 12 unsourced competitor claims, none of them sourceable
+                                 without the founder supplying evidence. The founder ruled DROP; this is that ruling
+                                 executed, in the nav as well as the URL map — a ruling scoped to a page never reaches the
+                                 chrome, and the chrome is what appears on all 19 published pages. --}}
                             <x-marketing.mega-row key="switching" title="Switching to Vyrobel" desc="What migrates, and the cutover" icon="switching" />
                         </div>
                     </div>
@@ -162,8 +162,8 @@
             <div class="vy-mk-mgroup">
                 <div class="vy-mk-mlabel">Deciding</div>
                 <x-marketing.nav-link key="pricing" class="vy-mk-mrow">Pricing</x-marketing.nav-link>
-                <x-marketing.nav-link key="alternatives" class="vy-mk-mrow">Vs alternatives</x-marketing.nav-link>
-                <x-marketing.nav-link key="compare" class="vy-mk-mrow">Compare</x-marketing.nav-link>
+                {{-- ⚠️ THE DROP: the drawer must match the desktop nav exactly. A reduced drawer once orphaned
+                     six pages on mobile, which is why the row count is pinned; the pin moves 21 → 19 here. --}}
                 <x-marketing.nav-link key="switching" class="vy-mk-mrow">Switching to Vyrobel</x-marketing.nav-link>
                 <x-marketing.nav-link key="case-studies" class="vy-mk-mrow">Example scenarios</x-marketing.nav-link>
             </div>

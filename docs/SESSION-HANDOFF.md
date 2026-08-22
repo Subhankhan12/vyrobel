@@ -171,7 +171,9 @@ service commitments, tier names — the founder rules; the build records the rul
 ### 4.6 The reachability class
 
 - ⚠️⚠️ **THE DEMO SEEDER CREATES STATE THE APPLICATION CANNOT CREATE** — so **the demo looks complete while
-  the product is not**. **11 SEEDER-ONLY entities**; the money chain stops at statement finalisation.
+  the product is not**. **12 SEEDER-ONLY entities** (⚠️ the sweep found 11; the **12th is the arrival
+  secrets** — `door_code` / `wifi_*` / `arrival_notes`, where every reference in `app/` is a READ, so #33 is
+  enforced on data no operator can enter — §N.32.4); the money chain stops at statement finalisation.
 - ⚠️ **GATED-UNREACHABLE ≠ no path** (P-7: `property_user`'s only writer needs a row only it could create).
 - ⚠️⚠️ **A SIGNPOSTED MISSING FEATURE IS WORSE THAN AN ABSENT ONE.** The app instructed *"add units, rates &
   channels to go live"* when all three were impossible — **the tenant concludes THEY are failing.**
@@ -216,7 +218,7 @@ notice (a POST, not a page).
 
 | Page | Why |
 |---|---|
-| `Alternatives` / `Compare` | **12 unsourced competitor claims.** Awaiting the founder's sources. |
+| `Alternatives` / `Compare` | ⚠️ **DROPPED 2026-08-22 — the ruling EXECUTED.** 12 unsourced competitor claims, none sourceable without the founder supplying evidence. Removed from the URL map, the nav (desktop + mobile drawer), the footer and a CTA on the published `/switching` page — **7 sites; the brief named 2**. The drawer pin moved 21 → 19. ⚠️ The 12 claims are **KEPT** in `claims.json` as the audit record: the drop removes the PAGES, not the finding. |
 | `Privacy` / `Terms` | ⚠️ **Structure + data inventory only, UNPUBLISHED. Legal text NOT drafted** — a plausible-looking policy is worse than none. |
 | The **27 docs/resources** | ⚠️ **220 false claims** found in the Gate-5 audit. Deferred. |
 | `Changelog` | **Refused.** Eight entries: three **predate the repository's first commit**, two are dated **in the future**. Zero releases have ever happened. |

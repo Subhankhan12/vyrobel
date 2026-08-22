@@ -43,12 +43,41 @@ it('⚠️ leaves the audited pages UNROUTED — an empty or unsourced page must
     // ⚠️ UPDATED BY GATE 3b. The scenario pages were held in Gate 3 because their subject was three
     // invented customers; ruling (A) reframed them as labelled illustrative scenarios and they are now
     // routed — under /example-scenarios, NOT /case-studies, because the URL was itself part of the claim.
-    // The two COMPETITOR pages remain held: their claims are still unsourced.
-    foreach (['alternatives', 'compare'] as $held) {
-        Assert::assertTrue(MarketingUrls::pending($held), "[{$held}] became routable while its claims are unsourced");
+    // ⚠️ UPDATED 2026-08-22 — THE TWO COMPETITOR PAGES ARE NO LONGER "HELD", THEY ARE DROPPED. The founder
+    // ruled DROP; this pass executed it. So the assertion strengthens rather than disappears: the paths must
+    // still 404, AND the keys must be gone from the URL map entirely, AND no marketing view may name them.
+    // ⚠️ Testing only `pending()` would now be VACUOUS — a key absent from the map is trivially "pending",
+    // so that assertion could never fail again. It is replaced by the three below, which can.
+    foreach (['alternatives', 'compare'] as $dropped) {
+        Assert::assertArrayNotHasKey($dropped, MarketingUrls::MAP,
+            "[{$dropped}] is back in the URL map — the drop was reverted");
     }
     foreach (['/alternatives', '/compare'] as $path) {
         $this->get($path)->assertNotFound();
+    }
+
+    // ⚠️ THE REAL GUARD (see the note in MarketingUrls): removing a key is not self-enforcing, because a
+    // leftover `key="compare"` renders as a marked dead non-link rather than erroring. This is what stops a
+    // dropped row being reintroduced silently — and it caught a 7th site on /switching when first written.
+    // ⚠️⚠️ `array_merge`, NOT `+`. The first draft of this guard used `glob(...) + glob(...)`, and PHP's `+`
+    // on arrays is UNION BY KEY: both globs return 19 elements keyed 0..18, so the SECOND was discarded
+    // entirely. The guard therefore scanned the page views and never the CHROME — the nav and footer, which
+    // is precisely where the dropped rows lived and where a claim reaches all 19 published pages (§N.31.5).
+    // ⚠️ It passed its first mutation, which is how it was caught: the mutation was applied, verified in the
+    // file, and the guard stayed green (§N.4p — a mutation that does not red is a finding about the guard).
+    $views = array_merge(
+        glob(resource_path('views/marketing/*.blade.php')) ?: [],
+        glob(resource_path('views/components/marketing/*.blade.php')) ?: [],
+    );
+
+    Assert::assertGreaterThan(30, count($views), 'the view sweep found almost nothing — it would be vacuous');
+
+    foreach ($views as $view) {
+        $src = (string) preg_replace('/\{\{--.*?--\}\}/s', '', (string) file_get_contents($view));
+        foreach (['alternatives', 'compare'] as $dropped) {
+            Assert::assertStringNotContainsString('key="'.$dropped.'"', $src,
+                basename($view).' still links to the dropped "'.$dropped.'" page');
+        }
     }
 
     // ⚠️ AND THE OLD, CLAIM-BEARING URLs MUST NOT RESOLVE — a live /case-studies/… would re-assert the
