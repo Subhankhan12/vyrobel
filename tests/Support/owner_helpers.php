@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Folio;
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\MessageThread;
@@ -11,7 +12,9 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Services\FolioService;
 use App\Services\InboxService;
+use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
+use App\Support\Owner\OwnerCollection;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
 
@@ -44,6 +47,34 @@ if (! function_exists('postRoom')) {
     {
         $folio = app(FolioService::class)->openFolio($reservation);
         app(FolioService::class)->postCharge($folio, 'room', 'Room', Money::of($minor, 'EUR'));
+    }
+}
+
+if (! function_exists('collectFolio')) {
+    /**
+     * ⚠️ SETTLE the reservation's folio in full — i.e. the guest actually PAID.
+     *
+     * ⚠️ NEEDED BECAUSE OF THE COLLECTION GATE (②+accrual, 2026-08-23). `owner_ledger` is an accrual and
+     * still records what is OWED the moment the folio charge is posted — but a STATEMENT now claims only
+     * rows backed by money actually received ({@see OwnerCollection}), because a
+     * finalized statement is what the payout engine pays from.
+     *
+     * ⚠️ So `postRoom()` alone leaves a realistic PAY-ON-ARRIVAL booking: charged, unpaid, and correctly
+     * NOT payable. A test that means to exercise the projection maths must say the guest paid — which is
+     * what this does. It is deliberately NOT folded into `postRoom()`: doing so would hide the gate from
+     * every fixture in the suite and leave the most dangerous path untested.
+     */
+    function collectFolio(Reservation $reservation): void
+    {
+        $folio = Folio::query()->where('reservation_id', $reservation->getKey())->firstOrFail();
+        $due = FolioTotals::for($folio)['balance_minor'];
+
+        if ($due <= 0) {
+            return;
+        }
+
+        $payment = app(FolioService::class)->recordPayment($folio, Money::of($due, (string) $folio->currency));
+        app(FolioService::class)->settlePayment($payment, 'succeeded');
     }
 }
 

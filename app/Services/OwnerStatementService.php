@@ -7,6 +7,7 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Owner\OwnerCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -158,12 +159,30 @@ class OwnerStatementService
      */
     private function claimable(string $ownerId, string $periodEnd): Collection
     {
-        return OwnerLedgerEntry::query()
+        $claimable = OwnerLedgerEntry::query()
             ->where('owner_id', $ownerId)
             ->whereNull('statement_id')
             ->whereDate('service_date', '<=', $periodEnd)
             ->orderBy('service_date')
             ->get();
+
+        // ⚠️⚠️ THE COLLECTION GATE — the single point at which accrued revenue becomes PAYABLE.
+        //
+        // ⚠️ The ledger is a correct ACCRUAL and is NOT touched: it goes on saying what the owner is OWED.
+        // What changes is what a STATEMENT may claim, because a finalized statement is what the payout
+        // engine pays from — so claiming an uncollected row would release money the business never received.
+        // With `PAYMENTS_GATEWAY=manual` every storefront booking is pay-on-arrival, so that was not a rare
+        // edge: it was the default path.
+        //
+        // ⚠️ HELD ROWS ARE NOT LOST. They keep `statement_id = NULL` and are picked up by a later statement
+        // once the guest pays — via the same straggler path this method already had for post-lock rows, which
+        // is why no carry-forward mechanism had to be invented.
+        //
+        // ⛔ This allocates COLLECTION RISK (the owner waits on the guest rather than the platform fronting
+        // them) — surfaced as a founder decision in {@see OwnerCollection}, not decided here.
+        $split = OwnerCollection::split($claimable);
+
+        return collect($split['collected']);
     }
 
     /**

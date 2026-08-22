@@ -53,6 +53,7 @@ function bookingSummaryOwner(array $s, array $unitIndexes, array $roomMinors, st
         $reservation = book($s, ['unit_id' => $unit->id]);
         postRoom($reservation, $roomMinors[$i]);
         app(OwnerAttributionService::class)->attributeReservation($reservation);
+        collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
         $reservations[] = $reservation;
     }
 

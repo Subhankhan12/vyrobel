@@ -33,6 +33,7 @@ it('projects the period ledger into gross → commission → expenses → net, r
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $s['units'][0]->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 5000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',
@@ -62,7 +63,8 @@ it('projects a real payment & ops fee into the "Payment & ops fees" bucket, reco
     $owner = ownUnit($s['units'][0]); // 15% commission
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
-    app(OwnerAttributionService::class)->attributeReservation($reservation); // gross 20000, commission −3000
+    app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual) // gross 20000, commission −3000
 
     // A REAL payment-processing fee posted to the owner ledger — what a live Stripe / channel fee writer
     // emits. It is an ordinary signed ledger line, so it flows through the projection like every bucket.
@@ -99,6 +101,7 @@ it('omits the "Payment & ops fees" line when there is no real fee', function () 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
 
     $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30');
 
@@ -113,6 +116,7 @@ it('regenerates a draft idempotently and locks + stamps on finalize', function (
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
 
     $svc = app(OwnerStatementService::class);
     $d1 = $svc->generateDraft($owner->id, '2026-09-01', '2026-09-30');
@@ -188,6 +192,7 @@ it('records fx and converts the net when payout currency differs from the ledger
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
 
     $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30', '1.1000000000', 'ECB 2026-09-30');
 
@@ -205,6 +210,7 @@ it('does not convert when payout currency matches the ledger currency', function
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
 
     $statement = app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30');
 
@@ -223,6 +229,8 @@ it('projects only the statement owner’s ledger, never another owner’s', func
     postRoom($resB, 30000);
     app(OwnerAttributionService::class)->attributeReservation($resA);
     app(OwnerAttributionService::class)->attributeReservation($resB);
+    collectFolio($resA);   // ⚠️ both guests PAID — this test is about owner ISOLATION, not collection
+    collectFolio($resB);
 
     $stmtA = app(OwnerStatementService::class)->finalize(
         app(OwnerStatementService::class)->generateDraft($ownerA->id, '2026-09-01', '2026-09-30')

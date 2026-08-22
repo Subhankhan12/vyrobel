@@ -58,6 +58,12 @@ added this arc.*
 concept. `ops/money-as-seeded.sh` pins the demo money: **929 / 10,912,000 / 0 `unit_rate_overrides` / 41 /
 16 / 0**.
 
+⚠️⚠️ **THAT PIN IS CURRENTLY RED, FOR TWO ATTRIBUTED REASONS, AND WAS DELIBERATELY NOT RE-PINNED**
+(`docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §7): the reservation count **41 → 40** is **PRE-EXISTING
+and date-driven** — the demo seeder is date-relative and reproduces 40 on baseline code, so ⚠️ **the pin is
+date-fragile**; and the September statement moved because the collection gate correctly holds uncollected
+revenue. ⛔ Re-pinning is a founder call and depends on the collection-risk decision.
+
 ---
 
 ## 2 · The working method — load-bearing; the new session must follow it
@@ -303,7 +309,7 @@ the **`/pricing` headline copy**.
 | ⚠️ **The phantom retention purge** | `Guest::anonymize()` defers abandoned booking quotes to a *"scheduled retention purge"* **that does not exist**. |
 | ⚠️ **Permanent stores erasure cannot reach** | `audit_events` (IP + user-agent, no prune) · `webhook_events.payload` (verbatim OTA guest name/email/phone) · `domain_events`. |
 | ⚠️ **Possible Article 9 data** | Staff **leave `reason`** — free text, no retention, no delete route. |
-| ⚠️⚠️ **② + the accrual pair** | The owner ledger accrues on **CHARGES, not receipts**, and nothing finalises a statement. ⚠️ **Fixing finalisation ALONE would pay owners against uncollected revenue — the pair must be fixed together.** |
+| ✅ **② + the accrual pair — DONE 2026-08-23** | ⚠️ **The defect was MISNAMED.** Accruing on charge is CORRECT (the ledger is an accrual, keyed on `service_date`); the real defect was that nothing distinguished owed-and-**collected** from owed-and-**uncollected**. Fixed with a collection-aware payable balance (`OwnerCollection`) gating what a STATEMENT may claim — the ledger untouched. Finalisation got its first real caller (`POST /app/owners/{owner}/close-period`). The ordering is mutation-proven. ⚠️ **Two founder decisions SURFACED, not picked: who bears collection risk, and what triggers finalisation.** ⚠️ **And a restatement is surfaced, not done silently** — see `docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §7. |
 | ⚠️ **19 ungated operator screens** | **Three render money**, incl. `/app/dashboard`'s "Revenue today" tile — visible to Housekeeping. |
 | **P-7** | Per-property scoping (`property_user`) is **gated-unreachable**. |
 | **Channels** | **Build or remove** (decision ④). Unreachable today; `Channel::create` exists only in the seeder. |

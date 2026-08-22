@@ -61,6 +61,7 @@ function attributedStay(array $s, Unit $unit, int $roomMinor): Reservation
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     return $reservation;
 }

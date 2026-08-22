@@ -59,6 +59,7 @@ if (! function_exists('finalizeStatementFor')) {
         $reservation = book($s, ['unit_id' => $o['unit']->id]);
         postRoom($reservation, 20000);
         app(OwnerAttributionService::class)->attributeReservation($reservation);
+        collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
         $svc = app(OwnerStatementService::class);
 
         return $svc->finalize($svc->generateDraft($o['owner']->id, '2026-09-01', '2026-09-30'));

@@ -58,6 +58,16 @@ class PayoutRunActionController extends Controller
      */
     public function runNow(Request $request, PayoutRunService $runs): RedirectResponse
     {
+        // ⚠️⚠️ THE FEATURE FLAG NOW GATES THE MANUAL RUN TOO. `PAYOUT_ENGINE_ENABLED` was read by the
+        // scheduled command (`RunScheduledPayouts`) and by the owner-facing display — but NOT here, so this
+        // route ran the engine with the flag off. ⚠️ A flag that gates the scheduled path and not the manual
+        // one is worse than no flag: it reads as "the engine is off" on every surface while one button still
+        // moves money. Same family as `MAIL_MAILER=log` — nothing errors, the harm just happens.
+        if (! (bool) config('services.payouts.engine_enabled', false)) {
+            return $this->back('payout_error',
+                'The payout engine is disabled (PAYOUT_ENGINE_ENABLED). Enable it before running a payout.');
+        }
+
         if ($this->paused()) {
             return $this->back('payout_error', $this->pausedMessage());
         }

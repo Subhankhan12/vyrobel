@@ -34,6 +34,7 @@ function enginePayable(array $s, Owner $owner, int $unitIndex = 0, int $roomMino
     $reservation = book($s, ['unit_id' => $s['units'][$unitIndex]->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only collected revenue (②+accrual)
     $svc = app(OwnerStatementService::class);
     $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
 }

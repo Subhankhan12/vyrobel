@@ -65,6 +65,7 @@ function payoutRunOwner(array $s, int $unitIndex, int $roomMinor, string $name):
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     $svc = app(OwnerStatementService::class);
     $statement = $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));

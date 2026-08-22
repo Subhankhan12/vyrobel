@@ -38,6 +38,7 @@ function remittanceOwner(array $s, int $unitIndex, int $roomMinor, bool $pay = f
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     // A REAL fixed management fee, when the agreement carries one — posted by the certified service, so the
     // document renders it only because the ledger really holds it.

@@ -10,7 +10,9 @@ use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\OwnerPayoutPreference;
 use App\Models\Unit;
+use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -106,6 +108,62 @@ class OwnerManageController extends Controller
      * Add a note to the owner's operator-internal timeline (#93) — a real authored {@see Note}, never shown in the
      * owner portal.
      */
+    /**
+     * ⚠️⚠️ CLOSE A PERIOD — the FIRST REAL CALLER `OwnerStatementService::finalize()` has ever had.
+     *
+     * ⚠️ `generateDraft()` and `finalize()` were reachable only from seeders and tests: the twelve-entity
+     * seeder-only class again, and a decisive one, because **the payout engine selects ONLY finalized
+     * statements**. A real deployment therefore had nothing to pay, ever. The demo looked complete because
+     * `DemoSeeder` finalises statements the application could not.
+     *
+     * ⚠️ SAFE ONLY BECAUSE THE COLLECTION GATE LANDED WITH IT. Before {@see OwnerCollection}, giving
+     * finalisation a caller would have started paying owners against revenue never collected — the two
+     * defects were cancelling. That ordering is proven by `OwnerCollectionGateTest`.
+     *
+     * ⛔ **THE TRIGGER IS A PRODUCT DECISION AND IS SURFACED, NOT PICKED.** This ships the MECHANISM as an
+     * explicit operator action, which is the only option that needs no ruling — a human closes a period when
+     * they judge it closed. The founder still has to decide:
+     *   (a) operator action, as built here — deliberate, auditable, and someone must remember;
+     *   (b) a scheduled period close (a monthly command) — reliable, but it closes over late arrivals;
+     *   (c) automatic on period end — no forgetting, and no chance to review before money moves.
+     * ⚠️ And two questions no code here answers: a booking that lands AFTER its period closes (today it
+     * flows to the next statement as a prior-period adjustment — the existing straggler path), and whether a
+     * finalised statement may ever be REOPENED, and by whom. Nothing reopens one today; `finalize()` locks.
+     */
+    public function closePeriod(Request $request, string $owner): RedirectResponse
+    {
+        if ($this->paused()) {
+            return $this->back($owner, 'owners_error', $this->pausedMessage());
+        }
+
+        $data = $request->validate([
+            'period_start' => ['required', 'date'],
+            'period_end' => ['required', 'date', 'after_or_equal:period_start'],
+        ]);
+
+        $model = Owner::query()->findOrFail($owner);
+        $statements = app(OwnerStatementService::class);
+
+        $statement = $statements->finalize(
+            $statements->generateDraft($model->id, $data['period_start'], $data['period_end'])
+        );
+
+        // ⚠️ Recorded as a field list, never the figures — an audit row is not a second copy of the money.
+        $this->audit->record('owner.statement_finalized', $model, null, [
+            'fields' => ['statement_id', 'period_start', 'period_end'],
+            'statement_id' => (string) $statement->id,
+        ]);
+
+        // ⚠️ `currency` is the PAYOUT currency and `net_payable_minor` the converted figure — there is no
+        // `payout_currency` column and no `reference` column on owner_statements. Both were assumed in a
+        // first draft and corrected by reading the live schema.
+        $net = MoneyFormatter::display((int) $statement->net_payable_minor, (string) $statement->currency);
+
+        return $this->back($owner, 'owners_notice',
+            'Period closed — statement #'.$statement->sequence_no.' finalised at '.$net.' payable. '
+            .'Revenue not yet collected from guests stays unclaimed and will appear on a later statement.');
+    }
+
     public function addNote(Request $request, string $owner): RedirectResponse
     {
         if ($this->paused()) {

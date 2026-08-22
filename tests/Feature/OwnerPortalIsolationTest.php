@@ -39,6 +39,7 @@ function linkedOwner(array $s, int $unitIndex, int $roomMinor): array
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     app(OwnerExpenseService::class)->recordExpense([
         'unit_id' => $unit->id, 'category' => 'cleaning', 'description' => 'Clean',
         'amount_minor' => 3000, 'currency' => 'EUR', 'expense_date' => '2026-09-03',

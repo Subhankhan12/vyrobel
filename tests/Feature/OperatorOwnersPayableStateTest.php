@@ -74,6 +74,7 @@ function payableStateOwner(array $s): array
     $sept = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($sept, 20000);
     app(OwnerAttributionService::class)->attributeReservation($sept);
+    collectFolio($sept);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     $septStatement = $statements->finalize($statements->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
 
     return ['owner' => $owner, 'july' => $julyStatement, 'september' => $septStatement];

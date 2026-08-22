@@ -23,6 +23,7 @@ function refundScenario(float $commissionPct = 20.0): array
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);   // €200 room revenue
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     $folio = Folio::query()->where('reservation_id', $reservation->id)->firstOrFail();
     $payment = app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));

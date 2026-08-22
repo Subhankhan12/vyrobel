@@ -12,6 +12,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+// ⚠️ ②+accrual — POST /app/payouts/run now honours PAYOUT_ENGINE_ENABLED, which it previously BYPASSED
+// (the scheduled command checked it; this route did not). These tests exercise the engine, so they must turn
+// it on explicitly. The refusal path has its own test in OwnerCollectionGateTest.
+beforeEach(fn () => config(['services.payouts.engine_enabled' => true]));
+
 // #93 GATE 3 — the operator Payout Run wires the CERTIFIED PayoutRunService (test-mode): a real persisted run
 // that RECONCILES (run total = Σ owner nets, #17) and moves NO real money, plus the read-only guard.
 
@@ -32,6 +37,7 @@ function engineOwner(array $s, int $unitIndex, int $roomMinor, string $name): ar
     $reservation = book($s, ['unit_id' => $s['units'][$unitIndex]->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     $statement = app(OwnerStatementService::class)->finalize(app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
 
     return ['owner' => $owner, 'statement' => $statement];

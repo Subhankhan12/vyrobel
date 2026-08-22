@@ -49,6 +49,7 @@ function archiveZipOwner(array $s, int $unitIndex = 0, int $months = 2, array $p
     $reservation = book($s, ['unit_id' => $unit->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     $svc = app(OwnerStatementService::class);
     $statements = [];

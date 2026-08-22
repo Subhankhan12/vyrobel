@@ -34,6 +34,7 @@ function listedOwner(array $s, float $commission = 18.0): array
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     $statement = app(OwnerStatementService::class)->finalize(app(OwnerStatementService::class)->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
 
     return ['owner' => $owner, 'statement' => $statement];

@@ -38,6 +38,7 @@ function finalizedStatement(array $s, $owner, int $roomMinor = 20000, string $st
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, $roomMinor);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     $svc = app(OwnerStatementService::class);
 
     return $svc->finalize($svc->generateDraft($owner->id, $start, $end));
@@ -155,9 +156,11 @@ it('scopes payouts to their own owner', function () {
     $resA = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($resA, 20000);
     app(OwnerAttributionService::class)->attributeReservation($resA);
+    collectFolio($resA);   // ⚠️ the guest PAID (②+accrual)
     $resB = book($s, ['unit_id' => $s['units'][1]->id]);
     postRoom($resB, 30000);
     app(OwnerAttributionService::class)->attributeReservation($resB);
+    collectFolio($resB);   // ⚠️ the guest PAID (②+accrual)
 
     $stmtA = $svc->finalize($svc->generateDraft($ownerA->id, '2026-09-01', '2026-09-30'));
     $stmtB = $svc->finalize($svc->generateDraft($ownerB->id, '2026-09-01', '2026-09-30'));

@@ -31,6 +31,7 @@ if (! function_exists('bkStay')) {
         $reservation = book($s, ['unit_id' => $unit->id]);
         postRoom($reservation, $roomMinor);
         app(OwnerAttributionService::class)->attributeReservation($reservation);
+        collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
         return $reservation;
     }

@@ -761,6 +761,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // Owner management writes (#93) — edit / pause-payouts / add-note / remove (archive). Gated users.manage,
     // read-only-respecting, audited; remove is a careful archive-not-destroy (financials/bookings retained).
     Route::post('/owners/{owner}/update', [OwnerManageController::class, 'update'])->middleware('can:users.manage')->name('owners.update');
+    // ⚠️ ②+accrual — the FIRST real caller finalisation has ever had (it was seeder-and-test-only, and the
+    // payout engine pays ONLY finalized statements, so a real deployment had nothing to pay). Gated on
+    // `payouts.manage` like the payout run: closing a period is the act that makes money payable.
+    // ⚠️ Safe only because the collection gate landed with it — see OwnerCollectionGateTest.
+    Route::post('/owners/{owner}/close-period', [OwnerManageController::class, 'closePeriod'])
+        ->middleware('can:payouts.manage')->name('owners.close-period');
     Route::post('/owners/{owner}/pause-payouts', [OwnerManageController::class, 'pausePayouts'])->middleware('can:users.manage')->name('owners.pause-payouts');
     Route::post('/owners/{owner}/note', [OwnerManageController::class, 'addNote'])->middleware('can:users.manage')->name('owners.note');
     Route::post('/owners/{owner}/remove', [OwnerManageController::class, 'remove'])->middleware('can:users.manage')->name('owners.remove');

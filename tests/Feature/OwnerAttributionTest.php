@@ -30,6 +30,8 @@ it('attributes room revenue and commission with exact owner/operator complementa
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
 
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
+
     $room = lineFor($owner->id, 'room_revenue');
     $commission = lineFor($owner->id, 'commission');
 
@@ -54,6 +56,8 @@ it('reads the per-reservation OTA commission override', function () {
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
 
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
+
     $ota = lineFor($owner->id, 'ota_cost');
     expect($ota->amount_minor)->toBe(2500)
         ->and($ota->direction)->toBe('debit')
@@ -70,6 +74,8 @@ it('falls back to the channel commission percentage when no reservation override
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
 
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
+
     $ota = lineFor($owner->id, 'ota_cost');
     expect($ota->amount_minor)->toBe(3600) // 18% of 20000
         ->and($ota->unverified)->toBeFalse();
@@ -82,6 +88,8 @@ it('attributes OTA cost = 0 flagged unverified when neither source is present', 
     postRoom($reservation, 20000);
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     $ota = lineFor($owner->id, 'ota_cost');
     expect($ota->amount_minor)->toBe(0)
@@ -103,6 +111,8 @@ it('attributes cleaning fee to the owner and keeps add-ons with the operator by 
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
 
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
+
     expect(lineFor($owner->id, 'cleaning')?->amount_minor)->toBe(5000)
         ->and(lineFor($owner->id, 'cleaning')?->direction)->toBe('credit')
         ->and(lineFor($owner->id, 'addon'))->toBeNull(); // operator keeps add-ons by default
@@ -122,6 +132,8 @@ it('honours agreement overrides: add-on to owner, cleaning to operator', functio
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
 
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
+
     expect(lineFor($owner->id, 'addon')?->amount_minor)->toBe(3000)
         ->and(lineFor($owner->id, 'addon')?->direction)->toBe('credit')
         ->and(lineFor($owner->id, 'cleaning'))->toBeNull(); // operator bears cleaning under the override
@@ -139,6 +151,8 @@ it('excludes pass-through tax and deposits from owner attribution', function () 
     app(FolioService::class)->authorizeDeposit($folio, Money::of(15000, 'EUR'), 'pm_card_visa');
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     // No tax line, no deposit line; net = room − commission − 0 ota = 20000 − 2000.
     expect(OwnerLedgerEntry::where('owner_id', $owner->id)->whereIn('entry_type', ['adjustment'])->count())->toBe(0)
@@ -162,6 +176,8 @@ it('splits a multi-unit reservation to the correct owners by their line share', 
     postRoom($reservation, 20000); // folio room total across both units
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     // Allocated by price weights 12000:8000 → 12000 / 8000.
     expect(lineFor($ownerA->id, 'room_revenue')->amount_minor)->toBe(12000)
@@ -257,6 +273,8 @@ it('attributes nothing and flags explicitly when no governing agreement covers t
     postRoom($reservation, 20000);
 
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     expect(lineFor($owner->id, 'room_revenue'))->toBeNull()
         ->and(lineFor($owner->id, 'commission'))->toBeNull()

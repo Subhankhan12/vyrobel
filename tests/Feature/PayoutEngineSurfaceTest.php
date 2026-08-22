@@ -30,6 +30,7 @@ function surfaceOwner(array $s, int $unitIndex, bool $noTax = false): array
     $reservation = book($s, ['unit_id' => $s['units'][$unitIndex]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
     $svc = app(OwnerStatementService::class);
     $svc->finalize($svc->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
 

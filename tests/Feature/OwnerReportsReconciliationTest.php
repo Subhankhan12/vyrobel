@@ -30,6 +30,7 @@ it('reconciles the Reports gross-to-net when a withholding rate is configured', 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
     app(OwnerAttributionService::class)->attributeReservation($reservation);
+    collectFolio($reservation);   // ⚠️ the guest PAID — a statement claims only COLLECTED revenue (②+accrual)
 
     // A real 25% withholding rate → the finalize posts a −4250 withholding line (pre-withholding net 17000 → 12750).
     app(TaxRateService::class)->setRate('PT', TaxRate::TYPE_WITHHOLDING, 25.0, '2026-01-01');
