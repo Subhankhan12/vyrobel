@@ -47,7 +47,7 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - Assets: `npm run dev` / `npm run build`
 - Queue (Phase 2+): `php artisan horizon`
 - Dev email (demo): `mailpit` (SMTP `127.0.0.1:1025`, UI `http://127.0.0.1:8025`) + `.env` `MAIL_MAILER=smtp` — catches invite emails locally. **Prod needs a real provider** (Mailpit is dev/demo only).
-- **Deploy: `docs/DEPLOYMENT.md`** — ⚠️ includes the ONE cron entry (`* * * * * php artisan schedule:run`) without which all 8 scheduled commands silently never run, **including the GDPR 14-day guest deletion and the 30-day ID purge**. Never `db:seed` production (the seeders create a demo super-admin with password `password`).
+- **Deploy: `docs/DEPLOYMENT.md`** — ⚠️ the ONE cron entry (`* * * * * php artisan schedule:run`) is what runs all 8 scheduled commands, **including the GDPR 14-day guest deletion and the 30-day ID purge**; without it they fail *silently* — no error, no failed job. ⚠️ **`ops/deploy.sh:168-179` now INSTALLS it** (idempotent append) rather than only documenting it, so "a crontab nobody installs" is no longer the risk. ⚠️ **The escape hatch is not fatal, though:** `DEPLOY_NO_CRON_INSTALL=1` prints a red line and the deploy still COMPLETES (`fail()` only prints; the sole `exit 1` is the health check). The §7.2 heartbeat is what catches that case. Never `db:seed` production (the seeders create a demo super-admin with password `password`).
 
 ## How to DEMO it (credentials live only in `database/seeders/DemoSeeder.php` — here they are)
 `php artisan migrate:fresh --seed` · `php artisan serve` · log in at `/login`:

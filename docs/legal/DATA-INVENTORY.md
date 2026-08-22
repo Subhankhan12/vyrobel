@@ -210,7 +210,7 @@ THINGS A LAWYER NEEDS THAT THE CODE DOES NOT ANSWER, and things I could not veri
 
 ⚠️ 3. RETENTION PERIODS ARE UNDOCUMENTED FOR MOST STORES. Only THREE retention periods exist in code and all three are real and verified: login_activity 90 days (PrunePlatformActivity), guest deletions 14-day grace (ProcessGuestDeletions), guest ID documents 30 days post-checkout (PurgeExpiredGuestDocuments). Everything else in this domain is UNBOUNDED: audit_events (ip + user_agent), trusted_devices (kept deliberately past revocation), login_approvals, export_downloads, platform_admin_actions, webhook_events.payload, booking_quotes, and expired rows in `cache` and `password_reset_tokens`. A retention schedule must be decided and written; the code cannot supply one.
 
-⚠️ 4. ALL THREE EXISTING RETENTION GUARANTEES HANG ON ONE UNVERIFIED CRONTAB LINE. Every purge is a `Schedule::command(...)` in routes/console.php, which runs only if `* * * * * php artisan schedule:run` is installed. CLAUDE.md and docs/DEPLOYMENT.md both flag this. If it is missing, the 90-day IP purge, the GDPR guest deletion and the ID-document purge all silently never run and the published retention claims become false with nothing failing. I could NOT verify the production crontab — it is outside the repo. Before publishing any retention period, confirm it.
+⚠️ 4. ALL THREE EXISTING RETENTION GUARANTEES HANG ON ONE CRONTAB LINE — which the deploy now installs (see the correction at the end of this document; "unverified" was true when this row was written and is not now). Every purge is a `Schedule::command(...)` in routes/console.php, which runs only if `* * * * * php artisan schedule:run` is installed. CLAUDE.md and docs/DEPLOYMENT.md both flag this. If it is missing, the 90-day IP purge, the GDPR guest deletion and the ID-document purge all silently never run and the published retention claims become false with nothing failing. I could NOT verify the production crontab — it is outside the repo. Before publishing any retention period, confirm it.
 
 ⚠️ 5. WEB-SERVER ACCESS LOGS ARE ENTIRELY OUT OF SCOPE OF THIS AUDIT AND ALMOST CERTAINLY EXIST. Nginx/Apache access logs typically record IP, timestamp, method, full URL WITH QUERY STRING, status, user-agent and referer, and they are configured outside this repository (`public/.htaccess` contains only rewrite rules; there is no server config in the repo). This matters concretely: `/try-booking?from=…&to=…&m=…` puts a visitor's date searches in the URL, and several signed links carry tokens in the query string. A privacy policy's "when you visit our website" section normally MUST describe these logs, and I have no evidence about their format or retention. THIS IS THE LARGEST UNMEASURED SURFACE IN THIS DOMAIN.
 
@@ -437,10 +437,24 @@ no outbound record beyond the internal notification.
 
 Both were found by re-checking rather than assuming, and both make earlier project notes out of date:
 
-1. ⚠️ **"The GDPR commands depend on a crontab line nobody installs" is NO LONGER TRUE.** `ops/deploy.sh:168`
-   installs the scheduler cron itself and **refuses to deploy if told to skip it**. The dependency is real —
-   without `schedule:run` the 14-day guest deletion and the 30-day ID purge silently never execute — but it
-   is now enforced by the deploy path rather than left to a runbook.
+1. ⚠️ **"The GDPR commands depend on a crontab line nobody installs" is HALF STALE — and the correction
+   itself was over-stated once, so here is what the script actually does.** `ops/deploy.sh:168-179` **installs
+   the `schedule:run` cron itself**, as an idempotent append, when it finds none:
+
+   - present already → it says so and moves on;
+   - absent → it **installs it**, then runs `php artisan schedule:list` so the 8 commands are seen with a
+     next-due time;
+   - absent **and** `DEPLOY_NO_CRON_INSTALL=1` → ⚠️ it prints a red failure line and **CONTINUES TO A
+     SUCCESSFUL DEPLOY.** `fail()` (`ops/deploy.sh:53`) only prints to stderr; `set -euo pipefail` does not
+     fire on a successful `printf`, and the script's single `exit 1` is the unrelated health check at `:203`.
+
+   ⚠️ **SO THE ESCAPE HATCH IS REAL AND SILENT-ISH:** a deploy run with that variable set completes, and the
+   14-day guest erasure and the 30-day ID purge never fire. What catches it afterwards is the §7.2 scheduler
+   heartbeat, not the deploy. ⚠️ **An earlier version of this very document said the deploy "refuses to deploy
+   if told to skip it".** It does not. That sentence was written here, propagated into a later brief, and
+   found only by reading `deploy.sh` again — which is the whole reason a handoff gets reconciled against the
+   code rather than against the last report.
+
 2. ⚠️ **Backups exist and the restore is drilled.** `ops/backup.sh` + `ops/restore-drill.sh`, documented at
    `docs/DEPLOYMENT.md:214-272`, including a restore into a scratch database and comparison. Several earlier
    notes call backups "absent" from a superseded 2026-08-16 gap table; they are not.

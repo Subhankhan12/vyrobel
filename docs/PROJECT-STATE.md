@@ -6,12 +6,20 @@ conflicts with the repo, **trust the repo** and fix this file.
 
 ---
 
-> ⚠️ **NEW SESSION? START WITH `docs/SESSION-HANDOFF.md` (2026-08-21)** — the full master state, reconciled
-> against the repo. ⚠️ Its §0 records the drifts found during reconciliation. ⛔ **Still open and carried
-> since 2026-08-18: the operator audit REPORTS were never merged to main** — they exist only on
-> `audit/operator-deep-parity`, so **that branch must not be pruned**.
+> ⚠️ **NEW SESSION? START WITH `docs/SESSION-HANDOFF.md` (SAVE v2 · 2026-08-22)** — the full master state,
+> rewritten and reconciled against the repo at `0bb0dcc`. ⚠️ Its **§0 lists the three carried claims that did
+> not survive reconciliation** (two of them the architect's own), and its **§4 is the consolidated
+> VERIFICATION CANON** — the same material as **§N.31** at the end of this file.
+>
+> ⚠️ **THE ARC SINCE v18:** the whole **front website** (a sixth shell, 19 published pages, 8 CI gates), the
+> **funds-flow** and **seeder-vs-app reachability** audits, **P-6 Gate 1** (a real tenant can now SELL), the
+> **company pages** with the legal boundary held, and the **`/pricing` one-source fix**. ⚠️ **Most of those
+> commits are things CAUGHT, not built — and the demo looked complete throughout** (SESSION-HANDOFF §9).
+>
+> ⛔ **Still open and carried since 2026-08-18: the operator audit REPORTS were never merged to main** — they
+> exist only on `audit/operator-deep-parity`, so **that branch must not be pruned**.
 
-# ⚠️ CANONICAL STATE (SAVE v18, 2026-08-21) — **THE PRODUCT IS COMPLETE AND THE DEPLOY TRACK IS COMPLETE.** All three realms (owner · operator · guest) AUDITED · FIXED · SEALED · **MONEY-VERIFIED** · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions → remaining feature work is ADDITIVE · ⚠️⚠️ **NOTHING THAT REMAINS IS A PRODUCT GAP: every open item is FOUNDER-SIDE** (the CI first run · the Stripe test-mode probe (B)/(C) · go-live wiring and switches · parked compliance decisions) · **THE DEPLOYMENT SPRINT IS DONE** — `DEPLOYMENT.md` **§7.1–§7.6 all BUILT**, including the ONE crontab line the GDPR erasure and the ID purge silently depend on, and a CI pipeline enforcing four gates each **proven to red the build** (§N.29) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2,524 / 2,522 passed / 2 skipped / 0 failed**, 16,075 assertions, exit 0 (⚠️ the documented non-green band did not appear in that run — one observation, not a proof; ⚠️ **run it ALONE**) · PHPStan L5 **0** · Pint clean · ⚠️ **"closed" = closed everywhere a pass could REACH**
+# ⚠️ CANONICAL STATE (SAVE v18, 2026-08-21 — ⚠️ **SUPERSEDED for the front-website arc onward by `docs/SESSION-HANDOFF.md` SAVE v2, 2026-08-22, and by §N.31 at the end of this file**) — **THE PRODUCT IS COMPLETE AND THE DEPLOY TRACK IS COMPLETE.** All three realms (owner · operator · guest) AUDITED · FIXED · SEALED · **MONEY-VERIFIED** · ⚠️ **THE BACKEND AUDIT FOUND NO ROT** — every route resolves, zero stubs/dead actions → remaining feature work is ADDITIVE · ⚠️⚠️ **NOTHING THAT REMAINS IS A PRODUCT GAP: every open item is FOUNDER-SIDE** (the CI first run · the Stripe test-mode probe (B)/(C) · go-live wiring and switches · parked compliance decisions) · **THE DEPLOYMENT SPRINT IS DONE** — `DEPLOYMENT.md` **§7.1–§7.6 all BUILT**, including the ONE crontab line the GDPR erasure and the ID purge silently depend on, and a CI pipeline enforcing four gates each **proven to red the build** (§N.29) · **THE BILLING CODE *AND* BUILD ARE COMPLETE AND HONEST** (`display = charge = STRIPE`, admin side included, §N.19.6) · suite **2,524 / 2,522 passed / 2 skipped / 0 failed**, 16,075 assertions, exit 0 (⚠️ the documented non-green band did not appear in that run — one observation, not a proof; ⚠️ **run it ALONE**) · PHPStan L5 **0** · Pint clean · ⚠️ **"closed" = closed everywhere a pass could REACH**
 
 <!-- SAVE v8 (2026-08-12) — supersedes v7. v7 was written with the GUEST realm untouched. v8 closes the
      DESIGN-PARITY WALK CHAPTER: the guest realm's 12 gates (§G-1…§G-12) and the first CROSS-REALM PDF sweep
@@ -175,11 +183,18 @@ conflicts with the repo, **trust the repo** and fix this file.
 >   · **§7.3 the deploy script (`ops/deploy.sh`, 2026-08-18)** — 12 ordered steps, refuses without a backup
 >   passphrase, refuses `APP_DEBUG=true` in production, **contains no destructive command on any executable
 >   line**, and carries a code-only rollback (a DB restore stays a deliberate human decision).
->   ⚠️ **The crontab is now INSTALLED AND VERIFIED BY THE DEPLOY** — `* * * * * php artisan schedule:run`,
->   without which **8 scheduled commands silently never run, including the GDPR 14-day guest deletion and the
->   30-day ID purge**. ⚠️ *Configuration checks (`crontab -l`, `schedule:list`) prove it is set up; only the
->   schedule log proves it FIRED.*
->   **⬅ REMAINING: §7.4 secrets · §7.5 Dockerfile/pinned runtime · §7.6 CI.** ⛔ The founder runs the deploy —
+>   ⚠️ **The crontab is INSTALLED BY THE DEPLOY** (`ops/deploy.sh:168-179`, idempotent append) —
+>   `* * * * * php artisan schedule:run`, without which **8 scheduled commands silently never run, including
+>   the GDPR 14-day guest deletion and the 30-day ID purge**. ⚠️ *Configuration checks (`crontab -l`,
+>   `schedule:list`) prove it is set up; only the schedule log proves it FIRED.*
+>   ⚠️ **BUT THE SKIP IS NOT FATAL — corrected SAVE v2:** with `DEPLOY_NO_CRON_INSTALL=1` the script prints a
+>   red line and **completes anyway** (`fail()` at `:53` only prints; `set -euo pipefail` does not fire on a
+>   successful `printf`; the one `exit 1` is the health check at `:203`). §7.2's heartbeat catches that case,
+>   the deploy does not.
+>   **✅ THE DEPLOY TRACK IS COMPLETE — §7.1 backups · §7.2 liveness · §7.3 the deploy script · §7.4 secrets ·
+>   §7.5 runtime · §7.6 CI** (§7.4/§7.5 are DOCUMENTED inside `DEPLOYMENT.md`; there is no separate
+>   `Dockerfile` or `docs/SECRETS.md` — `Dockerfile.ci` is the CI runtime).
+>   ⛔ The founder runs the deploy —
 >   `--dry-run`, then staging, then a rollback rehearsal, then production.
 > **⛔ ② THE FOUNDER'S STRIPE/VAT GO-LIVE STEPS.** The billing code *and* build are COMPLETE (§N.17–§N.19).
 >   Remaining: enable Stripe Tax + register jurisdictions (⚠️ `automatic_tax` is **INERT** until then), create
@@ -8012,3 +8027,130 @@ shorthand literally throws `SQLSTATE[42S22] Unknown column`.
 The full reading: `rate_calendar` rows · `SUM(rate_calendar.price_minor)` · `unit_rate_overrides` ·
 `reservations` · `payments` · `rate_seasons`.
 
+
+---
+
+# ⚠️⚠️ §N.31 — THE VERIFICATION CANON, CONSOLIDATED (SAVE v2 · 2026-08-22)
+
+> **Written because this is the front-website arc's most valuable output and it was spread across ~16
+> reports.** Every entry carries **the instance that earned it**; none is theoretical. The narrative version
+> lives in `docs/SESSION-HANDOFF.md` §4.
+
+## §N.31.1 ⚠️ THE VACUITY FAMILY — a guard that cannot fail
+
+⚠️ **THE RULE: every new guard needs its OWN vacuity check. Prove it fails when there is nothing to check.**
+Eight shapes have now shipped in this project, each looking green:
+
+1. **A rule shared between test and implementation** — the test re-derives what the code derives, so both
+   move together. (Avoided deliberately in the content-honesty gate: raw helpers + a pinned fixture arbiter.)
+2. **A page-wide assertion for a region-specific property** — "no fabricated figure on the page" passed
+   while the stats band held four.
+3. **A positive control structurally incapable of the failure** — a one-segment wildcard cannot shadow a
+   two-segment URI, so the storefront-shadowing control proved nothing.
+4. **Fixtures prove the predicate while nothing checks the data** — the role-coverage guard.
+5. **A guard over EMPTY data early-returning** — Gate 4b's no-writes guard on an empty database.
+6. **Counting requests rather than work** — the same guard counted HTTP calls, not rows written.
+7. **Inert by design** — the cookie forward-guard had nothing to catch until a vendor existed; it needed a
+   synthetic positive.
+8. ⚠️⚠️ **MEASURING THE WRONG SIDE OF THE BOUNDARY.** Two instances, and both looked airtight:
+   - **P-6:** the cross-org guard counted rows in the **victim's** organisation while a cross-org write
+     auto-filled the **attacker's** — the row landed, the victim's scope reported zero, the test passed.
+   - **`/pricing`:** the comparison guard compared `MarketingPricing::comparison()` against the config —
+     **the source against itself** — so a row invented **in the view** left it green. It now counts
+     `<th scope="row">` in the RENDERED table. **A check must be independent of what it checks (§N.18.1).**
+
+## §N.31.2 ⚠️ INSTRUMENT RULES — validate against a known POSITIVE before trusting any negative
+
+- ⚠️ **A grep proves the absence of ITS NEEDLES, not of the thing.** The Gate-5 sweep grepped `%`, `€` and
+  "Vyrobel", pronounced five articles clean — they carried **210 unsourced outcome claims** containing no
+  number and no brand name.
+- ⚠️ **AN EMPTY RESULT FROM A CRASHED TOOL IS AN ARTEFACT, NOT A VERDICT.**
+- ⚠️ **A poll loop's exit code can report `grep`'s state**, not the watched thing — a background task read as
+  "failed" when it had simply matched zero lines.
+- ⚠️ **VALIDATE THE INSTRUMENT FIRST.** The reachability sweep's first pass did not search `firstOrNew` or
+  `new Model;`; validating it against known-reachable entities prevented two false "SEEDER-ONLY" findings.
+- ⚠️ **A SOURCE-SCANNING GUARD READS ITS OWN NEEDLE** (§N.27.5 — now **five** instances). The newest is the
+  subtlest: the pricing guard's HTML stripper opened its match on the literal text `<script>` that a **CSS
+  comment in the marketing shell was shipping into every page**, ran to the next real closing tag, and
+  removed the body — so the guard reported "renders no price node" about a page rendering two.
+
+## §N.31.3 ⚠️ WHAT ASSERTIONS CANNOT SEE
+
+- **Usability.** A date picker rendered and could not complete a range. Found by clicking it twice.
+- ⚠️⚠️ **LAYOUT DOES NOT FAIL LOUDLY — A GRID SQUEEZES RATHER THAN OVERFLOWS.** `document.scrollWidth`
+  therefore looks perfect. **Nineteen marketing pages were non-responsive below 980px for SIX gates**: 200s,
+  no raw Blade, no overflow. The converter stripped the masters' `<style>` blocks, so every page kept the
+  design's `data-h1` / `data-sec` / `data-clayout` hooks and **nothing read one of them**. Found by a single
+  screenshot at 390px.
+- **A 500.** `/app/rates` returned 500 while **the suite, PHPStan and Pint were all green**.
+- **Unexercised branches** and **persistent-worker state** (a static memo that would leak across visitors).
+
+⚠️ **RENDER-VERIFY: open it, USE it, screenshot it, read the diff, read the branches.**
+
+## §N.31.4 ⚠️ THE GENERATION LESSONS — BOTH DIRECTIONS
+
+- A fix applied **AFTER** generation is undone by the next generation → **fixes live IN THE CONVERTER.**
+- ⚠️⚠️ **THE CONVERSE, AND IT IS WORSE: a fix living ONLY in generated output makes the generator a
+  DESTRUCTOR.** `/pricing` had become **un-regenerable** — B12's card binding existed nowhere in the
+  converter, so running it would have silently restored four hardcoded tiers on the cards.
+  ⚠️ **Having found one hand-edit, DIFF for the rest** — three more (`headline()`, `priceNote()`,
+  `whoPays()`) were lost on the first regeneration.
+- ⚠️ **A ZERO-MATCH TRANSFORM MUST FAIL LOUDLY.** Gate 6's DPA removal — written *explicitly* so a later page
+  could not inherit the claim — **matched none of the six DPA mentions on the three Gate-7 pages it was
+  written for.** The generator now exits non-zero on a needle that matched nothing.
+- ⚠️ **THE REPORT PROVES A MATCH, NOT THE RIGHT MATCH.** `_element_span()` carried an off-by-length bug
+  (`rfind(sub, 0, i+1)` cannot match a tag that BEGINS at `i`) and cut the **previous sibling** while
+  reporting success.
+
+## §N.31.5 ⚠️ CLAIM + SWEEP LESSONS
+
+- ⚠️⚠️ **CHROME CARRIES CLAIMS SITEWIDE** — a page-scoped ruling never reaches it. **5+ instances**, one
+  already live: the nav's Alternatives row named four competitors on **every** page.
+- ⚠️⚠️ **SWEEP, DON'T COUNT.** D13's ruling named two instances; a sweep found **six**. P-6's impossible
+  instruction had a **sixth site 34 lines from one already fixed, in the same modal**. The pricing sweep took
+  **three passes, each finding a new class**: prices → tier NAMES → the SEO `title=` attribute → billing
+  MECHANICS described in prose.
+- ⚠️⚠️ **PARTIAL BINDING PRODUCES AUTHORITATIVE FALSEHOOD.** Home bound its prices and left its names, so it
+  rendered **the real €49 under the invented label "Starter"** — worse than either error alone, because the
+  number is authoritative and the label is fiction.
+- ⚠️ **A banned-substring gate cannot distinguish "we have one" from "we don't yet".** CI Gate 5 forbids the
+  phrase "data processing agreement" and so blocks the honest correction exactly as it blocks the false
+  claim. **The gate was left untouched, the page reworded, and the tension surfaced as a founder call.**
+- ⚠️⚠️ **DOCUMENTATION IS A CLAIM ABOUT BEHAVIOUR, AND NO DATA-GATE CAN SEE IT.** 27 doc pages carried
+  **220 false claims**; the content ledger caught **zero** of them.
+- ⚠️ **A case study is BY DEFINITION a claim about a real customer.**
+- ⚠️ **An offer to introduce someone to an invented business is a representation someone can ACT on.**
+- ⚠️ **A COMMENT THAT OUTLIVES ITS SUBJECT IS A CLAIM LIKE ANY OTHER.** `Guest::anonymize()` defers abandoned
+  booking quotes to *"the scheduled retention purge"* — **which does not exist**; two route comments declared
+  pages unregistered that had shipped two gates earlier.
+
+## §N.31.6 ⚠️ THE REACHABILITY CLASS
+
+- ⚠️⚠️ **THE DEMO SEEDER CREATES STATE THE APPLICATION CANNOT CREATE.** So **the demo looks complete while
+  the product is not**: **11 SEEDER-ONLY entities**, and the money chain stops at statement finalisation.
+  Every audit that verified "against demo data" had partly validated state no user could reach.
+- ⚠️ **GATED-UNREACHABLE ≠ NO PATH.** P-7's `property_user` writer requires a row only it could create.
+- ⚠️⚠️ **A SIGNPOSTED MISSING FEATURE IS WORSE THAN AN ABSENT ONE.** The app told a new tenant to *"add
+  units, rates & channels to go live"* when all three were impossible — **the tenant concludes THEY are
+  failing.** Six copy sites said it; five were found, the sixth by sweeping.
+
+## §N.31.7 ⚠️ TWO BLADE/CSS FACTS THAT COST REAL TIME
+
+- ⚠️ **A CSS COMMENT REACHES THE BROWSER; A BLADE COMMENT DOES NOT.** A Gate-7 CSS comment shipped the
+  literal text `<script>` onto 19 pages, where a later guard read it.
+- ⚠️ **BLADE COMPILES STATEMENTS BEFORE IT STRIPS COMMENTS** — so a directive written inside a Blade comment
+  is compiled anyway, and an inline-PHP one opens a real PHP block that swallows what follows. It 500'd
+  `/pricing`. A sweep found **17 directives inside comments**; one file documents this exact bug *in a
+  comment that still contains the directive causing it*.
+- ⚠️ (Standing) **a directive whose `@` follows a word character is NOT compiled** — `yet@endunless` ships
+  raw source to the user.
+
+## §N.31.8 ⚠️ THE META-LESSON — THE ARCHITECT'S FRAMING IS NOT GROUND TRUTH
+
+Three claims in the SAVE v2 brief itself did not survive reconciliation, and **two were the architect's own**:
+the `€9/unit` figure read out of a config default and amplified for two gates; and *"the deploy refuses if
+told to skip the cron"*, written in one report, copied to a second, and carried into a third.
+
+⚠️ **A statement written once and never re-read against the code becomes indistinguishable from a fact.**
+The rule for every session: **treat the brief as a starting point, verify against the repo, and say plainly
+when the brief is wrong.**

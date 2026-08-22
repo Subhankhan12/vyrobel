@@ -14208,6 +14208,19 @@ placeholders that disagree on the money surface**, and a prospect quoted €9 af
 misled by an inconsistency nobody intended. ⚠️ Gate 2 reproduced the page faithfully and never reconciled
 it against the app. **Founder's reconciliation required.**
 
+> ⚠️⚠️ **SUPERSEDED 2026-08-22 (SAVE v2) — THIS ENTRY'S CENTRAL CLAIM IS WRONG, and the way it was wrong is
+> the lesson.** *"The per-unit model matches; the rate is 50–125% out"* asserts that the engine bills per
+> unit at €9. **It does not.** Probed against the real rows, all four seeded plans are `pricing_type = 'flat'`
+> with `unit_rate_minor` **NULL**: the engine charges **flat €49 (Essential) and €99 (Pro)**, and
+> `config('billing.per_unit_minor') = 900` seeds a column **no plan uses**. The per-unit machinery exists and
+> is complete; nothing runs on it.
+>
+> ⚠️ So the divergence was never a rate mismatch — it was **model vs model**, which is a larger error than
+> the one recorded here, and it survived two further gates because the €9 figure was read out of `config` and
+> repeated rather than checked against `plans`. See the `/pricing` entry of 2026-08-22, which rebuilt the
+> comparison table, bound every price and tier name to the engine, and added `MarketingPriceSourceTest`.
+> ⚠️ **Read a config default as a default, not as what is charged.**
+
 ### ⚠️ My own new guard caught the nav — every page was naming four competitors
 
 The Gate-1 nav's Alternatives row described itself as *"Mews, Cloudbeds, Guesty, Hostaway"*, so **every
@@ -14849,9 +14862,18 @@ an unfiltered `mysqldump`, so a restore reinstates erased data** · staff leave 
 `reason` (possible Article 9) with no retention and no delete route · and **`localStorage` is undisclosed
 terminal-equipment storage**, in ePrivacy scope on the same footing as a cookie.
 
-✅ Two corrections in the founder's favour, both found by re-checking: **`ops/deploy.sh:168` now installs the
-scheduler cron itself and refuses to deploy if told to skip it** — the "GDPR depends on a crontab line nobody
-installs" caveat is out of date; and **backups exist with a proven restore drill**.
+✅ Two corrections in the founder's favour, both found by re-checking: **`ops/deploy.sh:168-179` installs the
+scheduler cron itself** (an idempotent append) — so the "GDPR depends on a crontab line nobody installs"
+caveat is out of date; and **backups exist with a proven restore drill**.
+
+> ⚠️ **CORRECTED 2026-08-22 (SAVE v2), and the correction matters more than the claim.** This paragraph
+> originally added *"and refuses to deploy if told to skip it"*. **It does not.** `fail()` at
+> `ops/deploy.sh:53` only prints to stderr; `set -euo pipefail` does not fire on a successful `printf`; the
+> script's only `exit 1` is the health check at `:203`. A deploy run with `DEPLOY_NO_CRON_INSTALL=1` prints a
+> red line and **completes**, leaving the 14-day erasure and the 30-day ID purge unscheduled. ⚠️ That
+> over-claim was written here, carried into `docs/legal/DATA-INVENTORY.md`, and from there into the next
+> session's brief — three surfaces, one unchecked sentence. Found by opening `deploy.sh` during the
+> reconciliation pass. **The §7.2 scheduler heartbeat, not the deploy, is what catches the skipped case.**
 
 ### ⚠️ #2 Two findings are PRODUCT defects, not copy defects — reported, not fixed
 
