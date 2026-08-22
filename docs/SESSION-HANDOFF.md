@@ -3,8 +3,10 @@
 > **Read this first, then `docs/PROJECT-STATE.md` (the RESUME block, then §N), then `docs/DECISIONS.md`.**
 > This file is written to be self-contained: a fresh session should be able to resume from it alone.
 >
-> ⚠️ **`origin/main` = local = `0bb0dcc`**, nothing unpushed. The only untracked file is
-> `docs/audits/owner-portal-parity-2026-08-17.md`, left deliberately.
+> ⚠️ **THE GIT STATE IS A POINTER, NOT AN ASSERTION** — run `git log --oneline -1 origin/main` and
+> `git status -sb`. ⚠️ **This line used to state a hash, and it was stale within one commit every time**: the
+> commit that updates it changes the very thing it describes, so it can never be more than one commit
+> accurate (§N.32.5). The dated snapshot is in §8; the command above is the truth.
 
 ---
 
@@ -23,8 +25,19 @@ survive that. All three had been carried forward as true.
 against the code. **#1 and #3 were the architect's own framing.** That is why this pass exists, and why the
 rule is *the repo wins*.
 
-**Verified true and reproduced below:** 84 design masters / 102 MB · 19 `marketing.page.*` routes · 19
-marketing views · 8 CI gate steps · 18 reports in `docs/audits/`.
+**Verified as of 2026-08-23 — ⚠️ counts, so DATED and CHECKABLE, never standing facts** (§N.32.5):
+
+| count | as of 2026-08-23 | verify with |
+|---|---|---|
+| design masters | 84 (102 MB) | `ls docs/design/front/*.dc.html \| wc -l` |
+| `marketing.page.*` routes | 19 | `php artisan route:list --json` |
+| marketing views | 19 | `ls resources/views/marketing/*.blade.php \| wc -l` |
+| CI gate steps | 8 | `grep -c "name: 'Gate" .github/workflows/ci.yml` |
+| reports in `docs/audits/` | **19** | `ls docs/audits/ \| wc -l` |
+
+⚠️ **The audits count had ALREADY DRIFTED — it said 18 and the directory held 19.** The pass that wrote "18"
+went on to add a report, so the number was false before the ink dried. That is the self-referential decay of
+§N.32.5 in its purest form, and it is why every row above now carries the command that settles it.
 
 ---
 
@@ -78,7 +91,7 @@ service commitments, tier names — the founder rules; the build records the rul
 | `docs/DEPLOYMENT.md` | The runbook. §7.1–§7.6 = the (complete) deploy track. |
 | `docs/legal/DATA-INVENTORY.md` | **142 cited entries** for counsel + `PRIVACY-STRUCTURE.md`, `TERMS-STRUCTURE.md`. |
 | `docs/design/DIVERGENCE-REGISTER.md` | Per-page design fidelity + the **ratified divergences that must NOT be "fixed"**. |
-| `docs/audits/` | **18 reports.** The front-website arc is items 1–6 + 13–15. |
+| `docs/audits/` | The audit reports (⚠️ **count is dated, see §0** — `ls docs/audits/ \| wc -l`). |
 | `CLAUDE.md` | Project instructions + demo credentials. Loaded every session — keep it lean. |
 
 ---
@@ -134,6 +147,11 @@ service commitments, tier names — the founder rules; the build records the rul
 ### 4.4 The generation lessons — **both directions**
 
 - ⚠️ A fix applied **AFTER** generation is undone by the next generation → **fixes live IN THE CONVERTER.**
+  ⚠️⚠️ **AND THE CONVERTER MUST LIVE IN GIT — it did not, for the whole arc.** `convert.py` (918 lines, every
+  honesty transform) existed only in a garbage-collected `/private/tmp` scratchpad. Found intact and committed
+  to `tools/marketing/` on 2026-08-23; had it cleared first, all 19 marketing pages would have been
+  un-regenerable. ⚠️ Canon called it `pxbuild.py` for the entire arc — that is a 35-line driver, not the
+  converter. See §N.33.
 - ⚠️⚠️ **AND THE CONVERSE: a fix living ONLY in generated output makes the generator a DESTRUCTOR.**
   `/pricing` had become **un-regenerable** — B12's binding existed nowhere in the converter, so running it
   would have silently restored four hardcoded tiers **on the cards too**.
@@ -303,10 +321,20 @@ the **`/pricing` headline copy**.
 
 ## 8 · Git state
 
-- `origin/main` = local = **`0bb0dcc`** · nothing unpushed.
-- Untracked, deliberately: `docs/audits/owner-portal-parity-2026-08-17.md`.
-- Suite **2646 / 2644 passed / 0 failed / 18,364 assertions** · PHPStan L5 **0** · Pint clean ·
-  **money as seeded unchanged**.
+⚠️ **EVERYTHING IN THIS SECTION IS A DATED SNAPSHOT, NOT A STANDING FACT.** ⚠️ The hash is kept because it
+has diagnostic value — it tells a reader roughly where this document's OTHER claims were last true — but it
+is a hypothesis to check, never something to rely on. ⚠️ **The repo is truth if it has moved.**
+
+| as of | value | verify with |
+|---|---|---|
+| **2026-08-23** | `origin/main` = local = **`fa62f82`**, nothing unpushed | `git log --oneline -1 origin/main` · `git status -sb` |
+| **2026-08-23** | untracked, deliberately: `docs/audits/owner-portal-parity-2026-08-17.md` | `git status --short` |
+| **2026-08-23** | suite **2671 / 2669 passed / 2 skipped / 18,662 assertions** · PHPStan L5 **0** · Pint clean · money as seeded unchanged | `php artisan test` (⚠️ **alone**) · `./vendor/bin/phpstan analyse` · `./vendor/bin/pint --test` · `ops/money-as-seeded.sh` |
+| **2026-08-23** | remote branches: `main` + `audit/operator-deep-parity` + `audit/guest-deep-parity` + `integrate/operator-fixes` + 4 × `fix/owner-*` | `git ls-remote --heads origin` |
+
+⚠️ **Seven local `fix/*` and `feat/*` branches have no upstream and are NOT pushed** — every one is fully
+merged into `main` (`git rev-list --count main..<branch>` = 0 for all seven), so nothing would be lost if the
+machine died. They are left in place, not deleted.
 
 ---
 

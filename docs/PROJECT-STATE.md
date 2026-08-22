@@ -8227,3 +8227,85 @@ of the four.** They hold data only because `DemoSeeder` puts it there.
 real operator cannot enter.** The gate works; the field behind it is unreachable. ⚠️ **The form is NOT built
 here** — it belongs to an unruled cluster (docs-triage cluster E), and it is that report's cheapest
 high-value item.
+
+## §N.32.5 ⚠️⚠️ A SELF-REFERENTIAL FACT CANNOT BE ASSERTED — it is a POINTER or a DATED SNAPSHOT
+
+> **THE RULE:** ⚠️ **any document recording its own state — its git tip, "nothing unpushed", a suite count, a
+> file count, "N pages built" — must record it as a POINTER (the command that settles it) or a DATED
+> SNAPSHOT (`as of <date>, X was Y — verify`), never as a bare assertion.**
+
+⚠️ **WHY UPDATING THE VALUE IS THE WRONG FIX, AND THIS IS THE WHOLE POINT.** The handoff asserted
+*"`origin/main` = local = `0bb0dcc`, nothing unpushed."* **The commit that updates that line changes the very
+thing the line describes.** So the update buys exactly **one commit** of accuracy and is false again
+immediately. A fact about the document's own container is stale **by construction**, not by neglect — no
+amount of diligence fixes it, only a change of form.
+
+⚠️ **IT HAD ALREADY GONE WRONG TWICE BEFORE THIS RULE EXISTED.** The line was written in the SAVE v2 commit
+and was false the instant that commit landed — the orientation pass flagged it as self-referentially stale on
+2026-08-22; it went stale again within a day when four commits were pushed.
+
+⚠️ **AND THE MISMATCH WAS ALWAYS VISIBLE.** The bootstrap prompt reads the same hash as *"a hypothesis to
+verify — the repo is truth if it moved."* ⚠️ **The bootstrap had it right and the handoff had it wrong**, on
+the same fact, in the same repo, for the whole arc. When two surfaces disagree about the epistemic status of
+one value, the weaker form is the defect.
+
+**The sweep, 2026-08-23** — every count in the handoff, checked against the repo:
+
+| claim | verdict |
+|---|---|
+| 84 design masters · 19 marketing routes · 19 marketing views · 8 CI gate steps | ✅ all four still true |
+| ⚠️ **18 reports in `docs/audits/`** | ⚠️ **ALREADY DRIFTED — the directory holds 19.** The pass that wrote "18" then added a report, so the number was false before it was committed. |
+| suite / PHPStan / Pint figures | converted to a dated row with the command beside each |
+
+⚠️ **Choice made and justified:** the git tip is now BOTH — a **pointer** at the top (nothing there can go
+stale) and a **dated snapshot** in §8, because the hash has diagnostic value: it tells a reader roughly where
+the document's *other* claims were last true. A pointer alone would have lost that.
+
+---
+
+# ⚠️⚠️ §N.33 — THE CONVERTER WAS NEVER IN GIT (recovered 2026-08-23)
+
+⚠️⚠️ **For the entire front-website arc — Gates 3b, 4, 4b, 6 and 7 — the rule "fixes live IN the converter"
+(§N.31.4) was enforced by a file that was not in version control.** `convert.py` lived only in a session
+scratchpad under `/private/tmp`, which is garbage-collected. ⚠️ **A rule enforced by an unversioned script is
+not enforced.**
+
+⚠️ **It was found intact and is now committed at `tools/marketing/`, verbatim.** Had the scratchpad cleared
+first, all 19 published marketing pages would have been **un-regenerable** — the `/pricing` un-regenerable
+problem multiplied by nineteen, with the generated Blade as the only surviving artefact and every honesty
+transform lost. ⚠️ **That outcome was avoided by luck, not by process.**
+
+## §N.33.1 ⚠️ THE NAME IN THE CANON WAS WRONG
+
+§N.31.4's discussion, the docs-triage report and the unblock report all called **`pxbuild.py`** "the
+converter". ⚠️ **It is not.** `pxbuild.py` is a 35-line driver that proves the three price-bearing pages can be
+rebuilt. **The converter is `convert.py` — 918 lines.** The toolchain is:
+
+`docs/design/front/*.dc.html` (committed) → `decode.js` → `core/*.html` (derived, not committed) →
+`convert.py` → `resources/views/marketing/*.blade.php`, with `g7build.py` and `pxbuild.py` as drivers.
+
+⚠️ **A load-bearing file was misnamed in canon for an entire arc because nobody had opened it.**
+
+## §N.33.2 ✅ REVIEWED ON RECOVERY — every claim held
+
+It had been the doctrine's foundation across five gates **without ever being read**. Reviewed on recovery;
+**nothing was overstated**:
+
+- ✅ **The zero-match rule is real** — `_NEEDLE_LOG` + `sys.exit(4)` at `convert.py:913-918`, replicated in
+  both drivers. Its own comment names the three silent failures that earned it, including Gate 6's DPA
+  removal scoring **zero against all six** mentions on the pages it was written for.
+- ✅ **The punctuation normaliser is real** — seven spellings, because the design mixes U+2019 with ASCII.
+- ✅ **The DPA transform executes** (`:858+`) and encodes a subtle, correct distinction: *asserting the
+  agreement exists* vs *specifying one is required*.
+- ✅ **11 honesty needles**, all registered and all failure-reporting.
+
+## §N.33.3 ⚠️ THE DEFECT THAT REMAINS — reported, not fixed
+
+⚠️ **`convert.py:5` hardcodes an absolute scratchpad path** (`SRC = "/private/tmp/claude-501/…"`), and both
+drivers `sys.path.insert` the same directory. ⚠️ **So as committed the toolchain is PRESERVED AND READABLE
+BUT NOT RUNNABLE FROM A FRESH CHECKOUT.** Making the paths relative is the obvious next step and was
+deliberately **left undone**: this pass committed the file verbatim, because silently improving a script the
+moment it enters version control destroys the provenance that made committing it worth doing.
+
+⚠️ **§N.31.4 STANDS, but with its precondition now stated:** *fixes live in the converter — **and the
+converter lives in git**. A transform in an unversioned generator is a transform that can evaporate.*
