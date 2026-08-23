@@ -85,11 +85,45 @@ it('holds every audited claim, each carrying the fields the gate keys on', funct
             Assert::assertArrayHasKey($field, $claim, "claim [{$claim['id']}] is missing the field [{$field}] — deleting a field must never read as 'satisfied'");
         }
         Assert::assertContains($claim['kind'], [MarketingClaims::KIND_SOURCEABLE, MarketingClaims::KIND_REQUIRES_TESTING, MarketingClaims::KIND_INTERNAL]);
-        Assert::assertContains($claim['disposition'], ['publish', 'soften', 'remove']);
+        Assert::assertContains($claim['disposition'],
+            ['publish', 'soften', 'remove', MarketingClaims::DISPOSITION_NOT_A_CLAIM]);
     }
 });
 
 // ══ ⚠️ THE GATE — nothing unsourced or stale may publish ═══════════════════════════════════════════
+// ══ ⚠️ `not_a_claim` — THE LABEL THAT MUST NOT BECOME A DUMPING GROUND ═══════════════════════════════
+//
+// ⚠️⚠️ WHY THIS EXISTS. `remove` used to mean BOTH "this text was cut" and "this row was never a claim",
+// so it could not tell you whether a removal had HAPPENED — and 27 rows marked `remove` turned out to be
+// still on the page. ⚠️ The danger in splitting them is the opposite one: `not_a_claim` becomes a
+// permanent "nothing to do here" that a real claim can be quietly filed under. A RECORDED REASON is what
+// stops that — without it the label is an assertion, exactly as unfalsifiable as the overload it replaces.
+it('⚠️ requires a recorded reason on every not_a_claim row', function () {
+    $rows = array_values(array_filter(MarketingClaims::all(),
+        fn (array $c): bool => ($c['disposition'] ?? '') === MarketingClaims::DISPOSITION_NOT_A_CLAIM));
+
+    Assert::assertNotEmpty($rows, 'no not_a_claim rows — this assertion would be vacuous');
+
+    foreach ($rows as $c) {
+        $reason = $c['not_a_claim_reason'] ?? null;
+        Assert::assertTrue(is_string($reason) && trim($reason) !== '',
+            "⚠️ claim [{$c['id']}] is filed as not_a_claim with NO reason — that is an assertion, not a judgement");
+    }
+});
+
+it('⚠️ does not block on a not_a_claim row — and not because it was resolved', function () {
+    // ⚠️ THE REASON MATTERS, NOT JUST THE OUTCOME. `remove`/`soften` mean "handled"; `not_a_claim` means
+    // "there was nothing here to handle". Both skip the blocking check, and conflating them is how this
+    // ledger got into trouble in the first place.
+    $nac = mkClaim([
+        'id' => 'NAC-probe', 'page' => 'nac-probe-page', 'source_url' => null, 'verified_on' => null,
+        'review_by' => null, 'disposition' => MarketingClaims::DISPOSITION_NOT_A_CLAIM,
+    ]);
+
+    Assert::assertFalse(MarketingClaims::isPublishable($nac),
+        'a not_a_claim row should not read as publishable — it is not a claim to publish');
+});
+
 it('⚠️ refuses to publish any claim that is unsourced', function () {
     $unsourced = MarketingClaims::unsourced();
 

@@ -15572,3 +15572,99 @@ ledger's concern".
 ⚠️ **Reported, not fixed.** A cleaner encoding (a `not_a_claim` kind, or splitting the disposition) is a
 schema change and a founder call. ⚠️ Until then, **do not read `remove` as evidence that a page no longer
 says something** — check the converted output, which is what this finding did.
+
+---
+
+## 2026-08-24 · ⚠️ `not_a_claim` — and the one row it uncovered
+
+### Where it landed, and why it is not where it semantically belongs
+
+⚠️ **`not_a_claim` is a `disposition` value, not a `kind`** — even though *"this row is not a claim"* plainly
+describes what the row **is**, which is `kind`'s job.
+
+⚠️ **The reason is mechanical and decisive:** `pageIsCleared()` decides whether a row participates in
+blocking by reading **`disposition` alone**; `kind` only ever affects *how* a participating claim is
+evidenced. Putting it in `kind` would force the blocking decision to consult **two fields** — ⚠️ **a new
+overload replacing exactly the one this constant removes** (§N.8f). **One question, one field.**
+
+⚠️ **Every `not_a_claim` row carries a recorded reason**, enforced by the gate. Without it the label is an
+assertion rather than a judgement — *as unfalsifiable as the overload it replaces* — and it becomes a
+permanent "nothing to do here" that a real claim can be filed under.
+
+### The re-classification — judged by ELEMENT, not by reading
+
+⚠️ **29 rows carried `disposition: remove`.** Rather than eyeball each, the test applied was structural:
+**what element does the text sit in?** A heading, nav label or card `<span>` states nothing a reader can act
+on; a `<p>` is prose.
+
+| bucket | n | outcome |
+|---|---|---|
+| text **gone** from the page — a genuinely executed removal | **1** (`S1-078`) | stays `remove` |
+| text present, **heading / nav label / card span** | **26** | → `not_a_claim`, each with its reason |
+| ⚠️ text present, **body prose that asserts** | **1** (`S1-182`) | ⚠️ **restored to `publish`** |
+
+### ⚠️⚠️ THE FINDING — `S1-182` was mis-filed as noise
+
+On `/resources`, inside a `<p>`:
+
+> *"What owners actually want to see, in what order, and why the line item most likely to cause an argument
+> is the one you explain worst."*
+
+⚠️ **This is not a heading. It asserts two things about owners**, neither sourced. It was filed `remove` as
+a "card blurb" — and `remove` being non-blocking meant **an unsourced population claim stopped blocking its
+page.** ⚠️ **Restored to `publish`; `/resources` blocks again**, which is what it should always have done.
+
+⚠️ **It is not an "unexecuted removal"** — nothing ever ruled it removed. It is a **misclassification**, and
+the only reason it surfaced is that this pass judged every row individually instead of bulk-relabelling.
+**A bulk re-label would have made it permanent.**
+
+⚠️ **SLICE 2 (clusters F and G) WAS NOT STARTED.** The instruction was to stop on a row of this kind, and
+the reasoning holds: slice 2 files more dispositions, and it should not file them on top of a ledger whose
+filing has just been shown unreliable.
+
+---
+
+## 2026-08-24 · ⚠️ READING the 26 `not_a_claim` rows — two were misfiled
+
+⚠️ **The element test could not see this class, and that is why the rows were re-READ rather than
+re-tested.** A second structural pass would have agreed with the first and reported a clean sweep meaning
+only *"the first pass was consistent"*.
+
+### ⚠️ Two misfilings, restored to `publish`
+
+- **`S1-044`** (`article-housekeeping`) — *"Four states, visible to everyone"*. ⚠️ **A COUNT and a
+  CAPABILITY**: a reader comes away believing the board has exactly four states and that everyone can see
+  them. The four-states half is true and covered by `S1-136`'s internal test; ⚠️ **the "visible to everyone"
+  half is not**, so filing it against that test would have over-claimed the coverage.
+- **`S1-171`** (`article-housekeeping`) — *"Three rules that do most of the work"*. ⚠️ **A COUNT plus an
+  EFFECTIVENESS claim** — *"do most of the work"* asserts an outcome we have never measured.
+
+⚠️ **`article-housekeeping` blocks again (2 claims). That is the gate working, not a regression** — and it
+means the page's re-argue is not finished after all.
+
+### ⚠️ And the correction that did NOT happen — accuracy runs both ways
+
+The eighteen GDPR labels (*"GDPR, retention and anonymisation"* × 16 nav rows, the guide's `<h1>`, and the
+`/docs` card) **were nearly restored as capability claims** — the *"Connecting Airbnb and Booking.com"*
+shape. ⚠️ **Checking first stopped it:** the capabilities they name are **real** —
+`guests:process-deletions` runs daily and calls `Guest::anonymize()`, and `guest-documents:purge-expired`
+is a genuine retention job. ⚠️ **What cluster G corrects is the MECHANISM the guide's body describes (a
+configurable statutory period), not the topic its title names.** Over-correcting would have stuffed the
+ledger with eighteen non-claims and made the gate noise.
+
+### The reasons now record the judgement
+
+⚠️ Every remaining `not_a_claim` reason was rewritten to say **why the text asserts nothing** — *"a quoted
+question asserts nothing by construction"*, *"a fragment completed only by the content beneath it"* — rather
+than repeating the element. ⚠️ **A reason a future reader cannot disagree with is not a reason.**
+
+## 2026-08-24 · `S1-182` ties to the owner-statement article (founder ruling)
+
+⚠️ Recorded in `tools/marketing/spec/g6_articles.py` (`RESOURCES_BLURBS`) where slice 4 will read it, and
+here. All six `/resources` card blurbs are `<p>` prose advertising their articles, all filed `publish`, and
+**each resolves with the article it points at** — rewriting one independently would leave the index
+advertising a claim its article no longer makes.
+
+⚠️ **`/resources` stays blocked until all six resolve. That is the correct state.**
+
+⚠️ **SLICE 2 (clusters F and G) WAS NOT STARTED** — the gate condition fired.

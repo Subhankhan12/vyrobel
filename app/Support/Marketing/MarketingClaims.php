@@ -54,6 +54,27 @@ final class MarketingClaims
      */
     public const KIND_INTERNAL = 'internal';
 
+    /**
+     * ⚠️⚠️ THE ROW IS NOT A CLAIM AT ALL — a heading, a sidebar nav label, a rhetorical question.
+     *
+     * ⚠️ IT LIVES IN `disposition`, NOT IN `kind`, AND THAT IS DELIBERATE. Semantically it belongs in
+     * `kind` — it describes what the row IS, not what happens to it. ⚠️ But {@see pageIsCleared()} decides
+     * whether a row participates in blocking by reading `disposition` ALONE; `kind` only ever affects HOW a
+     * participating claim is evidenced. Putting it in `kind` would force the blocking decision to consult
+     * two fields — ⚠️ **a new overload replacing the one this constant exists to remove** (§N.8f). One
+     * question, one field.
+     *
+     * ⚠️ WHY IT EXISTS: `remove` meant BOTH "this text was cut from the page" AND "this row was never a
+     * claim", so it could not tell you whether a removal had actually HAPPENED. A sweep found 27 rows
+     * marked `remove` still present in the output — and the whole point is that being unable to
+     * distinguish those two is how an unexecuted correction hides under a label nobody re-reads.
+     *
+     * ⚠️ EVERY `not_a_claim` ROW CARRIES A REASON (enforced by MarketingClaimsTest). Without one, "not a
+     * claim" is exactly as unfalsifiable as the overload it replaces — an assertion rather than a
+     * recorded judgement.
+     */
+    public const DISPOSITION_NOT_A_CLAIM = 'not_a_claim';
+
     public static function path(): string
     {
         return resource_path('marketing/claims.json');
@@ -212,8 +233,10 @@ final class MarketingClaims
         }
 
         foreach ($onPage as $claim) {
-            // A `remove`/`soften` disposition is a decision already taken, not a blocker — but anything
-            // still marked `publish` must actually be publishable.
+            // ⚠️ A `remove`/`soften` disposition is a decision already taken, and `not_a_claim` was
+            // never a claim to begin with — neither blocks. ⚠️ THE TWO DO NOT BLOCK FOR THE SAME REASON,
+            // and the distinction matters: `remove`/`soften` mean "handled"; `not_a_claim` means "there was
+            // nothing here to handle". Anything still marked `publish` must actually be publishable.
             if (($claim['disposition'] ?? 'publish') !== 'publish') {
                 continue;
             }

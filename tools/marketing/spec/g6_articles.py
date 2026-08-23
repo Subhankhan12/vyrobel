@@ -208,3 +208,25 @@ HOUSEKEEPING_REARGUE_COST = {
     'prose_blocks': 36, 'needs_new_argument': 12, 'survives_untouched': 24,
     'blocked_by_sourcing': 0,
 }
+
+
+# ══ ⚠️ `/resources` CARD BLURBS — EACH RESOLVES WITH ITS OWN ARTICLE (founder ruling) ════════════════
+#
+# ⚠️ /resources is an INDEX. Its six card blurbs are `<p>` prose that advertises the articles beneath
+# them, so each inherits its claims from the article it points at. ⚠️ Rewriting a blurb independently
+# would leave the index advertising a claim its article no longer makes — the sitewide-chrome failure in
+# a new place.
+#
+# ⚠️ ALL SIX ARE FILED `publish` AND CONSISTENTLY SO. S1-182 was the one exception: it had been filed
+# `remove` as "a card blurb", which made an unsourced population claim stop blocking its page. It is
+# restored, and the set now agrees with itself.
+#
+# ⚠️ /resources STAYS BLOCKED UNTIL ALL SIX RESOLVE. That is the correct state, not a problem to solve.
+RESOURCES_BLURBS = {
+ 'S1-017': 'article-housekeeping',
+ 'S1-081': 'article-direct',
+ 'S1-111': 'article-oos',
+ 'S1-165': 'article-trust',
+ 'S1-172': 'article-owners',
+ 'S1-182': 'article-statement',   # ⚠️ the founder's ruling: resolves with the OWNER-STATEMENT rewrite (slice 4)
+}
