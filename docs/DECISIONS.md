@@ -15251,3 +15251,37 @@ constants**, never derived from the seeder.
 **Mutation-proven:** ⚠️ **roll the date forward (2026-10-15, 2027-02-14) → still GREEN** · delete a payment →
 RED · change a rate price → **FULL reds, INVARIANT passes** — which proves the documented limitation rather
 than merely asserting it.
+
+### ⚠️⚠️ ADDENDUM 2026-08-23 — `migrate:fresh --seed` IS CURRENTLY BROKEN ON SOME DATES
+
+Found while re-verifying the money pin, and it is **NOT** a money finding — but it defeats the gate, so it
+belongs here.
+
+⚠️ **`php artisan migrate:fresh --seed` fails deterministically on 2026-08-23, 08-24 and 08-25**, with
+`UnitUnavailableException` on a July analytics stay (`2026-07-14 → 2026-07-18`), exit code 1, leaving a
+**PARTIAL database** — 749 `rate_calendar` rows instead of 929. Measured 4/4 identical at a fixed date, so it
+is deterministic, not flaky.
+
+| seed date | result |
+|---|---|
+| 2026-08-22 | ✅ exit 0 · 929 |
+| **2026-08-23 / 24 / 25** | ⚠️ **exit 1 · 749 (partial)** |
+| 2026-09-01 | ✅ exit 0 · 929 |
+
+⚠️ **PRE-EXISTING — attributed, not assumed.** Reproduced in an isolated worktree at **`9c04df1`**, before both
+money commits, so neither `d94452f` nor `b6bcbba` caused it.
+
+⚠️ **AN HONEST GAP IN THE RECORD:** earlier in the same session a seed at 2026-08-23 was observed to SUCCEED,
+and this pass cannot reconcile that with the deterministic failure measured afterwards. **Recorded as
+unexplained rather than given a plausible cause.**
+
+⚠️ **WHAT IT EXPOSED IN THE GATE, AND WHAT WAS FIXED:** `money-as-seeded.sh` could not distinguish *"money
+moved"* from *"the seed aborted"* — a partial database made every figure wrong and the message blamed the last
+code change, which was innocent. It now checks a **completion sentinel** first: `test@example.com` is the last
+row `DatabaseSeeder::run()` creates, so its absence means the run aborted. The gate says so and exits without
+comparing. Vacuity-checked against a complete seed (it does not fire).
+
+⛔ **THE SEEDER ITSELF IS NOT FIXED HERE.** It is a distinct defect whose fix changes how the demo's bookings
+are laid out — a product-visible consequence, and out of scope for a money-pin pass.
+⚠️ **WORKAROUND AVAILABLE TODAY** (an unplanned benefit of this pass's mechanism):
+`VY_SEED_DATE=2026-09-01 php artisan migrate:fresh --seed` succeeds.

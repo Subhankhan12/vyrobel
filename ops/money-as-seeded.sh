@@ -96,6 +96,26 @@ if [ -z "${ACTUAL}" ]; then
   exit 1
 fi
 
+# ⚠️⚠️ DID THE SEED ACTUALLY FINISH? A GATE THAT CANNOT TELL "MONEY MOVED" FROM "THE SEED ABORTED" WILL
+# BLAME CODE FOR AN INFRASTRUCTURE FAILURE — and it did exactly that on 2026-08-23, when
+# `migrate:fresh --seed` began failing with a UnitUnavailableException and left a PARTIAL database (749
+# rate rows instead of 929). Every figure was then "wrong", and the gate's message pointed at the last code
+# change, which was innocent.
+#
+# ⚠️ `test@example.com` is the LAST row DatabaseSeeder::run() creates, after every other seeder. Its absence
+# means the run aborted part-way. That is a sentinel for COMPLETION, not a money figure — it is deliberately
+# checked before, and separately from, the baseline comparison.
+SEED_COMPLETE="$(php artisan tinker --execute='echo DB::table("users")->where("email","test@example.com")->exists() ? "yes" : "no";' 2>/dev/null | tr -d '\r' | grep -E '^(yes|no)$' | tail -1)"
+
+if [ "${SEED_COMPLETE}" = "no" ]; then
+  echo "❌ THE SEED DID NOT COMPLETE — this is NOT a money finding."
+  echo "   DatabaseSeeder's final row (test@example.com) is missing, so the run aborted part-way and the"
+  echo "   database is PARTIAL. Comparing a partial database against the baseline would blame whatever code"
+  echo "   changed last for a seeding failure."
+  echo "   Re-run and read the error:  php artisan migrate:fresh --seed"
+  exit 1
+fi
+
 # The four date-invariant figures, in order: rate_calendar count / overrides / payments / seasons.
 ACTUAL_INVARIANT="$(echo "${ACTUAL}" | awk -F ' / ' '{print $1" / "$3" / "$5" / "$6}')"
 

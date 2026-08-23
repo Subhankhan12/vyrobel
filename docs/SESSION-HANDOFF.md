@@ -73,6 +73,12 @@ figures, and it says loudly that a changed rate price would NOT be caught). **Re
 — the check ran against real data and genuinely passed — but its form over-stated the confidence.
 See `DECISIONS.md` 2026-08-23 and `docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §7.
 
+⛔⚠️ **AND A SEPARATE, PRE-EXISTING BLOCKER FOUND WHILE VERIFYING IT: `php artisan migrate:fresh --seed`
+FAILS on 2026-08-23/24/25** (exit 1, a PARTIAL 749-row database), reproduced at `9c04df1` before either money
+commit. ⚠️ **Workaround: `VY_SEED_DATE=2026-09-01 php artisan migrate:fresh --seed`.** The gate now detects an
+incomplete seed and says so instead of blaming code. The seeder itself is **not fixed** — its fix moves the
+demo's bookings, which is a product call. `DECISIONS.md` 2026-08-23 addendum.
+
 ---
 
 ## 2 · The working method — load-bearing; the new session must follow it
