@@ -305,7 +305,9 @@ it('never surfaces a guest catalog entry on the operator or owner preferences sc
     $owner = NotificationPreferences::catalogFor('owner');
 
     expect($operator)->toHaveCount(16);   // unchanged by this gate
-    expect($owner)->toHaveCount(9);       // unchanged by this gate
+    // ⚠️ 10 since the arrival-secret REVEAL notification (cluster E follow-up) — still nothing to do
+    // with THIS gate, which is the guest realm; the count moved because the OWNER catalog grew.
+    expect($owner)->toHaveCount(10);
 
     foreach (array_keys(NotificationPreferences::CATALOG) as $key) {
         if (str_starts_with($key, 'guest_')) {

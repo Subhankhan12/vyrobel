@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Unit;
+use App\Models\User;
+use App\Notifications\Owner\ArrivalSecretRevealedNotification;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Guest\ArrivalPack;
 
@@ -124,6 +126,33 @@ class ArrivalInfoService
     public function reveal(Unit $unit): array
     {
         $this->audit->record('unit.arrival_secrets_revealed', $unit);
+
+        // ⚠️⚠️ TELL THE OWNER — *THAT* IT HAPPENED, NEVER *WHAT*. A reveal is SILENT where an overwrite is
+        // DETECTABLE (a changed code stops working and someone complains; a read leaves only an audit row
+        // nobody opens), so the owner is told. ⚠️ ONLY the field NAMES that held a value travel — the
+        // notification's constructor takes strings, never this $unit, so no decrypted attribute is ever one
+        // dereference away from a renderer or, if it is ever queued, from a serialised payload.
+        // ⚠️ NULL-SAFE ALL THE WAY: operator-owned inventory has no owner, and an owner may have no user
+        // account. Either way nobody is notified and THE REVEAL ITSELF IS UNAFFECTED — the operator asked
+        // for a credential and must still get it.
+        $held = [];
+        foreach (self::SECRET_FIELDS as $field) {
+            if ($unit->{$field} !== null && (string) $unit->{$field} !== '') {
+                $held[] = $field;
+            }
+        }
+
+        // ⚠️ The actor is resolved explicitly rather than through `auth()->user()?->name ?? …`: the nullsafe
+        // there is dead under the analyser's typing, and removing it while keeping `??` would fatal in any
+        // context with no authenticated user (a command, a job). An explicit check is honest in both.
+        $actor = auth()->user();
+
+        $unit->owner?->user?->notify(new ArrivalSecretRevealedNotification(
+            (string) ($unit->name ?? $unit->code),
+            (string) $unit->property->name,
+            $actor instanceof User ? (string) $actor->name : 'A member of the team',
+            $held,
+        ));
 
         return [
             'door_code' => $unit->door_code !== null ? (string) $unit->door_code : null,

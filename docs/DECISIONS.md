@@ -15448,3 +15448,40 @@ cannot regenerate anything today.**
 | **Hash-based** (commit a per-page hash of the generated body) | tiny; no masters needed | ⚠️ **a change to `convert.py` itself** — the hash would be regenerated from the new converter and agree with it (source-vs-itself, §N.31.1 shape 8) |
 
 ⚠️ It touches the clone-cost decision, which is the founder's. **Proposed only.**
+
+---
+
+## 2026-08-23 · ⚠️ FOUNDER RULING — the arrival-secret REVEAL gate stays `units.manage`
+
+**Ruling.** Revealing a stored door code or wifi password remains gated on **`units.manage`** — the same
+permission as editing the unit. ⚠️ **Recorded as a ruling, not as an implementation default**: cluster E
+shipped it that way and surfaced the question, and the founder has now chosen it deliberately.
+
+**Reasoning.** ⚠️ **A reveal is arguably the MORE sensitive capability of the two**, because it is *silent*
+where an overwrite is *detectable*: change a door code and it stops working and somebody complains within a
+day; read one and the only trace is an audit row nobody routinely opens. A separate permission would express
+that difference — but it is administrative overhead while tenants are effectively single-operator, and a
+permission nobody is ever granted separately is a permission that only makes the role catalogue longer.
+
+**⚠️ Revisit trigger.** **When tenants have real staff** — which is the same moment per-property scoping
+(cluster J, `property_user`) starts to matter, and for the same reason: both are about *which of several
+people* may do a thing, a distinction that does not exist while there is one person.
+
+**What was built alongside it (`ArrivalSecretRevealedNotification`).** A reveal now notifies the **unit's
+owner**. ⚠️ **The notification says THAT a reveal happened and never WHAT was revealed** — who, when, which
+property and unit, and which FIELDS held a value. ⚠️ A notification is the worst possible destination for a
+credential: it lands in the `notifications` table *and*, on the mail channel, in an inbox — unencrypted,
+indefinitely, outside every guard cluster E built around the column.
+
+**⚠️ Always-on, following precedent, not by fresh decision.** `account_security` (owner) and
+`guest_account_security` are already `always_on`; a credential to your own building being read belongs in
+that class. ⚠️ **Surfaced rather than assumed**: if the founder wants it suppressible, that is a change to
+this ruling, not a bug.
+
+⚠️ **The owner is on the UNIT (`units.owner_id`), not the property** — properties carry no owner column. So
+the notification targets the unit's owner, which is also the more precise target: a reveal is per-unit.
+
+**⚠️ No owner is not an error.** Operator-owned inventory (hotel rooms) has `owner_id = null`, and an owner
+may have no linked user. Both resolve through `$unit->owner?->user?->notify(...)`, so **nobody is notified
+and the reveal itself is unaffected** — the operator asked for a credential and must still get it. Both
+paths are tested.

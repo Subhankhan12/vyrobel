@@ -102,6 +102,11 @@ class NotificationPreferences
         // would advertise a channel the owner has not got.
         'owner_message' => ['label' => 'New message', 'description' => 'Your management team sends you a message', 'group' => 'Account', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => false],
         'account_security' => ['label' => 'Account & security', 'description' => 'Sign-ins and bank changes — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
+        // ⚠️ CLUSTER E follow-up — somebody read a stored arrival credential for a unit this owner owns.
+        // ALWAYS-ON for the same reason the two rows around it are: a credential to your own building being
+        // read is not a preference. ⚠️ A reveal is SILENT where an overwrite is DETECTABLE, so this feed row
+        // is the only thing that makes it visible to the owner without them opening an audit log.
+        'arrival_secret_revealed' => ['label' => 'Arrival details viewed', 'description' => 'Someone viewed a stored door code or wifi password for your unit — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
     ];
 
     /**
