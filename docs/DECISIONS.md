@@ -15366,3 +15366,85 @@ deterministic failure measured afterwards on the same date and on code predating
 Candidate causes were considered and none fits the evidence. ⚠️ **Left on record as unexplained rather than
 given a plausible cause.** ⚠️ It is also the reason the "one fresh-process run disproves the batch probe"
 conclusion was wrong: **one passing sample does not refute a reported failure.**
+
+---
+
+## 2026-08-23 — THE `/switching` TRANSFORM, and the post-generation-edit SWEEP
+
+### 1 · The transform, moved into the converter
+
+The `Alternatives`/`Compare` drop removed a dead *"Compare the options first"* CTA from `/switching` by
+**editing the generated Blade directly**. The committed page was correct; **the converter still produced the
+link**, so regenerating would have restored it — §N.31.4 violated by the pass enforcing the ruling.
+
+Now registered in `convert.py`'s existing `switching` block via `cut_element()`, so it joins `_NEEDLE_LOG`
+and the **registry-wide** zero-match check (`convert.py:917-923`).
+
+⚠️ **THE ZERO-MATCH CHECK CAUGHT MY FIRST DRAFT ON ITS FIRST RUN.** I targeted tag `a`; by the time the
+page-scoped block runs, the design's `<a href="Vyrobel Compare.dc.html">` has **already been rewritten** into
+`<x-marketing.nav-link>`. Exit 4, *"SILENT NO-OP: switching / drop-compare-cta"*. ⚠️ **The mechanism proved
+itself on the transform that exists because of a silent no-op.**
+
+**Coverage proven:** break the needle → exit 4, named; restore → exit 0, byte-identical.
+**Regeneration is idempotent**, and the page carries no `key="compare"`.
+**The drop guard still holds both ways**: green on the regenerated page, RED when the link is reintroduced.
+
+⚠️ **ONE HONEST DIFFERENCE, REPORTED NOT HIDDEN:** the regenerated page's provenance comment is the
+converter's, not the hand-written one it replaces. The *substance* is identical (the CTA is gone); the note is
+now emitted BY the transform, because a page whose comment can only be hand-added still would not reproduce.
+
+### 2 · ⚠️⚠️ THE SWEEP — 15 of 19 verified, and FOUR pages are un-regenerable
+
+The drivers cover **7** pages. A **read-only** body comparison (writes nothing; takes each committed
+provenance header as given and diffs the converted body) covered all **19**:
+
+| verdict | pages |
+|---|---|
+| ✅ **IDENTICAL — 15** | about · contact · features · for-apartments · for-hotels · for-villas · home · how-it-works · integrations · modules · pricing · product · security · switching · try-booking |
+| ⚠️ **DIFFERS — 4** | **case-studies · story-cyclades · story-lisbon · story-rotterdam** |
+
+⚠️ **`/switching` was the one we found because it was the one we looked at. Twelve had never been
+regenerated — and eleven of those are clean. The four that are not are all the example-scenarios pages.**
+
+⚠️⚠️ **AND THEIR EDITS ARE HONESTY EDITS — THE WORST KIND TO HAVE OUTSIDE THE CONVERTER.** They are ruling
+A's rewrites: *"Case studies" → "Example scenarios"*, *"Customer story" → "Example scenario"*, the invented
+business **"Hotel Alfama Reyes" → "A 96-key city hotel"**, plus an added illustrative-scenario disclaimer.
+**Regenerating any of the four would restore invented customer identities onto published pages.** Measured
+against the guard's own fragment list, the regenerated bodies would publish:
+
+| page | invented identities a regeneration would restore |
+|---|---|
+| case-studies | Kastellis Villas · Havenzicht · Casa Mirante |
+| story-cyclades | Kastellis Villas · Van Dijk Stays |
+| story-lisbon | Van Dijk Stays · **Hotel Alfama Reyes** |
+| story-rotterdam | Kastellis Villas · Van Dijk Stays · **Hotel Alfama Reyes** |
+
+✅ **ARMED BUT DEFUSED.** `MarketingScenarioTest` sweeps every marketing view's PRODUCTION render for exactly
+those fragments, so a regeneration is a **RED BUILD, not a shipped fabrication** — the same posture the drop
+guard gives `/switching`.
+
+⚠️ **AND A JUDGEMENT OF MINE TO CORRECT.** The toolchain-close pass judged `rewrite.py` and
+`rewrite_lisbon.py` disposable because *"their result is the committed Blade."* That was true and
+**incomplete**: those one-off scripts were the only home of these transforms, so discarding them is part of
+why these four pages are un-regenerable.
+
+⛔ **NOT FIXED HERE, and the cost is the reason:** moving four pages' honesty rewrites into `convert.py` is
+18 + 9 + N hunks of published honesty content per page — real work, and it edits what the site says about
+fabricated customers. **Surfaced for its own pass.**
+
+### 3 · ⛔ PROPOSED, NOT BUILT — a regenerate-and-diff CI gate
+
+It would make the whole class impossible: no post-generation edit could survive a build.
+
+⚠️ **THE OBSTACLE IS REAL AND VERIFIED:** `.github/workflows/ci.yml` uses sparse-checkout with
+`!docs/design/front/` in **both** jobs (`:58-64`, `:140-146`), deliberately excluding the 102 MB masters. **CI
+cannot regenerate anything today.**
+
+| option | cost | what it would STOP catching |
+|---|---|---|
+| **Include the masters for one job** | +102 MB clone on that job only | nothing — full coverage |
+| **A separate scheduled job** (nightly) | full clone, off the PR path | a bad edit merges and is caught later, not at review |
+| **Local pre-commit / a `make` target** | free in CI | anything a contributor skips — unenforced by construction |
+| **Hash-based** (commit a per-page hash of the generated body) | tiny; no masters needed | ⚠️ **a change to `convert.py` itself** — the hash would be regenerated from the new converter and agree with it (source-vs-itself, §N.31.1 shape 8) |
+
+⚠️ It touches the clone-cost decision, which is the founder's. **Proposed only.**

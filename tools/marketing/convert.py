@@ -503,6 +503,35 @@ def convert(key):
                                'migrates, what does not, the parallel-running cutover, and a realistic '
                                'timeline.')
 
+        # ⚠️⚠️ THE DROPPED `compare` CTA — AND THIS TRANSFORM EXISTS BECAUSE ITS ABSENCE WAS A LANDMINE.
+        #    The founder ruled `Alternatives`/`Compare` DROPPED, and the pass executing that ruling removed
+        #    this secondary CTA by editing the GENERATED BLADE directly instead of registering it here. So
+        #    the committed page was correct while the CONVERTER still produced the link: regenerating
+        #    /switching put the dropped CTA back. ⚠️ §N.31.4 violated by the very pass enforcing the ruling,
+        #    and invisible until the toolchain was actually RUN (which is the argument for running it).
+        #    ⚠️ The primary "Book a migration call" CTA beside it is real and stays.
+        #    ⚠️ Registered through `cut_element`, so it joins `_NEEDLE_LOG` and the registry-wide zero-match
+        #    check refuses to finish if this needle ever stops matching — which is exactly how the link
+        #    would otherwise come back with nothing said.
+        #    ⚠️ THE TAG IS `x-marketing.nav-link`, NOT `a` — the design's <a href="Vyrobel Compare.dc.html">
+        #    has ALREADY been rewritten into the pending-aware component by the time this block runs. The
+        #    first draft targeted `a`, and the zero-match check caught it on the very first run: exactly the
+        #    silent no-op it exists to prevent, proven on the transform that exists because of one.
+        #    ⚠️ The provenance note is emitted BY the transform, not hand-added afterwards — otherwise the
+        #    page still would not reproduce byte-for-byte and the landmine would only be half defused.
+        _drop_note = (
+            '{{-- \u26a0\ufe0f THE DROP, EXECUTED IN THE CONVERTER. A secondary CTA here read "Compare the\n'
+            '                 options first" and pointed at `compare`, which the founder ruled DROPPED. It\n'
+            '                 rendered as a marked dead non-link, so /switching was inviting the reader to a\n'
+            '                 page that will never exist. The primary "Book a migration call" CTA remains.\n'
+            '                 \u26a0\ufe0f It was first removed by editing THIS GENERATED FILE, which meant the\n'
+            '                 converter still produced the link and a regeneration would have restored it\n'
+            '                 (\u00a7N.31.4). The cut now lives in convert.py and is covered by the\n'
+            '                 zero-match check, so a needle that stops matching fails the build. --}}'
+        )
+        t = cut_element(t, 'Compare the options first', 'x-marketing.nav-link', key, 'drop-compare-cta',
+                        replacement=_drop_note)
+
     # (5) ⚠️ GATE 4 — THE TRY-BOOKING SANDBOX (ruling D3 = (b)). The design's page simulates a booking on a
     #     FICTIONAL property and ends in a FABRICATED confirmation email. Every honesty transform lives
     #     HERE, in the converter, because Gate 3b proved twice that a post-generation patch is undone by the

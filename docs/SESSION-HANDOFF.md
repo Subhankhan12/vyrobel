@@ -179,9 +179,17 @@ service commitments, tier names — the founder rules; the build records the rul
   un-regenerable. ⚠️ Canon called it `pxbuild.py` for the entire arc — that is a 35-line driver, not the
   converter. See §N.33. ⚠️ **Made RUNNABLE 2026-08-23** (`tools/marketing/`, six path assumptions not one;
   `decode.cjs` because a `.js` file is ESM in this repo; `heads_px.py` had been missing entirely).
-  ⚠️⚠️ **The regeneration proof then caught a POST-GENERATION EDIT on `/switching`** — the drop was made in
-  the generated Blade, not the converter, so regenerating restores the dropped link. Reported, not
-  overwritten; the guard reds on it. **⛔ Open: move that transform into `convert.py`.** §N.33.4–.5.
+  ✅ **`/switching` CLOSED (2026-08-23)** — the drop transform now lives in `convert.py`, covered by the
+  registry-wide zero-match check (which caught the first draft's wrong tag on its first run). Regeneration is
+  idempotent and the drop guard still reds if the link returns.
+  ⚠️⚠️ **AND A READ-ONLY SWEEP OF ALL 19 PAGES FOUND THREE MORE: 15 of 19 reproduce byte-identically; the
+  four `example-scenarios` pages do NOT** — and their edits are **ruling A's honesty rewrites**, so a
+  regeneration would restore invented customer identities (**"Hotel Alfama Reyes"**, Kastellis Villas, Van
+  Dijk Stays) onto published pages. ✅ **Armed but DEFUSED** — `MarketingScenarioTest` sweeps production
+  renders for exactly those names, so a regeneration is a RED build, not a shipped fabrication.
+  ⛔ **Open, surfaced with its cost:** move those four pages' honesty rewrites into the converter.
+  ⛔ **Also proposed, not built:** a regenerate-and-diff CI gate — blocked by sparse-checkout excluding the
+  102 MB masters in both jobs. §N.33.4–.5, `DECISIONS.md` 2026-08-23.
   ⚠️ `tools/audit/reach.py` (the reachability instrument that produced P-6, P-7 and the 12 seeder-only
   entities) is committed too.
 - ⚠️⚠️ **AND THE CONVERSE: a fix living ONLY in generated output makes the generator a DESTRUCTOR.**

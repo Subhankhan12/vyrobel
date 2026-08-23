@@ -236,13 +236,14 @@
           <p style="margin: 16px 0 30px; font-size: 16.5px; line-height: 1.64; color: rgba(255,247,240,.74);">Name your current system and portfolio size and we'll tell you honestly how the migration looks, including where it's awkward. If the answer is that you should stay put for another season, we'll say that too.</p>
           <div style="display: flex; flex-wrap: wrap; gap: 12px;">
             <x-marketing.nav-link key="contact" fragment="#demo" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 28px; border-radius: 14px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 14px 32px rgba(194,65,12,.4); transition: transform .22s ease, box-shadow .22s ease;">Book a migration call</x-marketing.nav-link>
-            {{-- ⚠️ THE DROP, 7th SITE — and the only one on a PUBLISHED page. A secondary CTA reading
-                 "Compare the options first" pointed at `compare`, which is dropped. It was rendering as a
-                 marked dead non-link, so /switching was inviting the reader to a page that will never
-                 exist. The primary "Book a migration call" CTA above is real and remains.
-                 ⚠️ SWEEP, DON'T COUNT (§N.31.5): the brief named two sites, the nav and the URL map. The
-                 sweep found seven, and this was the one that mattered — the other six were chrome or
-                 unbuilt. --}}
+            {{-- ⚠️ THE DROP, EXECUTED IN THE CONVERTER. A secondary CTA here read "Compare the
+                 options first" and pointed at `compare`, which the founder ruled DROPPED. It
+                 rendered as a marked dead non-link, so /switching was inviting the reader to a
+                 page that will never exist. The primary "Book a migration call" CTA remains.
+                 ⚠️ It was first removed by editing THIS GENERATED FILE, which meant the
+                 converter still produced the link and a regeneration would have restored it
+                 (§N.31.4). The cut now lives in convert.py and is covered by the
+                 zero-match check, so a needle that stops matching fails the build. --}}
           </div>
         </div>
       </div>
