@@ -2,9 +2,11 @@
 
 use App\Models\Guest;
 use App\Models\Owner;
+use App\Models\User;
 use App\Services\AssignmentService;
 use App\Support\Marketing\MarketingClaims;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Assert;
 
 uses(RefreshDatabase::class);
@@ -74,6 +76,48 @@ it('sources S1-162/163/164 — an owner is never shown a guest’s contact detai
         Assert::assertStringNotContainsString('912 345 678', (string) $body,
             "⚠️ [{$url}] shows an owner a guest's PHONE — claim S1-162/163/164 is false");
     }
+});
+
+// ── S1-042 ───────────────────────────────────────────────────────────────────────────────────────────
+// ⚠️ THE ORIGINAL WAS UNASSERTABLE: "Everyone who touches Vyrobel gets their own login." Nothing in the
+// product prevents two people sharing one password, so as written it is a claim about USER BEHAVIOUR,
+// not about the product — and no test could ever settle it.
+//
+// ⚠️ THE NARROWED CLAIM, which is what the product actually does:
+//    "Vyrobel issues a separate account for each person you invite, and stamps the acting account on
+//     every action it audits."
+//
+// ⚠️ BOTH HALVES ARE PRESENCE-SHAPED — they assert that something IS done, not that something is
+// prevented. That is stronger footing than the S1-162/163/164 absence claims: this test can observe the
+// account and the stamp directly, rather than failing to find a leak on the surfaces it happens to check.
+//
+// ⚠️ AND THE NARROWING IS REAL, NOT COSMETIC: the original promised an outcome (no shared logins) the
+// product cannot deliver; this promises a mechanism it does deliver. A narrowing that merely sounded
+// safer while still asserting the outcome would be the softening failure.
+it('sources S1-042 — separate accounts, and the acting account is stamped on what it audits', function () {
+    $s = seedScenario(1);
+
+    // (a) SEPARATE ACCOUNTS: two invited people are two accounts, never one shared record.
+    $alice = operatorUser(['org' => $s['org']], ['name' => 'Alice Admin'], 'Group Admin');
+    $bob = operatorUser(['org' => $s['org']], ['name' => 'Bob Manager'], 'Hotel Manager');
+
+    Assert::assertNotSame((string) $alice->getKey(), (string) $bob->getKey(),
+        '⚠️ two invited people share one account — claim S1-042 is false');
+    Assert::assertSame(2, User::query()->whereIn('id', [$alice->getKey(), $bob->getKey()])->count());
+
+    // (b) THE STAMP: an audited action records the account that performed it, not merely that it happened.
+    $property = $s['property'];
+    $this->actingAs($alice)->post('/app/settings/team-scope', [
+        'user_id' => (string) $bob->getKey(), 'scope' => 'selected', 'properties' => [(string) $property->id],
+    ])->assertRedirect();
+
+    $row = DB::table('audit_events')
+        ->where('action', 'user.property_scope_changed')->latest('created_at')->first();
+
+    Assert::assertNotNull($row, 'the action was not audited at all — nothing to stamp');
+    Assert::assertSame((string) $alice->getKey(), (string) $row->actor_id,
+        '⚠️ the audited action does not carry the acting account — claim S1-042 is false');
+    Assert::assertSame('user', (string) $row->actor_type);
 });
 
 // ── the ledger and these tests must not drift apart ──────────────────────────────────────────────────

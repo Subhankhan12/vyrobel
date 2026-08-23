@@ -679,8 +679,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "disposition": "soften",
+      "note": "⚠️ NOT A SOURCING ITEM — a line of a MOCK STATEMENT for an invented property (\"Villa Azure · October 2026\"), presented without an illustrative label. That is the ruling-A fabricated-identity class, not the unsourced-claim class. Slice 1: label it as an example or de-identify it.",
       "group": "G2-third-party-mechanics",
       "appears_on": [
         "article-statement"
@@ -711,8 +711,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "disposition": "soften",
+      "note": "⚠️ KEPT DESPITE BEING A HEADING — it asserts a capability. \"Connecting Airbnb and Booking.com\" tells the reader channels are connectable, and they are not (cluster A). ⚠️ NOT a sourcing item: a doc-fix awaiting the Channex account.",
       "group": "G2-third-party-mechanics",
       "appears_on": [
         "docs"
@@ -727,8 +727,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "disposition": "soften",
+      "note": "⚠️ KEPT DESPITE BEING A HEADING — it asserts a capability. \"Connecting Airbnb and Booking.com\" tells the reader channels are connectable, and they are not (cluster A). ⚠️ NOT a sourcing item: a doc-fix awaiting the Channex account.",
       "group": "G2-third-party-mechanics",
       "appears_on": [
         "guide-channels"
@@ -824,12 +824,12 @@
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
+      "note": "⚠️ NARROWED (founder ruling, tools/marketing/spec/rulings.md). The original — \"everyone who touches Vyrobel gets their own login\" — is a claim about USER BEHAVIOUR: nothing prevents password sharing, so no test could settle it. The narrowed sentence asserts the MECHANISM instead, is PRESENCE-shaped, and is mutation-proven by the named test.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "guide-access"
       ],
-      "internal_test": null
+      "internal_test": "S1-042"
     },
     {
       "id": "S1-043",
@@ -888,8 +888,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-gdpr"
@@ -904,8 +904,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -935,8 +935,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -966,8 +966,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -997,8 +997,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1028,8 +1028,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1059,8 +1059,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1090,8 +1090,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1121,8 +1121,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1152,8 +1152,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1183,8 +1183,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1214,8 +1214,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1245,8 +1245,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1276,8 +1276,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1307,8 +1307,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1338,8 +1338,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1369,8 +1369,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-access",
@@ -1400,8 +1400,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G3-regulatory",
       "appears_on": [
         "docs"
@@ -1448,8 +1448,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "disposition": "soften",
+      "note": "⚠️ NOT A SOURCING ITEM — a line of a MOCK STATEMENT for an invented property (\"Villa Azure · October 2026\"), presented without an illustrative label. That is the ruling-A fabricated-identity class, not the unsourced-claim class. Slice 1: label it as an example or de-identify it.",
       "group": "G1-industry-statistic",
       "appears_on": [
         "article-statement"
@@ -1752,8 +1752,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "disposition": "soften",
+      "note": "⚠️ NOT A SOURCING ITEM — a line of a MOCK STATEMENT for an invented property (\"Villa Azure · October 2026\"), presented without an illustrative label. That is the ruling-A fabricated-identity class, not the unsourced-claim class. Slice 1: label it as an example or de-identify it.",
       "group": "G1-industry-statistic",
       "appears_on": [
         "article-statement"
@@ -3002,8 +3002,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G2-third-party-mechanics",
       "appears_on": [
         "article-trust"
@@ -3163,8 +3163,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "disposition": "remove",
+      "note": "⚠️ Re-read of the punctuation-less fragments: a heading or sidebar nav label, not a claim. Nothing to source — this is research the founder does not have to do.",
       "group": "G2-third-party-mechanics",
       "appears_on": [
         "article-trust"

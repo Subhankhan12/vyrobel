@@ -278,9 +278,41 @@ it('⚠️ keeps ledger coverage for every documentation page — the fail-open 
         Assert::assertNotEmpty($entries,
             "⚠️ [{$page}] has NO ledger entries, so pageIsCleared() reads it as CLEARED — the fail-open state this pass closed");
 
-        // ⚠️ And it must actually be HELD, not merely present: an entry that publishes proves nothing.
+        // ⚠️ And it must actually be HELD while anything on it is still UNRESOLVED.
+        //
+        // ⚠️ RE-PINNED, PURPOSE PRESERVED. This assertion used to read `assertFalse(pageIsCleared())`
+        // unconditionally, on the premise that every documentation page still carries unsourced claims.
+        // ⚠️ THAT PREMISE WAS INVALIDATED BY LEGITIMATE WORK, not by a regression: the fragment re-read
+        // found five pages whose every row is a heading, a nav label or a ruled-on item, so they have
+        // nothing left to source and "cleared" is the correct reading. Asserting the old form would have
+        // forced someone to either fudge a disposition or weaken the pin — both worse than re-pinning.
+        // ⚠️ WHAT IT GUARDS IS UNCHANGED: a page with ANY unresolved `publish` claim must never clear.
+        $unresolved = array_values(array_filter($entries,
+            fn (array $c): bool => ($c['disposition'] ?? 'publish') === 'publish'
+                && ! MarketingClaims::isPublishable($c)));
+
+        if ($unresolved !== []) {
+            Assert::assertFalse(MarketingClaims::pageIsCleared($page),
+                "⚠️ [{$page}] reads as cleared while ".count($unresolved).' of its claims are unsourced and unresolved');
+        }
+    }
+});
+
+it('⚠️ still blocks a page the moment ONE claim goes back to unresolved (the re-pin’s own check)', function () {
+    // ⚠️ The re-pin above only asserts the HELD half where something is unresolved. This proves that half
+    // is not vacuous: a page with unresolved claims genuinely fails to clear, so the conditional cannot be
+    // passing merely because every page slipped out of its scope.
+    $withUnresolved = array_values(array_unique(array_map(
+        fn (array $c): string => (string) $c['page'],
+        array_filter(MarketingClaims::all(),
+            fn (array $c): bool => ($c['disposition'] ?? 'publish') === 'publish'
+                && ! MarketingClaims::isPublishable($c)))));
+
+    Assert::assertNotEmpty($withUnresolved, 'nothing is unresolved any more — the HELD assertion is now vacuous');
+
+    foreach ($withUnresolved as $page) {
         Assert::assertFalse(MarketingClaims::pageIsCleared($page),
-            "⚠️ [{$page}] reads as cleared while its claims are unsourced");
+            "⚠️ [{$page}] clears despite carrying an unresolved claim");
     }
 });
 

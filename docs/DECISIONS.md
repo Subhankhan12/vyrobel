@@ -15485,3 +15485,46 @@ the notification targets the unit's owner, which is also the more precise target
 may have no linked user. Both resolve through `$unit->owner?->user?->notify(...)`, so **nobody is notified
 and the reveal itself is unaffected** — the operator asked for a credential and must still get it. Both
 paths are tested.
+
+---
+
+## 2026-08-23 · ⚠️ FOUNDER RULINGS — the three articles, and the login claim
+
+⚠️ **Recorded in two places deliberately** (§N.32): the implementable form lives in
+`tools/marketing/spec/rulings.md`, where slice 1 will read it; this entry is where a future reader looks.
+
+### The three articles — accepted as recommended
+
+- **`article-direct` → cut the predicted outcomes.** Remove every sentence predicting a result for the
+  reader; keep the mechanics. ⚠️ **The reasoning generalises and will be needed again: a predicted outcome
+  cannot be hedged into truth.** *"In our view, operators typically see…"* is the same prediction with a
+  hedge — no better evidenced and now unfalsifiable too. Cut it, or state the mechanism without the
+  outcome. ⚠️ The page stays blocked regardless by `S1-041` (B8's unsourced 15–18%).
+- **`article-pricing` → cut back to a mechanics explainer.** Keep what the levers are and how they resolve;
+  drop every claim about what *works*. The advice was revenue-management guidance we have never tested.
+- ⚠️ **`article-housekeeping` → re-argue as "how we built housekeeping and why", OR do not publish.**
+  ⚠️⚠️ **This remains a LIVE EITHER/OR, not a settled rewrite** — the recommendation was itself a choice
+  between two outcomes, and slice 1 must not quietly pick the first branch. At **34% hedge density** its
+  premise *is* the unevidenced claim.
+
+### `S1-042` — keep it, narrowed
+
+*"Everyone who touches Vyrobel gets their own login"* → **"Vyrobel issues a separate account for each
+person you invite, and stamps the acting account on every action it audits."**
+
+⚠️ The original is a claim about **user behaviour** — nothing prevents password sharing — so no test could
+settle it. ⚠️ **The narrowing was held to a hard test rather than to sounding safer:** it is sourced by
+`kind: internal` citing a mutation-proven test (stop stamping `actor_id` → RED). **Both halves are
+PRESENCE-shaped**, which is stronger footing than the absence claims sourced alongside it.
+
+### The fragment re-read — 72 rows are **47 decisions**
+
+⚠️ 20 of the 72 G1/G2/G3 rows are headings or sidebar nav labels and are **not claims**; 2 assert a
+capability that does not exist (cluster A) and 3 are lines of a **mock statement for an invented property**
+("Villa Azure"), which is the ruling-A class, not the sourcing class. ⚠️ **The single largest saving is one
+nav label repeated across sixteen guides — sixteen rows, one label, zero decisions.**
+
+⚠️ **The coverage pin fired on this legitimate work and was re-pinned, not weakened:** it had asserted
+every doc page still carries unsourced claims, a premise the re-read invalidated for five pages. It now
+asserts coverage unconditionally (the actual fail-open guard) and blocks only where something is genuinely
+unresolved — with its own non-vacuity check.
