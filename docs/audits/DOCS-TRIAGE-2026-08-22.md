@@ -679,3 +679,51 @@ the 14 Settings section headings · every `export` route · `door_code` referenc
 writer · `owner.payouts.retry` and `OwnerPayoutService::retry()` · `owner_payout_preferences` columns ·
 `AvailabilityService` totals and `PerformanceMetrics` denominator · `PropertyBrand` consumers ·
 `MarketingUrls` and the nav rows · the location of the "Guide N of 16" counters.
+
+---
+
+## ⚠️ 2026-08-24 — THE "CONTRADICTION" WAS A CONFLATION OF **THREE** AXES
+
+⚠️ This record and `FRONT-GATE5-CLAIMS-APPENDIX-2026-08-22.md` were read as contradicting each other on
+`/resources/growing-direct-bookings` and `/resources/owner-statement`. **They do not contradict. They answer
+different questions,** and a third question neither of them asks decides the outcome.
+
+| axis | asked by | `growing-direct-bookings` | `owner-statement` |
+|---|---|---|---|
+| **① edit size** (≤4 FALSE, page keeps its shape) | this triage, §6.2 | **LIGHT** (3 FALSE) | **NOT light** (7 FALSE) |
+| **② is a product build needed** | the appendix verdict | DEFER — the CTA needs claims the product lacks | **PUBLISHABLE WITH DOC FIX** |
+| **③ ⚠️ is the page SOURCING-CLEARED** | `MarketingClaims::pageIsCleared()` | **NO — 18 unsourced** | **NO — 9 unsourced** |
+
+⚠️ **Both records were right about their own axis on both pages.** The triage's *"`owner-statement` is not a
+light edit despite its label"* and the appendix's *"PUBLISHABLE WITH DOC FIX"* are simultaneously true: 7
+FALSE claims is not a light edit **and** no build is required to fix them.
+
+### ⚠️⚠️ THE ARITHMETIC, AND THE BLOCKER NOBODY WROTE DOWN
+
+⚠️ **"Step 1 yields 3, not 5" is wrong, and so is the 5.** The two named blockers are
+`growing-direct-bookings` (which IS in the list of five) and `owner-statement` (which **is not**) — so
+removing the one that is gives **4**, not 3.
+
+⚠️⚠️ **The real figure is ONE, and the reason is axis ③, which no register carries.** Measured with
+`pageIsCleared()`:
+
+| page | FALSE claims | sourcing-cleared | unsourced `publish` claims |
+|---|---|---|---|
+| `housekeeping-at-forty-units` | 3 | ✅ **YES** | 0 |
+| `booking-direct-trust` | 1 | ⚠️ **NO** | **14** |
+| `out-of-service` | 1 | ⚠️ **NO** | **6** |
+| `winning-owners` | 4 | ⚠️ **NO** | **9** |
+| `growing-direct-bookings` | 3 | ⚠️ **NO** | **18** (the recorded B8 is one of them) |
+
+⚠️ **Three pages — `booking-direct-trust`, `out-of-service`, `winning-owners` — are blocked by the sourcing
+ledger and NO REGISTER SAYS SO.** The triage recorded the ledger as a blocker on exactly one page (B8 on
+`growing-direct-bookings`); it blocks **four of the five**. ⚠️ **That is the same invisibility the corrections
+gate exists to remove, found on the gate's own input.**
+
+⚠️ **And this reverses the previous pass's own report**, which named `article-oos`, `article-owners` and
+`article-trust` as the settled slice-3 set. **All three are sourcing-blocked.** Correcting their FALSE claims
+would not make any of them publishable.
+
+⚠️ **The one page that IS cleared — `housekeeping-at-forty-units` — still carries its 3 uncorrected FALSE
+claims.** Cleared on axis ③, outstanding on axis ②. **The two registers track different sets of claims on the
+same page**, which is precisely why a page can look finished in one and untouched in the other.

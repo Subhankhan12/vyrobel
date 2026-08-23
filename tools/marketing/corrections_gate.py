@@ -33,6 +33,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(os.path.dirname(_HERE))
 sys.path.insert(0, _HERE)
 import convert as C
+import reconcile as R
 
 APPENDIX = os.path.join(_ROOT, 'docs/audits/FRONT-GATE5-CLAIMS-APPENDIX-2026-08-22.md')
 
@@ -117,22 +118,28 @@ def status():
         except Exception:
             master = None
 
-        still, unmatched, done = [], [], 0
+        # ⚠️ RECONCILED MATCHING (tools/marketing/reconcile.py). Every rule is NAMED there and every
+        #    rejection carries the rule that rejected it — so the matcher can be ARGUED WITH rather than
+        #    inferred from its total. ⚠️ Ambiguity and paraphrase STAY unmatched: a wrong match reports
+        #    DONE for a claim nobody corrected, and nothing downstream would ever announce it.
+        mtext = R.text_of(master) if master is not None else ''
+        btext = R.text_of(body)
+        still, unmatched, done, matches = [], [], 0, []
         for c in d['false_claims']:
-            q = _quoted(c)
-            if q is None:
-                unmatched.append(c[:90]); continue
-            in_out = q in body
-            in_master = (master is not None) and (q in master)
-            if in_out:
-                still.append(c[:90])
-            elif in_master:
-                done += 1                     # present in the master, gone after conversion
+            f = R.fragment(c)
+            if f is None:
+                unmatched.append((c[:90], 'reject: cell carries no matchable text')); continue
+            rule, sent = R.locate(f, mtext)
+            if sent is None:
+                unmatched.append((c[:90], rule)); continue
+            if R.locate(f, btext)[1] is not None:
+                still.append((c[:90], rule))          # present in the master AND still in the output
             else:
-                unmatched.append(c[:90])      # ⚠️ never matched anything — NOT a correction
+                done += 1                             # present in the master, gone after conversion
+                matches.append({'url': url, 'rule': rule, 'fragment': R.norm(f), 'sentence': sent})
         rows.append({'url': url, 'key': key, 'owed': len(d['false_claims']),
                      'done': done, 'outstanding': still, 'unmatched': unmatched,
-                     'verdict': d['verdict']})
+                     'matches': matches, 'verdict': d['verdict']})
     return rows, section_count, len(o)
 
 

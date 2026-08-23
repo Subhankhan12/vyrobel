@@ -15781,3 +15781,67 @@ between a comparison and a source checked against itself.
 ⚠️ **SLICE 3 WAS NOT STARTED.** Its page set could not be settled from a triage that contradicts its own
 source, and the gate that was supposed to measure it does not yet work at claim level. ⚠️ Starting the
 edits on that footing would have been work measured by nothing.
+
+---
+
+## 2026-08-24 · RECONCILE THE 94 (conservatively) + RE-DERIVE THE TWO PAGES — ⚠️ THE ACCEPTANCE TEST FAILED
+
+### The reconciliation — 22 recovered, ⚠️ 72 still unmatched, and that is the honest result
+
+`tools/marketing/reconcile.py` states six NAMED rules and attaches the rejecting rule to every rejection, so
+the matcher can be argued with rather than inferred from a total. **Unmatched 94 → 72.** ⚠️ **It was never a
+target of zero, and it was not tuned toward one.**
+
+⚠️ **The measured cause was NOT markup.** Comparing tag-stripped text instead of raw HTML recovered only
+**2** of the 94. The recoverable bulk was the auditor's **`—` join** of two adjacent page elements (R3) and
+elisions with `...` (R2). ⚠️ The residue is genuine **paraphrase** — *"The panel shows the room's
+housekeeping state live."* is the auditor's summary; no sentence on the page contains it. **R5 leaves it
+unmatched, and no similarity scoring exists anywhere in the file.**
+
+⚠️ **DONE FELL, 16 → 11, and that is a CORRECTION not a regression.** Rows previously banked as corrected are
+now found still present in the output under R2/R3 — they were false DONEs. **Outstanding rose 63 → 90.**
+⚠️ **OWED did not move: 173 before, 173 after.**
+
+Every match is recorded with **both texts** in `docs/audits/RECONCILIATION-RECORD-2026-08-24.md`.
+
+### ⚠️⚠️ THE ACCEPTANCE TEST FAILED — and its PREMISE was false
+
+`guide-security-doc` and `article-housekeeping` were required to come back CORRECTED. **They did not**, and
+the reconciliation is not why:
+
+- ⚠️ **`guide-security-doc` — 3 of 7 corrected.** The four transforms that landed were `F1-sms`,
+  `F2-account-wide`, `F3-location`, `F4-write-scope`. **The strength-meter, password-generator and
+  disconnected-channel-manager claims were never corrected at all** — verified directly against the
+  converted output, not inferred from the gate.
+- ⚠️⚠️ **`article-housekeeping` — 0 of 3, and for a different reason entirely.** The re-argue targeted
+  `S1-071/104/136/176` + `S1-019/082/102/107/114` — **`claims.json` UNSOURCED ids.** The audit's three FALSE
+  claims on that page are **a different set**. ⚠️ **The page was re-argued in one register and never touched
+  in the other.**
+
+⚠️ **The brief offered two readings — the gate works, or the reconciliation failed. The evidence supports a
+third: the reconciliation worked and revealed the corrections were never made.** The acceptance test was not
+adjusted.
+
+### ⚠️ The two "contradicting" records: THREE axes, conflated — recorded in BOTH files
+
+**Neither record was wrong.** ① edit size (triage) · ② is a build needed (appendix) · ③ ⚠️ **is the page
+sourcing-cleared** — a question neither record asks, and the one that decides the outcome.
+`owner-statement` is simultaneously **not a light edit** (7 FALSE > 4) **and PUBLISHABLE WITH DOC FIX** (no
+build required). Recorded in `DOCS-TRIAGE-2026-08-22.md` **and** `FRONT-GATE5-CLAIMS-APPENDIX-2026-08-22.md`.
+
+### ⚠️⚠️ THE BLOCKER NOBODY WROTE DOWN
+
+**"Step 1 yields 3, not 5" is wrong, and so is the 5.** One named blocker is in the list, one is not, so the
+arithmetic gives **4**. ⚠️ **The real figure is ONE.** Measured with `pageIsCleared()`: only
+`housekeeping-at-forty-units` clears. `booking-direct-trust` (14 unsourced), `out-of-service` (6),
+`winning-owners` (9) and `growing-direct-bookings` (18) do not. ⚠️ **The triage recorded the ledger as a
+blocker on ONE page; it blocks FOUR of the five — and no register says so.**
+
+⚠️ **This reverses the previous pass's own report**, which named `article-oos`, `article-owners`,
+`article-trust` as the settled slice-3 set. **All three are sourcing-blocked.**
+
+### ⚠️ THE SETTLED SLICE-3 SET — and it is not startable as scoped
+
+**Exactly one page is both sourcing-cleared and doc-fixable: `housekeeping-at-forty-units`**, which still
+carries its 3 uncorrected FALSE claims. ⚠️ **Slice 3 NOT started** — its set is an output of this pass, and
+the output is that the slice as scoped does not exist.
