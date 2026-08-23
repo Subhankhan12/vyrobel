@@ -873,6 +873,9 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/settings/organization', [SettingsActionController::class, 'updateOrganization'])->middleware('can:settings.manage')->name('settings.organization');
     Route::post('/settings/invoice', [SettingsActionController::class, 'updateInvoiceDetails'])->middleware('can:settings.manage')->name('settings.invoice');
     // Batch C · GATE 4 — edit taxes & fees (bounded rate/amount) via the certified SettingsService.
+    // ⚠️ P-7 · CLUSTER J — per-property staff scoping, the pivot's first real writer. `users.manage`, not
+    // `properties.manage`: deciding which properties OTHER people may see is access administration (#30).
+    Route::post('/settings/team-scope', [SettingsActionController::class, 'updateTeamScope'])->middleware('can:users.manage')->name('settings.team-scope');
     Route::post('/settings/tax-fees', [SettingsActionController::class, 'updateTaxesAndFees'])->middleware('can:properties.manage')->name('settings.tax-fees');
     // #98 — guest-facing brand (accent/logo/from-name/reply-to/powered-by → real emails + portal) + the REAL
     // property-level booking pause (fans out to units via the certified AvailabilityService). properties.manage.

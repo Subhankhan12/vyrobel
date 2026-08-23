@@ -24,6 +24,7 @@ use App\Support\Folio\StayEstimator;
 use App\Support\Guest\PropertySupport;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -74,6 +75,13 @@ class OperatorSettings extends Component
             'fees' => $property !== null ? $this->fees((string) $property->id) : [],
             'owner' => $property !== null ? $this->ownerCard($property) : null,
             'team' => $property !== null ? $this->team($property) : [],
+            // ⚠️ P-7 · CLUSTER J — the scope editor's roster. DELIBERATELY NOT `team()`: that list answers
+            // "who can access THIS property" and therefore HIDES anyone scoped out of it. Editing from a
+            // list that hides its own subjects is a trap — scope someone to property B and you could never
+            // see them again from property A to undo it. This one spans the whole organisation.
+            'teamScopes' => $this->teamScopes(),
+            'orgProperties' => Property::query()->orderBy('name')->get(['id', 'name'])
+                ->map(fn (Property $p): array => ['id' => (string) $p->id, 'name' => (string) $p->name])->all(),
             'pendingInvites' => $property !== null ? $this->pendingInvites() : [],
             'roleDefinitions' => self::roleDefinitions(),
             'brand' => $property !== null ? $this->brandForm($property) : null,
@@ -258,6 +266,49 @@ class OperatorSettings extends Component
     }
 
     /**
+     * P-7 · CLUSTER J — every back-office member of the organisation with the scope actually in force.
+     *
+     * ⚠️ Name-only, like every operator roster (#28). The scope shown is derived from the PIVOT, which is
+     * what {@see User::accessiblePropertyIds()} enforces — never from a permission, which it ignores.
+     *
+     * @return list<array{id: string, name: string, initials: string, roles: string, all: bool, ids: list<string>, you: bool}>
+     */
+    private function teamScopes(): array
+    {
+        $meId = (string) (auth()->id() ?? '');
+        $orgId = (string) app(TenantContext::class)->id();
+
+        /** @var Collection<int, User> $users */
+        $users = User::query()
+            ->whereHas('memberships', fn ($q) => $q->where('organization_id', $orgId))
+            ->with('propertyAssignments:id,user_id,property_id,organization_id')
+            ->orderBy('name')
+            ->get();
+
+        return $users->map(function (User $u) use ($meId, $orgId): ?array {
+            $roles = $u->getRoleNames()->all();
+            $backOffice = array_values(array_filter($roles, fn (string $r): bool => $r !== 'External Owner' && $r !== 'Guest'));
+            if ($backOffice === []) {
+                return null;   // owners / guests are not operator team
+            }
+
+            $ids = $u->propertyAssignments
+                ->where('organization_id', $orgId)
+                ->pluck('property_id')->map(fn ($id): string => (string) $id)->values()->all();
+
+            return [
+                'id' => (string) $u->getKey(),
+                'name' => (string) $u->name,
+                'initials' => $this->initials((string) $u->name),
+                'roles' => implode(' · ', $backOffice),
+                'all' => $ids === [],
+                'ids' => $ids,
+                'you' => (string) $u->getKey() === $meId,
+            ];
+        })->filter()->values()->all();
+    }
+
+    /**
      * The operator team who can access THIS property (task #98). A member can access it if they hold an
      * all-access admin role (`properties.manage`), have NO property_user pivot rows (full-org, pivot-or-all
      * rule), or are pivoted to this property. Scope label follows the same logic. Name-only.
@@ -291,7 +342,15 @@ class OperatorSettings extends Component
                 return null;
             }
 
-            $scope = $pivotIds->contains($propertyId) && ! $allAccess ? 'This property' : 'All properties';
+            // ⚠️ P-7 · THE LABEL NOW REFLECTS WHAT IS ENFORCED, WHICH IT PREVIOUSLY DID NOT.
+            // It used to read "All properties" for anyone holding `properties.manage`, even with pivot
+            // rows — but {@see User::accessiblePropertyIds()} consults ONLY the pivot and does not look at
+            // that permission, so such a user IS restricted while the screen said otherwise. That was
+            // harmless while no pivot row could exist; cluster J makes them creatable, so the mismatch
+            // would have become a screen that contradicts the access it describes.
+            $scope = $pivotIds->isEmpty()
+                ? 'All properties'
+                : ($pivotIds->count() === 1 ? 'This property only' : $pivotIds->count().' properties');
 
             return [
                 'id' => (string) $u->getKey(),

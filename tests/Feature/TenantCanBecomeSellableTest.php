@@ -176,9 +176,14 @@ it('⚠️ keeps an app-reachable creation path for every entity a tenant must c
         // Already reachable before this gate — pinned so a regression there is caught too.
         'RateCalendar' => ['route' => 'app.rates.update', 'permission' => 'rates.manage'],
         'Property' => ['route' => 'app.portfolio.store', 'permission' => 'properties.manage'],
+        // ⚠️ P-7 · CLUSTER J — `property_user` was the sharpest case of this class: it HAD a writer, but one
+        // gated on `$user->propertyAssignments()->exists()`, so a row could only be created for someone who
+        // already had one. GATED-UNREACHABLE is not "no path" — it looks like a path in every grep — and the
+        // table sat at zero rows everywhere while every operator silently fell through to full-org access.
+        'PropertyAssignment' => ['route' => 'app.settings.team-scope', 'permission' => 'users.manage'],
     ];
 
-    Assert::assertGreaterThanOrEqual(5, count($required),
+    Assert::assertGreaterThanOrEqual(6, count($required),
         'the required-path list shrank — this guard would cover less than it did');
 
     foreach ($required as $entity => $spec) {

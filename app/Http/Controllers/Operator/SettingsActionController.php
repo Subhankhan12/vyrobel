@@ -11,13 +11,16 @@ use App\Models\Fee;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Tax;
+use App\Models\User;
 use App\Services\PropertyBookingPauseService;
 use App\Services\PropertyRemovalService;
+use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Guest\PropertySupport;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -419,6 +422,64 @@ class SettingsActionController extends Controller
     private function currentProperty(): Property
     {
         return Property::query()->findOrFail(app(PropertyContext::class)->id());
+    }
+
+    /**
+     * P-7 · CLUSTER J — set a staff member's PER-PROPERTY SCOPE (the pivot that had no writer).
+     *
+     * ⚠️ THE POINT OF THE WHOLE CLUSTER: until this existed, `property_user` could only gain a row for a
+     * user who already had one, so no operator was ever scoped and EVERYONE fell through to the ratified
+     * "empty pivot ⇒ full org" rule (#38). The fallback is correct; its universality was the defect.
+     *
+     * ⚠️ GATED `users.manage` ON THE ROUTE (#30 — authorization is a route fact about an actor). Scoping is
+     * access administration, so it sits with user management, not with `properties.manage`: a property
+     * manager should not be able to decide which properties OTHER people may see.
+     *
+     * ⚠️ REFUSES TO CHANGE YOUR OWN SCOPE. Not a nicety: the first thing a mis-click here does otherwise is
+     * lock the administrator out of the property they are standing in, and the screen to undo it is the one
+     * they just lost. Someone else with `users.manage` must do it — the same separation `LeaveService` uses
+     * to make self-approval impossible.
+     */
+    public function updateTeamScope(Request $request, PropertyScopeService $scopes): RedirectResponse
+    {
+        if ($readOnly = $this->guardReadOnly()) {
+            return $readOnly;
+        }
+
+        $validated = $request->validate([
+            'user_id' => ['required', 'string'],
+            'scope' => ['required', 'in:all,selected'],
+            'properties' => ['array'],
+            'properties.*' => ['string'],
+        ]);
+
+        $orgId = (string) app(TenantContext::class)->id();
+
+        // ⚠️ RESOLVED FROM THE ACTOR'S OWN ORGANISATION, never from the posted id alone. `User` is not
+        // tenant-scoped (a user may belong to several orgs), so the membership filter IS the boundary here.
+        $target = User::query()
+            ->whereHas('memberships', fn ($q) => $q->where('organization_id', $orgId))
+            ->find($validated['user_id']);
+
+        if (! $target instanceof User) {
+            return $this->back('That team member could not be found in this organisation.');
+        }
+
+        if ((string) $target->getKey() === (string) (auth()->id() ?? '')) {
+            return $this->back('You cannot change your own property access — ask another administrator.');
+        }
+
+        $ids = $validated['scope'] === 'all' ? [] : array_values($validated['properties'] ?? []);
+
+        if ($validated['scope'] === 'selected' && $ids === []) {
+            return $this->back('Choose at least one property, or give them access to all of them.');
+        }
+
+        $applied = $scopes->setScope($target, $ids);
+
+        return $this->back($applied === []
+            ? $target->name.' can now access every property.'
+            : $target->name.' is now scoped to '.count($applied).' '.(count($applied) === 1 ? 'property' : 'properties').'.');
     }
 
     /**

@@ -350,6 +350,51 @@
                     </div>
                 @endforeach
 
+                {{-- ⚠️ P-7 · CLUSTER J — THE PER-PROPERTY SCOPE EDITOR. Until this existed the `property_user`
+                     pivot had no reachable writer, so every operator fell through to the ratified
+                     "empty pivot ⇒ full org" rule (#38) and per-property scoping was decorative.
+                     ⚠️ Spans the WHOLE organisation on purpose: the list above hides anyone scoped out of
+                     this property, and editing from a list that hides its subjects is how someone gets
+                     scoped somewhere you can no longer reach them. --}}
+                @if ($canManageUsers && ! $readOnly && count($orgProperties) > 1)
+                    <details style="margin-top: 14px; border-top: 1px solid var(--vy-hairline); padding-top: 12px;">
+                        <summary style="cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text);">Property access &amp; scoping</summary>
+                        <p style="font-size: 12px; color: var(--vy-muted); margin: 8px 0 12px;">Someone with no properties selected can work in all of them. Selecting properties restricts them to those.</p>
+
+                        @foreach ($teamScopes as $m)
+                            <form method="POST" action="{{ route('app.settings.team-scope') }}" style="border-top: 1px solid var(--vy-hairline); padding: 10px 0;">
+                                @csrf
+                                <input type="hidden" name="user_id" value="{{ $m['id'] }}">
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <div style="flex: 1; min-width: 180px;">
+                                        <div style="font-size: 13px; color: var(--vy-ink);">{{ $m['name'] }}@if ($m['you']) <span style="color: var(--vy-faint); font-size: 12px;">· You</span>@endif</div>
+                                        <div style="font-size: 11.5px; color: var(--vy-muted);">{{ $m['roles'] }}</div>
+                                    </div>
+                                    @if ($m['you'])
+                                        {{-- ⚠️ You cannot change your OWN scope: a mis-click would lock you out of the
+                                             property you are standing in, and the screen to undo it is the one you lost.
+                                             The controller refuses it too — this only keeps the UI from inviting a refusal. --}}
+                                        <span style="font-size: 11.5px; color: var(--vy-muted);">Ask another administrator to change your own access.</span>
+                                    @else
+                                        <label style="font-size: 12px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 5px;">
+                                            <input type="radio" name="scope" value="all" @checked($m['all'])> All properties
+                                        </label>
+                                        <label style="font-size: 12px; color: var(--vy-muted); display: inline-flex; align-items: center; gap: 5px;">
+                                            <input type="radio" name="scope" value="selected" @checked(! $m['all'])> Only these
+                                        </label>
+                                        @foreach ($orgProperties as $p)
+                                            <label style="font-size: 12px; color: var(--vy-ink); display: inline-flex; align-items: center; gap: 5px;">
+                                                <input type="checkbox" name="properties[]" value="{{ $p['id'] }}" @checked(in_array($p['id'], $m['ids'], true))> {{ $p['name'] }}
+                                            </label>
+                                        @endforeach
+                                        <button type="submit" class="vy-btn" style="padding: 6px 12px; font-size: 12px;">Save</button>
+                                    @endif
+                                </div>
+                            </form>
+                        @endforeach
+                    </details>
+                @endif
+
                 @foreach ($pendingInvites as $inv)
                     <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--vy-hairline);">
                         <span style="width: 34px; height: 34px; border-radius: 50%; background: rgba(178,106,8,.10); color: var(--vy-amber); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">&#64;</span>
