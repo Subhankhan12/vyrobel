@@ -15528,3 +15528,47 @@ nav label repeated across sixteen guides — sixteen rows, one label, zero decis
 every doc page still carries unsourced claims, a premise the re-read invalidated for five pages. It now
 asserts coverage unconditionally (the actual fail-open guard) and blocks only where something is genuinely
 unresolved — with its own non-vacuity check.
+
+---
+
+## 2026-08-23 · ⚠️ THE PAGE REGISTRY IS A SITEWIDE OPERATION (§N.32 — recorded so it is not re-learned)
+
+⚠️⚠️ **Registering one master changes OTHER pages' generated output.** The converter's nav-link transform
+resolves *every* link against the registry, so adding an entry reshapes any page that links to it. Slice 1
+registered 13 doc masters and `story-lisbon` — a page with nothing to do with the docs — changed: its dead
+`<a href="#">Read: housekeeping at scale</a>` became `<x-marketing.nav-link key="article-housekeeping">`,
+i.e. an honest marked non-link.
+
+⚠️ **THE RULE THAT FOLLOWS: every future registration needs a FULL regenerate-and-diff across all pages.**
+Per-page verification is **structurally insufficient** here — the page you changed is not necessarily the
+page that changes. The founder ruled ACCEPT AND REGENERATE, and the diff was proven to be exactly that one
+anchor and nothing else.
+
+## 2026-08-23 · ⚠️ FOUNDER RULING — `article-housekeeping` RE-ARGUED (the either/or, resolved)
+
+The live either/or is closed: **re-argue as "how we built housekeeping and why"**. ⚠️ **Nine sentences, not
+twelve** — three of the twelve G6 rows were already ruled NOISE (headings and a rhetorical question).
+
+⚠️ **The hazard, and how it was managed:** re-arguing swaps unsourceable claims about OPERATORS for claims
+about OUR OWN PRODUCT — which makes every one checkable, and which is the exact class the Gate 5 audit
+found 220 false claims in. **Every sentence was written FROM a verified code fact, never written first and
+checked after.**
+
+**The classification decides what needs a source:** **4 BEHAVIOUR** (what the product does — each carries a
+`kind: internal` test, all four mutation-proven) and **5 RATIONALE** (what we judged or chose —
+legitimately unfalsifiable, sourced by nothing on purpose).
+
+⚠️ **No blocker was swapped for another:** the page was blocked by 0 claims before and is blocked by 0
+after. **Unresolved-claim density 33% → 0%.** The 24 surviving blocks are untouched.
+
+## 2026-08-23 · ⚠️ FINDING — `disposition: remove` does NOT mean the text leaves the page
+
+⚠️ **27 of 28 ledger rows marked `remove` are still present in the converted output**, and for the NOISE
+rows that is **correct**: a heading like *"Three rules that do most of the work"* is not a claim, and there
+is no reason to delete it from a page. ⚠️ **But Gate 6's own vocabulary reads `remove` as "this claim will
+be removed"**, so the word now carries two meanings — "removed from the page" and "removed from the
+ledger's concern".
+
+⚠️ **Reported, not fixed.** A cleaner encoding (a `not_a_claim` kind, or splitting the disposition) is a
+schema change and a founder call. ⚠️ Until then, **do not read `remove` as evidence that a page no longer
+says something** — check the converted output, which is what this finding did.

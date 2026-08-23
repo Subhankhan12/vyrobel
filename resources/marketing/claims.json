@@ -454,12 +454,13 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ RE-ARGUED (founder ruling) as RATIONALE: the replacement asserts what WE judged or chose, not what operators do — legitimately unfalsifiable, and sourced by nothing on purpose. Replacement: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-020",
@@ -1524,16 +1525,17 @@
       "page": "article-housekeeping",
       "subject": "operators in general",
       "claim": "If that ticket can also take the unit off sale until it is fixed, the review you did not receive is worth more than the maintenance you did.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ RE-ARGUED (founder ruling) and reclassified BEHAVIOUR: the replacement asserts what the PRODUCT does, so it is a claim and carries a kind:internal source — a test that fails when it stops being true. Replacement + the code fact it rests on: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": "S1-071"
     },
     {
       "id": "S1-072",
@@ -1704,12 +1706,13 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ RE-ARGUED (founder ruling) as RATIONALE: the replacement asserts what WE judged or chose, not what operators do — legitimately unfalsifiable, and sourced by nothing on purpose. Replacement: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-083",
@@ -2025,12 +2028,13 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ RE-ARGUED (founder ruling) as RATIONALE: the replacement asserts what WE judged or chose, not what operators do — legitimately unfalsifiable, and sourced by nothing on purpose. Replacement: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-103",
@@ -2053,16 +2057,17 @@
       "page": "article-housekeeping",
       "subject": "operators in general",
       "claim": "Not a message, a permanent position on the board that everyone can see.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ RE-ARGUED (founder ruling) and reclassified BEHAVIOUR: the replacement asserts what the PRODUCT does, so it is a claim and carries a kind:internal source — a test that fails when it stops being true. Replacement + the code fact it rests on: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": "S1-104"
     },
     {
       "id": "S1-105",
@@ -2106,12 +2111,13 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ RE-ARGUED (founder ruling) as RATIONALE: the replacement asserts what WE judged or chose, not what operators do — legitimately unfalsifiable, and sourced by nothing on purpose. Replacement: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-108",
@@ -2218,12 +2224,13 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ RE-ARGUED (founder ruling) as RATIONALE: the replacement asserts what WE judged or chose, not what operators do — legitimately unfalsifiable, and sourced by nothing on purpose. Replacement: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-115",
@@ -2806,16 +2813,17 @@
       "page": "article-housekeeping",
       "subject": "operators in general",
       "claim": "Teams that add a fifth and a sixth find nobody updates any of them, because the cost of maintaining the board exceeds the cost of shouting across the corridor.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ RE-ARGUED (founder ruling) and reclassified BEHAVIOUR: the replacement asserts what the PRODUCT does, so it is a claim and carries a kind:internal source — a test that fails when it stops being true. Replacement + the code fact it rests on: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": "S1-136"
     },
     {
       "id": "S1-137",
@@ -3452,16 +3460,17 @@
       "page": "article-housekeeping",
       "subject": "operators in general",
       "claim": "Usually it settles the question.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ RE-ARGUED (founder ruling) and reclassified BEHAVIOUR: the replacement asserts what the PRODUCT does, so it is a claim and carries a kind:internal source — a test that fails when it stops being true. Replacement + the code fact it rests on: tools/marketing/spec/g6_housekeeping.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
-      ]
+      ],
+      "internal_test": "S1-176"
     },
     {
       "id": "S1-177",

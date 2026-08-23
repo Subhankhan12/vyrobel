@@ -101,6 +101,9 @@ from g6_articles import (                                        # noqa: E402
     DIRECT_CUTS as _DIRECT_CUTS, PRICING_CUTS as _PRICING_CUTS,
     SCOPE_NARROWING as _SCOPE, LOGIN_NARROWING as _LOGIN,
 )
+from g6_housekeeping import (                                    # noqa: E402
+    BEHAVIOUR as _HK_BEHAVIOUR, RATIONALE as _HK_RATIONALE,
+)
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1378,6 +1381,24 @@ def convert(key):
         #    we have no operators to have observed it in. The mechanics of going direct stay.
         for _cid, _sentence in _DIRECT_CUTS.items():
             t = swap(t, _sentence, '', key, 'RULING-direct/' + _cid)
+
+    if key == 'article-housekeeping':
+        # ⚠️⚠️ THE RE-ARGUE (founder ruling). The branch was a LIVE EITHER/OR until it was chosen; this is
+        #    the "re-argue as how we built housekeeping and why" branch, and only the NINE blocks that
+        #    needed new argument change. The 24 that survive are untouched — they were measured as
+        #    surviving, and improving them while in the file would turn a bounded pass into an
+        #    unreviewable one.
+        #
+        # ⚠️ NINE, NOT TWELVE: three of the twelve G6 rows (S1-044, S1-101, S1-171) are headings and a
+        #    rhetorical question, already ruled NOISE. They are not claims and need no argument.
+        #
+        # ⚠️⚠️ THE HAZARD, MANAGED: re-arguing swaps unsourceable claims about OPERATORS for claims about
+        #    OUR OWN PRODUCT — which makes every one checkable, and therefore CHECKED BEFORE IT WAS
+        #    WRITTEN. Each BEHAVIOUR sentence below carries a `kind: internal` source (a test that fails
+        #    when it stops being true); each RATIONALE sentence asserts only our own judgement and needs
+        #    none. ⚠️ Classified by what the sentence ASSERTS, never by how it is phrased.
+        for _cid, _d in list(_HK_BEHAVIOUR.items()) + list(_HK_RATIONALE.items()):
+            t = swap(t, _d['original'], _d['replacement'], key, 'REARGUE/' + _cid)
 
     if key == 'article-pricing':
         # ⚠️ Keep what the levers ARE and how they resolve; drop every claim about what WORKS.

@@ -1,9 +1,13 @@
 <?php
 
+use App\Livewire\HousekeepingBoard;
 use App\Models\Guest;
+use App\Models\HousekeepingTask;
 use App\Models\Owner;
 use App\Models\User;
 use App\Services\AssignmentService;
+use App\Services\HousekeepingService;
+use App\Services\MaintenanceService;
 use App\Support\Marketing\MarketingClaims;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -118,6 +122,79 @@ it('sources S1-042 — separate accounts, and the acting account is stamped on w
     Assert::assertSame((string) $alice->getKey(), (string) $row->actor_id,
         '⚠️ the audited action does not carry the acting account — claim S1-042 is false');
     Assert::assertSame('user', (string) $row->actor_type);
+});
+
+// ══ `article-housekeeping` — THE RE-ARGUE'S FOUR BEHAVIOUR CLAIMS ════════════════════════════════════
+//
+// ⚠️⚠️ WHY THESE EXIST. Re-arguing the page swapped unsourceable claims about OPERATORS for claims about
+// OUR OWN PRODUCT. That is the point — and it means every one of them is checkable, which is exactly the
+// class the Gate 5 audit found 220 false claims in. ⚠️ A page that trades an unsourceable claim for an
+// untested one has swapped one blocker for another and called it progress.
+//
+// ⚠️ THE FIVE RATIONALE SENTENCES ARE DELIBERATELY ABSENT. They assert what we judged or chose, not what
+// the product does; they are legitimately unfalsifiable and a test for them would be theatre.
+
+it('sources S1-136 — the board has four states, and no fifth', function () {
+    // ⚠️ THE CLAIM: "The board has four states — pending, in progress, clean, inspected — and we did not
+    //    add a fifth." Only the first clause is a claim; the reasoning after the full stop is ours.
+    $states = (new ReflectionClass(HousekeepingBoard::class))
+        ->getConstant('STATUSES');
+
+    Assert::assertSame(['pending', 'in_progress', 'clean', 'inspected'], $states,
+        '⚠️ the board’s states changed — the article says there are four and names them');
+});
+
+it('sources S1-104 — a status is a stored position, not a message', function () {
+    // ⚠️ THE CLAIM: it stays where it was left until somebody advances it, and everyone reading the board
+    //    reads the same one. Tested as: the write persists, and a fresh read returns it.
+    $s = seedScenario(1);
+    $task = HousekeepingTask::create([
+        'property_id' => $s['property']->id, 'unit_id' => $s['units'][0]->id,
+        'date' => '2026-09-02', 'type' => 'departure', 'status' => 'pending',
+    ]);
+
+    app(HousekeepingService::class)->updateTaskStatus($task, 'in_progress');
+
+    // ⚠️ RAW, past Eloquent's in-memory copy: "stored" is the claim, so the storage is what is checked.
+    Assert::assertSame('in_progress',
+        (string) DB::table('housekeeping_tasks')->where('id', $task->id)->value('status'),
+        '⚠️ the status did not persist — the article calls it a stored position rather than a message');
+});
+
+it('sources S1-176 — a photo attached to the task travels with the task', function () {
+    // ⚠️ THE CLAIM: "was the room actually clean?" is answered from the record rather than from memory.
+    $s = seedScenario(1);
+    $task = HousekeepingTask::create([
+        'property_id' => $s['property']->id, 'unit_id' => $s['units'][0]->id,
+        'date' => '2026-09-02', 'type' => 'departure', 'status' => 'clean',
+    ]);
+
+    $task->media()->create([
+        'organization_id' => $s['org']->id, 'disk' => 'public',
+        'path' => 'proof/clean.jpg', 'url' => '/storage/proof/clean.jpg',
+        'mime' => 'image/jpeg', 'size' => 1024, 'alt' => 'proof',
+    ]);
+
+    Assert::assertCount(1, $task->fresh()->media,
+        '⚠️ a proof photo does not travel with its task — the article says the record answers the question');
+});
+
+it('sources S1-071 — a ticket marked as taking the unit out of service does exactly that', function () {
+    // ⚠️ THE CLAIM, and the nuance kept in it: a maintenance ticket CAN be marked as taking the unit out
+    //    of service, and then it does — the condition changes and the unit stops being sellable. ⚠️ It is
+    //    NOT automatic for every ticket, which is why the sentence says "can be marked … and then it does".
+    $s = seedScenario(1);
+    $unit = $s['units'][0];
+
+    Assert::assertNotSame('out_of_service', (string) $unit->fresh()->condition_status,
+        'the unit already starts out of service — this test would prove nothing');
+
+    app(MaintenanceService::class)->open([
+        'unit_id' => $unit->id, 'title' => 'Flooded bathroom', 'takes_out_of_service' => true,
+    ]);
+
+    Assert::assertSame('out_of_service', (string) $unit->fresh()->condition_status,
+        '⚠️ a takes_out_of_service ticket did NOT take the unit out of service');
 });
 
 // ── the ledger and these tests must not drift apart ──────────────────────────────────────────────────

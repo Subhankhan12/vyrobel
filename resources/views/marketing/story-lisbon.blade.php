@@ -148,7 +148,7 @@
           </div>
           <div style="display: flex; flex-wrap: wrap; gap: 11px;">
             <x-marketing.nav-link key="for-hotels" style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14.5px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.32); transition: transform .22s ease;">Vyrobel for hotels</x-marketing.nav-link>
-            <a href="#" style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 13px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; transition: transform .22s ease;">Read: housekeeping at scale</a>
+            <x-marketing.nav-link key="article-housekeeping" style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 13px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; transition: transform .22s ease;">Read: housekeeping at scale</x-marketing.nav-link>
           </div>
         </div>
       </section>
