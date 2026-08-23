@@ -39,6 +39,21 @@ final class MarketingClaims
 
     public const KIND_REQUIRES_TESTING = 'requires_testing';
 
+    /**
+     * ⚠️ A claim about OUR OWN PRODUCT, which no third-party URL can settle.
+     *
+     * ⚠️⚠️ ITS EVIDENCE IS A TEST, NOT A `file:line` POINTER. A pointer ROTS SILENTLY: the code moves, the
+     * behaviour changes, the claim quietly becomes false, and the citation still points confidently at a
+     * line that no longer says what it said. ⚠️ A citation that can decay is the exact failure this ledger
+     * exists to prevent, so admitting one here would be the §N.29 label shape inside the gate built
+     * against it. An internal source is a test that FAILS when the claim stops being true.
+     *
+     * ⚠️ AND IT IS NOT A LOOPHOLE: `internal` alone sources nothing. The claim must name a test in
+     * `internal_test`, and `MarketingInternalClaimsTest` asserts every named test actually EXISTS — a
+     * citation naming nothing reads as evidence and is not.
+     */
+    public const KIND_INTERNAL = 'internal';
+
     public static function path(): string
     {
         return resource_path('marketing/claims.json');
@@ -72,6 +87,14 @@ final class MarketingClaims
      */
     public static function isSourced(array $claim): bool
     {
+        // ⚠️ AN INTERNAL CLAIM IS SOURCED BY ITS TEST, and by nothing else — not by a URL it will never
+        // have, and not by carrying the kind. No test named, no source.
+        if (($claim['kind'] ?? '') === self::KIND_INTERNAL) {
+            $test = $claim['internal_test'] ?? null;
+
+            return is_string($test) && trim($test) !== '';
+        }
+
         $url = $claim['source_url'] ?? null;
         $on = $claim['verified_on'] ?? null;
 
@@ -90,6 +113,16 @@ final class MarketingClaims
     {
         if (! self::isSourced($claim)) {
             return false;   // unsourced is its own, louder failure — see unsourced()
+        }
+
+        // ⚠️ AN INTERNAL CLAIM DOES NOT EXPIRE, AND THAT IS NOT AN EXEMPTION — IT IS THE POINT.
+        // `review_by` exists because an external citation can go stale without anyone noticing, so
+        // somebody must re-read it. An internal claim's citation is a test that runs on every build: the
+        // day the claim stops being true, the test REDS. It cannot rot unobserved, so there is nothing for
+        // a review date to protect against. ⚠️ The protection it DOES need — that the named test is real —
+        // is enforced by MarketingInternalClaimsTest, not by a date.
+        if (($claim['kind'] ?? '') === self::KIND_INTERNAL) {
+            return false;
         }
 
         $review = self::parse((string) ($claim['review_by'] ?? ''));

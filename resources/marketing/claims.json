@@ -246,8 +246,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-pricing"
@@ -342,8 +342,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-reports"
@@ -390,8 +390,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "faq"
@@ -406,8 +406,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-channels"
@@ -482,16 +482,17 @@
       "page": "guide-payouts",
       "subject": "operators in general",
       "claim": "An owner can pause their own payouts — typically to accumulate several months, or ahead of a property sale.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-payouts"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-022",
@@ -614,8 +615,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-security-doc"
@@ -742,8 +743,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-refunds"
@@ -758,8 +759,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-settings"
@@ -774,8 +775,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-housekeeping"
@@ -790,8 +791,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-arrival"
@@ -818,16 +819,17 @@
       "page": "guide-access",
       "subject": "Vyrobel itself",
       "claim": "Everyone who touches Vyrobel gets their own login.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "guide-access"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-043",
@@ -838,8 +840,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "faq"
@@ -854,8 +856,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
@@ -1430,8 +1432,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-setup"
@@ -1510,8 +1512,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-gdpr"
@@ -1638,8 +1640,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-housekeeping"
@@ -1734,8 +1736,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-rates"
@@ -1846,8 +1848,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-payouts"
@@ -1878,8 +1880,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-gdpr"
@@ -1894,8 +1896,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-storefront"
@@ -1942,8 +1944,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-channels"
@@ -1986,16 +1988,17 @@
       "page": "guide-housekeeping",
       "subject": "operators in general",
       "claim": "Nobody adds rooms to the board by hand.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-housekeeping"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-101",
@@ -2006,8 +2009,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
@@ -2038,8 +2041,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-oos"
@@ -2082,16 +2085,17 @@
       "page": "guide-settings",
       "subject": "operators in general",
       "claim": "On a multi-property account each property carries its own, which matters more than it sounds if you manage across two countries — the day rolls at a different moment in each and the boards behave accordingly.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-settings"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-107",
@@ -2262,8 +2266,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "faq"
@@ -2294,8 +2298,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-direct"
@@ -2310,8 +2314,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2341,8 +2345,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2372,8 +2376,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2403,8 +2407,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2434,8 +2438,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2465,8 +2469,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2496,8 +2500,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2527,8 +2531,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2558,8 +2562,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2589,8 +2593,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2620,8 +2624,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2651,8 +2655,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2682,8 +2686,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2713,8 +2717,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2744,8 +2748,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2775,8 +2779,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-access",
@@ -2838,8 +2842,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-gdpr"
@@ -2902,8 +2906,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-arrival"
@@ -2934,8 +2938,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-arrival"
@@ -3062,8 +3066,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-refunds"
@@ -3078,8 +3082,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-gdpr"
@@ -3090,16 +3094,17 @@
       "page": "guide-rates",
       "subject": "operators in general",
       "claim": "The rate grid also shows the resolved price per night per unit, which is faster than reasoning about the rules for a single date.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-rates"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-155",
@@ -3110,8 +3115,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-payouts"
@@ -3218,48 +3223,51 @@
       "page": "faq",
       "subject": "operators in general",
       "claim": "They cannot see guest names, contact details or documents, other owners’ units or terms, or your commercial arrangements with anyone else.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Re-triaged from the slice-0 pattern: a claim about OUR product, not a population. Sourced by a TEST that fails when it stops being true — never a file:line pointer, which rots silently.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "faq"
-      ]
+      ],
+      "internal_test": "S1-162/163/164"
     },
     {
       "id": "S1-163",
       "page": "guide-statements",
       "subject": "operators in general",
       "claim": "They do not see guest contact details, guest documents, other owners’ data, or your commercial terms with anyone else.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Re-triaged from the slice-0 pattern: a claim about OUR product, not a population. Sourced by a TEST that fails when it stops being true — never a file:line pointer, which rots silently.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-statements"
-      ]
+      ],
+      "internal_test": "S1-162/163/164"
     },
     {
       "id": "S1-164",
       "page": "guide-access",
       "subject": "operators in general",
       "claim": "They do not see guest names, contact details or documents; they do not see other owners’ units, statements or terms; and they do not see your commercial arrangements with anyone else.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Re-triaged from the slice-0 pattern: a claim about OUR product, not a population. Sourced by a TEST that fails when it stops being true — never a file:line pointer, which rots silently.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-access"
-      ]
+      ],
+      "internal_test": "S1-162/163/164"
     },
     {
       "id": "S1-165",
@@ -3282,16 +3290,17 @@
       "page": "guide-reports",
       "subject": "Vyrobel itself",
       "claim": "This is a record for you rather than a submission to anyone; Vyrobel does not file on your behalf.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "guide-reports"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-167",
@@ -3314,16 +3323,17 @@
       "page": "article-owners",
       "subject": "Vyrobel itself",
       "claim": "This is the single most persuasive object you can carry into the meeting, and almost nobody brings one.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "article-owners"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-169",
@@ -3366,8 +3376,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
@@ -3414,8 +3424,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-setup"
@@ -3430,8 +3440,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-payouts"
@@ -3462,8 +3472,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-gdpr"
@@ -3478,8 +3488,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-payouts"
@@ -3494,8 +3504,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "disposition": "soften",
+      "note": "⚠️⚠️ NOT A SOURCING ITEM — THIS DESCRIBES BEHAVIOUR THAT DOES NOT EXIST. The slice-0 pattern swept it into G6 because it carries \"typically\"/\"usually\". ⚠️ Applying the G6 ruling (rewrite as our opinion) would HEDGE A FALSE STATEMENT, making it unfalsifiable instead of corrected. Correction specified in tools/marketing/spec/g5_g_false.py.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "guide-rates"
@@ -3510,8 +3520,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "disposition": "soften",
+      "note": "⚠️ A promise we cannot keep or measure. Replacement in tools/marketing/spec/g5_g_false.py — it asserts NOTHING measurable, and deliberately avoids a replacement that expires when a first hire starts.",
       "group": "G5-service-commitment",
       "appears_on": [
         "guide-security-doc"
@@ -3526,8 +3536,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-storefront"
@@ -3542,8 +3552,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "resources"
@@ -3554,32 +3564,34 @@
       "page": "guide-refunds",
       "subject": "Vyrobel itself",
       "claim": "When a change moves the booking to a more expensive period, the difference appears on the folio as a balance owing.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G4-our-product-capability",
       "appears_on": [
         "guide-refunds"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-184",
       "page": "guide-refunds",
       "subject": "operators in general",
       "claim": "When it moves cheaper, you choose whether to refund the difference, hold it as credit, or keep it under your policy — all three are legitimate and the screen asks rather than assuming.",
-      "kind": "sourceable",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-refunds"
-      ]
+      ],
+      "internal_test": null
     },
     {
       "id": "S1-185",
@@ -3622,8 +3634,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "soften",
+      "note": "⚠️ Reframed to what WE believe/built/chose — NOT hedged. Replacement text in tools/marketing/spec/g6_guides.py, keyed by this id.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "guide-security-doc"
@@ -3670,8 +3682,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "disposition": "remove",
+      "note": "⚠️ Not a claim: a heading, a rhetorical question or a card blurb. The slice-0 sweep could not distinguish these from prose. Nothing to source and nothing to rewrite.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-owners"

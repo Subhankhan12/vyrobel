@@ -84,7 +84,7 @@ it('holds every audited claim, each carrying the fields the gate keys on', funct
         foreach (['id', 'page', 'subject', 'claim', 'kind', 'source_url', 'verified_on', 'review_by', 'disposition'] as $field) {
             Assert::assertArrayHasKey($field, $claim, "claim [{$claim['id']}] is missing the field [{$field}] — deleting a field must never read as 'satisfied'");
         }
-        Assert::assertContains($claim['kind'], [MarketingClaims::KIND_SOURCEABLE, MarketingClaims::KIND_REQUIRES_TESTING]);
+        Assert::assertContains($claim['kind'], [MarketingClaims::KIND_SOURCEABLE, MarketingClaims::KIND_REQUIRES_TESTING, MarketingClaims::KIND_INTERNAL]);
         Assert::assertContains($claim['disposition'], ['publish', 'soften', 'remove']);
     }
 });
