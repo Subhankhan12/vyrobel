@@ -124,3 +124,87 @@ ARTICLES = {
      'so the denominator is wrong. Do not read this page as the most hedge-dense of the set.'),
  },
 }
+
+
+# ══ THE TWO SETTLED ARTICLE RULINGS, AS CONCRETE SENTENCE LISTS ══════════════════════════════════════
+#
+# ⚠️ The rulings named the CLASS to remove ("the predicted outcomes", "every claim about what works").
+# Slice 1 records exactly WHICH sentences that is, so the next reader never has to re-derive the list from
+# the ruling — the same reason this spec exists at all.
+#
+# ⚠️ A CUT IS A REPLACEMENT WITH '', and each is registered through the zero-match check like any other
+# transform: if a sentence stops matching, the build fails loudly rather than quietly cutting nothing.
+
+# `article-direct` → CUT THE PREDICTED OUTCOMES, KEEP THE MECHANICS.
+# ⚠️ A predicted outcome cannot be hedged into truth: "in our view operators typically see…" is the same
+# prediction, no better evidenced and now unfalsifiable as well. We have no operators to have seen it in.
+DIRECT_CUTS = {
+ 'S1-109': 'Operators who do only this typically see direct share move several points in a season.',
+ 'S1-110': ('Operators who stay with it for a full season generally find the line crosses somewhere they '
+            'didn’t expect, and the commission they stopped paying turns out to have been a salary.'),
+ 'S1-020': 'Almost nobody who tries it in one move is happy six months later.',
+}
+
+# `article-pricing` → A MECHANICS EXPLAINER. Keep what the levers ARE and how they resolve; drop every
+# claim about what WORKS — that is revenue-management advice we have never tested against a portfolio.
+PRICING_CUTS = {
+ 'S1-045': 'Friday and Saturday sell themselves in most leisure markets.',
+ 'S1-076': 'In city markets it often behaves like a weekend night; in rural leisure ones it does not.',
+ 'S1-098': 'Most properties price two seasons: high and low, with a hard edge between them.',
+ 'S1-099': 'Most small operators are leaving money on two of them and losing money on the third.',
+ 'S1-139': 'That edge is usually in the wrong place and always too abrupt.',
+ 'S1-064': ('Get those right and you have captured most of what a revenue system would have found, '
+            'without the subscription or the daily attention.'),
+}
+
+# ⚠️ G4's SCOPE GAP — the sentence was WIDER than its evidence.
+# It claimed owners cannot see guest NAMES, but name-only is the perimeter BY DESIGN, and the internal
+# test sources the CONTACT-DETAILS half only. ⚠️ NARROW THE SENTENCE, never the test.
+SCOPE_NARROWING = {
+ 'S1-164': (
+   'They do not see guest names, contact details or documents; they do not see other owners’ units, '
+   'statements or terms; and they do not see your commercial arrangements with anyone else.',
+   'They see a guest’s name where it identifies a booking, but never contact details or documents; '
+   'they do not see other owners’ units, statements or terms; and they do not see your commercial '
+   'arrangements with anyone else.'),
+ 'S1-163': (
+   'They do not see guest contact details, guest documents, other owners’ data, or your commercial '
+   'terms with anyone else.',
+   'They do not see guest contact details, guest documents, other owners’ data, or your commercial '
+   'terms with anyone else — a guest’s name appears only where it identifies a booking.'),
+ 'S1-162': (
+   'They cannot see guest names, contact details or documents, other owners’ units or terms, or your '
+   'commercial arrangements with anyone else.',
+   'They cannot see guest contact details or documents, other owners’ units or terms, or your '
+   'commercial arrangements with anyone else. A guest’s name appears only where it identifies a booking.'),
+}
+
+# ⚠️ S1-042 — the narrowed sentence the founder ruled, applied to the page.
+LOGIN_NARROWING = {
+ 'S1-042': ('Everyone who touches Vyrobel gets their own login.',
+            'Vyrobel issues a separate account for each person you invite, and stamps the acting account '
+            'on every action it audits.'),
+}
+
+
+# ══ ⚠️⚠️ `article-housekeeping` — THE COST OF THE RE-ARGUE, MEASURED (slice 1) ════════════════════════
+#
+# ⚠️ THE BRANCH IS STILL UNPICKED, AND SLICE 1 DID NOT PICK IT. No transform for this page exists in
+# convert.py — deliberately. What slice 1 owed the decision was a COST, not a choice:
+#
+#     prose blocks on the page ................................ 36
+#     G6 opinion claims (need new authored argument) .......... 12   (33% of the prose)
+#     blocks carrying no ledger claim (survive untouched) ..... 24
+#     G1/G2/G3 claims awaiting the founder's sourcing ......... 0
+#
+# ⚠️ SO: a re-argue is TWELVE new sentences, not a rewrite of the page — two thirds of it survives
+#    untouched. That is a smaller job than "34% hedge density" made it sound.
+#
+# ⚠️ AND A FACT THAT MATTERS TO THE CHOICE: this page has ZERO claims in the founder's sourcing set, so
+#    unlike `article-direct` (blocked by S1-041's unsourced 15–18%) it is not waiting on anything else.
+#    ⚠️ Whichever branch is chosen, it can be acted on immediately — which makes "don't publish" a real
+#    saving of twelve authored sentences rather than a deferral of work that was blocked anyway.
+HOUSEKEEPING_REARGUE_COST = {
+    'prose_blocks': 36, 'needs_new_argument': 12, 'survives_untouched': 24,
+    'blocked_by_sourcing': 0,
+}

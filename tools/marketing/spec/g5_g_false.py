@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 """G5 (service commitments) and the FALSE product claims the re-triage pulled out of G6.
 
+⚠️⚠️ `replacement` IS PAGE TEXT. Nothing else. An earlier version of this file used it for editorial
+asides — "(cut — there is no manual release.)" — and slice 1 duly wrote that parenthetical ONTO THE PAGE.
+⚠️ A spec whose fields mean one thing to a reader and another to an implementer is a spec that ships its
+own margin notes. Notes belong in `evidence` / `keep_reason`; `replacement` is what a visitor reads, and
+'' means the sentence is cut. `None` means NO transform is registered at all.
+
 Each entry: the ORIGINAL verbatim, the REPLACEMENT verbatim, and WHY — so slice 1 can implement it
 without inferring intent from a diff, which is the whole lesson of the scenarios port.
 """
@@ -50,7 +56,7 @@ FALSE_CLAIMS = {
     'S1-142': {
         'page': 'guide-arrival',
         'original': 'The front desk can override and release manually for anyone standing in front of them.',
-        'replacement': '(cut — there is no manual release.)',
+        'replacement': '',   # ⚠️ A GENUINE CUT: replacement text is page text, and there is nothing true to say here.
         'evidence': 'No override path exists. ⚠️ The operator REVEAL added in cluster E shows a member of staff the stored code; it does not release it to the guest early, so it does not make this sentence true.',
     },
     'S1-144': {
@@ -62,13 +68,16 @@ FALSE_CLAIMS = {
     'S1-179': {
         'page': 'guide-rates',
         'original': 'Vyrobel drops the minimum automatically when the remaining gap between two bookings is shorter than the minimum itself — otherwise those nights cannot be sold to anyone, at any price.',
-        'replacement': '(cut — orphan-gap minimums are not implemented. A minimum stay applies as set, including across a short gap.)',
+        'replacement': 'A minimum stay applies as set, including across a short gap between two bookings.',
         'evidence': '⚠️ ZERO orphan-gap logic in app/ (verified this pass), and cluster D reached the same conclusion independently: "No orphan-gap logic".',
     },
     'S1-006': {
         'page': 'article-pricing',
         'original': 'A five-night minimum against a four-night gap between two bookings means those four nights cannot be sold at all, at any price, to anyone.',
-        'replacement': '(keep the sentence — it is TRUE and describes the problem. ⚠️ What must go is the article\'s implication that Vyrobel solves it automatically; see S1-179.)',
+        'replacement': None,   # ⚠️ KEEP — see `keep_reason`. No transform is registered for this id.
+        'keep_reason': ('The sentence is TRUE and states the problem correctly. What must go is the '
+                        'article\'s IMPLICATION that Vyrobel solves it automatically — which S1-179 removes '
+                        'at its source. Cutting this would delete a true sentence to fix a false one.'),
         'evidence': '⚠️ This sentence is a correct statement about minimum stays in general. It is flagged only because the surrounding argument promises a mechanism that does not exist.',
     },
     'S1-015': {

@@ -3323,13 +3323,13 @@
       "page": "article-owners",
       "subject": "Vyrobel itself",
       "claim": "This is the single most persuasive object you can carry into the meeting, and almost nobody brings one.",
-      "kind": "internal",
+      "kind": "sourceable",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️ Internal claim, NOT YET SOURCED: no test names it. kind:internal alone sources nothing.",
-      "group": "G4-our-product-capability",
+      "note": "⚠️ CORRECTED THIS PASS. The G4/G5/G6 re-read named this as misclassified — \"almost nobody brings one\" is an unverifiable claim about what owners bring to meetings, not a product capability — but the reclassification was never applied to the row. It is an OPINION on article-owners, and therefore covered by that page's recommendation, not by kind:internal. ⚠️ Carrying kind:internal would have implied a test could settle it; none can.",
+      "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-owners"
       ],

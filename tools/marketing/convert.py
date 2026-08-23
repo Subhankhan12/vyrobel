@@ -51,6 +51,21 @@ PAGE_KEY = {
     'Vyrobel Guide Channels': 'guide-channels', 'Vyrobel Guide Refunds': 'guide-refunds',
     'Vyrobel Story Cyclades': 'story-cyclades', 'Vyrobel Story Lisbon': 'story-lisbon',
     'Vyrobel Story Rotterdam': 'story-rotterdam',
+
+    # ⚠️ THE THIRTEEN MASTERS THE REGISTRY DID NOT KNOW. The doc series has 27 masters on disk; 14 were
+    # registered and these 13 were not, so `convert()` could not even NAME them. ⚠️ Registering a master
+    # does not publish anything — it makes the page convertible, which is the precondition for the spec's
+    # transforms below being provable at all.
+    # ⚠️ `Vyrobel Guide Security` maps to `guide-security-doc`, NOT `guide-security`: the key `security`
+    # already belongs to the COMPANY security page (a built, published Gate-7 page), and a collision there
+    # would have silently made one page overwrite the other's conversion.
+    'Vyrobel Guide Access': 'guide-access', 'Vyrobel Guide GDPR': 'guide-gdpr',
+    'Vyrobel Guide Reports': 'guide-reports', 'Vyrobel Guide Security': 'guide-security-doc',
+    'Vyrobel Guide Settings': 'guide-settings', 'Vyrobel Guide Storefront': 'guide-storefront',
+    'Vyrobel Article Direct': 'article-direct', 'Vyrobel Article Housekeeping': 'article-housekeeping',
+    'Vyrobel Article OOS': 'article-oos', 'Vyrobel Article Owners': 'article-owners',
+    'Vyrobel Article Pricing': 'article-pricing', 'Vyrobel Article Statement': 'article-statement',
+    'Vyrobel Article Trust': 'article-trust',
 }
 AUTH = {'Vyrobel Login': "login", 'Vyrobel Signup': "signup", 'Vyrobel Reset Password': "password.request"}
 
@@ -73,6 +88,36 @@ AUTH = {'Vyrobel Login': "login", 'Vyrobel Signup': "signup", 'Vyrobel Reset Pas
 # em-dashes, and their HTML entity spellings) so a needle cannot fail on an invisible character; and it
 # RECORDS every needle, so `convert.py` can refuse to finish when one of them never fired. ⚠️ A silent no-op
 # in an honesty transform means a false claim ships while the pipeline reports success.
+
+
+
+# ══ ⚠️ THE DOC-CLAIM SPEC, IMPORTED — one definition of every replacement (§N.8f) ════════════════════
+# The spec is the RECORD; this module is the MECHANISM. Copying the text in here would create a second
+# copy free to drift from the one the founder ruled on.
+sys.path.insert(0, os.path.join(_HERE, 'spec'))
+from g6_guides import GUIDES as _G6_GUIDES                      # noqa: E402
+from g5_g_false import G5 as _G5, FALSE_CLAIMS as _FALSE        # noqa: E402
+from g6_articles import (                                        # noqa: E402
+    DIRECT_CUTS as _DIRECT_CUTS, PRICING_CUTS as _PRICING_CUTS,
+    SCOPE_NARROWING as _SCOPE, LOGIN_NARROWING as _LOGIN,
+)
+
+# ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
+# are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
+# block that the converter strips wholesale (Gate 7's rule: the design's JSON-LD is ours to regenerate,
+# not to reproduce). ⚠️ The claims therefore never reach the converted output, so a transform for them
+# would match nothing and trip the zero-match check — which would be a needle chasing text that is not
+# there, not a guard to weaken. The ledger rows stay accurate about the MASTER.
+_DOC_SPEC_FAQ_ONLY = {'S1-015', 'S1-043', 'S1-117'}
+
+_DOC_SPEC_PAGES = (
+    {p for p, _, _ in _G6_GUIDES.values()}
+    | {d['page'] for d in _FALSE.values()}
+    | {'guide-security-doc', 'guide-access', 'guide-statements', 'faq'}
+    | {'guide-'+x for x in ('setup', 'rates', 'gdpr', 'arrival', 'channels', 'housekeeping', 'payouts',
+                            'refunds', 'reports', 'reservation', 'settings', 'storefront', 'checkin')}
+)
+
 
 _NEEDLE_LOG = []
 
@@ -1263,6 +1308,81 @@ def convert(key):
                 t = t[:_start] + t[_end:]
                 _ok = True
         _NEEDLE_LOG.append((key, 'RECON/cs-cut-introduction-offer', _ok))
+
+    # ══ (8) ⚠️⚠️ THE DOC-CLAIM SPEC — G4 · G5 · G6, AND THE TWO SETTLED ARTICLE RULINGS ═══════════
+    #
+    # ⚠️⚠️ THE TRANSFORMS LIVE HERE, IN THE CONVERTER, AND THE REPLACEMENT TEXT LIVES IN `spec/`. The two
+    #    are deliberately not the same file: the spec is the RECORD (what was ruled and why, readable by
+    #    someone who never saw the conversation), and this is the MECHANISM. ⚠️ Importing rather than
+    #    copying keeps ONE definition of every replacement — 28 reframes duplicated into this file would
+    #    be two copies free to drift, which is the §N.8f failure the spec exists to prevent.
+    #
+    # ⚠️ AND IT IS HERE RATHER THAN IN A ONE-OFF SCRIPT BECAUSE OF WHAT HAPPENED LAST TIME: the scenarios
+    #    pages' honesty rewrites lived only in generated output, made by scripts that were then discarded,
+    #    so regenerating any of them would have restored five invented customer identities.
+    #
+    # ⚠️ NOTHING HERE PUBLISHES ANYTHING. These pages have no view, no route, and are `pending` in
+    #    MarketingUrls. The transforms make the CONVERSION honest; publication is gated separately on the
+    #    claims still being sourced.
+    if key in _DOC_SPEC_PAGES:
+        # ── G6 · the 28 guide reframes, verbatim from spec/g6_guides.py ──────────────────────────────
+        #    ⚠️ Reframed to what WE believe/built/chose — never "in our view, most operators…", which is
+        #    the same unevidenced claim about the world with a hedge in front of it.
+        for _cid, (_pg, _orig, _repl) in _G6_GUIDES.items():
+            if _pg == key:
+                t = swap(t, _orig, _repl, key, 'SPEC-G6/' + _cid)
+
+        # ── G5 · promises nothing measurable ─────────────────────────────────────────────────────────
+        #    ⚠️ THE CHROME LINE IS ONE TRANSFORM, SITEWIDE. It sits in the chrome of all sixteen guides,
+        #    and the chrome has carried an untrue claim six times now. One rule, applied wherever it
+        #    appears — never sixteen copies free to diverge (§N.8f).
+        if _G5['S1-chrome-support']['original'] in t:
+            t = swap(t, _G5['S1-chrome-support']['original'],
+                     _G5['S1-chrome-support']['replacement'], key, 'SPEC-G5/chrome-support')
+        if key == 'guide-security-doc':
+            t = swap(t, _G5['S1-137b']['original'], _G5['S1-137b']['replacement'], key, 'SPEC-G5/S1-137b')
+
+        # ── ⚠️⚠️ THE FALSE PRODUCT CLAIMS — CORRECTED, NEVER HEDGED ──────────────────────────────────
+        #    ⚠️ A hedge makes a false claim UNFALSIFIABLE: "in our view the code releases only once the
+        #    balance is settled" is WORSE than the original, because the original could at least be
+        #    checked against ArrivalPack. These describe behaviour that does not exist, so they are
+        #    replaced with what the product actually does (or cut where there is nothing true to say).
+        #    ⚠️ THREE FAQ CLAIMS ARE ABSENT HERE ON PURPOSE — see _DOC_SPEC_FAQ_NOTE.
+        for _cid, _d in _FALSE.items():
+            # ⚠️ `replacement is None` means KEEP — no transform, by decision. S1-006 is a TRUE sentence
+            #    whose surrounding IMPLICATION is what was false, and that is removed at its source by
+            #    S1-179; cutting it would delete a true sentence to fix a false one.
+            if _d['page'] == key and _cid not in _DOC_SPEC_FAQ_ONLY and _d['replacement'] is not None:
+                t = swap(t, _d['original'], _d['replacement'], key, 'SPEC-FIX/' + _cid)
+
+        # ── ⚠️ G4 · the scope gap: the sentence was WIDER than its evidence ──────────────────────────
+        #    It claimed owners cannot see guest NAMES, but name-only is the perimeter BY DESIGN and the
+        #    internal test sources the contact-details half only. ⚠️ THE SENTENCE IS NARROWED; THE TEST
+        #    IS UNTOUCHED — widening the test to match the copy would have been the softening failure
+        #    wearing a lab coat.
+        for _cid, (_orig, _repl) in _SCOPE.items():
+            if _orig in t:
+                t = swap(t, _orig, _repl, key, 'SPEC-G4/' + _cid)
+
+        # ── S1-042 · the narrowed login sentence (founder ruling) ────────────────────────────────────
+        for _cid, (_orig, _repl) in _LOGIN.items():
+            if _orig in t:
+                t = swap(t, _orig, _repl, key, 'SPEC-G4/' + _cid)
+
+    # ── ⚠️ THE TWO SETTLED ARTICLE RULINGS ───────────────────────────────────────────────────────────
+    # ⚠️ `article-housekeeping` IS DELIBERATELY ABSENT. Its ruling is a LIVE EITHER/OR — re-argue as "how
+    #    we built housekeeping and why", OR do not publish — and accepting the recommendation did not
+    #    collapse the two branches. Implementing either here would pick one silently.
+    if key == 'article-direct':
+        # ⚠️ A PREDICTED OUTCOME CANNOT BE HEDGED INTO TRUTH. Each of these promises the reader a result;
+        #    we have no operators to have observed it in. The mechanics of going direct stay.
+        for _cid, _sentence in _DIRECT_CUTS.items():
+            t = swap(t, _sentence, '', key, 'RULING-direct/' + _cid)
+
+    if key == 'article-pricing':
+        # ⚠️ Keep what the levers ARE and how they resolve; drop every claim about what WORKS.
+        for _cid, _sentence in _PRICING_CUTS.items():
+            t = swap(t, _sentence, '', key, 'RULING-pricing/' + _cid)
 
     return meta, t.strip(), left
 
