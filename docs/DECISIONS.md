@@ -15726,3 +15726,58 @@ purge as real.**
 
 ⚠️ **The 18 GDPR headings were not re-opened** — they name real capabilities (`guests:process-deletions`,
 `guest-documents:purge-expired`), and what cluster G corrected is the mechanism the body described.
+
+---
+
+## 2026-08-24 · ⚠️ THE CORRECTIONS GATE — built, and REPORTED AS NOT FIT AT CLAIM LEVEL
+
+⚠️ **The two-registers gap is real and now measurable**: `claims.json` tracks UNSOURCED claims, the Gate-5
+audit tracks FALSE ones, and `pageIsCleared()` reads only the first. The gate
+(`tools/marketing/corrections_gate.py`) parses the OWED side from
+`FRONT-GATE5-CLAIMS-APPENDIX-2026-08-22.md` — an authority written before these transforms existed — and
+derives DONE from the converter.
+
+### ⚠️ Two defects found in my own gate, both by checking rather than by it failing
+
+1. ⚠️ **The first parse silently dropped FIVE pages** whose verdict is the multi-word *"PUBLISHABLE WITH DOC
+   FIX"* — and those five were precisely the pages under active work. **A map that loses a page is vacuous
+   exactly where it matters most.** The completeness count is now taken independently of the parse.
+2. ⚠️⚠️ **The first DONE derivation counted "text absent from the output" as a correction** — and duly
+   reported `/faq`, `/glossary` and `/docs/online-check-in` as fully corrected. **Nothing has ever
+   transformed those pages.** Absence has two causes, and only one of them is a correction. DONE now
+   requires **present in the master AND absent after conversion**.
+
+### ⚠️⚠️ AND THE HONEST RESULT: THE GATE IS NOT FIT AT CLAIM LEVEL
+
+**owed 173 · evidenced DONE 16 · outstanding 63 · ⚠️ UNMATCHED 94.**
+
+⚠️ **94 of 173 (54%) of the audit's FALSE-claim quotes do not align with the page text at all.** The audit
+quotes fragments (*"a branded storefront"*); the pages carry sentences; the transforms replace sentences.
+⚠️ **So a claim-level comparison between the two registers cannot be made without reconciliation work that
+nobody has done.**
+
+⚠️ **The gate fails its own acceptance test, and that is reported rather than tuned away**: it does NOT see
+`article-housekeeping`'s re-argue (DONE 0 of 3) and undercounts `guide-security-doc` (DONE 3, where four
+corrections landed). **The brief's rule was that if the gate cannot distinguish the corrected pages it is
+wrong — it cannot, so it is.**
+
+⚠️ **What it IS good for, today:** the page-level shape — which pages carry many outstanding falsehoods
+(`/docs/connecting-channels` 8, `/docs/taking-a-reservation` 8, `/docs/reports-and-exports` 6) — and, above
+all, **the 94-claim reconciliation gap, which was invisible before.**
+
+⚠️ **VACUITY PROVEN**: with the map self-derived from the converter, the gate reports **0 owed, 0
+outstanding — unable to report anything at all**. The real map reports 173/63. That is the difference
+between a comparison and a source checked against itself.
+
+### ⚠️ Two contradictions in the triage, found while building the OWED map
+
+- ⚠️ The triage's step-1 list names **5** light-edit pages and then says *"Step 1 yields 3, not 5"*, citing
+  two blockers — **but one of them (`owner-statement`) is not in the list of five.** Removing the one that
+  is gives **4**, not 3.
+- ⚠️⚠️ **The appendix inverts the triage**: it marks `/resources/growing-direct-bookings` **DEFER** and
+  `/resources/owner-statement` **PUBLISHABLE WITH DOC FIX** — the opposite of what the triage says about
+  both.
+
+⚠️ **SLICE 3 WAS NOT STARTED.** Its page set could not be settled from a triage that contradicts its own
+source, and the gate that was supposed to measure it does not yet work at claim level. ⚠️ Starting the
+edits on that footing would have been work measured by nothing.
