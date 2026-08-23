@@ -58,11 +58,20 @@ added this arc.*
 concept. `ops/money-as-seeded.sh` pins the demo money: **929 / 10,912,000 / 0 `unit_rate_overrides` / 41 /
 16 / 0**.
 
-⚠️⚠️ **THAT PIN IS CURRENTLY RED, FOR TWO ATTRIBUTED REASONS, AND WAS DELIBERATELY NOT RE-PINNED**
-(`docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §7): the reservation count **41 → 40** is **PRE-EXISTING
-and date-driven** — the demo seeder is date-relative and reproduces 40 on baseline code, so ⚠️ **the pin is
-date-fragile**; and the September statement moved because the collection gate correctly holds uncollected
-revenue. ⛔ Re-pinning is a founder call and depends on the collection-risk decision.
+⚠️⚠️ **THE PIN WAS BORN DATE-FRAGILE AND IS NOW FIXED (2026-08-23).** The seeder went date-relative on
+2026-08-12 and said so in its own docblock; the pin was written as six constants **eight days later**.
+⚠️ **Two of the six MOVE with the calendar** — `SUM(price_minor)` (the weekend uplift shifts the Fri/Sat mix
+in a rolling window) and the reservation count (the analytics seeder skips a stay on collision). The other
+four are genuinely invariant. ⚠️ **10,912,000 recurred on three unrelated dates, so a green was often
+coincidence.**
+
+⚠️ **The SEEDER is right and the CHECK was wrong** — anchoring the seeder would make the demo age, which is a
+product regression. Fixed with an optional `VY_SEED_DATE` (unset ⇒ the demo is unchanged) and a two-mode gate:
+**FULL** (seeded at reference `2026-09-01`, all six asserted — ⚠️ **CI now sets it**) and **INVARIANT** (four
+figures, and it says loudly that a changed rate price would NOT be caught). **Re-pinned
+`929 / 10928000 / 0 / 42 / 16 / 0`**, every number attributed. ⚠️ Prior "byte-identical" claims **were sound**
+— the check ran against real data and genuinely passed — but its form over-stated the confidence.
+See `DECISIONS.md` 2026-08-23 and `docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §7.
 
 ---
 

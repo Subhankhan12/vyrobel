@@ -15146,3 +15146,108 @@ the page set stops moving — the storefront was CONFIRMED already ALLOWED: `rob
 
 Suite **2662 / 2660 passed / 2 skipped / 0 failed · 18,497 assertions** (+16 tests, +133 assertions);
 PHPStan L5 **0**; Pint clean; **money as seeded byte-identical**; the eight CI gates untouched.
+
+---
+
+## 2026-08-23 — TWO RULINGS ratifying `d94452f`, and the money pin's DATE-FRAGILITY fixed
+
+### ⚠️ RULING 1 — COLLECTION RISK: **HOLD UNTIL COLLECTED** (a risk allocation, chosen)
+
+⚠️ **This is a FOUNDER DECISION ALLOCATING COLLECTION RISK BETWEEN THE PLATFORM AND THE OWNER — not an
+implementation default.** An owner is paid when the money has actually been collected from the guest. **The
+platform does not front the owner.** When a pay-on-arrival guest never pays, the owner waits; Vyrobel does
+not carry that receivable on the owner's behalf.
+
+The alternatives were surfaced in `docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md` §5 and **not** taken:
+release pro-rata with the folio's collection ratio, or have the platform front the owner and carry the
+bad-debt risk. ⚠️ Recorded as a choice so a future reader does not mistake it for the way the code happened
+to be written.
+
+**Ratifies** `App\Support\Owner\OwnerCollection` and the gate in `OwnerStatementService::claimable()`.
+
+### ⚠️ RULING 2 — FINALISATION TRIGGER: **OPERATOR ACTION** (a money-event control)
+
+A human closes a period: `POST /app/owners/{owner}/close-period`, gated `can:payouts.manage`, audited.
+Not a scheduled close and not automatic on period end — **closing a period is the act that makes money
+payable, so it takes a deliberate, attributable human decision.**
+
+⚠️ **TWO FOLLOW-UPS REMAIN OPEN and are NOT resolved by this ruling:**
+1. **A booking that lands after its period closes.** Today it flows to the next statement as a prior-period
+   adjustment, via the straggler path `claimable()` already had. That is behaviour, not yet a decision.
+2. **Whether a finalised statement may be REOPENED, and by whom.** ⚠️ Nothing reopens one today —
+   `finalize()` locks. No mechanism exists, and none was built.
+
+⚠️ `d94452f` was held unpushed pending these two rulings. **It is now ratified.**
+
+---
+
+### ⚠️⚠️ THE MONEY PIN WAS BORN FRAGILE — the audit
+
+`ops/money-as-seeded.sh` red on 2026-08-23 for a reason unrelated to any code change. The audit:
+
+**When it began, and the ordering that explains it:**
+
+| commit | date | what |
+|---|---|---|
+| `f9142c8` | **2026-08-12** | the demo seeder was made **date-relative** on purpose — and its docblock recorded the consequence: *"the demo's exact money figures depend on the run day … it is simply no longer a constant."* |
+| `895dea5` | **2026-08-20** | ⚠️ **the money pin was written as six CONSTANTS — eight days later**, against a seeder that had already said it could not promise constants. |
+
+⚠️ **The pin was born fragile.** It was never wrong about the data; it was wrong about the contract.
+
+**Which values move — MEASURED, one fresh process per date** (a first batch probe was caught producing an
+artefact — it reported the seeder *throwing* on today's date, which a fresh-process run disproved; §N.31.2):
+
+| figure | verdict |
+|---|---|
+| `rate_calendar` COUNT | **DATE-INVARIANT** — a fixed 180-day window |
+| ⚠️ `SUM(price_minor)` | ⚠️ **DATE-DEPENDENT** — 10,912,000 / 10,916,000 / 10,920,000 / 10,926,000 / 10,928,000. The **weekend uplift** means a window starting on a different weekday holds a different mix of Fri/Sat. |
+| `unit_rate_overrides` | **DATE-INVARIANT** (0) |
+| ⚠️ `reservations` | ⚠️ **DATE-DEPENDENT** — 40 / 41 / 42. `seedAnalyticsHistory` *skips a stay on collision*, and whether it collides depends on the run day. |
+| `payments` | **DATE-INVARIANT** (16) |
+| `rate_seasons` | **DATE-INVARIANT** (0) |
+
+⚠️ **10,912,000 recurs on three unrelated dates.** The old pin passed by COINCIDENCE as often as by
+correctness — so *"it has always been green"* was never the evidence it looked like.
+
+### ⚠️ WERE PRIOR "MONEY BYTE-IDENTICAL" CLAIMS SOUND? — **Yes, with one honest caveat.**
+
+- The script compared all six figures as one string, so it was a **real check against real data**, never
+  vacuous. On the three days the pin lived (2026-08-20 → 08-22) the figures genuinely matched; those passes
+  earned their green.
+- Claims made **before** `895dea5` were by-hand measurements, not this script.
+- ⚠️ **THE CAVEAT:** because `SUM(price_minor)` can drift *and drift back*, a green was always weaker evidence
+  than it appeared. Nothing false was reported — but the confidence was over-stated by the form of the check,
+  and the gate was destined to red on a calendar boundary rather than on a defect.
+
+### ⚠️ THE SEEDER IS RIGHT; THE CHECK WAS WRONG
+
+Date-relative seeding is a **deliberate product property**: `showcaseMonth()` keeps the demo's stays genuinely
+upcoming on any run day. ⚠️ **Anchoring the seeder would make the demo age** — a prospect would open a
+storefront full of bookings that already happened, and the "#33 door code still withheld" demo needs a
+genuinely future stay. **That product consequence is why the seeder was not touched.**
+
+**The options, and what each stops catching:**
+
+| option | trade-off |
+|---|---|
+| (a) anchor the seeder to a constant date | deterministic — ⚠️ **but the demo ages and looks dead.** Rejected on product grounds. |
+| (b) make the CHECK date-aware | seeder untouched; the check carries the complexity. ⚠️ **Adopted.** |
+| (c) split invariant from dependent, and drop the dependent two | ⚠️ **stops catching a changed RATE PRICE and a changed BOOKING SET** — the two most valuable signals. Kept only as the weaker fallback mode. |
+| (d) before/after within a pass | drift cancels — ⚠️ **but stops catching drift that accumulates ACROSS passes.** Rejected. |
+| ⛔ a pin computed from the seeder's own logic | ⚠️⚠️ **VACUOUS — the source against itself**, the `/pricing` comparison guard's failure (§N.31.1 shape 8). **Not adopted.** |
+
+**Implemented (b):** an optional `VY_SEED_DATE` in `DatabaseSeeder` freezes "today" for a seeding run.
+⚠️ **Unset — the normal case — nothing about the demo changes.** The gate then has two modes and says which
+it ran: **FULL** (seeded at the reference date, all six asserted; **CI now sets it**) and **INVARIANT** (four
+figures, and loudly states that a changed price would not be caught). The expectations remain **hand-measured
+constants**, never derived from the seeder.
+
+**Re-pinned `929 / 10928000 / 0 / 42 / 16 / 0` at reference date 2026-09-01, every number attributed:**
+`SUM 10,912,000 → 10,928,000` and `reservations 41 → 42` are **the reference date, not a code change**.
+⚠️ Separately, the demo's September owner statement moved (gross 100,000 → 46,000, net 82,000 → 37,720) under
+`d94452f`'s collection gate — 54,000 of demo September comes from folios never paid, so it is correctly held.
+**That is the gate working**, and it is not one of the six figures.
+
+**Mutation-proven:** ⚠️ **roll the date forward (2026-10-15, 2027-02-14) → still GREEN** · delete a payment →
+RED · change a rate price → **FULL reds, INVARIANT passes** — which proves the documented limitation rather
+than merely asserting it.

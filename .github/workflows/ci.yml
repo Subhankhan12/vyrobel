@@ -198,9 +198,15 @@ jobs:
       # ⚠️ Runs against the SEPARATE `vyrobel` schema created above, never the suite's. The baseline is
       # six sums and counts held in ops/money-as-seeded.sh — one definition, which the founder runs
       # unchanged before a release.
+      # ⚠️ VY_SEED_DATE PINS THE SEED TO A REFERENCE DAY, and CI must set it. The demo seeder is
+      # deliberately date-relative (so the demo's stays are always upcoming), which makes two of the six
+      # pinned figures — SUM(rate_calendar.price_minor) and the reservation count — move with the calendar.
+      # ⚠️ Without this the gate reds for reasons unrelated to code, which it did. Without it the script
+      # falls back to a WEAKER invariant-only check that cannot see a changed rate price; CI must run FULL.
       - name: 'Gate 4 · money as seeded'
         env:
           DB_DATABASE: vyrobel
+          VY_SEED_DATE: '2026-09-01'
         run: |
           set -euo pipefail
           php artisan migrate:fresh --seed --force

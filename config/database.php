@@ -7,6 +7,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Demo seed reference date
+    |--------------------------------------------------------------------------
+    |
+    | ⚠️ OPTIONAL, AND UNSET IN NORMAL USE. The demo seeder is deliberately date-relative so the demo's
+    | stays are always genuinely upcoming; that makes two of the six figures `ops/money-as-seeded.sh`
+    | pins move with the calendar. Setting VY_SEED_DATE freezes "today" for a seeding run so the money
+    | gate can compare against hand-written constants. Unset ⇒ the seeder uses the real today and the
+    | demo is unchanged.
+    |
+    | ⚠️ It lives in config rather than being read with env() at the call site: env() returns null once
+    | the config is cached, which would have made the money gate silently fall back to its weaker mode
+    | in exactly the environment (CI) where the full check matters most.
+    |
+    */
+
+    'seed_date' => env('VY_SEED_DATE'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Database Connection Name
     |--------------------------------------------------------------------------
     |
