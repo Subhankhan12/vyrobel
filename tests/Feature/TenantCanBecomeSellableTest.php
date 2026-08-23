@@ -181,9 +181,14 @@ it('⚠️ keeps an app-reachable creation path for every entity a tenant must c
         // already had one. GATED-UNREACHABLE is not "no path" — it looks like a path in every grep — and the
         // table sat at zero rows everywhere while every operator silently fell through to full-org access.
         'PropertyAssignment' => ['route' => 'app.settings.team-scope', 'permission' => 'users.manage'],
+        // ⚠️ CLUSTER E — the arrival secrets (door code · wifi · notes) were the TWELFTH seeder-only entity:
+        // every reference to them in the application was a READ, so invariant #33 was gating the release of
+        // data no operator could enter. Not a "creation" path like the rows above — a WRITE path — but the
+        // same class of defect and the same one-row fix, which is what this table was shaped for.
+        'Unit arrival info' => ['route' => 'app.inventory.units.arrival-info', 'permission' => 'units.manage'],
     ];
 
-    Assert::assertGreaterThanOrEqual(6, count($required),
+    Assert::assertGreaterThanOrEqual(7, count($required),
         'the required-path list shrank — this guard would cover less than it did');
 
     foreach ($required as $entity => $spec) {

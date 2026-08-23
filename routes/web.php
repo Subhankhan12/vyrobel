@@ -816,6 +816,11 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     //    ⚠️ Same shape as the Property writes above: POST → controller → PRG, `can:` on the ROUTE (#30).
     //    ⚠️ TenantCanBecomeSellableTest pins these route names — it is the guard against the whole class
     //    silently returning, so a rename must move the test with it, not around it.
+    // ⚠️ CLUSTER E — a unit's ARRIVAL INFO (door code · wifi · notes): the first writer these columns have
+    // ever had outside the demo seeder. `units.manage`, and the REVEAL is a separate, audited action
+    // because the editor never renders a stored credential back into the page.
+    Route::post('/units/{unit}/arrival-info', [InventoryActionController::class, 'updateArrivalInfo'])->middleware('can:units.manage')->name('inventory.units.arrival-info');
+    Route::post('/units/{unit}/arrival-info/reveal', [InventoryActionController::class, 'revealArrivalInfo'])->middleware('can:units.manage')->name('inventory.units.arrival-info.reveal');
     Route::post('/units/room-types', [InventoryActionController::class, 'storeRoomType'])
         ->middleware('can:units.manage')->name('inventory.room-types.store');
     Route::post('/units', [InventoryActionController::class, 'storeUnit'])

@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Models\Unit;
+use App\Services\ArrivalInfoService;
 use App\Services\AvailabilityService;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
@@ -220,6 +221,69 @@ class InventoryActionController extends Controller
             'Choose which property this belongs to — your account has more than one.');
 
         return $properties->first();
+    }
+
+    /**
+     * CLUSTER E — write a unit's ARRIVAL INFO (door code · wifi · notes), the twelfth seeder-only entity.
+     *
+     * ⚠️ Until this existed, every reference to these columns in the application was a READ: the guest
+     * arrival screen, the pre-arrival email and the arrival PDF all displayed data only the demo seeder
+     * could ever have written. Invariant #33 was gating the release of something no operator could enter.
+     *
+     * ⚠️ THE UNIT IS RESOLVED INSIDE THE ACTOR'S ACCESSIBLE PROPERTIES, not merely their organisation —
+     * which is exactly what cluster J made meaningful. Before J nobody had a `property_user` row, so
+     * "accessible" was always the whole org and this distinction would have been decorative; now a staff
+     * member scoped to one property cannot set the door codes of another. A unit outside that set is not
+     * found — never merely hidden.
+     *
+     * ⚠️ Gated `units.manage` on the route (#30). The audit lives in the SERVICE, as every other event does.
+     */
+    public function updateArrivalInfo(Request $request, string $unit, ArrivalInfoService $arrival): RedirectResponse
+    {
+        $target = $this->accessibleUnit($unit);
+
+        $validated = $request->validate([
+            'door_code' => ['nullable', 'string', 'max:64'],
+            'wifi_ssid' => ['nullable', 'string', 'max:64'],
+            'wifi_password' => ['nullable', 'string', 'max:128'],
+            'arrival_notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $changed = $arrival->update($target, $validated);
+
+        return redirect()->to(route('app.units'))->with('units_notice', $changed === []
+            ? 'Nothing changed — a blank field leaves the stored value alone.'
+            : 'Arrival info updated for '.($target->name ?? $target->code).'.');
+    }
+
+    /**
+     * CLUSTER E — reveal one unit's stored arrival secrets, on purpose and on the record.
+     *
+     * ⚠️ WHY A SEPARATE ACTION. The editor deliberately never renders a stored door code back into the
+     * page: doing so would place a credential to a physical space into every response, browser cache and
+     * screenshot of the units screen, for everyone holding `units.manage`. Reading one is instead an
+     * explicit act that writes an audit row — the property that matters if a guest is later let in wrongly.
+     */
+    public function revealArrivalInfo(string $unit, ArrivalInfoService $arrival): RedirectResponse
+    {
+        $target = $this->accessibleUnit($unit);
+
+        return redirect()->to(route('app.units'))
+            ->with('arrival_reveal', ['unit' => (string) $target->getKey()] + $arrival->reveal($target));
+    }
+
+    /**
+     * A unit the CURRENT ACTOR may work in — tenant-scoped by the model, then narrowed to the properties
+     * their `property_user` scope allows. ⚠️ Resolved from the actor's own context, never from the posted
+     * id alone (the operator-realm analogue of #28).
+     */
+    private function accessibleUnit(string $unitId): Unit
+    {
+        $ids = app(PropertyContext::class)->readIds();
+
+        return Unit::query()
+            ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
+            ->findOrFail($unitId);
     }
 
     /** A stable, human-ish code that is unique within its parent. Mirrors PropertyController::uniqueSlug. */

@@ -74,6 +74,17 @@ class UnitsList extends Component
                 'owner' => $unit->owner?->name !== null ? (string) $unit->owner->name : null,
                 // Cover derives from the unit's room-type (the sellable entity); null → gradient fallback.
                 'cover' => $unit->roomType->coverPhoto()?->url,
+                // ⚠️ CLUSTER E — ARRIVAL INFO AS STATUS, NEVER AS VALUES. The row reports whether a door
+                // code and a wifi password EXIST; it never carries them. Putting a credential to a physical
+                // space in the list payload would place it in every response, cache and screenshot of this
+                // screen. The SSID is different in kind — a router broadcasts it to the street — so it is
+                // shown, which is also what makes the row useful at a glance.
+                'arrival' => [
+                    'has_code' => $unit->door_code !== null && (string) $unit->door_code !== '',
+                    'ssid' => $unit->wifi_ssid !== null && (string) $unit->wifi_ssid !== '' ? (string) $unit->wifi_ssid : null,
+                    'has_wifi' => $unit->wifi_password !== null && (string) $unit->wifi_password !== '',
+                    'has_notes' => $unit->arrival_notes !== null && (string) $unit->arrival_notes !== '',
+                ],
             ];
         })->all();
 

@@ -6,7 +6,7 @@
      buttons referenced a variable no ancestor owned and clicking them did nothing at all. Six green tests
      missed it because they assert the markup is present, not that the interaction works; only opening the
      page in a browser showed 0 dialogs on click (the item-21 blank-rows lesson, in a new costume). --}}
-<div x-data="{ unitPriceFor: null }">
+<div x-data="{ unitPriceFor: null, arrivalFor: null }">
     <x-operator.shell active="units" title="Units" subtitle="Inventory" :viewer="$viewer">
 
         @if (session('units_notice'))
@@ -102,6 +102,13 @@
                                             <button type="button" class="vy-u-priceind"
                                                     style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
                                                     x-on:click="unitPriceFor = '{{ $unit['id'] }}'">Price individually</button>
+                                        @endif
+                                        {{-- ⚠️ CLUSTER E — the arrival-info editor. The badge reports only
+                                             WHETHER a code is set; the value itself is never in this page. --}}
+                                        @if ($canManageUnits ?? false)
+                                            <button type="button"
+                                                    style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
+                                                    x-on:click="arrivalFor = '{{ $unit['id'] }}'">Arrival info<span style="color: var(--vy-muted); text-decoration: none;">{{ $unit['arrival']['has_code'] ? ' · code set' : '' }}</span></button>
                                         @endif
                                     </td>
                                     <td>{{ $unit['kind'] }}</td>
@@ -258,6 +265,70 @@
                             <button type="button" class="vy-btn" x-on:click="unitPriceFor = null" style="padding: 9px 16px;">Cancel</button>
                         </x-slot:actions>
                     </x-rates.unit-price-form>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
+
+{{-- ⚠️⚠️ CLUSTER E — THE ARRIVAL-INFO EDITOR. These columns had no writer outside the demo seeder, so
+     invariant #33 was gating the release of data no operator could enter. Reuses the per-unit modal shape
+     the D18-5 pricing form established (§N.8f) rather than introducing a second form pattern.
+
+     ⚠️ THE TWO SECRETS ARE WRITE-ONLY HERE, AND THAT IS DELIBERATE. A door code and a wifi password are
+     credentials to a physical space; rendering the stored value back into this page would put it in every
+     response, browser cache and screenshot of the units screen for everyone holding `units.manage`. The
+     field shows only whether one is SET. Reading one is a separate, audited action.
+
+     ⚠️ A BLANK FIELD LEAVES THE STORED VALUE ALONE — it is not an erase, because the form cannot show you
+     what is there and a blank input therefore carries no intent. Clearing is explicit. --}}
+@if ($canManageUnits ?? false)
+    <div x-cloak>
+        @foreach ($units as $vyA)
+            <div x-show="arrivalFor === '{{ $vyA['id'] }}'" x-cloak
+                 style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                 x-on:click.self="arrivalFor = null">
+                <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;">
+                    <h3 class="vy-card-title" style="margin: 0 0 4px;">Arrival info — {{ $vyA['name'] ?? $vyA['code'] }}</h3>
+                    <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">Guests see this only from {{ \App\Support\Guest\ArrivalPack::LEAD_DAYS }} days before check-in.</p>
+
+                    <form method="POST" action="{{ route('app.inventory.units.arrival-info', $vyA['id']) }}" style="display: grid; gap: 10px;">
+                        @csrf
+                        <label style="font-size: 12px; color: var(--vy-muted);">Door code
+                            <input type="text" name="door_code" autocomplete="off"
+                                   placeholder="{{ $vyA['arrival']['has_code'] ? 'A code is set — leave blank to keep it' : 'Not set' }}"
+                                   style="width: 100%; margin-top: 4px;">
+                        </label>
+                        <label style="font-size: 12px; color: var(--vy-muted);">Wifi network
+                            <input type="text" name="wifi_ssid" value="{{ $vyA['arrival']['ssid'] }}" style="width: 100%; margin-top: 4px;">
+                        </label>
+                        <label style="font-size: 12px; color: var(--vy-muted);">Wifi password
+                            <input type="text" name="wifi_password" autocomplete="off"
+                                   placeholder="{{ $vyA['arrival']['has_wifi'] ? 'A password is set — leave blank to keep it' : 'Not set' }}"
+                                   style="width: 100%; margin-top: 4px;">
+                        </label>
+                        <label style="font-size: 12px; color: var(--vy-muted);">Arrival notes
+                            <textarea name="arrival_notes" rows="3" placeholder="{{ $vyA['arrival']['has_notes'] ? 'Notes are set — leave blank to keep them' : 'Directions, parking, key collection…' }}" style="width: 100%; margin-top: 4px;"></textarea>
+                        </label>
+                        <p style="font-size: 11.5px; color: var(--vy-muted); margin: 0;">A blank field keeps what is stored. Type <code>{{ \App\Services\ArrivalInfoService::CLEAR }}</code> to remove one.</p>
+                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button type="button" class="vy-btn" x-on:click="arrivalFor = null" style="padding: 9px 16px;">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Save</button>
+                        </div>
+                    </form>
+
+                    <form method="POST" action="{{ route('app.inventory.units.arrival-info.reveal', $vyA['id']) }}" style="margin-top: 10px; border-top: 1px solid var(--vy-hairline); padding-top: 10px;">
+                        @csrf
+                        <button type="submit" class="vy-btn" style="padding: 7px 13px; font-size: 12px;">Reveal stored values</button>
+                        <span style="font-size: 11.5px; color: var(--vy-muted); margin-left: 8px;">Recorded in the audit log.</span>
+                    </form>
+
+                    @if (($reveal = session('arrival_reveal')) && $reveal['unit'] === $vyA['id'])
+                        <div style="margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: rgba(194,65,12,.08); font-size: 12.5px; color: var(--vy-ink);">
+                            <div>Door code: <strong>{{ $reveal['door_code'] ?? '—' }}</strong></div>
+                            <div>Wifi: <strong>{{ $reveal['wifi_ssid'] ?? '—' }}</strong> / <strong>{{ $reveal['wifi_password'] ?? '—' }}</strong></div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @endforeach
