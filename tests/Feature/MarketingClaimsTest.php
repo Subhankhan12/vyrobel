@@ -72,7 +72,13 @@ it('holds every audited claim, each carrying the fields the gate keys on', funct
 
     // ⚠️ COUNT-PINNED: audit B inventoried twelve items. If the ledger shrinks, a claim left the ledger
     // WITHOUT leaving the pages — which is exactly the state this gate exists to make impossible.
-    Assert::assertCount(12, $claims, 'the claims ledger changed size — a claim must never leave the ledger without leaving the page');
+    // ⚠️ 202 SINCE DOC SLICE 0 (2026-08-23): the 190 S1 entries for the 27 documentation pages. ⚠️ THIS IS
+    // A RE-PIN, NOT A WEAKENING — the assertion still fails the moment the ledger shrinks, which is the
+    // only thing it was ever written to catch; it was simply expressed as an exact count. ⚠️ Confirmed
+    // EMPIRICALLY before the entries landed: with unsourced claims present this was the ONLY failing
+    // assertion in the file, because `stale()` returns false for an unsourced claim (it is "its own,
+    // louder failure"), so the freshness teeth stayed green.
+    Assert::assertCount(202, $claims, 'the claims ledger changed size — a claim must never leave the ledger without leaving the page');
 
     foreach ($claims as $claim) {
         foreach (['id', 'page', 'subject', 'claim', 'kind', 'source_url', 'verified_on', 'review_by', 'disposition'] as $field) {
@@ -239,4 +245,50 @@ it('⚠️ shows on /pricing exactly what the billing engine charges', function 
             Assert::assertStringNotContainsString($hardcoded, $page, "[{$view}] still hard-codes a price the engine does not charge");
         }
     }
+});
+
+// ══ ⚠️ DOC SLICE 0 — THE COVERAGE PIN ════════════════════════════════════════════════════════════════
+//
+// ⚠️⚠️ WHAT THIS IS AND IS NOT. `pageIsCleared()` FAILS OPEN: a page with no ledger entries reads as
+// CLEARED, which is how `/resources/growing-direct-bookings` could repeat B8's unsourced "15-18% of every
+// booking" and pass the gate while `compare` — carrying the very same claim — was held. This test does NOT
+// fix that. ⚠️ It pins THIS PASS'S WORK so the 27 documentation pages cannot quietly slide back into the
+// fail-open state; ⚠️ **any FUTURE page nobody enters still reads as cleared.** The structural fix is a
+// founder decision (see docs/audits/DOCS-SLICE0-LEDGER-2026-08-23.md §6).
+it('⚠️ keeps ledger coverage for every documentation page — the fail-open state cannot return silently', function () {
+    // ⚠️ `glossary` is DELIBERATELY ABSENT and is a live instance of the residual defect: its terms are
+    // data-driven in a form the claim sweep could not reach, so it has no entries and therefore still
+    // reads as cleared. Recorded here rather than hidden, so the exception is visible to the next reader.
+    $covered = [
+        'docs', 'faq', 'resources',
+        'guide-access', 'guide-arrival', 'guide-channels', 'guide-checkin', 'guide-gdpr',
+        'guide-housekeeping', 'guide-payouts', 'guide-rates', 'guide-refunds', 'guide-reports',
+        'guide-reservation', 'guide-security-doc', 'guide-settings', 'guide-setup', 'guide-statements',
+        'guide-storefront',
+        'article-direct', 'article-housekeeping', 'article-oos', 'article-owners', 'article-pricing',
+        'article-statement', 'article-trust',
+    ];
+
+    Assert::assertCount(26, $covered, 'the covered-page list shrank — this pin would guard less than it did');
+
+    foreach ($covered as $page) {
+        $entries = array_values(array_filter(MarketingClaims::all(),
+            fn (array $c): bool => ($c['page'] ?? '') === $page));
+
+        Assert::assertNotEmpty($entries,
+            "⚠️ [{$page}] has NO ledger entries, so pageIsCleared() reads it as CLEARED — the fail-open state this pass closed");
+
+        // ⚠️ And it must actually be HELD, not merely present: an entry that publishes proves nothing.
+        Assert::assertFalse(MarketingClaims::pageIsCleared($page),
+            "⚠️ [{$page}] reads as cleared while its claims are unsourced");
+    }
+});
+
+it('⚠️ PROVES the coverage pin can fire (its own vacuity check)', function () {
+    // ⚠️ A page nobody entered — the exact state the pin exists to detect. If this ever reads as NOT
+    // cleared, the assertion above is passing for some reason other than the one it claims.
+    Assert::assertSame([], array_values(array_filter(MarketingClaims::all(),
+        fn (array $c): bool => ($c['page'] ?? '') === 'glossary')));
+    Assert::assertTrue(MarketingClaims::pageIsCleared('glossary'),
+        'an unentered page no longer reads as cleared — the fail-open premise of the pin has changed');
 });

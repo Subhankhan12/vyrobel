@@ -156,6 +156,3526 @@
       "review_by": null,
       "disposition": "publish",
       "note": "THIS ONE STAYS AND NEEDS NO EXTERNAL SOURCE — it is TRUE, it is about us, and sourcing the other claims from public pages does not make it false. Ledgered so nobody 'tidies' it away when the sources land."
+    },
+    {
+      "id": "S1-001",
+      "page": "article-trust",
+      "subject": "the short-stay/hotel market",
+      "claim": "\"Free cancellation until 14 days before arrival, then 50%\" is a sentence a person can weigh.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-002",
+      "page": "article-owners",
+      "subject": "the short-stay/hotel market",
+      "claim": "\"I can spend up to €150 on a repair without asking.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-003",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "A bank transfer request fails that match instantly, however legitimate you are, and it is the most common reason a direct attempt is abandoned at the last step.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-004",
+      "page": "guide-channels",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "A booking arriving from Airbnb lands as a normal reservation with its source recorded and its commission on the folio.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-channels"
+      ]
+    },
+    {
+      "id": "S1-005",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "A confident answer here is worth more than a lock-in clause.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-006",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "A five-night minimum against a four-night gap between two bookings means those four nights cannot be sold at all, at any price, to anyone.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-007",
+      "page": "faq",
+      "subject": "the short-stay/hotel market",
+      "claim": "A fixed amount per unit per month — roughly €4 to €6 depending on portfolio size, exclusive of VAT.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-008",
+      "page": "article-pricing",
+      "subject": "the short-stay/hotel market",
+      "claim": "A flat €185 across the week yields the same total only if every night sells — and the weekend was always going to.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-009",
+      "page": "guide-storefront",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "A guest leaving a marketplace gives up its reviews, its dispute process and a checkout they have used before.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-010",
+      "page": "guide-arrival",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "A guest who booked through a marketplace gets the same flow.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-011",
+      "page": "guide-gdpr",
+      "subject": "law and regulation",
+      "claim": "A guest whose stay falls inside a statutory registration period has to wait for it to expire, and that is a defensible answer to give them.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-012",
+      "page": "guide-reports",
+      "subject": "operators in general",
+      "claim": "A month where occupancy fell and RevPAR held means you priced up and lost the marginal bookings, which is usually fine.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-reports"
+      ]
+    },
+    {
+      "id": "S1-013",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "A price war against your own listings trains guests to shop, and you will win a booking while losing the position on the marketplace that generated it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-014",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "A returning guest found you two years ago through a marketplace.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-015",
+      "page": "faq",
+      "subject": "operators in general",
+      "claim": "A single property under 30 units is typically live in two to three weeks.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-016",
+      "page": "guide-channels",
+      "subject": "operators in general",
+      "claim": "A unit selling that should not be usually means an unmapped listing, or a block created after the last sync.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-channels"
+      ]
+    },
+    {
+      "id": "S1-017",
+      "page": "resources",
+      "subject": "operators in general",
+      "claim": "After that the failure isn't effort, it's that nobody has the same list.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-018",
+      "page": "faq",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Airbnb and Booking.com connect directly: availability, rates and restrictions push out; reservations, cancellations and modifications come back.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-019",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Almost every failure above is the same failure: the state of a room is known to one person and not to the others.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-020",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Almost nobody who tries it in one move is happy six months later.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-021",
+      "page": "guide-payouts",
+      "subject": "operators in general",
+      "claim": "An owner can pause their own payouts — typically to accumulate several months, or ahead of a property sale.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-payouts"
+      ]
+    },
+    {
+      "id": "S1-022",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "An owner paid faster but erratically will chase you every time.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-023",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "An owner who can open the refund and read that a boiler failed on the second night of a five-night stay usually agrees it was the right call.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-024",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "An owner who chose you on price will leave on price, usually in your second season, and usually to somebody who cannot deliver either.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-025",
+      "page": "article-statement",
+      "subject": "the short-stay/hotel market",
+      "claim": "An owner who receives \"October: €4,180\" has been handed a conclusion with no working.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-026",
+      "page": "article-statement",
+      "subject": "the short-stay/hotel market",
+      "claim": "An owner who sees €210 vanish with no explanation assumes carelessness.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-027",
+      "page": "article-oos",
+      "subject": "operators in general",
+      "claim": "And the last step, pushing the block out to the channels, is the one most likely to be forgotten entirely, because it feels like an afterthought rather than the point.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-028",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "And the shoulder is where the other levers earn most: a longer minimum stay is pointless when you are not full, but a weekend uplift still works, because the people travelling in October are disproportionately travelling at weekends.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-029",
+      "page": "guide-security-doc",
+      "subject": "operators in general",
+      "claim": "Applications accumulate during evaluations and are rarely removed when the evaluation ends.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-security-doc"
+      ]
+    },
+    {
+      "id": "S1-030",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "Ask any manager which owners phone the most and you get the same answer: the ones whose statement is a single figure.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-031",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "Booking direct means handing a stranger several hundred euros with nobody standing behind the transaction.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-032",
+      "page": "guide-statements",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Channel commission is what the marketplace took, per booking, from the booking record.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-statements"
+      ]
+    },
+    {
+      "id": "S1-033",
+      "page": "article-statement",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Channel commission · Booking.com, Airbnb −€886.40",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-034",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "Commission is contractual and nobody disputes it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-035",
+      "page": "docs",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Connecting Airbnb and Booking.com",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "docs"
+      ]
+    },
+    {
+      "id": "S1-036",
+      "page": "guide-channels",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Connecting Airbnb, Booking.com and other channels",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-channels"
+      ]
+    },
+    {
+      "id": "S1-037",
+      "page": "guide-refunds",
+      "subject": "operators in general",
+      "claim": "Credit is often the better outcome for both sides and guests accept it more readily than operators expect.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-refunds"
+      ]
+    },
+    {
+      "id": "S1-038",
+      "page": "guide-settings",
+      "subject": "operators in general",
+      "claim": "Different rates for accommodation and add-ons are supported because they usually differ.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-settings"
+      ]
+    },
+    {
+      "id": "S1-039",
+      "page": "guide-housekeeping",
+      "subject": "operators in general",
+      "claim": "Do not leave it on and ignore it; a lane nobody clears stops meaning anything.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-040",
+      "page": "guide-arrival",
+      "subject": "operators in general",
+      "claim": "Door code, wifi password, parking and directions are held until a moment you choose — typically the afternoon before arrival, and only once check-in is complete and the balance is settled.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-041",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Every operator we speak to has the same instinct at some point: pull the listings, force everyone direct, keep the fifteen to eighteen percent.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-042",
+      "page": "guide-access",
+      "subject": "Vyrobel itself",
+      "claim": "Everyone who touches Vyrobel gets their own login.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "group": "G4-our-product-capability",
+      "appears_on": [
+        "guide-access"
+      ]
+    },
+    {
+      "id": "S1-043",
+      "page": "faq",
+      "subject": "operators in general",
+      "claim": "Fifty to two hundred units takes four to six, and most of that is waiting on channel reconnections rather than on data.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-044",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Four states, visible to everyone",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-045",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "Friday and Saturday sell themselves in most leisure markets.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-046",
+      "page": "guide-gdpr",
+      "subject": "law and regulation",
+      "claim": "GDPR, data retention and guest anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-047",
+      "page": "guide-access",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-048",
+      "page": "guide-arrival",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-049",
+      "page": "guide-channels",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-050",
+      "page": "guide-checkin",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-051",
+      "page": "guide-gdpr",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-052",
+      "page": "guide-housekeeping",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-053",
+      "page": "guide-payouts",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-054",
+      "page": "guide-rates",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-055",
+      "page": "guide-refunds",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-056",
+      "page": "guide-reports",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-057",
+      "page": "guide-reservation",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-058",
+      "page": "guide-security-doc",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-059",
+      "page": "guide-settings",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-060",
+      "page": "guide-setup",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-061",
+      "page": "guide-statements",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-062",
+      "page": "guide-storefront",
+      "subject": "law and regulation",
+      "claim": "GDPR, retention and anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-063",
+      "page": "docs",
+      "subject": "law and regulation",
+      "claim": "GDPR: exports, retention and guest anonymisation",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "docs"
+      ]
+    },
+    {
+      "id": "S1-064",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "Get those right and you have captured most of what a revenue system would have found, without the subscription or the daily attention.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-065",
+      "page": "guide-setup",
+      "subject": "operators in general",
+      "claim": "Getting this wrong is the most common cause of a rebuild.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-setup"
+      ]
+    },
+    {
+      "id": "S1-066",
+      "page": "article-statement",
+      "subject": "the short-stay/hotel market",
+      "claim": "Gross booking revenue · 18 stays €9,420.00",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-067",
+      "page": "guide-arrival",
+      "subject": "law and regulation",
+      "claim": "Guest names, dates of birth and ID are legally required in many jurisdictions.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-068",
+      "page": "faq",
+      "subject": "law and regulation",
+      "claim": "Guest registration data is retained for the statutory period you set and then anonymised automatically — personal fields are replaced rather than rows deleted, so your accounts and occupancy history survive.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-069",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "Hesitating on any of them costs more than the answer itself.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-070",
+      "page": "guide-gdpr",
+      "subject": "operators in general",
+      "claim": "Identity documents where you collect them, because many jurisdictions require registration.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-071",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "If that ticket can also take the unit off sale until it is fixed, the review you did not receive is worth more than the maintenance you did.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-072",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "If you flinch anywhere, so does everyone else.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-073",
+      "page": "faq",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "If you need a large third-party app marketplace, an enterprise integration your group already runs on, or a vendor with a decade of installed base behind it, buy one of the established platforms.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-074",
+      "page": "article-trust",
+      "subject": "the short-stay/hotel market",
+      "claim": "If you show €180 a night and reveal €95 of extras at checkout, you look more expensive than the listing even when you are cheaper — and worse, you look like you were hiding it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-075",
+      "page": "guide-setup",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Import before you connect any channel — an empty calendar connected to Airbnb will start selling nights you have already sold.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-setup"
+      ]
+    },
+    {
+      "id": "S1-076",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "In city markets it often behaves like a weekend night; in rural leisure ones it does not.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-077",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "In most markets the next property comes from the last owner rather than from anything you advertised, and it comes because their statement made sense.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-078",
+      "page": "guide-housekeeping",
+      "subject": "operators in general",
+      "claim": "Inspected — guest-ready, and the front desk can hand over a key without asking anyone.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-079",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "It is to give something at the direct rate that the marketplace cannot pass on: a later checkout, the better unit at the same price, the transfer included, the deposit waived.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-080",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "It is usually one missing sentence.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-081",
+      "page": "resources",
+      "subject": "operators in general",
+      "claim": "It isn't — it's a slow reallocation, and the guests most likely to move are the ones who already stayed with you.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-082",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "It's that nobody has the same picture of the day.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-083",
+      "page": "guide-storefront",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Keep the copy in your voice rather than ours — the reason a guest is on your page instead of a marketplace is that you are not one.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-084",
+      "page": "guide-rates",
+      "subject": "operators in general",
+      "claim": "Knowing that order is most of understanding why a night costs what it costs.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-rates"
+      ]
+    },
+    {
+      "id": "S1-085",
+      "page": "article-statement",
+      "subject": "the short-stay/hotel market",
+      "claim": "Management fee · 15% of net −€1,280.04",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-086",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Marketplaces can match your price and your photographs.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-087",
+      "page": "article-pricing",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Marketplaces surface you when they have demand to allocate; in a thin month they have less of it, and a past guest with an email from you is worth more than a listing position.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-088",
+      "page": "article-oos",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Marketplaces treat operator-side cancellations badly, and repeated ones affect your ranking.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-089",
+      "page": "article-oos",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Meanwhile the room is still for sale on three marketplaces, and somebody is booking it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-090",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Most OTA contracts in Europe no longer enforce strict price parity, but read yours rather than trusting a summary — terms differ by platform and by country, and they change.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-091",
+      "page": "guide-payouts",
+      "subject": "operators in general",
+      "claim": "Most holds are missing tax or bank details, which the owner can fix themselves.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-payouts"
+      ]
+    },
+    {
+      "id": "S1-092",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "Most managers open with occupancy projections and a channel strategy.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-093",
+      "page": "guide-gdpr",
+      "subject": "operators in general",
+      "claim": "Most of this happens on its own.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-094",
+      "page": "guide-storefront",
+      "subject": "operators in general",
+      "claim": "Most of this is content rather than configuration.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-095",
+      "page": "article-oos",
+      "subject": "operators in general",
+      "claim": "Most operators answer no to at least two.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-096",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "Most owners want their own weeks in the house, and many are embarrassed to ask.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-097",
+      "page": "guide-channels",
+      "subject": "operators in general",
+      "claim": "Most problems trace back to a mapping nobody checked.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-channels"
+      ]
+    },
+    {
+      "id": "S1-098",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "Most properties price two seasons: high and low, with a hard edge between them.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-099",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "Most small operators are leaving money on two of them and losing money on the third.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-100",
+      "page": "guide-housekeeping",
+      "subject": "operators in general",
+      "claim": "Nobody adds rooms to the board by hand.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-101",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Nobody can say what actually happened",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-102",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Nobody complains for a month and then somebody leaves.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-103",
+      "page": "article-oos",
+      "subject": "operators in general",
+      "claim": "Nobody sells a broken room on purpose",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-104",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Not a message, a permanent position on the board that everyone can see.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-105",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Nothing kills a direct attempt faster than an enquiry form.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-106",
+      "page": "guide-settings",
+      "subject": "operators in general",
+      "claim": "On a multi-property account each property carries its own, which matters more than it sounds if you manage across two countries — the day rolls at a different moment in each and the boards behave accordingly.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-settings"
+      ]
+    },
+    {
+      "id": "S1-107",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "One person holds the whole day in their head, the cleaners know the properties, and when something changes there are few enough people that a message reaches everyone who needs it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-108",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Operators tend to think of the marketplace as a distribution channel that takes a cut.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-109",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Operators who do only this typically see direct share move several points in a season.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-110",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Operators who stay with it for a full season generally find the line crosses somewhere they didn't expect, and the commission they stopped paying turns out to have been a salary.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-111",
+      "page": "resources",
+      "subject": "operators in general",
+      "claim": "Out-of-order handling is the least glamorous part of a PMS and the one that saves the most money.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-112",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "Owners rarely call because the number is low.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-113",
+      "page": "article-direct",
+      "subject": "law and regulation",
+      "claim": "Practically: capture the email address at check-in — you have a legitimate operational reason to hold it, and if you handle it properly under GDPR you can ask separately for permission to contact them later.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-114",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Put the state somewhere everybody can see and most of it stops.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-115",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Real dates, real prices, and the calendar cannot be older than the one on the marketplace.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-116",
+      "page": "guide-arrival",
+      "subject": "law and regulation",
+      "claim": "Registration data is retained for the statutory period in your jurisdiction and then anonymised automatically — the booking record survives for your accounts, the personal detail does not.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-117",
+      "page": "faq",
+      "subject": "operators in general",
+      "claim": "Spreadsheet-based operations take longest, because the rate rules usually live in someone’s head rather than in a column.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-118",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Start collecting them from your own guests the week you launch the storefront; you cannot borrow the marketplace's.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-119",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Start where the commission is most obviously wasted",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-120",
+      "page": "guide-access",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-121",
+      "page": "guide-arrival",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-122",
+      "page": "guide-channels",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-123",
+      "page": "guide-checkin",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-124",
+      "page": "guide-gdpr",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-125",
+      "page": "guide-housekeeping",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-126",
+      "page": "guide-payouts",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-127",
+      "page": "guide-rates",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-128",
+      "page": "guide-refunds",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-129",
+      "page": "guide-reports",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-130",
+      "page": "guide-reservation",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-131",
+      "page": "guide-security-doc",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-132",
+      "page": "guide-settings",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-133",
+      "page": "guide-setup",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-134",
+      "page": "guide-statements",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-135",
+      "page": "guide-storefront",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "Support replies within a working day, and faster during your onboarding.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-access",
+        "guide-arrival",
+        "guide-channels",
+        "guide-checkin",
+        "guide-gdpr",
+        "guide-housekeeping",
+        "guide-payouts",
+        "guide-rates",
+        "guide-refunds",
+        "guide-reports",
+        "guide-reservation",
+        "guide-security-doc",
+        "guide-settings",
+        "guide-setup",
+        "guide-statements",
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-136",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Teams that add a fifth and a sixth find nobody updates any of them, because the cost of maintaining the board exceeds the cost of shouting across the corridor.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-137",
+      "page": "guide-storefront",
+      "subject": "operators in general",
+      "claim": "Test with a real card and refund yourself; a payment path nobody has walked is not a payment path.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-138",
+      "page": "guide-gdpr",
+      "subject": "operators in general",
+      "claim": "That covers most requests before they reach a person.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-139",
+      "page": "article-pricing",
+      "subject": "operators in general",
+      "claim": "That edge is usually in the wrong place and always too abrupt.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-pricing"
+      ]
+    },
+    {
+      "id": "S1-140",
+      "page": "guide-arrival",
+      "subject": "law and regulation",
+      "claim": "That is a GDPR obligation rather than a feature, but it is worth knowing it is handled.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-141",
+      "page": "guide-gdpr",
+      "subject": "law and regulation",
+      "claim": "That is a GDPR obligation rather than a feature, but it is worth knowing it is one click.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-142",
+      "page": "guide-arrival",
+      "subject": "operators in general",
+      "claim": "The front desk can override and release manually for anyone standing in front of them.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-143",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The gap between paying and being confirmed is where a guest's confidence is thinnest, and every minute of silence in it is a minute they spend wondering whether they should have used the marketplace after all.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-144",
+      "page": "guide-arrival",
+      "subject": "operators in general",
+      "claim": "The invitation goes out on a schedule you set, usually a few days before arrival, and repeats once if it is not completed.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-arrival"
+      ]
+    },
+    {
+      "id": "S1-145",
+      "page": "article-oos",
+      "subject": "operators in general",
+      "claim": "The least glamorous feature in any property system, and the one that quietly saves the most money.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-146",
+      "page": "article-statement",
+      "subject": "operators in general",
+      "claim": "The line most likely to start an argument is the one you wrote in your own words.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-147",
+      "page": "article-statement",
+      "subject": "the short-stay/hotel market",
+      "claim": "The line that generates the call is always the one that reads \"Maintenance — €120\", because that is a claim rather than a calculation, and the owner has only your word for it.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · industry statistic. A source must be a published market report or a marketplace’s own documentation. Cutting it costs the sentence.",
+      "group": "G1-industry-statistic",
+      "appears_on": [
+        "article-statement"
+      ]
+    },
+    {
+      "id": "S1-148",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The marketplace gave them",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-149",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The marketplace is deliberately anonymous — you are a listing with a score.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-150",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The marketplace shows a total.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-151",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The marketplace shows a total; if you don't, you look more expensive even when you are cheaper.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-152",
+      "page": "guide-refunds",
+      "subject": "operators in general",
+      "claim": "The most common support question we get about refunds is where to record them a second time, and the answer is that there is no second time.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-refunds"
+      ]
+    },
+    {
+      "id": "S1-153",
+      "page": "guide-gdpr",
+      "subject": "operators in general",
+      "claim": "The product will let you ask for more than you need at check-in.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-154",
+      "page": "guide-rates",
+      "subject": "operators in general",
+      "claim": "The rate grid also shows the resolved price per night per unit, which is faster than reasoning about the rules for a single date.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-rates"
+      ]
+    },
+    {
+      "id": "S1-155",
+      "page": "guide-payouts",
+      "subject": "operators in general",
+      "claim": "The reason comes back from the bank and is shown verbatim, because a paraphrase is usually less useful than the original.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-payouts"
+      ]
+    },
+    {
+      "id": "S1-156",
+      "page": "guide-storefront",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The storefront is for the guests who already found you; the marketplaces are still finding the ones who have not.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-157",
+      "page": "guide-storefront",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The storefront will convert roughly as well as its worst photograph, and marketplace-grade pictures are usually not good enough once they are the whole page.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-158",
+      "page": "article-trust",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "The thing you have that the marketplace does not",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-159",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "Then write to past guests once, in the shoulder season, from a person rather than a brand, with a rate that is genuinely better than the marketplace's.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-160",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "They are afraid the property will be damaged and nobody will tell them.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-161",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "They are giving up the marketplace's protection.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-162",
+      "page": "faq",
+      "subject": "operators in general",
+      "claim": "They cannot see guest names, contact details or documents, other owners’ units or terms, or your commercial arrangements with anyone else.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "faq"
+      ]
+    },
+    {
+      "id": "S1-163",
+      "page": "guide-statements",
+      "subject": "operators in general",
+      "claim": "They do not see guest contact details, guest documents, other owners’ data, or your commercial terms with anyone else.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-statements"
+      ]
+    },
+    {
+      "id": "S1-164",
+      "page": "guide-access",
+      "subject": "operators in general",
+      "claim": "They do not see guest names, contact details or documents; they do not see other owners’ units, statements or terms; and they do not see your commercial arrangements with anyone else.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-access"
+      ]
+    },
+    {
+      "id": "S1-165",
+      "page": "resources",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "They're leaving a marketplace with reviews and buyer protection.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-166",
+      "page": "guide-reports",
+      "subject": "Vyrobel itself",
+      "claim": "This is a record for you rather than a submission to anyone; Vyrobel does not file on your behalf.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "group": "G4-our-product-capability",
+      "appears_on": [
+        "guide-reports"
+      ]
+    },
+    {
+      "id": "S1-167",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "This is the single largest gap and the one most operators ignore.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-168",
+      "page": "article-owners",
+      "subject": "Vyrobel itself",
+      "claim": "This is the single most persuasive object you can carry into the meeting, and almost nobody brings one.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "group": "G4-our-product-capability",
+      "appears_on": [
+        "article-owners"
+      ]
+    },
+    {
+      "id": "S1-169",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "This is the single thing the marketplace gives them that your site usually doesn't.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-170",
+      "page": "article-direct",
+      "subject": "law and regulation",
+      "claim": "This matters practically as well as legally.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-171",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Three rules that do most of the work",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-172",
+      "page": "resources",
+      "subject": "operators in general",
+      "claim": "Transparency about how they'll be paid does more than a projection they don't believe.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-173",
+      "page": "article-trust",
+      "subject": "operators in general",
+      "claim": "Twenty minutes of watching a stranger try to give you money will tell you more than any amount of analytics, because they will pause at something you stopped seeing years ago.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-trust"
+      ]
+    },
+    {
+      "id": "S1-174",
+      "page": "guide-setup",
+      "subject": "operators in general",
+      "claim": "Two units missing from a forty-unit import is common, and it is much cheaper to find now than in a busy August.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-setup"
+      ]
+    },
+    {
+      "id": "S1-175",
+      "page": "guide-payouts",
+      "subject": "operators in general",
+      "claim": "Typically a working day, longer across a weekend or a national holiday in either country.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-payouts"
+      ]
+    },
+    {
+      "id": "S1-176",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "Usually it settles the question.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ]
+    },
+    {
+      "id": "S1-177",
+      "page": "guide-gdpr",
+      "subject": "operators in general",
+      "claim": "Usually much shorter than the registration period.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-178",
+      "page": "guide-payouts",
+      "subject": "operators in general",
+      "claim": "Visible to the owner with the date it will send, which removes most of the reason to ask.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-payouts"
+      ]
+    },
+    {
+      "id": "S1-179",
+      "page": "guide-rates",
+      "subject": "Vyrobel itself",
+      "claim": "Vyrobel drops the minimum automatically when the remaining gap between two bookings is shorter than the minimum itself — otherwise those nights cannot be sold to anyone, at any price.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "group": "G4-our-product-capability",
+      "appears_on": [
+        "guide-rates"
+      ]
+    },
+    {
+      "id": "S1-180",
+      "page": "guide-security-doc",
+      "subject": "Vyrobel’s own service promise",
+      "claim": "We never email passwords, never ask for one in support, and no member of our team can see yours.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a promise WE make, not a fact about the world. No source can settle it: the founder either commits to it operationally or it is cut.",
+      "group": "G5-service-commitment",
+      "appears_on": [
+        "guide-security-doc"
+      ]
+    },
+    {
+      "id": "S1-181",
+      "page": "guide-storefront",
+      "subject": "operators in general",
+      "claim": "We provide the DNS records; your registrar does the rest, usually within an hour.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-storefront"
+      ]
+    },
+    {
+      "id": "S1-182",
+      "page": "resources",
+      "subject": "operators in general",
+      "claim": "What owners actually want to see, in what order, and why the line item most likely to cause an argument is the one you explain worst.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "resources"
+      ]
+    },
+    {
+      "id": "S1-183",
+      "page": "guide-refunds",
+      "subject": "Vyrobel itself",
+      "claim": "When a change moves the booking to a more expensive period, the difference appears on the folio as a balance owing.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · a claim about OUR OWN product. NOT sourceable to a URL: it is settled by code or a test, not a third party. The current schema has no way to express that — see the pass report.",
+      "group": "G4-our-product-capability",
+      "appears_on": [
+        "guide-refunds"
+      ]
+    },
+    {
+      "id": "S1-184",
+      "page": "guide-refunds",
+      "subject": "operators in general",
+      "claim": "When it moves cheaper, you choose whether to refund the difference, hold it as credit, or keep it under your policy — all three are legitimate and the screen asks rather than assuming.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-refunds"
+      ]
+    },
+    {
+      "id": "S1-185",
+      "page": "article-direct",
+      "subject": "marketplaces and third-party vendors",
+      "claim": "When they book through that marketplace again, you pay full commission for a customer you already own.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · how a third party works. A source must be that vendor’s published terms or documentation. Cutting it usually costs a paragraph of the explanation.",
+      "group": "G2-third-party-mechanics",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-186",
+      "page": "article-direct",
+      "subject": "operators in general",
+      "claim": "Where you are free to price differently, the useful move is usually not a lower headline rate.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-direct"
+      ]
+    },
+    {
+      "id": "S1-187",
+      "page": "guide-security-doc",
+      "subject": "operators in general",
+      "claim": "Worth requiring for anyone with access to payouts or guest documents, at minimum.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "guide-security-doc"
+      ]
+    },
+    {
+      "id": "S1-188",
+      "page": "guide-gdpr",
+      "subject": "law and regulation",
+      "claim": "You cannot erase what you are legally required to retain, and the product will tell you so rather than silently doing nothing.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "group": "G3-regulatory",
+      "appears_on": [
+        "guide-gdpr"
+      ]
+    },
+    {
+      "id": "S1-189",
+      "page": "article-oos",
+      "subject": "operators in general",
+      "claim": "You simply sell less than you could and never find out why.",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-oos"
+      ]
+    },
+    {
+      "id": "S1-190",
+      "page": "article-owners",
+      "subject": "operators in general",
+      "claim": "“Why are you more expensive?”",
+      "kind": "sourceable",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ S1 · unverifiable in principle (“most…”, “usually…”, “nobody…”). No source exists for an unattributed generalisation about operators. Realistically: cut, or rewrite as explicitly our opinion.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-owners"
+      ]
     }
   ]
 }
