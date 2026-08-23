@@ -69,6 +69,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\Client;
+use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
@@ -199,7 +200,7 @@ class DemoSeeder extends Seeder
 
         // Never silently: a demo that quietly loses a load-bearing stay (half a statement's net, a review's
         // anchor) is worse than one that fails loudly and says which stay it could not place.
-        throw new \RuntimeException("DemoSeeder: no free window for an apartment stay near {$preferredCheckIn->toDateString()}.");
+        throw new RuntimeException("DemoSeeder: no free window for an apartment stay near {$preferredCheckIn->toDateString()}.");
     }
 
     public function run(): void
@@ -1084,8 +1085,22 @@ class DemoSeeder extends Seeder
         // window, so no collision". That was true when written and became FALSE as today advanced: on
         // 2026-08-12 the analytics stay at today+3 sat inside the "past" August window (14–18 Aug) on the same
         // apartment, and this loop — which, unlike the accrual, has no forward-scan — aborted the whole seed.
-        // Reading `completedMonth()` makes the collision impossible rather than unlikely: a month that has ended
-        // is strictly before today, and every colliding booking is dated today-or-later.
+        // ⚠️⚠️ AND THAT SECOND PREMISE WAS ALSO FALSE — THE SAME BUG, FIXED TWICE WITH A PREMISE INSTEAD OF A
+        // MECHANISM. It read: "a month that has ended is strictly before today, and every colliding booking is
+        // dated today-or-later." ⚠️ **The REVIEWS history books stays at `today − 27…75 days`** — squarely in
+        // the past — so a completed month is NOT safe from them. On 2026-08-23 the reviews stay at `today − 42`
+        // (2026-07-12 → 07-15, apartment unit 0, source `ota`) overlapped this loop's July 14–18 on the SAME
+        // unit and the seed aborted, leaving a partial database.
+        //
+        // ⚠️ THE FIX IS THE MECHANISM THE SIBLINGS ALREADY HAVE, not a third premise: `bookAptStayNear()`
+        // scans forward and its own comment names *these* stays as the thing it is avoiding, and
+        // `seedOwnerBalanceAccrual` carries a forward-scan "ROBUST TO DATE-DRIFT" for the same reason. This
+        // loop was the only one exempted, and it was exempted on an assumption rather than a guarantee.
+        //
+        // ⚠️ THE SCAN IS CLAMPED TO THE MONTH, and that constraint is load-bearing: a stay sliding into the
+        // next month would land in a different statement period and silently move the demo's money. An
+        // exhausted month FAILS LOUDLY rather than skipping — a silently missing month would change every
+        // figure after it without a word.
         $plan = [
             [5, 18000, 6, 3],
             [4, 20000, 9, 4],
@@ -1102,12 +1117,9 @@ class DemoSeeder extends Seeder
             $unit = $aptUnits[$i % $aptUnits->count()];
             $periodEnd = $month->endOfMonth()->toDateString();
 
-            // Seed the past-month rate calendar + availability so the real booking has a real nightly price
-            // (the demo calendar only spans today→+180d, so past months need their own window).
-            $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
-            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
-
-            $stay = $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+            // ⚠️ Scans for a free window INSIDE this month — see the note above. The calendar/availability
+            // prep moved into the helper, because each candidate window needs its own.
+            $stay = $this->bookStatementStayInMonth($month, $checkIn, $nights, $property, $apartment, $aptRate, $unit, $guest, $vat, $availability, $nightly);
             app(OwnerAttributionService::class)->attributeReservation($stay);
 
             // Finalize THIS month (claims only its own unstamped lines — earlier months are already stamped).
@@ -1120,6 +1132,81 @@ class DemoSeeder extends Seeder
             $payout->update(['status' => 'paid', 'paid_at' => $checkOut->addDays(5)->toDateTimeString()]);
             $finalized->update(['status' => 'paid']);
         }
+    }
+
+    /**
+     * ⚠️ Book one statement-history stay, scanning for a free window **inside its own month**.
+     *
+     * ⚠️ WHY WITHIN THE MONTH: this stay's nights are what its statement claims. A window in the next month
+     * would move the revenue into a different statement period and change the demo's money silently — so the
+     * scan is clamped, and an exhausted month is a hard failure rather than a skip.
+     *
+     * ⚠️ The planned day is tried FIRST, so on a date with no collision (most dates) nothing moves at all and
+     * the demo is byte-for-byte what it was. Calendar and availability are prepared per candidate, because a
+     * completed month has no calendar of its own — the demo calendar spans today→+180d.
+     */
+    private function bookStatementStayInMonth(
+        CarbonImmutable $month,
+        CarbonImmutable $preferred,
+        int $nights,
+        Property $property,
+        RoomType $apartment,
+        RatePlan $aptRate,
+        Unit $unit,
+        Guest $guest,
+        Tax $vat,
+        AvailabilityService $availability,
+        int $nightly,
+    ): Reservation {
+        $monthStart = $month->startOfMonth();
+        $firstOfNext = $month->endOfMonth()->addDay()->startOfDay();
+
+        $candidates = [$preferred];
+        for ($d = 1; $d <= 31; $d++) {
+            $candidates[] = $preferred->addDays($d);
+            $candidates[] = $preferred->subDays($d);
+        }
+
+        foreach ($candidates as $checkIn) {
+            $checkOut = $checkIn->addDays($nights);
+
+            // A stay is [checkIn, checkOut), so checking out on the 1st of the next month keeps every night
+            // inside this one.
+            if ($checkIn->lt($monthStart) || $checkOut->gt($firstOfNext)) {
+                continue;
+            }
+
+            // ⚠️ CHECK THE UNIT IS FREE **BEFORE** WRITING ANY CALENDAR. A first draft prepared the calendar
+            // for every candidate it tried, so an abandoned window left its rate rows behind and
+            // `rate_calendar` drifted 929 → 930…935 on exactly the dates this fix repairs — breaking the
+            // date-invariant the money pin documents (b6bcbba). Reading first keeps the calendar to the one
+            // window actually booked.
+            $occupied = DB::table('reservation_units')
+                ->where('unit_id', $unit->id)
+                ->where('check_in', '<', $checkOut->toDateString())
+                ->where('check_out', '>', $checkIn->toDateString())
+                ->exists();
+
+            if ($occupied) {
+                continue;
+            }
+
+            $this->seedCalendarRange($aptRate, $nightly, $checkIn->toDateString(), $checkOut->toDateString());
+            $availability->recompute($apartment->id, $checkIn->toDateString(), $checkOut->toDateString());
+
+            try {
+                return $this->createDemoStay('direct', $property, $apartment, $aptRate, $unit, $guest, $checkIn->toDateString(), $checkOut->toDateString(), $vat, fullyPaid: true);
+            } catch (BookingException) {
+                continue;   // the certified writer refused for a reason the read could not see — keep looking
+            }
+        }
+
+        // ⚠️ NEVER SILENTLY.
+        throw new RuntimeException(sprintf(
+            'DemoSeeder: no free %d-night window for the %s statement-history stay on unit %s — every '
+            .'candidate inside the month was occupied.',
+            $nights, $month->format('Y-m'), $unit->id,
+        ));
     }
 
     /**

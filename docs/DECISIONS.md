@@ -15285,3 +15285,84 @@ comparing. Vacuity-checked against a complete seed (it does not fire).
 are laid out — a product-visible consequence, and out of scope for a money-pin pass.
 ⚠️ **WORKAROUND AVAILABLE TODAY** (an unplanned benefit of this pass's mechanism):
 `VY_SEED_DATE=2026-09-01 php artisan migrate:fresh --seed` succeeds.
+
+---
+
+## 2026-08-23 — THE SEEDER BLOCKER: `migrate:fresh --seed` failed on a narrow date window
+
+⚠️ **A CONTAINED BUG, not a product decision** — determined at source, not assumed.
+
+### What actually collided (the brief's hypothesis was wrong)
+
+The brief proposed the **analytics** seeder's collision-skip as the suspect. ⚠️ **It is not involved.**
+`seedAnalyticsHistory` books entirely FORWARD (`today->addDays(2…132)`); it can never touch a past month.
+
+⚠️ **The real collider is the REVIEWS history.** Its stays are booked at `today − {27,35,42,53,75}` days via
+`bookAptStayNear()`. On 2026-08-23 the `today − 42` spec lands on **2026-07-12 → 07-15** (apartment unit 0,
+source `ota`) and overlaps `seedOwnerStatementHistory`'s plan entry `[1, 22000, 14, 4]` — `completedMonth(1)`
+= July, day 14, 4 nights = **2026-07-14 → 07-18** — on the **same unit**. Throw site
+`AssignmentService::assertUnitFree()` → `UnitUnavailableException::occupied()`.
+
+**Reproduced 3/3 on 2026-08-23, and 3/3 green on 2026-08-22 / 09-01** — deterministic in both directions.
+
+### ⚠️⚠️ THE SAME BUG, FIXED TWICE WITH A PREMISE INSTEAD OF A MECHANISM
+
+The loop's own comment records the history, and it is the finding:
+
+1. Originally the months were literals with a comment claiming they were *"clear of the (future-dated)
+   analytics-history window, so no collision."* **That became false as today advanced.**
+2. It was fixed by switching to `completedMonth()` with a new claim: *"a month that has ended is strictly
+   before today, and **every colliding booking is dated today-or-later**."*
+   ⚠️ **Also false** — the reviews stays are dated in the **past**.
+
+⚠️ Meanwhile the two sibling seeders have a **mechanism**: `bookAptStayNear()` scans forward, and its comment
+explicitly names *these* statement stays as what it is avoiding; `seedOwnerBalanceAccrual` carries a
+forward-scan *"ROBUST TO DATE-DRIFT"*. **This loop was the only one exempted — on an assumption.**
+⚠️ **So collision-avoidance between exactly these two seeders is the DOCUMENTED INTENT, which is what makes
+this a contained bug rather than a demo-layout decision.**
+
+### The fix
+
+`bookStatementStayInMonth()` — the same mechanism, **clamped to the month**. ⚠️ The clamp is load-bearing: a
+stay sliding into the next month would land in a different statement period and **silently move the demo's
+money**. The planned day is tried first, so on a non-colliding date nothing moves at all. An exhausted month
+**throws** rather than skipping — a silently missing statement month would change every figure after it.
+
+⚠️ **AND A SIDE-EFFECT CAUGHT AND CLOSED:** the first draft prepared the rate calendar for every candidate it
+tried, so abandoned windows left rows behind and `rate_calendar` drifted **929 → 930…935 on exactly the dates
+the fix repairs** — breaking the date-invariant the money pin documents (`b6bcbba`). It now **reads
+`reservation_units` first** and only writes a calendar for the window it commits to. **929 on every date.**
+
+### The date sweep — before and after (each a fresh process)
+
+| seed date | before | after |
+|---|---|---|
+| 2026-08-22 | ✅ 929 | ✅ 929 |
+| **2026-08-23 / 24 / 25 / 26** | ⚠️ **exit 1 · 749** | ✅ **929** |
+| 2026-08-31 · 09-01 · 09-14 · 09-30 · 10-15 · 12-31 · 2027-01-01 | ✅ 929 | ✅ 929 |
+| **2027-02-28** | ⚠️ **exit 1 · 749** | ✅ **929** |
+| **2027-03-01** | ⚠️ **exit 1 · 745** | ✅ **929** |
+
+⚠️ **The brief reported 08-23/24/25. The sweep found SIX failing dates** — 08-26 and two in 2027 as well, one
+with a *different* partial count (745), i.e. it aborted at a different point.
+
+**Mutation-proven:** remove the scan → 2026-08-23 reds with the loud *"no free 4-night window"*; 2026-08-22
+stays green (the vacuity check — it does not red everywhere). Restore → byte-identical, green.
+
+### Verified after the fix
+
+- **Demo alive at the real date:** 15 past · 0 in-house · **27 future** stays, next arrival tomorrow.
+- **#33 intact in BOTH directions:** a far-future door-coded stay has its code **withheld** today and
+  **released** one day before arrival.
+- **Storefront render-verified:** HTTP 200, real offers (`264.10 total`, `497.80 total`), no raw Blade.
+- **Money pin FULL green** at the reference date: `929 / 10928000 / 0 / 42 / 16 / 0`. **Unchanged.**
+- **The sentinel did NOT move** (`test@example.com` is still the last row created) and still fires on an
+  aborted seed while staying quiet on a complete one.
+
+### ⚠️ The unexplained observation — still unexplained
+
+A seed at 2026-08-23 was observed to SUCCEED earlier in the session, which does not reconcile with the
+deterministic failure measured afterwards on the same date and on code predating both money commits.
+Candidate causes were considered and none fits the evidence. ⚠️ **Left on record as unexplained rather than
+given a plausible cause.** ⚠️ It is also the reason the "one fresh-process run disproves the batch probe"
+conclusion was wrong: **one passing sample does not refute a reported failure.**
