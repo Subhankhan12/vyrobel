@@ -78,7 +78,9 @@ it('holds every audited claim, each carrying the fields the gate keys on', funct
     // EMPIRICALLY before the entries landed: with unsourced claims present this was the ONLY failing
     // assertion in the file, because `stale()` returns false for an unsourced claim (it is "its own,
     // louder failure"), so the freshness teeth stayed green.
-    Assert::assertCount(202, $claims, 'the claims ledger changed size — a claim must never leave the ledger without leaving the page');
+    // ⚠️ RE-PINNED 202 → 203: S1-044 was SPLIT into a count row and a visibility row, because one test
+    // cannot tell you which of two claims broke. Growth with a reason; the pin still catches shrinkage.
+    Assert::assertCount(203, $claims, 'the claims ledger changed size — a claim must never leave the ledger without leaving the page');
 
     foreach ($claims as $claim) {
         foreach (['id', 'page', 'subject', 'claim', 'kind', 'source_url', 'verified_on', 'review_by', 'disposition'] as $field) {

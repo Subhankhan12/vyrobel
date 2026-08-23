@@ -15668,3 +15668,61 @@ advertising a claim its article no longer makes.
 ⚠️ **`/resources` stays blocked until all six resolve. That is the correct state.**
 
 ⚠️ **SLICE 2 (clusters F and G) WAS NOT STARTED** — the gate condition fired.
+
+---
+
+## 2026-08-24 · `S1-044` split · `S1-171` cut · SLICE 2 (clusters F and G)
+
+### ⚠️ The visibility fact, determined before the sentence was written
+
+*"Four states, visible to everyone"* → **"Four states, visible to your whole back-office team"**.
+
+⚠️ **The board's GET route carries no `can:`** — the read is ungated. But the `/app` group applies
+`EnsureBackOfficeAccess`, whose allow-list is the **eleven back-office roles** (probed: Accountant,
+Housekeeping, Hotel Manager, Front Desk, Marketing Manager, Group Admin — **all 200**). ⚠️ **An External
+Owner is refused from `/app` entirely (#26)** and sees a *separate*, read-only cleaning schedule on their
+own unit. ⚠️ **So "everyone" was TRUE ONLY WITH A SCOPE, and the sentence now states it** — the G4
+scope-gap defect, one word wide, caught **before** shipping this time.
+
+⚠️ **Two claims, two tests.** The COUNT sources to `S1-136`'s existing test (a reflection check on
+`HousekeepingBoard::STATUSES` — ⚠️ **verified: it tests neither visibility nor rendering**). The VISIBILITY
+became `S1-044b` with its own test. **Mutation-proven independently: a fifth state reds only S1-136; gating
+the read route reds only S1-044b.** ⚠️ A combined test would have passed on the half that held.
+
+⚠️ **A false RED worth recording:** the visibility test first 403'd because it called `can()` on the model
+*before* the request — spatie resolves the permission relation under the team active at that moment and
+caches it, so the request then re-checked against a stale set. **A harness artefact that reads exactly like
+"the board is gated after all".** The request now goes first.
+
+### `S1-171` — the effectiveness cut, the count verified
+
+*"Three rules that do most of the work"* → **"Three rules"**. ⚠️ The outcome half was **cut, not hedged**.
+⚠️ **The count was verified against the section, not assumed** — *"A guest waiting outranks everything"*,
+*"Damage becomes a ticket where it is found"*, *"Assignment is balanced by the system, adjusted by the
+human"*. Self-evidencing: the reader counts them without leaving the page. ⚠️ **That is the argument to
+challenge**, and it is recorded as such.
+
+⚠️ **`article-housekeeping`: 2 blocked → 0, and this time true of the PAGE as well as the ledger.**
+
+### ⚠️⚠️ SLICE 2 — and a structural finding about what "cleared" means
+
+Nine corrections, each written from a verified code fact (`tools/marketing/spec/slice2_security_gdpr.py`).
+
+⚠️⚠️ **`guide-security-doc` read CLEARED both BEFORE and AFTER — because only 1 of the 9 corrections has a
+ledger row at all.** The other eight are cluster F/G **FALSE** claims, and the ledger tracks **unsourced**
+claims, not false ones. ⚠️ **`pageIsCleared()` is a SOURCING gate, not a TRUTH gate**: a page can read
+cleared while carrying outright falsehoods. What changed today is not its status — it is that the page is
+now **true**.
+
+⚠️ **The SMS correction is STRONGER, not a concession**: no SMS provider exists anywhere, and TOTP plus
+recovery codes beats SMS, which a SIM swap defeats.
+
+⚠️ **Reported, not fixed — the phantom retention purge** (`app/Models/Guest.php:350`). `Guest::anonymize()`
+clears booking-quote PII only for quotes that converted into this guest's reservations and defers the rest
+to *"the scheduled retention purge"* — ⚠️ **which does not exist for abandoned quotes**. An abandoned quote
+keeps the guest's encrypted email, phone and snapshot indefinitely, and a GDPR erase never reaches it.
+⚠️ **The code fix is cluster G's build. What this pass owed it is that the doc no longer describes the
+purge as real.**
+
+⚠️ **The 18 GDPR headings were not re-opened** — they name real capabilities (`guests:process-deletions`,
+`guest-documents:purge-expired`), and what cluster G corrected is the mechanism the body described.

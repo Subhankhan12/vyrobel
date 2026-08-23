@@ -144,6 +144,36 @@ it('sources S1-136 — the board has four states, and no fifth', function () {
         '⚠️ the board’s states changed — the article says there are four and names them');
 });
 
+it('sources S1-044b — the board is visible to the whole back-office team, not just housekeeping', function () {
+    // ⚠️⚠️ ITS OWN TEST, DELIBERATELY SEPARATE FROM S1-136's. The heading made TWO claims — a count and a
+    // visibility scope — and a single test covering both could not tell you which half broke. If the
+    // board's read route ever gains a `can:`, the visibility claim becomes false while "four states"
+    // stays true, and a combined assertion would still pass on the half that held. That is a source that
+    // has silently stopped sourcing.
+    //
+    // ⚠️ THE FACT, DETERMINED BEFORE THE SENTENCE WAS WRITTEN: the GET route carries no `can:`; the /app
+    // group admits the eleven back-office roles. So a role with NO housekeeping business reaches it —
+    // which is exactly what "your whole back-office team" asserts, and why the sentence names the team
+    // rather than saying "everyone" (an owner is refused from /app entirely, #26).
+    $s = seedScenario(1);
+
+    // An ACCOUNTANT: back-office, and about as far from housekeeping as the role list goes.
+    $accountant = operatorUser(['org' => $s['org']], ['name' => 'Aki Accountant'], 'Accountant');
+
+    // ⚠️ THE REQUEST GOES FIRST, AND THE ORDER IS LOAD-BEARING. Calling `can()` on the model beforehand
+    // resolves spatie's permission relation under whatever team is active AT THAT MOMENT and caches it;
+    // the request then re-checks roles against a stale cached set and 403s. ⚠️ That produced a false RED
+    // on the first run and would have been read as "the board is gated after all" — a harness artefact
+    // mistaken for a product fact. The board itself is fine; a probe across six back-office roles
+    // returned 200 for every one.
+    $this->actingAs($accountant)->get('/app/housekeeping')->assertOk();
+
+    // ⚠️ NON-VACUITY: this must be an accountant with no housekeeping rights, or the 200 above proves
+    // only that a housekeeper can see the housekeeping board.
+    Assert::assertFalse($accountant->fresh()->can('housekeeping.manage'),
+        'the fixture holds housekeeping.manage — the assertion above would prove visibility for the wrong reason');
+});
+
 it('sources S1-104 — a status is a stored position, not a message', function () {
     // ⚠️ THE CLAIM: it stays where it was left until somebody advances it, and everyone reading the board
     //    reads the same one. Tested as: the write persists, and a fresh read returns it.

@@ -104,3 +104,51 @@ RATIONALE = {
 
 # ⚠️ NOT REWRITTEN — already ruled NOISE (headings / a rhetorical question), disposition `remove`.
 NOISE_ALREADY_RULED = ('S1-044', 'S1-101', 'S1-171')
+
+
+# ══ ⚠️ S1-044 SPLIT · S1-171 CUT — the two rows the `not_a_claim` read restored ══════════════════════
+#
+# ⚠️ These were filed as noise by the element test and caught by READING. They were never part of the
+# nine, which is why the re-argue's "0% unresolved" was true of the LEDGER and false of the PAGE.
+
+# ── S1-044 · "Four states, visible to everyone" — TWO claims in one heading ──────────────────────────
+#
+# ⚠️⚠️ THE VISIBILITY FACT, DETERMINED BEFORE THE SENTENCE WAS WRITTEN:
+#   · `Route::get('/housekeeping', HousekeepingBoard::class)` carries NO `can:` — the read is ungated.
+#   · The `/app` group applies EnsureBackOfficeAccess, whose allow-list is ALL ELEVEN back-office roles
+#     (Property Owner, Group Admin, Hotel Manager, Revenue Manager, Front Desk, Reservation Agent,
+#     Housekeeping, Maintenance, Accountant, Marketing Manager, Guest Support Agent) — including roles
+#     with no housekeeping business at all.
+#   · ⚠️ An External Owner is NOT a back-office role and is refused from /app (#26). Owners see a
+#     SEPARATE, read-only cleaning schedule on their own unit (OwnerUnitDetail::cleanings()) — real
+#     HousekeepingTask rows, but not this board.
+#
+# ⚠️ VERDICT: TRUE ONLY WITH A SCOPE. A bare "everyone" invites a reader to include owners (who see a
+#    different surface) and guests (who see none). The scope is the operator's back office, so the
+#    sentence says it — the G4 scope-gap defect, one word wide, caught BEFORE shipping this time.
+SPLIT_044 = {
+ 'original': 'Four states, visible to everyone',
+ 'replacement': 'Four states, visible to your whole back-office team',
+ 'claims': {
+   'S1-044':  ('the COUNT — "four states". Sources to S1-136\'s EXISTING test, which is a reflection check '
+               'on HousekeepingBoard::STATUSES. ⚠️ Same FACT, same test — that is not one test sourcing two '
+               'claims, it is two sentences stating one fact.'),
+   'S1-044b': ('the VISIBILITY — "your whole back-office team". ⚠️ ITS OWN test, because a combined one '
+               'could not tell you which half broke: if the board\'s read route later gains a permission, '
+               'the visibility claim becomes false while the count stays true, and a test asserting both '
+               'would still pass on the half that held.'),
+ },
+}
+
+# ── S1-171 · "Three rules that do most of the work" ──────────────────────────────────────────────────
+#
+# ⚠️ "that do most of the work" is an UNMEASURED OUTCOME — not sourceable, and hedging it into "in our
+#    view" would only make it unfalsifiable. CUT.
+# ⚠️ THE COUNT THAT REMAINS WAS VERIFIED AGAINST THE SECTION, not assumed: the three rules that follow
+#    are "A guest waiting outranks everything", "Damage becomes a ticket where it is found", and
+#    "Assignment is balanced by the system, adjusted by the human". The reader can count them without
+#    leaving the section, which is what makes it self-evidencing rather than a claim.
+CUT_171 = {
+ 'original': 'Three rules that do most of the work',
+ 'replacement': 'Three rules',
+}

@@ -852,18 +852,19 @@
       "id": "S1-044",
       "page": "article-housekeeping",
       "subject": "operators in general",
-      "claim": "Four states, visible to everyone",
-      "kind": "sourceable",
+      "claim": "Four states, visible to your whole back-office team",
+      "kind": "internal",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
       "disposition": "publish",
-      "note": "⚠️⚠️ MISFILED AS NOISE, CAUGHT BY READING. \"Four states, visible to everyone\" is a COUNT and a CAPABILITY: a reader comes away believing the board has exactly four states and that everyone can see them. Both are checkable, so both are claims — \"it is a heading\" is not a defence. ⚠️ The four-states half is true and covered by S1-136's internal test; the \"visible to everyone\" half is NOT, so filing it against that test would over-claim its coverage. Restored to `publish`, unsourced.",
+      "note": "⚠️ SPLIT (founder ruling). The heading carried TWO claims. This row is the COUNT, and it sources to S1-136's EXISTING test — the same FACT stated by two sentences, which is not the same as one test sourcing two claims. ⚠️ The VISIBILITY half is S1-044b, with its own test: a combined test could not tell you which half broke.",
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
       ],
-      "not_a_claim_reason": null
+      "not_a_claim_reason": null,
+      "internal_test": "S1-136"
     },
     {
       "id": "S1-045",
@@ -3403,18 +3404,18 @@
       "id": "S1-171",
       "page": "article-housekeeping",
       "subject": "operators in general",
-      "claim": "Three rules that do most of the work",
+      "claim": "Three rules",
       "kind": "sourceable",
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "⚠️⚠️ MISFILED AS NOISE, CAUGHT BY READING. \"Three rules that do most of the work\" is a COUNT plus an EFFECTIVENESS claim — \"do most of the work\" asserts an outcome we have never measured. Restored to `publish`, unsourced.",
+      "disposition": "not_a_claim",
+      "note": null,
       "group": "G6-unverifiable-generalisation",
       "appears_on": [
         "article-housekeeping"
       ],
-      "not_a_claim_reason": null
+      "not_a_claim_reason": "⚠️ The EFFECTIVENESS half (\"…that do most of the work\") was CUT, not hedged — an unmeasured outcome cannot be sourced, and \"in our view\" would only have made it unfalsifiable. ⚠️ The COUNT that remains is SELF-EVIDENCING: the three rules are in this same section — \"A guest waiting outranks everything\", \"Damage becomes a ticket where it is found\", \"Assignment is balanced by the system, adjusted by the human\" — so a reader counts them without leaving the page. ⚠️ THAT IS THE ARGUMENT TO CHALLENGE: a count of items ELSEWHERE would be a claim (\"sixteen written guides\" shipped sitewide and was false). Verified against the section, not assumed. If a rule is ever added or removed, this becomes wrong — fix the COUNT, not this label."
     },
     {
       "id": "S1-172",
@@ -3685,8 +3686,8 @@
       "source_url": null,
       "verified_on": null,
       "review_by": null,
-      "disposition": "publish",
-      "note": "S1 · assertion about the law. A source must be the statute or regulator, and it must be jurisdiction-scoped — “in many jurisdictions” is not sourceable as written.",
+      "disposition": "soften",
+      "note": "⚠️ CORRECTED BY SLICE 2 (cluster G). The original told a reader the product would refuse an erasure it was legally required to retain — no such refusal exists anywhere in GuestDeletionService or Guest::anonymize(). Replacement in tools/marketing/spec/slice2_security_gdpr.py (G5).",
       "group": "G3-regulatory",
       "appears_on": [
         "guide-gdpr"
@@ -3724,6 +3725,24 @@
         "article-owners"
       ],
       "not_a_claim_reason": "A quoted question used as a section heading. A question asserts nothing by construction — it states what the section answers, not what is true."
+    },
+    {
+      "id": "S1-044b",
+      "page": "article-housekeeping",
+      "subject": "operators in general",
+      "claim": "visible to your whole back-office team (the visibility half of S1-044)",
+      "kind": "internal",
+      "source_url": null,
+      "verified_on": null,
+      "review_by": null,
+      "disposition": "publish",
+      "note": "⚠️ THE VISIBILITY HALF, SPLIT OUT WITH ITS OWN TEST. ⚠️ \"Everyone\" was doing unexamined work: the board's GET route carries no `can:`, but the /app group admits only the ELEVEN back-office roles, and an External Owner is refused (#26) and sees a separate read-only cleaning schedule instead. ⚠️ TRUE ONLY WITH A SCOPE — so the sentence states the scope. ⚠️ Its own test because a combined one could not tell you which half broke: mutation-proven that gating the read route reds THIS row and not S1-136.",
+      "group": "G6-unverifiable-generalisation",
+      "appears_on": [
+        "article-housekeeping"
+      ],
+      "not_a_claim_reason": null,
+      "internal_test": "S1-044b"
     }
   ]
 }

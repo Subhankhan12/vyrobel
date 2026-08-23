@@ -103,7 +103,9 @@ from g6_articles import (                                        # noqa: E402
 )
 from g6_housekeeping import (                                    # noqa: E402
     BEHAVIOUR as _HK_BEHAVIOUR, RATIONALE as _HK_RATIONALE,
+    SPLIT_044 as _SPLIT_044, CUT_171 as _CUT_171,
 )
+from slice2_security_gdpr import SECURITY as _SEC, GDPR as _GDPR   # noqa: E402
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1376,6 +1378,30 @@ def convert(key):
     # ⚠️ `article-housekeeping` IS DELIBERATELY ABSENT. Its ruling is a LIVE EITHER/OR — re-argue as "how
     #    we built housekeeping and why", OR do not publish — and accepting the recommendation did not
     #    collapse the two branches. Implementing either here would pick one silently.
+    # ══ SLICE 2 · CLUSTER F (Security) and CLUSTER G (GDPR) ══════════════════════════════════════
+    #
+    # ⚠️⚠️ CLUSTER F: A SECURITY CLAIM IS BACKED BY CODE OR IT IS FALSE — NEVER SOFTENED. A hedged
+    #    security property is worse than a plainly wrong one: the reader keeps believing they have the
+    #    protection, and nothing can disprove it any more. Each correction below replaces a claim with
+    #    what the code actually does, and the code fact is recorded beside it in the spec.
+    #    ⚠️ The SMS correction is STRONGER than the sentence it replaces — TOTP plus recovery codes beats
+    #    SMS, which a SIM swap defeats. It is not a walk-back.
+    #
+    # ⚠️⚠️ CLUSTER G: DESCRIBE WHAT EXISTS. The page narrated a retention system that was never built —
+    #    a "Data and privacy" screen that does not exist, a statutory period that is not a setting, and
+    #    an anonymisation sweep nobody wrote. ⚠️ It equally must not promise the cluster-G BUILD, which is
+    #    ruled and unstarted: describing an unbuilt system in the present tense is the same defect
+    #    pointed the other way.
+    #    ⚠️ G3 emits a BLADE ECHO for the grace period rather than typing the number — a literal here
+    #    would be a second copy of a real constant, free to drift the day it changes (the LEAD_DAYS rule).
+    if key == 'guide-security-doc':
+        for _cid, _d in _SEC.items():
+            t = swap(t, _d['original'], _d['replacement'], key, 'SLICE2-F/' + _cid)
+
+    if key == 'guide-gdpr':
+        for _cid, _d in _GDPR.items():
+            t = swap(t, _d['original'], _d['replacement'], key, 'SLICE2-G/' + _cid)
+
     if key == 'article-direct':
         # ⚠️ A PREDICTED OUTCOME CANNOT BE HEDGED INTO TRUTH. Each of these promises the reader a result;
         #    we have no operators to have observed it in. The mechanics of going direct stay.
@@ -1399,6 +1425,18 @@ def convert(key):
         #    none. ⚠️ Classified by what the sentence ASSERTS, never by how it is phrased.
         for _cid, _d in list(_HK_BEHAVIOUR.items()) + list(_HK_RATIONALE.items()):
             t = swap(t, _d['original'], _d['replacement'], key, 'REARGUE/' + _cid)
+
+        # ⚠️ THE TWO HEADINGS THE `not_a_claim` READ RESTORED — they were filed as noise by the element
+        #    test and caught by reading, so they were never part of the nine above.
+        #    ⚠️ S1-044 carried TWO claims in one heading: a COUNT and a VISIBILITY scope. "Everyone" was
+        #    doing unexamined work — the board's read is ungated, but the /app group admits only the
+        #    eleven back-office roles, and an owner is refused (#26) and sees a different, read-only
+        #    surface. TRUE ONLY WITH A SCOPE, so the sentence now states it.
+        #    ⚠️ S1-171 lost "that do most of the work" — an unmeasured outcome. Hedging it would have made
+        #    it unfalsifiable rather than true. The count that remains is self-evidencing: the three rules
+        #    are in the same section, and a reader counts them without leaving it.
+        t = swap(t, _SPLIT_044['original'], _SPLIT_044['replacement'], key, 'REARGUE/S1-044-split')
+        t = swap(t, _CUT_171['original'], _CUT_171['replacement'], key, 'REARGUE/S1-171-cut')
 
     if key == 'article-pricing':
         # ⚠️ Keep what the levers ARE and how they resolve; drop every claim about what WORKS.
