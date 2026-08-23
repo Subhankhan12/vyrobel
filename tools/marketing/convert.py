@@ -106,6 +106,8 @@ from g6_housekeeping import (                                    # noqa: E402
     SPLIT_044 as _SPLIT_044, CUT_171 as _CUT_171,
 )
 from slice2_security_gdpr import SECURITY as _SEC, GDPR as _GDPR   # noqa: E402
+from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
+                             HOUSEKEEPING_SIX as _SIX_HK)   # noqa: E402
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1397,6 +1399,18 @@ def convert(key):
     if key == 'guide-security-doc':
         for _cid, _d in _SEC.items():
             t = swap(t, _d['original'], _d['replacement'], key, 'SLICE2-F/' + _cid)
+
+        # ⚠️ THE THREE THIS PAGE'S EARLIER PASS MISSED. Its four transforms above corrected 4 of the
+        #    audit's 8 FALSE claims; these close the rest that are matchable. Each was checked against
+        #    the code first — see tools/marketing/spec/six_uncorrected.py for the citations.
+        for _cid, _d in _SIX_SEC.items():
+            t = swap(t, _d['before'], _d['after'], key, 'SIX-SEC/' + _cid)
+
+    if key == 'article-housekeeping':
+        # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the
+        #    audit's FALSE list — a DIFFERENT SET ON THE SAME PAGE. This is that list.
+        for _cid, _d in _SIX_HK.items():
+            t = swap(t, _d['before'], _d['after'], key, 'SIX-HK/' + _cid)
 
     if key == 'guide-gdpr':
         for _cid, _d in _GDPR.items():

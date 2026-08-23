@@ -69,8 +69,15 @@ def owed():
     out = {}
     for i in range(1, len(parts), 3):
         url, verdict, body = parts[i], parts[i + 1].strip(), parts[i + 2]
+        # ⚠️⚠️ THE VERDICT CELL CARRIES A SEVERITY MARKER ON THE WORST ROWS: `| **FALSE** ⚠️ |`.
+        #    A first version anchored on `\| \*\*FALSE\*\* \|` and silently dropped ALL 47 of them —
+        #    ⚠️ leaving the gate blind to precisely the claims the auditor flagged hardest, and making
+        #    OWED read 173 when the audit's own headline is 220. ⚠️ THIS IS THE SECOND TIME THIS EXACT
+        #    SHAPE HAS BITTEN IN THIS FILE (the verdict regex `[A-Z]+` dropped the five multi-word
+        #    "PUBLISHABLE WITH DOC FIX" pages). ⚠️ A REGEX THAT ASSUMES AN EXACT TERMINATOR DROPS
+        #    EVERYTHING DECORATED — so match the cell, not the cell-plus-its-closing-pipe.
         claims = [m.group(1).strip() for m in
-                  re.finditer(r'^\| (.+?) \| \*\*FALSE\*\* \|', body, re.M)]
+                  re.finditer(r'^\| (.+?) \| \*\*FALSE\*\*[^|]*\|', body, re.M)]
         out[url] = {'verdict': verdict, 'false_claims': claims}
     return out
 

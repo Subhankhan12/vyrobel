@@ -15845,3 +15845,58 @@ blocker on ONE page; it blocks FOUR of the five — and no register says so.**
 **Exactly one page is both sourcing-cleared and doc-fixable: `housekeeping-at-forty-units`**, which still
 carries its 3 uncorrected FALSE claims. ⚠️ **Slice 3 NOT started** — its set is an output of this pass, and
 the output is that the slice as scoped does not exist.
+
+---
+
+## 2026-08-24 · THE SIX UNCORRECTED FALSE CLAIMS — ⚠️ and the gate was blind to 47 more
+
+### ⚠️⚠️ FIRST, A DEFECT IN THE GATE'S OWN PARSE — OWED WAS 220, NOT 173
+
+⚠️ The appendix marks its most severe rows `| **FALSE** ⚠️ |`. The gate anchored on
+`\| \*\*FALSE\*\* \|` — a pipe immediately after — and **silently dropped all 47 of them**, leaving it blind
+to precisely the claims the auditor flagged hardest. ⚠️ **Fixed, OWED reads 220 — the audit's own headline
+figure, which is independent confirmation.**
+
+⚠️⚠️ **THIS IS THE SECOND TIME THIS EXACT SHAPE HAS BITTEN IN THIS ONE FILE** — the verdict regex `[A-Z]+`
+dropped the five multi-word "PUBLISHABLE WITH DOC FIX" pages a pass earlier. **A regex that assumes an exact
+terminator drops everything decorated.** Both were found by reading, not by a failing check.
+
+⚠️ **And it corrects my own last report**: `guide-security-doc` was **4 of 8**, not "3 of 7". The row I could
+not see was `"Admins can require 2FA account-wide."` — which HAD been corrected. **The brief's "4" was right
+and my "3" was the artefact.**
+
+### The corrections — 4 written, each verified against the code FIRST
+
+| claim | what makes it false (verified) | after |
+|---|---|---|
+| *"The strength meter is not decorative — it enforces a minimum, and the generator produces something you can store in a manager…"* | ⚠️ There is **no meter on this page** — `operator-security.blade.php:76` renders only `PasswordPolicy::hint()`. Where meters exist the code says verbatim *"Presentational strength hint only"*, *"a VISUAL AID, not a gate"*. ⚠️ **No generator exists anywhere** — grep for `generatePassword`/`randomPassword`/`Str::password` returns nothing. | The requirement stated from the **constant** (`PasswordPolicy::hint()`, never typed), and the manager named as what generates it. |
+| *"a disconnected channel manager stops updating availability…"* | `OAuthScopes` holds exactly three scopes, **all read**. No write scope exists, so no connected app moves availability; a channel manager is not an OAuth app at all. | Read-only scopes stated plainly; channel connections named as a separate surface. |
+| *"A cleaner should be able to photograph the cracked screen and raise it in fifteen seconds from the room."* | `config/authorization.php:216-220` — the **Housekeeping role does not hold `maintenance.manage`**; the board view carries **zero** ticket affordances. | ⚠️ **Confirm-first cut both ways: the photograph half is REAL** (11 proof/photo references). Only the ticket half was removed, so the paragraph keeps its argument. |
+
+⚠️ **One sentence carried TWO audit claims** (meter + generator) — the S1-044 shape. Replacing it evidenced
+both, which is the derivation behaving correctly rather than counting one.
+
+⚠️ **Nothing was hedged.** No *"in our view"* anywhere: a hedged security claim leaves the reader believing in
+a protection and makes the falsehood unfalsifiable.
+
+### ⚠️ The gate's verdict, unadjusted
+
+`guide-security-doc` **7 of 8 evidenced** · `article-housekeeping` **1 of 3 evidenced**. The remaining three
+are **UNMATCHED, not corrected**: `Step 1 "Choose a method"`, `"Drag between lanes" — on the phone in their
+pocket` (the audit joined a heading and body **in reverse page order**), and the `See housekeeping` CTA.
+⚠️ **They are left alone deliberately** — locating them means deciding what the audit meant, which is the
+forced match the last ruling forbade. **Uncorrected and unevidenced, not corrected-but-unevidenced.**
+
+### ⚠️⚠️ THE DISJOINT SHAPE IS UNIVERSAL — 26 of 26 PAGES
+
+⚠️ The housekeeping split was **not an accident and not special**. Every one of the 26 mapped pages carries
+**both** an audit FALSE-claim list and `claims.json` ledger rows, and **the two are different registers
+tracking different claims** — audit = FALSE, ledger = UNSOURCED. `article-trust` is 1 FALSE against 16 ledger
+rows; `guide-checkin` is 21 FALSE against 2. ⚠️ **No pass has ever reconciled them on any page**, which is
+exactly how a page gets reported corrected on the strength of the wrong list.
+
+### ⚠️ §N.32 — THE AUDIT'S QUOTES ARE NOT VERBATIM
+
+⚠️ **88 of the 220 audit fragments do not appear in the page's own words.** They are the auditor's
+paraphrase inside quotation marks. ⚠️ **No future pass may treat an audit quotation as page text**, and the
+headline "220 FALSE claims" must be read as **approximate**, not as 220 locatable sentences.
