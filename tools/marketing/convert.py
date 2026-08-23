@@ -933,6 +933,337 @@ def convert(key):
 
     # any leftover handlebars would collide with Blade's — neutralise, and report.
     t = re.sub(r'\n\s*\n\s*\n+', '\n\n', t)
+
+    # ⚠️⚠️ PLACED HERE — AT THE VERY END — DELIBERATELY, AND THE FIRST DRAFT WAS PLACED WRONG.
+    #    The recovered spec scripts edited the FINISHED Blade file, so every needle in them is written
+    #    against the FINAL shape of the markup. Registered mid-pipeline (before Gate 7), four of them
+    #    matched and two did NOT: at that point the breadcrumb still reads `color: #2B2320`, because the
+    #    palette-literal → design-token binding a few lines above has not run yet. The zero-match check
+    #    caught it immediately and named both transforms.
+    #    ⚠️ THE FIX WAS TO MOVE THE BLOCK, NOT TO REWRITE THE NEEDLES. Rewriting them to match the raw hex
+    #    would have silently forked the port away from the record it is supposed to implement — and the
+    #    same applies to the whitespace collapse just above, which the scripts also ran after. Running last
+    #    means every SPEC needle is used exactly as the script that performed the rewrite wrote it.
+
+    # ══ (6) ⚠️⚠️ GATE 3b, RULING (A) — THE FOUR EXAMPLE-SCENARIOS PAGES ══════════════════════════
+    #
+    # ⚠️⚠️ WHY THIS BLOCK EXISTS AT ALL. These four pages carried ruling A's honesty rewrites in their
+    #    GENERATED OUTPUT ONLY — applied by two one-off scripts that edited the committed Blade. So the
+    #    converter still emitted the invented, unconsented customer identities (Kastellis Villas · Van Dijk
+    #    Stays · Hotel Alfama Reyes · Havenzicht · Casa Mirante), and REGENERATING ANY OF THESE PAGES WOULD
+    #    HAVE REPUBLISHED THEM ONTO A LIVE SITE. That is §N.31.4 again, at the largest scale it has occurred:
+    #    the /switching CTA was one dead link, this is five fabricated businesses across four pages.
+    #
+    # ⚠️⚠️ PROVENANCE IS MARKED PER TRANSFORM, AND IT IS NOT A FORMALITY. A green byte-identical diff means
+    #    two DIFFERENT things here:
+    #      · SPEC  — implements `tools/marketing/spec/rewrite.py` / `rewrite_lisbon.py`, the recovered
+    #                scripts that actually performed the rewrite. A green diff means FAITHFUL TO THE RECORD.
+    #      · RECON — reconstructed from the diff between generated and committed output, because NO spec
+    #                survives for `case-studies` or `story-rotterdam`. A green diff means only REPRODUCES
+    #                THE CURRENT FILE — which a lucky positional match would also satisfy. Hence every RECON
+    #                needle below anchors on CONTENT (the invented name, the fabricated claim, the block's
+    #                own words) and never on position, index or sibling count.
+    #
+    # ⚠️ The `>Illustrative story<` register fix and the two `Van Dijk Stays` cards are NOT collapsed into a
+    #    single shared transform despite appearing on several pages (§N.8f): the recovered spec assigns
+    #    DIFFERENT replacement text per page (cyclades says "Eighteen serviced apartments", lisbon says
+    #    "An 18-apartment operator"), so one transform cannot express them. Porting, not improving (#9).
+
+    if key in ('case-studies', 'story-cyclades', 'story-lisbon', 'story-rotterdam'):
+        # ⚠️ ONE definition of the label, shared by all four pages — §N.8f. Verified byte-identical to the
+        #    string both recovered spec scripts insert and to all four committed pages.
+        _LABEL = (
+            '<p style="margin: 14px 0 0; padding: 11px 15px; border-radius: 13px; '
+            'background: rgba(217,102,46,.12); border: 1px solid rgba(217,102,46,.26); '
+            'font-size: 13.5px; line-height: 1.55; color: var(--vy-ink); max-width: 640px;" '
+            'data-scenario-label>\u26a0\ufe0f <strong>An illustrative scenario, not a customer.</strong> '
+            'Vyrobel is new and has no published customer stories yet. This describes how the product is used '
+            'by an operation of this shape, composed from onboarding conversations. Nothing here is a claim '
+            'about a real business, and no figure is a measured result.</p>'
+        )
+
+        # ⚠️ THE LABEL IS EMITTED AS A REPLACEMENT, NEVER AN INSERT. The recovered scripts appended it into
+        #    a file they then overwrote, which DOUBLES on a second run — the exact non-idempotence the
+        #    /switching lesson warns about. Re-emitting the matched `<p …>` opening tag after the label
+        #    makes the transform a pure substitution, so the pipeline is idempotent by construction.
+
+        # ⚠️ SPEC — THE RESIDUE OF AN ELEMENT SOMETHING ELSE ALREADY REMOVED. `rewrite.py` deleted the
+        #    whole LINE its blockquote sat on. In today's pipeline transform (2) has already stripped the
+        #    quote ELEMENT much earlier — but only the element, so the line survives as pure indentation and
+        #    the page no longer reproduces. The spec's rule is therefore still needed, and still its rule:
+        #    delete the line, not just the tag.
+        #    ⚠️ THERE IS NO CONTENT TO ANCHOR ON HERE, and that is not a gap in the reconstruction — it is
+        #    the nature of the hunk: the content is precisely what was removed. The anchor is a PROPERTY of
+        #    the line (it holds nothing but whitespace), never its position, so it survives any master
+        #    change that moves the block around.
+        _before_ws = t.split('\n')
+        _kept = [l for l in _before_ws if l.strip() != '' or l == '']
+        # ⚠️ PROVENANCE IS PER PAGE HERE, and marking it SPEC everywhere would have overstated the
+        #    record: the RULE is the spec's, but only two of the four pages have a spec to take it
+        #    from. On the other two, applying it is an INFERENCE from their diff like every other
+        #    RECON transform, and the count must say so.
+        _res_prov = 'SPEC' if key in ('story-cyclades', 'story-lisbon') else 'RECON'
+        _NEEDLE_LOG.append((key, _res_prov + '/strip-removed-element-residue',
+                            len(_kept) != len(_before_ws)))
+        t = '\n'.join(_kept)
+
+    if key == 'story-cyclades':
+        # ── SPEC — every needle below is `tools/marketing/spec/rewrite.py`, verbatim ──────────────────
+        meta['title'] = 'A 42-villa portfolio across four islands | Vyrobel example scenario'
+        meta['description'] = ('An illustrative scenario: how a 42-villa manager across four islands '
+                               'replaced a channel manager, a spreadsheet per owner and a WhatsApp group '
+                               'with one platform \u2014 and stopped the month-end phone calls.')
+        for _tag, _b, _a in (
+            ('SPEC/cyc-printhead',
+             '>Customer story \u00b7 42 villas, 31 owners \u00b7 Cyclades<',
+             '>Example scenario \u00b7 42 villas, 31 owners \u00b7 four islands<'),
+            ('SPEC/cyc-letterfoot',
+             '>Kastellis Villas \u00b7 Illustrative story, composed from onboarding conversations \u00b7 vyrobel.com/case-studies<',
+             '>Illustrative scenario, composed from onboarding conversations \u00b7 vyrobel.com/case-studies<'),
+            ('SPEC/cyc-crumb-collection',
+             'font-weight: 500;">Customer stories</x-marketing.nav-link>',
+             'font-weight: 500;">Example scenarios</x-marketing.nav-link>'),
+            ('SPEC/cyc-crumb-current',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Kastellis Villas</span>',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Villa portfolio</span>'),
+            ('SPEC/cyc-eyebrow',
+             '>Villas \u00b7 Cyclades, Greece<', '>Villas \u00b7 four islands<'),
+            ('SPEC/cyc-label',
+             'one screen</h1>\n          <p style="margin: 20px 0 0;',
+             'one screen</h1>\n          ' + _LABEL + '\n          <p style="margin: 20px 0 0;'),
+            ('SPEC/cyc-standfirst',
+             '>Kastellis Villas manages holiday houses across four islands',
+             '>This operation manages holiday houses across four islands'),
+            ('SPEC/cyc-nextcard-name',
+             'line-height: 1.3;">Van Dijk Stays</span>',
+             'line-height: 1.3;">Eighteen serviced apartments</span>'),
+            ('SPEC/cyc-nextcard-sub',
+             'margin-top: 3px;">18 apartments \u00b7 Rotterdam</span>',
+             'margin-top: 3px;">A two-person family business</span>'),
+            ('SPEC/cyc-register',
+             'margin-bottom: 10px;">Illustrative story</div>',
+             'margin-bottom: 10px;">Illustrative scenario</div>'),
+        ):
+            t = swap(t, _b, _a, key, _tag)
+
+        # ⚠️⚠️ RECON — A HUNK THE SPEC DOES NOT COVER, ON A PAGE THE SPEC DOES. `rewrite.py` contains
+        #    nothing for this, yet the committed page has it removed, so some earlier hand or an older
+        #    converter did it and left no record. ⚠️ THE RECOVERED SPEC IS THEREFORE INCOMPLETE EVEN FOR
+        #    THE PAGES IT COVERS — reported, because it changes what a green diff on this page means.
+        #    ⚠️ WHAT IT IS: condition 3, no quantified ACHIEVED outcomes. "4 days → 1 afternoon" is a
+        #    measured result claimed for a business that does not exist. Its sibling card survives in the
+        #    committed page ("Direct share up" — directional, unquantified), so the rewrite was surgical
+        #    and this transform is too: it must NOT take the pair.
+        #    ⚠️ ANCHORED ON THE CLAIM ITSELF, never on the card's position among its siblings, so it cuts
+        #    the block CONTAINING the fabricated figure wherever the master moves it.
+        _cyc_claim = '4 days \u2192 1 afternoon'
+        _m = re.search(r'<div data-printcallout[^>]*>' + re.escape(_cyc_claim)
+                       + r'</div>\s*<div[^>]*>[^<]*</div>', t)
+        _NEEDLE_LOG.append((key, 'RECON/cyc-cut-quantified-outcome', _m is not None))
+        if _m:
+            t = t[:_m.start()] + t[_m.end():]
+
+    if key == 'story-lisbon':
+        # ── SPEC — every needle below is `tools/marketing/spec/rewrite_lisbon.py`, verbatim ───────────
+        meta['title'] = '96 keys, one city hotel \u2014 an example scenario | Vyrobel'
+        meta['description'] = ('A legacy PMS the front desk tolerated and nobody else could open. An '
+                               'example scenario: how a 96-key city hotel gets housekeeping, maintenance '
+                               'and the front desk onto one system.')
+        for _tag, _b, _a in (
+            ('SPEC/lis-printhead',
+             '>Customer story \u00b7 96 keys \u00b7 Lisbon</span>',
+             '>Example scenario \u00b7 96 keys \u00b7 city hotel</span>'),
+            ('SPEC/lis-letterfoot',
+             '>Hotel Alfama Reyes \u00b7 Illustrative story, composed from onboarding conversations \u00b7 vyrobel.com/case-studies</div>',
+             '>Illustrative scenario, composed from onboarding conversations \u00b7 vyrobel.com</div>'),
+            ('SPEC/lis-crumb-collection',
+             'font-weight: 500;">Customer stories</x-marketing.nav-link>',
+             'font-weight: 500;">Example scenarios</x-marketing.nav-link>'),
+            ('SPEC/lis-crumb-current',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Hotel Alfama Reyes</span>',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">A 96-key city hotel</span>'),
+            ('SPEC/lis-eyebrow',
+             '>Hotel \u00b7 Lisbon</span>', '>Hotel \u00b7 city centre</span>'),
+            ('SPEC/lis-label',
+             'The floor stopped phoning reception</h1>\n          <p style="margin: 20px 0 0;',
+             'The floor stopped phoning reception</h1>\n          ' + _LABEL + '\n          <p style="margin: 20px 0 0;'),
+            ('SPEC/lis-prevcard-name',
+             'line-height: 1.3;">Van Dijk Stays</span>',
+             'line-height: 1.3;">An 18-apartment operator</span>'),
+            ('SPEC/lis-prevcard-sub',
+             'margin-top: 3px;">18 apartments \u00b7 Rotterdam</span>',
+             'margin-top: 3px;">Apartments \u00b7 example scenario</span>'),
+            ('SPEC/lis-register',
+             '>Illustrative story</div>', '>Illustrative scenario</div>'),
+        ):
+            t = swap(t, _b, _a, key, _tag)
+
+    if key == 'story-rotterdam':
+        # ── RECON — NO SPEC SURVIVES FOR THIS PAGE. Every needle below is reconstructed from the diff
+        #    between the converter's output and the committed page, and anchored on the CONTENT it is
+        #    there to remove: the invented business names, the city pins that identify a real place, and
+        #    the quantified achieved outcomes. ⚠️ A green diff on this page therefore means "reproduces
+        #    the committed file", NOT "implements a record" — there is no record. Nothing here is anchored
+        #    on an index, an nth-child or a sibling count, so a master change moves the block without
+        #    breaking the cut.
+        meta['title'] = 'How it works for 18 serviced apartments | Vyrobel example scenario'
+        meta['description'] = ('An illustrative scenario: a two-person business paying more in OTA '
+                               'commission than it paid itself, and what changes when the same guests '
+                               'arrive through its own booking page.')
+        for _tag, _b, _a in (
+            # the print letterhead — an invented identity and a real city
+            ('RECON/rot-printhead',
+             '>Customer story \u00b7 18 serviced apartments \u00b7 Rotterdam</span>',
+             '>Example scenario \u00b7 18 serviced apartments</span>'),
+            ('RECON/rot-letterfoot',
+             '>Van Dijk Stays \u00b7 Illustrative story, composed from onboarding conversations \u00b7 vyrobel.com/case-studies</div>',
+             '>Illustrative scenario, composed from onboarding conversations \u00b7 vyrobel.com/case-studies</div>'),
+            ('RECON/rot-crumb-collection',
+             'font-weight: 500;">Customer stories</x-marketing.nav-link>',
+             'font-weight: 500;">Example scenarios</x-marketing.nav-link>'),
+            ('RECON/rot-crumb-current',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Van Dijk Stays</span>',
+             '<span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Serviced apartments</span>'),
+            ('RECON/rot-eyebrow',
+             '>Serviced apartments \u00b7 Rotterdam</span>', '>Serviced apartments</span>'),
+            # condition 5 — the label, emitted as a REPLACEMENT so a second pass cannot double it
+            ('RECON/rot-label',
+             'The year the commission became a salary</h1>\n          <p style="margin: 20px 0 0;',
+             'The year the commission became a salary</h1>\n          ' + _LABEL
+             + '\n          <p style="margin: 20px 0 0;'),
+            # ⚠️ condition 3 — "smallest migration we've run" is a claim about a BOOK OF CUSTOMERS that
+            #    does not exist; it implies a population to be smallest of.
+            ('RECON/rot-superlative',
+             ">smallest migration we've run</div>", '>start to finish</div>'),
+            # ⚠️ condition 3 — a quantified achieved outcome, in prose
+            ('RECON/rot-quantified-prose',
+             '>Direct nights went from roughly a fifth of the total to over half across one season. ',
+             '>More of the same nights arrived through their own booking page instead of a marketplace. '),
+            # the two sibling-scenario cards: invented names + city pins
+            ('RECON/rot-card-villas-name',
+             'line-height: 1.3;">Kastellis Villas</span>', 'line-height: 1.3;">Island villas</span>'),
+            ('RECON/rot-card-villas-sub',
+             'margin-top: 3px;">42 villas \u00b7 Cyclades</span>', 'margin-top: 3px;">42 villas</span>'),
+            ('RECON/rot-card-hotel-name',
+             'line-height: 1.3;">Hotel Alfama Reyes</span>', 'line-height: 1.3;">City hotel</span>'),
+            ('RECON/rot-card-hotel-sub',
+             'margin-top: 3px;">96 keys \u00b7 Lisbon</span>', 'margin-top: 3px;">96 keys</span>'),
+        ):
+            t = swap(t, _b, _a, key, _tag)
+
+        # ⚠️ condition 3 — the whole callout CARD goes here, not just its contents (which is what the
+        #    cyclades rewrite did to its equivalent). Reproduced as the committed page has it rather than
+        #    made consistent with the other page: porting, not improving (#9).
+        #    ⚠️ Anchored on the fabricated figure itself.
+        _m = re.search(r'\n\s*<div style="padding: 22px 22px;[^"]*">\s*<div data-printcallout[^>]*>'
+                       r'~20% \u2192 50%\+</div>\s*<div[^>]*>[^<]*</div>\s*</div>', t)
+        _NEEDLE_LOG.append((key, 'RECON/rot-cut-quantified-outcome', _m is not None))
+        if _m:
+            t = t[:_m.start()] + t[_m.end():]
+
+    if key == 'case-studies':
+        # ── RECON — NO SPEC SURVIVES FOR THIS PAGE EITHER, and this is the largest reconstruction of the
+        #    four (-70/+20 lines). ⚠️ A DELETION LEAVES NOTHING TO CHECK INTENT AGAINST, so every cut below
+        #    is anchored on the text that CARRIES the intent — the invented business name, the attributed
+        #    quote, the "After one season" results heading, the offer to introduce the reader to a customer
+        #    — and never on which card or section happens to sit in that position.
+        meta['title'] = 'Example scenarios \u2014 how operators use Vyrobel'
+        meta['description'] = ('Three illustrative scenarios, not customers: a multi-island villa manager, '
+                               'a small short-stay apartment operator, and an independent hotel. What '
+                               'changes, and what it takes.')
+        for _tag, _b, _a in (
+            ('RECON/cs-screen-label',
+             'data-screen-label="Marketing \u2014 Case studies"',
+             'data-screen-label="Marketing \u2014 Example scenarios"'),
+            ('RECON/cs-eyebrow', 'both;">Customer stories</div>', 'both;">Illustrative scenarios</div>'),
+            ('RECON/cs-h1',
+             '>Three businesses, three reasons for switching</h1>',
+             '>Three example scenarios, three reasons for switching</h1>'),
+            # ⚠️ THE PROVENANCE CLAIM, NOT JUST THE FIGURES. "shared with permission and rounded" asserts
+            #    consent from operators who do not exist — a fabricated warrant for fabricated numbers.
+            ('RECON/cs-standfirst-provenance',
+             " Figures are the operators' own, shared with permission and rounded.</p>", '</p>'),
+            ('RECON/cs-label',
+             'three reasons for switching</h1>\n        <p style="margin: 22px 0 0;',
+             'three reasons for switching</h1>\n        ' + _LABEL + '\n        <p style="margin: 22px 0 0;'),
+            # the section comments name the genre the ruling removed
+            ('RECON/cs-comment-1', '<!-- STORY 1 -->', '<!-- SCENARIO 1 -->'),
+            ('RECON/cs-comment-2', '<!-- STORY 2 -->', '<!-- SCENARIO 2 -->'),
+            ('RECON/cs-comment-3', '<!-- STORY 3 -->', '<!-- SCENARIO 3 -->'),
+            # ⚠️ THE AVATAR INITIALS ARE THE INVENTED PEOPLE. EK/JV/MR are Elena Kastellis, Joris van Dijk
+            #    and Marco Reyes — three names already in the honesty ledger. They survive the D13 rename
+            #    here only because their FULL names never appear on this page, so D13's `if _old in t`
+            #    guard never fires. Numbering the cards removes the person instead of inventing another.
+            ('RECON/cs-avatar-1', 'font-weight: 600;">EK</span>', 'font-weight: 600;">01</span>'),
+            ('RECON/cs-avatar-2', 'font-weight: 600;">JV</span>', 'font-weight: 600;">02</span>'),
+            ('RECON/cs-avatar-3', 'font-weight: 600;">MR</span>', 'font-weight: 600;">03</span>'),
+            # the three invented businesses, and the city pins that make them findable
+            ('RECON/cs-name-1', '>Kastellis Villas</div>', '>A villa management company</div>'),
+            ('RECON/cs-sub-1', '>42 villas \u00b7 19 owners \u00b7 Cyclades, Greece</div>',
+             '>42 villas \u00b7 19 owners \u00b7 across several islands</div>'),
+            ('RECON/cs-name-2', '>Havenzicht Stays</div>', '>A short-stay apartment operator</div>'),
+            ('RECON/cs-sub-2', '>18 apartments \u00b7 4 buildings \u00b7 Rotterdam</div>',
+             '>18 apartments \u00b7 4 buildings \u00b7 one city</div>'),
+            ('RECON/cs-name-3', '>Casa Mirante</div>', '>An independent hotel</div>'),
+            ('RECON/cs-sub-3', '>96 keys \u00b7 independent hotel \u00b7 Lisbon</div>',
+             '>96 keys \u00b7 one property</div>'),
+            # ⚠️ condition 2 — each <h2> is a QUOTATION. A quoted sentence is attributed speech even with
+            #    no name beside it: it says someone said this. Replaced with a description of what the
+            #    section is about, which is what the committed page does.
+            ('RECON/cs-quote-h2-1', '>"Our owners stopped calling at month end"</h2>',
+             '>Owner statements, moved into a portal</h2>'),
+            ('RECON/cs-quote-h2-2', '>"That\'s not a feature list, that\'s payroll"</h2>',
+             '>Moving nights from marketplaces to direct</h2>'),
+            ('RECON/cs-quote-h2-3', '>"Housekeeping runs itself now"</h2>',
+             '>Housekeeping and maintenance on one board</h2>'),
+        ):
+            t = swap(t, _b, _a, key, _tag)
+
+        # ⚠️⚠️ condition 3 — THE THREE RESULTS PANELS. Each is a heading ("After one season") followed by
+        #    its sibling list of measured outcomes for a business that does not exist. The counters inside
+        #    were already emptied upstream by transform (3), which left a panel announcing results and
+        #    showing none — worse than either state, and exactly the "heading whose content was filtered
+        #    away" defect `cut_element` was written for.
+        #    ⚠️ ANCHORED ON THE HEADING'S OWN WORDS, then extended to its NEXT SIBLING element by
+        #    structure. Not an index: the panel is found by what it says, wherever it sits.
+        for _label, _tag in (('After one season', 'RECON/cs-cut-results-1'),
+                             ('After twelve months', 'RECON/cs-cut-results-2'),
+                             ('After six months', 'RECON/cs-cut-results-3')):
+            _i = t.find(_label)
+            _ok = False
+            if _i >= 0:
+                _s1 = _element_span(t, _i, 'div')
+                if _s1 and _s1[0] <= _i < _s1[1]:
+                    _n = t.find('<div', _s1[1])
+                    _s2 = _element_span(t, _n, 'div') if _n >= 0 else None
+                    if _s2:
+                        _start = t.rfind('\n', 0, _s1[0]) + 1
+                        _end = _s2[1]
+                        if t[_end:_end + 1] == '\n':
+                            _end += 1
+                        t = t[:_start] + t[_end:]
+                        _ok = True
+            _NEEDLE_LOG.append((key, _tag, _ok))
+
+        # ⚠️⚠️ condition 4 — THE OFFER THAT PRESUPPOSES A REAL CUSTOMER. "Want to talk to one of them?" /
+        #    "We'll introduce you to an operator running something close to your setup" promises an
+        #    introduction to a business that does not exist. ⚠️ That is not a wording problem: a reader can
+        #    ACT on it, and the action cannot be honoured. The whole section goes — heading, promise and
+        #    both CTAs — because removing the promise and leaving its buttons is how a dead control
+        #    survives a cleanup (the contact page's demo booker, same lesson).
+        _i = t.find('Want to talk to one of them?')
+        _ok = False
+        if _i >= 0:
+            _sp = _element_span(t, _i, 'section')
+            if _sp and _sp[0] <= _i < _sp[1]:
+                _start = t.rfind('\n', 0, _sp[0]) + 1
+                while _start >= 2 and t[_start - 2] == '\n':
+                    _start -= 1
+                _end = _sp[1] + (1 if t[_sp[1]:_sp[1] + 1] == '\n' else 0)
+                t = t[:_start] + t[_end:]
+                _ok = True
+        _NEEDLE_LOG.append((key, 'RECON/cs-cut-introduction-offer', _ok))
+
     return meta, t.strip(), left
 
 if __name__ == '__main__':
