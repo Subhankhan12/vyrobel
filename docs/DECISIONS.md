@@ -16539,3 +16539,80 @@ agree from the moment it exists.
 `guide-checkin` still says *"nothing stops a checkout with money outstanding"* — **still true, because the
 block was not built.** No page claims company billing is impossible, so nothing went stale. Nothing was
 changed, and no register moved.
+
+---
+
+## 2026-08-25 · THE OPERATOR SURFACE · THE CHECKOUT BLOCK · THE MUTATION HARNESS (invariant #79)
+
+### #1 · The surface, gated on the VERIFIED role set
+
+`app.reservations.bill-to-account` / `.unbill-from-account`, both `can:folios.manage`. ⚠️ **Verified against
+the matrix rather than trusted from the brief** — Super Admin · Hotel Manager · Front Desk · Accountant, the
+same people who take payments, because billing to an account is a folio settlement decision. The account is
+chosen by a **keyed** `exists:company_accounts,id`, never a typed company name, and the SERVICE still
+refuses cross-org and settled folios, so the gate is defence in depth rather than the only guard.
+
+### ⚠️⚠️ #2 · The block, and the exemption that makes it defensible
+
+Rebuilt at `CheckOutReservation::handle()` — the single convergence point — reading `FolioTotals::for()`,
+the same computation the folio screen renders. `balance_minor <= 0` passes, so **credit and zero both check
+out cleanly**.
+
+⚠️⚠️ **THE GUARD TESTS THE BILLED STATE, NEVER A ZEROED BALANCE.** Billing still posts nothing, so a billed
+folio is still owed — and `OwnerCollection::reservationIsCollected()`, literally `balance_minor <= 0`, keeps
+reading UNCOLLECTED. **Zeroing the balance to make the guard "just work" would have released owner money for
+cash nobody has received.** Proven: a billed folio checks out AND `reservationIsCollected()` is still false.
+
+Message: *"€150.00 is still owed on this folio. Take the payment, bill it to a company account if they settle
+later, or post an adjustment or void the charge if it should not stand — then check out."*
+
+### #3 · The demo is company-billed, and the money did not move
+
+`owner_ledger` **29 rows · net 465360** — byte-identical, with one company-billed folio. `migrate:fresh
+--seed` clean. **Precisely because billing posts nothing.**
+
+### ⚠️⚠️ #5 · THE HARNESS — and what it now REFUSES to call a pass
+
+`tools/mutation/mutate.py`. Two guards, in order:
+
+1. ⚠️ **THE EDIT MUST HAVE HAPPENED** — the anchor matches EXACTLY once and the file digest changes.
+   **An anchor miss is an ERROR (exit 3), never a pass.** Proven by running it against a nonexistent anchor.
+2. ⚠️⚠️ **THE EDIT MUST HAVE MATTERED** — a test must FAIL under it. **A changed file is not proof of
+   changed behaviour; that is exactly how the inert `Event::listen` removal slipped through.** If everything
+   still passes it reports **NO TEST COVERS THIS** — a finding, not a pass.
+
+The file is always restored and the restore is **verified byte-for-byte** before exit. All six of this pass's
+mutations ran through it and were CAUGHT, including the trap: making billing zero the folio.
+
+### ⚠️⚠️ THE BRIEF'S PREMISE WAS WRONG, AND A PINNED TEST HAD TO BE TOUCHED
+
+The brief said `NotificationWiringTest` would stay green unamended because *"the seeded booking is BILLED,
+not PAID"*. ⚠️ **That test does not use `DemoSeeder` at all** — it builds its own fixture with
+`seedScenario()`, charging €200 and paying nothing, so the seeder change could not reach it.
+
+⚠️ **Its two fixtures were given a company billing. NOT ONE ASSERTION CHANGED** (`git diff` shows zero
+removed `expect(` lines): the balance is still €200 owed, and the notification still fires for exactly the
+reason it always did. **BILLED is not PAID.** Reported rather than done quietly, because the instruction was
+explicit and the reason given for it did not hold.
+
+### #4 · The doc, corrected — fifth attempt, first time actually due
+
+`guide-checkin` now states the block, the exemption, and what it does not block. `guide-statements` and
+`guide-payouts` were checked and **needed nothing** — neither claims "you are paid when the guest pays".
+
+### ⚠️ #6 · WHAT STILL BLOCKS THAT ARGUABLY SHOULD NOT — measured live, NOT built
+
+- ⚠️ **A €0.01 residue blocks a departure.** Measured: a folio owing 1 cent is refused. The guard is `> 0`
+  and cannot tell it from €500.
+- ⚠️⚠️ **The 6am departure is the worse one, and its cost is now measured rather than asserted:**
+  `GenerateDepartureCleanTask` fires on `reservation.checked_out`. **A blocked checkout means NO
+  departure-clean task and the unit is never flipped to dirty — housekeeping genuinely never runs**, and the
+  room shows in-house on the board.
+
+| option | cost |
+|---|---|
+| **threshold** (e.g. under €1) | fixes the rounding case only; a policy number that will be wrong for someone; does nothing for the 6am case |
+| **supervisor override** | keyed, audited, attributable — but a new permission and a new audit surface, and it re-opens "who may approve" |
+| **nothing** | the 6am case leaves rooms uncleaned, which is an operational failure rather than a money one |
+
+⚠️ **Neither built. The founder rules on evidence.**

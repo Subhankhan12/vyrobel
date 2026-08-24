@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Exceptions\Folio\RefundExceedsPaymentException;
+use App\Models\CompanyAccount;
 use App\Models\Payment;
 use App\Models\Reservation;
+use App\Services\CompanyAccountService;
 use App\Services\FolioService;
 use App\Support\Money\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 /**
  * Reservation folio money actions — REAL, append-only, driven from the styled Reservation Detail
@@ -249,5 +252,46 @@ class ReservationFolioActionController extends Controller
     private function back(string $reservationId, string $notice): RedirectResponse
     {
         return redirect()->to(route('app.reservations.show', $reservationId))->with('folio_notice', $notice);
+    }
+
+    /**
+     * ⚠️ BILL THIS FOLIO'S OUTSTANDING BALANCE TO A COMPANY ACCOUNT — the debt moves to the account; it is
+     * NOT settled and NOT collected. `CompanyAccountService` posts nothing, so the folio balance is
+     * unchanged and `OwnerCollection::reservationIsCollected()` (literally `balance_minor <= 0`) keeps
+     * reading UNCOLLECTED — which is what stops an owner being paid for money nobody has received.
+     *
+     * ⚠️ Gated `can:folios.manage` on the route (Super Admin · Hotel Manager · Front Desk · Accountant —
+     * verified against the matrix): billing to an account is a folio settlement decision, made by the same
+     * people who take payments. ⚠️ The SERVICE still enforces org isolation and refuses a settled folio, so
+     * the route is not the only thing between a caller and the state.
+     */
+    public function billToAccount(Request $request, CompanyAccountService $accounts, FolioService $folios, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+
+        $validated = $request->validate([
+            // ⚠️ A KEYED reference to a real account row — never a free-text company name.
+            'company_account_id' => ['required', 'string', 'exists:company_accounts,id'],
+        ]);
+
+        $account = CompanyAccount::query()->findOrFail($validated['company_account_id']);
+        $folio = $folios->openFolio($model);
+
+        try {
+            $accounts->bill($folio, $account);
+        } catch (InvalidArgumentException $e) {
+            return $this->back($model->id, $e->getMessage());
+        }
+
+        return $this->back($model->id, 'Billed to '.$account->name.'. The balance stays owed until they pay.');
+    }
+
+    /** ⚠️ Un-billing is a NEW STATE, not a reversal — nothing was posted, so there is nothing to reverse. */
+    public function unbillFromAccount(CompanyAccountService $accounts, FolioService $folios, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);
+        $accounts->unbill($folios->openFolio($model));
+
+        return $this->back($model->id, 'Returned to the guest’s folio.');
     }
 }

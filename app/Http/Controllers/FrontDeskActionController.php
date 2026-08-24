@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
+use App\Exceptions\Folio\OutstandingBalanceException;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\AssignmentService;
@@ -54,7 +55,13 @@ class FrontDeskActionController extends Controller
             return $this->backToBoard($request, "{$model->reference} can’t be checked out from “{$model->status}”.");
         }
 
-        $desk->checkOut($model);
+        try {
+            $desk->checkOut($model);
+        } catch (OutstandingBalanceException $e) {
+            // The service is the authority — this only surfaces its refusal, with the amount and the ways
+            // forward, because an unhelpful block is what drives a faked payment or a voided charge.
+            return $this->backToBoard($request, $e->getMessage());
+        }
 
         return $this->backToBoard($request, "Checked out {$model->reference}.");
     }

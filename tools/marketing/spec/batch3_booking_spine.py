@@ -149,10 +149,14 @@ CHECKIN = {
     # ⚠️ THERE IS NO BALANCE GUARD ON CHECKOUT and no "mark as owed" concept anywhere. ⚠️ A page promising
     # friction that does not exist is how an unpaid balance walks out of the building.
     'checkout-guard': {
+        # ⚠️ RE-CORRECTED IN THE SAME PASS AS THE BLOCK — and this is the FIRST time it is actually due.
+        #    Batch 3 correctly said nothing stopped an unpaid checkout; last pass correctly did NOT write
+        #    this, because the block was built and reverted. It ships now, so the page changes now.
         'before': 'The panel refuses to complete a checkout with money outstanding unless you explicitly '
                   'mark it as owed.',
-        'after': 'Check the balance before you complete a checkout — nothing stops a checkout with money '
-                 'outstanding.',
+        'after': 'A checkout is refused while money is owed. Take the payment, or — if a company settles '
+                 'later — bill the balance to their account and the departure goes through with the money '
+                 'still owed by them. A settled folio and one in credit both check out normally.',
     },
     # ⚠️ NO early-checkout / stay-shortening feature exists, and there is no late-checkout add-on: the only
     # 'late_checkout' in the codebase is a guest PREFERENCE label.

@@ -1168,6 +1168,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // Batch C · GATE 2 — ADD CHARGE: a new folio line via the append-only FolioService::postCharge (#17).
     Route::post('/reservations/{reservation}/charge', [ReservationFolioActionController::class, 'addCharge'])
         ->middleware('can:folios.manage')->name('reservations.charge');
+
+    // ⚠️ COMPANY ACCOUNTS — bill an outstanding folio balance to an account, or return it to the guest.
+    //    Gated like every other folio settlement decision; the service refuses cross-org and settled folios
+    //    regardless, so the gate is defence in depth rather than the only guard.
+    Route::post('/reservations/{reservation}/bill-to-account', [ReservationFolioActionController::class, 'billToAccount'])
+        ->middleware('can:folios.manage')->name('reservations.bill-to-account');
+    Route::post('/reservations/{reservation}/unbill-from-account', [ReservationFolioActionController::class, 'unbillFromAccount'])
+        ->middleware('can:folios.manage')->name('reservations.unbill-from-account');
     // Batch C · GATE 2 — MOVE ROOM: the SINGLE guarded inventory write (AssignmentService::assignUnit —
     // availability lock, no-overlap, same-room-type). Same-room-type only (Q5); a cross-type/occupied target
     // is refused. #104 GATE 0 — gated `can:reservations.assign` (the dedicated permission Group Admin/Hotel

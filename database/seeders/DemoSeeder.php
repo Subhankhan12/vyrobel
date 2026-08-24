@@ -12,6 +12,7 @@ use App\Models\Amenity;
 use App\Models\Building;
 use App\Models\Channel;
 use App\Models\ChannelMapping;
+use App\Models\CompanyAccount;
 use App\Models\Fee;
 use App\Models\Floor;
 use App\Models\Guest;
@@ -43,6 +44,7 @@ use App\Models\User;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\ChannelConnectionService;
+use App\Services\CompanyAccountService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
 use App\Services\GuestWishlistService;
@@ -550,6 +552,18 @@ class DemoSeeder extends Seeder
         $saved = app(GuestWishlistService::class);
         $saved->saveRoom($guest1, $apartment);
         $saved->joinWaitlist($guest1, $doubleRoom, ['check_in' => $this->showcaseDay(20)->toDateString(), 'check_out' => $this->showcaseDay(23)->toDateString(), 'notify_similar' => true]);
+
+        // ⚠️ DEMO — a COMPANY-BILLED departure. The walk-in leaves with its balance still owed, billed to a
+        //    demo company account so it can check out at all now that an outstanding balance blocks
+        //    departure. ⚠️ THIS MOVES NO MONEY: billing posts nothing, so the folio balance is unchanged,
+        //    `BalanceDueNotification` still fires on the checkout, and the owner ledger is untouched —
+        //    which is exactly the property that stops an owner being paid for cash nobody has received.
+        $demoAccount = CompanyAccount::query()->create([
+            'organization_id' => $walkIn->organization_id,
+            'name' => 'Northwind Logistics (demo)',
+            'reference' => 'DEMO-ACC-1',
+        ]);
+        app(CompanyAccountService::class)->bill(app(FolioService::class)->openFolio($walkIn), $demoAccount);
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
         app(CheckOutReservation::class)->handle($walkIn);

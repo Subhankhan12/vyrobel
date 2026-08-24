@@ -2,6 +2,7 @@
 
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\Channel;
+use App\Models\CompanyAccount;
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
@@ -17,6 +18,7 @@ use App\Notifications\Owner\PayoutSentNotification;
 use App\Notifications\Owner\StatementReadyNotification;
 use App\Services\AssignmentService;
 use App\Services\ChannelConnectionService;
+use App\Services\CompanyAccountService;
 use App\Services\FolioService;
 use App\Services\MaintenanceService;
 use App\Services\NotificationPreferences;
@@ -81,6 +83,15 @@ it('notifies operators of a balance still due at check-out', function () {
 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);                       // a €200 charge, no payment → balance due
+
+    // ⚠️ FIXTURE ONLY — the assertion below is unchanged. An outstanding balance now BLOCKS checkout, and
+    //    the one exemption is a folio billed to a company account. Billing posts NOTHING, so the balance is
+    //    still €200 owed and the notification behaves exactly as it always did. BILLED is not PAID.
+    $account = CompanyAccount::query()->create([
+        'organization_id' => $reservation->organization_id, 'name' => 'Northwind Ltd',
+    ]);
+    app(CompanyAccountService::class)
+        ->bill(app(FolioService::class)->openFolio($reservation), $account);
     app(CheckOutReservation::class)->handle($reservation);   // fires reservation.checked_out
 
     expect(notifsOfType($operator, BalanceDueNotification::class))->toBe(1);
@@ -175,6 +186,15 @@ it('respects the preference toggle for a newly-wired event (balance_due off → 
 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     postRoom($reservation, 20000);
+
+    // ⚠️ FIXTURE ONLY — the assertion below is unchanged. An outstanding balance now BLOCKS checkout, and
+    //    the one exemption is a folio billed to a company account. Billing posts NOTHING, so the balance is
+    //    still €200 owed and the notification behaves exactly as it always did. BILLED is not PAID.
+    $account = CompanyAccount::query()->create([
+        'organization_id' => $reservation->organization_id, 'name' => 'Northwind Ltd',
+    ]);
+    app(CompanyAccountService::class)
+        ->bill(app(FolioService::class)->openFolio($reservation), $account);
     app(CheckOutReservation::class)->handle($reservation);
 
     expect(notifsOfType($operator, BalanceDueNotification::class))->toBe(0);   // gated off — not delivered
