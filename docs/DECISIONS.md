@@ -15900,3 +15900,74 @@ exactly how a page gets reported corrected on the strength of the wrong list.
 ⚠️ **88 of the 220 audit fragments do not appear in the page's own words.** They are the auditor's
 paraphrase inside quotation marks. ⚠️ **No future pass may treat an audit quotation as page text**, and the
 headline "220 FALSE claims" must be read as **approximate**, not as 220 locatable sentences.
+
+---
+
+## 2026-08-24 · THE ~120 CORRECTION PHASE · BATCH 1 — THE MONEY PAGES
+
+⚠️ Batched by CONSEQUENCE, hardest first: a false sentence about how an owner gets PAID or a guest gets money
+BACK is the kind a customer acts on and then disputes. **21 transforms across `payout-runs`,
+`owner-statements` and `refunds-and-changes`.**
+
+### ⚠️ SUBSYSTEMS VERIFIED ONCE, APPLIED ACROSS ALL THREE (§N.8f)
+
+`Payout::LIVE_STATUSES` = pending/processing/held/paid (+failed) — **there is no "Scheduled" state**;
+`engine_enabled` defaults **false**; `Iban::isValid()` runs at ENTRY so a bad checksum never reaches a payout;
+`hold()` has **exactly one caller** (the tax hold) and no route reaches it; `createFromStatement()` retries a
+failed payout with **no check that anything changed**. `service_date` is `check_in` for the **whole stay**;
+commission is **always** on gross; there is **no unpublish**. The cancel path reads the **property**-level
+`free_until_days` and answers **one binary question**; `reschedule()` **never reprices**.
+
+### ⚠️ CONFIRM-FIRST CUT BOTH WAYS — THREE TIMES
+
+- ⚠️ **The audit is STALE on statement generation.** It says `generateDraft`/`finalize` are reachable only
+  from seeders and tests. **A real caller now exists** — the operator route `owners.close-period` — built
+  after the audit. The claim is **half true**: generation is real but **manual**, never scheduled. Only the
+  "on the schedule set in Settings" half was cut.
+- ⚠️ **"Nights release immediately" is TRUE** — the cancel path is synchronous. Only "across every channel"
+  went (the client resolves to `FakeChannexClient`).
+- ⚠️ A per-owner payout day and offset **are** real (`PayoutSchedule`); only "the run happens" went.
+
+### ⚠️⚠️ A REAL PRODUCT DEFECT, REPORTED NOT FIXED
+
+`/docs/refunds-and-changes` claimed: *"Whether that lands on the owner or on you depends on cause… **Vyrobel
+asks you which, and does not guess, because guessing wrong is an argument.**"*
+
+⚠️ **The product does the opposite of what that sentence promises.** Nothing asks. `AdjustOwnerLedgerOnRefund`
+(wired at `AppServiceProvider:439`) debits the **owner's** ledger on every succeeded refund against an
+owner-attributed reservation — including a refund caused by the operator's own service failure. ⚠️ **The prose
+is corrected here; the behaviour is a product decision for the founder.**
+
+### ⚠️ BOTH REGISTERS, PER PAGE — cleared ≠ corrected
+
+| page | audit-FALSE owed/done/still/unmatched | ledger rows / blocking | CORRECTED | CLEARED |
+|---|---|---|---|---|
+| `guide-payouts` | 12 / 8 / **0** / 4 | 7 / 0 | ✅ | ✅ |
+| `guide-statements` | 8 / 7 / **0** / 1 | 4 / **1** | ✅ | ⚠️ **NO** |
+| `guide-refunds` | 11 / 11 / **0** / 0 | 6 / 0 | ✅ | ✅ |
+
+⚠️ **`guide-statements` is CORRECTED but NOT CLEARED** — one unsourced ledger claim still blocks it. These are
+different questions and conflating them produced two wrong reports already.
+
+### ⚠️ A NEEDLE COLLISION WORTH RECORDING
+
+One needle silently overlapped a sentence a **G6 rationale reframe already owned**, so it missed rather than
+double-transforming. ⚠️ **The zero-match check caught it** — the needle was narrowed to the still-false clause.
+Two other needles had to start mid-run because `</strong>` splits the sentence a reader sees. ⚠️ **Four of my
+first-draft `before` strings were reconstructed from the CONVERTED output rather than the master** — the exact
+error this batch was warned about, caught by the check rather than by review.
+
+### Running total: **46 of 220 evidenced · 86 outstanding · 88 unmatched**
+
+### ⚠️ PROPOSED ORDER FOR THE REMAINING BATCHES (by consequence)
+
+**B2 — access & data:** `guide-access` (7), `guide-gdpr` (10), `guide-security-doc` (1 left) — ⚠️ a false
+access or deletion claim is a compliance exposure, not an inconvenience.
+**B3 — the booking spine:** `guide-reservation` (12), `guide-checkin` (21), `guide-arrival` (14) — ⚠️ 47
+claims, the largest block; wrong here means a guest is turned away.
+**B4 — channels & rates:** `guide-channels` (16), `guide-rates` (10), `guide-storefront` (7) — ⚠️ overselling
+risk, but `guide-channels` is account-gated so some claims may be honest-pending rather than false.
+**B5 — the rest:** `guide-settings` (11), `guide-reports` (10), `guide-housekeeping` (7), `guide-setup` (6),
+`docs` (6), `faq` (6), `resources` (7).
+**B6 — the articles** (`article-*`) — ⚠️ **lowest consequence but mostly sourcing-BLOCKED**, so correcting
+them does not make them publishable.

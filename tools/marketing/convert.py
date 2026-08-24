@@ -106,6 +106,8 @@ from g6_housekeeping import (                                    # noqa: E402
     SPLIT_044 as _SPLIT_044, CUT_171 as _CUT_171,
 )
 from slice2_security_gdpr import SECURITY as _SEC, GDPR as _GDPR   # noqa: E402
+from batch1_money import (PAYOUTS as _B1_PAY, STATEMENTS as _B1_STMT,   # noqa: E402
+                          REFUNDS as _B1_REF)                           # noqa: E402
 from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
                              HOUSEKEEPING_SIX as _SIX_HK)   # noqa: E402
 
@@ -1405,6 +1407,16 @@ def convert(key):
         #    the code first — see tools/marketing/spec/six_uncorrected.py for the citations.
         for _cid, _d in _SIX_SEC.items():
             t = swap(t, _d['before'], _d['after'], key, 'SIX-SEC/' + _cid)
+
+    # ⚠️ BATCH 1 OF THE ~120 — THE MONEY PAGES, ordered by CONSEQUENCE. A false sentence about how an
+    #    owner gets PAID or a guest gets money BACK is the kind a customer acts on and then disputes, so
+    #    every replacement was checked against the code first (citations in spec/batch1_money.py).
+    for _pg, _rules, _tag in (('guide-payouts', _B1_PAY, 'B1-PAY'),
+                              ('guide-statements', _B1_STMT, 'B1-STMT'),
+                              ('guide-refunds', _B1_REF, 'B1-REF')):
+        if key == _pg:
+            for _cid, _d in _rules.items():
+                t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)
 
     if key == 'article-housekeeping':
         # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the
