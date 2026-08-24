@@ -137,6 +137,11 @@ class ReservationDetail extends Component
 
         return view('livewire.reservation-detail', [
             'viewer' => $this->viewer(),
+            // ⚠️ The mid-stay date only means something once the guest has arrived: before that the whole
+            //    stay follows the unit and there are no nights to divide.
+            'stayStarted' => CarbonImmutable::parse($reservation->check_in)->startOfDay()
+                ->lessThanOrEqualTo(CarbonImmutable::now()->startOfDay()),
+            'today' => CarbonImmutable::now()->toDateString(),
             'terminal' => $this->terminalState($reservation, $status, $meta),
             'timeline' => $this->timeline($reservation, $folioModel),
             // Cancellation policy is CONTEXT for a CANCELLATION — so it shows exactly where it is

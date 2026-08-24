@@ -302,6 +302,22 @@
                                         </select>
                                         <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Moving…">Move room</x-busy-btn>
                                     </div>
+
+                                    {{-- ⚠️ MID-STAY: WHICH NIGHT DID THE GUEST FIRST SLEEP IN THE NEW UNIT?
+                                         Shown only once the stay has started — before arrival the whole stay
+                                         goes to the new unit's owner and there is nothing to split.
+                                         ⚠️ DEFAULTS TO TODAY so the honest case is one click; changing it is a
+                                         deliberate act, and the date you state is recorded alongside the moment
+                                         you stated it. ⚠️ Same wording as the audit and the guide, on purpose:
+                                         two people reading "the move date" differently mis-attributes money. --}}
+                                    @if ($stayStarted ?? false)
+                                        <label class="vy-field-label" style="margin-top:10px">First night in the new unit</label>
+                                        <input type="date" name="effective_date" class="vy-input"
+                                               value="{{ $today ?? '' }}" max="{{ $today ?? '' }}">
+                                        <p style="font-size:11.5px;color:var(--vy-muted);margin:4px 0 0">
+                                            Nights before this date stay with the old unit; this night and after move with the guest.
+                                        </p>
+                                    @endif
                                 </form>
                             @elseif ($u['status'] === 'active')
                                 <div class="vy-defer-item" style="margin-top: 12px;"><span>Move {{ $u['unit'] ? 'unit '.$u['unit'] : $u['room_type'] }}</span><span class="vy-soon-tag" title="No free same-type units for these dates">No free units</span></div>

@@ -176,10 +176,17 @@ CHECKIN = {
         #    have this arc create the very defect it exists to remove, by its own hand.
         #    ⚠️ The mid-stay case is stated honestly because the product genuinely cannot split it: no
         #    record says when the guest actually moved.
+        # ⚠️ RE-CORRECTED AGAIN, IN THE SAME PASS AS THE PRODUCT CHANGE — the FOURTH time this page has
+        #    needed it (refunds → borne-by → re-attribution → the split). The pattern is now the rule: a
+        #    doc sentence describing a limitation goes stale the moment the limitation is lifted.
+        #    ⚠️ THE BOUNDARY IS WORDED IDENTICALLY HERE, IN THE FORM AND IN THE AUDIT: the first night the
+        #    guest slept in the new unit. Two people reading "the move date" differently mis-attributes
+        #    money silently and repeatedly.
         'after': 'The change keeps their history, their rate and their folio, and the earnings follow the '
-                 'unit — move it before the guest arrives and the whole stay goes to the new unit’s '
-                 'owner. Move it after they have arrived and the earnings stay where they were, because '
-                 'nothing records which night they changed rooms.',
+                 'unit. Move it before the guest arrives and the whole stay goes to the new unit\u2019s '
+                 'owner. Move it mid-stay and you state which night they first slept in the new unit — '
+                 'nights before it stay with the old unit, that night and after move with the guest. The '
+                 'date you state is recorded alongside the moment you stated it.',
     },
     'waiting-luggage': {
         'before': 'Mark the guest as waiting so the floor knows, store their luggage, and note it on the '

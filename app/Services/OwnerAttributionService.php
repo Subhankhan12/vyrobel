@@ -10,6 +10,7 @@ use App\Models\ManagementAgreement;
 use App\Models\OwnerLedgerEntry;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
+use App\Models\ReservationUnitMove;
 use App\Models\Unit;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
@@ -282,23 +283,44 @@ class OwnerAttributionService
         $roomParts = $roomTotal->allocate($weights);
 
         // Which lines are owner-attributable (owned unit + a governing agreement on that night)?
+        //
+        // ⚠️ A LINE MAY SPAN MORE THAN ONE OWNER. A mid-stay move records the FIRST NIGHT THE GUEST SLEPT
+        //    IN THE NEW UNIT, which cuts the line into consecutive segments — nights before the date belong
+        //    to the old unit's owner, that night and after to the new one. N segments, not two: a guest can
+        //    move twice, and A→B→A gives one owner two separate segments.
+        //
+        // ⚠️⚠️ THE ARITHMETIC IS EXACT BY CONSTRUCTION, NOT BY HOPE. The line-level allocate() above is
+        //    untouched, so a line with no moves behaves byte-identically to before; a segmented line then
+        //    sub-allocates ITS OWN part with the same remainder-distributing allocator. Each level hands
+        //    out exactly what it was given, so Σ(segments) == the line's part == the room total, to the
+        //    cent, at every ratio. Nothing is computed twice and hoped to agree.
         $ownerLines = [];      // index => context
         $ownerRoomWeights = []; // index => weight for reservation-level distribution (OTA/cleaning/addon)
         foreach ($activeLines as $i => $ru) {
-            $unit = $ru->unit_id !== null ? Unit::find($ru->unit_id) : null;
-            if ($unit === null || $unit->owner_id === null) {
-                continue; // operator inventory — not owner-attributed
-            }
+            $segments = $this->segmentsFor($ru);
+            $segNights = array_map(static fn (array $sg): int => $sg['nights'], $segments);
+            $segRoom = count($segments) === 1 ? [$roomParts[$i]] : $roomParts[$i]->allocate($segNights);
 
-            $agreement = ManagementAgreement::resolveFor((string) $unit->owner_id, (string) $unit->id, $ru->check_in);
-            $ownerLines[$i] = [
-                'ru' => $ru,
-                'unit' => $unit,
-                'owner_id' => (string) $unit->owner_id,
-                'agreement' => $agreement,
-                'room' => $roomParts[$i],
-            ];
-            $ownerRoomWeights[$i] = max(1, $roomParts[$i]->amountMinor());
+            foreach ($segments as $sIdx => $sg) {
+                $unit = $sg['unit_id'] !== null ? Unit::find($sg['unit_id']) : null;
+                if ($unit === null || $unit->owner_id === null) {
+                    continue; // operator inventory — not owner-attributed
+                }
+
+                $agreement = ManagementAgreement::resolveFor((string) $unit->owner_id, (string) $unit->id, $sg['from']);
+                $idx = $i.'_'.$sIdx;
+                $ownerLines[$idx] = [
+                    'ru' => $ru,
+                    'unit' => $unit,
+                    'owner_id' => (string) $unit->owner_id,
+                    'agreement' => $agreement,
+                    'room' => $segRoom[$sIdx],
+                    'segment' => $sIdx,
+                    'nights' => $sg['nights'],
+                    'service_date' => $sg['from'],
+                ];
+                $ownerRoomWeights[$idx] = max(1, $segRoom[$sIdx]->amountMinor());
+            }
         }
 
         // Reservation-level fee/add-on totals (folio ledger), distributed across owner lines by room.
@@ -324,7 +346,9 @@ class OwnerAttributionService
                 $ru = $ctx['ru'];
                 $unitId = (string) $ctx['unit']->id;
                 $ownerId = $ctx['owner_id'];
-                $serviceDate = CarbonImmutable::parse($ru->check_in)->toDateString();
+                // ⚠️ The SEGMENT's own first night — not the line's check-in — so a moved stay lands on the
+                //    right owner's statement period as well as the right owner.
+                $serviceDate = $ctx['service_date'];
                 $agreement = $ctx['agreement'];
 
                 // NULL governing agreement on a covered date → attribute NOTHING, flag explicitly.
@@ -350,8 +374,9 @@ class OwnerAttributionService
                     'entry_type' => 'room_revenue',
                     'direction' => 'credit',
                     'amount' => $room,
-                    'description' => 'Room revenue · '.$this->nights($ru).' night(s)',
+                    'description' => 'Room revenue · '.$ctx['nights'].' night(s)',
                     'service_date' => $serviceDate,
+                    'segment' => $ctx['segment'],
                     'meta' => ['room_minor' => $room->amountMinor()],
                 ]);
 
@@ -629,12 +654,81 @@ class OwnerAttributionService
      *
      * @param  array<string, mixed>  $attrs
      */
+    /**
+     * ⚠️ THE SEGMENTS OF ONE LINE — the periods it spent under each unit, in order.
+     *
+     * ⚠️ THE BOUNDARY, IN THE SAME WORDS EVERYWHERE IT APPEARS: the effective date is THE FIRST NIGHT THE
+     * GUEST SLEPT IN THE NEW UNIT. Nights BEFORE it belong to the old unit's owner; that night and AFTER
+     * belong to the new one. Two operators reading "the move date" differently is a silent, recurring
+     * mis-attribution, so it is stated identically in the UI, the audit and the documentation.
+     *
+     * ⚠️ With no moves this returns exactly ONE segment covering the whole line, which is why an unmoved
+     * booking attributes byte-identically to before this existed.
+     *
+     * @return list<array{unit_id: string|null, from: string, nights: int}>
+     */
+    private function segmentsFor(ReservationUnit $ru): array
+    {
+        $moves = ReservationUnitMove::query()
+            ->where('reservation_unit_id', $ru->getKey())
+            ->orderBy('effective_date')
+            ->get();
+
+        $checkIn = CarbonImmutable::parse($ru->check_in)->startOfDay();
+        $checkOut = CarbonImmutable::parse($ru->check_out)->startOfDay();
+
+        if ($moves->isEmpty()) {
+            return [[
+                'unit_id' => $ru->unit_id === null ? null : (string) $ru->unit_id,
+                'from' => $checkIn->toDateString(),
+                'nights' => max(1, (int) $checkIn->diffInDays($checkOut)),
+            ]];
+        }
+
+        $segments = [];
+        $cursor = $checkIn;
+        $unitId = $moves->first()->from_unit_id;
+
+        foreach ($moves as $move) {
+            $boundary = CarbonImmutable::parse($move->effective_date)->startOfDay();
+            $nights = (int) $cursor->diffInDays($boundary);
+            if ($nights > 0) {
+                $segments[] = [
+                    'unit_id' => $unitId === null ? null : (string) $unitId,
+                    'from' => $cursor->toDateString(),
+                    'nights' => $nights,
+                ];
+            }
+            $cursor = $boundary;
+            $unitId = $move->to_unit_id;
+        }
+
+        $tail = (int) $cursor->diffInDays($checkOut);
+        if ($tail > 0) {
+            $segments[] = [
+                'unit_id' => $unitId === null ? null : (string) $unitId,
+                'from' => $cursor->toDateString(),
+                'nights' => $tail,
+            ];
+        }
+
+        return $segments === [] ? [[
+            'unit_id' => $ru->unit_id === null ? null : (string) $ru->unit_id,
+            'from' => $checkIn->toDateString(),
+            'nights' => max(1, (int) $checkIn->diffInDays($checkOut)),
+        ]] : $segments;
+    }
+
     private function post(Reservation $reservation, string $ownerId, string $unitId, int $version, array $attrs): OwnerLedgerEntry
     {
         /** @var Money $amount */
         $amount = $attrs['amount'];
+        // ⚠️ THE SEGMENT SUFFIX EXISTS BECAUSE A→B→A PUTS THE SAME UNIT IN TWO SEGMENTS OF ONE STAY.
+        //    Without it both segments would derive the identical key and the second would silently
+        //    firstOrCreate onto the first — one owner's nights vanishing into the other's row.
+        $seg = isset($attrs['segment']) ? ':s'.$attrs['segment'] : '';
         $key = $attrs['idempotency_key']
-            ?? $reservation->getKey().':'.$unitId.':'.$attrs['entry_type'].':v'.$version;
+            ?? $reservation->getKey().':'.$unitId.$seg.':'.$attrs['entry_type'].':v'.$version;
 
         return OwnerLedgerEntry::firstOrCreate(
             ['idempotency_key' => $key],

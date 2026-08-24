@@ -15,6 +15,7 @@ use App\Models\OverbookingConflict;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\ReservationUnit;
+use App\Models\ReservationUnitMove;
 use App\Models\Unit;
 use App\Models\UnitRateOverride;
 use App\Support\Events\AuditEventRecorder;
@@ -330,7 +331,7 @@ class AssignmentService
      * the target unit; `sold` is unchanged (same room_type + nights). The old unit is released
      * implicitly (the same row now points to the new unit).
      */
-    public function assignUnit(ReservationUnit $reservationUnit, string $unitId): ReservationUnit
+    public function assignUnit(ReservationUnit $reservationUnit, string $unitId, ?string $effectiveDate = null): ReservationUnit
     {
         $unit = Unit::query()->findOrFail($unitId);
 
@@ -356,18 +357,65 @@ class AssignmentService
         // (36666a8) is unchanged, and a DIRECT booking is deliberately unaffected: it may take any unit.
         $this->assertNotOverriddenForOtaStay($reservationUnit, $unitId);
 
+        // ⚠️⚠️ THE MID-STAY EFFECTIVE DATE — THE FIRST NIGHT THE GUEST SLEPT IN THE NEW UNIT.
+        //    Nights before it belong to the old unit's owner; that night and after belong to the new one.
+        //    ⚠️ BOUNDED BY ARITHMETIC, NOT POLICY, AND REFUSED HERE RATHER THAN IN THE UI: a move cannot
+        //    take effect before the guest arrived or after they left, because there are no nights there to
+        //    attribute. A future date is refused for the same reason — nothing would ever apply it.
+        if ($effectiveDate !== null) {
+            $eff = CarbonImmutable::parse($effectiveDate)->startOfDay();
+            $ci = CarbonImmutable::parse($reservationUnit->check_in)->startOfDay();
+            $co = CarbonImmutable::parse($reservationUnit->check_out)->startOfDay();
+
+            if ($eff->lessThanOrEqualTo($ci) || $eff->greaterThanOrEqualTo($co)) {
+                throw new InvalidArgumentException(
+                    'A mid-stay move date must fall inside the stay: the first night in the new unit is '
+                    .'after check-in and before check-out.'
+                );
+            }
+
+            if ($eff->greaterThan(CarbonImmutable::now()->startOfDay())) {
+                throw new InvalidArgumentException('A mid-stay move date cannot be in the future.');
+            }
+        }
+
         $fromUnitId = $reservationUnit->unit_id;
 
-        DB::transaction(function () use ($reservationUnit, $unitId): void {
+        DB::transaction(function () use ($reservationUnit, $unitId, $effectiveDate, $fromUnitId): void {
             $nights = $this->nights($reservationUnit->check_in, $reservationUnit->check_out);
             $this->lockAvailability((string) $reservationUnit->room_type_id, $nights); // serialize
             $this->assertUnitFree($unitId, $reservationUnit->check_in, $reservationUnit->check_out, (string) $reservationUnit->getKey());
             $reservationUnit->update(['unit_id' => $unitId]);
+
+            // ⚠️ The move record is written INSIDE the same transaction as the assignment, so the
+            //    attribution can never read a moved line whose segment boundary is not yet recorded.
+            if ($effectiveDate !== null) {
+                ReservationUnitMove::create([
+                    'organization_id' => $reservationUnit->organization_id,
+                    'reservation_unit_id' => $reservationUnit->getKey(),
+                    // ⚠️ CAPTURED BEFORE THE UPDATE. Eloquent syncs originals on save, so reading
+                    //    getOriginal('unit_id') here would return the NEW unit and the first segment
+                    //    would silently be attributed to the owner the guest moved TO.
+                    'from_unit_id' => $fromUnitId,
+                    'to_unit_id' => $unitId,
+                    'effective_date' => CarbonImmutable::parse($effectiveDate)->toDateString(),
+                    // ⚠️ BOTH DATES. The delta is the manipulation signal; a lone effective date cannot be
+                    //    told apart from an honest one.
+                    'stated_at' => CarbonImmutable::now(),
+                    'stated_by_user_id' => auth()->id(),
+                ]);
+            }
         });
 
         $eventType = $fromUnitId === null ? 'reservation_unit.assigned' : 'reservation_unit.moved';
         $this->domainEvents->record($eventType, $reservationUnit, ['from_unit_id' => $fromUnitId, 'to_unit_id' => $unitId]);
-        $this->audit->record($eventType, $reservationUnit, ['unit_id' => $fromUnitId], ['unit_id' => $unitId]);
+        // ⚠️ This moves money between two third parties on one person's say-so, so the audit carries the
+        //    stated date AND the moment it was stated, plus who stated it (recorded by the auditor).
+        $this->audit->record($eventType, $reservationUnit, ['unit_id' => $fromUnitId], array_filter([
+            'unit_id' => $unitId,
+            'effective_date' => $effectiveDate === null ? null : CarbonImmutable::parse($effectiveDate)->toDateString(),
+            'stated_at' => $effectiveDate === null ? null : CarbonImmutable::now()->toDateTimeString(),
+        ], static fn ($v): bool => $v !== null));
 
         return $reservationUnit->refresh();
     }

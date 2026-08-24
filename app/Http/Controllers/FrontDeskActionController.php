@@ -80,6 +80,13 @@ class FrontDeskActionController extends Controller
         $validated = $request->validate([
             'reservation_unit_id' => ['required', 'string'],
             'unit_id' => ['required', 'string'],
+            // ⚠️ THE FIRST NIGHT THE GUEST SLEPT IN THE NEW UNIT. Only meaningful once the stay has
+            //    started; `AssignmentService` refuses anything outside the stay or in the future, so the
+            //    bound lives at the boundary rather than only here.
+            //    ⚠️ Gated by `reservations.assign` — the SAME permission as the move itself. Whoever
+            //    performs the move knows which night the guest changed rooms; gating the date more
+            //    tightly would mean the person who knows cannot state it.
+            'effective_date' => ['nullable', 'date'],
         ]);
 
         $line = $model->reservationUnits->firstWhere('id', $validated['reservation_unit_id']);
@@ -88,7 +95,8 @@ class FrontDeskActionController extends Controller
         }
 
         try {
-            $assignment->assignUnit($line, (string) $validated['unit_id']);
+            $eff = $validated['effective_date'] ?? null;
+            $assignment->assignUnit($line, (string) $validated['unit_id'], is_string($eff) && $eff !== '' ? $eff : null);
         } catch (UnitUnavailableException|InvalidArgumentException) {
             // Occupied for these dates, or a different room type — the move is refused by the guard.
             return $this->afterMove($request, $model->id, 'That room isn’t available for these dates — pick another.');

@@ -16324,3 +16324,68 @@ already work per-owner.
 point is that *"I extended it and the suite passed"* proves the OLD behaviour survived, not that the NEW
 shape is right. ⚠️ **The `guide-checkin` sentence stays accurate** ("the earnings stay where they were,
 because nothing records which night the guest changed rooms") — it is still true, so it was not touched.
+
+---
+
+## 2026-08-25 · ⚠️ MONEY PATH — THE MID-STAY SPLIT (invariant #77)
+
+⚠️ The previous pass established expressibility and STOPPED, reporting Option A (split the line — touches
+the certified inventory path and six `reservationUnits->first()` readers, **including `ArrivalPack`, which
+would have shown a moved guest the door code of the room they left**) against Option B (keep one line,
+record the move). ⚠️ **The brief was re-sent unchanged, which is a reaffirmation, so B was built as
+recommended.**
+
+### ⚠️ EXPRESSIBILITY — THE CERTIFIED CODE COULD ALREADY DO MOST OF IT
+
+`attributeAtVersion()` already loops lines and attributes each to its own owner, and `Money::allocate()` is
+already a remainder-exact N-way allocator. ⚠️ **So no new arithmetic was written.** The extension is one
+loop learning that a LINE can span more than one owner.
+
+⚠️⚠️ **THE EXACTNESS IS BY CONSTRUCTION, NOT BY HOPE.** The line-level `allocate()` is untouched — an
+unmoved booking attributes **byte-identically** to before — and a segmented line then sub-allocates **its
+own part** with the same allocator. Each level distributes exactly what it was given, so
+Σ(segments) == the line's part == the room total, at every ratio. **Nothing is computed twice and hoped to
+agree.** Proven across **30 combinations** (5 totals incl. 100003, 99999 and 7 minor units × 6 boundaries).
+
+### ⚠️ WHAT THE MUTATIONS FOUND
+
+Six mutations, each **proven to change behaviour**: one cent removed → RED · segment suffix dropped (A→B→A
+key collision) → RED · date bound removed → RED · N segments collapsed → RED · moves ignored → RED.
+
+⚠️⚠️ **AND ONE CAUGHT MY OWN TEST.** The "both dates" mutation (`stated_at` = the effective date) **PASSED**,
+because the assertion was `statedLateDays() >= 0` — **satisfied by `stated_at` merely copying the effective
+date, which is exactly the shape that makes backdating undetectable.** Strengthened to an exact 5-day gap;
+the mutation now REDs. ⚠️ **A vacuous assertion on a manipulation signal is worse than none, because it
+reads as coverage.**
+
+⚠️ **A second real bug, found by a failing test:** `from_unit_id` was read via `getOriginal('unit_id')`
+**after** `update()`. Eloquent syncs originals on save, so it returned the NEW unit and **the first segment
+was attributed to the owner the guest moved TO.** Now captured before the update.
+
+### The rest
+
+**Bounded by arithmetic at the boundary** (`AssignmentService`, not the UI): refused on/before check-in,
+on/after check-out, and in the future. ⚠️ **Forward-dating is NOT a real case** — a move can only be stated
+for a night that has happened, and this surfaced concretely when fixtures booked wholly in the future could
+not express a mid-stay move at all.
+**Both dates stored** (`effective_date` + `stated_at` + `stated_by_user_id`), and the audit row carries both.
+**Defaults to today**, rendered only once the stay has started; **gated by `reservations.assign`** — the same
+permission as the move, held by Super Admin, Hotel Manager and **Front Desk**, who are the people who
+actually know which night the guest changed rooms.
+**Sealed periods**: proven marked on **both** owners — the one losing nights and the one gaining them.
+**N segments**: three-segment stay proven; **A→B→A merges** (A holds 40000 across two segments, B 20000) —
+which only works because the idempotency key carries the segment.
+
+**Certified owner-accounting suite: 300 green, UNAMENDED.**
+
+### ⚠️ THE BOUNDARY, IN ONE SENTENCE, IN THREE PLACES
+
+*"The first night the guest slept in the new unit — nights before it stay with the old unit; that night and
+after move with the guest."* Identical in the migration/service comments, the move form, and `guide-checkin`.
+
+### The doc, re-corrected a FOURTH time
+
+`guide-checkin`: **14 owed / 13 done / 0 still / 1 unmatched · 2 ledger rows / 0 blocking · CORRECTED ·
+CLEARED.** `guide-statements` **CORRECTED but NOT CLEARED** (1 unsourced ledger claim) and `guide-payouts`
+both — neither needed a change: their "adjustment"/"carried forward" language already describes the
+prior-period path correctly.
