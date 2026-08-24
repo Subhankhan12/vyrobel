@@ -25,6 +25,9 @@ class Folio extends Model
         'reservation_id',
         'currency',
         'status',
+        'billed_by_user_id',
+        'billed_at',
+        'billed_to_account_id',
         'total',
         'total_minor',
         'paid',
@@ -39,6 +42,7 @@ class Folio extends Model
     protected function casts(): array
     {
         return [
+            'billed_at' => 'datetime',
             'total' => MoneyCast::class.':total_minor,currency',
             'paid' => MoneyCast::class.':paid_minor,currency',
             'balance' => MoneyCast::class.':balance_minor,currency',

@@ -16464,3 +16464,78 @@ disagrees with it in the form of a notification built for exactly that state.
 `guide-checkin` currently says *"Check the balance before you complete a checkout — nothing stops a checkout
 with money outstanding."* ⚠️ **That is still true, so the fifth re-correction is not yet due.** Correcting it
 to describe a block that was reverted would have been the fabrication this whole arc exists to remove.
+
+---
+
+## 2026-08-25 · COMPANY ACCOUNTS — THE HONEST MINIMUM (invariant #78)
+
+### #1 · What existed: **nothing**, and nothing was overloaded
+
+⚠️ No company-account, receivable, invoice or settlement-terms concept exists anywhere. The adjacent things
+that turned up were all **left alone**: `organizations.billing_company` is the OPERATOR'S OWN subscription
+billing identity; `owners` is the property-owner party; and ⚠️ **`reservations.source = 'corporate'` is a
+BOOKING CHANNEL — how the booking arrived, not how it settles.** Overloading it would have been one field
+answering two questions.
+
+### ⚠️⚠️ #4 FIRST, BECAUSE IT DECIDED THE WHOLE DESIGN
+
+**`OwnerCollection::reservationIsCollected()` is literally `FolioTotals::for($folio)['balance_minor'] <= 0`.**
+
+⚠️⚠️ **So if billing to an account had reduced the folio balance, the collection gate would have counted it
+as collected THE INSTANT it was billed** — and the payout engine would have released money to owners that
+nobody has received, out of the operator's own working capital, surfacing months later as an untraceable
+shortfall.
+
+⚠️ **That is why this posts NOTHING.** No payment, no charge reversal, no adjustment. The balance is exactly
+what it was, which gives all three properties at once and needed **no change to the collection gate at all**:
+
+1. **The debt stays visible** — the folio still reads owed, as billed to an account rather than settled.
+2. **It is not collected** — proven: `reservationIsCollected()` is false before AND after billing.
+3. **The owner ledger moves by exactly zero** — row count and signed sum both unchanged.
+
+⚠️ When the company pays, the ORDINARY `FolioService` path records it, the balance reaches zero, and the
+owner becomes payable **then, through the existing mechanism** — proven. No parallel settlement path exists.
+
+### #2 · The minimum built, and what a fuller version would add
+
+**Built:** `company_accounts` (org-scoped) · a **keyed** `folios.billed_to_account_id` + `billed_at` +
+`billed_by_user_id` · `CompanyAccountService::bill/unbill/outstandingFor` · guards (cross-org refused,
+settled folio refused) · audit on both transitions.
+
+⚠️ **The account owes no stored total.** "What does this company owe us?" is the **sum of the real folio
+balances** billed to it, through the same `FolioTotals` the screen renders — so there is nothing that can
+drift from the folios it is made of. **That is why no receivables ledger was built.**
+
+**NOT built, deliberately:** invoicing/PDFs · payment terms or aging · credit limits · dunning · a
+company-facing statement or portal · a receivables ledger. A fuller version would add: an invoice document
+and number series, net-N terms with an aging bucket view, a credit limit checked at billing time, a chase
+queue, and a company portal to view and pay.
+
+### ⚠️ #5 · WHAT IS NOT BUILT AND MUST BE REPORTED PLAINLY
+
+⚠️⚠️ **There is no operator surface yet — no route, no screen, and therefore NO PERMISSION GATE.** The
+service enforces org isolation and the settled-folio refusal, and both are mutation-proven, but a boundary
+gate cannot exist without a boundary. ⚠️ **The block pass must add the route gated on `folios.manage`**
+(Super Admin · Hotel Manager · Front Desk · Accountant — the people who already take payments and manage
+folios, and billing to an account is a folio settlement decision). **Reported rather than claimed.**
+
+⚠️ **Un-billing is a NEW STATE, not a reversal** — because nothing was POSTED to reverse. The folio's own
+balance never moved, so there is no ledger entry to correct, only an attribution to withdraw; it is audited
+the same way billing is, so a debt cannot move back without a trace.
+
+### #6 · The checkout path is untouched
+
+`BalanceDueNotification` still fires on an unpaid checkout (`NotificationWiringTest` **9/9, UNAMENDED**).
+The demo seeder's money is unchanged; `owner_ledger` is **29 rows / net 465360**, the baseline.
+
+### ⚠️ A real defect found while building
+
+`CompanyAccount::is_active` defaulted only in the DB, so a **freshly created account read as CLOSED** until
+refreshed — and the billing guard would have refused it. Defaulted on the model so the object and the row
+agree from the moment it exists.
+
+### #7 · The doc: **NONE**
+
+`guide-checkin` still says *"nothing stops a checkout with money outstanding"* — **still true, because the
+block was not built.** No page claims company billing is impossible, so nothing went stale. Nothing was
+changed, and no register moved.
