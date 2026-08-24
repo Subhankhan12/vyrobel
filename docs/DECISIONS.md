@@ -16681,3 +16681,90 @@ an override becomes a write-off.
 free-text reason accepted → RED · `other` note requirement dropped → RED · audit removed → RED · amount
 dropped from the audit → RED · supervisor permission check removed → RED · ⚠️ **the trap: making the override
 settle the balance → RED.** ⚠️ **No anchor misses; the harness would have refused to report one as a pass.**
+
+---
+
+## 2026-08-25 · DOC BATCH 4 — RATES CORRECTED · ⚠️⚠️ CHANNELS **STOPPED AND REPORTED**
+
+### ⚠️⚠️ #1 · WHAT CHANNEL CAPABILITY ACTUALLY EXISTS — established BEFORE any correction
+
+⚠️ **The brief's hypothesis was that the subject might be entirely unbuilt. IT IS NOT, and the real answer is
+more awkward than either "built" or "unbuilt".**
+
+**REAL, in code:** `ChannexClient::pushAri()` makes **actual HTTP calls** to Channex · `AriPushJob` builds a
+real ARI snapshot (`AriSnapshotBuilder` over `rate_calendar`/`restrictions`) and pushes it · a real webhook
+receiver with **signature verification** (`ChannexWebhookSignature`) · `channels.status` is a real toggle ·
+a **platform-admin** integrations surface (`admin.integrations.edit/update/test`).
+
+**NOT REAL:** `services.channex.fake` defaults **true**, so `FakeChannexClient` is bound and no API key is
+set — ⚠️ **nothing reaches Channex on any current configuration.** ⚠️⚠️ **And `Channel::create` appears
+ONLY in `DemoSeeder`: no operator and no admin can create a channel row at all.** The operator page
+(`/app/channels`) is read-only and says so in its own docblock. Booking **import** is not wired.
+`OAuthScopes` is read-only with three scopes, so no third party can move availability either.
+
+⚠️ **So the machinery is real and the ACCOUNT is not connected — and there is no self-serve connect flow to
+connect it with.**
+
+### ⚠️ #2 · THE CHANNELS PAGE IS STOPPED, NOT CORRECTED — and cluster A's premise HAS changed
+
+**13 of its 16 FALSE claims still stand.** They are not scattered details: they are the page's spine —
+connecting an account, mapping units to listings, what syncs each way, reading connection health.
+
+⚠️ **Deleting them leaves a page with no subject.** ⚠️ **And I did not write "coming soon" anywhere** — a
+promise about an unbuilt capability is still a claim, unsourceable and about our own intentions, and a hedge
+does not rescue it.
+
+⚠️⚠️ **CLUSTER A WAS RULED "fix the doc" WHEN THE SCALE WAS ASSUMED TO BE A HEADING.** It is the whole page,
+so that ruling's premise no longer holds and it is reported rather than obeyed silently — the
+`article-housekeeping` precedent, where a recommendation turned out to be an either/or.
+
+**What survives if only real capability is described:** roughly three claims — that a channel has a real
+connection status, that changes to rates and availability are prepared for push, and that a connected
+channel's bookings would arrive by webhook. **Not a guide to connecting anything.**
+
+**A truthful page on this subject could contain:** what a channel connection is and what it would sync; that
+it requires a Channex account and is arranged with us rather than self-serve; what the operator can see
+today (status, mapping state); and what is not automatic (creating the connection, importing bookings).
+
+**THE OPTIONS — none picked:** ⚠️ **(a) cut back** to the three surviving claims — honest, very thin, and a
+reader looking for "connect Airbnb" leaves with nothing · ⚠️ **(b) replace with an API-integration page** —
+possibly honest and useful, but a **NEW page with a NEW subject**, and inventing it here would turn a bounded
+pass into an unreviewable one · ⚠️ **(c) do not publish it** — costs nothing false, loses a page a
+channel-manager buyer expects to find. ⚠️ **This is a decision about what Vyrobel publicly claims to be.**
+
+### #3 · The rates page — corrected fully
+
+| claim | code fact |
+|---|---|
+| *"resolves the price in four passes… the last one that applies wins"* | ⚠️ **TWO levels.** `NightlyRate::forUnit()` → a `unit_rate_overrides` row for (plan, unit, date), else `forType()` → the `rate_calendar` price. **Seasons and uplift are not passes — they WRITE into the calendar.** |
+| *"Seasons cannot overlap. The editor will refuse"* | `SeasonActionController::store()` validates fields only; **nothing checks overlap** |
+| *"Drag across the rate grid"* | no drag-select; the grid opens a From/To form |
+| *"Owner-owned units send the change to the owner for approval first"* | `RateActionController::apply()` writes immediately — **no ownership check, no proposal** |
+| *"a minimum stay that is too long loses the entire booking"* | ⚠️ **`min_stay` is written and displayed but the booking path reads NO restrictions** |
+| *"You can also set a shorter minimum inside a lead-time window"* | **no lead-time model, column or code path** |
+
+⚠️ **CONFIRM-FIRST CUT BOTH WAYS:** the orphan-night auto-drop sentence was **already corrected by the G5
+pass** to *"A minimum stay applies as set, including across a short gap between two bookings"* — **which is
+true, so it was left alone.** Only the dangling *"then let it relax"* before it was corrected, because it
+still implied something relaxes the minimum on its own.
+
+⚠️ **No number was typed anywhere.**
+
+### ⚠️ #8 · A REAL PRODUCT DEFECT — reported, not fixed
+
+⚠️⚠️ **`restrictions.min_stay` IS NEVER ENFORCED.** It is written by `RateAndRestrictionService::setRestriction()`
+and rendered as an "N min" badge, but **`BookingEngineService` and `AssignmentService` read no restrictions
+at all** — so a one-night stay can be booked on nights carrying a seven-night minimum. `stop_sell`,
+`closed_to_arrival` and `closed_to_departure` are in the same position.
+
+### Both registers
+
+| page | audit-FALSE owed/done/still/unmatched | ledger rows/blocking | CORRECTED | CLEARED |
+|---|---|---|---|---|
+| `guide-rates` | 10 / 7 / **0** / 3 | 5 / 0 | ✅ | ✅ |
+| `guide-channels` | 16 / 2 / **13** / 1 | 6 / **1** | ⚠️ **STOPPED** | ⚠️ NO |
+
+**Unmatched, untouched:** rates — `Step 1 — "Base rate per unit…"`, `Step 3 — "Weekend uplift…"`,
+`Step 5 — "Push to channels…"`; channels — `"…and its commission on the folio."`
+
+**Running total: 97 of 220 evidenced · 67 outstanding · 56 unmatched.**

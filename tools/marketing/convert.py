@@ -106,6 +106,7 @@ from g6_housekeeping import (                                    # noqa: E402
     SPLIT_044 as _SPLIT_044, CUT_171 as _CUT_171,
 )
 from slice2_security_gdpr import SECURITY as _SEC, GDPR as _GDPR   # noqa: E402
+from batch4_rates import RATES as _B4_RATES   # noqa: E402
 from batch3_booking_spine import (RESERVATION as _B3_RES, CHECKIN as _B3_CHK,   # noqa: E402
                                   ARRIVAL as _B3_ARR)                        # noqa: E402
 from batch2_access_privacy import (ACCESS as _B2_ACC, GDPR as _B2_GDPR)  # noqa: E402
@@ -1437,6 +1438,12 @@ def convert(key):
         if key == _pg:
             for _cid, _d in _rules.items():
                 t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)
+
+    # ⚠️ BATCH 4 — RATES ONLY. The channels page's subject was established first and is REPORTED, not
+    #    corrected: a page whose premise is a capability the account does not have is not a wording fix.
+    if key == 'guide-rates':
+        for _cid, _d in _B4_RATES.items():
+            t = swap(t, _d['before'], _d['after'], key, 'B4-RATE/' + _cid)
 
     if key == 'article-housekeeping':
         # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the
