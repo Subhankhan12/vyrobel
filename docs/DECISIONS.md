@@ -16038,3 +16038,86 @@ absorbing a refund is deliberate, never the result of leaving a control alone.
 Batch 1's sentence ("deducted from the owner's share") became false the moment this shipped.
 `guide-refunds` now: **AUDIT-FALSE 11 owed / 11 done / 0 still / 0 unmatched · LEDGER 6 rows / 0 blocking ·
 CORRECTED YES · CLEARED YES.**
+
+---
+
+## 2026-08-24 · PART A — THE OWNER-VISIBLE REFUND NOTE (#75) · PART B — BATCH 2 (access & privacy)
+
+### ⚠️ PART A — established BEFORE designing, which changed the design
+
+**What the page already shows for an OWNER-borne refund:** the `adjustment` ledger row renders through
+`OwnerLedgerAttribution::breakdown()` as a labelled **"Adjustment"** deduction between "Gross booking value"
+and "Net to you", and it reduces the net. ⚠️ **So that case was never invisible.**
+
+⚠️ **DECISION: ABSORBED-ONLY, rendered BELOW "Net to you", outside the arithmetic.** The reasoning is written
+into `OwnerBookingDetail::absorbedRefunds()` — where a future reader meets it — because an unexplained
+asymmetry gets "tidied" and the tidy would be the defect:
+
+- an owner-borne refund **already** appears as a deduction that moved money; repeating it in the note would
+  show **one deduction twice on a money page**;
+- an absorbed refund **posts nothing**, so it cannot join a gross→net list without either a zero line —
+  implying it was weighed in the arithmetic when it was not — or moving a figure, which is forbidden.
+
+⚠️ **The two cases are represented differently because they ARE different: the breakdown answers "what
+changed your net"; the note answers "what happened that did not."**
+
+**Display only, proven:** `owner_ledger` **29 rows · net 465360 minor**, unchanged; no ledger row posted by
+the note; **#17 holds to the cent with the note rendering** (`gross + deductions == net`, asserted while an
+absorbed refund exists). The certified owner-accounting suite (**293 tests**) is green **UNAMENDED**.
+
+**Derived, never asserted:** real `payments` rows (type refund · status succeeded · `refund_borne_by =
+operator`), real amount, real date; **several refunds and a MIX of borne-by values** are handled and proven —
+two absorbed refunds list, the owner-borne one stays a single `Adjustment` and is **not** duplicated into the
+note. ⚠️ **None → the note is absent entirely**: silence is the honest empty state, and a zero row would read
+as a deduction that had been weighed.
+
+**Owner-scoped, no guest data:** read **after** the page's existing `abort_if($ownedLines->isEmpty(), 404)`,
+inside the boundary it already enforces — no second definition of "this owner's booking". ⚠️ Amount and date
+only: no name, no contact, no payment reference, no gateway detail (#28).
+
+**Wording:** *"Refunded to the guest and charged to us, not to you. Your earnings above are unchanged."*
+⚠️ It states the fact and the effect, **no reason** — the column records WHO bore it, never WHY, and
+inferring the why from the who would be a fabrication. ⚠️ Not self-congratulatory: absorbing a refund the
+operator caused is correct, not generous.
+
+**A6 — the stale-doc check found nothing FALSE.** One clause was ADDED (not a correction): an operator
+marking a refund "ours" should know the owner sees it noted on their booking.
+
+### ⚠️ PART B — and `guide-gdpr` was NOT untouched
+
+Slice 2's cluster-G corrections already own five of its sentences (`G1-scheduled`, `G2-settings-screen`,
+`G3-statutory-period`, `G4-id-retention`, `G5-erase-refusal`), and **five of the audit's ten FALSE claims
+were already evidenced by that overlap.** These transforms take only what was still standing.
+
+⚠️ **CONFIRM-FIRST CUT BOTH WAYS — THE AUDIT WAS STALE ON ACCESS.** It says per-property staff scoping
+"does not exist"; **it does** — `PropertyScopeService` via `app.settings.team-scope`, **built in this same
+arc (cluster J)**. So only the false half went: the control is real, but it is set from **Settings after the
+account exists**, not as a step of the invite the page's numbered list describes.
+
+Verified once, applied across both pages: permissions are granted to **roles**, never people
+(`RolePermissionService` → `role_has_permissions`); Housekeeping does **not** hold `maintenance.manage`;
+there is **no staff deactivation anywhere** and nothing re-reads `users.status` mid-session; there is **no
+guest data export route**; **nothing computes or enforces a statutory registration period.**
+
+⚠️ **"When someone leaves" is now THINNER and says so** — it describes removing a role and signing out other
+sessions, because the deactivation workflow it promised does not exist.
+
+⚠️ **The statutory sentence was removed rather than restated**: describing a retention rule the product does
+not apply would be the legal exposure pointed the other way. ⚠️ **The phantom retention purge stays unreal in
+the prose — the code comment that defers a GDPR case to a mechanism that does not exist is REPORTED, not
+fixed here.**
+
+### ⚠️ BOTH REGISTERS — cleared ≠ corrected
+
+| page | audit-FALSE owed/done/still/unmatched | ledger rows/blocking | CORRECTED | CLEARED |
+|---|---|---|---|---|
+| `guide-access` | 7 / 6 / 1 / 0 | 4 / 0 | ⚠️ see below | ✅ |
+| `guide-gdpr` | 10 / 6 / 1 / 3 | 11 / **2** | ⚠️ see below | ⚠️ **NO** |
+| `guide-refunds` | 11 / 11 / 0 / 0 | 6 / 0 | ✅ | ✅ |
+
+⚠️ **The two "still" rows are CORRECTED-BUT-UNEVIDENCED, not uncorrected.** Both audit fragments span a
+sentence whose TRUE half was deliberately kept — the housekeeper rationale on `guide-access`, the real
+deletion request on `guide-gdpr`. ⚠️ **Cutting a true half to turn the gate green would be the tidier-table
+failure on a security and a legal page.** Left standing, and reported.
+
+**Running total: 52 of 220 evidenced · 80 outstanding · 88 unmatched.**

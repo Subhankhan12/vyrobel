@@ -232,7 +232,8 @@ REFUNDS = {
         #    remove: a page describing behaviour the product no longer has.
         'after': 'A refund against an owner-attributed booking is deducted from that owner\u2019s share by '
                  'default. When it is your team\u2019s cost rather than theirs, mark it as yours on the '
-                 'refund screen and the owner is not charged. The choice is recorded with the refund and '
+                 'refund screen and the owner is not charged \u2014 they see it noted on their booking, '
+                 'without a deduction. The choice is recorded with the refund and '
                  'cannot be changed afterwards \u2014 correct a mistake with an adjustment on the next '
                  'statement.',
     },

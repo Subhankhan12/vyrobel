@@ -8,6 +8,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Guest;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
+use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
@@ -99,6 +100,10 @@ class OwnerBookingDetail extends Component
         $ownedUnits = $this->ownedUnits($ownedLines, $unitById);
         $currency = (string) $reservation->currency;
         $earnings = OwnerLedgerAttribution::breakdown($entries);
+
+        // ⚠️ Read AFTER the abort_if above, so it sits INSIDE the owner boundary this page already
+        //    enforces — never a second definition of "this owner's booking".
+        $absorbedRefunds = $this->absorbedRefunds($reservation, $currency);
         $payout = $this->payoutStatus($entries);
 
         return view('livewire.owner.booking-detail', [
@@ -130,6 +135,7 @@ class OwnerBookingDetail extends Component
                 'booked_on' => ($reservation->booked_at ?? $reservation->created_at)?->format('j M Y'),
             ],
             'earnings' => $earnings,
+            'absorbedRefunds' => $absorbedRefunds,
             'attributed' => $entries->isNotEmpty(),
             'commissionRate' => OwnerCommissionRate::percent(app(OwnerContext::class)),
             'net' => $this->netHero($earnings, $currency),
@@ -253,6 +259,47 @@ class OwnerBookingDetail extends Component
         }
 
         return MoneyFormatter::display(intdiv($accomMinor, $nights), $currency);
+    }
+
+    /**
+     * ⚠️ REFUNDS THE OPERATOR ABSORBED, for the note below the earnings breakdown — DISPLAY ONLY.
+     *
+     * ⚠️ WHY THIS IS ABSORBED-ONLY, AND WHY THAT ASYMMETRY IS DELIBERATE (§N.32 — recorded here because
+     * this is where a future reader meets it, and an unexplained asymmetry gets "tidied"):
+     *
+     *   · An OWNER-borne refund posts an `adjustment` ledger row. It is ALREADY visible — it renders as a
+     *     labelled "Adjustment" deduction in the breakdown above and reduces "Net to you". Repeating it
+     *     here would show ONE deduction TWICE on a money page.
+     *   · An ABSORBED refund posts NOTHING. It cannot join a gross→net list without either being a zero
+     *     line — which implies it was weighed in the arithmetic when it was not — or moving a figure,
+     *     which is forbidden.
+     *
+     * ⚠️ The two cases are represented differently because they ARE different: the breakdown answers "what
+     * changed your net"; this note answers "what happened that did not". That is why it sits BELOW "Net to
+     * you", outside the reconciliation rather than inside it.
+     *
+     * ⚠️ NO GUEST DATA (#28): a refund is a payment to a guest, but only the amount and the date are read
+     * — no name, no contact, no payment reference, no gateway detail. ⚠️ AND NO REASON: the column records
+     * WHO bore it, never WHY, and inferring the why from the who would be a fabrication.
+     *
+     * @return list<array{amount_display: string, date: string}>
+     */
+    private function absorbedRefunds(Reservation $reservation, string $currency): array
+    {
+        return Payment::query()
+            ->where('reservation_id', $reservation->getKey())
+            ->where('type', 'refund')
+            ->where('status', 'succeeded')
+            ->where('refund_borne_by', Payment::BORNE_BY_OPERATOR)
+            ->orderBy('processed_at')
+            ->get()
+            ->map(fn (Payment $r): array => [
+                // abs(): the refund row stores its amount positive; the note states an amount refunded.
+                'amount_display' => MoneyFormatter::display(abs((int) $r->amount_minor), (string) ($r->currency ?? $currency)),
+                'date' => $r->processed_at !== null ? Carbon::parse($r->processed_at)->format('j M Y') : '',
+            ])
+            ->values()
+            ->all();
     }
 
     /**

@@ -134,6 +134,30 @@
                             <span style="font-size:14px;font-weight:600;font-family:var(--vy-display)">Net to you</span>
                             <span class="vy-mono" style="font-size:18px;font-weight:600;color:var(--vy-accent-text);font-family:var(--vy-display)">{{ $block['net_display'] }}</span>
                         </div>
+
+                        {{-- ⚠️ REFUNDS WE ABSORBED — BELOW "Net to you", OUTSIDE the arithmetic ON PURPOSE.
+                             It is a NOTE, not a line: it posts nothing, is counted in nothing, and every
+                             figure above is byte-identical whether it renders or not.
+                             ⚠️ Absorbed refunds ONLY. An owner-borne refund is already a labelled
+                             "Adjustment" deduction above, and repeating it here would show one deduction
+                             twice on a money page.
+                             ⚠️ Amount and date only — no guest, no reference (#28) — and no REASON, which
+                             the data does not carry. ⚠️ Nothing renders when there are none: silence is the
+                             honest empty state, and a zero row would read as a deduction that was weighed. --}}
+                        @if ($absorbedRefunds !== [] && $loop->first)
+                            <div style="margin-top:12px;padding:11px 13px;border-radius:11px;background:rgba(120,70,40,.05)">
+                                <div style="font-size:12px;font-weight:600;color:#2B2320;margin-bottom:5px">Refunds we covered</div>
+                                @foreach ($absorbedRefunds as $r)
+                                    <div class="vy-bd-row" style="padding:2px 0">
+                                        <span style="font-size:12.5px;color:#6E635C">{{ $r['date'] }}</span>
+                                        <span class="vy-mono" style="font-size:12.5px;color:#6E635C">{{ $r['amount_display'] }}</span>
+                                    </div>
+                                @endforeach
+                                <div style="font-size:11.5px;color:var(--vy-on-grad-soft);margin-top:6px;line-height:1.5">
+                                    Refunded to the guest and charged to us, not to you. Your earnings above are unchanged.
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div style="margin-top:12px;padding:16px;border-radius:12px;background:rgba(120,70,40,.04);font-size:13px;color:var(--vy-on-grad-soft)">
