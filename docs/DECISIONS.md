@@ -16389,3 +16389,78 @@ after move with the guest."* Identical in the migration/service comments, the mo
 CLEARED.** `guide-statements` **CORRECTED but NOT CLEARED** (1 unsourced ledger claim) and `guide-payouts`
 both — neither needed a change: their "adjustment"/"carried forward" language already describes the
 prior-period path correctly.
+
+---
+
+## 2026-08-25 · ⚠️⚠️ THE CHECKOUT BALANCE BLOCK — BUILT, MEASURED, AND **REVERTED**. STOPPED AND REPORTING.
+
+⚠️ The block was built exactly as ruled — guarded at the convergence point, reading the same `FolioTotals`
+the folio screen renders, with credit and zero passing — and its own six tests passed. ⚠️ **Then the full
+suite measured what it costs, and rule #6's stop condition was met: an existing, shipped behaviour moved.**
+
+### ⚠️⚠️ THE BLOCK MAKES A DELIBERATELY-BUILT FEATURE UNREACHABLE
+
+**`BalanceDueNotification` exists.** It is a real operator notification, preference-gated
+(`NotificationPreferences: 'balance_due' => ['label' => 'Balance due at checkout', 'group' => 'Front desk',
+'default' => true]`), dispatched from `DispatchNotificationsForDomainEvent:258` **on
+`reservation.checked_out` when the folio has a balance**, with two tests pinning it — including one that
+charges €200, pays nothing, checks out, and asserts the notification fires.
+
+⚠️ **The product was designed on the premise that checking out with money owed is a NORMAL, EXPECTED,
+NOTIFIED event.** A hard block makes that feature permanently dead code: the state it announces becomes
+unreachable. ⚠️ **Amending that test to accommodate the block would have silently deleted a shipped
+feature — which is why this stopped instead.**
+
+### ⚠️ THE CHURN NUMBER — 10 errors across 3 files, and the demo seed is one of them
+
+| broken by the block | why it matters |
+|---|---|
+| ⚠️ **`DemoSeedDateRobustnessTest`** (6) | **`migrate:fresh --seed` FAILS** — the demo seeder checks out a stay with **€332.10 owed.** Rule #6 called this out in advance: if the seeder checks out an unpaid folio, that is a finding about how the product is modelled. **It does.** |
+| ⚠️⚠️ **`NotificationWiringTest`** (2) | the two tests that pin `BalanceDueNotification` — **the feature above** |
+| `StubViewsTest` (2) | consumes the same demo seed |
+
+⚠️ **The number is not "a few fixtures needing a payment". It is the demo world plus a shipped feature.**
+**Unpaid checkout is normal in the modelled world.**
+
+### #1 · The bill-to-account question — answered, and the answer is NO
+
+⚠️ **No bill-to-account, invoice, deferred-settlement, company-account or payment-terms concept exists
+anywhere.** `corporate` is a value in the `reservations.source` enum — a **booking channel**, not settlement
+terms. Nothing keys "this balance is legitimately unpaid".
+
+⚠️ **So the block, as ruled, forbids corporate and group business where settlement follows departure** —
+and it does so with no exemption available, because there is nothing to exempt.
+
+### What was built (and is reverted, not lost)
+
+Guard in `CheckOutReservation::handle()` — the single convergence point (`FrontDeskService::checkOut()` is
+its only caller; the controller is that method's only caller). Read through `FolioTotals::for($folio)`, the
+**same** computation `ReservationDetail` renders. `balance_minor <= 0` passes, so **credit and zero both
+check out cleanly**; integer minor units throughout. Message: *"€150.00 is still owed on this folio. Take
+the payment, or post an adjustment or void the charge if it should not stand, then check out."*
+
+### ⚠️ WHAT THE BLOCK LOOKS LIKE IN PRACTICE — and the three options, costed
+
+- **The one-cent case** — a rounding remainder of €0.01 blocks a departure. The guard is `> 0`, so it
+  cannot distinguish it from €500.
+- **6am departure with an open bar tab** — the guest is gone; the agent cannot close the stay, so the room
+  stays "in-house", housekeeping is not triggered, and the unit is not released on the board.
+- **The corporate case** — impossible to complete at all, per #1.
+- ⚠️ **What an agent with a guest waiting actually does:** records a fake payment, or voids the charge.
+  **Both are harder to audit than the balance being caught**, and the second destroys revenue data.
+
+| option | cost |
+|---|---|
+| **(a) supervisor override** | a real, keyed, audited exemption — who allowed it and why. Honest, but it is a new permission + an audit surface, and it re-opens "who may approve". |
+| **(b) a small threshold** (e.g. under €1) | fixes only the rounding case. ⚠️ It is a *policy number* that will be wrong for someone, and it does nothing for the corporate or 6am cases. |
+| **(c) build bill-to-account first** | the honest fix: a keyed settlement-terms state on the reservation, so the block fires only where money is genuinely unaccounted for. Largest, and it is a product feature rather than a guard. |
+
+⚠️ **Recommendation: (c), with the block shipping after it.** Blocking before there is any way to express a
+legitimate unpaid balance converts a data-quality guard into a business restriction, and the product already
+disagrees with it in the form of a notification built for exactly that state.
+
+### The doc was NOT changed
+
+`guide-checkin` currently says *"Check the balance before you complete a checkout — nothing stops a checkout
+with money outstanding."* ⚠️ **That is still true, so the fifth re-correction is not yet due.** Correcting it
+to describe a block that was reverted would have been the fabrication this whole arc exists to remove.
