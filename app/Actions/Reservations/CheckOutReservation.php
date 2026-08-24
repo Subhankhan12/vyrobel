@@ -11,11 +11,13 @@ use App\Models\ReservationStatusHistory;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Folio\CheckoutOverrideReason;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Checks a reservation out. This is a pure reservation STATE transition — it does NOT touch
@@ -30,13 +32,24 @@ class CheckOutReservation
         private AuditEventRecorder $audit,
     ) {}
 
-    public function handle(Reservation $reservation, ?User $by = null): Reservation
+    /**
+     * ⚠️ `$overrideReason` — a SUPERVISOR override permitting a checkout while money is still owed.
+     *
+     * ⚠️⚠️ IT IS AN ACT, NOT A STATE. It is passed per checkout and never stored as a standing flag on the
+     * reservation or the folio: a persistent "may check out unpaid" would be a permanent hole rather than a
+     * one-time decision somebody made and can be held to.
+     *
+     * ⚠️⚠️ AND IT CHANGES NO MONEY. It permits an ACTION; it does not resolve a DEBT. The balance is still
+     * owed afterwards, `BalanceDueNotification` still fires, and `reservationIsCollected()` — literally
+     * `balance_minor <= 0` — still reads FALSE, so no owner is paid for cash nobody has received.
+     */
+    public function handle(Reservation $reservation, ?User $by = null, ?string $overrideReason = null, ?string $overrideNote = null): Reservation
     {
         if ($reservation->status === 'checked_out') {
             return $reservation; // idempotent
         }
 
-        $this->assertFolioSettledOrBilled($reservation);
+        $this->assertFolioSettledOrBilled($reservation, $overrideReason, $overrideNote);
 
         $fromStatus = (string) $reservation->status;
 
@@ -93,7 +106,7 @@ class CheckOutReservation
      * the booking as COLLECTED, and the payout engine would release owner money for cash nobody has
      * received.
      */
-    private function assertFolioSettledOrBilled(Reservation $reservation): void
+    private function assertFolioSettledOrBilled(Reservation $reservation, ?string $overrideReason = null, ?string $overrideNote = null): void
     {
         $folio = Folio::query()->where('reservation_id', $reservation->getKey())->first();
 
@@ -110,6 +123,30 @@ class CheckOutReservation
 
         if ($balance <= 0) {
             return;   // settled, or in credit
+        }
+
+        // ⚠️ THE SUPERVISOR OVERRIDE. Refused unless the reason is one of the KEYED values — free text is
+        //    not accepted anywhere, because an override nobody can count is an override nobody can
+        //    evaluate, and the honest measure of this whole block is the override RATE.
+        if ($overrideReason !== null) {
+            if (! CheckoutOverrideReason::isValid($overrideReason)) {
+                throw new InvalidArgumentException('That is not a recognised checkout-override reason.');
+            }
+
+            if ($overrideReason === CheckoutOverrideReason::OTHER && trim((string) $overrideNote) === '') {
+                throw new InvalidArgumentException('An "other" override needs a note saying what happened.');
+            }
+
+            // ⚠️ THE AMOUNT IS PART OF THE RECORD, not just the act: a €0.01 override and a €900 override
+            //    are different events and must not look alike in six months.
+            $this->audit->record('reservation.checkout_overridden', $reservation, null, array_filter([
+                'reason' => $overrideReason,
+                'note' => $overrideNote,
+                'balance_minor' => $balance,
+                'currency' => (string) $folio->currency,
+            ], static fn ($v): bool => $v !== null && $v !== ''));
+
+            return;   // ⚠️ permitted — and the balance is untouched
         }
 
         throw new OutstandingBalanceException(

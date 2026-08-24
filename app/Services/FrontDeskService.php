@@ -89,9 +89,9 @@ class FrontDeskService
         return $this->checkIn->handle($reservation);
     }
 
-    public function checkOut(Reservation $reservation): Reservation
+    public function checkOut(Reservation $reservation, ?string $overrideReason = null, ?string $overrideNote = null): Reservation
     {
-        return $this->checkOut->handle($reservation);
+        return $this->checkOut->handle($reservation, null, $overrideReason, $overrideNote);
     }
 
     /**

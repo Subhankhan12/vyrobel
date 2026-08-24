@@ -16616,3 +16616,68 @@ explicit and the reason given for it did not hold.
 | **nothing** | the 6am case leaves rooms uncleaned, which is an operational failure rather than a money one |
 
 ⚠️ **Neither built. The founder rules on evidence.**
+
+---
+
+## 2026-08-25 · THE SUPERVISOR CHECKOUT OVERRIDE (invariant #80)
+
+### #1 · Its own permission — `reservations.checkout_override`
+
+⚠️ **Deliberately NOT `folios.manage`.** That set includes **Front Desk**, and an override every agent holds
+is not a supervisor override — it is a second checkout button. Verified against the matrix: **Super Admin ·
+Hotel Manager** are the only roles holding `reservations.checkout` *and* the supervisory permissions
+(`reservations.cancel`, `reports.view`, `rates.manage`), so those two hold it.
+
+⚠️⚠️ **THE 6AM COST, STATED PLAINLY:** with no manager on shift, a front-desk agent **still cannot release
+the room**. The stranded-room case that motivated this is fixed only when a supervisor is reachable. That is
+the direct price of "supervisor", and it should be read here rather than discovered on a night shift.
+
+### #2 · A keyed reason, and the rate is answerable
+
+`CheckoutOverrideReason`: `rounding_residue` · `guest_departed` · `disputed_charge` · `settled_offline` ·
+`other`. ⚠️ **The first two come from the cases measured live last pass** (the €0.01 residue; the departure
+that never released the room). ⚠️ **`other` requires a NOTE and is counted separately** — refusing an unlisted
+case would push agents into miscategorising, which corrupts the very count this set exists to produce, so a
+high `other` rate is itself the finding that the set is wrong.
+
+⚠️ **`CheckoutOverrideStats::since()`** answers *"how many, and why?"* — count, checkouts, **rate**, by-reason
+breakdown, and total minor units overridden. ⚠️ **The rate is the honest measure of the block**: if it runs
+at forty percent the block is doing nothing, and that is now visible rather than assumed otherwise. ⚠️ **On
+the demo data the answer is 0 overrides** — the seeded unpaid departure goes through the *company-account*
+exemption, not the override, which is the shape you would want.
+
+### ⚠️⚠️ #3 · It moves no money
+
+Proven: the balance is **still €200 owed** after an override, `owner_ledger` row count and signed sum
+**unchanged**, `BalanceDueNotification` still fires, and `reservationIsCollected()` — literally
+`balance_minor <= 0` — **still reads FALSE**. ⚠️ **It permits an ACTION; it does not resolve a DEBT.**
+`migrate:fresh --seed` clean, `owner_ledger` **29 rows / net 465360**.
+
+### ⚠️⚠️ #4 · The deliverable is the ROOM, and the whole chain is asserted in one test
+
+blocked → ⚠️ **no housekeeping task, unit not dirty (the stranded room)** → override → checked out →
+**`GenerateDepartureCleanTask` fires** → task exists → ⚠️ **`units.housekeeping_status === 'dirty'`** → **and
+the balance is still owed.** An override that completed the checkout but left the unit un-flipped would have
+fixed nothing, so the flip is asserted rather than assumed.
+
+### #5 · Audited — the amount as well as the act
+
+`reservation.checkout_overridden` carries reason, note (when `other`), **`balance_minor` at that moment**, and
+currency, plus the actor and time the recorder already stamps. ⚠️ **A €0.01 override and a €900 override are
+different events and must not look alike in six months.**
+
+⚠️ **It is an ACT, NOT A STATE** — passed per checkout, never persisted. A test walks every folio column and
+fails if any `override` column appears: a standing "may check out unpaid" flag would be a permanent hole.
+
+### #6 · The doc — sixth correction, third in three passes
+
+`guide-checkin` now states the override, that it is a manager action, that the reasons are a fixed list so
+they can be counted, and ⚠️ **that it releases the room but settles nothing — the balance stays owed exactly
+as it was.** That last clause is the point: a reader who thinks an override clears the balance is exactly how
+an override becomes a write-off.
+
+### #7 · Six mutations, all through the fixed harness
+
+free-text reason accepted → RED · `other` note requirement dropped → RED · audit removed → RED · amount
+dropped from the audit → RED · supervisor permission check removed → RED · ⚠️ **the trap: making the override
+settle the balance → RED.** ⚠️ **No anchor misses; the harness would have refused to report one as a pass.**

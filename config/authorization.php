@@ -95,6 +95,10 @@ return [
         'reservations.cancel',
         'reservations.checkin',
         'reservations.checkout',
+        // ⚠️ A SUPERVISOR override for checking out with a balance still owed. ⚠️ DELIBERATELY NOT
+        //    `folios.manage` — that set includes Front Desk, and an override every agent holds is not a
+        //    supervisor override, it is a second checkout button.
+        'reservations.checkout_override',
 
         // Guests (PII)
         'guests.view',
@@ -160,6 +164,7 @@ return [
             'rates.view', 'rates.manage', 'availability.view', 'availability.manage', 'restrictions.manage',
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.assign',
             'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
+            'reservations.checkout_override',
             'guests.view', 'guests.manage', 'guests.erase', 'guest_documents.manage', 'corporate_accounts.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record', 'payments.refund',
             'payouts.manage',
@@ -176,6 +181,7 @@ return [
             'rates.view', 'rates.manage', 'availability.view', 'availability.manage', 'restrictions.manage',
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.assign',
             'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
+            'reservations.checkout_override',
             'guests.view', 'guests.manage', 'guest_documents.manage', 'corporate_accounts.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record',
             'invoices.view', 'invoices.issue', 'taxes.manage', 'fees.manage', 'addons.manage',

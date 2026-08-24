@@ -55,8 +55,23 @@ class FrontDeskActionController extends Controller
             return $this->backToBoard($request, "{$model->reference} can’t be checked out from “{$model->status}”.");
         }
 
+        // ⚠️ THE SUPERVISOR OVERRIDE — gated on its OWN permission, checked HERE rather than relying on the
+        //    checkout gate, because `reservations.checkout` is held by Front Desk and this deliberately is
+        //    not. An agent may check out; only a supervisor may check out over a balance.
+        $overrideReason = null;
+        $overrideNote = null;
+        if ($request->filled('override_reason')) {
+            if ($request->user()?->can('reservations.checkout_override') !== true) {
+                return $this->backToBoard($request, 'Only a supervisor can check out over an outstanding balance.');
+            }
+            $overrideReason = (string) $request->input('override_reason');
+            $overrideNote = $request->filled('override_note') ? (string) $request->input('override_note') : null;
+        }
+
         try {
-            $desk->checkOut($model);
+            $desk->checkOut($model, $overrideReason, $overrideNote);
+        } catch (InvalidArgumentException $e) {
+            return $this->backToBoard($request, $e->getMessage());
         } catch (OutstandingBalanceException $e) {
             // The service is the authority — this only surfaces its refusal, with the amount and the ways
             // forward, because an unhelpful block is what drives a faked payment or a voided charge.

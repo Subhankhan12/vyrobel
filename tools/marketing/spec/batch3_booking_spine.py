@@ -154,9 +154,15 @@ CHECKIN = {
         #    this, because the block was built and reverted. It ships now, so the page changes now.
         'before': 'The panel refuses to complete a checkout with money outstanding unless you explicitly '
                   'mark it as owed.',
+        # ⚠️ SIXTH correction to this page, and the third in three passes — the block, then the exemption,
+        #    now the override. ⚠️ IT MUST SAY THE OVERRIDE DOES NOT SETTLE THE DEBT: a reader who believes
+        #    otherwise is exactly how an override becomes a write-off.
         'after': 'A checkout is refused while money is owed. Take the payment, or — if a company settles '
                  'later — bill the balance to their account and the departure goes through with the money '
-                 'still owed by them. A settled folio and one in credit both check out normally.',
+                 'still owed by them. A settled folio and one in credit both check out normally. A manager '
+                 'can override the refusal, choosing from a fixed list of reasons so the overrides can be '
+                 'counted; doing so releases the room but settles nothing — the balance stays owed exactly '
+                 'as it was.',
     },
     # ⚠️ NO early-checkout / stay-shortening feature exists, and there is no late-checkout add-on: the only
     # 'late_checkout' in the codebase is a guest PREFERENCE label.
