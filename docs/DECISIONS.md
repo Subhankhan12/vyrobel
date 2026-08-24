@@ -16260,3 +16260,67 @@ moment this shipped. It now states both halves honestly: the earnings follow the
 stay put after it **because nothing records which night the guest changed rooms**.
 `guide-checkin`: **AUDIT-FALSE 14 owed / 13 done / 0 still / 1 unmatched · LEDGER 2 rows / 0 blocking ·
 CORRECTED YES · CLEARED YES.** `guide-statements` and `guide-payouts` make no claim about moves — unaffected.
+
+---
+
+## 2026-08-25 · ⚠️⚠️ THE MID-STAY SPLIT — ESTABLISHED, **NOT BUILT**, AND HERE IS WHY
+
+⚠️ Rule #1 said: establish whether the certified attribution can express a split, and **if extending it is
+required, report what that touches BEFORE touching it.** It is required, it touches something dangerous, and
+this pass therefore stops at the report.
+
+### ⚠️ EXPRESSIBILITY: THE MONEY LAYER CAN ALREADY DO IT
+
+`attributeAtVersion()` **already loops over `activeLines`** and attributes **each line to its own owner**
+(`$unit->owner_id` per line, its own `ManagementAgreement`, its own `service_date`). Two owners on one
+reservation is not a new shape — **group bookings already produce it.**
+
+⚠️ **And the arithmetic trap is already solved by certified code.** `Money::allocate()` takes floor shares and
+**hands out the leftover minor units by remainder** — it is exactly "compute one side, derive the other"
+generalised to N, it never loses a cent, and the attribution **already calls it with NIGHT weights**
+(`$roomTotal->allocate($weights)` where weights are nights when lines are unpriced). ⚠️ **No new arithmetic
+needs writing, and none should be.**
+
+### ⚠️⚠️ SO WHAT BLOCKS IT IS NOT THE MONEY — IT IS THE INVENTORY, AND IT WOULD LOCK A GUEST OUT
+
+To make the money split, the stay must be expressed as **two sequential lines** — `[check_in, effective)` on
+the old unit, `[effective, check_out)` on the new. That means `AssignmentService::assignUnit()` stops
+mutating one line's `unit_id` and starts **splitting the line**, inside the availability lock, with `sold`
+net-zero across the two.
+
+⚠️⚠️ **AND SIX SURFACES READ `reservationUnits->first()`:**
+
+| surface | what breaks after a split |
+|---|---|
+| ⚠️⚠️ **`ArrivalPack.php:44`** | `first()?->unit` returns the FIRST segment — **the room the guest MOVED OUT OF**. The guest would be shown the **wrong door code** for the rest of their stay. |
+| `PreArrivalMail` | pre-arrival email carries the old unit's code |
+| `PaymentReminderMail` · `ReviewRequestMail` · `OperatorInbox` · `ReviewService` | name the wrong unit |
+
+⚠️ **That is the "guest standing at a door that will not open" failure — created by this change.** Batch 3
+existed to remove exactly that class of defect; shipping the split naively would manufacture a real one.
+
+⚠️ `PerformanceMetrics` is **safe**: room-nights are summed over lines **overlapping the range**, and two
+sequential non-overlapping segments sum correctly. Checked, not assumed.
+
+### ⚠️ THE TWO OPTIONS, FOR A RULING
+
+**(A) SPLIT THE LINE.** Touches the certified single inventory write path + all six `first()` surfaces, each
+of which must become date-aware. ⚠️ **Largest blast radius, and it puts the #33 door code in play.**
+
+**(B) ⚠️ KEEP ONE LINE, RECORD THE MOVE.** A `reservation_unit_moves` row (line, from-unit, to-unit,
+**effective date**, **stated-at**, actor) and `attributeAtVersion()` splits that ONE line's room revenue
+across the segment owners by nights via the existing `allocate()`. ⚠️ **Inventory is untouched**, and
+`assignUnit()` already updates `unit_id` to the NEW unit — so **`ArrivalPack` keeps showing the correct,
+current door code.** ⚠️ It extends certified MONEY code instead (one loop learns that a line can span two
+owners), which is the narrower and more reviewable change.
+
+⚠️ **B is the recommendation** — it keeps the guest-facing #33 surface correct by construction and confines
+the change to one method, whose reversal, versioning, idempotency key and `prior_period_adjustment` stamping
+already work per-owner.
+
+### What was NOT done, deliberately
+
+⚠️ **No code was written.** No effective-date column, no UI, no split arithmetic — because rule #1's whole
+point is that *"I extended it and the suite passed"* proves the OLD behaviour survived, not that the NEW
+shape is right. ⚠️ **The `guide-checkin` sentence stays accurate** ("the earnings stay where they were,
+because nothing records which night the guest changed rooms") — it is still true, so it was not touched.
