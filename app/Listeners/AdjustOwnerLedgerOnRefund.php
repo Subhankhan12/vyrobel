@@ -52,6 +52,14 @@ class AdjustOwnerLedgerOnRefund
                 return;   // only a genuinely successful refund adjusts the owner
             }
 
+            // ⚠️ THE OPERATOR EXPLICITLY ABSORBED THIS REFUND — post NOTHING. Not a zero row: NO row, so
+            //    the owner's ledger is byte-identical to one where the refund never happened.
+            //    ⚠️ NULL and 'owner' both fall through to the owner debit, unchanged from before this
+            //    column existed, which is what makes the default a no-op on every existing row.
+            if ($refund->isOperatorBorne()) {
+                return;
+            }
+
             $reservation = Reservation::query()->with('reservationUnits')->find($refund->reservation_id);
             if (! $reservation instanceof Reservation) {
                 return;

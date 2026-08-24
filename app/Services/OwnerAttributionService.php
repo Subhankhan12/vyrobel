@@ -131,19 +131,35 @@ class OwnerAttributionService
      *
      * @return int the total owner debit posted (minor units), 0 when not owner-attributed
      */
+    /**
+     * ⚠️ THE ONE TEST FOR "IS THIS RESERVATION OWNER-ATTRIBUTED?" (§N.8f).
+     *
+     * The refund path and the UI that offers the who-bears-it choice MUST agree: a control offered where no
+     * owner exists is meaningless, and a control withheld where one does exist silently forces the owner to
+     * bear it. Both read this. It is exactly the query {@see attributeRefund} has always used for its early
+     * return — extracted, not changed.
+     */
+    public function isOwnerAttributed(string $reservationId, string $currency): bool
+    {
+        return OwnerLedgerEntry::query()
+            ->where('reservation_id', $reservationId)
+            ->where('currency', $currency)
+            ->exists();
+    }
+
     public function attributeRefund(Reservation $reservation, Money $refund, string $refundKey): int
     {
         $currency = $refund->currency();
+
+        if (! $this->isOwnerAttributed((string) $reservation->getKey(), $currency)) {
+            return 0;   // operator-only reservation — nothing attributed to an owner, nothing to adjust
+        }
 
         /** @var Collection<int, OwnerLedgerEntry> $entries */
         $entries = OwnerLedgerEntry::query()
             ->where('reservation_id', $reservation->getKey())
             ->where('currency', $currency)
             ->get();
-
-        if ($entries->isEmpty()) {
-            return 0;   // operator-only reservation — nothing attributed to an owner, nothing to adjust
-        }
 
         // Per owner: net (Σ signedMinor — a reversed pair nets to 0) and gross room revenue (room_revenue signed).
         $byOwner = $entries->groupBy(fn (OwnerLedgerEntry $e): string => (string) $e->owner_id);

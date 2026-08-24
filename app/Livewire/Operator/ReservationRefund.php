@@ -9,6 +9,7 @@ use App\Models\Folio;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Services\FolioService;
+use App\Services\OwnerAttributionService;
 use App\Support\Folio\FolioTotals;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -104,6 +105,13 @@ class ReservationRefund extends Component
         $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
         $currency = (string) ($reservation->currency ?? 'EUR');
 
+        // ⚠️ THE WHO-BEARS-IT CONTROL RENDERS ONLY WHERE AN OWNER EXISTS. On an operator-owned unit there is
+        //    no owner to charge, so the question is meaningless and the control must not appear at all.
+        //    ⚠️ Read through the SAME test the refund listener uses (§N.8f) — a second definition here would
+        //    eventually disagree with the one that actually decides whether money moves.
+        $isOwnerAttributed = app(OwnerAttributionService::class)
+            ->isOwnerAttributed((string) $reservation->getKey(), $currency);
+
         $checkIn = CarbonImmutable::parse($reservation->check_in)->startOfDay();
         $checkOut = CarbonImmutable::parse($reservation->check_out)->startOfDay();
 
@@ -116,6 +124,7 @@ class ReservationRefund extends Component
             ->first();
 
         return view('livewire.operator.reservation-refund', [
+            'isOwnerAttributed' => $isOwnerAttributed,
             'viewer' => $this->viewer(),
             'reservation' => [
                 'id' => (string) $reservation->id,

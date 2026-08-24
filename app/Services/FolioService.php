@@ -378,7 +378,14 @@ class FolioService
      *
      * @throws RefundExceedsPaymentException when the cumulative bound or the currency rule is broken
      */
-    public function refundPayment(Payment $original, Money $amount, ?string $reason = null, ?string $idempotencyKey = null): Payment
+    /**
+     * ⚠️ `$borneBy` — WHO BEARS THIS REFUND, captured AT REFUND TIME and never editable afterwards.
+     * ⚠️ It must be persisted on the refund row INSIDE this transaction, because
+     * {@see AdjustOwnerLedgerOnRefund} reads that row synchronously the moment `payment.refunded` is
+     * recorded below. Setting it afterwards would let the listener post an owner debit the operator had
+     * explicitly declined. NULL keeps today's behaviour exactly: the owner bears it.
+     */
+    public function refundPayment(Payment $original, Money $amount, ?string $reason = null, ?string $idempotencyKey = null, ?string $borneBy = null): Payment
     {
         if (! in_array($original->type, ['payment', 'capture'], true)) {
             throw new InvalidArgumentException('Only a payment/capture can be refunded.');
@@ -419,7 +426,7 @@ class FolioService
             $metadata['reason'] = trim($reason);
         }
 
-        $refund = DB::transaction(function () use ($original, $amount, $folio, $metadata, $idempotencyKey): Payment {
+        $refund = DB::transaction(function () use ($original, $amount, $folio, $metadata, $idempotencyKey, $borneBy): Payment {
             // 🔒 Row-lock THE ORIGINAL payment; a concurrent refundPayment() for it waits here until we commit.
             $locked = Payment::query()->lockForUpdate()->findOrFail($original->getKey());
 
@@ -457,6 +464,7 @@ class FolioService
                 'currency' => $amount->currency(),
                 'status' => $result->successful ? 'succeeded' : 'failed',
                 'metadata' => $metadata,
+                'refund_borne_by' => $borneBy,
                 'idempotency_key' => $idempotencyKey,
                 'processed_at' => now(),
             ]);
@@ -472,7 +480,14 @@ class FolioService
             'refunds_payment_id' => $original->getKey(),
             'amount_minor' => $amount->amountMinor(),
         ]);
-        $this->audit->record('payment.refunded', $refund, null, ['refunds_payment_id' => $original->getKey()]);
+        // ⚠️ THIS MOVES MONEY BETWEEN TWO PARTIES, so it must be ATTRIBUTABLE: who decided, when, on which
+        //    refund. Only an EXPLICIT choice is recorded — the default is an absence, not a decision, and
+        //    recording "owner" for every untouched refund would make the audit trail claim a choice nobody
+        //    made.
+        $this->audit->record('payment.refunded', $refund, null, array_filter([
+            'refunds_payment_id' => $original->getKey(),
+            'refund_borne_by' => $borneBy,
+        ], static fn ($v): bool => $v !== null));
 
         return $refund;
     }

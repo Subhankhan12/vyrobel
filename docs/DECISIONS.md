@@ -15971,3 +15971,70 @@ risk, but `guide-channels` is account-gated so some claims may be honest-pending
 `docs` (6), `faq` (6), `resources` (7).
 **B6 — the articles** (`article-*`) — ⚠️ **lowest consequence but mostly sourcing-BLOCKED**, so correcting
 them does not make them publishable.
+
+---
+
+## 2026-08-24 · ⚠️ MONEY PATH — REFUND ATTRIBUTION: DEFAULT TO OWNER, ALLOW AN OVERRIDE (invariant #74)
+
+⚠️ The first product change in this arc, on the certified append-only owner ledger, so the posture inverts:
+built so it **cannot** move money wrongly.
+
+**How the listener decides, established before anything was written:** `AdjustOwnerLedgerOnRefund` loads the
+refund `Payment` by `domain_event.subject_id`, requires `status === 'succeeded'`, and calls
+`OwnerAttributionService::attributeRefund`, which returns 0 when no `owner_ledger` row exists for that
+reservation+currency. Idempotency key: `refund:{paymentId}:{ownerId}`. ⚠️ **So the choice had to live on the
+refund `Payment` row** — nowhere else is in the listener's reach.
+
+### ⚠️ ZERO MOVEMENT BY DEFAULT — proven on the whole table
+
+`owner_ledger` **29 rows · net 465360 minor** before and after, per owner; `payments` with a non-null
+`refund_borne_by`: **0**. Nothing was back-filled, so every existing row is NULL and therefore owner-borne
+**by construction rather than by inspection**. The certified owner-accounting suite (**283 tests**) is green
+**UNAMENDED**.
+
+### The column, and why it is not a JSON key
+
+`payments.refund_borne_by`, nullable, closed set `owner|operator` on `Payment::BORNE_BY`, refused at the
+controller boundary. ⚠️ `metadata` already carries the refund REASON — descriptive, and harmless if absent.
+**This value decides whether money moves**, and a JSON key can go absent, misspelled or wrong-typed with
+nothing announcing it. NULL = OWNER-BORNE: the ruling, and the fail-safe direction.
+
+### Ordering, and no way back
+
+`Payment::create()` runs **inside** the transaction; `domainEvents->record('payment.refunded')` fires **after
+commit** — so the value is on the row before the listener can read it. ⚠️ There is **no edit route, no admin
+flip, no retroactive re-attribution**: a flag that changed money already posted would make the ledger
+disagree with itself silently. A wrong choice is corrected by an adjustment through the certified path.
+
+### ⚠️ THE MUTATIONS — all six caught
+
+Remove the listener guard → RED · flip NULL to operator → RED · remove the closed-set check → RED (a
+`borne_by=nobody` post reaches the column) · drop the value from the create array → RED · idempotency holds
+in both states · ⚠️ **#27 still refuses an over-refund with the override set.**
+
+⚠️ **AND A FALSE RED WORTH RECORDING.** The full suite failed `TenantIsolationTest` — *"9 is identical to 2"*
+— while passing in isolation. ⚠️ **The certified test was right and my test file was wrong**: every Feature
+file declares `uses(RefreshDatabase::class)` **itself** (it is commented out in `Pest.php`), mine omitted it,
+and seven leaked properties inflated a cross-tenant count. **A clean-baseline run proved the branch caused
+it.** ⚠️ The rule held exactly as intended — the certified test was not amended; the new file was fixed.
+
+### The permission, chosen by reading the matrix
+
+`payments.refund` — already the gate on the refund route. ⚠️ Whoever ISSUES the refund is the one who KNOWS
+the cause; gating the choice more tightly would mean the person who knows cannot record it and someone who
+does not know decides. Admitted roles are exactly those that can already refund. The audit records the
+choice **only when one was made** — recording "owner" on every untouched refund would claim a decision
+nobody took.
+
+### The control
+
+Renders only where `OwnerAttributionService::isOwnerAttributed()` is true — ⚠️ **the same test the refund path
+uses (§N.8f), extracted rather than duplicated**, since a second definition would eventually disagree with
+the one that decides whether money moves. "The owner" is **checked by default and stated in words**:
+absorbing a refund is deliberate, never the result of leaving a control alone.
+
+### ⚠️ The doc corrected in the SAME pass
+
+Batch 1's sentence ("deducted from the owner's share") became false the moment this shipped.
+`guide-refunds` now: **AUDIT-FALSE 11 owed / 11 done / 0 still / 0 unmatched · LEDGER 6 rows / 0 blocking ·
+CORRECTED YES · CLEARED YES.**

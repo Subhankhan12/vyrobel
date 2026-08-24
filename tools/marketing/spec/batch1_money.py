@@ -226,8 +226,14 @@ REFUNDS = {
                   'boiler is a property cost and goes to the owner\u2019s statement; a credit for a '
                   'service failure by your team is an operator cost. Vyrobel asks you which, and does not '
                   'guess, because guessing wrong is an argument.',
-        'after': 'A refund against an owner-attributed booking is deducted from that owner\u2019s share of '
-                 'it. Vyrobel does not ask you to apportion it by cause, so where a refund is your team\u2019s '
-                 'cost rather than the owner\u2019s, correct it with an adjustment on their statement.',
+        # ⚠️ UPDATED IN THE SAME PASS AS THE PRODUCT CHANGE. The previous correction said the cost ALWAYS
+        #    lands on the owner — true when it was written, FALSE the moment the borne-by override shipped.
+        #    ⚠️ Leaving it would have re-created, by this arc's own hand, the exact defect the arc exists to
+        #    remove: a page describing behaviour the product no longer has.
+        'after': 'A refund against an owner-attributed booking is deducted from that owner\u2019s share by '
+                 'default. When it is your team\u2019s cost rather than theirs, mark it as yours on the '
+                 'refund screen and the owner is not charged. The choice is recorded with the refund and '
+                 'cannot be changed afterwards \u2014 correct a mistake with an adjustment on the next '
+                 'statement.',
     },
 }

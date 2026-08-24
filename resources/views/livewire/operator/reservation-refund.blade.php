@@ -104,6 +104,18 @@
                                             <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="destination" value="manual_bank"> Manual bank transfer <span style="color: var(--vy-faint);">· recorded, no gateway</span></label>
                                         </div>
 
+{{-- ⚠️ WHO BEARS IT — rendered ONLY for an owner-attributed reservation (there is no owner to charge on an
+     operator-owned unit, so the question is meaningless there). ⚠️ "The owner" is CHECKED by default and
+     stated in words: absorbing a refund must be a deliberate act, never something that happens because a
+     control was left alone. The choice is captured with this refund and cannot be changed afterwards. --}}
+                                        @if ($isOwnerAttributed)
+                                            <label class="vy-field-label" style="margin-top: 12px;">Whose cost is this?</label>
+                                            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--vy-ink);">
+                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="owner" checked> The owner <span style="color: var(--vy-faint);">· deducted from their share of this booking</span></label>
+                                                <label style="display: flex; align-items: center; gap: 8px;"><input type="radio" name="borne_by" value="operator"> Ours <span style="color: var(--vy-faint);">· we absorb it; the owner is not charged</span></label>
+                                            </div>
+                                        @endif
+
                                         <x-busy-btn class="vy-act vy-act--accent" busy-label="Refunding…" style="margin-top: 12px;">Review &amp; issue refund</x-busy-btn>
                                     </form>
                                     <div class="vy-recon" style="margin-top: 8px;">Up to {{ $payment['remaining'] }} is still refundable against this payment. Anything above that is refused, not trimmed to fit.</div>

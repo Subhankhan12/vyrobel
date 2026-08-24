@@ -34,8 +34,27 @@ class Payment extends Model
         'status',
         'card_token',
         'metadata',
+        'refund_borne_by',
         'processed_at',
     ];
+
+    /**
+     * ⚠️ WHO BEARS A REFUND — the CLOSED set. NULL is not a member: NULL means OWNER-BORNE, which is both
+     * the product ruling and the fail-safe direction (a caller that forgets debits the owner exactly as
+     * before). Held here so the boundary rule and the ledger listener read ONE definition (§N.8f).
+     */
+    public const BORNE_BY_OWNER = 'owner';
+
+    public const BORNE_BY_OPERATOR = 'operator';
+
+    /** @var list<string> */
+    public const BORNE_BY = [self::BORNE_BY_OWNER, self::BORNE_BY_OPERATOR];
+
+    /** ⚠️ TRUE only for an EXPLICIT operator-borne refund. NULL and 'owner' both mean the owner bears it. */
+    public function isOperatorBorne(): bool
+    {
+        return (string) $this->refund_borne_by === self::BORNE_BY_OPERATOR;
+    }
 
     /**
      * @var list<string>

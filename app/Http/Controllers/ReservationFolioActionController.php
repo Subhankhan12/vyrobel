@@ -168,8 +168,15 @@ class ReservationFolioActionController extends Controller
         // workspace is paused. The refund gateway call is TEST-MODE (StripeSafetyGuard) until go-live.
         $reason = $this->composeReason($request);
 
+        // ⚠️ WHO BEARS IT — a DECISIVE value, so it is validated against the model's CLOSED set at the
+        //    boundary and stored in a typed column, never alongside the descriptive reason in metadata.
+        //    ⚠️ Anything absent, empty or unrecognised resolves to NULL = OWNER-BORNE, which is today's
+        //    behaviour exactly. Absorbing a refund can only ever be an EXPLICIT, valid 'operator'.
+        $borneRaw = $request->input('borne_by');
+        $borneBy = (is_string($borneRaw) && in_array($borneRaw, Payment::BORNE_BY, true)) ? $borneRaw : null;
+
         try {
-            $folios->refundPayment($payment, new Money($minor, (string) $payment->currency), $reason);
+            $folios->refundPayment($payment, new Money($minor, (string) $payment->currency), $reason, null, $borneBy);
         } catch (RefundExceedsPaymentException) {
             // The service is the authority. It ROW-LOCKS the original payment and re-reads the cumulative
             // total INSIDE that lock (FolioService::refundPayment), so a concurrent refund landing between
