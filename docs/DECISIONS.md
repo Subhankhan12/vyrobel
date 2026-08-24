@@ -16121,3 +16121,75 @@ deletion request on `guide-gdpr`. ⚠️ **Cutting a true half to turn the gate 
 failure on a security and a legal page.** Left standing, and reported.
 
 **Running total: 52 of 220 evidenced · 80 outstanding · 88 unmatched.**
+
+---
+
+## 2026-08-24 · BATCH 3 — THE BOOKING SPINE · ⚠️⚠️ AND THE CORRECTIONS GATE'S MAP WAS SWAPPED
+
+### ⚠️⚠️ THE FINDING THAT MATTERED MOST: TWO PAGES WERE CROSSED IN THE GATE'S OWN MAP
+
+`guide-checkin` is the page titled **"Check-in, check-out and the folio"**; `guide-arrival` is **"Online
+check-in and arrival information"**. The gate's hand-written `URL_TO_KEY` had them **exactly reversed** from
+the day it was written — so it compared each page against the **other page's claims** and reported all 35 of
+them as UNMATCHED.
+
+⚠️ **That looks identical to the audit paraphrasing, which is why it survived three passes and two reports.**
+It was found only by reading the pages' own `<title>` when their unmatched rate (21/21 and 14/14) was too
+clean to be paraphrase.
+
+⚠️ **A HAND-WRITTEN JOIN IS A CLAIM LIKE ANY OTHER**, and this one was never checked against the thing it
+claimed to map. ⚠️ **Fixing it moved every number**: unmatched **88 → 56**, outstanding **80 → 106**, done
+**52 → 58** — before a single correction was written. ⚠️ **The previous two passes' unmatched figures were
+inflated by this bug and are superseded.**
+
+### ⚠️ THE AUDIT IS A SNAPSHOT — ONE OF THE 47 HAD ALREADY BECOME TRUE
+
+⚠️ *"No operator UI writes `door_code`, `wifi_ssid`, `wifi_password` or `arrival_notes`"* — **one exists
+now**: `ArrivalInfoService` behind `app.inventory.units.arrival-info` (+ `/reveal`), built in **this arc**
+(cluster E). ⚠️ **Corrected nothing.** That is the third time a flagged claim turned out to have been made
+true by later work (statement generation · per-property scoping · this).
+
+### ⚠️ #33 — THE ARRIVAL SECRETS, STATED AS A DATE
+
+`ArrivalPack::for()` releases from `checkIn->subDays(LEAD_DAYS)` through check-out and withholds for a
+cancelled booking — **a DATE, not an event**: not the guest checking in, not payment, not an ID on file, not
+anyone confirming anything. The page claimed release *"to a guest whose ID you have and whose balance is
+paid"*; it now says *"Released only in the last `{{ ArrivalPack::LEAD_DAYS }}` days before arrival, and never
+for a cancelled booking."* ⚠️ **`LEAD_DAYS` is INTERPOLATED in both places it appears** — no "48 hours", no
+"two days".
+
+⚠️ **And the release email was worse than the release itself:** the page said a guest who had not checked in
+*"gets a reminder rather than the code"*. `SendPreArrivalEmails` selects on `whereDate('check_in', $target)`
+and **never consults `guest_checked_in_at`** — everyone on that date gets the email, which carries the code.
+
+**No typed hour anywhere on the three pages** (the one remaining — *"the queue at three in the afternoon"* —
+is rhetoric about hotels generally, not a claim about a Vyrobel setting, and is not in the audit's list).
+
+### ⚠️⚠️ TWO REAL PRODUCT DEFECTS — REPORTED, NOT FIXED
+
+1. ⚠️⚠️ **A UNIT MOVE BETWEEN OWNERS DOES NOT RE-ATTRIBUTE THE MONEY.** `attributeReservation()` runs ONCE at
+   booking creation and `AssignmentService` never re-runs it, so moving a booking to another owner's unit
+   leaves the earnings on the **original** owner's statement. The page claimed the opposite outright.
+2. ⚠️ **There is no balance guard on checkout** and no "mark as owed" concept — the page promised friction
+   that does not exist, which is how an unpaid balance walks out of the building.
+
+### Sections left thinner, and said so
+
+Reservation step 3 (no per-night breakdown, no wizard override) · check-in step 1 (the panel shows no
+housekeeping state at all) · the arrival "house rules" step (there is none in the guest wizard —
+`house_rules_ack_at` is written by the **operator's** create path).
+
+### ⚠️ BOTH REGISTERS — cleared ≠ corrected
+
+| page | audit-FALSE owed/done/still/unmatched | ledger rows/blocking | CORRECTED | CLEARED |
+|---|---|---|---|---|
+| `guide-reservation` | 12 / 10 / **0** / 2 | 2 / 0 | ✅ | ✅ |
+| `guide-checkin` | 14 / 13 / **0** / 1 | 2 / 0 | ✅ | ✅ |
+| `guide-arrival` | 21 / 16 / 3 / 2 | 9 / **4** | ⚠️ see below | ⚠️ **NO** |
+
+⚠️ **`guide-arrival`'s three:** one is the **stale** cluster-E claim (correct nothing); two are
+**corrected-but-unevidenced** — I **appended** rather than replaced, because the original clause was TRUE in
+both cases. ⚠️ Cutting a true half to green the gate was refused, as it was last pass.
+
+**Running total: 91 of 220 evidenced · 73 outstanding · 56 unmatched** — the biggest single move of the
+phase, and most of it came from fixing the map rather than from writing prose.

@@ -106,6 +106,8 @@ from g6_housekeeping import (                                    # noqa: E402
     SPLIT_044 as _SPLIT_044, CUT_171 as _CUT_171,
 )
 from slice2_security_gdpr import SECURITY as _SEC, GDPR as _GDPR   # noqa: E402
+from batch3_booking_spine import (RESERVATION as _B3_RES, CHECKIN as _B3_CHK,   # noqa: E402
+                                  ARRIVAL as _B3_ARR)                        # noqa: E402
 from batch2_access_privacy import (ACCESS as _B2_ACC, GDPR as _B2_GDPR)  # noqa: E402
 from batch1_money import (PAYOUTS as _B1_PAY, STATEMENTS as _B1_STMT,   # noqa: E402
                           REFUNDS as _B1_REF)                           # noqa: E402
@@ -1422,6 +1424,16 @@ def convert(key):
     # ⚠️ BATCH 2 — ACCESS & PRIVACY. ⚠️ `guide-gdpr` is NOT untouched: slice 2 already owns five of its
     #    sentences on the ledger's list, so these run AFTER the slice-2 block and take only what is left.
     for _pg, _rules, _tag in (('guide-access', _B2_ACC, 'B2-ACC'), ('guide-gdpr', _B2_GDPR, 'B2-GDPR')):
+        if key == _pg:
+            for _cid, _d in _rules.items():
+                t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)
+
+    # ⚠️ BATCH 3 — THE BOOKING SPINE. ⚠️ `guide-checkin` is "Check-in, check-out and the folio" and
+    #    `guide-arrival` is "Online check-in and arrival information" — the corrections gate had these two
+    #    SWAPPED, which is why 35 of their claims read as unmatched for three passes.
+    for _pg, _rules, _tag in (('guide-reservation', _B3_RES, 'B3-RES'),
+                              ('guide-checkin', _B3_CHK, 'B3-CHK'),
+                              ('guide-arrival', _B3_ARR, 'B3-ARR')):
         if key == _pg:
             for _cid, _d in _rules.items():
                 t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)

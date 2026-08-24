@@ -40,10 +40,16 @@ APPENDIX = os.path.join(_ROOT, 'docs/audits/FRONT-GATE5-CLAIMS-APPENDIX-2026-08-
 # ⚠️ THE AUDIT ADDRESSES PAGES BY URL; THE CONVERTER BY KEY. This map is the only place the two meet, and
 # it is written by hand FROM the audit's own section list — never derived from the converter's registry,
 # which would let a page the converter does not know silently vanish from the OWED side.
+# ⚠️⚠️ THESE TWO WERE SWAPPED FROM THE DAY THIS MAP WAS HAND-WRITTEN, AND THE GATE SAID NOTHING.
+# `guide-checkin` is the page titled "Check-in, check-out and the folio"; `guide-arrival` is "Online
+# check-in and arrival information". Crossed, the gate compared each page against the OTHER page's claims
+# and reported all 35 of their claims as UNMATCHED — which looks exactly like the audit paraphrasing, and
+# is why it survived three passes. ⚠️ A HAND-WRITTEN JOIN IS A CLAIM LIKE ANY OTHER: it was never checked
+# against the pages' own titles until batch 3 read them.
 URL_TO_KEY = {
     '/docs': 'docs', '/faq': 'faq', '/glossary': 'glossary', '/resources': 'resources',
-    '/docs/invites-and-access': 'guide-access', '/docs/online-check-in': 'guide-checkin',
-    '/docs/connecting-channels': 'guide-channels', '/docs/check-in-and-folio': 'guide-arrival',
+    '/docs/invites-and-access': 'guide-access', '/docs/online-check-in': 'guide-arrival',
+    '/docs/connecting-channels': 'guide-channels', '/docs/check-in-and-folio': 'guide-checkin',
     '/docs/gdpr-and-data': 'guide-gdpr', '/docs/housekeeping-board': 'guide-housekeeping',
     '/docs/payout-runs': 'guide-payouts', '/docs/rate-plans': 'guide-rates',
     '/docs/refunds-and-changes': 'guide-refunds', '/docs/reports-and-exports': 'guide-reports',
