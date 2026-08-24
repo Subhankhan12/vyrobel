@@ -16193,3 +16193,70 @@ both cases. ⚠️ Cutting a true half to green the gate was refused, as it was 
 
 **Running total: 91 of 220 evidenced · 73 outstanding · 56 unmatched** — the biggest single move of the
 phase, and most of it came from fixing the map rather than from writing prose.
+
+---
+
+## 2026-08-24 · ⚠️ MONEY PATH — THE OWNER FOLLOWS THE UNIT ON A MOVE (invariant #76)
+
+### ⚠️ ESTABLISHED FIRST: THERE IS NO EFFECTIVE DATE, AND NONE WAS INVENTED
+
+`AssignmentService::assignUnit()` writes `unit_id`, records `reservation_unit.moved` with
+`from_unit_id`/`to_unit_id`, and audits it. ⚠️ **That is the entire move record — there is no effective date,
+no `moved_at`, nothing that says which night the guest actually changed rooms.**
+
+⚠️⚠️ **SO THE MID-STAY SPLIT IS NOT IMPLEMENTED, DELIBERATELY.** A `now()` or the audit row's timestamp
+standing in for the move date would be a fabricated fact that lands on someone's payout — the invented-`15:00`
+class, except this one moves money. **An already-arrived booking is left exactly as it is, and the gap is
+reported rather than guessed at.**
+
+**WHAT IS MISSING, precisely:** a `reservation_units.moved_effective_date` (or a dated move record), captured
+**at the moment the operator performs the move**, with the operator stating **which night the guest first
+slept in the new unit**. ⚠️ **AND THE HAZARD THAT COMES WITH IT:** such a date would be operator-settable and
+**backdatable**, which on an append-only ledger is a **money-manipulation surface** — an operator could shift
+nights between two owners after the fact. **That is a founder decision, not an implementation detail.**
+
+### ⚠️ NOTHING WAS INVENTED — THE CERTIFIED METHOD EXISTED WITH NO CALLER
+
+`OwnerAttributionService::reattributeReservation()` already reverses the live version as a **whole
+transaction** and attributes a fresh one, and its reversal already stamps `prior_period_adjustment` from
+`PeriodLockGuard::isSealed()`. ⚠️ **It simply had ZERO callers — which is exactly why the money never
+followed.** The fix is a listener on `reservation_unit.moved` that calls it, and nothing else.
+
+### ⚠️ ALL FOUR TRANSITIONS, EACH PROVEN
+
+| transition | behaviour | proven |
+|---|---|---|
+| same owner → different unit | ⚠️ **PROVEN NO-OP — not one new row.** Reversal + identical re-post is churn the owner can SEE | ✅ |
+| owner A → owner B (pre-arrival) | A reversed to **exactly 0**, B holds A's former net, ledger sum unchanged | ✅ |
+| owner → operator-owned | owner's share reaches **0**; ledger sum for the booking becomes 0 | ✅ |
+| operator-owned → owner | the owner **gains** an attribution where there was none | ✅ |
+
+⚠️ Ownership is read as `units.owner_id` — the same resolution the attribution itself uses (§N.8f).
+
+### ⚠️ A FALSE GREEN CAUGHT — AND IT WAS MY MUTATION THAT WAS WRONG
+
+Removing `Event::listen(…, ReattributeOwnerOnUnitMove::class)` left every test **passing**. The edit applied
+(1 → 0 occurrences), so it was not the §N.4p "edit didn't apply" case. ⚠️ **Laravel auto-discovers
+`app/Listeners`, so the explicit registration is redundant and removing it changes nothing.** Mutating the
+**listener body** instead turns 3 tests RED. ⚠️ **A mutation that targets a redundant registration proves
+nothing, and reporting the first result as a pass would have been a false green on a money path.**
+
+### The rest
+
+**Locked period:** proven explicitly — with A's period sealed through the service date, **every reversal
+carries `prior_period_adjustment = true`** and the sealed statement's own figures are untouched.
+**No back-fill:** no migration at all; `owner_ledger` **29 rows · net 465360**, unchanged.
+**Idempotent:** moving A→B→A returns exactly to the starting position with the ledger sum preserved.
+**Audited:** `assignUnit()`'s existing `reservation_unit.moved` audit row carries from/to unit and actor.
+**Arithmetic:** the signed sum is preserved on every owner-to-owner move — money is **moved**, never created
+or destroyed. It legitimately falls to zero only when the unit becomes operator-owned.
+
+**Certified owner-accounting suite: 324 tests green, UNAMENDED.**
+
+### ⚠️ THE DOC RE-CORRECTED IN THE SAME PASS — THIRD TIME THIS PATTERN HAS RUN
+
+Batch 3 wrote *"the earnings stay with the unit that was originally booked"* — true that morning, false the
+moment this shipped. It now states both halves honestly: the earnings follow the unit before arrival, and
+stay put after it **because nothing records which night the guest changed rooms**.
+`guide-checkin`: **AUDIT-FALSE 14 owed / 13 done / 0 still / 1 unmatched · LEDGER 2 rows / 0 blocking ·
+CORRECTED YES · CLEARED YES.** `guide-statements` and `guide-payouts` make no claim about moves — unaffected.

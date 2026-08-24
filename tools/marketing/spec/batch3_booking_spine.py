@@ -170,9 +170,16 @@ CHECKIN = {
     'unit-move-statements': {
         'before': 'The change keeps their history, their rate and their folio, and the owner statements on '
                   'both units reflect it correctly.',
-        'after': 'The change keeps their history, their rate and their folio. If the two units have '
-                 'different owners, check the statements — the earnings stay with the unit that was '
-                 'originally booked.',
+        # ⚠️ RE-CORRECTED IN THE SAME PASS AS THE PRODUCT FIX. Batch 3 wrote "the earnings stay with the
+        #    unit that was originally booked" — true that morning, FALSE the moment the re-attribution
+        #    shipped. ⚠️ THIRD TIME THIS PATTERN HAS RUN (refunds → borne-by → here), and leaving it would
+        #    have this arc create the very defect it exists to remove, by its own hand.
+        #    ⚠️ The mid-stay case is stated honestly because the product genuinely cannot split it: no
+        #    record says when the guest actually moved.
+        'after': 'The change keeps their history, their rate and their folio, and the earnings follow the '
+                 'unit — move it before the guest arrives and the whole stay goes to the new unit’s '
+                 'owner. Move it after they have arrived and the earnings stay where they were, because '
+                 'nothing records which night they changed rooms.',
     },
     'waiting-luggage': {
         'before': 'Mark the guest as waiting so the floor knows, store their luggage, and note it on the '

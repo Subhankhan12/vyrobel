@@ -9,6 +9,7 @@ use App\Listeners\AuditOAuthTokenGranted;
 use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
+use App\Listeners\ReattributeOwnerOnUnitMove;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
 use App\Listeners\SendGuestTransactionalEmails;
@@ -437,6 +438,10 @@ class AppServiceProvider extends ServiceProvider
         // #100 — a guest refund posts an owner-statement ADJUSTMENT (the owner's net-ratio share of the refund),
         // landing on the next statement close. Same bus; idempotent; a no-op for an operator-only reservation.
         Event::listen(DomainEventRecorded::class, AdjustOwnerLedgerOnRefund::class);
+        // ⚠️ MONEY: the owner attribution follows the unit when a booking is moved. Calls the CERTIFIED
+        //    `reattributeReservation()` (whole-transaction reversal + fresh attribution) — which existed
+        //    with no caller, which is exactly why the money never followed.
+        Event::listen(DomainEventRecorded::class, ReattributeOwnerOnUnitMove::class);
 
         // Super Admin · Build 2 · Gate 1 — capture auth SECURITY SIGNALS (login / failed / lockout) for the
         // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);
