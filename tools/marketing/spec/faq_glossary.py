@@ -243,6 +243,153 @@ GLOSSARY_CORRECTIONS = {
 # contain it. ⚠️ THAT IS ALSO A DRAFTING RULE FOR THE CORRECTIONS THEMSELVES: never negate a false claim by
 # quoting it ("it is NOT what you are billed on"), because a skimming reader still reads the claim — and
 # the corrections gate rightly reported that phrasing as still present on the page.
+# ⚠️ EXTENDED TO ALL 27 PAGES. Each fragment below is drawn from a RECORDED verification (the batch files
+# and the FAQ/glossary record), never re-derived — and each is the FALSE original, chosen long enough to be
+# unambiguous and short enough to survive a reworded correction.
+#
+# ⚠️ THE FRAGMENTS ARE PAGE-KEYED. A phrase that is false on one page can be legitimate prose on another
+# (an article ABOUT a mistake may quote it), so a global list would produce reds that are neither an
+# unlanded correction nor a broad fragment — just a false positive, which is how a check gets loosened.
+FORBIDDEN_BY_PAGE = {
+    'guide-reports': [
+        'Units out of service are excluded from available nights',   # R1 — OOS stays in the denominator
+        'Month bars in the revenue chart are clickable',             # not a control
+        'The peak month is highlighted',                             # no highlight logic
+        'A goal line on the chart flags months below target',        # operator has no revenue goal
+        'Filing status sits alongside it',                           # no filed_at/filed_by anywhere
+        'packages a period\'s owner statements as a single PDF pack',  # no operator statement pack
+        'CSV exports use ISO dates and unformatted numbers, which is deliberate',  # ⚠️ see note below
+    ],
+    'guide-settings': [
+        'the rate used appears on the remittance advice',            # no FX rate captured
+        'feed the VAT summary in Reports',                           # operator Reports has no VAT summary
+        'The default management commission for new owners',          # no org-level default
+        'Units are what you are billed on',                          # flat plans
+        'Notification routing decides who is emailed about what',    # no routing feature
+        'as CSV or JSON, on demand, without a support request',      # no JSON, no full-account export
+    ],
+    'guide-setup': [
+        'we pull them for you on Growth and above',                  # no such tier, no importer
+        'you are billed per unit',                                   # flat plans
+    ],
+    'guide-housekeeping': [
+        'turn inspection off in Settings',                           # no such setting
+        'by count and expected cleaning time',                       # no duration is recorded
+        'This is the only automatic reordering',                     # there is no automatic reordering
+        'Raise a maintenance ticket from the room card',             # no such action on the board
+        'stops the unit selling everywhere immediately, including on connected channels',  # channels STOPPED
+    ],
+    'guide-storefront': [
+        'Your own domain, not a subdomain of ours',                  # no custom-domain support
+        'A recognised card form on your domain',                     # hosted checkout, SAQ A
+        'Test with a real card and refund yourself',                 # presupposes the above
+    ],
+    'docs': [
+        'what syncs each way, and reading connection health',        # channels STOPPED
+        'Enforcing 2FA for the team',                                # no org-wide enforcement
+        'Set once per tenant; every figure in the product follows',  # currency/timezone are per-PROPERTY
+        'The export format we accept, and how the reconciliation sheet works',   # no importer
+    ],
+    'resources': [
+        'One email a month, no drip sequence',                       # no mailing list exists
+    ],
+    'article-pricing': [
+        'cannot be sold at all, at any price, to anyone',            # our own override made this false
+    ],
+
+    # ── BATCHES 1–4 · DERIVED FROM THE RECORDED `before` TEXT, NOT RE-DERIVED ────────────────────────────
+    # ⚠️ EACH FRAGMENT IS THE PART THAT ACTUALLY CHANGED. A first attempt sliced the first 80 characters of
+    # the `before` string and three pages went red — `guide-reservation`, `guide-arrival`, `guide-rates`.
+    # ⚠️ NONE OF THE THREE WAS AN UNLANDED CORRECTION: each correction RETAINED its opening sentence (84,
+    # 116 and 128 shared characters) and changed a later clause, so the prefix sat inside text that is TRUE
+    # and deliberately kept. Cutting a true half to green a gate is forbidden, so the SLICE was fixed
+    # instead — the fragment now starts where `before` and `after` diverge, which is the false half by
+    # construction. Any candidate still found in the corrected output is REJECTED rather than shortened.
+    'guide-reservation': [
+        'before you see a single unit, so nothing offered to you is',
+        'guest count above a unit’s capacity removes that unit from the list rather',
+        'breakdown shows the rate plan applied to each night, including weekend',
+        'is derived from the reservation set, not stored as a separate number that',
+        'the same wizard with a',
+        'share one folio and one guest contact, but each unit keeps its own',
+        'a group later is possible; merging separate bookings into a group is',
+        'be collected at check-in or automatically before arrival, depending on the',
+    ],
+    'guide-checkin': [
+        'panel shows the room’s housekeeping state live. If it is not inspected yet,',
+        'the guest is waiting, mark them as waiting — the room pins to the top of',
+        'details and ID are already here and verified. If not, capture them now; the',
+        'marks the room occupied, and stops it appearing on tomorrow’s arrivals',
+        'night, add-ons, city tax, payments taken and the running',
+        'post automatically as they happen — a transfer booked at check-in, a late',
+        'panel refuses to complete a checkout with money outstanding unless you',
+        'out early shortens the stay and recalculates the folio; the nights released',
+        'statements on both units reflect it',
+        'the guest as waiting so the floor knows, store their luggage, and note it',
+    ],
+    'guide-arrival': [
+        'names, dates of birth and ID are legally required in many jurisdictions.',
+        'with a check against the name on the booking. You can require it for the',
+        'as a step the guest accepts, with the acceptance timestamped against their',
+        'and offer transfers if you run',
+        'day before, to a guest whose ID you have and whose balance is paid, it is a',
+        'a guest has not completed check-in, they get a reminder rather than the',
+        'days before check-in to every confirmed',
+        'emails carry a single link that resumes wherever they',
+        'the channel’s messaging where the window allows it, and by email where you',
+        'data is retained for the statutory period in your jurisdiction and then',
+    ],
+    'guide-access': [
+        'choose which properties they work in. A housekeeper at one building has no',
+        'room detail, and the ability to raise a maintenance ticket. No guest',
+        'permissions can be adjusted per person where your operation does not fit',
+        'rather than delete. Deactivating ends their sessions immediately and blocks',
+    ],
+    'guide-gdpr': [
+        'their own data or request deletion from their account, without contacting',
+        'guest whose stay falls inside a statutory registration period has to wait',
+    ],
+    'guide-payouts': [
+        'run happens on the payout day set for that owner, offset from the statement',
+        'commonest causes are an IBAN that fails checksum validation, a name',
+        "to the owner's available balance and the next run picks it up once the",
+        'are manual by design. An automatic retry against details that have not',
+        'in their balance, visible and withdrawable on demand, and the Overview page',
+        'can also hold a specific payout from your side, for a disputed expense or',
+    ],
+    'guide-statements': [
+        'two months is split by night, not assigned whole to one of',
+        'to the base defined there — gross or net of channel commission, which is a',
+        'generate on the schedule set in Settings. You review rather than',
+        'draft statement per owner appears when the month closes. Nothing is sent',
+        "unusual is surfaced: an expense above the owner's approval threshold, a",
+        'a genuine error caught before the owner has seen it — within minutes of',
+    ],
+    'guide-refunds': [
+        'on the rate plan decides the',
+        'what is refundable under the cancellation policy attached to the booking,',
+        'a change moves the booking to a more expensive period, the difference',
+        'it off revenue for the period the stay fell in, not the period you issued',
+        'is issued against the booking without cancelling anything — the guest keeps',
+        'that lands on the owner or on you depends on cause. A credit for a broken',
+    ],
+    'guide-rates': [
+        'the price in four passes: the unit’s base rate, then the season covering',
+        'cannot overlap. The editor will refuse rather than silently pick',
+        'across the rate grid to set several nights at',
+        'propagate to connected channels on save. Owner-owned units send the change',
+        'can also set a shorter minimum inside a lead-time window. A two-night',
+    ],
+    'guide-security-doc': [
+        'meter is not decorative — it enforces a minimum, and the generator produces',
+        'because a disconnected channel manager stops updating availability and that',
+    ],
+    'article-housekeeping': [
+        'raise it in fifteen seconds from the',
+    ],
+}
+
+
 FORBIDDEN = [
     'roughly \u20ac4 to \u20ac6',                        # a per-unit price band; the plans are flat
     'we bill per unit in the portfolio',              # per-unit billing
@@ -265,3 +412,23 @@ FORBIDDEN = [
     'cannot be sold to anyone, at any price',         # our own override made this false
     'What you are billed on',                         # per-unit billing (glossary)
 ]
+
+
+# ⚠️ G6 CUTS — whole sentences REMOVED as unevidenced predictions; their ABSENCE is the correction, so
+# their presence is the cleanest possible red. Appended rather than inlined above so the derivation is
+# visibly separate from the batch-1–5 `before`/`after` fragments.
+FORBIDDEN_BY_PAGE.update({
+    'article-direct': FORBIDDEN_BY_PAGE.get('article-direct', []) + [
+        'Operators who do only this typically see direct share move several points',
+        'Operators who stay with it for a full season generally find the line',
+        'Almost nobody who tries it in one move is happy six months',
+    ],
+    'article-pricing': FORBIDDEN_BY_PAGE.get('article-pricing', []) + [
+        'Friday and Saturday sell themselves in most leisure',
+        'In city markets it often behaves like a weekend night; in rural leisure',
+        'Most properties price two seasons: high and low, with a hard edge between',
+        'Most small operators are leaving money on two of them and losing money on',
+        'That edge is usually in the wrong place and always too',
+        'Get those right and you have captured most of what a revenue system would',
+    ],
+})

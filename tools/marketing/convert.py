@@ -112,6 +112,7 @@ from batch3_booking_spine import (RESERVATION as _B3_RES, CHECKIN as _B3_CHK,   
 from batch2_access_privacy import (ACCESS as _B2_ACC, GDPR as _B2_GDPR)  # noqa: E402
 from faq_glossary import (FAQ_CORRECTIONS as _FG_FAQ,     # noqa: E402
                           FORBIDDEN as _FG_BAD,          # noqa: E402
+                          FORBIDDEN_BY_PAGE as _FG_BAD_PAGE,  # noqa: E402
                           FAQ_REMOVED as _FG_DROP,       # noqa: E402
                           GLOSSARY_CORRECTIONS as _FG_GLOS)  # noqa: E402
 from batch5_ops import (SETUP as _B5_SETUP, REPORTS as _B5_REP,          # noqa: E402
@@ -1618,6 +1619,7 @@ def convert(key):
         _hits = [b for b in _FG_BAD if b.encode().decode('unicode_escape') in t]
         _NEEDLE_LOG.append((key, 'FG/no-false-claim-survives', _hits == []))
 
+
     # ⚠️ BATCH 5 — OPERATIONS, REPORTING & SETTINGS. Verification record:
     #    `docs/DOC-BATCH5-VERIFICATION.md` (every row carries its code fact).
     #    ⚠️ `/faq` and `/glossary` are NOT here: both render from a data structure the extractor strips, so
@@ -1698,6 +1700,21 @@ def convert(key):
         # ⚠️ Keep what the levers ARE and how they resolve; drop every claim about what WORKS.
         for _cid, _sentence in _PRICING_CUTS.items():
             t = swap(t, _sentence, '', key, 'RULING-pricing/' + _cid)
+
+    # ⚠️⚠️ THE SAME PROTECTION FOR EVERY OTHER PAGE, AND IT MUST RUN LAST. The needles prove a page
+    #    RENDERED; they do not prove it renders the CORRECTED text — a mutation that dropped every
+    #    correction left them all green. This is the check that catches a correction which never landed.
+    #
+    # ⚠️ A FIRST PLACEMENT PUT THIS BESIDE THE /faq BLOCK, WHICH RUNS *BEFORE* THE BATCH TRANSFORMS — so it
+    #    read the UNCORRECTED text and reported all 28 fragments as still present. ⚠️ THAT LOOKED EXACTLY
+    #    LIKE 28 UNLANDED CORRECTIONS, which is the finding this check exists to make, and acting on it
+    #    would have meant "fixing" corrections that were already correct. A check that runs at the wrong
+    #    point in a pipeline does not fail loudly — it fails PLAUSIBLY. It runs last, deliberately.
+    if key in _FG_BAD_PAGE:
+        _bad = [b for b in _FG_BAD_PAGE[key] if b in t]
+        _NEEDLE_LOG.append((key, 'FG/no-false-claim-survives', _bad == []))
+        for _b in _bad:
+            _NEEDLE_LOG.append((key, 'FG/still-present: ' + _b[:60], False))
 
     return meta, t.strip(), left
 
