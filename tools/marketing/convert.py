@@ -110,6 +110,11 @@ from batch4_rates import RATES as _B4_RATES   # noqa: E402
 from batch3_booking_spine import (RESERVATION as _B3_RES, CHECKIN as _B3_CHK,   # noqa: E402
                                   ARRIVAL as _B3_ARR)                        # noqa: E402
 from batch2_access_privacy import (ACCESS as _B2_ACC, GDPR as _B2_GDPR)  # noqa: E402
+from batch5_ops import (SETUP as _B5_SETUP, REPORTS as _B5_REP,          # noqa: E402
+                        SETTINGS as _B5_SET, HOUSEKEEPING as _B5_HK,     # noqa: E402
+                        STOREFRONT as _B5_STORE, DOCS as _B5_DOCS,       # noqa: E402
+                        RESOURCES as _B5_RES,                            # noqa: E402
+                        ARTICLE_PRICING as _B5_ARTP)                     # noqa: E402
 from batch1_money import (PAYOUTS as _B1_PAY, STATEMENTS as _B1_STMT,   # noqa: E402
                           REFUNDS as _B1_REF)                           # noqa: E402
 from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
@@ -1459,6 +1464,34 @@ def convert(key):
     if key == 'guide-rates':
         for _cid, _d in _B4_RATES.items():
             t = swap(t, _d['before'], _d['after'], key, 'B4-RATE/' + _cid)
+
+    # ⚠️ BATCH 5 — OPERATIONS, REPORTING & SETTINGS. Verification record:
+    #    `docs/DOC-BATCH5-VERIFICATION.md` (every row carries its code fact).
+    #    ⚠️ `/faq` and `/glossary` are NOT here: both render from a data structure the extractor strips, so
+    #    a needle would match nothing. Their clean gate result means NOT LOOKED AT, not corrected.
+    for _pg, _rules, _tag in (('guide-setup', _B5_SETUP, 'B5-SETUP'),
+                              ('guide-reports', _B5_REP, 'B5-REP'),
+                              ('guide-settings', _B5_SET, 'B5-SET'),
+                              ('guide-housekeeping', _B5_HK, 'B5-HK'),
+                              ('guide-storefront', _B5_STORE, 'B5-STORE'),
+                              ('docs', _B5_DOCS, 'B5-DOCS'),  # noqa: E501  (changelog links removed below)
+                              ('resources', _B5_RES, 'B5-RES'),
+                              ('article-pricing', _B5_ARTP, 'B5-ARTP')):
+        if key == _pg:
+            for _cid, _d in _rules.items():
+                t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)
+
+    # ⚠️ THE /docs CHANGELOG ENTRY — VERIFIED AND DELIBERATELY LEFT ALONE (confirm-first cuts both ways).
+    #    The audit says the header and footer LINK to a changelog. ⚠️ They do not: the converter has already
+    #    turned both into `<x-marketing.nav-link key="changelog">`, and that component resolves through
+    #    `MarketingUrls::pending()` — with no `marketing.changelog` route registered it renders a
+    #    `aria-disabled` NON-LINK, never an href that 404s. A removal here was written, tripped the
+    #    zero-match check as a no-op, and was withdrawn rather than forced.
+    #    ⚠️ WHAT REMAINS IS NARROWER AND IS REPORTED, NOT PATCHED: the visible label still reads
+    #    "Changelog" / "See what changed recently", and the pending affordance implies a page that is
+    #    COMING. The changelog was REFUSED on principle (`routes/web.php:633` — zero git tags, so there is
+    #    no release history to publish), not deferred. Whether a refused surface should keep a pending nav
+    #    entry is a navigation decision, not a sentence correction.
 
     if key == 'article-housekeeping':
         # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the
