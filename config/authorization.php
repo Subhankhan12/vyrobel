@@ -99,6 +99,11 @@ return [
         //    `folios.manage` — that set includes Front Desk, and an override every agent holds is not a
         //    supervisor override, it is a second checkout button.
         'reservations.checkout_override',
+        'reservations.restriction_override',
+        // ⚠️ Overriding a booking RESTRICTION (min/max stay, stop-sell, closed-to-arrival/departure).
+        //    ⚠️ NOT `reservations.create` — Front Desk holds that, and an override every agent has is just a
+        //    second booking button. ⚠️ SEE DECISIONS for the FREQUENCY argument: a restriction exception is
+        //    far more routine than an unpaid checkout, so this gate may be deliberately too tight.
 
         // Guests (PII)
         'guests.view',
@@ -165,6 +170,7 @@ return [
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.assign',
             'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
             'reservations.checkout_override',
+            'reservations.restriction_override',
             'guests.view', 'guests.manage', 'guests.erase', 'guest_documents.manage', 'corporate_accounts.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record', 'payments.refund',
             'payouts.manage',
@@ -182,6 +188,7 @@ return [
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.assign',
             'reservations.cancel', 'reservations.checkin', 'reservations.checkout',
             'reservations.checkout_override',
+            'reservations.restriction_override',
             'guests.view', 'guests.manage', 'guest_documents.manage', 'corporate_accounts.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record',
             'invoices.view', 'invoices.issue', 'taxes.manage', 'fees.manage', 'addons.manage',

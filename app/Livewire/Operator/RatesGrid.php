@@ -377,7 +377,12 @@ class RatesGrid extends Component
             $key = $row->room_type_id.'|'.CarbonImmutable::parse($row->date)->toDateString();
             $index[$key] = [
                 'min_stay' => $row->min_stay !== null ? (int) $row->min_stay : null,
+                // ⚠️ A restriction that can be SET but not SEEN is the same defect one step along: the
+                //    operator would have no way to know why a booking was refused.
+                'max_stay' => $row->max_stay !== null ? (int) $row->max_stay : null,
                 'stop_sell' => (bool) $row->stop_sell,
+                'closed_to_arrival' => (bool) $row->closed_to_arrival,
+                'closed_to_departure' => (bool) $row->closed_to_departure,
             ];
         }
 
@@ -456,7 +461,10 @@ class RatesGrid extends Component
                 'total' => $avail['total'] ?? null,
                 'sold_out' => $avail !== null && $avail['available'] === 0,
                 'min_stay' => $restriction['min_stay'] ?? null,
+                'max_stay' => $restriction['max_stay'] ?? null,
                 'stop_sell' => $restriction['stop_sell'] ?? false,
+                'closed_to_arrival' => $restriction['closed_to_arrival'] ?? false,
+                'closed_to_departure' => $restriction['closed_to_departure'] ?? false,
             ];
         }
 

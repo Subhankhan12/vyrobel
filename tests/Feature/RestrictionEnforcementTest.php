@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Exceptions\Booking\RestrictionViolationException;
+use App\Exceptions\Booking\RestrictionsViolationException;
 use App\Models\Reservation;
 use App\Models\Restriction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,7 +46,7 @@ it('MIN_STAY — a stay shorter than the arrival date’s minimum is REFUSED', f
     restrict($s, '2026-09-01', ['min_stay' => 7]);
 
     expect(fn () => bookNights($s, '2026-09-01', '2026-09-02'))
-        ->toThrow(RestrictionViolationException::class);
+        ->toThrow(RestrictionsViolationException::class);
 });
 
 it('MIN_STAY — a stay that MEETS the minimum still books', function () {
@@ -68,7 +68,7 @@ it('STOP_SELL — a stay spanning a stopped night is REFUSED, even mid-stay', fu
     restrict($s, '2026-09-03', ['stop_sell' => true]);
 
     expect(fn () => bookNights($s, '2026-09-01', '2026-09-05'))
-        ->toThrow(RestrictionViolationException::class);
+        ->toThrow(RestrictionsViolationException::class);
 });
 
 it('⚠️ STOP_SELL on the DEPARTURE date does not block — nobody sleeps that night', function () {
@@ -83,7 +83,7 @@ it('⚠️⚠️ CTA — REFUSES a stay STARTING on that date', function () {
     restrict($s, '2026-09-01', ['closed_to_arrival' => true]);
 
     expect(fn () => bookNights($s, '2026-09-01', '2026-09-04'))
-        ->toThrow(RestrictionViolationException::class);
+        ->toThrow(RestrictionsViolationException::class);
 });
 
 it('⚠️⚠️ CTA — PERMITS a stay that merely PASSES THROUGH that date (the inversion proof)', function () {
@@ -99,7 +99,7 @@ it('⚠️⚠️ CTD — REFUSES a stay ENDING on that date', function () {
     restrict($s, '2026-09-05', ['closed_to_departure' => true]);
 
     expect(fn () => bookNights($s, '2026-09-01', '2026-09-05'))
-        ->toThrow(RestrictionViolationException::class);
+        ->toThrow(RestrictionsViolationException::class);
 });
 
 it('⚠️⚠️ CTD — PERMITS a stay that merely PASSES THROUGH that date (the inversion proof)', function () {
@@ -135,10 +135,13 @@ it('⚠️ THE REFUSAL IS ACTIONABLE — it names the restriction, the date and 
     try {
         bookNights($s, '2026-09-01', '2026-09-02');
         $this->fail('the booking should have been refused');
-    } catch (RestrictionViolationException $e) {
-        expect($e->restriction)->toBe('min_stay')
-            ->and($e->date)->toBe('2026-09-01')
-            ->and($e->value)->toBe(7)
+    } catch (RestrictionsViolationException $e) {
+        // ⚠️ The refusal now carries EVERY breach — here exactly one — and each still names the
+        //    restriction, the date and the value.
+        $r = $e->asRecords()[0];
+        expect($r['restriction'])->toBe('min_stay')
+            ->and($r['date'])->toBe('2026-09-01')
+            ->and($r['value'])->toBe(7)
             ->and($e->getMessage())->toContain('2026-09-01')
             ->and($e->getMessage())->toContain('7');
     }

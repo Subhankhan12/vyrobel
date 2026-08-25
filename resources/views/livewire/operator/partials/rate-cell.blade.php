@@ -17,4 +17,15 @@
     @if ($cell['min_stay'] !== null)
         <span class="vyr-flag vyr-flag--min" title="Minimum {{ $cell['min_stay'] }} nights">{{ $cell['min_stay'] }}n min</span>
     @endif
+    {{-- ⚠️ The three that became settable this pass. They are enforced at booking, so they must be VISIBLE
+         here — otherwise an operator sees a refusal with no explanation on the calendar in front of them. --}}
+    @if (($cell['max_stay'] ?? null) !== null)
+        <span class="vyr-flag vyr-flag--min" title="Maximum {{ $cell['max_stay'] }} nights">{{ $cell['max_stay'] }}n max</span>
+    @endif
+    @if ($cell['closed_to_arrival'] ?? false)
+        <span class="vyr-flag vyr-flag--closed" title="Closed to arrival — a stay cannot start today">No arr</span>
+    @endif
+    @if ($cell['closed_to_departure'] ?? false)
+        <span class="vyr-flag vyr-flag--closed" title="Closed to departure — a stay cannot end today">No dep</span>
+    @endif
 </div>

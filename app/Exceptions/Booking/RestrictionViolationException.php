@@ -32,6 +32,14 @@ class RestrictionViolationException extends RuntimeException
         ));
     }
 
+    public static function maxStay(string $date, int $allowed, int $actual): self
+    {
+        return new self('max_stay', $date, $allowed, sprintf(
+            'A maximum stay of %d night(s) applies to arrivals on %s — this booking is %d night(s).',
+            $allowed, $date, $actual
+        ));
+    }
+
     public static function stopSell(string $date): self
     {
         return new self('stop_sell', $date, null, sprintf('%s is stopped for sale.', $date));

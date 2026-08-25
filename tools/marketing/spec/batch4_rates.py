@@ -59,9 +59,18 @@ RATES = {
         # ⚠️ RE-CORRECTED IN THE SAME PASS AS THE ENFORCEMENT. This sentence was written one pass ago and
         #    was true then: the minimum was displayed and never read. It is enforced now, so the original
         #    warning — a too-long minimum costs you the booking — is the right one again.
+        # ⚠️ THIRD correction of this sentence in three passes: batch 4 (guidance only), the enforcement
+        #    pass (refused outright), and now the override. ⚠️ IT MUST SAY THE OVERRIDE DOES NOT CHANGE THE
+        #    RESTRICTION — a reader who believes it does will keep overriding instead of fixing the rate
+        #    plan, and the restriction stays wrong for every booking after this one.
         'after': 'Restrictions live alongside rates but behave differently: a rate that is too high loses '
                  'margin, a minimum stay that is too long refuses the booking outright. A stay shorter '
-                 'than the minimum on its arrival date is turned away, wherever it was booked.',
+                 'than the minimum on its arrival date is turned away, wherever it was booked — as is one '
+                 'longer than the maximum, one arriving on a date closed to arrivals, one leaving on a date '
+                 'closed to departures, and any stay covering a night you have stopped selling. A manager '
+                 'can override a refusal, choosing from a fixed list of reasons; the booking then goes '
+                 'through, but the restriction itself is unchanged and will refuse the next one just the '
+                 'same. If it is wrong, change it on the grid.',
     },
     # ⚠️ NO ORPHAN-NIGHT AUTO-DROP EXISTS. ⚠️ A nearly-right description here is what produces unsellable
     # nights: an operator who believes the minimum relaxes on its own will not go and relax it.

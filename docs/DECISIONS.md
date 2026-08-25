@@ -16849,3 +16849,84 @@ product today.
 
 **Both registers:** `guide-rates` — audit-FALSE **10 owed / 7 done / 0 still / 3 unmatched** · ledger **5
 rows / 0 blocking** · **CORRECTED ✅ · CLEARED ✅**. Running total unchanged at **97 / 220**.
+
+---
+
+## 2026-08-25 · THE RESTRICTION OVERRIDE · CTA/CTD/max_stay WRITERS · `max_stay` ENFORCED (invariant #82)
+
+### ⚠️⚠️ #1 · THE OVERRIDE IS INFORMED — every breach collected, never first-failure
+
+`RestrictionGuard` now **collects every breach and refuses with the full set**, through a new
+`RestrictionsViolationException` carrying all of them. ⚠️ **A first-failure-wins refusal is a blank cheque:**
+the operator is shown a minimum stay, overrides it, and a stop-sell they never saw is waived silently.
+**Proven: a booking breaching min_stay + CTA + stop_sell reports all three** ("This booking breaches 3
+restrictions: …"), and the first-failure mutation goes RED.
+
+⚠️ **The audit records EVERY waiver with its date and value** — `waived` is a list, plus `waived_count`,
+never "override used". **The mutation that records only the first waiver goes RED.** An audit naming one when
+two were waived is worse than none, because it reads as precise.
+
+### #2 · Permission, reasons, rate — and ⚠️ THE FREQUENCY ARGUMENT
+
+**`reservations.restriction_override` → Super Admin · Hotel Manager** (verified against the matrix).
+Deliberately **not** `reservations.create`, which Front Desk holds — that would be a second booking button.
+
+⚠️⚠️ **BUT THE FREQUENCY ARGUMENT IS REAL AND I HAVE NOT ACTED ON IT.** A restriction exception is far more
+**routine** than an unpaid checkout: a one-night phone booking inside a three-night minimum is an ordinary
+evening occurrence, not a monthly event. **A supervisor-only gate here will bite at 8pm with no manager on
+shift**, and the likely outcome is that agents stop setting restrictions rather than call someone. ⚠️ **The
+founder can widen it to Front Desk; I did not do so unilaterally.**
+
+**Keyed reasons:** `regular_guest` · `fills_a_gap` · `rate_not_updated` · `group_or_contract` · `other`
+(**note required, counted separately**). Free text is refused.
+
+⚠️ **`RestrictionOverrideStats::since()` counts by reason AND by restriction** — ⚠️ **one override can waive
+several, so a per-booking count alone would hide the rest** (proven: 1 override, 2 waivers). ⚠️ **If most
+bookings override, the RESTRICTIONS are wrong rather than the bookings.**
+
+### #3 · CTA/CTD — and #4 · `max_stay`: ⚠️ IT HAD NO WRITER
+
+⚠️⚠️ **`restrictions.max_stay` had NO writer at all** (the `max_stay` matches in the codebase are
+`property_policies.max_stay` — a different table). ⚠️ **Enforcing it alone would have created a fifth
+enforced-but-unsettable restriction — the exact defect this sequence exists to remove — so the writer was
+added alongside**, and so were CTA's and CTD's.
+
+All three go through **`setRestriction()`**, the same path `min_stay` and `stop_sell` use, on the same
+surface (`RateActionController::apply`, gated `rates.manage`), **keyed identically** (room-type-level,
+`rate_plan_id = NULL`) — so the engine and the badge keep reading one row. ⚠️ **And the badge now RENDERS
+all three** ("7n max", "No arr", "No dep"): a restriction that can be set but not seen is the same defect one
+step along, and the operator would have no way to explain a refusal.
+
+⚠️ **A maximum below the minimum is refused at the boundary** — it would close those nights to every possible
+stay while the calendar looked set.
+
+### ⚠️⚠️ #5 · BOTH BOUNDARIES, BOTH SIDES
+
+**`max_stay = 7`: 7 nights BOOKS, 8 REFUSED** (`>`, not `>=`). **`min_stay = 7`: 7 nights BOOKS, 6 REFUSED**
+(`<`, not `<=`). Both off-by-one mutations go RED. ⚠️ **Each side is its own test with its own scenario** —
+sharing one would have the first booking occupy the unit, so the second would fail on AVAILABILITY before the
+restriction was consulted: a green test proving nothing.
+
+### #6 · Zero movement, twice over
+
+**No restriction → unchanged. No override → unchanged**, and **no audit row is written when nothing was
+overridden**. `migrate:fresh --seed` clean; `owner_ledger` **29 rows / net 465360**. ⚠️ **Seeded restrictions
+are still ZERO, so the demo still never exercises any of this** — reported again, seeder untouched as ruled.
+
+### ⚠️ TESTS I AMENDED, AND WHY
+
+⚠️ **Five assertions in last pass's `RestrictionEnforcementTest` were updated**: the thrown type changed from
+`RestrictionViolationException` to the plural `RestrictionsViolationException`, which **is the ruled change**
+(collect all breaches). ⚠️ **No assertion's meaning changed** — the refusal still names the restriction, the
+date and the value, now read via `asRecords()`. Reported rather than done quietly.
+
+### ⚠️ #8 · A MUTATION THAT WAS INERT — reported as a FINDING, not a pass
+
+⚠️ Removing the `unset()` of the override keys before the row is written **changed nothing**. Investigated:
+`reservation_units` has **no such column** and `$fillable` excludes them, so the protection is **structural**
+and the `unset()` is belt-and-braces. ⚠️ **The harness refused to call it a pass, which is the harness working
+as designed** — the third time it has paid for itself.
+
+**Doc:** `guide-rates` corrected a **third time in three passes** — it now lists all five restrictions and
+says plainly that **an override does not change the restriction**, because a reader who believes otherwise
+will keep overriding instead of fixing the grid. Channels **untouched**, no future promise.

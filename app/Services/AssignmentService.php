@@ -19,6 +19,7 @@ use App\Models\ReservationUnitMove;
 use App\Models\Unit;
 use App\Models\UnitRateOverride;
 use App\Support\Booking\RestrictionGuard;
+use App\Support\Booking\RestrictionOverrideReason;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use Carbon\CarbonImmutable;
@@ -707,7 +708,34 @@ class AssignmentService
         //    ⚠️ Enforced HERE, inside the same locked core as the no-double-booking check and the
         //    out-of-service guard, so it cannot disagree with them and every caller is covered at once:
         //    createBooking() and createGroupBooking() both funnel through occupy().
-        RestrictionGuard::assertBookable($roomTypeId, (string) $line['check_in'], (string) $line['check_out']);
+        // ⚠️ The override is passed PER BOOKING on the line — an ACT, never a standing flag on anything.
+        $override = null;
+        $reason = $line['restriction_override_reason'] ?? null;
+        if (is_string($reason) && $reason !== '') {
+            $note = $line['restriction_override_note'] ?? null;
+
+            // ⚠️ A KEYED reason or nothing. Free text cannot be counted, and the override RATE is the
+            //    honest measure of whether the restrictions themselves are right.
+            if (! RestrictionOverrideReason::isValid($reason)) {
+                throw new InvalidArgumentException('That is not a recognised restriction-override reason.');
+            }
+            if ($reason === RestrictionOverrideReason::OTHER && trim((string) $note) === '') {
+                throw new InvalidArgumentException('An "other" override needs a note saying why.');
+            }
+            $override = function (array $waived) use ($reservation, $reason, $note): void {
+                // ⚠️⚠️ EVERY RESTRICTION WAIVED IS RECORDED, with its date and value — never "override used".
+                //    An audit naming one when two were waived is WORSE than none, because it reads as
+                //    precise and nobody goes looking for the second.
+                $this->audit->record('reservation.restriction_overridden', $reservation, null, array_filter([
+                    'reason' => $reason,
+                    'note' => $note,
+                    'waived' => $waived,
+                    'waived_count' => count($waived),
+                ], static fn ($v): bool => $v !== null && $v !== ''));
+            };
+        }
+
+        RestrictionGuard::assertBookable($roomTypeId, (string) $line['check_in'], (string) $line['check_out'], $override);
 
         $unitId = $line['unit_id'] ?? null;
         if ($unitId !== null) {
@@ -721,6 +749,10 @@ class AssignmentService
             }
             $this->assertUnitFree((string) $unitId, $line['check_in'], $line['check_out'], null);
         }
+
+        // ⚠️ The override never reaches the row: it is an ACT recorded in the audit, never a STATE stored
+        //    on the reservation. A persistent "may breach restrictions" column would be a permanent hole.
+        unset($line['restriction_override_reason'], $line['restriction_override_note']);
 
         $reservationUnit = ReservationUnit::create([
             'reservation_id' => $reservation->getKey(),

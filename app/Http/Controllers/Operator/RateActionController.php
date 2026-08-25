@@ -86,6 +86,15 @@ class RateActionController extends Controller
         $setRate = $request->boolean('set_rate');
         $setMinStay = $request->boolean('set_min_stay');
         $setStopSell = $request->boolean('set_stop_sell');
+        // ⚠️ THE THREE THAT COULD BE STORED, PUSHED AND ENFORCED BUT NEVER SET. `max_stay`,
+        //    `closed_to_arrival` and `closed_to_departure` all had columns, an ARI push and (as of the
+        //    enforcement pass) a booking-time check — and NO WRITER. ⚠️ Enforcing something nobody can set
+        //    is the exact defect this sequence exists to remove, so they are written HERE, on the same
+        //    surface, through the SAME `setRestriction()` and keyed the same way, so the engine and the
+        //    rate-grid badge keep reading one row.
+        $setMaxStay = $request->boolean('set_max_stay');
+        $setCta = $request->boolean('set_closed_to_arrival');
+        $setCtd = $request->boolean('set_closed_to_departure');
 
         if (! $setRate && ! $setMinStay && ! $setStopSell) {
             return $this->back($fromParam, 'Choose at least one thing to set — a nightly rate, a minimum stay, or open/close.');
@@ -113,7 +122,28 @@ class RateActionController extends Controller
             }
         }
 
+        // max_stay: an explicit value >= 1, or blank meaning "no maximum" (null clears the column) — the
+        // same shape as min_stay, deliberately, so the two mirrors cannot drift apart.
+        $maxStay = null;
+        if ($setMaxStay) {
+            $raw = trim((string) $request->input('max_stay', ''));
+            if ($raw !== '') {
+                if (! ctype_digit($raw) || (int) $raw < 1 || (int) $raw > 365) {
+                    return $this->back($fromParam, 'A maximum stay must be a whole number of nights (1–365), or blank for none.');
+                }
+                $maxStay = (int) $raw;
+            }
+        }
+
+        if ($setMinStay && $setMaxStay && $minStay !== null && $maxStay !== null && $maxStay < $minStay) {
+            // ⚠️ A maximum below the minimum closes those nights to every possible stay. Refused here
+            //    rather than written, because the calendar would look set and sell nothing.
+            return $this->back($fromParam, 'A maximum stay cannot be shorter than the minimum stay.');
+        }
+
         $stopSell = $setStopSell && $request->boolean('stop_sell');
+        $closedToArrival = $setCta && $request->boolean('closed_to_arrival');
+        $closedToDeparture = $setCtd && $request->boolean('closed_to_departure');
 
         $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
         if ($roomTypes === []) {
@@ -140,13 +170,22 @@ class RateActionController extends Controller
                 }
             }
 
-            if ($setMinStay || $setStopSell) {
+            if ($setMinStay || $setStopSell || $setMaxStay || $setCta || $setCtd) {
                 $attributes = ['room_type_id' => (string) $roomType->getKey()];
                 if ($setMinStay) {
                     $attributes['min_stay'] = $minStay;   // null clears it
                 }
+                if ($setMaxStay) {
+                    $attributes['max_stay'] = $maxStay;   // null clears it
+                }
                 if ($setStopSell) {
                     $attributes['stop_sell'] = $stopSell;
+                }
+                if ($setCta) {
+                    $attributes['closed_to_arrival'] = $closedToArrival;
+                }
+                if ($setCtd) {
+                    $attributes['closed_to_departure'] = $closedToDeparture;
                 }
                 $rates->setRestriction($attributes, $start, $endExclusive);
             }
