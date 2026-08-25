@@ -33,6 +33,7 @@ use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\Reservation;
+use App\Models\ReservationUnit;
 use App\Models\Review;
 use App\Models\RoomType;
 use App\Models\Subscription;
@@ -56,6 +57,7 @@ use App\Services\OwnerAttributionService;
 use App\Services\OwnerExpenseService;
 use App\Services\OwnerPayoutService;
 use App\Services\OwnerStatementService;
+use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
 use App\Services\ReservationCancellationService;
 use App\Services\ReviewService;
@@ -143,6 +145,43 @@ class DemoSeeder extends Seeder
      * The month the portal SHOWCASES — the next full month, so every day in it is future on any run day.
      * Holds the demo's upcoming stays and the "finalized statement, payout not yet sent" period.
      */
+    /**
+     * ⚠️ The first date in the showcase month with `$days` consecutive days that NO seeded booking touches
+     * — nights, arrival or departure. Returns null if the month is full, in which case no demo restriction
+     * is seeded rather than one being placed on top of a booking.
+     *
+     * ⚠️ It must run AFTER every booking is seeded, and it deliberately checks the DEPARTURE date too: a
+     * closed-to-departure or stop-sell landing there would refuse a stay that is otherwise untouched.
+     */
+    private function firstFreeStretch(RoomType $roomType, int $days): ?CarbonImmutable
+    {
+        $busy = [];
+        foreach (ReservationUnit::query()->where('room_type_id', $roomType->getKey())->get(['check_in', 'check_out']) as $line) {
+            $in = CarbonImmutable::parse($line->check_in)->startOfDay();
+            $out = CarbonImmutable::parse($line->check_out)->startOfDay();
+            for ($d = $in; $d->lte($out); $d = $d->addDay()) {
+                $busy[$d->toDateString()] = true;
+            }
+        }
+
+        $month = $this->showcaseMonth();
+        for ($start = 1; $start <= $month->daysInMonth - $days; $start++) {
+            $from = $this->showcaseDay($start);
+            $clear = true;
+            for ($i = 0; $i < $days; $i++) {
+                if (isset($busy[$from->addDays($i)->toDateString()])) {
+                    $clear = false;
+                    break;
+                }
+            }
+            if ($clear) {
+                return $from;
+            }
+        }
+
+        return null;
+    }
+
     private function showcaseMonth(): CarbonImmutable
     {
         return $this->thisMonth()->addMonth();
@@ -534,6 +573,38 @@ class DemoSeeder extends Seeder
         // values (a production install has genuine timestamps); this seed only supplies realistic ones. NOT
         // production data. Deterministic (no rand) → `migrate:fresh --seed` stays reproducible.
         $this->seedAnalyticsHistory($property, $doubleRoom, $apartment, $roomRate, $aptRate, $roomUnits->all(), $aptUnits->all(), $guest3, $availability);
+
+        // ⚠️ DEMO RESTRICTIONS — so the rate grid actually SHOWS the badges and a demo booking actually
+        //    hits the enforcement. Written through the SAME certified `setRestriction()` the operator UI
+        //    uses, so the engine and the badge read one row.
+        //
+        // ⚠️⚠️ THE WINDOW IS COMPUTED, NOT CHOSEN — and that is the whole point. Two facts collide here:
+        //    the demo shifts its dates to stay current, and this seeder already runs TWO date conventions
+        //    (`showcaseDay()` is next-month-relative; `seedAnalyticsHistory()` is today-relative and spans
+        //    roughly today+2 to today+135). ⚠️ So NO fixed showcase day is provably free: a hardcoded date
+        //    would sooner or later land on a seeded booking, and the seeded restriction would then either
+        //    refuse that booking outright or leave the demo self-contradictory — a "3n min" badge sitting
+        //    on a 2-night stay. ⚠️ Picking the first genuinely empty stretch at seed time is the only
+        //    version that stays true on every day of the year.
+        $rates = app(RateAndRestrictionService::class);
+        $restrictFrom = $this->firstFreeStretch($doubleRoom, 5);
+
+        if ($restrictFrom !== null) {
+            // A three-night minimum across the free stretch — the badge reads "3n min".
+            $rates->setRestriction(
+                ['room_type_id' => (string) $doubleRoom->getKey(), 'min_stay' => 3],
+                $restrictFrom,
+                $restrictFrom->addDays(4),   // end-exclusive
+            );
+
+            // And one closed-to-arrival day inside it — one of the three that only became settable in the
+            // same pass as this seeding, so the demo shows a restriction that is NOT a minimum stay.
+            $rates->setRestriction(
+                ['room_type_id' => (string) $doubleRoom->getKey(), 'closed_to_arrival' => true],
+                $restrictFrom->addDays(2),
+                $restrictFrom->addDays(3),
+            );
+        }
 
         // Phase 4a — a CLAIMED guest PORTAL account so the guest portal has a real demo login. guest1 (Demo
         // Traveller) leads stay1 above, so this is a genuine BOOKING-TIED account: demo.traveller@vyrobel-demo.test

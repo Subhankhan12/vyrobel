@@ -16930,3 +16930,78 @@ as designed** — the third time it has paid for itself.
 **Doc:** `guide-rates` corrected a **third time in three passes** — it now lists all five restrictions and
 says plainly that **an override does not change the restriction**, because a reader who believes otherwise
 will keep overriding instead of fixing the grid. Channels **untouched**, no future promise.
+
+---
+
+## 2026-08-25 · THE OVERRIDE WIDENED · DEMO RESTRICTIONS SEEDED · ⚠️⚠️ AND THE OVERRIDE IS UNREACHABLE
+
+### ⚠️⚠️ THE FINDING THAT MATTERS MOST — I BUILT THE DEFECT THIS SEQUENCE EXISTS TO REMOVE
+
+⚠️⚠️ **`reservations.restriction_override` IS CHECKED NOWHERE.** A repo-wide grep finds it in
+`config/authorization.php` and nowhere else — **no route, no controller, no middleware consults it.**
+
+⚠️⚠️ **AND THE OVERRIDE ITSELF IS UNREACHABLE FROM THE PRODUCT.** Only `AssignmentService` accepts
+`restriction_override_reason`, and only my own test passes it: **no controller, Livewire component or view
+supplies it.**
+
+⚠️ **So this pass widened a permission that gates nothing, for a feature nothing can reach.** The config now
+reads Super Admin · Hotel Manager · **Front Desk** exactly as ruled, and **in practice that changes nothing
+today.** ⚠️ **This is the same enforced-but-unsettable shape that `max_stay`, CTA and CTD had — and I created
+it myself last pass by declaring a permission and building a service seam with no surface.** Reported rather
+than quietly built, because the surface was not ruled.
+
+⚠️ **It was found by a MUTATION**: removing Front Desk's grant broke nothing, and the harness reported **NO
+TEST COVERS THIS** rather than a pass. That is the fourth time the harness has paid for itself.
+
+### #1 · The role sets, verified — and the OTHER dead end
+
+`reservations.restriction_override` → **Super Admin · Hotel Manager · Front Desk**.
+`reservations.create` → Super Admin · Hotel Manager · Front Desk · **Reservation Agent**.
+
+⚠️ **`Reservation Agent` can CREATE a booking but cannot OVERRIDE one** — the identical dead end Front Desk
+was hitting. **Reported, not widened**: the ruling named Front Desk.
+
+### #2 · The count is unchanged
+
+`RestrictionOverrideStats::since()` (`app/Support/Booking/`) — count, waivers, `by_reason`, `by_restriction`.
+⚠️ **The by-restriction breakdown is kept because one override can waive several**, and `rate_not_updated`
+stays its own reason: it is the one that says **the restriction is wrong rather than the booking**.
+
+### ⚠️⚠️ #3 · THE SEEDED WINDOW IS COMPUTED, NOT CHOSEN — and here is why
+
+⚠️ **My first attempt hardcoded showcase days 21–24 after enumerating "free" dates. It was wrong**, and the
+real guard caught it: a seeded 2-night stay arrived inside the 3-night minimum.
+
+⚠️⚠️ **THE ROOT CAUSE IS THAT THE SEEDER ALREADY RUNS TWO DATE CONVENTIONS.** `showcaseDay()` is
+next-month-relative; **`seedAnalyticsHistory()` is today-relative and spans roughly today+2 to today+135** —
+which covers the whole showcase month. ⚠️ **So NO fixed showcase day is provably free on every day of the
+year**, and a hardcoded date would eventually land on a booking, either refusing it or leaving the demo
+self-contradictory — a "3n min" badge sitting on a 2-night stay.
+
+**So the seeder now computes the first genuinely empty stretch** (`firstFreeStretch()`), checking nights
+**and departure dates**, and seeds a **3-night minimum across four days with one closed-to-arrival day inside
+it** — a minimum plus one of the three that only became settable last pass. It appears on the operator rate
+grid as **"3n min"** and **"No arr"** badges in the showcase month.
+
+### ⚠️ #4 · Money byte-identical — the proof
+
+`owner_ledger` **29 rows / net 465360** · **42 reservations / 42 lines** — unchanged. ⚠️ **And the blocking
+proof does not rely on that alone**: a test runs the **real `RestrictionGuard`** over every seeded booking.
+⚠️ **My first version used a date-overlap proxy and was the wrong test** — a restriction can sit on a booked
+date without refusing anything, because a minimum only refuses shorter stays that *arrive* that day.
+
+### #5 · Nothing invented
+
+**No bookings added. No override audit rows seeded** — an audit of an act nobody performed is a fabrication,
+and asserted at zero.
+
+### #7 · The doc — fourth correction in four consecutive passes
+
+`guide-rates` now reads *"Anyone who can take a booking can override a refusal"*, and **keeps** the sentence
+that the override **does not change the restriction**. Channels **untouched**, no future promise.
+
+### Mutations
+
+⚠️ **Hardcode the seeded date → RED** (the anchoring proof) · ⚠️ **move it onto a booked date → RED** (the
+blocking proof, caught rather than survived) · ⚠️ **remove Front Desk's grant → NO TEST COVERS THIS**, which
+is the finding above.

@@ -211,6 +211,12 @@ return [
             'availability.view',
             'reservations.view', 'reservations.create', 'reservations.manage', 'reservations.assign',
             'reservations.checkin', 'reservations.checkout',
+            // ⚠️ WIDENED TO FRONT DESK. Restrictions still bind the PUBLIC storefront and the channels
+            //    regardless — this override only affects bookings STAFF take, which is where judgement
+            //    belongs. ⚠️ The widening removes a GATE, not a RECORD: the keyed reason, the audit of
+            //    every waiver and the rate query are unchanged, and the RATE is now the only signal
+            //    that says whether the restrictions themselves are right.
+            'reservations.restriction_override',
             'guests.view', 'guests.manage', 'guest_documents.manage',
             'folios.view', 'folios.manage', 'payments.view', 'payments.record',
             'invoices.view', 'invoices.issue',
