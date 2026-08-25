@@ -230,6 +230,11 @@ return [
             'guests.view', 'guests.manage',
             'folios.view',
             'schedule.view',
+            // ⚠️ GRANTED so the override set EXACTLY matches the `reservations.create` set: no role can
+            //    START a booking it cannot FINISH. ⚠️ That equality is PINNED by a test — without it, a
+            //    future `reservations.create` grant would silently re-create the dead end AND silently
+            //    falsify the documentation, which now states the RULE rather than a role list.
+            'reservations.restriction_override',
         ],
 
         'Housekeeping' => [

@@ -68,7 +68,7 @@ RATES = {
                  'than the minimum on its arrival date is turned away, wherever it was booked — as is one '
                  'longer than the maximum, one arriving on a date closed to arrivals, one leaving on a date '
                  'closed to departures, and any stay covering a night you have stopped selling. '
-                 'When a booking is refused, a manager or someone on the front desk can override it, choosing '
+                 'When a booking is refused, anyone who can take a booking can override it, choosing '
                  'from a fixed list of reasons; '
                  'the booking then goes '
                  'through, but the restriction itself is unchanged and will refuse the next one just the '

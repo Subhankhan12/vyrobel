@@ -61,11 +61,17 @@ it('⚠️⚠️ THE ACCEPTANCE TEST — a permitted role CAN override', functio
     ])->exists)->toBeTrue();
 });
 
-it('⚠️⚠️ A ROLE WITHOUT THE GRANT CANNOT override — Reservation Agent can create but not finish', function () {
+it('⚠️⚠️ A ROLE WITHOUT THE GRANT CANNOT override — Revenue Manager sets rates but cannot waive one', function () {
+    // ⚠️ THIS TEST USED TO NAME `Reservation Agent`, AND THE POLICY MOVED UNDER IT. An agent who could take
+    //    a booking but not finish a refused one was a dead end at the desk, so the grant was widened and the
+    //    two sets are now PINNED EQUAL by RestrictionOverrideSetPinTest (mutation-proven both directions).
+    //    ⚠️ That makes "can create but not finish" STRUCTURALLY IMPOSSIBLE — so this guard is re-pointed,
+    //    NOT weakened: the property it protects (no grant ⇒ REFUSED) still needs a role that lacks the grant.
+    //    Revenue Manager is the sharpest one left: it may set the very restriction it cannot override.
     $s = seedScenario(1);
     gateRestrict($s, '2026-09-01', ['min_stay' => 7]);
 
-    $this->actingAs(operatorUser($s, [], 'Reservation Agent'));
+    $this->actingAs(operatorUser($s, [], 'Revenue Manager'));
 
     expect(fn () => gateBook($s, '2026-09-01', '2026-09-02', [
         'restriction_override_reason' => RestrictionOverrideReason::FILLS_A_GAP,
