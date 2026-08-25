@@ -83,7 +83,12 @@ class StripeGateway implements PaymentGateway
         // distinct key while a duplicate submit of the SAME logical refund collapses.
         $refund = $this->stripe->refund($reference, $amount->amountMinor(), $idempotencyKey);
 
-        return new GatewayResult($refund->status === 'succeeded', $refund->id, 'succeeded');
+        // ⚠️ THE REAL STATUS IS CARRIED THROUGH, not a hardcoded label. Stripe holds a card refund as
+        //    `pending` when the available balance does not cover it — "Stripe holds the refund as pending
+        //    for card transactions … until your Stripe balance becomes sufficient". That is NOT a failure:
+        //    Stripe completes it automatically. Reporting it as one is what let a queued refund be filed as
+        //    FAILED, vanish from the running total, and invite the desk to issue a second.
+        return new GatewayResult($refund->status === 'succeeded', $refund->id, $refund->status);
     }
 
     /**

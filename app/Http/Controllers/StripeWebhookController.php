@@ -60,6 +60,48 @@ class StripeWebhookController extends Controller
             return $tenant->forOrganization((string) $orgId, fn (): JsonResponse => $this->once($event, fn () => $billing->handle($event)));
         }
 
+        // ── REFUND SETTLEMENT → a PENDING refund becomes succeeded or failed ──────────────────────────
+        //
+        // ⚠️⚠️ THIS IS LIVE ON THE PLATFORM PLANE, NOT ONLY UNDER CONNECT. Stripe's own refunds guide:
+        // "Refunds use your available Stripe balance (not including pending amounts). If your available
+        // balance doesn't cover the amount of the refund, Stripe holds the refund as pending for card
+        // transactions … until your Stripe balance becomes sufficient." That is the PLATFORM's balance —
+        // so the moment PAYMENTS_GATEWAY=stripe, a queued refund is reachable and must be settled here.
+        //
+        // ⚠️ `refund.updated` is the current event; `charge.refund.updated` is DEPRECATED ("Listen to
+        // refund.updated for updates on all refunds instead"). `refund.failed` is sent on failure.
+        // ⚠️ NOT STATED IN ONE PLACE: the docs list `refund.updated` as "sent when the refund is updated"
+        // and illustrate it with metadata/ARN rather than saying outright that a pending→succeeded
+        // transition emits it. The status is therefore re-read from the EVENT PAYLOAD rather than assumed
+        // from the event name, so an unexpected event shape settles nothing instead of settling wrongly.
+        if (in_array($event->type, ['refund.updated', 'refund.failed'], true)) {
+            $refundRef = $event->objectField('id');
+            $refund = $refundRef === null ? null : $tenant->runAsSuperAdmin(
+                fn () => Payment::query()->where('type', 'refund')->where('gateway_ref', $refundRef)->first(),
+            );
+            if ($refund === null) {
+                return response()->json(['status' => 'ignored'], 202);
+            }
+
+            $status = (string) ($event->objectField('status') ?? '');
+            $to = match (true) {
+                $status === 'succeeded' => 'succeeded',
+                in_array($status, ['failed', 'canceled'], true) => 'failed',
+                default => null,   // still pending / requires_action — nothing to settle yet.
+            };
+            if ($to === null) {
+                return response()->json(['status' => 'ignored'], 202);
+            }
+
+            // ⚠️ ONE idempotency rule, the existing `once()` on the webhook_events unique index — a
+            //    redelivery is a no-op. settleRefund() ALSO re-checks `pending` inside a row lock, so a
+            //    redelivered settlement can never debit an owner twice even if the event row were absent.
+            return $tenant->forOrganization(
+                (string) $refund->organization_id,
+                fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to)),
+            );
+        }
+
         // ── PAYMENT-INTENT events → resolve the org from the local Payment ─────────────────────────────
         $paymentIntentId = $event->paymentIntentId();
         if ($paymentIntentId === null) {

@@ -56,6 +56,11 @@
                                 <div class="vy-facts" style="margin-top: 12px;">
                                     <div><div class="vy-fact-label">Original</div><div class="vy-fact-val">{{ $payment['original'] }}</div></div>
                                     <div><div class="vy-fact-label">Already refunded</div><div class="vy-fact-val">{{ $payment['refunded'] }}</div></div>
+                                    {{-- ⚠️ A refund Stripe has ACCEPTED but not yet moved. It holds headroom, so the desk sees WHY the
+                                         remaining figure is smaller — a refund in flight that appears nowhere is how a second one gets issued. --}}
+                                    @if (! empty($payment['in_flight']))
+                                        <div><div class="vy-fact-label">Refund in progress</div><div class="vy-fact-val">{{ $payment['in_flight'] }}</div></div>
+                                    @endif
                                     <div><div class="vy-fact-label">Still refundable</div><div class="vy-fact-val">{{ $payment['remaining'] }}</div></div>
                                 </div>
 

@@ -433,7 +433,7 @@ class FolioService
             // THE CUMULATIVE BOUND, re-read INSIDE the lock. Subsumes the old per-call `amount > original`
             // check: with no prior refunds the remainder IS the original. Still runs BEFORE the gateway call
             // below — ordering is load-bearing, or we would move real money and only then reject.
-            $alreadyRefunded = $this->refundedTotalMinor($locked);
+            $alreadyRefunded = $this->refundedCommittedMinor($locked);
             $remaining = (int) $locked->amount_minor - $alreadyRefunded;
 
             if ($amount->amountMinor() > $remaining) {
@@ -462,7 +462,10 @@ class FolioService
                 'type' => 'refund',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
-                'status' => $result->successful ? 'succeeded' : 'failed',
+                // ⚠️⚠️ THREE OUTCOMES, NOT TWO. A refund Stripe has ACCEPTED but not yet moved is `pending`
+                //    — it completes automatically when the balance covers it. Filing that as `failed` is
+                //    what made the money vanish from the running total and invited a second refund.
+                'status' => self::refundRowStatus($result),
                 'metadata' => $metadata,
                 'refund_borne_by' => $borneBy,
                 'idempotency_key' => $idempotencyKey,
@@ -476,10 +479,18 @@ class FolioService
             return $refund;
         });
 
-        $this->domainEvents->record('payment.refunded', $refund, [
-            'refunds_payment_id' => $original->getKey(),
-            'amount_minor' => $amount->amountMinor(),
-        ]);
+        // ⚠️⚠️ THE EFFECT DEFERS TO SETTLEMENT. `payment.refunded` drives the owner-ledger debit AND the
+        //    guest's "refund processed" email — neither may fire while the money is still queued. A refund
+        //    that ultimately FAILS must therefore have posted NOTHING, and a guest must not be told a
+        //    refund completed before it did. {@see settleRefund()} emits it when Stripe confirms.
+        //    ⚠️ An IMMEDIATE refund is unchanged: it is already `succeeded` here, so the event fires now,
+        //    exactly as before.
+        if ((string) $refund->status === 'succeeded') {
+            $this->domainEvents->record('payment.refunded', $refund, [
+                'refunds_payment_id' => $original->getKey(),
+                'amount_minor' => $amount->amountMinor(),
+            ]);
+        }
         // ⚠️ THIS MOVES MONEY BETWEEN TWO PARTIES, so it must be ATTRIBUTABLE: who decided, when, on which
         //    refund. Only an EXPLICIT choice is recorded — the default is an absence, not a decision, and
         //    recording "owner" for every untouched refund would make the audit trail claim a choice nobody
@@ -503,14 +514,111 @@ class FolioService
      *     headroom. It fails safe if that discipline ever slips.
      *   • currency-matched — see the guard in {@see refundPayment()}.
      */
-    public function refundedTotalMinor(Payment $original): int
+    /**
+     * Settle a PENDING refund once Stripe confirms it — `pending` → `succeeded` or `failed`.
+     *
+     * ⚠️⚠️ THIS IS WHERE THE EFFECT LANDS. The owner-ledger debit and the guest's refund email both hang
+     * off the `payment.refunded` domain event, which {@see refundPayment()} withholds while a refund is in
+     * flight. Emitting it here — and only on success — is what makes "the owner is debited when the money
+     * LEAVES, not when it is queued" true.
+     *
+     * ⚠️ A refund that ultimately FAILS posts NOTHING and RELEASES its headroom: the row leaves `pending`,
+     * so {@see refundedCommittedMinor()} stops counting it and the amount becomes refundable again. The
+     * bound must never permanently consume money that never left.
+     *
+     * ⚠️ IDEMPOTENT BY STATUS: only a row still `pending` transitions, so a redelivered settlement event is
+     * a no-op and can never debit an owner twice. The row lock makes the check-and-set atomic.
+     */
+    public function settleRefund(Payment $refund, string $toStatus): Payment
+    {
+        if (! in_array($toStatus, ['succeeded', 'failed'], true)) {
+            throw new InvalidArgumentException('A refund settles to succeeded or failed.');
+        }
+
+        $settled = DB::transaction(function () use ($refund, $toStatus): ?Payment {
+            $locked = Payment::query()->lockForUpdate()->findOrFail($refund->getKey());
+
+            // ⚠️ Re-checked INSIDE the lock — the caller's copy is a snapshot, and a redelivered webhook
+            //    racing the first one must resolve to exactly one transition.
+            if ((string) $locked->type !== 'refund' || (string) $locked->status !== 'pending') {
+                return null;
+            }
+
+            $locked->forceFill(['status' => $toStatus, 'processed_at' => now()])->save();
+
+            $folio = $locked->folio;
+            if ($folio !== null) {
+                $this->recompute($folio);
+            }
+
+            return $locked;
+        });
+
+        if ($settled === null) {
+            return $refund;   // already settled, or not a pending refund — nothing to do, nothing posted.
+        }
+
+        if ($toStatus === 'succeeded') {
+            // ⚠️ The borne-by choice was captured at refund time and rides on the ROW, so it survives the
+            //    wait untouched — the listener reads `refund_borne_by` from this same payment.
+            // `metadata` is an `array` cast; read it through `data_get()` so a malformed/absent payload
+            // degrades to null rather than throwing while settling real money.
+            $this->domainEvents->record('payment.refunded', $settled, [
+                'refunds_payment_id' => data_get($settled->metadata, 'refunds_payment_id'),
+                'amount_minor' => (int) $settled->amount_minor,
+            ]);
+        }
+
+        $this->audit->record('payment.refund_settled', $settled, ['status' => 'pending'], ['status' => $toStatus]);
+
+        return $settled;
+    }
+
+    public function refundedSettledMinor(Payment $original): int
+    {
+        return $this->refundedMinor($original, ['succeeded']);
+    }
+
+    /**
+     * ⚠️⚠️ WHAT BOUNDS FURTHER REFUNDS — Σ SUCCEEDED **AND PENDING**, in the payment's currency.
+     *
+     * ⚠️ THIS IS THE ONE LINE THE WHOLE FIX TURNS ON. A bound that counts only what has SUCCEEDED can be
+     * bypassed by anything that has not succeeded YET. A €500 refund sitting `pending` at Stripe is money
+     * that WILL leave; if it does not consume headroom, the desk is offered the full €500 again and a
+     * second refund is permitted on top of it.
+     *
+     * ⚠️ IT ALSO CLOSES THE TWO-HALVES HOLE AS A CONSEQUENCE, NOT AS A SEPARATE PATCH: the gateway
+     * idempotency key is `folio_refund:{payment}:{alreadyRefunded}:{amount}`, and `alreadyRefunded` is this
+     * figure — so once a pending refund counts, a second attempt derives a DIFFERENT key and is bounded on
+     * its way in rather than replaying.
+     *
+     * ⚠️ DO NOT USE THIS TO TELL A GUEST WHAT THEY HAVE BEEN REFUNDED — that is
+     * {@see refundedSettledMinor()}. Two questions, two answers; the money has not left yet.
+     */
+    public function refundedCommittedMinor(Payment $original): int
+    {
+        return $this->refundedMinor($original, ['succeeded', 'pending']);
+    }
+
+    /** @param  list<string>  $statuses */
+    private function refundedMinor(Payment $original, array $statuses): int
     {
         return (int) Payment::withTrashed()
             ->where('type', 'refund')
-            ->where('status', 'succeeded')
+            ->whereIn('status', $statuses)
             ->where('metadata->refunds_payment_id', $original->getKey())
             ->where('currency', (string) $original->currency)
             ->sum('amount_minor');
+    }
+
+    /** Stripe's refund status → the folio row's status. `requires_action` is in flight, not a failure. */
+    private static function refundRowStatus(GatewayResult $result): string
+    {
+        if ($result->successful) {
+            return 'succeeded';
+        }
+
+        return in_array($result->status, ['pending', 'requires_action'], true) ? 'pending' : 'failed';
     }
 
     /**
@@ -526,7 +634,7 @@ class FolioService
             return 0;
         }
 
-        return max(0, (int) $original->amount_minor - $this->refundedTotalMinor($original));
+        return max(0, (int) $original->amount_minor - $this->refundedCommittedMinor($original));
     }
 
     /**

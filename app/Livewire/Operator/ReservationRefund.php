@@ -185,10 +185,17 @@ class ReservationRefund extends Component
     }
 
     /**
-     * One settled payment → its picker card. EVERY refund figure comes from the service's own helpers:
-     * `refundedTotalMinor()` (Σ prior SUCCEEDED refunds — a failed one moved no money and must not consume
-     * headroom) and `remainingRefundableMinor()` (original − that Σ, never negative). This screen must not
-     * re-derive them, or it could show a cap the guard does not enforce.
+     * One settled payment → its picker card. EVERY refund figure comes from the service's own helpers, and
+     * ⚠️ THERE ARE TWO DIFFERENT QUESTIONS HERE WITH TWO DIFFERENT CORRECT ANSWERS:
+     *   · `refundedSettledMinor()` — what the guest HAS ACTUALLY BEEN REFUNDED (Σ succeeded). The money left.
+     *   · `refundedCommittedMinor()` — what BOUNDS a further refund (Σ succeeded + pending), because a
+     *     queued refund is money that WILL leave.
+     * `remainingRefundableMinor()` is original − COMMITTED, never negative.
+     *
+     * ⚠️⚠️ THE IN-FLIGHT FIGURE IS SHOWN, NOT JUST SUBTRACTED. A refund Stripe has accepted but not yet
+     * moved would otherwise appear NOWHERE — the desk would see a smaller "remaining" with no explanation,
+     * and re-issuing is exactly the failure this state exists to stop. This screen must not re-derive any
+     * of them, or it could show a cap the guard does not enforce.
      *
      * @return array<string, mixed>
      */
@@ -196,7 +203,8 @@ class ReservationRefund extends Component
     {
         $currency = (string) $payment->currency;
         $originalMinor = (int) $payment->amount_minor;
-        $refundedMinor = $folios->refundedTotalMinor($payment);
+        $refundedMinor = $folios->refundedSettledMinor($payment);
+        $inFlightMinor = $folios->refundedCommittedMinor($payment) - $refundedMinor;
         $remainingMinor = $folios->remainingRefundableMinor($payment);
 
         return [
@@ -208,6 +216,8 @@ class ReservationRefund extends Component
             'date' => CarbonImmutable::parse($payment->processed_at ?? $payment->created_at)->format('j M Y'),
             'original' => $this->money($originalMinor, $currency),
             'refunded' => $this->money($refundedMinor, $currency),
+            // ⚠️ Accepted by Stripe, not yet moved. It holds headroom, so the desk is told why.
+            'in_flight' => $inFlightMinor > 0 ? $this->money($inFlightMinor, $currency) : null,
             'remaining' => $this->money($remainingMinor, $currency),
             'currency' => $currency,
             // THE CAP the input carries, in major units. Plain `.`-decimal, no thousands separator — a
