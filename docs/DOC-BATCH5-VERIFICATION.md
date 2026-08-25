@@ -96,3 +96,65 @@ and `guide-checkin` mid-stay hits are already this arc's own corrected text.
    **the code is the side that is wrong here.** A CSV built for a spreadsheet should emit raw values.
 2. ⚠️ **The `/docs` index links to a Changelog that was deliberately refused** (`routes/web.php:633`).
    A refused surface should not keep an entry point.
+
+---
+
+## Addendum (2026-08-25) — the two product defects, resolved
+
+### 1. R10 — the CSV export. ⚠️ THE PAGE WAS RIGHT AND THE CODE WAS WRONG.
+
+**FIXED.** `MoneyFormatter::csvAmount()` is now the ONE definition of a spreadsheet-safe amount: a bare
+decimal in MAJOR units, `.` separator, no thousands grouping, no symbol. The ISO 4217 code travels in its
+own column, because the amount alone is not the money. Months are ISO `Y-m` (the breakdown had carried the
+ISO key alongside the human label all along — the exporter simply took the wrong one). Both the reports CSV
+and the maintenance-costs CSV were fixed: **one export fixed and one left formatted is worse than two
+broken, because the good one teaches an operator to trust a money column the other betrays.**
+
+⚠️ **THE LESSON, AND IT IS THE REASON THIS ADDENDUM EXISTS.** An audit reports that a page and the product
+disagree. **It cannot tell you which side is wrong.** Usually the page. Here the page was right, and the
+previous pass corrected the page to describe the broken export — which made the defect look INTENTIONAL and
+removed the only remaining signal that it existed. ⚠️ **A doc correction can bury a bug, in exactly the
+place a reader would go to find it.** Every future batch asks which side is wrong before correcting; where
+the code is the wrong side, say so and leave the sentence for the fix.
+
+⚠️ **Re-read of the other 36 rows for the same shape** — rows where the CODE may be the wrong side:
+- **S6** (`guide-settings`): the page promised a full-account export as CSV **or JSON**. No JSON writer
+  exists and there is no full-account export. ⚠️ The page describes something a reasonable product would
+  have; the correction records absence. **Worth a product decision, not a doc fix.**
+- **H1** (`guide-housekeeping`): the page said inspection can be turned off in Settings. It cannot. ⚠️ An
+  operator who does not inspect now has a permanently unused lane. **A real gap, recorded honestly.**
+- **ST1/ST2** (`guide-storefront`): custom domain and an own-domain card form. Both are genuine product
+  absences the page assumed. ⚠️ ST2 in particular is a REFUSAL (hosted checkout, SAQ A, #45), not a gap.
+- The remaining 32 are page-side errors. **Nothing else was fixed; these are reported only.**
+
+### 2. The `/docs` changelog entry — REMOVED
+
+Both entries are gone and **nothing replaced them**, because a replacement would be a promise. The
+changelog was refused on principle (`routes/web.php:633` — a changelog asserts a release history and there
+are zero git tags), not deferred, and a marked-pending item still advertises something that is not coming.
+
+## Addendum — the €885.60 vs €442.80 discrepancy: RESOLVED, and NO money was lost
+
+⚠️ **The record was wrong, not the demo — and the demo was NOT edited.**
+
+**Cause, established from the data:** September carries TWO owner-attributed stays of €540.00 gross each.
+The statement claims only one, so its net is €442.80 (€540.00 − 18% commission). Both together would be
+€885.60. Two independent things moved that figure, and neither is a loss:
+
+1. ⚠️ **THE DEMO IS DATE-RELATIVE.** Which stays fall inside September moves with the real calendar. The
+   collection-gate audit records that the pin had **already** drifted to €820.00 before anything else
+   changed (`docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md:111`).
+2. ⚠️ **THE COLLECTION GATE** (`OwnerStatementService::claimable` → `OwnerCollection::split`) holds a
+   booking's revenue out of a statement until its folio is collected — *"claiming an uncollected row would
+   release money the business never received."* The held September stay is a walk-in that has paid €332.10
+   of €540.00, so `reservationIsCollected` is false.
+
+⚠️ **NOTHING IS LOST.** Held lines keep `statement_id = NULL` and are claimed by a later statement once the
+guest pays, through the same straggler path the service already had. The owner ledger still says the owner
+is OWED it; only PAYABILITY moved.
+
+**What the number actually measures:** September's net payable = the **collected** September ledger lines
+less the real management commission. ⚠️ **It is DERIVED over a moving window and was never a constant.**
+The seeder comments and `CLAUDE.md` have been corrected to say so and to state no target. Historical dated
+audit files still quote €885.60 and were **left alone** — they were true when written, and rewriting a
+dated snapshot would falsify the record rather than correct it.

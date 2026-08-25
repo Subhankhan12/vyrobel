@@ -269,7 +269,7 @@ it('audits the workbook export', function () {
 });
 
 // ── 10. ⚠️ NO REGRESSION — the screen's 60-row preview and the CSV are untouched ──────────────────
-it('leaves the screen preview capped and the CSV unchanged', function () {
+it('leaves the screen preview capped, and the CSV spreadsheet-safe', function () {
     $f = mcwSetup();
     for ($i = 0; $i < MCW_PERIOD_TICKETS; $i++) {
         mcwTicket($f, 1000, CarbonImmutable::today()->subDays(($i % 25) + 1)->toDateString(), null, 'WO '.$i);
@@ -279,9 +279,13 @@ it('leaves the screen preview capped and the CSV unchanged', function () {
     $screen = app(MaintenanceCostService::class)->report([$f['s']['property']->id], null, null);
     expect($screen['billable'])->toHaveCount(MaintenanceCostService::BILLABLE_PREVIEW);
 
-    // And the CSV still streams its formatted-string shape (a CSV's cells are text by nature).
+    // ⚠️ THIS ASSERTION USED TO PIN THE CSV'S FORMATTED SHAPE, on the reasoning that "a CSV's cells are
+    //    text by nature". That reasoning was the defect: it accepted a money column no spreadsheet could
+    //    sum because the workbook existed beside it. The CSV now emits bare decimals and an ISO currency
+    //    column, so BOTH formats are usable and neither teaches the operator to distrust the other.
     $csv = test()->actingAs($f['user'])->withSession($f['session'])
         ->get('/app/maintenance/costs/export.csv')->assertOk()->streamedContent();
     expect($csv)->toContain('Date,"Work order"')
-        ->and($csv)->toContain('€10.00');
+        ->and($csv)->toContain('10.00,EUR')
+        ->and($csv)->not->toContain('€');
 });

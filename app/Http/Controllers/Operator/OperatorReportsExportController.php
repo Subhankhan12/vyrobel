@@ -41,24 +41,35 @@ class OperatorReportsExportController extends Controller
             $out = fopen('php://output', 'w');
 
             fputcsv($out, CsvSafe::row(['Vyrobel report', $range['label']]));
+            // ⚠️ THE UNIT IS STATED IN THE FILE, not assumed by whoever opens it. Amounts are major units
+            //    (euros, not cents) as a bare decimal; the ISO 4217 code sits in its own column per row.
+            fputcsv($out, CsvSafe::row(['Amounts', 'major units, decimal point, no thousands separator']));
             fputcsv($out, CsvSafe::row([]));
 
             fputcsv($out, CsvSafe::row(['Revenue by channel']));
-            fputcsv($out, CsvSafe::row(['Channel', 'Bookings', 'Revenue', 'Share %']));
+            fputcsv($out, CsvSafe::row(['Channel', 'Bookings', 'Revenue', 'Currency', 'Share %']));
             foreach ($channels as $c) {
                 fputcsv($out, CsvSafe::row([
                     $this->sourceLabel($c['source']),
                     $c['bookings'],
-                    MoneyFormatter::display($c['revenue_minor'], $currency),
+                    MoneyFormatter::csvAmount($c['revenue_minor']),
+                    $currency,
                     $c['share'],
                 ]));
             }
             fputcsv($out, CsvSafe::row([]));
 
             fputcsv($out, CsvSafe::row(['Revenue by month']));
-            fputcsv($out, CsvSafe::row(['Month', 'Revenue']));
+            fputcsv($out, CsvSafe::row(['Month', 'Revenue', 'Currency']));
             foreach ($months as $m) {
-                fputcsv($out, CsvSafe::row([(string) $m['label'], MoneyFormatter::display($m['revenue_minor'], $currency)]));
+                // ⚠️ `month` (ISO `Y-m`), NOT `label` ('Sep'). The breakdown has carried both all along and
+                //    this file took the wrong one — a human label does not sort, and `09/2026` would be read
+                //    as a date, a fraction or text depending on where the file is opened.
+                fputcsv($out, CsvSafe::row([
+                    (string) $m['month'],
+                    MoneyFormatter::csvAmount($m['revenue_minor']),
+                    $currency,
+                ]));
             }
 
             fclose($out);
@@ -102,8 +113,11 @@ class OperatorReportsExportController extends Controller
      * allowed to show them (a leak) and rows their filter excluded (a lie about what they were looking at).
      *
      * ⚠️ THE REASON IT IS A WORKBOOK AND NOT A SECOND CSV: the cells are TYPED (see {@see Workbook}). Money is
-     * a number that SUMS, months are date cells that sort chronologically, shares are percent cells. The CSV
-     * stays exactly as it was — this adds a format, it does not replace one.
+     * a number that SUMS, months are date cells that sort chronologically, shares are percent cells.
+     * ⚠️ THIS DOCBLOCK USED TO SAY "the CSV stays exactly as it was". It no longer does, and the reasoning
+     * behind that sentence was the defect: it treated a CSV nobody could total as an acceptable second
+     * format because a good one existed beside it. The CSV now emits bare decimals, an ISO currency column
+     * and ISO months, so both formats are usable and neither teaches the operator to distrust the other.
      *
      * Two sheets, matching the design's "Trend + channels tabs". Gated `can:reports.view` at the route, the
      * same gate as the screen.

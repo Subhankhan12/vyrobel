@@ -74,20 +74,26 @@ class MaintenanceCostExportController extends Controller
 
         return response()->streamDownload(function () use ($report, $currency): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, CsvSafe::row(['Date', 'Work order', 'Unit', 'Category', 'Labor', 'Parts', 'Total']));
+            // ⚠️ THE UNIT IS STATED IN THE FILE. Amounts are major units as a bare decimal; the ISO 4217
+            //    code is its own column. ⚠️ ONE EXPORT FIXED AND ANOTHER LEFT FORMATTED IS WORSE THAN TWO
+            //    BROKEN — the good one teaches an operator to trust a money column that the other betrays.
+            fputcsv($out, CsvSafe::row(['Amounts', 'major units, decimal point, no thousands separator']));
+            fputcsv($out, CsvSafe::row(['Date', 'Work order', 'Unit', 'Category', 'Labor', 'Parts', 'Total', 'Currency']));
             foreach ($report['billable'] as $row) {
                 fputcsv($out, CsvSafe::row([
-                    $row['date'],
+                    // ⚠️ `date_iso`, not the 'j M' display string — "5 Sep" sorts before "9 Aug".
+                    $row['date_iso'] ?? '',
                     $row['title'],
                     $row['unit'],
                     ucfirst($row['category']),
-                    MoneyFormatter::display($row['labor_minor'], $currency),
-                    MoneyFormatter::display($row['parts_minor'], $currency),
-                    MoneyFormatter::display($row['total_minor'], $currency),
+                    MoneyFormatter::csvAmount($row['labor_minor']),
+                    MoneyFormatter::csvAmount($row['parts_minor']),
+                    MoneyFormatter::csvAmount($row['total_minor']),
+                    $currency,
                 ]));
             }
             // The reconciling totals row (labor + parts === total).
-            fputcsv($out, CsvSafe::row(['', 'Total', '', '', MoneyFormatter::display($report['labor_minor'], $currency), MoneyFormatter::display($report['parts_minor'], $currency), MoneyFormatter::display($report['total_minor'], $currency)]));
+            fputcsv($out, CsvSafe::row(['', 'Total', '', '', MoneyFormatter::csvAmount($report['labor_minor']), MoneyFormatter::csvAmount($report['parts_minor']), MoneyFormatter::csvAmount($report['total_minor']), $currency]));
             fclose($out);
         }, 'Vyrobel-maintenance-costs.csv', ['Content-Type' => 'text/csv']);
     }

@@ -1108,7 +1108,16 @@ class DemoSeeder extends Seeder
         // meaningful shape. Each month is a REAL apartment stay → attribution → statement projection (finalized
         // in period ORDER so each claims only its own lines); the ONLY demo affordances are seeding a past-month
         // rate calendar and marking the past payouts paid (like Batch B backdates created_at). Runs BEFORE the
-        // September finalize so September still claims ONLY its own lines (net €885.60 unchanged). Nothing faked.
+        // September finalize so September still claims ONLY its own lines. Nothing faked.
+        // ⚠️⚠️ A FIGURE WAS PINNED HERE THAT WAS NEVER A CONSTANT. This comment used to end "net €885.60
+        // unchanged", and a later pass found the seeded September net was €442.80 and read it as lost money.
+        // It is not: (a) THE DEMO IS DATE-RELATIVE, so which stays fall inside September moves with the real
+        // calendar — the figure had already drifted to €820.00 before anything else changed; and (b) THE
+        // COLLECTION GATE (docs/audits/OWNER-COLLECTION-GATE-2026-08-23.md) holds revenue whose folio is not
+        // yet collected, and one September stay is part-paid. Held lines keep `statement_id = NULL` and a
+        // later statement claims them once the guest pays — nothing is lost.
+        // ⚠️ SO DO NOT WRITE A TARGET NET HERE AGAIN. The September net is whatever the COLLECTED September
+        // lines project to, less the real commission. Assert the relationship, never the number.
         $this->seedOwnerStatementHistory($ownerParty, $property, $apartment, $aptRate, $aptUnits, $aptGuest, $vat);
 
         // September statement = pure projection of the ledger; finalize (locks), then create the payout,
@@ -1143,7 +1152,9 @@ class DemoSeeder extends Seeder
      * occupancy trend and the Overview earnings chart demo on a real, meaningful shape. Each month is a REAL
      * apartment stay (createDemoStay → folio → attribution) whose month's statement is a real projection of the
      * ledger; they are finalized in period ORDER so each claims only its own lines, and the caller's September
-     * finalize (which runs AFTER this) still claims only September's lines (net €885.60 unchanged). The only demo
+     * finalize (which runs AFTER this) still claims only September's lines. ⚠️ NO TARGET NET is stated: the demo is
+     * date-relative AND the collection gate holds uncollected stays, so September's net is derived, not fixed.
+     * The only demo
      * affordances are seeding a past-month rate calendar and marking the past payouts paid — never a fabricated
      * figure (#39): every net is the real gross − the real 18% commission.
      *

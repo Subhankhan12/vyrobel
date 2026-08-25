@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
+/** The CSV opens with a stated-unit line AND the column header before the first detail row. */
+const MCC_CSV_PREAMBLE_LINES = 2;
+
+/** Zero-based index of the Total column: Date, Work order, Unit, Category, Labor, Parts, Total, Currency. */
+const MCC_CSV_TOTAL_COL = 6;
+
 // THE MAINTENANCE COSTS SILENT CAP — reconciliation integrity.
 //
 // ⚠️ THE DEFECT WAS NOT A WRONG TOTAL. The totals sum EVERY resolved ticket in the period and always did;
@@ -89,19 +95,24 @@ it('exports every line item and its rows sum to the printed total', function () 
     $csv = mccCsv($f);
     $lines = array_values(array_filter(explode("\n", trim($csv))));
 
-    // header + every detail row + the totals row
-    expect(count($lines))->toBe($raw['count'] + 2);
+    // the stated-unit line + the column header + every detail row + the totals row
+    // ⚠️ The CSV gained a leading "Amounts, major units…" line when the export was made
+    //    spreadsheet-safe. The GUARD is unchanged — every billable row must still appear.
+    expect(count($lines))->toBe($raw['count'] + MCC_CSV_PREAMBLE_LINES + 1);
 
     // ⚠️ SUM THE VISIBLE ROWS THE WAY A READER WOULD — parse the last column back out of the bytes.
     $sum = 0;
-    foreach (array_slice($lines, 1, $raw['count']) as $line) {
+    foreach (array_slice($lines, MCC_CSV_PREAMBLE_LINES, $raw['count']) as $line) {
         $cells = str_getcsv($line);
-        $sum += (int) round((float) str_replace([',', '€', '"'], '', (string) end($cells)) * 100);
+        // ⚠️ THE TOTAL COLUMN BY INDEX, NOT `end()`. The last cell is now the ISO currency code, and
+        //    `(float) 'EUR'` is 0.0 — a sum loop that reads it would total zero and still "work" on an
+        //    empty fixture. Index the column the header names.
+        $sum += (int) round((float) $cells[MCC_CSV_TOTAL_COL] * 100);
     }
 
     // ⚠️ THE WHOLE POINT: the rows reconcile to the total beneath them, to the cent.
     expect($sum)->toBe($raw['total'])
-        ->and($csv)->toContain(MoneyFormatter::display($raw['total'], 'EUR'));
+        ->and($csv)->toContain(MoneyFormatter::csvAmount($raw['total']).',EUR');
 });
 
 // ── 2. ⚠️⚠️ THE TOTAL IS THE TRUE SUM — verified against ALL rows, never the capped set ─────────
@@ -115,9 +126,12 @@ it('prints a total that is the true sum of every row, not the capped preview', f
     $cappedTotal = MaintenanceCostService::BILLABLE_PREVIEW * (MCC_LABOR + MCC_PARTS);
     expect($cappedTotal)->not->toBe($raw['total']);          // the two are genuinely distinguishable
 
-    expect($csv)->toContain(MoneyFormatter::display($raw['total'], 'EUR'))
-        ->and($csv)->toContain(MoneyFormatter::display($raw['labor'], 'EUR'))
-        ->and($csv)->toContain(MoneyFormatter::display($raw['parts'], 'EUR'));
+    expect($csv)->toContain(MoneyFormatter::csvAmount($raw['total']))
+        ->and($csv)->toContain(MoneyFormatter::csvAmount($raw['labor']))
+        ->and($csv)->toContain(MoneyFormatter::csvAmount($raw['parts']))
+        // ⚠️ And no formatted figure survives anywhere — a money cell a spreadsheet cannot sum is the
+        //    defect this export was fixed for.
+        ->and($csv)->not->toContain('€');
 });
 
 // ── 3. ⚠️ ≤ 60 ROWS — the untruncated case still reconciles, and claims no truncation ───────────
@@ -128,7 +142,7 @@ it('reconciles trivially when the period holds fewer rows than the preview cap',
     $lines = array_values(array_filter(explode("\n", trim(mccCsv($f)))));
 
     expect($raw['count'])->toBe(5)
-        ->and(count($lines))->toBe(7);   // header + 5 + totals
+        ->and(count($lines))->toBe(5 + MCC_CSV_PREAMBLE_LINES + 1);   // preamble + 5 + totals
 });
 
 // ── 4. ⚠️⚠️ THE SCREEN SAYS IT IS A PREVIEW — the honest absence of reconciliation ──────────────

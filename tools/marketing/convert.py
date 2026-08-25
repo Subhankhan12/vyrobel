@@ -1481,17 +1481,19 @@ def convert(key):
             for _cid, _d in _rules.items():
                 t = swap(t, _d['before'], _d['after'], key, _tag + '/' + _cid)
 
-    # ⚠️ THE /docs CHANGELOG ENTRY — VERIFIED AND DELIBERATELY LEFT ALONE (confirm-first cuts both ways).
-    #    The audit says the header and footer LINK to a changelog. ⚠️ They do not: the converter has already
-    #    turned both into `<x-marketing.nav-link key="changelog">`, and that component resolves through
-    #    `MarketingUrls::pending()` — with no `marketing.changelog` route registered it renders a
-    #    `aria-disabled` NON-LINK, never an href that 404s. A removal here was written, tripped the
-    #    zero-match check as a no-op, and was withdrawn rather than forced.
-    #    ⚠️ WHAT REMAINS IS NARROWER AND IS REPORTED, NOT PATCHED: the visible label still reads
-    #    "Changelog" / "See what changed recently", and the pending affordance implies a page that is
-    #    COMING. The changelog was REFUSED on principle (`routes/web.php:633` — zero git tags, so there is
-    #    no release history to publish), not deferred. Whether a refused surface should keep a pending nav
-    #    entry is a navigation decision, not a sentence correction.
+    # ⚠️⚠️ THE /docs CHANGELOG ENTRY — REMOVED. A refused surface keeps NO door, not even a disabled one.
+    #    `routes/web.php:633`: a changelog asserts a RELEASE HISTORY and there are zero git tags across the
+    #    repo's commits, so the page was REFUSED on principle — not deferred. The converter had already
+    #    turned both links into `<x-marketing.nav-link key="changelog">`, which renders an aria-disabled
+    #    NON-LINK, so nothing 404s. ⚠️ But a marked-pending item still ADVERTISES something that is not
+    #    coming, and "pending" is the wrong word for "refused". Both entries are removed and NOTHING is put
+    #    in their place — a replacement would be a promise.
+    #    ⚠️ NEEDLED AGAINST THE POST-REWRITE ELEMENT, not the master's <a href="Vyrobel Changelog.dc.html">:
+    #    the href rewrite runs first, and a needle against the master matched nothing and said so.
+    if key == 'docs':
+        _before_len = len(t)
+        t = re.sub(r'<x-marketing\.nav-link key="changelog".*?</x-marketing\.nav-link>\s*', '', t, flags=re.S)
+        _NEEDLE_LOG.append((key, 'B5-DOCS/changelog-entries-removed', len(t) < _before_len))
 
     if key == 'article-housekeeping':
         # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the

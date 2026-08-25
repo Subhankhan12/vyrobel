@@ -26,6 +26,16 @@ SUBSYSTEMS VERIFIED ONCE (§N.8f), applied across every page that claims about t
   · HOUSEKEEPING STATUS vs AVAILABILITY. `HousekeepingService:17-19` — `housekeeping_status`
     (clean/dirty/inspected) does NOT affect availability; only `condition_status` does.
 
+⚠️⚠️ THE LESSON THIS BATCH PAID FOR — THE AUDIT SAYS *FALSE*, NOT *WHICH SIDE IS WRONG*.
+  An audit compares a page against the product and reports a mismatch. It cannot tell you whether the
+  SENTENCE is wrong or the CODE is. Usually it is the sentence. ⚠️ On R10 it was the code: the page said
+  the CSV used ISO dates and unformatted numbers, and the export wrote `€1,234.00` and 'Sep'. This pass
+  corrected the PAGE to describe the broken export — which made the defect look INTENTIONAL and removed the
+  only remaining signal that it existed. ⚠️ A doc correction can BURY a bug, and it buries it in the one
+  place a reader would have gone to find it.
+  ⚠️ SO EVERY FUTURE BATCH ASKS WHICH SIDE IS WRONG BEFORE CORRECTING, and where the code is the wrong
+  side, says so and leaves the sentence for the fix rather than writing the defect into the manual.
+
 ⚠️ ALREADY TRUE, SO CORRECTED NOTHING (confirm-first cuts both ways):
   · `guide-reports` "Reports default to everything you manage" — `OperatorReports::render()` scopes by the
     Phase-6a context, whose pivot-or-all rule (#38) means an empty `property_user` pivot IS the whole org.
@@ -118,14 +128,20 @@ REPORTS = {
         'after': 'Owner statements download one at a time. There is no action that packages a period into '
                  'a single file from here, so a year end means collecting them individually.',
     },
-    # ⚠️ THE CLAIM ASSERTS THE OPPOSITE OF THE CODE. The exporter writes `MoneyFormatter::display()` and
-    #    human month labels. ⚠️ The CODE is the side that is wrong here — reported as a product defect, not
-    #    fixed in a doc pass — but the page must describe what the file actually contains.
+    # ⚠️⚠️ THIS ROW IS THE ONE WHERE THE PAGE WAS RIGHT AND THE CODE WAS WRONG — see the docstring note.
+    #    The page said the CSV used ISO dates and unformatted numbers; the exporter wrote
+    #    `MoneyFormatter::display()` and human month labels. A previous pass corrected the PAGE to describe
+    #    the broken export, which made the defect look deliberate. The EXPORT has since been fixed
+    #    (`MoneyFormatter::csvAmount()` + an ISO currency column + ISO `Y-m` months), so the original
+    #    sentence is nearly true again — it is restated here to name the currency column, which the
+    #    original did not mention and which is the half that makes the number usable.
     'csv-format': {
+        # ⚠️ NEEDLED AGAINST THE MASTER, which still carries the ORIGINAL sentence. The interim correction
+        #    that described the broken export was produced by this same entry, so it exists nowhere to match.
         'before': 'CSV exports use ISO dates and unformatted numbers, which is deliberate: the file is for '
                   'a spreadsheet, not for reading.',
-        'after': 'CSV exports carry formatted amounts and readable month labels rather than raw values, so '
-                 'a spreadsheet will treat the money columns as text until you convert them.',
+        'after': 'CSV exports use ISO dates and bare decimal amounts, with the currency in its own column, '
+                 'which is deliberate: the file is for a spreadsheet, not for reading.',
     },
 }
 

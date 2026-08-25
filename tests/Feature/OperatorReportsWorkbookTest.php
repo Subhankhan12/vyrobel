@@ -302,7 +302,7 @@ it('leaves no temporary workbook behind', function () {
 });
 
 // ── 10. ⚠️ THE CSV IS UNTOUCHED — this added a format, it did not change one ───────────────────────
-it('leaves the existing CSV export exactly as it was', function () {
+it('keeps the CSV export spreadsheet-safe alongside the workbook', function () {
     $s = seedScenario(1);
     wbReservation($s, 'direct', 30000, 'VYR-WB-CSV', '2026-09-04');
     $manager = operatorUser($s, [], 'Hotel Manager');
@@ -310,9 +310,13 @@ it('leaves the existing CSV export exactly as it was', function () {
     $csv = test()->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])
         ->get('/app/reports/export.csv')->assertOk()->streamedContent();
 
-    // Still the CSV's own formatted-string shape (its cells are text by nature) — unchanged by the refactor
-    // that gave both exports one shared view resolver.
+    // ⚠️ THIS TEST WAS NAMED "leaves the existing CSV export exactly as it was", and that is no longer the
+    //    property worth holding. A doc audit found `guide-reports` claiming the CSV used ISO dates and
+    //    unformatted numbers; the page was right and the export was wrong. What must hold now is that BOTH
+    //    exports are spreadsheet-safe — the workbook's typed cells and the CSV's bare decimals.
     expect($csv)->toContain('Revenue by channel')
         ->and($csv)->toContain('Revenue by month')
-        ->and($csv)->toContain('€300.00');
+        ->and($csv)->toContain('Direct,1,300.00,EUR')   // bare decimal + its own currency column
+        ->and($csv)->toContain('2026-09,300.00,EUR')    // ISO month, not 'Sep'
+        ->and($csv)->not->toContain('€');
 });

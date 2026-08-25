@@ -23,6 +23,29 @@ final class MoneyFormatter
         return ($signed ? '+' : '')."{$symbol}{$abs}";
     }
 
+    /**
+     * A spreadsheet-safe amount: a BARE DECIMAL in MAJOR units — no symbol, no thousands grouping, and a
+     * '.' decimal separator regardless of locale.
+     *
+     * ⚠️⚠️ WHY NOT {@see display()} IN A CSV. `€1,234.00` is text to every spreadsheet, so a money column
+     * cannot be summed. ⚠️ AND A LOCALE-FORMATTED DECIMAL IS NOT THE FIX: `1.234,00` and `1,234.00` are each
+     * correct somewhere and wrong elsewhere, and a CSV carries no way to say which it means — so the same
+     * file totals differently depending on which country opens it.
+     *
+     * ⚠️ THE CURRENCY IS NOT IN THIS STRING. It belongs in its own column: the amount alone is not the money,
+     * and a symbol glued to a number is exactly what makes the number unusable. Callers MUST emit an ISO
+     * 4217 code alongside.
+     *
+     * ⚠️ MAJOR UNITS, NOT MINOR. Minor units are exact and never round, but a column of `44280` reads as
+     * cents to a human and invites a 100× error in whatever they build on top. `442.80` is what a
+     * spreadsheet expects. It is exact here too: the value is integer minor units divided by 100 and
+     * printed to exactly two places, so no float rounding can move it.
+     */
+    public static function csvAmount(int $minor): string
+    {
+        return number_format($minor / 100, 2, '.', '');
+    }
+
     public static function symbol(string $currency): string
     {
         return match (strtoupper($currency)) {
