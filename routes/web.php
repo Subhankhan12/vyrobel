@@ -67,6 +67,7 @@ use App\Http\Controllers\Operator\InviteOwnerPreviewController;
 use App\Http\Controllers\Operator\MaintenanceActionController;
 use App\Http\Controllers\Operator\MaintenanceCostExportController;
 use App\Http\Controllers\Operator\MaintenanceSettingsController;
+use App\Http\Controllers\Operator\OperatorConnectController;
 use App\Http\Controllers\Operator\OperatorProfileController;
 use App\Http\Controllers\Operator\OperatorRateProposalController;
 use App\Http\Controllers\Operator\OperatorReportsExportController;
@@ -733,6 +734,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/billing/pause', [BillingActionController::class, 'pause'])->middleware('can:billing.manage')->name('billing.pause');
     Route::post('/billing/cancel', [BillingActionController::class, 'cancel'])->middleware('can:billing.manage')->name('billing.cancel');
     Route::post('/billing/resume', [BillingActionController::class, 'resume'])->middleware('can:billing.manage')->name('billing.resume');
+
+    // ⚠️ CONNECT PHASE 1 — start Stripe Connect onboarding for THIS organisation (a Standard connected
+    // account). ⚠️⚠️ PURELY ADDITIVE: nothing charges on the resulting account, the guest checkout is
+    // untouched, and an org that never starts this behaves exactly as it does today. Gated
+    // `billing.manage` (Super Admin + Property Owner only — the same gate as the rest of billing, and the
+    // tightest one the matrix offers for a money-account act); audited in OperatorConnectService.
+    Route::post('/billing/connect/start', [OperatorConnectController::class, 'start'])
+        ->middleware('can:billing.manage')->name('billing.connect.start');
     // Dev/test-only affordance to demo the access gate (404s outside local/testing) — never a real payment.
     Route::post('/billing/dev-expire', [BillingActionController::class, 'devExpireTrial'])->middleware('can:billing.manage')->name('billing.dev-expire');
 

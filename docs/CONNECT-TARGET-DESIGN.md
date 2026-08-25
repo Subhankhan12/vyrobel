@@ -255,3 +255,77 @@ the founder should treat it as a programme and decide product question (1) befor
 
 ⚠️ **In the meantime the FAQ answer has already been corrected** to describe what actually happens, so
 nothing is being misrepresented while this is decided.
+
+---
+
+## Addendum (2026-08-26) — CONNECT PHASE 1 built, and two questions answered before it
+
+### ⚠️ THE PERMISSION: "Property Owner" is the OPERATOR'S FOUNDER, not a unit owner
+
+The two meanings are **not** conflated, and the check was worth making because the names are genuinely
+confusable:
+
+| role | what it is | permissions | in `/app`? |
+|---|---|---|---|
+| **`Property Owner`** | `TenantProvisioningService::FOUNDER_ROLE` — the operator organisation's business owner, assigned at signup | `*` | ✅ yes, it is in `back_office_roles` |
+| **`External Owner`** | the THIRD-PARTY unit owner, assigned by `OwnerInviteService` / `OwnerTeamInviteService` | `owner_portal.view` **only** | ⛔ **no — absent from `back_office_roles`** |
+
+⚠️ **A unit owner is refused from `/app` entirely by `EnsureBackOfficeAccess` (invariant #26) before any
+permission check runs**, so even a mis-granted permission could not reach this route. `billing.manage`
+therefore admits **Super Admin** and **Property Owner** — both operator-side. The gate stands.
+
+### ⚠️ THE ACCOUNT TYPE: STANDARD, not Express — verification CHANGED the recommendation
+
+The Phase-1 report floated **Express** and flagged it as unverified. ⚠️ **Verified against Stripe's
+account-type table, it is wrong**, and the reason matters:
+
+| | Standard | Express | Custom |
+|---|---|---|---|
+| Supported charge types | ⚠️ **"Direct only"** | Destination · Separate · Direct¹ | Destination · Separate · Direct¹ |
+| Fraud and dispute liability | **Connected account** for direct charges | ⚠️ **Platform** | ⚠️ **Platform** |
+| Connected account dashboard | **Full Dashboard** | Express Dashboard | None |
+| Onboarding + identity gathering | Stripe | Stripe | Platform or Stripe |
+| Integration effort | **Lowest** | Low | Significantly higher |
+
+⚠️ **Express would leave fraud and dispute liability with the PLATFORM — the opposite of the reason for
+moving to direct charges.** Stripe also states plainly: *"Use Standard connected accounts when you … want
+to use direct charges"*, and footnote 1 warns that direct charges on Express/Custom bill the connected
+account at *"standard sticker rates"* rather than the platform. There is also an **additional Stripe cost**
+for Express and Custom that Standard does not carry. Standard also matches the owner flow already in the
+codebase (`type: 'standard'`), so there is one account type in the system rather than two.
+
+⚠️ **NOT STATED IN ONE PLACE, AND WORTH RE-READING BEFORE GO-LIVE:** Stripe now marks Standard/Express/
+Custom as **legacy** account types and directs new platforms to the **Accounts v2 API / controller
+properties**. This integration already uses v1 `type: 'standard'`, so it stays internally consistent —
+but whether a platform going live in 2026 should start on v2 was **not established here**.
+
+### ⚠️ THE COUNTRY QUESTION — reported, NOT built
+
+- `organizations.country` is `char(2)` **nullable**. **`properties` has no country column at all** — it
+  carries `currency` and `timezone` only.
+- ⚠️ **So nothing in the schema stops one organisation holding properties in several countries**, and the
+  single org-level `country` would then be wrong for some of them. A Connect account is country-bound and
+  its country **cannot be changed after creation**.
+- ⚠️ **And `organizations.country` is nullable**, so an org may have no country at all while a Connect
+  account requires one.
+- **The shape of the problem, not a solution:** one account per organisation is sufficient only while an
+  organisation is single-country. A multi-country operator needs either one account per country (a
+  one-to-many the schema has no room for today) or a country stored per property. ⚠️ **No multi-account
+  model was built.**
+- ⚠️ **This belongs to the residency picture too:** where an operator's payment account is established is
+  part of the same inventory the held EU-hosting claim and the Article 28 agreement need.
+
+### What was built
+
+`organizations.stripe_connect_account_id` (an identifier, never a readiness flag) · `OperatorConnectService`
+(create-or-reuse the account, mint a fresh link, read readiness from Stripe) · `OperatorConnectController`
++ `POST /app/billing/connect/start` gated `can:billing.manage` · audited as
+`organization.connect_onboarding_started`.
+
+⚠️ **NOTHING CHARGES ON IT, AND THE DIRECT-CHARGE CALL WAS NOT PRE-BUILT** — a test asserts
+`createPaymentCheckout()` contains no `stripe_account`, `on_behalf_of`, `transfer_data` or
+`application_fee`, and that no caller passes a connected account into the guest charge.
+
+⚠️ **NO UI WAS BUILT THIS PASS.** The route exists and is gated; nothing in the product yet offers it or
+describes it. That is deliberate — there is nothing honest to say about an account that does nothing —
+and it is the next pass's work, under the no-future-promise rule.

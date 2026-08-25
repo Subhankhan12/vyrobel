@@ -50,6 +50,15 @@ class FakeStripeClient implements StripeClientInterface
     /** @var array<string, bool> — connect account id → payouts_enabled (test-mode owner accounts). */
     public array $connectAccounts = [];
 
+    /** @var array<string, bool> Stripe's `charges_enabled` per connected account — the ONLY readiness fact. */
+    public array $connectChargesEnabled = [];
+
+    /** @var array<string, bool> Stripe's `details_submitted` — the form was finished. ⚠️ NOT readiness. */
+    public array $connectDetailsSubmitted = [];
+
+    /** @var list<array{account: string, refresh_url: string, return_url: string}> every account link minted. */
+    public array $accountLinksCreated = [];
+
     public function __construct(
         private readonly ?string $webhookSecret = null,
         private readonly ?string $connectWebhookSecret = null,
@@ -251,12 +260,25 @@ class FakeStripeClient implements StripeClientInterface
 
     public function retrieveConnectAccount(string $accountId): StripeConnectAccount
     {
-        return new StripeConnectAccount($accountId, $this->connectAccounts[$accountId] ?? false);
+        // ⚠️ CONNECT PHASE 1 — the fake models the THREE Stripe facts separately so a test can prove that a
+        //    submitted-but-not-yet-enabled account reads as NOT READY. `$connectAccounts` keeps its original
+        //    bool meaning (payouts) so every existing owner-payout test is untouched.
+        return new StripeConnectAccount(
+            $accountId,
+            $this->connectAccounts[$accountId] ?? false,
+            $this->connectChargesEnabled[$accountId] ?? false,
+            $this->connectDetailsSubmitted[$accountId] ?? false,
+        );
     }
 
     public function createConnectAccountLink(string $accountId, string $refreshUrl, string $returnUrl): StripeAccountLink
     {
-        return new StripeAccountLink('https://connect.stripe.test/onboard/'.$accountId);
+        // ⚠️ CONNECT PHASE 1 — recorded so a test can prove a FRESH link is minted on every return. Stripe's
+        //    account links EXPIRE and are SINGLE-USE; a stored one fails days later, mid-signup, for someone
+        //    who cannot act on the error.
+        $this->accountLinksCreated[] = ['account' => $accountId, 'refresh_url' => $refreshUrl, 'return_url' => $returnUrl];
+
+        return new StripeAccountLink('https://connect.stripe.test/onboard/'.$accountId.'/'.count($this->accountLinksCreated));
     }
 
     public function createTransfer(int $amountMinor, string $currency, string $destinationAccountId, array $metadata = [], ?string $idempotencyKey = null): StripeTransfer

@@ -222,7 +222,13 @@ class StripeClient implements StripeClientInterface
     {
         $account = $this->sdk->accounts->retrieve($accountId);
 
-        return new StripeConnectAccount((string) $account->id, (bool) $account->payouts_enabled);
+        // ⚠️ Readiness is read from Stripe on every call — this is the source of truth, not a stored flag.
+        return new StripeConnectAccount(
+            (string) $account->id,
+            (bool) $account->payouts_enabled,
+            (bool) $account->charges_enabled,
+            (bool) $account->details_submitted,
+        );
     }
 
     public function createConnectAccountLink(string $accountId, string $refreshUrl, string $returnUrl): StripeAccountLink
