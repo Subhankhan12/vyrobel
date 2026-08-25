@@ -110,6 +110,10 @@ from batch4_rates import RATES as _B4_RATES   # noqa: E402
 from batch3_booking_spine import (RESERVATION as _B3_RES, CHECKIN as _B3_CHK,   # noqa: E402
                                   ARRIVAL as _B3_ARR)                        # noqa: E402
 from batch2_access_privacy import (ACCESS as _B2_ACC, GDPR as _B2_GDPR)  # noqa: E402
+from faq_glossary import (FAQ_CORRECTIONS as _FG_FAQ,     # noqa: E402
+                          FORBIDDEN as _FG_BAD,          # noqa: E402
+                          FAQ_REMOVED as _FG_DROP,       # noqa: E402
+                          GLOSSARY_CORRECTIONS as _FG_GLOS)  # noqa: E402
 from batch5_ops import (SETUP as _B5_SETUP, REPORTS as _B5_REP,          # noqa: E402
                         SETTINGS as _B5_SET, HOUSEKEEPING as _B5_HK,     # noqa: E402
                         STOREFRONT as _B5_STORE, DOCS as _B5_DOCS,       # noqa: E402
@@ -281,6 +285,134 @@ def helmet(t):
         'ogType': g(r'<meta property="og:type" content="(.*?)">') or 'website',
     }
     return meta, t[:h.start()] + t[h.end():]
+
+def _dc_rows(html, name):
+    """The DCLogic array a page renders from: `static QS = [...]` / `static T = [...]`."""
+    dc = re.search(r'<script type="text/x-dc"[^>]*>(.*?)</script>', html, re.S)
+    if dc is None:
+        return None
+    body = re.search(r'static ' + name + r' = \[(.*?)\n\s*\];', dc.group(1), re.S)
+    if body is None:
+        return None
+    import ast
+    return ast.literal_eval('[' + re.sub(r'\bnull\b', 'None', body.group(1)) + ']')
+
+
+def _esc(x):
+    return (str(x).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            .replace('"', '&quot;'))
+
+
+def _render_dc_page(t, key):
+    """Carry the corrected DCLogic rows into the output, derive the counter, regenerate the JSON-LD."""
+    src = io.open(os.path.join(os.path.dirname(__file__), 'core', key + '.html'), encoding='utf-8').read()
+
+    if key == 'faq':
+        rows = _dc_rows(src, 'QS') or []
+        # ⚠️ CORRECT AT SOURCE, THEN DROP — in that order, so a removed question can never be rendered by
+        #    an earlier step. `Where is data hosted?` goes because EU hosting is HELD pending a residency
+        #    inventory, and a question with no honest answer should not be asked.
+        kept = []
+        for r in rows:
+            q = r[1]
+            if q in _FG_DROP:
+                continue
+            kept.append([r[0], q, _FG_FAQ.get(q, r[2])])
+
+        items = []
+        for topic, q, a in kept:
+            items.append(
+                '<details data-faqitem="" data-topic="' + _esc(topic) + '" '
+                'style="border-radius:14px;background:rgba(255,252,248,.6);'
+                'border:1px solid rgba(255,255,255,.75);padding:14px 16px;">'
+                '<summary style="font-family:Sora,sans-serif;font-size:15px;font-weight:600;'
+                'color:#2B2320;cursor:pointer;">' + _esc(q) + '</summary>'
+                '<div style="font-size:14px;line-height:1.7;color:#4A403A;margin-top:8px;">'
+                + _esc(a) + '</div></details>'
+            )
+        t = _fill(t, r'(<div data-faqlist=""[^>]*>)(</div>)', ''.join(items), key, 'FG/faq-list')
+        # ⚠️ DERIVED, NEVER TYPED. The master read "18 questions" above a list of zero while its source
+        #    held 25 — wrong three ways at once.
+        t = _count(t, r'(<div data-faqcount=""[^>]*>)([^<]*)(</div>)',
+                   str(len(kept)) + ' question' + ('' if len(kept) == 1 else 's'), key, 'FG/faq-count')
+
+        # ⚠️ ONE SOURCE, RENDERED TWICE. Generated from `kept` — never maintained beside it.
+        ld = {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': [
+            {'@type': 'Question', 'name': q,
+             'acceptedAnswer': {'@type': 'Answer', 'text': a}} for _tp, q, a in kept]}
+        # ⚠️ INSERTED, NOT REPLACED. The converter strips every <script> before this runs (Gate 7's rule:
+        #    the design's JSON-LD is ours to regenerate, not to reproduce) — so there is nothing here to
+        #    substitute into, and a replace matched nothing and said so. This emits the block fresh from
+        #    `kept`, which is what makes it structurally impossible for it to fall behind the visible list.
+        _ld = ('<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>')
+        _before = len(t)
+        t = t + _ld
+        _NEEDLE_LOG.append((key, 'FG/faq-jsonld', len(t) > _before))
+
+        # ⚠️⚠️ SELF-CHECKS, REGISTERED LIKE A NEEDLE so `docsbuild.py --check` goes red on any of them.
+        #    A generated copy is only safe while it is PROVEN to be the same copy.
+        _rendered = re.findall(r'<summary[^>]*>(.*?)</summary>', t, re.S)
+        _NEEDLE_LOG.append((key, 'FG/faq-count-matches-list',
+                            re.search(r'data-faqcount=""[^>]*>(\d+) question', t) is not None
+                            and int(re.search(r'data-faqcount=""[^>]*>(\d+) question', t).group(1))
+                            == len(_rendered) == len(kept)))
+        _lit = json.loads(re.search(r'application/ld\+json">(.*?)</script>', t, re.S).group(1))
+        _NEEDLE_LOG.append((key, 'FG/faq-jsonld-matches-visible',
+                            [(q['name'], q['acceptedAnswer']['text']) for q in _lit['mainEntity']]
+                            == [(q, a) for _tp, q, a in kept]))
+        # ⚠️ A dropped question must not survive anywhere on the page, visible or structured.
+        _NEEDLE_LOG.append((key, 'FG/faq-dropped-stay-dropped',
+                            not any(d in t for d in _FG_DROP)))
+        return t
+
+    rows = _dc_rows(src, 'T') or []
+    items = []
+    for r in rows:
+        term, full, definition, why = r[1], r[2], r[3], r[4]
+        fix = _FG_GLOS.get(term)
+        if fix is not None:
+            definition, why = fix['definition'], fix['why']
+        items.append(
+            '<div data-term="" data-topic="' + _esc(r[0]) + '" '
+            'style="border-radius:14px;background:rgba(255,252,248,.6);'
+            'border:1px solid rgba(255,255,255,.75);padding:14px 16px;">'
+            '<div style="font-family:Sora,sans-serif;font-size:15px;font-weight:600;color:#2B2320;">'
+            + _esc(term) + (' <span style="font-weight:400;color:#4A403A;">' + _esc(full) + '</span>'
+                            if full and full != term else '') + '</div>'
+            '<div style="font-size:14px;line-height:1.7;color:#4A403A;margin-top:6px;">'
+            + _esc(definition) + '</div>'
+            + ('<div style="font-size:13px;line-height:1.6;color:#6B5F57;margin-top:6px;">'
+               + _esc(why) + '</div>' if why else '') + '</div>'
+        )
+    t = _fill(t, r'(<div data-glosslist=""[^>]*>)(</div>)', ''.join(items), key, 'FG/glossary-list')
+    # ⚠️ The master's "35 terms" is ACCURATE today. It is still derived: an accurate hardcoded count is a
+    #    wrong one waiting, and this is the "sixteen written guides" shape.
+    t = _count(t, r'(<div data-glosscount=""[^>]*>)([^<]*)(</div>)',
+               str(len(rows)) + ' term' + ('' if len(rows) == 1 else 's'), key, 'FG/glossary-count')
+    _NEEDLE_LOG.append((key, 'FG/glossary-count-matches-list',
+                        re.search(r'data-glosscount=""[^>]*>(\d+) term', t) is not None
+                        and int(re.search(r'data-glosscount=""[^>]*>(\d+) term', t).group(1))
+                        == len(re.findall(r'<div data-term=""', t)) == len(rows)))
+    return t
+
+
+def _fill(t, pattern, inner, key, tag, three=False):
+    m = re.search(pattern, t, re.S)
+    _NEEDLE_LOG.append((key, tag, m is not None))
+    if m is None:
+        return t
+    if three:
+        return t[:m.start()] + m.group(1) + inner + m.group(3) + t[m.end():]
+    return t[:m.start()] + m.group(1) + inner + m.group(2) + t[m.end():]
+
+
+def _count(t, pattern, text, key, tag):
+    m = re.search(pattern, t, re.S)
+    _NEEDLE_LOG.append((key, tag, m is not None))
+    if m is None:
+        return t
+    return t[:m.start()] + m.group(1) + text + m.group(3) + t[m.end():]
+
 
 def convert(key):
     t = io.open(f"{SRC}/{key}.html", encoding='utf-8').read()
@@ -1470,6 +1602,21 @@ def convert(key):
     if key == 'guide-rates':
         for _cid, _d in _B4_RATES.items():
             t = swap(t, _d['before'], _d['after'], key, 'B4-RATE/' + _cid)
+
+    # ⚠️⚠️ /faq + /glossary — THE CONTENT THE CONVERTER USED TO DROP ON THE FLOOR.
+    #    Both pages render their content from a `DCLogic` array inside a <script>, and every <script> is
+    #    stripped — so the gate saw NOTHING and both read "0 still present", indistinguishable from
+    #    corrected. ⚠️ The corrections were applied AT SOURCE first (`spec/faq_glossary.py`, verification in
+    #    `docs/FAQ-GLOSSARY-SOURCE-VERIFICATION.md`); this only carries the corrected data into the output.
+    #    ⚠️ BOTH COUNTERS ARE DERIVED from the rendered list, and the FAQ's JSON-LD is GENERATED from the
+    #    same corrected rows — it was a hand-maintained second copy that had already fallen 13 questions
+    #    behind, which is exactly how two copies diverge where nobody can see it.
+    if key in ('faq', 'glossary'):
+        t = _render_dc_page(t, key)
+        # ⚠️ THE CORRECTIONS MUST HAVE BEEN APPLIED, not merely rendered. Proven by mutation: dropping the
+        #    corrections put every false answer back with every needle still green.
+        _hits = [b for b in _FG_BAD if b.encode().decode('unicode_escape') in t]
+        _NEEDLE_LOG.append((key, 'FG/no-false-claim-survives', _hits == []))
 
     # ⚠️ BATCH 5 — OPERATIONS, REPORTING & SETTINGS. Verification record:
     #    `docs/DOC-BATCH5-VERIFICATION.md` (every row carries its code fact).

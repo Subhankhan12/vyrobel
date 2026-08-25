@@ -47,10 +47,37 @@ def norm(s):
 
 
 def text_of(h):
-    """R1 — the page as a reader sees it, not as the markup spells it."""
+    """R1 — the page as a reader sees it, not as the markup spells it.
+
+    ⚠️⚠️ A PAGE CAN RENDER FROM A SCRIPT, AND STRIPPING SCRIPTS THEN READS AS A CLEAN PAGE. `/faq` and
+    `/glossary` hold their content in a `DCLogic` array inside `<script type="text/x-dc">`; extracting only
+    the markup returned ~650 characters for each and every sweep over them came back CLEAN — which was
+    indistinguishable from CORRECT and in fact meant NOBODY HAD LOOKED. Two claims that had been ruled and
+    corrected elsewhere went on standing there for exactly that reason.
+
+    ⚠️ So the DCLogic string literals are read back in before the scripts are dropped. This WIDENS what the
+    check can see; it does not weaken it. Everything else — `<style>`, real `<script>` — is still stripped,
+    because that is genuinely not page text.
+    """
+    h = _dc_text(h) + ' ' + h
     h = re.sub(r'(?is)<(script|style)\b.*?</\1>', ' ', h)
     h = re.sub(r'(?s)<[^>]+>', ' ', h)
     return norm(h)
+
+
+def _dc_text(h):
+    """The human-readable strings inside a `text/x-dc` DCLogic block — what such a page actually shows."""
+    out = []
+    for block in re.findall(r'(?is)<script type="text/x-dc"[^>]*>(.*?)</script>', h):
+        for lit in re.findall(r"'((?:[^'\\]|\\.)*)'", block):
+            # Only prose: skip identifiers, file names and CSS-ish fragments a reader never sees.
+            if len(lit) < 25 or '.dc.html' in lit:
+                continue
+            try:
+                out.append(lit.encode().decode('unicode_escape'))
+            except Exception:
+                out.append(lit)
+    return ' '.join(out)
 
 
 def fragment(claim):
