@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\ReservationAlreadyTerminalException;
+use App\Exceptions\Booking\RestrictionOverrideForbiddenException;
+use App\Exceptions\Booking\RestrictionsViolationException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Models\Availability;
@@ -29,6 +31,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * The SINGLE write path for anything that touches inventory (convention #9). No other code
@@ -714,6 +717,34 @@ class AssignmentService
         if (is_string($reason) && $reason !== '') {
             $note = $line['restriction_override_note'] ?? null;
 
+            // ⚠️⚠️ THE GATE, AT THE POINT THE OVERRIDE IS CONSUMED — not on a route. `occupy()` is the
+            //    single convergence point for EVERY booking path (operator create, group bookings and the
+            //    public storefront), so a route-only check would leave every other caller ungated.
+            //    ⚠️ A GUEST CAN NEVER OVERRIDE: the storefront runs with no operator user, so `can()` is
+            //    false and a crafted request carrying an override reason is refused here, whatever the
+            //    route accepts. ⚠️ Refused BEFORE the audit is written, so no row records an act that was
+            //    not permitted.
+            // ⚠️⚠️ THE SPATIE TEAM MUST BE SET BEFORE `can()`, AND THIS BIT REAL. Roles are team-scoped
+            //    (team = organization) and a NULL team makes `can()` fail SILENTLY TO FALSE — it does not
+            //    throw, it just answers "no". `occupy()` runs from jobs, commands and the seeder as well as
+            //    from a request, so it cannot rely on `SetTenantForWebRequest` having run. Set it from the
+            //    reservation's own organization and restore it after, the same discipline `StaffRoster`
+            //    uses for exactly this reason.
+            $registrar = app(PermissionRegistrar::class);
+            $previousTeam = $registrar->getPermissionsTeamId();
+            $registrar->setPermissionsTeamId((string) $reservation->organization_id);
+
+            try {
+                $actor = Auth::user();
+                $permitted = $actor !== null && $actor->can('reservations.restriction_override');
+            } finally {
+                $registrar->setPermissionsTeamId($previousTeam);
+            }
+
+            if (! $permitted) {
+                throw new RestrictionOverrideForbiddenException;
+            }
+
             // ⚠️ A KEYED reason or nothing. Free text cannot be counted, and the override RATE is the
             //    honest measure of whether the restrictions themselves are right.
             if (! RestrictionOverrideReason::isValid($reason)) {
@@ -722,7 +753,21 @@ class AssignmentService
             if ($reason === RestrictionOverrideReason::OTHER && trim((string) $note) === '') {
                 throw new InvalidArgumentException('An "other" override needs a note saying why.');
             }
-            $override = function (array $waived) use ($reservation, $reason, $note): void {
+            $seen = $line['restriction_override_seen'] ?? null;
+            $override = function (array $waived) use ($reservation, $reason, $note, $seen): void {
+                // ⚠️⚠️ THE SEEN SET MUST MATCH THE WAIVED SET. Someone can edit the rate grid between the
+                //    refusal and the resubmit; without this, the operator waives breaches they never read —
+                //    the blank cheque arriving by a different door. ⚠️ The breaches are re-evaluated on
+                //    submit (this closure runs on the fresh evaluation), so comparing them to what was
+                //    SHOWN makes "informed" mechanical rather than hopeful, and makes the audit's waived
+                //    list provably the list the operator read.
+                if (is_array($seen)) {
+                    $now = RestrictionGuard::fingerprint($waived);
+                    if ($now !== RestrictionGuard::fingerprint($seen)) {
+                        throw RestrictionsViolationException::changedSince($waived);
+                    }
+                }
+
                 // ⚠️⚠️ EVERY RESTRICTION WAIVED IS RECORDED, with its date and value — never "override used".
                 //    An audit naming one when two were waived is WORSE than none, because it reads as
                 //    precise and nobody goes looking for the second.
@@ -752,7 +797,7 @@ class AssignmentService
 
         // ⚠️ The override never reaches the row: it is an ACT recorded in the audit, never a STATE stored
         //    on the reservation. A persistent "may breach restrictions" column would be a permanent hole.
-        unset($line['restriction_override_reason'], $line['restriction_override_note']);
+        unset($line['restriction_override_reason'], $line['restriction_override_note'], $line['restriction_override_seen']);
 
         $reservationUnit = ReservationUnit::create([
             'reservation_id' => $reservation->getKey(),

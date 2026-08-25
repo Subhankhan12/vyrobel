@@ -123,4 +123,21 @@ final class RestrictionGuard
 
         throw RestrictionsViolationException::fromBreaches($breaches);
     }
+
+    /**
+     * ⚠️ A stable identity for a set of breaches, so what the operator SAW can be compared with what is
+     * about to be WAIVED. Order-independent: the same breaches in a different order are the same set.
+     *
+     * @param  list<array{restriction: string, date: string, value: int|null}>  $breaches
+     */
+    public static function fingerprint(array $breaches): string
+    {
+        $parts = array_map(
+            static fn (array $b): string => $b['restriction'].'@'.$b['date'].'='.($b['value'] ?? ''),
+            $breaches,
+        );
+        sort($parts);
+
+        return implode('|', $parts);
+    }
 }

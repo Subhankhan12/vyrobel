@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Exceptions\Booking\BookingException;
+use App\Exceptions\Booking\RestrictionOverrideForbiddenException;
+use App\Exceptions\Booking\RestrictionsViolationException;
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\NewReservation;
 use App\Models\AddOn;
@@ -180,6 +182,19 @@ class ReservationCreateController extends Controller
         }
 
         // THE CERTIFIED WRITE. createBooking guards inventory under a row lock; a race is rejected here (the
+        // ⚠️ THE OVERRIDE RIDES THE RESUBMIT ONLY. There is no override field on a first attempt: the
+        //    reason is supplied together with the breach list the operator was just shown, and the service
+        //    re-evaluates and refuses again if that set has changed since.
+        $overrideLine = [];
+        $overrideReason = trim((string) $request->input('restriction_override_reason', ''));
+        if ($overrideReason !== '') {
+            $overrideLine = [
+                'restriction_override_reason' => $overrideReason,
+                'restriction_override_note' => trim((string) $request->input('restriction_override_note', '')) ?: null,
+                'restriction_override_seen' => json_decode((string) $request->input('restriction_override_seen', '[]'), true) ?: [],
+            ];
+        }
+
         // whole transaction rolls back), never a double book. An expected rejection must never 500.
         try {
             $reservation = $assignments->createBooking(
@@ -203,8 +218,23 @@ class ReservationCreateController extends Controller
                     'children' => $children,
                     'price_minor' => $roomChargeMinor,
                     'currency' => $currency,
-                ]],
+                ] + $overrideLine],
             );
+        } catch (RestrictionOverrideForbiddenException $e) {
+            // ⚠️ Should be unreachable — the refusal only OFFERS the override to someone who can use it.
+            //    Surfaced rather than 500ing if a request is crafted.
+            return $this->back($request, $e->getMessage());
+        } catch (RestrictionsViolationException $e) {
+            // ⚠️⚠️ THE OVERRIDE IS OFFERED ONLY HERE — AFTER A REFUSAL, never as a checkbox on the form. A
+            //    pre-tickable option gets ticked out of habit, the block stops firing at all, and the
+            //    override RATE (the only signal that says whether the restrictions are right) becomes
+            //    meaningless. ⚠️ The full breach list travels back with the form, so the reason is always
+            //    chosen against a list the operator has just read — and `restriction_override_seen` carries
+            //    it forward so the service can prove the set did not change in between.
+            return $this->back($request, $e->getMessage())
+                ->with('restriction_breaches', $e->asRecords())
+                ->with('restriction_can_override', $request->user()?->can('reservations.restriction_override') === true)
+                ->withInput();
         } catch (BookingException) {
             return $this->back($request, 'That unit was just taken for those dates — nothing was created. Re-check availability.');
         }

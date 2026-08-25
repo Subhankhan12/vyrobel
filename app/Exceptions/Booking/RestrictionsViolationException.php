@@ -31,6 +31,25 @@ class RestrictionsViolationException extends RuntimeException
             : 'This booking breaches '.count($lines).' restrictions: '.implode(' ', $lines));
     }
 
+    /**
+     * ⚠️ The restrictions changed between the refusal and the resubmit, so the operator would have waived a
+     * set they never read. Refuse again, showing the NEW list rather than proceeding on a stale one.
+     *
+     * @param  list<array{restriction: string, date: string, value: int|null}>  $current
+     */
+    public static function changedSince(array $current): self
+    {
+        $breaches = array_map(
+            static fn (array $b): RestrictionViolationException => new RestrictionViolationException(
+                (string) $b['restriction'], (string) $b['date'], $b['value'], ''
+            ),
+            $current,
+        );
+
+        return new self($breaches, 'The restrictions on these dates changed while you were reviewing them — '
+            .'check the list again before overriding.');
+    }
+
     /** @return list<array{restriction: string, date: string, value: int|null}> */
     public function asRecords(): array
     {

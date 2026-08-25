@@ -28,6 +28,14 @@ function ovRestrict(array $s, string $date, array $flags): void
 
 function ovBook(array $s, string $in, string $out, ?string $reason = null, ?string $note = null)
 {
+    // ⚠️ The override is now GATED at the point it is consumed, so these must act as a permitted operator.
+    //    Before this pass the permission was checked nowhere and they passed unauthenticated — which is
+    //    exactly the defect that pass closed. ⚠️ Set AFTER any tenant-scoped write: a null spatie team makes
+    //    `can()` fail silently to false.
+    if ($reason !== null) {
+        auth()->login(operatorUser($s, [], 'Front Desk'));
+    }
+
     $line = [
         'room_type_id' => (string) $s['roomType']->id,
         'unit_id' => (string) $s['units'][0]->id,

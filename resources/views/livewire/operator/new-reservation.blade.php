@@ -152,6 +152,47 @@
                     {{-- ══ MAIN COLUMN ══ --}}
                     <form method="POST" action="{{ route('app.reservations.create') }}" class="vy-nr-main" x-ref="form">
                         @csrf
+
+                        {{-- ⚠️⚠️ THE RESTRICTION OVERRIDE — RENDERED ONLY AFTER A REFUSAL. There is deliberately
+                             no checkbox on a first attempt: a pre-tickable override gets ticked out of habit,
+                             the block stops firing at all, and the override rate — the only signal that says
+                             whether the restrictions themselves are right — becomes meaningless.
+                             ⚠️ The full breach list is on screen while the reason is chosen, and travels back
+                             in a hidden field so the service can refuse again if the set changed meanwhile.
+                             ⚠️ If the operator cannot override, no reason picker is offered at all — it says
+                             who can, because an offer that fails on submit teaches people the system is
+                             broken. --}}
+                        @if (session('restriction_breaches'))
+                            <div class="vy-callout vy-callout--warn" style="margin-bottom:14px" data-restriction-refusal>
+                                <strong>These dates are restricted</strong>
+                                <ul style="margin:6px 0 0;padding-left:18px;font-size:13px">
+                                    @foreach (session('restriction_breaches') as $__b)
+                                        <li>{{ $__b['restriction'] }} on {{ $__b['date'] }}@if ($__b['value'] !== null) ({{ $__b['value'] }})@endif</li>
+                                    @endforeach
+                                </ul>
+
+                                @if (session('restriction_can_override'))
+                                    <input type="hidden" name="restriction_override_seen" value="{{ json_encode(session('restriction_breaches')) }}">
+                                    <label class="vy-field-label" style="margin-top:10px">Override — why?</label>
+                                    <select name="restriction_override_reason" class="vy-input">
+                                        <option value="">Do not override</option>
+                                        @foreach (\App\Support\Booking\RestrictionOverrideReason::labels() as $__k => $__label)
+                                            <option value="{{ $__k }}">{{ $__label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="text" name="restriction_override_note" class="vy-input" style="margin-top:6px"
+                                           maxlength="200" placeholder="Note (required if you choose Other)">
+                                    <p style="font-size:11.5px;color:var(--vy-muted);margin:6px 0 0">
+                                        Overriding lets this booking through. It does not change the restriction — the next
+                                        booking will be refused just the same.
+                                    </p>
+                                @else
+                                    <p style="font-size:12px;margin:8px 0 0">
+                                        You cannot override a restriction. A manager or someone on the front desk can.
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
                         <input type="hidden" name="check_in" value="{{ $checkIn }}">
                         <input type="hidden" name="check_out" value="{{ $checkOut }}">
                         <input type="hidden" name="room_type_id" x-model="roomTypeId">

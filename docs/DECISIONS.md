@@ -17005,3 +17005,85 @@ that the override **does not change the restriction**. Channels **untouched**, n
 ⚠️ **Hardcode the seeded date → RED** (the anchoring proof) · ⚠️ **move it onto a booked date → RED** (the
 blocking proof, caught rather than survived) · ⚠️ **remove Front Desk's grant → NO TEST COVERS THIS**, which
 is the finding above.
+
+---
+
+## 2026-08-25 · THE RESTRICTION OVERRIDE, FINISHED (invariant #83)
+
+### ⚠️⚠️ #1 · THE ACCEPTANCE TEST NOW PASSES — removing a grant REDs
+
+⚠️ **Last pass, removing Front Desk's `reservations.restriction_override` grant broke nothing and the harness
+correctly reported "NO TEST COVERS THIS". It now turns tests RED.** That was the single condition this pass
+had to meet.
+
+⚠️ **The gate lives where the override is CONSUMED** — `AssignmentService::occupy()` — not on a route. That
+is the single convergence point for **every** booking path: the operator create controller, group bookings
+(`createGroupBooking` funnels through `occupy()`) and the public storefront. A route-only check would have
+left the other callers ungated.
+
+⚠️⚠️ **AND IT SURFACED A REAL FOOTGUN, LIVE.** The first version failed because **a null spatie team makes
+`can()` fail SILENTLY TO FALSE** — it does not throw, it answers "no". `occupy()` runs from jobs, commands
+and the seeder as well as requests, so it cannot rely on `SetTenantForWebRequest`. ⚠️ **The team is now set
+from the reservation's own organization and restored afterwards**, the same discipline `StaffRoster` already
+uses for exactly this reason. ⚠️ **Without it the gate would have refused legitimate operators in every
+non-request context — a fail-closed bug that looks like a working gate.**
+
+### #2 · The override is offered ONLY after a refusal
+
+⚠️ **There is no override field on a first attempt** — asserted by fetching the create page and checking
+`restriction_override_reason` is absent from the HTML. ⚠️ **A pre-tickable option gets ticked out of habit,
+the block stops firing at all, and the override RATE — the only signal that says whether the restrictions
+themselves are right — becomes meaningless.**
+
+**The flow:** attempt → refusal listing **every** breach → the operator picks a keyed reason **with that list
+on screen** → resubmit. ⚠️ **If the operator cannot override, no picker is rendered at all**; the refusal says
+*"You cannot override a restriction. A manager or someone on the front desk can."* — because an offer that
+fails on submit teaches people the system is broken.
+
+### ⚠️⚠️ #3 · SEEN == WAIVED, mechanically
+
+The breach list travels back in `restriction_override_seen`, and the service **re-evaluates on submit** and
+compares fingerprints. ⚠️ **If the set changed — someone edited the rate grid in between — it REFUSES AGAIN
+with the NEW list.** Proven with a changed set: shown only a minimum stay, a closed-to-arrival added
+meanwhile, refused. ⚠️ **This makes "informed" mechanical rather than hopeful, and makes the audit's waived
+list provably the list the operator read.**
+
+### ⚠️⚠️ #4 · A guest can never override
+
+Proven: an unauthenticated caller supplying a valid override reason is **refused**, and ⚠️ **no audit row is
+written** — the permission is checked **before** the audit, so no row can record an act that was not
+permitted. **Which paths can:** the operator create controller and group bookings, both only with the grant.
+**Which cannot:** the public storefront (`BookingEngineService` never sets the field and has no operator
+user), the seeder, and any future job or import.
+
+### #5 · Zero movement
+
+No override → byte-identical: a breaching booking is still refused and **no audit row is written**.
+`owner_ledger` **29 rows / net 465360** · **42 reservations** · **4 seeded restrictions** — all unchanged, and
+the computed seeding window is untouched.
+
+### ⚠️ #7 · WHAT A RESERVATION AGENT ACTUALLY SEES — reported, NOT widened
+
+⚠️ **The dead end is now real rather than theoretical.** A Reservation Agent takes a phone booking that
+breaches a minimum stay and gets: the refusal, the full breach list, and *"You cannot override a restriction.
+A manager or someone on the front desk can."* ⚠️ **They can start a booking and cannot finish it — they must
+hand it to someone else or leave it.** ⚠️ **Not widened: the ruling named Front Desk.**
+
+### ⚠️ TESTS I AMENDED, AND WHY
+
+⚠️ **Five tests in the previous pass's `RestrictionOverrideTest` now act as a permitted operator.** They
+passed **unauthenticated** before — which is precisely the defect this pass closed, so their old shape was
+only green because nothing was checked. ⚠️ **No assertion's meaning changed.** Reported rather than done
+quietly.
+
+### #6 · The doc — fifth correction in five passes
+
+*"Anyone who can take a booking can override"* became false the moment the gate worked. It now reads **"When
+a booking is refused, a manager or someone on the front desk can override it"**, keeps the sentence that an
+override **does not change the restriction**, and states the override follows a refusal. Channels
+**untouched**.
+
+### Mutations
+
+⚠️⚠️ **Remove Front Desk's grant → RED (the acceptance test)** · gate bypassed → RED · seen-vs-waived skipped
+→ RED. All through the fixed harness; no anchor misses.
