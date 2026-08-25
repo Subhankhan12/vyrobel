@@ -128,20 +128,26 @@ from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
 # there, not a guard to weaken. The ledger rows stay accurate about the MASTER.
 _DOC_SPEC_FAQ_ONLY = {'S1-015', 'S1-043', 'S1-117'}
 
-# ⚠️⚠️ THE SAME BLIND SPOT IS WIDER THAN THE THREE CLAIMS ABOVE, AND IT READS AS *CLEARED* (batch 5, B3).
-# `/faq` and `/glossary` both render their content from a data structure the text extractor strips, so a
-# sweep over either page finds NOTHING — and "0 still present" is then indistinguishable from "corrected".
-# It is neither: it is "never looked at". Measured, not assumed:
-#   /faq      master 40,700 B → 662 chars of extractable text. 12 Q&A pairs live in JSON-LD (4,813 chars);
-#             the converted Blade carries ZERO of them, and the page still ships a hard-coded "18 questions"
-#             counter above an empty list. ⚠️ Restoring the questions would publish 12 UNVETTED answers at
-#             once — three of which the audit already marked FALSE. Correct them BEFORE wiring the list.
-#   /glossary master 34,273 B → 639 chars. All 6 audited terms (Occupancy · Rate plan ×2 · MinLOS ·
-#             Orphan night · Unit) are present in the master and absent from the converted Blade.
-# ⚠️ Neither page can be corrected by a transform: swap() would match nothing and trip the zero-match check.
-# The debt is real, is carried in the ledger against the MASTER, and is discharged only when the render
-# path is built — not by a needle here.
-
+# ⚠️⚠️ THE BLIND SPOT, RE-MEASURED AT SOURCE (2026-08-25). ⚠️ THE EARLIER NOTE HERE WAS STALE IN A WAY
+# THAT TOLD A FUTURE READER NOT TO LOOK — it said /faq's answers "live in a JSON-LD block", which is only a
+# 12-question SUBSET, and it did not say what the real source was. Corrected:
+#   /faq      the 25 visible questions come from `static QS` inside a `<script type="text/x-dc">` DCLogic
+#             block. A SECOND, hand-maintained `application/ld+json` block carries 12 of them. All 12 are
+#             byte-identical to their QS twins TODAY — but 13 questions are missing from it, so the copies
+#             have already diverged in COVERAGE, silently and invisibly on the page.
+#             ⚠️ The counter reads "18 questions": wrong against the source (25), wrong against the JSON-LD
+#             (12), and wrong against what renders (0).
+#   /glossary the 35 terms come from `static T` in the same kind of DCLogic block. No JSON-LD. Its typed
+#             "35 terms" is ACCURATE today — and must still be derived, because a typed count beside a
+#             moving list is the "sixteen written guides" shape that shipped false sitewide.
+# ⚠️ THE CONVERTER STRIPS EVERY <script>, so neither page's content reaches the output and BOTH read as
+# "0 still present" to the corrections gate — indistinguishable from corrected, and in fact NEVER LOOKED AT.
+# ⚠️ ALL 60 ITEMS ARE NOW VERIFIED AT SOURCE — see `docs/FAQ-GLOSSARY-SOURCE-VERIFICATION.md`. The content
+# is NOT restored yet, deliberately: three answers are still unverified (flow of funds, guest self-service
+# erasure, failed-payout retry) and they are money/GDPR claims. ⚠️ RESTORE ONLY AFTER CORRECTING AT SOURCE
+# — switching the render on first would publish known-false answers, and a page that is briefly wrong is
+# how a wrong sentence gets copied somewhere else.
+_DOC_SPEC_FAQ_ONLY = {'S1-015', 'S1-043', 'S1-117'}
 
 _DOC_SPEC_PAGES = (
     {p for p, _, _ in _G6_GUIDES.values()}
