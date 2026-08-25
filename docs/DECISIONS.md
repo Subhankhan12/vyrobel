@@ -16768,3 +16768,84 @@ at all** — so a one-night stay can be booked on nights carrying a seven-night 
 `Step 5 — "Push to channels…"`; channels — `"…and its commission on the folio."`
 
 **Running total: 97 of 220 evidenced · 67 outstanding · 56 unmatched.**
+
+---
+
+## 2026-08-25 · RESTRICTIONS ARE ENFORCED AT BOOKING (invariant #81)
+
+### #1 · The store's scope, and each restriction's verified shape
+
+⚠️ **Scope: `(room_type_id, rate_plan_id, date)`**, unique. ⚠️ **Every shipped writer keys it room-type-level
+with `rate_plan_id = NULL`** (`RateActionController`, `OwnerRateService`) — and the rate-grid badge reads
+exactly that. ⚠️ **So the engine reads the same key the badge renders (§N.8f); if it looked anywhere else the
+bug would simply move — the badge saying one thing and the refusal another.**
+
+| restriction | shape, verified |
+|---|---|
+| `min_stay` | judged on the **ARRIVAL date's row**; a stay shorter than it is refused. A minimum on a *later* night does not govern the stay — proven. |
+| `stop_sell` | **every night** `[check_in, check_out)`. ⚠️ The departure date is excluded — nobody sleeps that night — proven. |
+| ⚠️ `closed_to_arrival` | forbids **STARTING** on that date; a stay **passing through** is untouched. |
+| ⚠️ `closed_to_departure` | forbids **ENDING** on that date; passing through is untouched. |
+
+⚠️⚠️ **CTA AND CTD ARE PROVEN BOTH WAYS** — the forbidden case refused *and* the pass-through case permitted.
+A refusal-only test cannot distinguish a correct implementation from an inverted one, and the two inversion
+mutations (applying each to every night) both go RED.
+
+### #2 · Every creation path — one convergence point
+
+`ReservationCreateController` (operator) · `BookingEngineService` (guest storefront) · `NewReservation`
+(Livewire) · `GroupBookingService` · `DemoSeeder` — ⚠️ **all funnel through `AssignmentService::occupy()`**,
+which `createBooking()` and `createGroupBooking()` share. ⚠️ **Enforcement sits INSIDE that locked core,
+immediately after the availability lock and beside the out-of-service guard** — the same point, the same
+transaction, never a second gate that could disagree with them.
+
+### ⚠️ #3 · Zero movement where nothing is set
+
+⚠️ **Absent means unrestricted, never a default.** No row, or a null column, enforces nothing — an empty
+result returns before any check runs. A null `min_stay` read as anything but "no minimum" would silently
+close inventory nobody chose to close; the mutation that defaults it goes RED.
+
+⚠️ **Seeded restrictions: ZERO.** So **0 seeded bookings violate a seeded restriction**, `migrate:fresh
+--seed` is clean and `owner_ledger` is **29 rows / net 465360** — unchanged. ⚠️ **That is also a finding: the
+demo never demonstrates restrictions at all.** Not changed here — it is not ruled, and it would move the
+money-as-seeded baseline.
+
+### #4 · No back-fill, proven
+
+Enforcement is at CREATION only. A restriction added **after** a booking exists leaves it `confirmed` —
+asserted directly, because a retroactive refusal would cancel real stays.
+
+### ⚠️ #5 · THE OPERATOR-OVERRIDE QUESTION — costed, NOT built
+
+⚠️ **A front-desk agent taking a one-night phone booking during a three-night minimum is often deliberate and
+legitimate**, and enforcement now refuses it on the operator's own screen as firmly as on the storefront.
+
+**What it would look like** — the checkout override is the precedent: its **own permission** (not
+`reservations.create`, which Front Desk holds, or it is just a second create button), a **keyed reason** from
+a closed set, **audited with the restriction and date**, and **countable** so the override rate is visible.
+**On the demo data it would never fire — zero restrictions are seeded.**
+
+⚠️ **The refusal is actionable**, which is the mitigation that exists today:
+*"A minimum stay of 7 night(s) applies to arrivals on 2026-09-01 — this booking is 1 night(s)."* — the
+restriction, the date and the value. **"Not available" is what makes an operator stop setting restrictions
+at all.**
+
+### #6 · The doc — and a sentence I wrote one pass ago went stale
+
+⚠️⚠️ **Batch 4 corrected `guide-rates` to say a minimum stay "is guidance… a shorter stay can still be
+booked". TRUE THEN, FALSE NOW** — re-corrected in this same pass to state that a stay shorter than the
+minimum on its arrival date is refused wherever it was booked. ⚠️ The G5 sentence *"A minimum stay applies as
+set, including across a short gap"* was re-checked and is **still true** — left alone.
+
+`guide-channels` **untouched** (STOPPED, as ruled) and no future promise written. `guide-reservation` and
+`guide-storefront` were checked and make no claim about restrictions.
+
+### ⚠️ #8 · A FURTHER PRODUCT DEFECT — reported, not fixed
+
+⚠️ **`max_stay` is stored and pushed to channels but is NOT enforced** — I enforced the four that were ruled
+and did not widen scope. ⚠️ **And no shipped UI writes `closed_to_arrival` or `closed_to_departure`**: only
+`min_stay` and `stop_sell` have a writer, so the two CTA/CTD paths are enforceable but unreachable from the
+product today.
+
+**Both registers:** `guide-rates` — audit-FALSE **10 owed / 7 done / 0 still / 3 unmatched** · ledger **5
+rows / 0 blocking** · **CORRECTED ✅ · CLEARED ✅**. Running total unchanged at **97 / 220**.

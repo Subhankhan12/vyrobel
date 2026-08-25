@@ -18,6 +18,7 @@ use App\Models\ReservationUnit;
 use App\Models\ReservationUnitMove;
 use App\Models\Unit;
 use App\Models\UnitRateOverride;
+use App\Support\Booking\RestrictionGuard;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use Carbon\CarbonImmutable;
@@ -699,6 +700,14 @@ class AssignmentService
 
         $rows = $this->lockAvailability($roomTypeId, $nights);
         $this->assertCountsAvailable($rows, $nights, $roomTypeId);
+
+        // ⚠️⚠️ THE RESTRICTIONS THE OPERATOR SET. They were written, stored, pushed to channels and rendered
+        //    as a badge on the rate grid — and until now NOTHING read them at booking time, so a one-night
+        //    stay booked straight through a seven-night minimum the operator could SEE on screen.
+        //    ⚠️ Enforced HERE, inside the same locked core as the no-double-booking check and the
+        //    out-of-service guard, so it cannot disagree with them and every caller is covered at once:
+        //    createBooking() and createGroupBooking() both funnel through occupy().
+        RestrictionGuard::assertBookable($roomTypeId, (string) $line['check_in'], (string) $line['check_out']);
 
         $unitId = $line['unit_id'] ?? null;
         if ($unitId !== null) {

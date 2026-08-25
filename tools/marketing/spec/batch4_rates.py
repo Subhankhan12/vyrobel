@@ -56,9 +56,12 @@ RATES = {
     'min-stay-lever': {
         'before': 'Restrictions live alongside rates but behave differently: a rate that is too high loses '
                   'margin, a minimum stay that is too long loses the entire booking.',
-        'after': 'A minimum stay is recorded against the nights you set it on and shown on the rate grid, '
-                 'so your team can see it. It is guidance for whoever takes the booking rather than '
-                 'something the system refuses — a shorter stay can still be booked.',
+        # ⚠️ RE-CORRECTED IN THE SAME PASS AS THE ENFORCEMENT. This sentence was written one pass ago and
+        #    was true then: the minimum was displayed and never read. It is enforced now, so the original
+        #    warning — a too-long minimum costs you the booking — is the right one again.
+        'after': 'Restrictions live alongside rates but behave differently: a rate that is too high loses '
+                 'margin, a minimum stay that is too long refuses the booking outright. A stay shorter '
+                 'than the minimum on its arrival date is turned away, wherever it was booked.',
     },
     # ⚠️ NO ORPHAN-NIGHT AUTO-DROP EXISTS. ⚠️ A nearly-right description here is what produces unsellable
     # nights: an operator who believes the minimum relaxes on its own will not go and relax it.
