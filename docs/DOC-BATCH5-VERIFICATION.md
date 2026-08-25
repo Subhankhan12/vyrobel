@@ -158,3 +158,44 @@ less the real management commission. ⚠️ **It is DERIVED over a moving window
 The seeder comments and `CLAUDE.md` have been corrected to say so and to state no target. Historical dated
 audit files still quote €885.60 and were **left alone** — they were true when written, and rewriting a
 dated snapshot would falsify the record rather than correct it.
+
+---
+
+## Addendum (2026-08-26) — the forbidden-phrase guard, and THREE PAGES NOBODY EVER CORRECTED
+
+The guard now covers **22 of 27** pages with **118** fragments. ⚠️ **The five it does not cover are not an
+oversight, and the reason recorded in the previous pass was WRONG.** That pass said the four article pages
+"hold their corrections in spec modules that execute assertions at import and could not be read safely".
+`tools/marketing/spec/g6_articles.py` imports fine — it was used in the same pass. The real reason is worse:
+
+⚠️⚠️ **THREE OF THOSE PAGES HAVE NO CORRECTIONS AT ALL.** `article-owners`, `article-statement` and
+`article-trust` appear in `convert.py` ONLY in the page-name map. No batch ever wrote a transform for them.
+Their claims are not *unlanded* — they were never attempted. Measured against the audit:
+
+| page | owed | corrected | ⚠️ still present |
+|---|---|---|---|
+| `article-owners` | 4 | 0 | **3** |
+| `article-statement` | 7 | 0 | **6** |
+| `article-trust` | 1 | 0 | **1** |
+| `article-oos` | 1 | 0 | 0 (its one claim is unmatched) |
+| `guide-channels` | 16 | 2 | 13 — ⚠️ **a RULED REFUSAL, not a gap.** A page whose premise is a capability the account does not have is not a wording fix; recorded in `convert.py`. |
+
+⚠️ **A FORBIDDEN FRAGMENT WAS DELIBERATELY NOT ADDED FOR THESE.** A fragment for a claim that was never
+corrected reds on every run — that is a permanent alarm, not a guard, and it would train a reader to
+ignore the check. They are recorded here instead, and the guard follows the correction.
+
+⚠️⚠️ **AND SEVERAL OF THE TEN RESTATE SOMETHING ALREADY RULED ELSEWHERE** — the same cross-page blind spot
+`/faq` and `/glossary` showed:
+- `article-statement`: *"Management fee · 15% of net"* — ⚠️ the hardcoded 15% corrected on the owner
+  Reports surface (#61). The real rate is the `ManagementAgreement` commission (18% in the demo).
+- `article-statement`: *"Channel commission · Booking.com, Airbnb"* — ⚠️ the OTA **brand** split is REFUSED
+  as unmodelled (#56); `reservations.source` carries no brand.
+- `article-trust`: *"A recognised card form, on your own domain"* — ⚠️ identical to `ST2`, corrected on
+  `guide-storefront`: there is no custom-domain support, and card entry is on the provider's hosted page
+  (SAQ A, #45).
+- `article-owners` / `article-statement`: expenses *"with the work order attached"* and *"approvals above a
+  threshold you set"* — the owner expense-approval model exists (#68) but has no spending **threshold**,
+  and the work-order attachment on a statement line needs verifying before either is written.
+
+**These are reported, not fixed** — Part B reports. ⚠️ **They are the next batch's work, and they are the
+last known uncorrected pages.**
