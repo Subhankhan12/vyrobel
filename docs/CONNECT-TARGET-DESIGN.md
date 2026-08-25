@@ -24,9 +24,20 @@ jurisdiction and by the platform's own registrations. §A5 states it as a questi
    ['balance_minor'] <= 0`. ⚠️ **Collection is evidenced by a FOLIO ROW, not by a Stripe balance.** Keep
    this in view — §A3 turns on it.
 6. **Statement** claims the collected lines and locks them (`statement_id` stamped).
-7. **Payout.** `StripeConnectPayoutRail:53` → `createTransfer(amount, currency,
-   owner.stripe_connect_account_id)` — a **transfer out of the platform balance** into the owner's Connect
-   account, then Stripe pays out to their bank.
+7. **Payout.** ⚠️⚠️ **CORRECTED 2026-08-26 — THIS STEP WAS WRONG WHEN FIRST WRITTEN, AND IT IS THE MOST
+   DECISION-RELEVANT FACT IN THIS DOCUMENT.** The rail is config-bound
+   (`AppServiceProvider:150`), and the binding resolves on `config('services.payouts.rail')`, which is
+   `env('PAYOUTS_RAIL', 'manual')`. **`.env.example` sets `manual`. `phpunit.xml` sets `manual`. The default
+   is `manual`. Nothing anywhere sets `stripe_connect`.**
+   · `ManualPayoutRail::send()` is four lines and returns `PayoutResult(successful: true)`. ⚠️ **It moves no
+     money.** It records that a payout happened; the bank transfer is done by the operator outside Vyrobel.
+   · `config/services.php:104` says so in its own words: manual is *"recorded as paid offline (bank transfer
+     done outside the system) — **the only working rail**"*, and `stripe_connect` is *"a config-gated
+     SKELETON only, explicitly UNVERIFIED … **never bound in tests**"*.
+   ⚠️⚠️ **SO VYROBEL HAS NEVER PAID AN OWNER. The payout is ALREADY an instruction, not a movement.**
+   The `StripeConnectPayoutRail → createTransfer` path described here originally is what would run *if*
+   the founder set `PAYOUTS_RAIL=stripe_connect` — a documented, deferred go-live step that has not
+   happened.
 
 ⚠️ **`organizations` carries NO Stripe account of any kind.** The only Stripe ids on the operator side are
 `subscriptions.stripe_customer_id` / `stripe_subscription_id` — the operator's own SUBSCRIPTION to Vyrobel,
@@ -134,6 +145,13 @@ the platform.
 | Direct charges | ⚠️ **No — never touched** | ⚠️ **No.** There is nothing to transfer from. |
 | Destination (± `on_behalf_of`) | Yes, then immediately transferred to the **operator** | ⚠️ Only if the operator's share is transferred back, or the owner split is carved out at charge time |
 | Separate charges and transfers (today) | Yes, held until payout | ✅ Yes — this is why it works today |
+
+⚠️⚠️ **CORRECTED 2026-08-26 — THE PREMISE OF THIS SECTION WAS TOO STRONG.** It is written as though direct
+charges would TAKE AWAY a capability Vyrobel has. It would not: see §0 step 7 — the live rail is `manual`
+and moves no money, so the owner payout is **already** an instruction. What direct charges actually removes
+is the **OPTION** to switch the Connect rail on later, because there would be no platform balance to
+transfer from. That is a real loss, but it is the loss of a DEFERRED capability, not of a shipped one —
+a materially smaller commercial question than the one this section originally posed.
 
 ⚠️⚠️ **UNDER DIRECT CHARGES THE OWNER PAYOUT STOPS BEING A MOVEMENT AND BECOMES AN INSTRUCTION.** Vyrobel
 would compute what the operator owes each owner and could no longer move it. That is not a refactor of
