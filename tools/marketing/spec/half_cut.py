@@ -33,6 +33,15 @@ is reported as a BROKEN DECLARATION and counted as outstanding again, never sile
 # ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 HALF_CUT = {
+    '/docs/invites-and-access': [{
+        'match': 'no reason to see',
+        'false_fragment': 'On a multi-property account, choose which properties they work in. A housekeeper',
+        'true_fragment': 'has no reason to see another’s arrivals',
+        'why': ('⚠️ ALREADY CORRECTED BY AN EARLIER PASS — the output now states the default outright: "Until '
+                'you set it, a new account can reach every property", which is verbatim what '
+                '`User::accessiblePropertyIds()` does (empty pivot ⇒ every property in the org). The audit '
+                'quoted the SENTENCE, which is true and is the reason to scope at all, so it stays.'),
+    }],
     '/resources/booking-direct-trust': [{
         'match': 'A recognised card form, on your own domain',
         'false_fragment': 'on your own domain',
@@ -95,6 +104,29 @@ CORRECTED_UNMATCHABLE = {
 # ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 VERIFIED_TRUE = {
+    '/docs/online-check-in': [
+        {'match': "eleven of tomorrow's fourteen",
+         'why': ('⚠️ BECAME TRUE SINCE THE AUDIT. `reservations.expected_arrival` is real and the front desk '
+                 'plots an arrival at its parsed time — `FrontDesk.php`: "An arrival plots at its parsed '
+                 '`expected_arrival` time when the guest gave [one]", with an explicit note that it is NOT a '
+                 'fabricated live arrival. The sentence claims only that knowing the times changes staffing, '
+                 'which is exactly what the board supports.')},
+        {'match': 'door code, wifi password and arrival notes',
+         'why': ('⚠️ BECAME TRUE SINCE THE AUDIT. `Unit` carries `door_code`, `wifi_password` and '
+                 '`arrival_notes` as ENCRYPTED columns; `InventoryActionController` is a real operator writer '
+                 'for all three; and `ArrivalPack` releases the access secrets a set number of days before '
+                 'check-in (invariant #33). Both halves of the implication now hold.')},
+    ],
+    '/docs/gdpr-and-data': [
+        {'match': 'export their own data',
+         'why': ('⚠️ ALREADY CORRECTED BY AN EARLIER PASS, and the surviving half is TRUE. The output now '
+                 'reads "A guest with an account can request deletion from their account, without contacting '
+                 'you" — the export half is gone, and DELETION IS REAL: `POST /guest/account/delete` → '
+                 '`GuestAccountController::destroy` → `GuestDeletionService`, with an undo and a grace period. '
+                 '⚠️ THIS CORRECTED `docs/DATA-RESIDENCY-INVENTORY.md`, NOT THE PAGE: the inventory said '
+                 '"there is no guest-facing export or erasure route", and the ERASURE half of that was wrong. '
+                 'An inventory written for a lawyer that understates the product is still a defect.')},
+    ],
     '/resources/growing-direct-bookings': [{
         'match': 'a branded storefront',
         'why': (
@@ -104,5 +136,33 @@ VERIFIED_TRUE = {
             'REPORTED RATHER THAN CUT: `PropertyBrand` is consumed by MAIL, not by the public shell, so the '
             'uploaded logo and accent brand the emails while the storefront carries the name and imagery. '
             'That is narrower than the audit’s objection, not wider — the sentence as written is true.'),
+    }],
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠️⚠️ BLOCKED ON A FOUNDER DECISION — outstanding, and NOT this pass's to close.
+#
+# Recorded as its own category because the alternative is worse in both directions: left bare, the row reads
+# as work and someone cuts it; cut, it silently settles a commercial question that is not a documentation
+# question. ⚠️ These are NOT counted as corrected.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+FOUNDER_BLOCKED = {
+    '/glossary': [{
+        'match': 'What you are billed on',
+        'why': (
+            '⚠️⚠️ THE ENGINE AND THE MARKETING DISAGREE ABOUT THE BILLING MODEL, AND THE DISAGREEMENT IS '
+            'ALREADY RECORDED IN CODE. Every seeded plan is `pricing_type = \'flat\'` at €49 / €99 '
+            '(PLACEHOLDER), while nine pages describe per-unit pricing. `MarketingPricing`\'s docblock states '
+            'it exactly: "the design\'s \'€X / unit / mo\' framing cannot simply be re-numbered: it '
+            'describes a model the system does not run… the framing copy is a founder decision, surfaced '
+            'rather than invented" (DECISIONS, Gate 3b).\n'
+            '⚠️ SO CUTTING IT HERE WOULD BE THE WORST AVAILABLE MOVE. A glossary defines the words every other '
+            'page uses; removing the billing basis from the glossary alone would leave `/pricing`, `/faq`, '
+            '`/terms`, `home`, `guide-setup` and `guide-settings` still teaching per-unit billing, and put the '
+            'glossary in conflict with a contract page. ⚠️ ONE DECISION, NOT NINE EDITS: either the engine '
+            'moves to per-unit (the engine already supports the shape — no plan uses it), or the copy moves to '
+            'flat. That is the founder\'s call and it is not a documentation defect.'),
     }],
 }

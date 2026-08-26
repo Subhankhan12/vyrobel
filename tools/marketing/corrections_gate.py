@@ -34,7 +34,8 @@ _ROOT = os.path.dirname(os.path.dirname(_HERE))
 sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(_HERE, 'spec'))
 from half_cut import (HALF_CUT as _HALF, CORRECTED_UNMATCHABLE as _CUNM,  # noqa: E402
-                      VERIFIED_TRUE as _VTRUE)                          # noqa: E402
+                      VERIFIED_TRUE as _VTRUE,                          # noqa: E402
+                      FOUNDER_BLOCKED as _FBLOCK)                       # noqa: E402
 import convert as C
 import reconcile as R
 
@@ -165,6 +166,7 @@ def status():
         # ⚠️ IF ② FAILS — someone cut the true half to green the row — THE DECLARATION BREAKS AND THIS
         #    REPORTS IT LOUDLY, so the wrong fix is the one that breaks the build.
         half_cut, corrected_unmatchable, verified_true, broken = [], [], [], []
+        founder_blocked = []
 
         def _has(frag, hay):
             return R.locate(frag, hay)[1] is not None or R.norm(frag) in R.norm(hay)
@@ -212,8 +214,20 @@ def status():
             still = [x for x in still if x not in hit]
             verified_true.append((hit[0][0], decl['why']))
 
+        # ⚠️ BLOCKED ON A FOUNDER DECISION — still outstanding, but NOT documentation work. Left in the
+        #    bare outstanding column it reads as a correction someone should make; it is not one.
+        for decl in _FBLOCK.get(url, []):
+            hit = ([x for x in still if decl['match'] in x[0]]
+                   + [x for x in unmatched if decl['match'] in x[0]])
+            if not hit:
+                continue
+            still = [x for x in still if x not in hit]
+            unmatched = [x for x in unmatched if x not in hit]
+            founder_blocked.append((hit[0][0], decl['why']))
+
         rows.append({'url': url, 'key': key, 'owed': len(d['false_claims']),
                      'done': done, 'outstanding': still, 'unmatched': unmatched,
+                     'founder_blocked': founder_blocked,
                      'half_cut': half_cut, 'corrected_unmatchable': corrected_unmatchable,
                      'verified_true': verified_true, 'broken': broken,
                      'matches': matches, 'verdict': d['verdict']})
@@ -255,6 +269,7 @@ if __name__ == '__main__':
     hc = [(r['url'], c, w) for r in rows for c, w in r.get('half_cut', [])]
     cu = [(r['url'], c, w) for r in rows for c, w in r.get('corrected_unmatchable', [])]
     vt = [(r['url'], c, w) for r in rows for c, w in r.get('verified_true', [])]
+    fb = [(r['url'], c, w) for r in rows for c, w in r.get('founder_blocked', [])]
     parked = sum(len(r['outstanding']) for r in rows if r['url'] == '/docs/connecting-channels')
     reachable = sum(len(r['outstanding']) for r in rows) - parked
     print("\n  ── WHAT THE NUMBERS MEAN ─────────────────────────────────────────────────────────────")
@@ -264,6 +279,7 @@ if __name__ == '__main__':
     print(f"     VERIFIED TRUE — nothing to correct       {len(vt):>4}   ⚠️ the audit was wrong, not the page")
     print(f"     OUTSTANDING and reachable                {reachable:>4}   ⚠️ this is the only row that is WORK")
     print(f"     OUTSTANDING but PARKED (channels)        {parked:>4}   ⚠️ stopped by ruling — do not touch")
+    print(f"     OUTSTANDING but BLOCKED on a decision    {len(fb):>4}   ⚠️ the founder's call, not a doc defect")
     print(f"     UNMATCHED and unreachable                {tot_u:>4}   ⚠️ the audit paraphrased; no fragment to match")
     print("     ⚠️ HALF-CUT rows are NOT outstanding. Closing one by deleting its true half breaks the")
     print("        declaration above and reds this gate — which is the intended direction.")

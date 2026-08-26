@@ -508,3 +508,30 @@ FORBIDDEN_BY_PAGE.update({
         'blocking every channel immediately',
     ],
 })
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠️ THE LAST NINE (2026-08-26) — guarding the final reachable corrections.
+# Evidence per fragment: spec/last_nine.py. Each is a FALSEHOOD; its reappearance reds the build.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+FORBIDDEN_BY_PAGE.update({
+    'guide-setup': FORBIDDEN_BY_PAGE.get('guide-setup', []) + [
+        # Only FrontDesk resolves the property timezone; HousekeepingBoard and OperatorDashboard do not.
+        'every board in the product',
+    ],
+    'guide-reports': FORBIDDEN_BY_PAGE.get('guide-reports', []) + [
+        # PropertyContext falls back to the FIRST accessible property; "All properties" is explicit.
+        'default to everything you manage',
+    ],
+    'guide-arrival': FORBIDDEN_BY_PAGE.get('guide-arrival', []) + [
+        # No guest register / authority report exists, so this may not be offered as what check-in replaces.
+        'you copy their passport details onto a form',
+    ],
+    'article-pricing': FORBIDDEN_BY_PAGE.get('article-pricing', []) + [
+        # Rate proposals are real, optional and owner-scoped; POST /rates applies directly with no owner.
+        'Owners approve rate changes before they go live',
+        # FakeChannexClient is the bound default — no connection is live.
+        'pushed to every channel',
+    ],
+})

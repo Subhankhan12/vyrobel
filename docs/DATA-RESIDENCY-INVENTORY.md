@@ -58,8 +58,15 @@ be accommodated. **This is a known limit, not an oversight.**
 ## 4. Data-subject rights — the honest position
 
 - **Erasure and export are performed by the OPERATOR** from the guest record in the back office.
-- ⚠️ **A guest cannot self-serve either.** There is no guest-facing export or erasure route. **Recorded as a
-  gap, not a capability.**
+- ⚠️⚠️ **CORRECTED 2026-08-26 — this line was half wrong, and it understated the product.** It previously
+  read *"there is no guest-facing export or erasure route"*. The **erasure** half is FALSE: a guest **can**
+  delete their own account without contacting the operator — `POST /guest/account/delete` →
+  `GuestAccountController::destroy` → `GuestDeletionService`, with an **undo** and a grace period before
+  anything is removed. ⚠️ The **export** half stands: there is **no** guest-facing data export. A guest can
+  download their own booking's documents (receipt, VAT invoice, statement, arrival guide), which is not a
+  subject-access export. ⚠️ **An inventory written for a lawyer that understates a capability is a defect in
+  the same way one that overstates it is** — the error was found by checking a support page against this
+  document and discovering they disagreed.
 
 ## 5. What is NOT decided, and must be before the DPA is signed
 

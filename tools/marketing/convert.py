@@ -129,6 +129,8 @@ from batch6_articles_truth import (TRUST_TRUTH as _B6_TRUST,        # noqa: E402
                                    STATEMENT_TRUTH as _B6_STMT,     # noqa: E402
                                    DIRECT_TRUTH as _B6_DIRECT,      # noqa: E402
                                    OOS_TRUTH as _B6_OOS)            # noqa: E402
+from last_nine import (SETUP_NINE as _N9_SETUP, ARRIVAL_NINE as _N9_ARR,   # noqa: E402
+                       REPORTS_NINE as _N9_REP, PRICING_NINE as _N9_PRI)   # noqa: E402
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1663,7 +1665,12 @@ def convert(key):
                              ('article-owners', _B6_OWNERS, 'B6-OWNERS'),
                              ('article-statement', _B6_STMT, 'B6-STMT'),
                              ('article-direct', _B6_DIRECT, 'B6-DIRECT'),
-                             ('article-oos', _B6_OOS, 'B6-OOS')):
+                             ('article-oos', _B6_OOS, 'B6-OOS'),
+                             # ⚠️ THE LAST NINE — the final reachable doc-truth claims (spec/last_nine.py).
+                             ('guide-setup', _N9_SETUP, 'N9-SETUP'),
+                             ('guide-arrival', _N9_ARR, 'N9-ARRIVAL'),
+                             ('guide-reports', _N9_REP, 'N9-REPORTS'),
+                             ('article-pricing', _N9_PRI, 'N9-PRICING')):
         if key == _k:
             for _i, (_before, _after) in enumerate(_table.items(), 1):
                 t = swap(t, _before, _after, key, f'{_tag}/{_i}')
