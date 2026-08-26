@@ -7,6 +7,7 @@ namespace App\Jobs;
 use App\Jobs\Sync\RetryableSyncJob;
 use App\Mail\BookingConfirmationMail;
 use App\Models\Reservation;
+use App\Support\Log\LogSafe;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -90,7 +91,7 @@ class SendBookingConfirmationEmail implements ShouldQueue
     {
         Log::warning('Guest booking-confirmation email failed after retries', [
             'reservation_id' => $this->reservationId,
-            'error' => $e->getMessage(),
+            'error' => LogSafe::message($e),
         ]);
     }
 }

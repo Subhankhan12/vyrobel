@@ -8,6 +8,7 @@ use App\Mail\AccountDeletionScheduledMail;
 use App\Models\Guest;
 use App\Notifications\Guest\GuestAccountSecurityNotification;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Log\LogSafe;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -125,7 +126,7 @@ class GuestDeletionService
         try {
             Mail::to($email)->send(new AccountDeletionScheduledMail($guest));
         } catch (Throwable $e) {
-            Log::warning('Account-deletion email failed', ['error' => $e->getMessage()]);   // never the address (no PII)
+            Log::warning('Account-deletion email failed', ['error' => LogSafe::message($e)]);   // never the address (no PII)
         }
     }
 }

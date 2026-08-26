@@ -15,6 +15,7 @@ use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
 use App\Support\Email\GuestEmailPreferences;
+use App\Support\Log\LogSafe;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Mail\Mailable;
@@ -120,7 +121,7 @@ class SendGuestTransactionalEmails
                 // Log the class + reason, never the address (no PII in logs) — same rule as sendToGuest().
                 Log::warning('Guest transactional email failed to send', [
                     'mailable' => SendBookingConfirmationEmail::class,
-                    'error' => $e->getMessage(),
+                    'error' => LogSafe::message($e),
                 ]);
             }
         }
@@ -205,7 +206,7 @@ class SendGuestTransactionalEmails
                 : $pending->send($mail);
         } catch (Throwable $e) {
             // A side effect must never break the triggering operation. Log the class + reason, never the address.
-            Log::warning('Guest transactional email failed to send', ['mailable' => $mail::class, 'error' => $e->getMessage()]);
+            Log::warning('Guest transactional email failed to send', ['mailable' => $mail::class, 'error' => LogSafe::message($e)]);
         }
     }
 }

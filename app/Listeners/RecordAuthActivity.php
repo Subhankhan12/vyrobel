@@ -8,6 +8,7 @@ use App\Models\Guest;
 use App\Models\LoginActivity;
 use App\Models\PlatformAdmin;
 use App\Models\User;
+use App\Support\Log\LogSafe;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Auth\Events\Login;
@@ -68,7 +69,7 @@ class RecordAuthActivity
                 'occurred_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            Log::warning('RecordAuthActivity failed to persist a security-signal row (auth is unaffected).', ['error' => $e->getMessage()]);
+            Log::warning('RecordAuthActivity failed to persist a security-signal row (auth is unaffected).', ['error' => LogSafe::message($e)]);
         }
     }
 
