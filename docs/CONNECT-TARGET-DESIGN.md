@@ -329,3 +329,76 @@ but whether a platform going live in 2026 should start on v2 was **not establish
 ⚠️ **NO UI WAS BUILT THIS PASS.** The route exists and is gated; nothing in the product yet offers it or
 describes it. That is deliberate — there is nothing honest to say about an account that does nothing —
 and it is the next pass's work, under the no-future-promise rule.
+
+---
+
+## Addendum (2026-08-26) — the switch follow-up: two findings that need a ruling
+
+### ⚠️⚠️ 1. THE SWITCH IS INCOMPLETE: the DESK card path still charges the PLATFORM
+
+The money switch converted the two **hosted-Checkout** paths — the public storefront
+(`BookingEngineController`) and the guest portal (`GuestFolioPaymentController`). Both now pass a
+connected account and stamp it on the payment.
+
+⚠️ **`FolioService::recordPayment()` was NOT switched.** It charges through
+`PaymentGateway::charge(Money $amount, ?string $token, array $metadata)` — **which has no connected-account
+parameter at all**. So under `PAYMENTS_GATEWAY=stripe`, a card taken **at the desk** would be charged on the
+PLATFORM, exactly as before the switch, and would then carry no `stripe_account_id`.
+
+⚠️ **It is masked today, and only by configuration.** `PAYMENTS_GATEWAY` defaults to `manual`
+(`config/services.php:74`, `.env.example:108`, `phpunit.xml:52`), and the manual gateway never reaches
+Stripe. **Nothing enforces that default.** So `manual` is load-bearing in a stronger sense than "the seeder
+works" — it is currently the only thing preventing a platform charge on the desk path.
+
+⚠️ **Discovered by running the seeder under `stripe`**, which now fails LOUDLY with
+`RefundAccountUnknownException` — the new refusal catching a Stripe payment that records no account.
+⚠️ **Before that guard existed, the same payment would have refunded against the PLATFORM silently.**
+
+**Not fixed here** — widening `charge()` is a money-path change and belongs to its own pass, with the same
+one-unit discipline (charge + stamp + refund + settlement).
+
+⚠️⚠️ **AND A REFUSAL FOR IT WAS TRIED, THEN WITHDRAWN — the attempt is the finding.** A guard on
+`gateway === 'stripe' && stripe_account_id === null` looked obviously right and immediately blocked
+`StripePaymentTest`'s certified append-only refund proof. ⚠️ That test uses the DESK path, whose payment
+genuinely IS a platform charge — so refunding it on the platform is CORRECT, not a fallback. The only ways
+to keep the guard were to amend a certified assertion or to stamp an account the desk path never sets:
+**fabricating state to green a gate.** Both are forbidden, so the guard came out.
+
+⚠️ **The risk is recorded, not dismissed.** Once the desk path IS switched, a Stripe payment with no
+account becomes a genuine lost reference, and refunding it against the platform would move Vyrobel's money
+to settle an operator's guest. ⚠️ **That refusal must land in the SAME unit as the charge change** — a note
+to that effect sits at the refund call site, and `DirectChargeMoneySwitchTest` pins the gap with a test
+that will FAIL the moment `charge()` gains a connected-account parameter. **That failure is the signal.**
+
+⚠️ **The general lesson:** a guard that presumes a migration is complete is not a guard, it is a break. The
+brief's premise — "a Stripe payment with a null account should not exist post-switch" — was reasonable and
+wrong, because the switch covered two paths of three.
+
+### ⚠️ 2. `PAYMENTS_GATEWAY=stripe` breaks LOUDLY, which is the good outcome
+
+`migrate:fresh --seed` under `stripe` aborts with the refusal above rather than producing a demo whose
+payments are quietly on the wrong account. **The failure names the reason.** No assertion was added to pin
+the default: the loud failure is a better guard than a config assertion, and pinning the default would
+freeze a value the founder must be able to flip at go-live.
+
+### The `once()` question — SETTLED: duplication, with a trigger
+
+Recorded in both receivers' docblocks. ⚠️ **It IS duplication**, not correct separation: both write
+`['source' => 'stripe', 'external_event_id' => $event->id]` against the same
+`unique(source, external_event_id)` index. What *is* correctly separate is the secret each verifies and the
+handlers each dispatches. ⚠️ **Merge trigger** (not a date): a THIRD receiver needing the guard, or ANY
+change to the rule's shape — the moment both must be edited in lockstep is when duplicates drift.
+
+### ⚠️ The lesson this follow-up exists for
+
+**"Make it actionable" and "name a route" are different instructions, and the second manufactures a
+capability claim.** The refusal read *"complete it from Billing → Connect"* — a screen the onboarding pass
+deliberately did not build and said so plainly. ⚠️ It landed in an **error string**: the one place no
+reviewer reads and no gate parses, in a product whose recent history is removing exactly these claims from
+pages that DO get reviewed. **An error may name a ROLE and a NEXT ACTION; it may not name a screen, route or
+capability unless something already reachable provides it.**
+
+⚠️ The sweep of every message in the touched files found **one more**, older than these passes
+(`51ae811`): the storefront's *"you'll get an email the moment it clears"* — `SendGuestTransactionalEmails`
+handles `reservation.confirmed` / `cancelled` / `payment.refunded` / `checked_out`, **not** payment
+settlement, and no such Mailable exists. Corrected to point at the page the guest is already on.

@@ -17,6 +17,19 @@ use RuntimeException;
  * ⚠️ So an operator without `charges_enabled` simply cannot take a payment, which makes onboarding a REAL
  * gate rather than an optional step. The message says what is wrong AND what to do — "payment unavailable"
  * would leave a guest and a desk with nowhere to go.
+ *
+ * ⚠️⚠️ IT NAMES *WHO*, NOT *WHERE*, AND THAT IS THE WHOLE LESSON OF THIS STRING. A first version read "…can
+ * complete it from Billing → Connect" — ⚠️ A SCREEN THAT DOES NOT EXIST. The onboarding pass built a gated
+ * ROUTE and no interface, and said so plainly; the refusal then sent a blocked operator to a page they
+ * could not reach, costing them the time to go and look.
+ *
+ * ⚠️ IT GOT THERE BY FOLLOWING AN INSTRUCTION. "Make the refusal actionable" was read as "name a route",
+ * and those are NOT the same instruction: the second manufactures a CAPABILITY CLAIM. ⚠️ And it landed in
+ * an ERROR STRING — the one place no reviewer reads and no gate parses, in a product whose recent history
+ * is removing exactly these claims from pages that DO get reviewed.
+ *
+ * ⚠️ THE RULE: an error may name a ROLE and a NEXT ACTION. It may not name a screen, a route or a
+ * capability unless something already reachable provides it.
  */
 final class OperatorNotReadyForPaymentsException extends RuntimeException
 {
@@ -24,8 +37,8 @@ final class OperatorNotReadyForPaymentsException extends RuntimeException
     {
         return new self(
             'This property cannot take card payments yet: its Stripe account has not finished verification. '
-            .'The property team can complete it from Billing → Connect; until then, take payment another way '
-            .'and record it on the folio.'
+            .'Someone who manages billing for the account can complete it with Stripe. Until then, take '
+            .'payment another way and record it on the folio.'
         );
     }
 }

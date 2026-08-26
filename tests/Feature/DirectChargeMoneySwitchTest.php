@@ -106,8 +106,10 @@ it('⚠️⚠️ NO FALLBACK — an operator who is not charges_enabled CANNOT t
     try {
         app(OperatorConnectService::class)->accountForCharge($org);
     } catch (OperatorNotReadyForPaymentsException $e) {
+        // ⚠️ Actionable means WHO can act and what to do meanwhile — NOT a named screen. See the
+        //    dedicated "names no screen" test below for why that distinction cost a pass.
         expect($e->getMessage())->toContain('has not finished verification')
-            ->and($e->getMessage())->toContain('Billing → Connect');
+            ->and($e->getMessage())->toContain('manages billing');
     }
 
     // ⚠️ And no platform fallback exists anywhere in the charge path.
@@ -248,4 +250,62 @@ it('⚠️ the ledger AND the guest email both DEFER while a Connect refund is q
     // ⚠️ The owner is debited when the money LEAVES; the guest is told when it LEAVES. Neither on `pending`.
     expect(OwnerLedgerEntry::withoutGlobalScopes()->count())->toBe($before);
     Mail::assertNothingOutgoing();
+});
+
+// ── THE SWITCH FOLLOW-UP ────────────────────────────────────────────────────────────────────────────
+
+it('⚠️⚠️ THE REFUSAL NAMES NO SCREEN — it says WHO can act, not WHERE to go', function () {
+    $message = OperatorNotReadyForPaymentsException::make()->getMessage();
+
+    // ⚠️ A first version read "…from Billing → Connect" — a screen the onboarding pass deliberately did
+    //    NOT build. A message that sends someone to a page they cannot reach is worse than one that says
+    //    less: it costs them the time to go and look. "Make it actionable" is not "name a route".
+    expect($message)->not->toContain('Billing → Connect')
+        ->and($message)->not->toContain('Settings')
+        ->and($message)->not->toContain('/app')
+        // …and it still says WHO can act and what to do meanwhile, which is the actionable part.
+        ->and($message)->toContain('manages billing')
+        ->and($message)->toContain('take payment another way');
+});
+
+it('⚠️⚠️ THE DESK PATH STILL CHARGES THE PLATFORM — the switch is INCOMPLETE, and this pins it', function () {
+    // ⚠️ This is a FINDING pinned as a test, not a feature. `recordPayment()` (the desk card path) charges
+    //    through `PaymentGateway::charge()`, which has NO connected-account parameter — so under
+    //    PAYMENTS_GATEWAY=stripe it charges the PLATFORM and stamps no account. Only the two hosted-Checkout
+    //    paths were switched.
+    // ⚠️ It is masked today ONLY by PAYMENTS_GATEWAY defaulting to `manual`. Nothing enforces that default.
+    // ⚠️ When the desk path is switched, this test should FAIL — and that failure is the signal to add the
+    //    null-account refusal in the SAME unit. A refusal added before then blocks a legitimate path.
+    $reflection = new ReflectionMethod(PaymentGateway::class, 'charge');
+    $names = array_map(fn (ReflectionParameter $p): string => $p->getName(), $reflection->getParameters());
+
+    expect($names)->not->toContain('connectedAccountId');
+});
+
+it('⚠️⚠️ THE REFUND EVENT IS MATCHED BY TYPE, NEVER BY A SNIFFED ID', function () {
+    $s = seedScenario(1);
+    $org = switchOrg($s);
+    ['folio' => $folio, 'folios' => $folios] = switchBooking($s);
+
+    $intent = 'pi_direct_'.Str::random(10);
+    $folios->recordCheckoutIntent($folio, Money::of(50000, 'EUR'), $intent, [], (string) $org->stripe_connect_account_id);
+    $payment = Payment::where('gateway_ref', $intent)->first();
+    $folios->settlePayment($payment, 'succeeded');
+
+    $gateway = new QueuingRefundGateway;
+    app()->instance(PaymentGateway::class, $gateway);
+    app()->forgetInstance(FolioService::class);
+    $queued = app(FolioService::class)->refundPayment($payment->refresh(), Money::of(50000, 'EUR'));
+
+    // ⚠️ `StripeEvent::paymentIntentId()` falls back to `data.object.id` when there is no `payment_intent`
+    //    field — so this refund object's `re_…` id READS AS a payment-intent id. If the router matched on
+    //    that sniff instead of the event TYPE, this settlement would be swallowed and the refund would stay
+    //    invisible for ever: the third route to payment-taken-booking-unpaid.
+    $refundRef = (string) $queued->gateway_ref;
+    expect(str_starts_with($refundRef, 're_'))->toBeTrue();
+
+    postConnect('refund.updated', ['id' => $refundRef, 'object' => 'refund', 'status' => 'succeeded'])
+        ->assertStatus(202);
+
+    expect((string) $queued->refresh()->status)->toBe('succeeded');
 });

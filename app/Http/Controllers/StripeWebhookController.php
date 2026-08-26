@@ -122,6 +122,27 @@ class StripeWebhookController extends Controller
      * The receiving-side idempotency: record the event once (the unique index makes concurrent deliveries
      * resolve to one row); a duplicate is a no-op. `$apply` runs only for the first delivery.
      */
+    /**
+     * ⚠️⚠️ SETTLED (switch follow-up), SO IT STOPS BEING DEFERRED: this IS duplication, not correct
+     * separation — and the distinction was worth making.
+     *
+     * ⚠️ WHAT *IS* CORRECTLY SEPARATE: the two receivers verify DIFFERENT secrets and dispatch DIFFERENT
+     * handlers. That separation is real and must stay.
+     * ⚠️ WHAT IS DUPLICATED: the idempotency RULE itself. Both copies write
+     * `['source' => 'stripe', 'external_event_id' => $event->id]` against the SAME
+     * `unique(source, external_event_id)` index — one rule, one key space, two implementations that differ
+     * only in line formatting.
+     *
+     * ⚠️ SHARING THE KEY SPACE IS DELIBERATE AND LOAD-BEARING: a Stripe event id is globally unique, so an
+     * event delivered to both endpoints dedupes ACROSS them. That is a property of the shared `source`
+     * value — which is precisely why the two copies must not drift.
+     *
+     * ⚠️ NOT MERGED NOW: a refactor inside a money pass buys no safety today and risks the thing it
+     * protects. ⚠️ THE TRIGGER, NOT A DATE — merge on the FIRST of:
+     *   · a THIRD receiver needing this guard (two that have not drifted is a warning; three is a pattern);
+     *   · ANY change to the rule's shape (a new field, a different key, a TTL, a status) — the moment the
+     *     two must be edited in lockstep is the moment duplicates drift.
+     */
     private function once(StripeEvent $event, Closure $apply): JsonResponse
     {
         $webhookEvent = WebhookEvent::createOrFirst(

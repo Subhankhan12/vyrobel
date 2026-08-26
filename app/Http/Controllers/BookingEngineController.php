@@ -658,7 +658,11 @@ class BookingEngineController extends Controller
         $cardReturn = $request->query('paid') === '1';
         $payment = match (true) {
             $payStatus === 'paid' => ['label' => 'Payment received', 'note' => 'Paid in full.'],
-            $cardReturn => ['label' => 'Payment processing', 'note' => 'We’re confirming your card payment — you’ll get an email the moment it clears.'],
+            // ⚠️ THIS PROMISED AN EMAIL THAT IS NEVER SENT. `SendGuestTransactionalEmails::HANDLED` covers
+            //    reservation.confirmed / cancelled / payment.refunded / checked_out — NOT payment
+            //    settlement, and no such Mailable exists. Found by the error-string sweep; it predates the
+            //    Connect passes. ⚠️ The page itself IS the place the guest can check, so it says that.
+            $cardReturn => ['label' => 'Payment processing', 'note' => 'We’re confirming your card payment. Refresh this page in a moment to see it land.'],
             default => ['label' => 'Pay on arrival', 'note' => 'Settle at the property when you check in.'],
         };
 

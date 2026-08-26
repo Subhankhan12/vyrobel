@@ -456,6 +456,23 @@ class FolioService
 
             // ⚠️ The account is read from the PAYMENT, not re-derived from the organisation: a refund must
             //    follow the money it is reversing, even if the operator has since re-onboarded.
+            //
+            // ⚠️⚠️ A NULL ACCOUNT HERE IS **NOT** A LOST REFERENCE TODAY — AND A REFUSAL WAS TRIED AND
+            //    WITHDRAWN. The switch converted the two HOSTED-CHECKOUT paths (storefront + guest portal),
+            //    which stamp the account. `recordPayment()` — the DESK card path — was NOT switched: its
+            //    `PaymentGateway::charge()` has no connected-account parameter at all, so under
+            //    PAYMENTS_GATEWAY=stripe it genuinely charges the PLATFORM. Refunding THAT on the platform
+            //    is correct, not a fallback.
+            //
+            // ⚠️ So a refusal on `gateway === 'stripe' && stripe_account_id === null` blocked a legitimate,
+            //    certified path (StripePaymentTest's append-only refund proof). The only ways to keep it
+            //    were to amend that certified assertion or to stamp an account the desk path never sets —
+            //    fabricating state to green a gate. Both are forbidden, so the guard came out.
+            //
+            // ⚠️⚠️ THE RISK IS REAL AND IS RECORDED, NOT DISMISSED: once the desk path IS switched, a Stripe
+            //    payment with no account becomes a genuine lost reference, and refunding it against the
+            //    platform would move Vyrobel's money to settle an operator's guest. THAT PASS MUST ADD THIS
+            //    REFUSAL IN THE SAME UNIT as the charge change — see docs/CONNECT-TARGET-DESIGN.md.
             $result = $this->gateway->refund((string) $locked->gateway_ref, $amount, $gatewayKey, $locked->stripe_account_id);
 
             $refund = Payment::create([
