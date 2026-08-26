@@ -30,6 +30,12 @@ use RuntimeException;
  *
  * ⚠️ THE RULE: an error may name a ROLE and a NEXT ACTION. It may not name a screen, a route or a
  * capability unless something already reachable provides it.
+ *
+ * ⚠️⚠️ IT NAMES A SCREEN AGAIN — AND ONLY BECAUSE THE SCREEN NOW EXISTS. "Billing → Card acceptance" is a
+ * real panel on `/app/billing`, gated `can:billing.manage`, which the matrix grants to Super Admin and
+ * Property Owner — ⚠️ EXACTLY the people "someone who manages billing for the account" describes. The role
+ * and the gate were checked against each other rather than assumed; had they not matched, the MESSAGE would
+ * have been fixed, never the gate.
  */
 final class OperatorNotReadyForPaymentsException extends RuntimeException
 {
@@ -37,8 +43,8 @@ final class OperatorNotReadyForPaymentsException extends RuntimeException
     {
         return new self(
             'This property cannot take card payments yet: its Stripe account has not finished verification. '
-            .'Someone who manages billing for the account can complete it with Stripe. Until then, take '
-            .'payment another way and record it on the folio.'
+            .'Someone who manages billing for the account can finish it under Billing → Card acceptance. '
+            .'Until then, take payment another way and record it on the folio.'
         );
     }
 }

@@ -13,6 +13,7 @@ use App\Models\PlanFeature;
 use App\Models\Subscription;
 use App\Models\Unit;
 use App\Services\BillingService;
+use App\Services\OperatorConnectService;
 use App\Support\Billing\SubscriptionPricing;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -37,6 +38,37 @@ use Livewire\Component;
 class OperatorBilling extends Component
 {
     use FormatsOperatorData;
+
+    /**
+     * The card-acceptance panel: what Stripe says about this organisation's connected account, right now.
+     *
+     * ⚠️ `charges_enabled` IS THE FACT. `details_submitted` is NOT readiness — an operator can finish the
+     * form and still be blocked pending review, and collapsing the two into "done" is how someone concludes
+     * the product is broken when a card is refused.
+     *
+     * ⚠️ NOTHING HERE IS CACHED, and no account link is minted on render: links EXPIRE and are SINGLE-USE,
+     * so one is minted only when the operator actually acts (the POST route), never held for a page that
+     * might be left open.
+     *
+     * @return array<string, mixed>
+     */
+    private function connectPanel(Organization $org): array
+    {
+        $readiness = app(OperatorConnectService::class)->readiness($org);
+
+        return [
+            'connected' => $readiness['connected'],
+            'details_submitted' => $readiness['details_submitted'],
+            'charges_enabled' => $readiness['charges_enabled'],
+            'payouts_enabled' => $readiness['payouts_enabled'],
+            'ready' => $readiness['ready'],
+            // ⚠️ THE COUNTRY IS SHOWN BEFORE THE ACCOUNT EXISTS, because a Connect account's country CANNOT
+            //    be changed afterwards. An irreversible choice needs its warning at the point of choosing —
+            //    not in a document, and not after a customer discovers it while expanding.
+            'country' => $org->country,
+            'started' => $readiness['connected'],
+        ];
+    }
 
     public function render(BillingService $billing): View
     {
@@ -71,6 +103,10 @@ class OperatorBilling extends Component
 
         return view('livewire.operator.billing', [
             'viewer' => $this->viewer(),
+            // ⚠️⚠️ CARD ACCEPTANCE — read LIVE from Stripe on every render, never from a stored flag.
+            //    Stripe can suspend an account or ask for more information between one booking and the next,
+            //    so a local "onboarded" boolean is an assertion about a moment that has passed.
+            'connect' => $this->connectPanel($org),
             'status' => [
                 'label' => $status->label(),
                 'on_trial' => $status->onTrial(),

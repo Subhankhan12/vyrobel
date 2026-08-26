@@ -110,7 +110,7 @@ it('⚠️⚠️ NO FALLBACK — an operator who is not charges_enabled CANNOT t
         // ⚠️ Actionable means WHO can act and what to do meanwhile — NOT a named screen. See the
         //    dedicated "names no screen" test below for why that distinction cost a pass.
         expect($e->getMessage())->toContain('has not finished verification')
-            ->and($e->getMessage())->toContain('manages billing');
+            ->and($e->getMessage())->toContain('Billing → Card acceptance');
     }
 
     // ⚠️ And no platform fallback exists anywhere in the charge path.
@@ -261,10 +261,12 @@ it('⚠️⚠️ THE REFUSAL NAMES NO SCREEN — it says WHO can act, not WHERE 
     // ⚠️ A first version read "…from Billing → Connect" — a screen the onboarding pass deliberately did
     //    NOT build. A message that sends someone to a page they cannot reach is worse than one that says
     //    less: it costs them the time to go and look. "Make it actionable" is not "name a route".
-    expect($message)->not->toContain('Billing → Connect')
-        ->and($message)->not->toContain('Settings')
-        ->and($message)->not->toContain('/app')
-        // …and it still says WHO can act and what to do meanwhile, which is the actionable part.
+    // ⚠️ IT MAY NAME A SCREEN AGAIN — but ONLY the one that now exists. "Billing → Card acceptance" is a
+    //    real panel on /app/billing gated `can:billing.manage` (Super Admin + Property Owner), which is
+    //    exactly who "someone who manages billing" describes. The role and the gate were checked against
+    //    each other; had they diverged, the MESSAGE would have been fixed, never the gate.
+    expect($message)->not->toContain('Billing → Connect')          // the screen that never existed
+        ->and($message)->toContain('Billing → Card acceptance')    // the one that does
         ->and($message)->toContain('manages billing')
         ->and($message)->toContain('take payment another way');
 });

@@ -22,6 +22,102 @@
             <div class="vy-card vy-fade" style="border-left:3px solid #B4400F;margin-bottom:14px"><div style="font-size:13.5px;color:var(--vy-ink)">{{ session('billing_error') }}</div></div>
         @endif
 
+        {{-- ── CARD ACCEPTANCE (Stripe Connect) ───────────────────────────────────────────────────────
+             ⚠️ THIS SCREEN IS WHAT MAKES THE DIRECT-CHARGE SWITCH USABLE. All three payment paths now
+             charge on THIS organisation's own Stripe account, so until it is verified no card can be
+             taken anywhere — storefront, guest portal or front desk.
+             ⚠️ PROMISES NOTHING: no date, no "you'll be able to", and every destination named here is
+             reachable today. Two earlier passes put false claims into error strings; this is not a third.
+             ⚠️ READINESS IS STRIPE'S, read live — `details_submitted` is NOT `charges_enabled`.
+             RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+        <div class="vy-card vy-fade" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                <div>
+                    <div class="vy-card-title">Card acceptance</div>
+                    <div class="vy-recon" style="margin-top:2px">Card payments are taken on this account. Guests pay you directly.</div>
+                </div>
+                <div>
+                    @if ($connect['ready'])
+                        <span class="vy-chip is-ok">Verified — cards can be taken</span>
+                    @elseif ($connect['details_submitted'])
+                        {{-- ⚠️ SUBMITTED IS NOT READY. Stripe still has to enable charges, and saying "done"
+                             here is how a refused card later reads as a broken product. --}}
+                        <span class="vy-chip">Submitted — Stripe is reviewing</span>
+                    @elseif ($connect['connected'])
+                        <span class="vy-chip">Started — not finished</span>
+                    @else
+                        <span class="vy-chip">Not set up</span>
+                    @endif
+                </div>
+            </div>
+
+            @if (! $connect['ready'])
+                <div class="vy-recon" style="margin-top:12px">
+                    Until this account is verified by Stripe, no card can be taken — on your storefront, in
+                    the guest portal, or at the front desk. Take payment another way and record it on the
+                    folio in the meantime.
+                </div>
+            @endif
+
+            @if (! $connect['connected'])
+                {{-- ⚠️⚠️ THE COUNTRY WARNING BELONGS *BEFORE* CREATION. A Connect account's country cannot
+                     be changed afterwards, and nothing in Vyrobel stops an operator holding properties in
+                     more than one country — so the trap is discovered months later, while expanding. --}}
+                <div class="vy-card" style="margin-top:12px;border-left:3px solid #B4400F">
+                    <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">Before you start: the country cannot be changed later</div>
+                    <div class="vy-recon" style="margin-top:4px">
+                        Stripe fixes the country when the account is created and it cannot be changed
+                        afterwards — a new account is the only way to change it. If you operate in more than
+                        one country, choose the one your business is registered in.
+                        @if ($connect['country'])
+                            Your account records <strong>{{ $connect['country'] }}</strong>; Stripe will ask you to confirm.
+                        @else
+                            No country is recorded here yet, so Stripe will ask you for one.
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            {{-- ⚠️⚠️ NO STATEMENT-DESCRIPTOR FIELD, DELIBERATELY. Stripe: "The customer's statement uses the
+                 CONNECTED ACCOUNT's static component" for direct charges, and accounts with a Stripe-hosted
+                 dashboard "can update their own statement descriptor settings". A field here would write
+                 somewhere the operator can silently override — telling them they had configured something
+                 they had not. Guidance instead, pointing at a destination that genuinely exists. --}}
+            <div class="vy-card" style="margin-top:12px">
+                <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink)">What your guests will see on their card statement</div>
+                <div class="vy-recon" style="margin-top:4px">
+                    Because the payment is taken on your own Stripe account, your business name appears on the
+                    guest's statement — not Vyrobel's. Stripe builds it from your business profile during
+                    setup, and only the first 22 characters reach the card networks.
+                </div>
+                <div class="vy-recon" style="margin-top:6px">
+                    A guest who booked one name and sees an unfamiliar legal entity is likely to dispute the
+                    charge, so it is worth checking it reads the way guests know you. You control it in your
+                    own Stripe dashboard — Vyrobel cannot set it for you.
+                </div>
+                @if ($connect['connected'])
+                    <div style="margin-top:8px"><a href="https://dashboard.stripe.com/settings/public" target="_blank" rel="noopener" class="vy-btn vy-btn-ghost">Open your Stripe settings</a></div>
+                @endif
+            </div>
+
+            <form method="POST" action="{{ route('app.billing.connect.start') }}" style="margin-top:12px">
+                @csrf
+                {{-- ⚠️ A FRESH LINK IS MINTED ON EVERY SUBMIT — never rendered into the page and never
+                     cached. Stripe's account links expire and are single-use, so one held on an open page
+                     fails days later for someone mid-signup. An abandoned setup resumes on the SAME
+                     account with a new link. --}}
+                <button type="submit" class="vy-btn">
+                    @if ($connect['ready'])
+                        Review your Stripe account
+                    @elseif ($connect['connected'])
+                        Continue setup with Stripe
+                    @else
+                        Set up card acceptance with Stripe
+                    @endif
+                </button>
+            </form>
+        </div>
+
         {{-- Live read-only lifecycle state (canceling / paused) — the REAL state this page writes --}}
         @if ($lifecycle['is_canceling'])
             <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-amber);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:14px">

@@ -22,6 +22,11 @@ use RuntimeException;
  *
  * ⚠️ A `manual` payment never reaches this: it has no gateway charge at all, so its refund is a folio
  * adjustment and a null account is the honest value there.
+ *
+ * ⚠️⚠️ THIS MESSAGE DELIBERATELY NAMES NO VYROBEL SCREEN, even though the onboarding screen now exists.
+ * Onboarding an account cannot repair a PAYMENT whose account reference was never recorded — pointing there
+ * would send someone to a page that cannot help them, which is the exact defect the readiness refusal was
+ * corrected for. Only refunding in Stripe directly resolves this one.
  */
 final class RefundAccountUnknownException extends RuntimeException
 {
