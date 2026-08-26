@@ -7,7 +7,6 @@ use App\Models\OwnerLedgerEntry;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Payments\Contracts\PaymentGateway;
-use App\Payments\GatewayResult;
 use App\Payments\Stripe\FakeStripeClient;
 use App\Services\FolioService;
 use App\Support\Money\Money;
@@ -29,51 +28,6 @@ uses(RefreshDatabase::class);
  * ⚠️ Stripe holds a card refund pending on the PLATFORM's own balance too, so this was reachable the moment
  * PAYMENTS_GATEWAY=stripe — not only after the Connect switch.
  */
-
-/** A gateway whose refunds queue, exactly as Stripe does on an insufficient balance. */
-final class QueuingRefundGateway implements PaymentGateway
-{
-    public int $refundCalls = 0;
-
-    /** @var list<string> every idempotency key the gateway was handed */
-    public array $keys = [];
-
-    public function name(): string
-    {
-        return 'stripe';
-    }
-
-    public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult
-    {
-        return new GatewayResult(true, 'pi_'.bin2hex(random_bytes(6)), 'succeeded');
-    }
-
-    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult
-    {
-        $this->refundCalls++;
-        $this->keys[] = (string) $idempotencyKey;
-
-        // ⚠️ Stripe: "Stripe holds the refund as pending for card transactions … until your Stripe balance
-        //    becomes sufficient." Accepted, not failed.
-        return new GatewayResult(false, 're_'.bin2hex(random_bytes(6)), 'pending');
-    }
-
-    public function authorize(Money $amount, ?string $token, array $metadata = []): GatewayResult
-    {
-        return new GatewayResult(true, 'auth_x', 'authorized');
-    }
-
-    public function capture(string $reference, Money $amount): GatewayResult
-    {
-        return new GatewayResult(true, $reference, 'captured');
-    }
-
-    public function void(string $reference): GatewayResult
-    {
-        return new GatewayResult(true, $reference, 'voided');
-    }
-}
-
 function pendingRefundScenario(int $payMinor = 50000): array
 {
     $s = seedScenario(1);

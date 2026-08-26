@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Guest;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Models\Folio;
+use App\Models\Organization;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeIdempotency;
 use App\Services\FolioService;
+use App\Services\OperatorConnectService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
@@ -49,6 +51,16 @@ class GuestFolioPaymentController extends Controller
         $orgId = (string) $booking->organization_id;
 
         try {
+            // ⚠️⚠️ DIRECT CHARGE. The account is resolved (and its readiness re-read from Stripe) BEFORE
+            //    the session is created — there is no platform fallback, so an unverified operator simply
+            //    cannot take a card.
+            $connectedAccountId = app(TenantContext::class)->forOrganization(
+                $orgId,
+                fn (): string => app(OperatorConnectService::class)->accountForCharge(
+                    Organization::withoutGlobalScopes()->findOrFail($orgId),
+                ),
+            );
+
             $session = app(StripeClientInterface::class)->createPaymentCheckout(
                 amountMinor: $amount->amountMinor(),
                 currency: $amount->currency(),
@@ -57,6 +69,7 @@ class GuestFolioPaymentController extends Controller
                 cancelUrl: route('guest.payments').'?canceled=1',
                 metadata: ['organization_id' => $orgId, 'reservation_id' => (string) $booking->getKey(), 'folio_id' => (string) $folio->getKey()],
                 idempotencyKey: StripeIdempotency::keyFor('folio_checkout', (string) $folio->getKey()),
+                connectedAccountId: $connectedAccountId,
             );
 
             if ($session->paymentIntentId === null) {
@@ -69,6 +82,7 @@ class GuestFolioPaymentController extends Controller
                 $amount,
                 $session->paymentIntentId,
                 ['reservation_id' => (string) $booking->getKey(), 'source' => 'guest_checkout'],
+                $connectedAccountId,
             ));
         } catch (Throwable $e) {
             report($e);

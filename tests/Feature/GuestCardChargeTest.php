@@ -2,12 +2,14 @@
 
 use App\Models\Folio;
 use App\Models\Guest;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Payments\Stripe\FakeStripeClient;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Services\AssignmentService;
 use App\Services\FolioService;
+use App\Services\OperatorConnectService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,8 +34,26 @@ function chargeGuest(Guest $g, string $email): Guest
 }
 
 /** A booking with an OUTSTANDING balance ($300 charged, nothing paid). */
+/**
+ * ⚠️ THE MONEY SWITCH MADE ONBOARDING A PREREQUISITE FOR TAKING A CARD, and this suite proved it by
+ * failing. A guest card payment is now a DIRECT charge on the operator's own Stripe account, so an
+ * organisation that has not completed verification cannot take one — by design, with no platform fallback.
+ * ⚠️ NOT ONE ASSERTION HERE CHANGED: the hosted-Checkout redirect, the webhook-only settlement, the failed
+ * charge and the no-double-charge proof are all exactly as they were. Only the fixture's world moved.
+ */
+function guestCardsOnboarded(array $s): void
+{
+    $org = Organization::withoutGlobalScopes()->findOrFail($s['org']->getKey());
+    app(OperatorConnectService::class)->startOnboarding($org, 'ops@example.test', 'https://r', 'https://x');
+    $org->refresh();
+    app(StripeClientInterface::class)
+        ->connectChargesEnabled[(string) $org->stripe_connect_account_id] = true;
+}
+
 function bookingWithBalance(array $s, Guest $guest): Reservation
 {
+    guestCardsOnboarded($s);
+
     $res = app(AssignmentService::class)->createBooking(
         ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => '2026-09-05', 'check_out' => '2026-09-08', 'lead_guest_id' => $guest->getKey(), 'source' => 'direct'],
         [['room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][0]->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2026-09-05', 'check_out' => '2026-09-08', 'price_minor' => 30000, 'currency' => 'EUR']],

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Owner;
+use App\Models\Payment;
 use App\Models\Payout;
 use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeEvent;
+use App\Services\FolioService;
 use App\Services\OwnerPayoutService;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -29,7 +31,7 @@ use Throwable;
  */
 class StripeConnectWebhookController extends Controller
 {
-    public function __invoke(Request $request, TenantContext $tenant, StripeClientInterface $stripe, OwnerPayoutService $payouts): JsonResponse
+    public function __invoke(Request $request, TenantContext $tenant, StripeClientInterface $stripe, OwnerPayoutService $payouts, FolioService $folios): JsonResponse
     {
         try {
             $event = $stripe->constructConnectWebhookEvent($request->getContent(), $request->header('Stripe-Signature'));
@@ -37,11 +39,95 @@ class StripeConnectWebhookController extends Controller
             return response()->json(['error' => 'invalid_signature'], 400);
         }
 
-        return match ($event->type) {
-            'account.updated' => $this->handleAccountUpdated($event, $tenant),
-            'transfer.created', 'transfer.updated' => $this->handleTransfer($event, $tenant, $payouts),
+        return match (true) {
+            $event->type === 'account.updated' => $this->handleAccountUpdated($event, $tenant),
+            in_array($event->type, ['transfer.created', 'transfer.updated'], true) => $this->handleTransfer($event, $tenant, $payouts),
+
+            // ⚠️⚠️ THE MONEY SWITCH — a DIRECT charge lives on the connected account, so ITS events arrive
+            //    HERE, on this plane, signed with the CONNECT secret. Without this routing Stripe succeeds
+            //    while the folio never learns: PAYMENT TAKEN, BOOKING UNPAID, and the guest holds a receipt
+            //    for a reservation the desk shows unsettled.
+            // ⚠️⚠️ MATCHED ON THE EVENT TYPE, NOT ON A SNIFFED ID. `StripeEvent::paymentIntentId()` falls
+            //    back to `data.object.id` when no `payment_intent` field is present, so a REFUND object
+            //    (`re_…`) reads as a payment-intent id. A first version ordered this branch above the
+            //    refund one and silently swallowed every refund settlement — a queued refund invisible for
+            //    ever, which is the same payment-taken-booking-unpaid shape by a third route.
+            in_array($event->type, ['payment_intent.succeeded', 'payment_intent.payment_failed', 'payment_intent.canceled'], true) => $this->handlePaymentIntent($event, $tenant, $folios),
+
+            // ⚠️⚠️ AND A QUEUED REFUND IS THE **NORMAL** CASE HERE, not an edge one: an operator on
+            //    automatic daily payouts runs a near-zero balance by design, and Stripe holds a card refund
+            //    pending until the balance covers it. Leave this unrouted and a queued refund is invisible,
+            //    the headroom never releases or settles, and the desk re-issues — the exact hole the
+            //    pending-refund pass existed to close.
+            in_array($event->type, ['refund.updated', 'refund.failed'], true) => $this->handleRefundSettlement($event, $tenant, $folios),
+
             default => response()->json(['status' => 'ignored'], 202),
         };
+    }
+
+    /**
+     * A direct-charge PaymentIntent settling on the connected account → the folio learns.
+     *
+     * ⚠️ The org is resolved from the LOCAL Payment (pre-created as `pending` at checkout), never from the
+     * event — the same rule the platform receiver follows.
+     */
+    private function handlePaymentIntent(StripeEvent $event, TenantContext $tenant, FolioService $folios): JsonResponse
+    {
+        $intentId = (string) $event->paymentIntentId();
+        $payment = $tenant->runAsSuperAdmin(
+            fn () => Payment::query()->where('gateway_ref', $intentId)->first(),
+        );
+        if ($payment === null) {
+            return response()->json(['status' => 'ignored'], 202);
+        }
+
+        $to = match ($event->type) {
+            'payment_intent.succeeded' => 'succeeded',
+            'payment_intent.payment_failed', 'payment_intent.canceled' => 'failed',
+            default => null,
+        };
+        if ($to === null) {
+            return response()->json(['status' => 'ignored'], 202);
+        }
+
+        return $tenant->forOrganization(
+            (string) $payment->organization_id,
+            fn (): JsonResponse => $this->once($event, fn () => $folios->settlePayment($payment, $to)),
+        );
+    }
+
+    /**
+     * A refund on the connected account settling — `pending` → succeeded or failed.
+     *
+     * ⚠️ THE STATUS IS READ FROM THE PAYLOAD, NOT INFERRED FROM THE EVENT NAME. The same flagged inference
+     * as on the platform plane: Stripe documents `refund.updated` as "sent when the refund is updated" and
+     * illustrates it with metadata/ARN rather than stating outright that a pending→succeeded transition
+     * emits it. So an unexpected shape settles NOTHING rather than settling wrongly.
+     */
+    private function handleRefundSettlement(StripeEvent $event, TenantContext $tenant, FolioService $folios): JsonResponse
+    {
+        $refundRef = $event->objectField('id');
+        $refund = $refundRef === null ? null : $tenant->runAsSuperAdmin(
+            fn () => Payment::query()->where('type', 'refund')->where('gateway_ref', $refundRef)->first(),
+        );
+        if ($refund === null) {
+            return response()->json(['status' => 'ignored'], 202);
+        }
+
+        $status = (string) ($event->objectField('status') ?? '');
+        $to = match (true) {
+            $status === 'succeeded' => 'succeeded',
+            in_array($status, ['failed', 'canceled'], true) => 'failed',
+            default => null,
+        };
+        if ($to === null) {
+            return response()->json(['status' => 'ignored'], 202);
+        }
+
+        return $tenant->forOrganization(
+            (string) $refund->organization_id,
+            fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to)),
+        );
     }
 
     private function handleAccountUpdated(StripeEvent $event, TenantContext $tenant): JsonResponse

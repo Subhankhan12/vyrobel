@@ -26,6 +26,7 @@ class Payment extends Model
         'gateway',
         'method',
         'gateway_ref',
+        'stripe_account_id',
         'idempotency_key',
         'type',
         'amount',

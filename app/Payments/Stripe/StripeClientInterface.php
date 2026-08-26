@@ -42,7 +42,7 @@ interface StripeClientInterface
      * Refund a captured/succeeded intent, fully or partially — a new money movement on Stripe's
      * side (our ledger records it as a new offsetting Payment).
      */
-    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund;
+    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeRefund;
 
     /**
      * Create a SUBSCRIPTION-mode Checkout Session (Phase 8 · SG1). The card is entered on Stripe's hosted
@@ -87,7 +87,7 @@ interface StripeClientInterface
      *
      * @param  array<string, string>  $metadata
      */
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession;
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession;
 
     /**
      * Verify a webhook signature (Stripe's `Stripe-Signature` scheme) and return the event, or

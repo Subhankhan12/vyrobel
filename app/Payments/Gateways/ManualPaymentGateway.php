@@ -27,7 +27,7 @@ class ManualPaymentGateway implements PaymentGateway
         return new GatewayResult(true, $this->reference('pay'), 'succeeded');
     }
 
-    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult
+    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null, ?string $connectedAccountId = null): GatewayResult
     {
         // Manual/offline settlement moves no money over a network, so there is nothing to de-duplicate
         // at this seam; the key is accepted to satisfy the contract. FolioService's row lock + the

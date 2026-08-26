@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Payments\OperatorNotReadyForPaymentsException;
 use App\Models\Organization;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Support\Events\AuditEventRecorder;
@@ -74,6 +75,27 @@ class OperatorConnectService
         }
 
         return $this->stripe->createConnectAccountLink($accountId, $refreshUrl, $returnUrl)->url;
+    }
+
+    /**
+     * The connected account a charge for this organisation must be created on — or a refusal.
+     *
+     * ⚠️⚠️ READINESS IS RE-READ FROM STRIPE ON EVERY CHARGE, not trusted from a stored flag. Stripe can
+     * suspend an account or ask for more information between one booking and the next, and a charge
+     * attempted on a disabled account fails at Stripe anyway — refusing here makes it fail with an answer
+     * instead of a stack trace.
+     *
+     * @throws OperatorNotReadyForPaymentsException
+     */
+    public function accountForCharge(Organization $organization): string
+    {
+        $readiness = $this->readiness($organization);
+
+        if (! $readiness['ready']) {
+            throw OperatorNotReadyForPaymentsException::make();
+        }
+
+        return (string) $organization->stripe_connect_account_id;
     }
 
     /**

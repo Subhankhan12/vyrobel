@@ -27,7 +27,7 @@ interface PaymentGateway
      * retry, job re-run) returns the ORIGINAL refund instead of moving money twice. Mirrors the key
      * charge/authorize/capture already pass; refund was the only money operation without one.
      */
-    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult;
+    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null, ?string $connectedAccountId = null): GatewayResult;
 
     /**
      * @param  array<string, mixed>  $metadata

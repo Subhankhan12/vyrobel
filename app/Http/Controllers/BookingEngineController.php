@@ -9,6 +9,7 @@ use App\Models\BookingQuote;
 use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\Guest;
+use App\Models\Organization;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\RoomType;
@@ -18,6 +19,7 @@ use App\Payments\Stripe\StripeIdempotency;
 use App\Services\BookingEngineService;
 use App\Services\FolioService;
 use App\Services\GuestWalletService;
+use App\Services\OperatorConnectService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
@@ -544,6 +546,13 @@ class BookingEngineController extends Controller
             return redirect()->to($confirmationUrl);
         }
 
+        // ⚠️⚠️ DIRECT CHARGE, AND NO FALLBACK. If the operator's account is not `charges_enabled`, the
+        //    storefront cannot take a card at all — charging on the platform instead would put guest money
+        //    back in Vyrobel's balance, which is the whole thing this switch removes.
+        $connectedAccountId = app(OperatorConnectService::class)->accountForCharge(
+            Organization::withoutGlobalScopes()->findOrFail((string) $reservation->organization_id),
+        );
+
         $session = app(StripeClientInterface::class)->createPaymentCheckout(
             amountMinor: $balanceMinor,
             currency: $currency,
@@ -556,6 +565,7 @@ class BookingEngineController extends Controller
                 'folio_id' => (string) $folio->getKey(),
             ],
             idempotencyKey: StripeIdempotency::keyFor('folio_checkout', (string) $folio->getKey()),
+            connectedAccountId: $connectedAccountId,
         );
 
         // No payment intent on the session (shouldn't happen for a payment-mode session) → don't strand
@@ -568,7 +578,7 @@ class BookingEngineController extends Controller
         $this->folios->recordCheckoutIntent($folio, Money::of($balanceMinor, $currency), $session->paymentIntentId, [
             'booking_quote_id' => $quote->getKey(),
             'source' => 'storefront',
-        ]);
+        ], $connectedAccountId);
 
         return redirect()->away($session->url);
     }

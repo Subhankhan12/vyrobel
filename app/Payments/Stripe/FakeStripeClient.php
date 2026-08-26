@@ -59,6 +59,12 @@ class FakeStripeClient implements StripeClientInterface
     /** @var list<array{account: string, refresh_url: string, return_url: string}> every account link minted. */
     public array $accountLinksCreated = [];
 
+    /** @var list<?string> the connected account each payment Checkout named (null = the platform). */
+    public array $checkoutAccounts = [];
+
+    /** @var list<?string> the connected account each refund named (null = the platform). */
+    public array $refundAccounts = [];
+
     public function __construct(
         private readonly ?string $webhookSecret = null,
         private readonly ?string $connectWebhookSecret = null,
@@ -121,8 +127,9 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeIntent($intentId, 'canceled');
     }
 
-    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund
+    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeRefund
     {
+        $this->refundAccounts[] = $connectedAccountId;
         // A repeated Idempotency-Key returns the ORIGINAL refund — never a double refund.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             return new StripeRefund($this->idempotency[$idempotencyKey], 'succeeded');
@@ -202,8 +209,9 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeCheckoutSession($id, $url);
     }
 
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
     {
+        $this->checkoutAccounts[] = $connectedAccountId;
         // A repeated Idempotency-Key returns the ORIGINAL session (+ its PaymentIntent) — never a second charge.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->checkoutSessions[$this->idempotency[$idempotencyKey]];

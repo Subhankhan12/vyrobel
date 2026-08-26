@@ -81,12 +81,15 @@ class StripeClient implements StripeClientInterface
         return new StripeIntent((string) $intent->id, (string) $intent->status);
     }
 
-    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null): StripeRefund
+    public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeRefund
     {
+        // ⚠️ A refund is created "using your platform's secret key while authenticated as the connected
+        //    account" — i.e. the same Stripe-Account header the charge used. It must be the account that
+        //    TOOK the charge, or the PaymentIntent does not exist there.
         $refund = $this->sdk->refunds->create([
             'payment_intent' => $intentId,
             'amount' => $amountMinor,
-        ], $this->options($idempotencyKey));
+        ], $this->options($idempotencyKey, $connectedAccountId));
 
         return new StripeRefund((string) $refund->id, (string) $refund->status);
     }
@@ -96,9 +99,20 @@ class StripeClient implements StripeClientInterface
      *
      * @return array{idempotency_key?: string}
      */
-    private function options(?string $idempotencyKey): array
+    private function options(?string $idempotencyKey, ?string $connectedAccountId = null): array
     {
-        return $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+        $options = $idempotencyKey !== null && $idempotencyKey !== '' ? ['idempotency_key' => $idempotencyKey] : [];
+
+        // ⚠️⚠️ THE `Stripe-Account` HEADER IS WHAT MAKES A CHARGE *DIRECT*. Stripe: "This header indicates a
+        //    direct charge for your connected account." With it, the payment appears in the CONNECTED
+        //    account's balance and never in the platform's; refunds and disputes debit that account too.
+        //    ⚠️ Passing null is NOT a fallback — it is the platform's own operations (subscriptions,
+        //    Connect account management), which are genuinely the platform's.
+        if ($connectedAccountId !== null && $connectedAccountId !== '') {
+            $options['stripe_account'] = $connectedAccountId;
+        }
+
+        return $options;
     }
 
     public function syncCustomerTaxId(string $customerId, array $taxId): bool
@@ -171,7 +185,7 @@ class StripeClient implements StripeClientInterface
         return new StripeCheckoutSession((string) $session->id, (string) $session->url);
     }
 
-    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null): StripeCheckoutSession
+    public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
     {
         $session = $this->sdk->checkout->sessions->create([
             'mode' => 'payment',
@@ -188,7 +202,7 @@ class StripeClient implements StripeClientInterface
             'metadata' => $metadata,
             // Propagate the metadata onto the PaymentIntent too (reconciliation breadcrumbs).
             'payment_intent_data' => ['metadata' => $metadata],
-        ], $this->options($idempotencyKey));
+        ], $this->options($idempotencyKey, $connectedAccountId));
 
         $paymentIntent = $session->payment_intent;
 

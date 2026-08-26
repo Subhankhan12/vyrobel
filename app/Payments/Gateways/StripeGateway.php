@@ -75,13 +75,16 @@ class StripeGateway implements PaymentGateway
         return new GatewayResult($intent->status === 'canceled', $intent->id, 'voided');
     }
 
-    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null): GatewayResult
+    public function refund(string $reference, Money $amount, ?string $idempotencyKey = null, ?string $connectedAccountId = null): GatewayResult
     {
         // Keyed like charge/authorize/capture: a replayed refund returns Stripe's ORIGINAL refund rather
         // than issuing a second one. The caller (FolioService) derives the key from the payment id + the
         // cumulative-refunded state read INSIDE its row lock, so a genuine second PARTIAL refund gets a
         // distinct key while a duplicate submit of the SAME logical refund collapses.
-        $refund = $this->stripe->refund($reference, $amount->amountMinor(), $idempotencyKey);
+        // ⚠️⚠️ ON THE ACCOUNT THAT TOOK THE CHARGE. Stripe debits the CONNECTED account for a direct-charge
+        //    refund, so the PaymentIntent only exists there — refunding on the platform would 404, and
+        //    succeeding on the wrong account would take money from the wrong party.
+        $refund = $this->stripe->refund($reference, $amount->amountMinor(), $idempotencyKey, $connectedAccountId);
 
         // ⚠️ THE REAL STATUS IS CARRIED THROUGH, not a hardcoded label. Stripe holds a card refund as
         //    `pending` when the available balance does not cover it — "Stripe holds the refund as pending

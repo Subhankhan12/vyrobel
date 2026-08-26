@@ -285,7 +285,7 @@ class FolioService
      *
      * @param  array<string, mixed>  $metadata
      */
-    public function recordCheckoutIntent(Folio $folio, Money $amount, string $paymentIntentId, array $metadata = []): Payment
+    public function recordCheckoutIntent(Folio $folio, Money $amount, string $paymentIntentId, array $metadata = [], ?string $connectedAccountId = null): Payment
     {
         $payment = Payment::query()->firstOrCreate(
             ['gateway_ref' => $paymentIntentId],
@@ -293,6 +293,8 @@ class FolioService
                 'folio_id' => $folio->getKey(),
                 'reservation_id' => $folio->reservation_id,
                 'gateway' => 'stripe',
+                // ⚠️ Stamped at CHARGE time so the refund path can find the right account later.
+                'stripe_account_id' => $connectedAccountId,
                 'type' => 'payment',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
@@ -452,7 +454,9 @@ class FolioService
                 $locked->getKey().':'.$alreadyRefunded.':'.$amount->amountMinor(),
             );
 
-            $result = $this->gateway->refund((string) $locked->gateway_ref, $amount, $gatewayKey);
+            // ⚠️ The account is read from the PAYMENT, not re-derived from the organisation: a refund must
+            //    follow the money it is reversing, even if the operator has since re-onboarded.
+            $result = $this->gateway->refund((string) $locked->gateway_ref, $amount, $gatewayKey, $locked->stripe_account_id);
 
             $refund = Payment::create([
                 'folio_id' => $locked->folio_id,

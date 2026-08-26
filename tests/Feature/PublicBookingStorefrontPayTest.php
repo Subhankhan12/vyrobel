@@ -4,9 +4,12 @@ use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\GuestCreditEntry;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Payments\Stripe\FakeStripeClient;
+use App\Payments\Stripe\StripeClientInterface;
 use App\Services\GuestWalletService;
+use App\Services\OperatorConnectService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,6 +23,24 @@ uses(RefreshDatabase::class);
 //        non-optional cleaning fee (never a hardcoded €45, never a fee silently dropped).
 //  (D1)  the TEST-MODE hosted-Stripe rail: book (balance due) → redirect to hosted Checkout → the
 //        folio settles ONLY on the payment_intent.succeeded WEBHOOK (never the redirect). No PAN.
+
+/**
+ * ⚠️ THE MONEY SWITCH MADE ONBOARDING A PREREQUISITE, AND THIS SUITE PROVED IT BY FAILING.
+ *
+ * A card is now taken as a DIRECT charge on the operator's own Stripe account, so an organisation that has
+ * not completed Stripe verification cannot take one at all — by design, and with no platform fallback.
+ * ⚠️ NOT ONE ASSERTION IN THIS FILE CHANGED: the folio behaviour, the webhook-only settlement and the #17
+ * total are all exactly as they were. What changed is the WORLD the fixture has to describe — an operator
+ * who can accept a card is now an operator who has onboarded.
+ */
+function onboardedForCards(array $s): void
+{
+    $org = Organization::withoutGlobalScopes()->findOrFail($s['org']->getKey());
+    app(OperatorConnectService::class)->startOnboarding($org, 'ops@example.test', 'https://r', 'https://x');
+    $org->refresh();
+    app(StripeClientInterface::class)
+        ->connectChargesEnabled[(string) $org->stripe_connect_account_id] = true;
+}
 
 /** The demo-style non-optional flat €45 cleaning fee on the scenario's property. */
 function cleaningFee(array $s, int $minor = 4500): Fee
@@ -122,6 +143,7 @@ it('starts a test-mode hosted Stripe Checkout for the full total incl. cleaning,
     $s = publicPropertyScenario(units: 1);
     cleaningFee($s);
     config(['services.payments.gateway' => 'stripe']);        // the founder-chosen rail
+    onboardedForCards($s);
 
     $response = test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s));
     $response->assertRedirect();
@@ -140,6 +162,7 @@ it('settles the storefront folio only on the payment_intent.succeeded webhook', 
     $s = publicPropertyScenario(units: 1);
     cleaningFee($s);
     config(['services.payments.gateway' => 'stripe']);
+    onboardedForCards($s);
 
     test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s))->assertRedirect();
     $intentId = (string) Payment::query()->where('status', 'pending')->value('gateway_ref');
@@ -157,6 +180,7 @@ it('leaves the storefront folio unpaid when the hosted charge fails', function (
     $s = publicPropertyScenario(units: 1);
     cleaningFee($s);
     config(['services.payments.gateway' => 'stripe']);
+    onboardedForCards($s);
 
     test()->post("/book/{$s['property']->slug}/checkout", storefrontBody($s))->assertRedirect();
     $intentId = (string) Payment::query()->where('status', 'pending')->value('gateway_ref');
