@@ -1,5 +1,8 @@
 # Vyrobel — SESSION HANDOFF / MASTER STATE (SAVE v2 · 2026-08-22)
 
+> ⚠️ **START AT `docs/STATE.md`** — the short, dated, current-state file (VERIFIED vs RECORDED marks). This document remains correct as **history** and as a reference work; it is not the current-state source.
+
+
 > **Read this first, then `docs/PROJECT-STATE.md` (the RESUME block, then §N), then `docs/DECISIONS.md`.**
 > This file is written to be self-contained: a fresh session should be able to resume from it alone.
 >

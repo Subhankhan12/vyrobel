@@ -1,5 +1,8 @@
 # Vyrobel — Project State (resume here)
 
+> ⚠️ **START AT `docs/STATE.md`** — the short, dated, current-state file (VERIFIED vs RECORDED marks). This document remains correct as **history** and as a reference work; it is not the current-state source.
+
+
 **On a fresh session read THIS first, then `docs/DECISIONS.md` for the dated "why".** This is a
 pointer map to the real code, not a copy of it — follow the links on demand. If anything here
 conflicts with the repo, **trust the repo** and fix this file.
