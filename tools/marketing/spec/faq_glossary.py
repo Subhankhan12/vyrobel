@@ -432,3 +432,52 @@ FORBIDDEN_BY_PAGE.update({
         'Get those right and you have captured most of what a revenue system would',
     ],
 })
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠️⚠️ BATCH 6 — GUARDING THE THREE ARTICLES THAT HAD NEVER BEEN CORRECTED (2026-08-26).
+#
+# These three sat among the pages this check could not see, which is the combination that lets a
+# correction be dropped with every gate still green — exactly what the check exists to prevent. Each
+# fragment below is a FALSEHOOD, not a correction: if one reappears on its page, the build reds.
+#
+# ⚠️ FRAGMENTS ARE CHOSEN TO SURVIVE REWORDING. They quote the false CLAIM, not the sentence around it,
+# so an editorial rewrite that keeps the falsehood is still caught and one that merely moves a comma is
+# not a false alarm. Evidence for every entry is in spec/batch6_articles_truth.py.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+FORBIDDEN_BY_PAGE.update({
+    # ⚠️ The card form is Stripe-hosted (SAQ A) — it has never been on the operator's domain.
+    'article-trust': FORBIDDEN_BY_PAGE.get('article-trust', []) + [
+        'on your own domain',
+    ],
+    'article-owners': FORBIDDEN_BY_PAGE.get('article-owners', []) + [
+        # An expense NAMES its source ticket; no owner surface links to or attaches one.
+        'expenses linked to their work orders',
+        'links to the work order behind it',
+        'with the ticket attached',
+        # ⚠️ The approval step is real; the THRESHOLD is not. Guarding the threshold half only, so a
+        #    future page may legitimately say approvals happen — because they do.
+        'above a threshold you set',
+        # A typed reading time roughly double the measured one (987 words).
+        '10 min read',
+    ],
+    'article-statement': FORBIDDEN_BY_PAGE.get('article-statement', []) + [
+        # The rate is per-owner from the ManagementAgreement, and the figure was computed on gross
+        # minus commission while being labelled "of net".
+        '15% of net',
+        # `reservations.source` is an enum with a generic `ota` — no brand is recoverable.
+        'Booking.com, Airbnb',
+        # Nothing can be attached to an expense; no statement line links to its cause.
+        'each expense with its work order attached',
+        'Attach the work order or the invoice',
+        'link to the thing that caused them',
+        # ⚠️ THE ONE FRAGMENT THAT COULD NOT BE MADE BOTH UNAMBIGUOUS AND REWORD-PROOF, and it is
+        #    recorded rather than pretended otherwise: the two "view" affordances are markup, and a
+        #    bare 'view' would match ordinary prose. Coupling it to the span's font-size makes it
+        #    unambiguous TODAY but tied to a style that a redesign could change — at which point this
+        #    guard stops guarding, silently. The prose fragments above are the durable half of the
+        #    protection; this one is the belt.
+        'font-size: 12.5px;">view</span>',
+    ],
+})

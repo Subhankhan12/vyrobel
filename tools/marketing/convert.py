@@ -124,6 +124,9 @@ from batch1_money import (PAYOUTS as _B1_PAY, STATEMENTS as _B1_STMT,   # noqa: 
                           REFUNDS as _B1_REF)                           # noqa: E402
 from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
                              HOUSEKEEPING_SIX as _SIX_HK)   # noqa: E402
+from batch6_articles_truth import (TRUST_TRUTH as _B6_TRUST,        # noqa: E402
+                                   OWNERS_TRUTH as _B6_OWNERS,      # noqa: E402
+                                   STATEMENT_TRUTH as _B6_STMT)     # noqa: E402
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1649,6 +1652,17 @@ def convert(key):
         _before_len = len(t)
         t = re.sub(r'<x-marketing\.nav-link key="changelog".*?</x-marketing\.nav-link>\s*', '', t, flags=re.S)
         _NEEDLE_LOG.append((key, 'B5-DOCS/changelog-entries-removed', len(t) < _before_len))
+
+    # ⚠️⚠️ BATCH 6 — THE DOC-TRUTH FALSE CLAIMS ON THE THREE ARTICLES NO MODULE HAD EVER TOUCHED.
+    #    Same two-registers-one-page failure as `article-housekeeping` below: G6 opinion claims were
+    #    addressed, the Gate-5 FALSE list on the same pages was not. Evidence per claim lives in
+    #    spec/batch6_articles_truth.py — every replacement checked against the code before it was written.
+    for _k, _table, _tag in (('article-trust', _B6_TRUST, 'B6-TRUST'),
+                             ('article-owners', _B6_OWNERS, 'B6-OWNERS'),
+                             ('article-statement', _B6_STMT, 'B6-STMT')):
+        if key == _k:
+            for _i, (_before, _after) in enumerate(_table.items(), 1):
+                t = swap(t, _before, _after, key, f'{_tag}/{_i}')
 
     if key == 'article-housekeeping':
         # ⚠️ THE RE-ARGUE ON THIS PAGE TARGETED `claims.json`'s UNSOURCED ids and never touched the

@@ -42,7 +42,7 @@
 # ⚠️ SO THE GATE NOW HAS TWO MODES, and says which one it ran:
 #
 #   FULL       — the database was seeded at the REFERENCE DATE below. All six figures are asserted.
-#                Usage:  VY_SEED_DATE=2026-09-01 php artisan migrate:fresh --seed && ops/money-as-seeded.sh
+#                Usage:  export VY_SEED_DATE=2026-09-01; php artisan migrate:fresh --seed; ops/money-as-seeded.sh
 #
 #   INVARIANT  — seeded on some other day (the normal developer case). Only the four date-invariant figures
 #                are asserted, and the gate SAYS what it could not check.
@@ -92,7 +92,9 @@ ACTUAL="$(php artisan tinker --execute="${MEASURE}" 2>/dev/null | tr -d '\r' | g
 if [ -z "${ACTUAL}" ]; then
   echo "❌ Could not measure the demo money — the query returned nothing."
   echo "   A gate that cannot measure has NOT passed. Seed the database first:"
-  echo "     VY_SEED_DATE=${REFERENCE_DATE} php artisan migrate:fresh --seed"
+  echo "     export VY_SEED_DATE=${REFERENCE_DATE}; php artisan migrate:fresh --seed"
+  echo "   ⚠️ EXPORT it — the check re-reads it, so a one-command prefix leaves this script"
+  echo "      running the weaker INVARIANT mode without you asking for it."
   exit 1
 fi
 
@@ -143,7 +145,8 @@ if [ "${EFFECTIVE_DATE}" = "${REFERENCE_DATE}" ]; then
   echo "  mode:      FULL — seeded at the reference date ${REFERENCE_DATE}; all six figures asserted."
 
   if [ "${ACTUAL}" = "${EXPECTED_FULL}" ]; then
-    echo "✅ Money as seeded — unchanged."
+    echo "  mode=FULL"
+    echo "✅ MONEY AS SEEDED · FULL — all six figures unchanged."
     exit 0
   fi
 else
@@ -152,11 +155,33 @@ else
   echo "  mode:      ⚠️ INVARIANT — the app's effective seed_date is '${EFFECTIVE_DATE:-unset}', not ${REFERENCE_DATE}."
   echo "             SUM(price_minor) and the reservation count are DATE-DEPENDENT and were NOT checked, so"
   echo "             ⚠️ a changed rate price or a changed booking set would NOT be caught by this run."
+  # ⚠️ An opt-in for any caller that must not accept the smaller check. Default OFF, so no existing
+  #    invocation changes behaviour; CI already runs FULL via a step-level `env:` (which, unlike a
+  #    command prefix, does reach both commands).
+  if [ "${VY_REQUIRE_FULL:-0}" = "1" ]; then
+    echo "  mode=INVARIANT"
+    echo "❌ VY_REQUIRE_FULL=1 was set and the FULL check did NOT run. Refusing to report a partial result."
+    exit 1
+  fi
+
   echo "             For the full check:"
-  echo "               VY_SEED_DATE=${REFERENCE_DATE} php artisan migrate:fresh --seed && ops/money-as-seeded.sh"
+  echo "               export VY_SEED_DATE=${REFERENCE_DATE}; php artisan migrate:fresh --seed; ops/money-as-seeded.sh"
+  echo "             ⚠️ EXPORT it. A 'VAR=x cmd1 && cmd2' prefix binds to cmd1 ONLY, so the check below"
+  echo "                would run without it and silently land back here."
 
   if [ "${ACTUAL_INVARIANT}" = "${EXPECTED_INVARIANT}" ]; then
-    echo "✅ Money as seeded — the date-invariant figures are unchanged (weaker check; see above)."
+    # ⚠️⚠️ THIS BRANCH DELIBERATELY DOES NOT PRINT "✅" AND DELIBERATELY DOES NOT SAY "money as seeded".
+    #
+    # The two modes used to end in lines that differed only in a trailing parenthetical, and both exited 0.
+    # A reader skimming for the tick, a report quoting the last line, or a grep for "Money as seeded" could
+    # not tell a 4-of-6 run from a 6-of-6 one — and on 2026-08-26 a pass reported this run as the gate.
+    # ⚠️ The weaker mode is NOT a lesser pass of the same check; it is a DIFFERENT, smaller check, and it
+    #    says so in words that cannot be mistaken for the gate's own green.
+    echo "  mode=INVARIANT"
+    echo "⚠️ PARTIAL — 4 of 6 figures checked. THIS IS NOT THE MONEY-AS-SEEDED GATE."
+    echo "   The four date-invariant figures are unchanged, which is worth knowing and is ALL it means."
+    echo "   ⚠️ DO NOT QUOTE THIS RUN AS GREEN: SUM(price_minor) and the reservation count were never"
+    echo "      compared, so a changed rate price or a changed booking set would have passed silently."
     exit 0
   fi
 fi
