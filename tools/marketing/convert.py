@@ -126,7 +126,9 @@ from six_uncorrected import (SECURITY_SIX as _SIX_SEC,      # noqa: E402
                              HOUSEKEEPING_SIX as _SIX_HK)   # noqa: E402
 from batch6_articles_truth import (TRUST_TRUTH as _B6_TRUST,        # noqa: E402
                                    OWNERS_TRUTH as _B6_OWNERS,      # noqa: E402
-                                   STATEMENT_TRUTH as _B6_STMT)     # noqa: E402
+                                   STATEMENT_TRUTH as _B6_STMT,     # noqa: E402
+                                   DIRECT_TRUTH as _B6_DIRECT,      # noqa: E402
+                                   OOS_TRUTH as _B6_OOS)            # noqa: E402
 
 # ⚠️ THREE `FALSE` CORRECTIONS ARE NOT REGISTERED, AND THAT IS A FINDING, NOT AN OMISSION. S1-015/043/117
 # are /faq's onboarding timelines, and /faq's answers live in a `<script type="application/ld+json">`
@@ -1659,7 +1661,9 @@ def convert(key):
     #    spec/batch6_articles_truth.py — every replacement checked against the code before it was written.
     for _k, _table, _tag in (('article-trust', _B6_TRUST, 'B6-TRUST'),
                              ('article-owners', _B6_OWNERS, 'B6-OWNERS'),
-                             ('article-statement', _B6_STMT, 'B6-STMT')):
+                             ('article-statement', _B6_STMT, 'B6-STMT'),
+                             ('article-direct', _B6_DIRECT, 'B6-DIRECT'),
+                             ('article-oos', _B6_OOS, 'B6-OOS')):
         if key == _k:
             for _i, (_before, _after) in enumerate(_table.items(), 1):
                 t = swap(t, _before, _after, key, f'{_tag}/{_i}')

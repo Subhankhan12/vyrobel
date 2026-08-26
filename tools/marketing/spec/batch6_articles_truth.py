@@ -170,3 +170,54 @@ STATEMENT_TRUTH = {
         'Every statement, the bookings behind it, each expense naming the ticket it came from, and the '
         'payout that followed.',
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# article-direct  ·  ⚠️ THE PAGE NO REPORT HAD NAMED — found by counting the gate, not by reading a list
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+DIRECT_TRUTH = {
+    # ⚠️⚠️ THE SAME FALSEHOOD AS `article-trust`, ON A PAGE THE LAST PASS NEVER OPENED — and here it is
+    # bigger, because it is the BOOKING ENGINE and not only the card form.
+    #
+    # ⚠️ CONFIRM-FIRST NEARLY WENT THE OTHER WAY: `organizations.custom_domain` EXISTS as a column, which
+    # reads like support for exactly this. VERIFIED THAT IT IS INERT — its only appearance outside the
+    # migration is in `$fillable`; nothing reads it; and `Route::domain(` appears NOWHERE in the codebase.
+    # The storefront is reachable only at Vyrobel's own host under `/book/{property}`.
+    # ⚠️ The inert column is reported as a code-side finding, NOT fixed here.
+    'Get a booking engine on your own domain that shows live availability and takes a card.':
+        'Get a booking engine that shows live availability from the same calendar your front desk uses '
+        'and takes a card.',
+
+    # ⚠️ Same evidence; the sibling sentence on the same page. The ARGUMENT — that a familiar card form
+    # reassures and a bank-transfer request reads as risk — is true and is kept whole.
+    'A recognised card form on your own domain.':
+        'A recognised card form, handled by Stripe\u2019s hosted checkout.',
+
+    # ⚠️ MEASURED: 1,011 words, which is four to five minutes. The figure is REMOVED, not re-estimated —
+    # the same rule applied to the owners article's byline. The publication date is real and stays.
+    '\u00b7 14 min read \u00b7 22 July 2026': '\u00b7 22 July 2026',
+}
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# article-oos  ·  ⚠️ ALSO FOUND BY COUNTING — its one claim was filed UNMATCHED, so no list showed it
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+OOS_TRUTH = {
+    # ⚠️ ONE FALSE CLAUSE IN A SENTENCE OF FOUR, and the other three are REAL — so three-quarters of this
+    # sentence stays exactly as written. VERIFIED:
+    #   • "Raised from the room with a photo" — REAL (`housekeeping.photos.store`, `MaintenanceTicket`).
+    #   • ⚠️ "blocking every channel immediately" — FALSE. `FakeChannexClient` is the bound default
+    #     (`services.channex.fake`, default true); no channel connection is live, so nothing is blocked
+    #     on any OTA. ⚠️ The replacement states what DOES happen and promises NO future channel sync —
+    #     the channels page is stopped by ruling and nothing here may imply otherwise.
+    #   • "listing the bookings that need moving" — REAL: `maintenance-ticket-detail.blade.php` renders
+    #     "real affected bookings", and the list view warns that booked nights will need moving.
+    #   • "putting the repair cost on the owner\u2019s statement when it resolves" — REAL
+    #     (`MaintenanceService::correctCost` \u2192 `OwnerExpense` \u2192 owner ledger \u2192 statement).
+    'Raised from the room with a photo, blocking every channel immediately, listing the bookings that '
+    'need moving, and putting the repair cost on the owner\u2019s statement when it resolves.':
+        'Raised from the room with a photo, taking the unit off sale immediately, listing the bookings '
+        'that need moving, and putting the repair cost on the owner\u2019s statement when it resolves.',
+}

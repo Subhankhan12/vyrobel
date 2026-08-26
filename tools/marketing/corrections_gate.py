@@ -32,6 +32,9 @@ import re, io, os, sys, json
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(os.path.dirname(_HERE))
 sys.path.insert(0, _HERE)
+sys.path.insert(0, os.path.join(_HERE, 'spec'))
+from half_cut import (HALF_CUT as _HALF, CORRECTED_UNMATCHABLE as _CUNM,  # noqa: E402
+                      VERIFIED_TRUE as _VTRUE)                          # noqa: E402
 import convert as C
 import reconcile as R
 
@@ -150,8 +153,69 @@ def status():
             else:
                 done += 1                             # present in the master, gone after conversion
                 matches.append({'url': url, 'rule': rule, 'fragment': R.norm(f), 'sentence': sent})
+        # ⚠️⚠️ RECLASSIFY THE DECLARED EXCEPTIONS — AND VERIFY EVERY ONE OF THEM (spec/half_cut.py).
+        #
+        # A claim whose audit quote straddles a false half and a TRUE sentence cannot be evidenced by the
+        # present/absent rule above: cutting the false half correctly leaves the true half in place, and
+        # the row reads OUTSTANDING for work that was done right. That row is an invitation — the next
+        # reader closes it by deleting the true sentence.
+        # ⚠️ SO EACH DECLARATION CARRIES TWO CONDITIONS AND BOTH ARE CHECKED HERE, EVERY RUN:
+        #      ① the false fragment was in the master and is gone from the output;
+        #      ② the true fragment is STILL in the output.
+        # ⚠️ IF ② FAILS — someone cut the true half to green the row — THE DECLARATION BREAKS AND THIS
+        #    REPORTS IT LOUDLY, so the wrong fix is the one that breaks the build.
+        half_cut, corrected_unmatchable, verified_true, broken = [], [], [], []
+
+        def _has(frag, hay):
+            return R.locate(frag, hay)[1] is not None or R.norm(frag) in R.norm(hay)
+
+        for decl in _HALF.get(url, []):
+            # ⚠️⚠️ VERIFIED UNCONDITIONALLY, AND THAT ORDERING IS THE WHOLE GUARD.
+            #
+            # The first version of this checked the declaration only when the claim was still OUTSTANDING —
+            # and a mutation showed that is precisely backwards. Cut the true half and the audit's fragment
+            # vanishes ENTIRELY, so the present/absent rule banks the claim as DONE, the row goes green, and
+            # a check that only inspects outstanding rows never runs. The one action this mechanism exists
+            # to catch was the one action that skipped it.
+            # ⚠️ So condition ② is now checked on every run whatever the claim's classification.
+            ok_false = (not _has(decl['false_fragment'], btext)) and _has(decl['false_fragment'], mtext)
+            ok_true = _has(decl['true_fragment'], btext)
+            if not ok_true:
+                broken.append((decl['match'],
+                               '⚠️⚠️ THE TRUE HALF IS GONE FROM THE OUTPUT. If this was done to close an '
+                               'outstanding row, it removed a TRUE statement and closed nothing — restore '
+                               'it. The false half alone was ever the defect.'))
+                continue
+            if not ok_false:
+                broken.append((decl['match'], 'the FALSE half is present in the output again'))
+                continue
+            hit = [x for x in still if decl['match'] in x[0]]
+            if hit:
+                still = [x for x in still if x not in hit]
+                half_cut.append((hit[0][0], decl['why']))
+
+        for decl in _CUNM.get(url, []):
+            hit = [x for x in unmatched if decl['match'] in x[0]]
+            if not hit:
+                continue
+            if _has(decl['false_fragment'], mtext) and not _has(decl['false_fragment'], btext):
+                unmatched = [x for x in unmatched if x not in hit]
+                corrected_unmatchable.append((hit[0][0], decl['why']))
+            else:
+                broken.append((decl['match'], 'the falsehood is present in the output again'))
+
+        for decl in _VTRUE.get(url, []):
+            hit = [x for x in unmatched if decl['match'] in x[0]] + [x for x in still if decl['match'] in x[0]]
+            if not hit:
+                continue
+            unmatched = [x for x in unmatched if x not in hit]
+            still = [x for x in still if x not in hit]
+            verified_true.append((hit[0][0], decl['why']))
+
         rows.append({'url': url, 'key': key, 'owed': len(d['false_claims']),
                      'done': done, 'outstanding': still, 'unmatched': unmatched,
+                     'half_cut': half_cut, 'corrected_unmatchable': corrected_unmatchable,
+                     'verified_true': verified_true, 'broken': broken,
                      'matches': matches, 'verdict': d['verdict']})
     return rows, section_count, len(o)
 
@@ -176,9 +240,44 @@ if __name__ == '__main__':
           f"{sum(len(r['outstanding']) for r in rows)} · ⚠️ unmatched {tot_u}")
     print("  ⚠️ UNMATCHED = the audit's quote does not align with the page text. NOT a correction, and")
     print("     not counted as one — it is a gap between the two registers that someone must reconcile.")
+
+    # ⚠️⚠️ A BROKEN DECLARATION IS THE LOUDEST THING THIS GATE CAN SAY, and it is printed FIRST.
+    #    The commonest way to break one is to delete the true half of a half-cut claim in order to close
+    #    an outstanding row — which removes a true statement and calls it progress.
+    broken = [(r['url'], m, why) for r in rows for m, why in r.get('broken', [])]
+    if broken:
+        print("\n  ⚠️⚠️ BROKEN DECLARATION(S) — spec/half_cut.py no longer describes the pages:")
+        for url, m, why in broken:
+            print(f"     ❌ {url} · {m}\n        {why}")
+
+    # ⚠️ THE BREAKDOWN IS THE POINT. A single "outstanding" number means four different things and only
+    #    one of them is work; printing it alone is how three of the four get mistaken for the fourth.
+    hc = [(r['url'], c, w) for r in rows for c, w in r.get('half_cut', [])]
+    cu = [(r['url'], c, w) for r in rows for c, w in r.get('corrected_unmatchable', [])]
+    vt = [(r['url'], c, w) for r in rows for c, w in r.get('verified_true', [])]
+    parked = sum(len(r['outstanding']) for r in rows if r['url'] == '/docs/connecting-channels')
+    reachable = sum(len(r['outstanding']) for r in rows) - parked
+    print("\n  ── WHAT THE NUMBERS MEAN ─────────────────────────────────────────────────────────────")
+    print(f"     CORRECTED, evidenced                     {tot_d:>4}")
+    print(f"     CORRECTED, quote unmatchable             {len(cu):>4}   ⚠️ real work the rule cannot see")
+    print(f"     HALF-CUT, verified                       {len(hc):>4}   ⚠️ false half gone, TRUE half kept")
+    print(f"     VERIFIED TRUE — nothing to correct       {len(vt):>4}   ⚠️ the audit was wrong, not the page")
+    print(f"     OUTSTANDING and reachable                {reachable:>4}   ⚠️ this is the only row that is WORK")
+    print(f"     OUTSTANDING but PARKED (channels)        {parked:>4}   ⚠️ stopped by ruling — do not touch")
+    print(f"     UNMATCHED and unreachable                {tot_u:>4}   ⚠️ the audit paraphrased; no fragment to match")
+    print("     ⚠️ HALF-CUT rows are NOT outstanding. Closing one by deleting its true half breaks the")
+    print("        declaration above and reds this gate — which is the intended direction.")
     if '--write' in sys.argv:
         p = os.path.join(_ROOT, 'resources/marketing/corrections-status.json')
         io.open(p, 'w', encoding='utf-8').write(json.dumps(
             {r['key']: {'owed': r['owed'], 'done': r['done'], 'outstanding': len(r['outstanding'])}
              for r in rows if r['key']}, indent=2) + "\n")
         print(f"  wrote {p}")
+
+    # ⚠️⚠️ A BROKEN DECLARATION MUST FAIL, NOT MERELY PRINT. This report was previously advisory only —
+    # exit 0 whatever it found — and an advisory warning is exactly what a pass in a hurry scrolls past.
+    # The one state that matters here is "a true statement was deleted to close a row", and the only way
+    # to make that unmissable is a non-zero exit that a wrapper or a human cannot mistake for success.
+    # ⚠️ Nothing ELSE reds: outstanding, unmatched and parked rows are all legitimate states of the data.
+    if any(r.get('broken') for r in rows):
+        sys.exit(1)

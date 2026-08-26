@@ -481,3 +481,30 @@ FORBIDDEN_BY_PAGE.update({
         'font-size: 12.5px;">view</span>',
     ],
 })
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠️ DOCS-FINISH (2026-08-26) — the two pages found by COUNTING the gate rather than reading a list.
+#
+# ⚠️ COVERAGE NOTE, because the headline figure misleads: `FORBIDDEN_BY_PAGE` reaches 25 of 27 pages
+# after this, not 23. `faq` and `glossary` never appear in it and are NOT unguarded — they render from a
+# data structure, so they are checked against the global FORBIDDEN list under the
+# `FG/no-false-claim-survives` needle instead. Counting this dict alone undercounts them.
+# ⚠️ THE ONLY GENUINELY UNGUARDED PAGE IS `guide-channels`, and that is by ruling: the page is stopped
+# until a connect flow exists, so there is nothing settled enough to guard.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+FORBIDDEN_BY_PAGE.update({
+    'article-direct': FORBIDDEN_BY_PAGE.get('article-direct', []) + [
+        # ⚠️ `organizations.custom_domain` exists but is INERT (nothing reads it; no `Route::domain`
+        #    anywhere), so the storefront lives only at Vyrobel's own host under /book/{property}.
+        'on your own domain',
+        # A 1,011-word article. Removed, never re-estimated.
+        '14 min read',
+    ],
+    'article-oos': FORBIDDEN_BY_PAGE.get('article-oos', []) + [
+        # ⚠️ No channel connection is live — `FakeChannexClient` is the bound default. The other three
+        #    clauses of that sentence are real and are deliberately NOT guarded against.
+        'blocking every channel immediately',
+    ],
+})
