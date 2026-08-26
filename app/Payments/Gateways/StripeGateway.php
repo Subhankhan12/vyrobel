@@ -32,8 +32,11 @@ class StripeGateway implements PaymentGateway
         return 'stripe';
     }
 
-    public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult
+    public function charge(Money $amount, ?string $token, array $metadata = [], ?string $connectedAccountId = null): GatewayResult
     {
+        // ⚠️⚠️ THE THIRD PATH. The desk card charge now names the operator's account exactly as the two
+        //    hosted-Checkout paths do — before this, it charged the PLATFORM and stamped nothing, and the
+        //    only thing masking it was PAYMENTS_GATEWAY defaulting to `manual`.
         $intent = $this->stripe->createPaymentIntent(
             $amount->amountMinor(),
             $amount->currency(),
@@ -41,6 +44,7 @@ class StripeGateway implements PaymentGateway
             capture: true,
             metadata: $this->stringMetadata($metadata),
             idempotencyKey: $this->idempotencyKey('folio_charge', $metadata),
+            connectedAccountId: $connectedAccountId,
         );
 
         return $this->intentToResult($intent, successStatuses: ['succeeded'], successLabel: 'succeeded');

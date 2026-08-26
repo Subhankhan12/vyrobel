@@ -21,7 +21,7 @@ final class QueuingRefundGateway implements PaymentGateway
         return 'stripe';
     }
 
-    public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult
+    public function charge(Money $amount, ?string $token, array $metadata = [], ?string $connectedAccountId = null): GatewayResult
     {
         return new GatewayResult(true, 'pi_'.bin2hex(random_bytes(6)), 'succeeded');
     }

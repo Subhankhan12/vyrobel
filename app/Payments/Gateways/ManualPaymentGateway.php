@@ -22,7 +22,10 @@ class ManualPaymentGateway implements PaymentGateway
         return 'manual';
     }
 
-    public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult
+    // ⚠️ `$connectedAccountId` is ACCEPTED AND IGNORED, deliberately. A manual payment is money taken
+    //    outside any gateway — cash, bank transfer, a terminal we never see — so it is never "on" an
+    //    account, and it must never stamp one.
+    public function charge(Money $amount, ?string $token, array $metadata = [], ?string $connectedAccountId = null): GatewayResult
     {
         return new GatewayResult(true, $this->reference('pay'), 'succeeded');
     }

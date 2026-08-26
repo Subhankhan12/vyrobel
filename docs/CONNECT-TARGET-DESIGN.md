@@ -402,3 +402,43 @@ capability unless something already reachable provides it.**
 (`51ae811`): the storefront's *"you'll get an email the moment it clears"* — `SendGuestTransactionalEmails`
 handles `reservation.confirmed` / `cancelled` / `payment.refunded` / `checked_out`, **not** payment
 settlement, and no such Mailable exists. Corrected to point at the page the guest is already on.
+
+
+---
+
+## Addendum (2026-08-26) — THE THIRD PATH: the migration is complete
+
+⚠️ **All three charge paths now charge on the operator's connected account and stamp it on the payment:**
+the public storefront, the guest portal, and — new here — `FolioService::recordPayment()`, the DESK card
+charge a front-desk agent uses every day. Before this it charged the PLATFORM and stamped nothing, masked
+only by `PAYMENTS_GATEWAY` defaulting to `manual`: **a default, not a guard.**
+
+**The signature question, answered before it was changed.** `PaymentGateway::charge()` gained
+`?string $connectedAccountId = null` — the same shape `refund()` already carried. ⚠️ `ManualPaymentGateway`
+**accepts and ignores it**, which is correct rather than contamination: sub-merchant routing is a
+gateway-level concept, not a Stripe-only one, and the alternative — smuggling the account through
+`$metadata` — hides a money-critical field in a stringly-typed bag. A manual payment stamps **nothing**,
+and a test proves it.
+
+**The null-account refusal has landed**, and only now is it correct. Withdrawn last pass because it
+presumed a migration that was two-thirds done; correct today because all three paths stamp. It refuses
+rather than falling back, names a **role and a next action** (never a screen), and explicitly permits the
+manual case.
+
+⚠️ **The pinning test was REPOINTED, NOT DELETED.** It used to assert that `charge()` had **no**
+connected-account parameter — a pin recording an incomplete migration, designed to fail the day someone
+widened the signature. It now asserts that **all four** entry points carry the account. Deleting it would
+have lost the only thing that knew the gap existed.
+
+⚠️ **Five certified suites needed an onboarded operator** (`StripePaymentTest`, `PublicBookingStorefrontPayTest`,
+`GuestCardChargeTest`, `PublicBookingEngineTest`, `StaffActionsTest`). **Every one is additions-only — zero
+deletions, no assertion amended.** ⚠️ The snippet had been written inline four times before it was extracted
+to `tests/Support/connect_helpers.php` — one definition (§N.8f), which is exactly how a fixture drifts from
+the thing it stands in for.
+
+⚠️ **The loud abort survives and is the guard:** `migrate:fresh --seed` under `stripe` still aborts naming
+`OperatorNotReadyForPayments`. `PAYMENTS_GATEWAY` was deliberately **not** pinned — it must stay flippable
+at go-live.
+
+**Still open, unchanged:** the onboarding UI and the statement descriptor remain go-live requirements, and
+the `once()` merge trigger (a third receiver, or a change to the rule's shape) has not fired.

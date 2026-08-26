@@ -37,7 +37,7 @@ class StripeClient implements StripeClientInterface
         $this->sdk = new StripeSdk($secret);
     }
 
-    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent
+    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeIntent
     {
         $params = [
             'amount' => $amountMinor,
@@ -55,7 +55,7 @@ class StripeClient implements StripeClientInterface
 
         // The deterministic Idempotency-Key: a retry with the same key returns the ORIGINAL intent
         // (Stripe's guarantee) — no second charge.
-        $intent = $this->sdk->paymentIntents->create($params, $this->options($idempotencyKey));
+        $intent = $this->sdk->paymentIntents->create($params, $this->options($idempotencyKey, $connectedAccountId));
 
         return new StripeIntent(
             (string) $intent->id,

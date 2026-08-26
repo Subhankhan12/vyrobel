@@ -26,7 +26,7 @@ interface StripeClientInterface
      *
      * @param  array<string, mixed>  $metadata
      */
-    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent;
+    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeIntent;
 
     /**
      * Capture a previously authorized (manual-capture) intent, fully or partially.

@@ -61,6 +61,7 @@ it('a quote is an advisory hold that does not touch sold, and expiring it marks 
 
 it('book+pay routes through AssignmentService (sold++ at confirm), pays via Stripe through FolioService, and pushes ARI outward', function () {
     $s = publicPropertyScenario(units: 1);
+    onboardOrgForCards($s);   // ⚠️ paying by card now charges the operator's own account — fixture only
 
     // A connected channel + mapping so the booking's domain event produces an outward ARI push.
     $channel = Channel::factory()->create(['property_id' => $s['property']->id, 'external_property_id' => 'chx-p']);
@@ -94,6 +95,7 @@ it('book+pay routes through AssignmentService (sold++ at confirm), pays via Stri
 
 it('two advisory holds on the last unit both succeed, but only ONE conversion seats; the second is cleanly rejected (never overbooks)', function () {
     $s = publicPropertyScenario(units: 1); // ONE unit
+    onboardOrgForCards($s);   // ⚠️ paying by card now charges the operator's own account — fixture only
     $engine = app(BookingEngineService::class);
 
     $q1 = $engine->quote($s['property'], $s['roomType']->id, $s['ratePlan']->id, '2026-09-01', '2026-09-03', 2, 0, 'a@example.com');

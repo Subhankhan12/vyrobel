@@ -65,13 +65,17 @@ class FakeStripeClient implements StripeClientInterface
     /** @var list<?string> the connected account each refund named (null = the platform). */
     public array $refundAccounts = [];
 
+    /** @var list<?string> the connected account each PaymentIntent named — the DESK charge path. */
+    public array $intentAccounts = [];
+
     public function __construct(
         private readonly ?string $webhookSecret = null,
         private readonly ?string $connectWebhookSecret = null,
     ) {}
 
-    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null): StripeIntent
+    public function createPaymentIntent(int $amountMinor, string $currency, ?string $paymentMethod, bool $capture, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeIntent
     {
+        $this->intentAccounts[] = $connectedAccountId;
         // A repeated Idempotency-Key returns the ORIGINAL intent — never a second charge (Stripe's guarantee).
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->intents[$this->idempotency[$idempotencyKey]];

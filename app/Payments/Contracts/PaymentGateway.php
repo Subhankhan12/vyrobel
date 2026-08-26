@@ -20,7 +20,16 @@ interface PaymentGateway
     /**
      * @param  array<string, mixed>  $metadata
      */
-    public function charge(Money $amount, ?string $token, array $metadata = []): GatewayResult;
+    /**
+     * ⚠️ `$connectedAccountId` — the account the charge is created ON, or null for the platform's own.
+     *
+     * ⚠️ THIS IS A GATEWAY-LEVEL CONCEPT, NOT A STRIPE ONE: sub-merchant routing exists across payment
+     * providers. ⚠️ {@see ManualPaymentGateway} ACCEPTS AND IGNORES IT and must keep doing so — a manual
+     * payment has no gateway charge at all, so there is no account for it to be taken on. Smuggling the
+     * value through `$metadata` was the alternative and is worse: it hides a money-critical field in a
+     * stringly-typed bag. `refund()` already carries it in exactly this shape.
+     */
+    public function charge(Money $amount, ?string $token, array $metadata = [], ?string $connectedAccountId = null): GatewayResult;
 
     /**
      * $idempotencyKey — a deterministic key for the LOGICAL refund, so a retry (double-submit, network

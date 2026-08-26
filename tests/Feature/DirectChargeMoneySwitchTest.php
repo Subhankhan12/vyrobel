@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Exceptions\Folio\RefundAccountUnknownException;
 use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Exceptions\Payments\OperatorNotReadyForPaymentsException;
 use App\Models\Organization;
@@ -268,18 +269,104 @@ it('⚠️⚠️ THE REFUSAL NAMES NO SCREEN — it says WHO can act, not WHERE 
         ->and($message)->toContain('take payment another way');
 });
 
-it('⚠️⚠️ THE DESK PATH STILL CHARGES THE PLATFORM — the switch is INCOMPLETE, and this pins it', function () {
-    // ⚠️ This is a FINDING pinned as a test, not a feature. `recordPayment()` (the desk card path) charges
-    //    through `PaymentGateway::charge()`, which has NO connected-account parameter — so under
-    //    PAYMENTS_GATEWAY=stripe it charges the PLATFORM and stamps no account. Only the two hosted-Checkout
-    //    paths were switched.
-    // ⚠️ It is masked today ONLY by PAYMENTS_GATEWAY defaulting to `manual`. Nothing enforces that default.
-    // ⚠️ When the desk path is switched, this test should FAIL — and that failure is the signal to add the
-    //    null-account refusal in the SAME unit. A refusal added before then blocks a legitimate path.
-    $reflection = new ReflectionMethod(PaymentGateway::class, 'charge');
-    $names = array_map(fn (ReflectionParameter $p): string => $p->getName(), $reflection->getParameters());
+it('⚠️⚠️ THE MIGRATION IS COMPLETE — ALL THREE charge paths carry a connected account', function () {
+    // ⚠️ THIS PIN USED TO RECORD THE OPPOSITE. It asserted that `charge()` had NO connected-account
+    //    parameter — pinning a migration that covered two paths of three, so that the day someone widened
+    //    the signature the test would fail and say why. ⚠️ IT WAS NOT DELETED WHEN THAT DAY CAME: a pin
+    //    that recorded an incomplete migration became one that records a complete one, because deleting it
+    //    would lose the only thing that knew the gap had existed.
+    $charge = new ReflectionMethod(PaymentGateway::class, 'charge');
+    $refund = new ReflectionMethod(PaymentGateway::class, 'refund');
+    $names = fn (ReflectionMethod $m): array => array_map(
+        fn (ReflectionParameter $p): string => $p->getName(), $m->getParameters(),
+    );
 
-    expect($names)->not->toContain('connectedAccountId');
+    // ⚠️ The DESK path (`recordPayment` → `charge`) — the third and last one switched.
+    expect($names($charge))->toContain('connectedAccountId')
+        ->and($names($refund))->toContain('connectedAccountId');
+
+    // ⚠️ And the two hosted-Checkout paths, which went first.
+    $checkout = new ReflectionMethod(StripeClientInterface::class, 'createPaymentCheckout');
+    $intent = new ReflectionMethod(StripeClientInterface::class, 'createPaymentIntent');
+    expect($names($checkout))->toContain('connectedAccountId')
+        ->and($names($intent))->toContain('connectedAccountId');
+});
+
+it('⚠️⚠️ THE DESK CHARGE NAMES THE OPERATOR ACCOUNT AND STAMPS IT — no platform fallback', function () {
+    $s = seedScenario(1);
+    $org = switchOrg($s);
+    ['folio' => $folio] = switchBooking($s);
+    $account = (string) $org->stripe_connect_account_id;
+
+    config()->set('services.payments.gateway', 'stripe');
+    app()->forgetInstance(FolioService::class);
+    $fake = app(StripeClientInterface::class);
+    $fake->intentAccounts = [];
+
+    $payment = app(FolioService::class)->recordPayment($folio, Money::of(50000, 'EUR'), 'pm_card_visa');
+
+    // ⚠️ The PaymentIntent was created ON the operator's account — before this, it hit the platform.
+    expect($fake->intentAccounts)->toBe([$account])
+        // ⚠️ …and the account is stamped, so a refund can find it.
+        ->and((string) $payment->refresh()->stripe_account_id)->toBe($account);
+});
+
+it('⚠️⚠️ A DESK REFUND IS ISSUED ON THAT ACCOUNT, never the platform', function () {
+    $s = seedScenario(1);
+    $org = switchOrg($s);
+    ['folio' => $folio] = switchBooking($s);
+    $account = (string) $org->stripe_connect_account_id;
+
+    config()->set('services.payments.gateway', 'stripe');
+    app()->forgetInstance(FolioService::class);
+    $folios = app(FolioService::class);
+    $payment = $folios->recordPayment($folio, Money::of(50000, 'EUR'), 'pm_card_visa');
+    $folios->settlePayment($payment, 'succeeded');
+
+    $fake = app(StripeClientInterface::class);
+    $fake->refundAccounts = [];
+    $folios->refundPayment($payment->refresh(), Money::of(10000, 'EUR'));
+
+    expect($fake->refundAccounts)->toBe([$account]);
+});
+
+it('⚠️⚠️ A STRIPE PAYMENT WITH NO STAMPED ACCOUNT REFUSES — correct only now the migration is complete', function () {
+    $s = seedScenario(1);
+    ['folio' => $folio, 'folios' => $folios] = switchBooking($s);
+
+    // What a pre-switch Stripe charge looks like: a Stripe gateway with no account recorded.
+    $payment = $folios->recordPayment($folio, Money::of(50000, 'EUR'));
+    $folios->settlePayment($payment, 'succeeded');
+    $payment->forceFill(['gateway' => 'stripe', 'stripe_account_id' => null])->save();
+
+    config()->set('services.payments.gateway', 'stripe');
+    app()->forgetInstance(FolioService::class);
+    $fake = app(StripeClientInterface::class);
+    $fake->refundAccounts = [];
+
+    // ⚠️ Refunding with a null account omits the Stripe-Account header and targets the PLATFORM — either a
+    //    404, or platform funds settling an operator's guest. It refuses instead.
+    expect(fn () => app(FolioService::class)->refundPayment($payment->refresh(), Money::of(10000, 'EUR')))
+        ->toThrow(RefundAccountUnknownException::class);
+
+    // ⚠️ And it refused BEFORE the gateway call — nothing reached Stripe.
+    expect($fake->refundAccounts)->toBe([]);
+});
+
+it('⚠️ a MANUAL payment neither stamps an account nor is refused — that null is CORRECT', function () {
+    $s = seedScenario(1);
+    ['folio' => $folio, 'folios' => $folios] = switchBooking($s);
+
+    // ⚠️ No onboarding at all: a manual payment is money taken outside any gateway, so it must not require
+    //    a connected account and must not gain one.
+    $payment = $folios->recordPayment($folio, Money::of(50000, 'EUR'));
+    $folios->settlePayment($payment, 'succeeded');
+
+    expect((string) $payment->refresh()->gateway)->toBe('manual')
+        ->and($payment->stripe_account_id)->toBeNull();
+
+    $refund = $folios->refundPayment($payment, Money::of(10000, 'EUR'));
+    expect((string) $refund->status)->toBe('succeeded');
 });
 
 it('⚠️⚠️ THE REFUND EVENT IS MATCHED BY TYPE, NEVER BY A SNIFFED ID', function () {

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\Folio\RefundAccountUnknownException;
 use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Models\AddOn;
 use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\FolioItem;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\PaymentAuthorization;
 use App\Models\Reservation;
@@ -217,7 +219,20 @@ class FolioService
             }
         }
 
-        $result = $this->gateway->charge($amount, $cardToken, $metadata);
+        // ⚠️⚠️ THE THIRD PATH — THE DESK CARD CHARGE. The two hosted-Checkout paths were switched first;
+        //    this one was not, so under PAYMENTS_GATEWAY=stripe it charged the PLATFORM and stamped nothing.
+        //    ⚠️ Resolved ONLY for a gateway that actually reaches Stripe: a `manual` payment is money taken
+        //    outside any gateway (cash, bank transfer, a terminal we never see), so requiring onboarding for
+        //    it would block the desk from recording cash — and would break every seeded payment.
+        //    ⚠️ NO FALLBACK: if the operator is not `charges_enabled`, `accountForCharge()` REFUSES. There is
+        //    no platform charge to fall back to, on this path either.
+        $connectedAccountId = $this->gateway->name() === 'stripe'
+            ? app(OperatorConnectService::class)->accountForCharge(
+                Organization::withoutGlobalScopes()->findOrFail((string) $folio->organization_id),
+            )
+            : null;
+
+        $result = $this->gateway->charge($amount, $cardToken, $metadata, $connectedAccountId);
 
         $status = $this->mapResultStatus($result);
         // Carry the SCA/3DS next-step secret so the frontend can complete authentication. Never
@@ -227,7 +242,7 @@ class FolioService
             : $metadata;
 
         try {
-            $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $storedMetadata, $result, $status, $idempotencyKey): Payment {
+            $payment = DB::transaction(function () use ($folio, $amount, $cardToken, $storedMetadata, $result, $status, $idempotencyKey, $connectedAccountId): Payment {
                 $payment = Payment::create([
                     'folio_id' => $folio->getKey(),
                     'reservation_id' => $folio->reservation_id,
@@ -238,6 +253,9 @@ class FolioService
                     // no explicit method (the gateway still identifies the rail).
                     'method' => is_string($storedMetadata['method'] ?? null) ? $storedMetadata['method'] : null,
                     'gateway_ref' => $result->reference,
+                    // ⚠️ Stamped so a refund can find the account that TOOK the charge. Null on `manual`,
+                    //    which is correct: there is no Stripe charge behind it.
+                    'stripe_account_id' => $connectedAccountId,
                     'idempotency_key' => $idempotencyKey,
                     'type' => 'payment',
                     'amount' => $amount,
@@ -457,22 +475,22 @@ class FolioService
             // ⚠️ The account is read from the PAYMENT, not re-derived from the organisation: a refund must
             //    follow the money it is reversing, even if the operator has since re-onboarded.
             //
-            // ⚠️⚠️ A NULL ACCOUNT HERE IS **NOT** A LOST REFERENCE TODAY — AND A REFUSAL WAS TRIED AND
-            //    WITHDRAWN. The switch converted the two HOSTED-CHECKOUT paths (storefront + guest portal),
-            //    which stamp the account. `recordPayment()` — the DESK card path — was NOT switched: its
-            //    `PaymentGateway::charge()` has no connected-account parameter at all, so under
-            //    PAYMENTS_GATEWAY=stripe it genuinely charges the PLATFORM. Refunding THAT on the platform
-            //    is correct, not a fallback.
+            // ⚠️⚠️ A STRIPE PAYMENT WITH NO STAMPED ACCOUNT REFUSES — IT DOES NOT FALL BACK.
+            //    Passing null omits the `Stripe-Account` header, attempting the refund on the PLATFORM:
+            //    either a 404 (the charge lives on the connected account) or, worse, platform funds
+            //    settling an operator's guest. That is a silent fallback and the switch forbids one.
             //
-            // ⚠️ So a refusal on `gateway === 'stripe' && stripe_account_id === null` blocked a legitimate,
-            //    certified path (StripePaymentTest's append-only refund proof). The only ways to keep it
-            //    were to amend that certified assertion or to stamp an account the desk path never sets —
-            //    fabricating state to green a gate. Both are forbidden, so the guard came out.
+            // ⚠️ THIS GUARD WAS WITHDRAWN ONCE, CORRECTLY. It was written while only the two hosted-Checkout
+            //    paths were switched, and it blocked a legitimate DESK payment that was genuinely a platform
+            //    charge. ⚠️ It is correct now, and only now, because all THREE charge paths stamp the
+            //    account: the storefront, the guest portal, and `recordPayment()`.
             //
-            // ⚠️⚠️ THE RISK IS REAL AND IS RECORDED, NOT DISMISSED: once the desk path IS switched, a Stripe
-            //    payment with no account becomes a genuine lost reference, and refunding it against the
-            //    platform would move Vyrobel's money to settle an operator's guest. THAT PASS MUST ADD THIS
-            //    REFUSAL IN THE SAME UNIT as the charge change — see docs/CONNECT-TARGET-DESIGN.md.
+            // ⚠️ A `manual` payment is the other case and is CORRECT: no gateway charge exists behind it, so
+            //    its refund is a folio ADJUSTMENT and a null account is the honest value.
+            if ((string) $locked->gateway === 'stripe' && ($locked->stripe_account_id === null || $locked->stripe_account_id === '')) {
+                throw RefundAccountUnknownException::make();
+            }
+
             $result = $this->gateway->refund((string) $locked->gateway_ref, $amount, $gatewayKey, $locked->stripe_account_id);
 
             $refund = Payment::create([

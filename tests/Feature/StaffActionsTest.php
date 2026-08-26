@@ -89,6 +89,8 @@ it('collects a payment through FolioService — Manual gateway', function () {
 it('collects a payment through FolioService — Stripe gateway', function () {
     config(['services.payments.gateway' => 'stripe']);
     $s = seedScenario(1);
+    onboardOrgForCards($s);   // ⚠️ a desk card now charges the operator's own account — fixture only
+
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     $desk = app(FrontDeskService::class);
 

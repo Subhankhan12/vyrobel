@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Folio;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\WebhookEvent;
 use App\Payments\Contracts\PaymentGateway;
@@ -8,6 +9,7 @@ use App\Payments\Gateways\StripeGateway;
 use App\Payments\Stripe\FakeStripeClient;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Services\FolioService;
+use App\Services\OperatorConnectService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -30,6 +32,21 @@ function stripeFolioScenario(int $roomChargeMinor = 30000): array
     config(['services.payments.gateway' => 'stripe']);
 
     $s = seedScenario(1);
+
+    // ⚠️ THE THIRD PATH MADE ONBOARDING A PREREQUISITE FOR THE DESK CARD CHARGE TOO, and this suite proved
+    //    it by failing. `recordPayment()` now charges on the operator's own connected account, so an
+    //    organisation that has not completed Stripe verification cannot take a desk card either — by
+    //    design, with no platform fallback.
+    // ⚠️ NOT ONE ASSERTION IN THIS FILE CHANGED: the append-only refund proof, the SCA/3DS pending proof,
+    //    the exactly-once webhook proof and the no-PAN proof are all exactly as they were. Only the
+    //    fixture's world moved — an operator who can take a card is now one who has onboarded.
+    // ⚠️ The MANUAL-path test below deliberately does NOT onboard: it proves the offline rail still works
+    //    with no Connect account at all.
+    $org = Organization::withoutGlobalScopes()->findOrFail($s['org']->getKey());
+    app(OperatorConnectService::class)->startOnboarding($org, 'ops@example.test', 'https://r', 'https://x');
+    $org->refresh();
+    app(StripeClientInterface::class)->connectChargesEnabled[(string) $org->stripe_connect_account_id] = true;
+
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
     $folios = app(FolioService::class);
