@@ -33,6 +33,20 @@ is reported as a BROKEN DECLARATION and counted as outstanding again, never sile
 # ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 HALF_CUT = {
+    '/glossary': [{
+        'match': 'What you are billed on',
+        'false_fragment': 'What you are billed on',
+        'true_fragment': 'Anything you sell independently and clean separately',
+        'why': (
+            '⚠️⚠️ THIS ROW WAS REGISTERED FOUNDER_BLOCKED ON 2026-08-26 AND THAT WAS WRONG — recorded here '
+            'because the mistake is more instructive than the correction. The billing claim had ALREADY been '
+            'corrected by an earlier pass; the glossary now reads "Your bill does not move with it: the '
+            'subscription is one flat figure per account whatever your unit count." ⚠️ THE ERROR WAS READING '
+            'THE MASTER INSTEAD OF THE BUILT OUTPUT — a grep over tools/marketing/core/*.html finds the '
+            'pre-correction text on nine pages, because that is what a master IS. The same wrong-layer read '
+            'has now produced three separate false findings. ⚠️ ALWAYS grep C.convert(key), never the master. '
+            'The audit quoted the whole entry, so the true definition keeps the row visible — a half-cut.'),
+    }],
     '/docs/invites-and-access': [{
         'match': 'no reason to see',
         'false_fragment': 'On a multi-property account, choose which properties they work in. A housekeeper',
@@ -149,20 +163,9 @@ VERIFIED_TRUE = {
 # ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 FOUNDER_BLOCKED = {
-    '/glossary': [{
-        'match': 'What you are billed on',
-        'why': (
-            '⚠️⚠️ THE ENGINE AND THE MARKETING DISAGREE ABOUT THE BILLING MODEL, AND THE DISAGREEMENT IS '
-            'ALREADY RECORDED IN CODE. Every seeded plan is `pricing_type = \'flat\'` at €49 / €99 '
-            '(PLACEHOLDER), while nine pages describe per-unit pricing. `MarketingPricing`\'s docblock states '
-            'it exactly: "the design\'s \'€X / unit / mo\' framing cannot simply be re-numbered: it '
-            'describes a model the system does not run… the framing copy is a founder decision, surfaced '
-            'rather than invented" (DECISIONS, Gate 3b).\n'
-            '⚠️ SO CUTTING IT HERE WOULD BE THE WORST AVAILABLE MOVE. A glossary defines the words every other '
-            'page uses; removing the billing basis from the glossary alone would leave `/pricing`, `/faq`, '
-            '`/terms`, `home`, `guide-setup` and `guide-settings` still teaching per-unit billing, and put the '
-            'glossary in conflict with a contract page. ⚠️ ONE DECISION, NOT NINE EDITS: either the engine '
-            'moves to per-unit (the engine already supports the shape — no plan uses it), or the copy moves to '
-            'flat. That is the founder\'s call and it is not a documentation defect.'),
-    }],
+    # ⚠️ EMPTY, AND DELIBERATELY KEPT. Its one entry (the glossary billing basis) was removed on
+    # 2026-08-28: the claim was never blocked on a decision — it was already corrected, and the
+    # registration rested on a master-level grep. It now sits in HALF_CUT above, where it belongs.
+    # ⚠️ The category stays because "outstanding, but a decision rather than a doc defect" is a real
+    # state, and the gate prints the row so a future reader can see it is genuinely zero.
 }

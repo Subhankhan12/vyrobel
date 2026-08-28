@@ -38,6 +38,28 @@ is loaded automatically every session — do not duplicate it here.**
 | Documentation site | **✅ VERIFIED 2026-08-26** — **0 of 27 pages have a view.** Nothing is published; the pages are built and checked, not served. |
 | Deployment | **📄 RECORDED** complete (`DEPLOYMENT.md` §7.1–7.6). **Nothing has ever been deployed.** |
 
+### ⚠️ Per-unit pricing survives in the design masters — and only there
+
+✅ **VERIFIED 2026-08-28.** Nothing per-unit is externally visible: the published `/pricing` and home derive
+price *and* suffix from `MarketingPricing::suffix()` (`'/ '.$period` when flat), and the four doc pages that
+once said it now read *"one flat figure per account whatever your unit count"*.
+
+⚠️ **But five masters still teach per-unit and would ship it if ever published directly:**
+`core/pricing.html` (a **four-tier** ladder — Starter/Growth/Pro/Enterprise — with unit bands, over a
+**two-plan** engine), `core/home.html` (including the **one** `AggregateOffer` block — search engines read
+it), `core/terms.html`, `core/compare.html`, `core/alternatives.html`.
+**None has a route or a view;** `routes/web.php:639` records `privacy`/`terms` as legal documents
+deliberately prepared rather than published.
+
+⚠️ **`core/terms.html` is a contract and was NOT edited.** Its clause — *"Plans are billed per unit, monthly
+or annually in advance… Adding units mid-cycle is prorated"* — is false in its price basis **and its
+proration rule has no meaning under flat billing**. That is a decision about what customers agree to pay,
+and possibly a lawyer's; it is not a copy edit. **Whoever publishes terms must resolve it first.**
+
+⚠️ **The prices are PLACEHOLDERS** (`config/billing.php`; `MarketingPricing::isPlaceholder()` exists to say
+so). Correcting the *model* while printing a fictional *figure* would swap one false claim for another —
+which is why the corrected pages state the shape and route to the pricing page instead of naming a price.
+
 ### ⚠️ Nothing takes real money, by default
 
 - **✅ VERIFIED 2026-08-26** `PAYMENTS_GATEWAY` defaults to **`manual`** (`config/services.php:74`).
@@ -77,7 +99,7 @@ Each is absolute, and each is here because doing it once cost something.
 |---|---|---|---|
 | 1 | ⚠️ **Article 28 data-processing agreement** — **a lawyer's, not ours** | No lawful basis to process customer data | Any real customer |
 | 2 | ⚠️ **Flow-of-funds / money-holding question** — **a lawyer's, not ours** | Unknown regulatory exposure | Taking real money |
-| 3 | **The billing model.** ✅ VERIFIED 2026-08-26: every seeded plan is `pricing_type = 'flat'` (€49 / €99, flagged PLACEHOLDER) while **nine** marketing pages describe **per-unit** pricing — including `/terms`, a contract page, and two `AggregateOffer` blocks. The engine supports per-unit; no plan uses it. | The site and the invoice disagree | Publishing pricing |
+| 3 | ~~The billing model~~ — **SETTLED 2026-08-28: flat, and the copy already said so.** ✅ VERIFIED: the published `/pricing` and home derive their price and their `/ mo` suffix from `MarketingPricing`, and the doc pages already read *"one flat figure per account whatever your unit count"*. ⚠️ **The 2026-08-26 entry was WRONG** — it grepped `tools/marketing/core/*.html` (the design **masters**) rather than the built output. Per-unit text survives only in unpublished masters. |  |  |
 | 4 | **Stripe live keys + the dashboard steps** (`BILLING-STRIPE-PRICES.md`) | No payments | Go-live |
 | 5 | **Hosting region, backup location, Postmark region** (`DATA-RESIDENCY-INVENTORY.md` §5) | Cannot answer a lawyer's first question | The DPA |
 | 6 | **A `failed_jobs` retention window.** It is unbounded today and a failed queued mailable persists a recipient email — and, in one case, a whole statement PDF. Three other retention windows are fixed in code; **a fourth is a decision, not a default.** | PII kept indefinitely | GDPR posture |
@@ -110,6 +132,9 @@ one) leaves eight pages still teaching it and puts the glossary in conflict with
 - **A guard that inspects only the failing case** *(new 2026-08-26)* — the half-cut verifier checked its declaration
   only for claims still *outstanding*, but the wrong action made the claim bank as **DONE**, so the one act it existed
   to catch was the one that skipped it. **Verify unconditionally.**
+- **Reading the wrong layer** *(new 2026-08-28)* — a grep over the design **masters** found per-unit billing on
+  nine pages that the **built** output had already corrected, and it produced a false "founder decision" entry in
+  this very file. **Grep `C.convert(key)`, never `core/*.html`.** Third instance of a wrong-layer read.
 - **A truncated read is a wrong read** *(new 2026-08-26)* — 200 characters of a paragraph made an uncorrected claim look
   already-corrected. **Read the whole block before classifying it.**
 - **A brief is a lead, not a fact** *(new 2026-08-26)* — ~55 consecutive briefs each carried at least one wrong specific.
