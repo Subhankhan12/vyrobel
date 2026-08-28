@@ -604,6 +604,28 @@ def convert(key):
     #        ⚠️ ELEVEN representations of two numbers and two names. §N.8f is not a style rule.
 
     if key == 'pricing':
+        # ⚠️⚠️ THE INERT CURRENCY SWITCHER — A CONTROL WITH NO MACHINERY, ON A PUBLISHED PAGE.
+        #
+        # The design offers EUR / GBP / USD and a `PRICES` table in all three. ⚠️ THE ENGINE HAS ONE
+        # CURRENCY: every `plans` row is EUR. So two of the three buttons name a currency nobody can be
+        # billed in — the same fabrication class as the four invented tiers B12 removed from this page,
+        # and it survived because the tier sweep looked at NAMES and PRICES, not at CONTROLS.
+        #
+        # ⚠️ AND IT DOES NOTHING. Each button carried an `sc-camel-on-click` prototype handler; the
+        # converter strips the runtime and keeps the markup, so the rendered page has ZERO script tags and
+        # five dead buttons. A visitor clicks "£ GBP" and the price does not move. ⚠️ That is worse than
+        # omitting it: an inert control ANSWERS the question — it says this product is sold in pounds.
+        #
+        # ⚠️ REMOVED, NOT RE-POINTED. There is nothing to wire it to: a display-only converter would need a
+        # rate source we do not have, and showing an indicative £ price for a EUR-billed subscription is the
+        # same misleading claim one layer down. The price already renders in the plan's own currency through
+        # `MarketingPricing`, so nothing true is lost.
+        _cur = t.find('aria-label="Display currency"')
+        if _cur != -1:
+            _s, _e = _element_span(t, _cur, 'div')
+            t = t[:_s] + t[_e:]
+        _NEEDLE_LOG.append((key, 'px-currency-switcher-removed', _cur != -1))
+
         # ⚠️⚠️ THE CARDS MOVE INTO A COMPONENT, AND THIS IS THE LOAD-BEARING PART OF THE PASS. B12 rebuilt
         #    these cards to read from the billing config — by HAND-EDITING THE GENERATED PAGE. The `@php`
         #    block and the `@foreach ($mkTiers …)` loop existed nowhere in this file, so `/pricing` had

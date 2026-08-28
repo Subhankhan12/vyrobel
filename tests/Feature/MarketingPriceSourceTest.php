@@ -255,3 +255,39 @@ it('PROVES the price guard reads real, non-empty sources', function () {
         ->map(fn (Plan $p): string => number_format(((int) $p->price_minor) / 100, 2))->unique()->all();
     expect($allowed)->toContain('49.00')->and($allowed)->not->toContain('79.00');
 });
+
+it('⚠️⚠️ offers no currency the billing engine cannot charge — and no dead control implying one', function () {
+    // ⚠️ THE TIER SWEEP ABOVE LOOKED AT NAMES AND PRICES; THIS LOOKS AT CONTROLS, which is how the
+    //    currency switcher survived it. The design shipped EUR / GBP / USD buttons and a PRICES table in
+    //    all three, over an engine whose every plan row is EUR.
+    //
+    // ⚠️ AND THE BUTTONS DID NOTHING. Their `sc-camel-on-click` handlers are stripped with the prototype
+    //    runtime, so the rendered page had five dead buttons and zero script tags. An inert control is
+    //    worse than an absent one: it ANSWERS the question — it says the product is sold in pounds.
+    $currencies = Plan::withoutGlobalScopes()->distinct()->pluck('currency')
+        ->filter()->map(fn ($c): string => strtoupper((string) $c))->all();
+
+    // ⚠️ NOT VACUOUS: the engine must actually define a currency, or "no foreign currency appears" is
+    //    trivially true against an empty set.
+    expect($currencies)->not->toBeEmpty('no plan defines a currency, so this guard proves nothing');
+
+    $html = $this->get('/pricing')->assertOk()->getContent();
+
+    // ⚠️ Any ISO code the engine does NOT bill in must not appear as a currency offer.
+    foreach (['GBP', 'USD', 'CHF', 'AUD', 'CAD'] as $foreign) {
+        if (in_array($foreign, $currencies, true)) {
+            continue;   // the engine really does bill in it — then it may be offered
+        }
+        // ⚠️ NOT `expect($html)->not->toContain($foreign, "message")`. Pest's `toContain()` is VARIADIC,
+        //    so a second argument is read as a SECOND NEEDLE, not as a failure message — and under `not`
+        //    the assertion then passed because the message text was absent from the page. That version was
+        //    written, mutation-tested, and CAUGHT ONLY BECAUSE THE MUTATION FAILED ON THE WRONG LINE.
+        //    A guard that cannot fail is worse than no guard: it reports success.
+        expect(str_contains($html, $foreign))->toBeFalse(
+            "/pricing offers {$foreign}, which no plan row can be billed in");
+    }
+
+    // ⚠️ And the switcher itself is gone, not merely re-labelled.
+    expect($html)->not->toContain('data-curbtn')
+        ->and($html)->not->toContain('Display currency');
+});

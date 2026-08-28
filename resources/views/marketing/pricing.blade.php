@@ -39,12 +39,6 @@
           <button data-cycle="annual" style="padding: 10px 22px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .25s ease; display: inline-flex; align-items: center; gap: 8px;">Annual <span style="padding: 2px 7px; border-radius: 6px; background: rgba(217,102,46,.16); color: #8F2F09; font-size: 10.5px; font-weight: 600;">−15%</span></button>
         </div>
 
-        <div role="group" aria-label="Display currency" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .26s both;">
-          <button data-curbtn="EUR" aria-pressed="true" style="padding: 7px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .22s ease;">€ EUR</button>
-          <button data-curbtn="GBP" aria-pressed="false" style="padding: 7px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .22s ease;">£ GBP</button>
-          <button data-curbtn="USD" aria-pressed="false" style="padding: 7px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .22s ease;">$ USD</button>
-        </div>
-
         <div data-noprint="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .32s both;">
           <button style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,252,248,.62); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: transform .22s ease, box-shadow .22s ease;">
             <svg width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 21h16"></path></svg>

@@ -535,3 +535,25 @@ FORBIDDEN_BY_PAGE.update({
         'pushed to every channel',
     ],
 })
+
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# ⚠️ THE PRICING MASTER (2026-08-28) — belt-and-braces beside MarketingPriceSourceTest.
+#
+# The test is the real guard (it reads the RENDERED page and the plan rows). These fragments catch a
+# reintroduction at CONVERT time, which is earlier and names the page. ⚠️ Both are needed: the test can
+# only see what renders, and this can only see what the converter emits.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+FORBIDDEN_BY_PAGE.update({
+    'pricing': FORBIDDEN_BY_PAGE.get('pricing', []) + [
+        # ⚠️ The engine bills in one currency (every `plans` row is EUR; `billing.default_currency` is EUR).
+        'data-curbtn',
+        'Display currency',
+        # ⚠️ Four invented tiers over a two-plan engine. B12 removed them from the cards; these stop the
+        #    design's ladder returning through any other element on the page.
+        'Starter', 'Growth', 'Enterprise',
+        # ⚠️ Unit bands describe a per-unit model no plan runs.
+        'unit / mo',
+    ],
+})
