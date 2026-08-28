@@ -1,9 +1,14 @@
 # Vyrobel — STATE
 
-**Read this first, and finish it.** ~170 lines — mostly tables and one-line leads, so it scans in a few minutes.
-It is 50× shorter than `PROJECT-STATE.md`, which is why that file gets skimmed and this one should not.
+**Read this first, and finish it.** ~220 lines — mostly tables and one-line leads, so it scans in a few minutes.
+It is ~38× shorter than `PROJECT-STATE.md`, which is why that file gets skimmed and this one should not.
 Everything else is *pointed to*, never repeated — a fact written in two files drifts, and the reader cannot tell
 which copy is stale.
+
+> ⚠️ **THIS FILE GROWS EVERY PASS, AND THAT IS ITS OWN FAILURE MODE.** It went 170 → 220 lines in two passes,
+> each addition individually justified. **Prune when you update it**: a settled decision becomes one struck-through
+> line, a closed track becomes a sentence, and history moves to git. **If it stops being finishable it stops
+> working**, and the first symptom is someone acting on a premise from a section they skipped.
 
 > **✅ VERIFIED (date)** = read against the code on that date, by the session that wrote the line.
 > **📄 RECORDED** = written down by an earlier pass and **not re-checked**. Treat as a lead, not a fact.
@@ -38,27 +43,33 @@ is loaded automatically every session — do not duplicate it here.**
 | Documentation site | **✅ VERIFIED 2026-08-26** — **0 of 27 pages have a view.** Nothing is published; the pages are built and checked, not served. |
 | Deployment | **📄 RECORDED** complete (`DEPLOYMENT.md` §7.1–7.6). **Nothing has ever been deployed.** |
 
+### ✅ Two tracks are FINISHED — do not re-open them
+
+- **The documentation correction work is DONE.** ✅ VERIFIED 2026-08-28 by running the gate:
+  **0 outstanding-and-reachable, 0 blocked-on-a-decision.** Of 220 audited claims: 156 corrected · 3 corrected
+  but unmatchable · 4 half-cut · 4 verified-true · 12 parked (channels) · 41 unmatched. §6 says what each
+  remaining category would need — **none of them is a correction pass.**
+- **The payment switch is DONE.** ✅ VERIFIED 2026-08-28: **all three charge paths** resolve a connected
+  account — storefront (`BookingEngineController:552`), guest portal (`GuestFolioPaymentController:59`) and
+  the front desk (`FolioService:230`). ⚠️ **There is no platform-charge fallback:** `accountForCharge()`
+  refuses when the operator is not `charges_enabled`, so a charge either lands on their account or does not
+  happen.
+
 ### ⚠️ Per-unit pricing survives in the design masters — and only there
 
 ✅ **VERIFIED 2026-08-28.** Nothing per-unit is externally visible: the published `/pricing` and home derive
-price *and* suffix from `MarketingPricing::suffix()` (`'/ '.$period` when flat), and the four doc pages that
-once said it now read *"one flat figure per account whatever your unit count"*.
+price *and* suffix from `MarketingPricing`, the four invented tiers were already removed, and
+`MarketingPriceSourceTest` guards plan names, prices, the billing model, the feature gates and (since
+2026-08-28) the currency.
 
-⚠️ **But five masters still teach per-unit and would ship it if ever published directly:**
-`core/pricing.html` (a **four-tier** ladder — Starter/Growth/Pro/Enterprise — with unit bands, over a
-**two-plan** engine), `core/home.html` (including the **one** `AggregateOffer` block — search engines read
-it), `core/terms.html`, `core/compare.html`, `core/alternatives.html`.
-**None has a route or a view;** `routes/web.php:639` records `privacy`/`terms` as legal documents
-deliberately prepared rather than published.
+⚠️ **Five masters still teach per-unit and would ship it if published directly** — `core/pricing.html`
+(a four-tier ladder with unit bands, over a two-plan engine), `core/home.html` (incl. the one `AggregateOffer`
+block — search engines read it), `core/terms.html`, `core/compare.html`, `core/alternatives.html`. **None has
+a route or a view.** `core/terms.html` is a contract; see open ruling 7.
 
-⚠️ **`core/terms.html` is a contract and was NOT edited.** Its clause — *"Plans are billed per unit, monthly
-or annually in advance… Adding units mid-cycle is prorated"* — is false in its price basis **and its
-proration rule has no meaning under flat billing**. That is a decision about what customers agree to pay,
-and possibly a lawyer's; it is not a copy edit. **Whoever publishes terms must resolve it first.**
-
-⚠️ **The prices are PLACEHOLDERS** (`config/billing.php`; `MarketingPricing::isPlaceholder()` exists to say
-so). Correcting the *model* while printing a fictional *figure* would swap one false claim for another —
-which is why the corrected pages state the shape and route to the pricing page instead of naming a price.
+⚠️ **The prices are PLACEHOLDERS** (`MarketingPricing::isPlaceholder()` exists to say so). Correcting a *model*
+while printing a fictional *figure* swaps one false claim for another — which is why corrected pages state the
+shape and route to the pricing page rather than naming a price.
 
 ### ⚠️ Nothing takes real money, by default
 
@@ -90,6 +101,8 @@ Each is absolute, and each is here because doing it once cost something.
 7. **Never soften a false claim.** A hedge makes it unfalsifiable and the reader still believes it. Correct it or cut it.
 8. **Never negate a false claim by quoting it** — the false phrase stays on the page for a skimming reader.
 9. **Never fabricate seed state silently.** Demo data is flagged as demo, or it is not written.
+10. **Never edit a generated file.** `pxbuild.py:31` rewrites `resources/views/marketing/*.blade.php` from the
+    masters, so an edit there is silently undone on the next build. Transforms go in `convert.py`.
 
 ## 4 · Open — and who must decide
 
@@ -99,13 +112,18 @@ Each is absolute, and each is here because doing it once cost something.
 |---|---|---|---|
 | 1 | ⚠️ **Article 28 data-processing agreement** — **a lawyer's, not ours** | No lawful basis to process customer data | Any real customer |
 | 2 | ⚠️ **Flow-of-funds / money-holding question** — **a lawyer's, not ours** | Unknown regulatory exposure | Taking real money |
-| 3 | ~~The billing model~~ — **SETTLED 2026-08-28: flat, and the copy already said so.** ✅ VERIFIED: the published `/pricing` and home derive their price and their `/ mo` suffix from `MarketingPricing`, and the doc pages already read *"one flat figure per account whatever your unit count"*. ⚠️ **The 2026-08-26 entry was WRONG** — it grepped `tools/marketing/core/*.html` (the design **masters**) rather than the built output. Per-unit text survives only in unpublished masters. |  |  |
+| ~~3~~ | ~~The billing model~~ — **SETTLED 2026-08-28: flat, and the copy already said so.** The 2026-08-26 entry was wrong; see the wrong-layer class in §5. | — | — |
 | 4 | **Stripe live keys + the dashboard steps** (`BILLING-STRIPE-PRICES.md`) | No payments | Go-live |
 | 5 | **Hosting region, backup location, Postmark region** (`DATA-RESIDENCY-INVENTORY.md` §5) | Cannot answer a lawyer's first question | The DPA |
 | 6 | **A `failed_jobs` retention window.** It is unbounded today and a failed queued mailable persists a recipient email — and, in one case, a whole statement PDF. Three other retention windows are fixed in code; **a fourth is a decision, not a default.** | PII kept indefinitely | GDPR posture |
 
-⚠️ **Decision 3 is one decision, not nine edits.** Cutting per-unit from a single page (the glossary was the tempting
-one) leaves eight pages still teaching it and puts the glossary in conflict with the terms page.
+| 7 | ⚠️ **`core/terms.html`'s per-unit proration clause** — *"Adding units mid-cycle is prorated"* has **no meaning under flat billing**, and terms describe what a customer agrees to pay. **Possibly a lawyer's.** Unpublished today (no route, no view). | A contract that contradicts the invoice | Publishing terms |
+| 8 | **The invented tier names surviving in code** — `PlanFactory:22` generates from `['Starter','Growth','Pro']` (test-only) and the plans migration docblock still describes four tiers. Harmless today; it is the fabricated ladder living on where a future reader may believe it. | A regenerated fixture reintroduces a phantom tier | Nothing today |
+| 9 | **`/resources`' blocker** — the founder's ruling, **undischarged**. Nothing publishes, so it changes nothing today. | — | Publishing `/resources` |
+| 10 | **Accounts v2 / controller properties** — Stripe marks Standard/Express/Custom legacy; this integration uses v1 `type: 'standard'`. Recorded as **go-live A4** in `GO-LIVE-REQUIREMENTS.md`. | Consistent today; a migration later | Scale, not launch |
+| 11 | **IP and user-agent in exception logs** — `LogSafe` scrubs email addresses only. Both are personal data under GDPR; redacting them was rejected as removing what a debugger needs. **Ratify or reverse.** | Personal data in logs for 14 rotations | GDPR posture |
+
+⚠️ **Rows 1 and 2 are the only ones nobody in this repository can do.** The rest are the founder's.
 
 ## 5 · How things break here — the recurring classes
 
@@ -125,6 +143,13 @@ one) leaves eight pages still teaching it and puts the glossary in conflict with
   tokenise and skip comments.
 - **A false decline** — a surface saying data is absent while it sits unread in the payload. Worse than a blank: it
   *answers* the question.
+- **An inert control is worse than an absent one** *(new 2026-08-28)* — `/pricing` shipped EUR/GBP/USD buttons over
+  a EUR-only engine, handlers stripped by the converter, on a **published** page. It **answers** the question, so
+  nobody checks it. ⚠️ **A sweep that reads names and prices will not see a control.**
+- **A guard that reads strict and is vacuous** *(new 2026-08-28)* — `expect($html)->not->toContain($needle, "msg")`
+  looks airtight, but Pest's `toContain()` is **variadic**: the message became a second needle and the assertion
+  passed on the *message's* absence. ⚠️ **Caught only because a mutation failed on an unexpected LINE and the
+  discrepancy was chased instead of accepted.** A green mutation on the wrong assertion is not a pass.
 - **A false CAUGHT is undetectable** — the mutation harness can only catch a false NOT-CAUGHT.
   ⚠️ **Disbelieve an implausible green.**
 - **Payment taken, booking unpaid** — *4 routes*: unrouted events; a wrong signing secret; a refund object read as a
@@ -191,5 +216,8 @@ one) leaves eight pages still teaching it and puts the glossary in conflict with
    2026-08-26 that the status block's own latest marker is **#1–73**. It is not a contradictory count; it is a
    **stale description of another file**, written when 37 existed. ⚠️ **The number 73 is 📄 RECORDED — no pass
    has re-derived the list.**
-4. **`DATA-RESIDENCY-INVENTORY.md` said guests cannot self-serve erasure — that was wrong** and was corrected
+4. ⚠️ **This file said the billing model was an open founder decision (2026-08-26) — it was not.** The copy
+   already said flat. Corrected 2026-08-28. **A state file can be the thing that is wrong**, which is why every
+   line here carries a mark.
+5. **`DATA-RESIDENCY-INVENTORY.md` said guests cannot self-serve erasure — that was wrong** and was corrected
    2026-08-26: `POST /guest/account/delete` exists, with an undo and a grace period. The **export** half stands.
