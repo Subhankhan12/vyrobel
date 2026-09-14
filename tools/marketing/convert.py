@@ -189,10 +189,41 @@ def _variants(x):
     return out
 
 
+_TRUNCATION_WARNINGS = []
+
+
+def _truncation_risk(t, v, after):
+    """
+    ⚠️⚠️ WHAT THE ZERO-MATCH GUARD CANNOT SEE — and this is the class it missed.
+
+    `_NEEDLE_LOG` proves a needle MATCHED SOMETHING. It cannot know the needle matched the RIGHT SPAN, and
+    it never looks at the output. So a needle can match perfectly and still be wrong: `switching-body` cut
+    off at "…self-serve with a CSV" while the master's sentence ran on "…importer and written guides, which
+    is fine for one property." — and the tail was published behind the replacement, mid-thought.
+
+    ⚠️ THE SHAPE, STATED NARROWLY SO IT DOES NOT CRY WOLF: a needle that neither ends at a sentence boundary
+    NOR is followed by one is replacing part of a sentence and leaving the rest. Headings and labels legally
+    lack terminal punctuation, so the test is what FOLLOWS in the source, not what the needle ends with.
+    """
+    if v not in t:
+        return False
+    tail = t[t.index(v) + len(v):][:40]
+    # A tag, whitespace-to-tag, or terminal punctuation immediately after = a clean cut.
+    if re.match(r'\s*(<|$)', tail):
+        return False
+    if v.rstrip().endswith(('.', '!', '?', ':', '—')):
+        return False
+    if after.rstrip().endswith(('.', '!', '?')) and re.match(r'\s*[a-z]', tail):
+        return True          # replacement ends a sentence but the source runs on in lower case
+    return bool(re.match(r'\s*[a-z]', tail)) and not v.rstrip().endswith(',')
+
+
 def swap(t, before, after, key, tag):
     """Replace `before` with `after`, trying the design's punctuation variants, and RECORD the outcome."""
     for v in _variants(before):
         if v in t:
+            if _truncation_risk(t, v, after):
+                _TRUNCATION_WARNINGS.append((key, tag))
             _NEEDLE_LOG.append((key, tag, True))
             return t.replace(v, after)
     _NEEDLE_LOG.append((key, tag, False))
@@ -422,6 +453,68 @@ def _count(t, pattern, text, key, tag):
     return t[:m.start()] + m.group(1) + text + m.group(3) + t[m.end():]
 
 
+def _unhide(t, attr, key, tag):
+    """
+    ⚠️⚠️ SHIP IT VISIBLE. JAVASCRIPT DOES THE HIDING — NEVER THE REVERSE.
+
+    The design hides inactive panes with an inline `display: none`, so seven of eight product panels and
+    the two non-default home lenses are absent from the DOM's rendered box tree. That is safe ONLY while
+    nothing depends on JS to bring them back. The moment a script is the thing that reveals them, a blocked
+    bundle, a 404 after a deploy, a slow network or a crawler sees SEVEN-EIGHTHS OF THE PRODUCT PAGE GONE.
+
+    ⚠️ So the inline hide is STRIPPED here, at build time: the page ships with every pane visible and
+    readable, and `marketing.js` collapses the inactive ones on load. A JS failure now degrades to a long
+    scrolling page — which is a bad layout, not a missing product, and still fully indexable.
+    """
+    n = 0
+
+    def _strip(m):
+        nonlocal n
+        n += 1
+        return m.group(0).replace('display: none;', '').replace('display:none;', '') \
+                         .replace('style=""', '').replace('style=" "', '')
+
+    t = re.sub(r'<div ' + attr + r'="[^"]*"[^>]*>', _strip, t)
+    _NEEDLE_LOG.append((key, tag, n > 0))
+    return t
+
+
+def _default_tab(t, btn_attr, first, key, tag):
+    """
+    ⚠️ MAKE THE NO-JS STATE VALID — nothing more. Runtime ARIA belongs to the script.
+
+    ⚠️ MEASURED before writing this: the three home audience tabs are ALL `aria-selected="false"`, so the
+    tablist advertises that NOTHING is selected. That was wrong before any script existed, and it stays
+    wrong for a reader whose JS never runs — so the DEFAULT tab is marked selected at build time.
+    (The one `aria-selected="true"` already on /home belongs to the nine-hour rail, not these tabs.)
+
+    ⚠️ Everything else — moving `aria-selected`, roving `tabindex`, `hidden` — is done by `marketing.js`
+    at runtime, because only the runtime knows which tab is current. Doing it here too would be two
+    definitions of one state (§N.8f).
+    """
+    hit = [False]
+
+    def _mark(m):
+        if m.group(1) == first and 'aria-selected="false"' in m.group(0):
+            hit[0] = True
+            return m.group(0).replace('aria-selected="false"', 'aria-selected="true"')
+        return m.group(0)
+
+    # ⚠️ THE WHOLE TAG, not a forward slice from the data attribute: in this markup `aria-selected` sits
+    #    BEFORE `data-lensbtn`, so a forward-looking pattern matched nothing. Caught by the zero-match
+    #    guard on the first build — which is exactly the defect that guard CAN see.
+    t = re.sub(r'<button[^>]*' + btn_attr + r'="([^"]*)"[^>]*>', _mark, t)
+
+    # ⚠️ THE NEEDLE ASSERTS THE END STATE, NOT THAT A MUTATION HAPPENED. /product's stage 0 already carried
+    #    `aria-selected="true"`, so "nothing changed" is CORRECT there — and reporting that as a zero-match
+    #    would red the build for work that is right, which this project's own rule forbids. What must hold
+    #    is that the default tab IS selected once this function has run, however it got that way.
+    ok = bool(re.search(r'<button[^>]*' + btn_attr + r'="' + re.escape(first) + r'"[^>]*aria-selected="true"', t)
+              or re.search(r'<button[^>]*aria-selected="true"[^>]*' + btn_attr + r'="' + re.escape(first) + r'"', t))
+    _NEEDLE_LOG.append((key, tag, ok))
+    return t
+
+
 def convert(key):
     t = io.open(f"{SRC}/{key}.html", encoding='utf-8').read()
     meta, t = helmet(t)
@@ -436,7 +529,27 @@ def convert(key):
 
     # ⚠️ dc-runtime attributes — REMOVED, not escaped (React wiring, not content; Gate 1's rule).
     t = re.sub(r'\s(?:ref|onClick|onChange|onInput|onSubmit|onMouseEnter|onMouseLeave|onFocus|onBlur|onKeyDown|style-hover|style-focus|style-active|hint-size|hint-placeholder-val)="[^"]*"', '', t)
-    t = re.sub(r'\ssc-camel-[a-z-]+="[^"]*"', '', t)
+    # ⚠️⚠️ `sc-camel-*` IS NOT ALL RUNTIME WIRING, AND STRIPPING IT ALL BROKE EVERY ICON ON THE SITE.
+    #    The design encodes CAMEL-CASE ATTRIBUTE NAMES with this prefix, and only the `on-*` ones are React
+    #    handlers. Across the masters: `sc-camel-view-box` x593 and `sc-camel-preserve-aspect-ratio` x4 are
+    #    SVG **content**; `on-click`/`on-change`/`on-input` x108 are wiring.
+    # ⚠️⚠️ THE CONSEQUENCE, MEASURED IN A BROWSER: 185 inline `<svg>` in the generated pages and ZERO
+    #    `viewBox` attributes. An `<svg width="15" height="15">` whose paths are drawn on a 24x24 grid, with
+    #    no viewBox to map one onto the other, renders the top-left corner of the drawing and CLIPS THE
+    #    REST. 60 of 129 svgs on three sampled pages had no viewBox; 26 were demonstrably clipped.
+    #    ⚠️ Nothing 404'd and no request failed — the audit was right that the site is imageless. The icons
+    #    were present, sized and correctly coloured, and geometrically cropped.
+    # ⚠️ THIRD TIME THE CONVERTER HAS SILENTLY REMOVED SOMETHING NEEDED (the print rules, the `[data-dusk]`
+    #    theme CSS, now this) — but a DIFFERENT strip from the `<style>` one, so the class is "a blanket
+    #    strip that does not distinguish wiring from content", not "the style block".
+    def _sc_camel(m):
+        name = m.group(1)
+        if name.startswith('on-'):
+            return ''                                    # React handler — still removed
+        head, *rest = name.split('-')
+        return ' ' + head + ''.join(w.capitalize() for w in rest) + '="' + m.group(2) + '"'
+
+    t = re.sub(r'\ssc-camel-([a-z-]+)="([^"]*)"', _sc_camel, t)
 
     # ⚠️ ESCAPE THE DESIGN'S HANDLEBARS NOW — before we emit any Blade of our own, so this pass can
     # never escape our own {{ }} (it did on the first run; caught by inspecting the "leftovers").
@@ -626,6 +739,107 @@ def convert(key):
             t = t[:_s] + t[_e:]
         _NEEDLE_LOG.append((key, 'px-currency-switcher-removed', _cur != -1))
 
+        # ⚠️⚠️ D8 — THE RESIDUE THE SWITCHER REMOVAL LEFT BEHIND, AND WHY IT SURVIVED A WHOLE PASS.
+        #    Deleting the control above left the COPY THAT DESCRIBED IT on the page: the PDF blurb still
+        #    said the summary prints "in your selected currency" when there is no longer anything to select
+        #    with — and there never was, since the buttons were inert over a EUR-only engine.
+        #    ⚠️ THE CLASS: a deletion is not finished until the sentences that depended on it are gone too.
+        #    The switcher sweep looked at CONTROLS; this is the second time this page has needed the
+        #    follow-up read for prose. Registered as its own needle so it cannot silently stop matching.
+        #    ⚠️ NOT re-pointed at the plan's real currency: the price already renders in its own currency
+        #    through `MarketingPricing`, so naming a currency here would re-assert a choice the reader
+        #    does not have. The clause simply goes.
+        t = swap(t,
+                 "Prints as a one-page summary with the plan you're viewing, in your selected currency.",
+                 "Prints as a one-page summary with the plan you're viewing.",
+                 key, 'px-currency-residue-copy')
+
+        # ⚠️⚠️ THE "−15%" BADGE — A LIVE FALSE CLAIM, CONTROL OR NO CONTROL.
+        #    ⚠️ VERIFIED against the `plans` rows, not inherited: Essential 12 × €49 = €588 against a €490
+        #      year, and Pro 12 × €99 = €1,188 against €990 — both 16.67% (two months free), NOT 15%.
+        #    ⚠️ AND `MarketingPricing::isPlaceholder()` IS TRUE: nobody has set a real price yet, so the
+        #      16.67% is itself derived from placeholders. NEITHER figure is real.
+        #
+        # ⚠️ REMOVED, NOT CORRECTED. Replacing 15 with 16.67 would ship a MORE precise-looking number
+        #    computed from prices that are admittedly provisional — a worse claim wearing better arithmetic.
+        #    Setting a real price is the founder's, not this converter's.
+        # ⚠️ AND NOT NEGATED: nothing says "no longer 15%". The canon forbids answering a false claim by
+        #    quoting it, because the phrase stays on the page for a skimming reader. The badge simply goes.
+        # ⚠️ THE WORD "Annual" STAYS, and that is deliberate — annual billing genuinely EXISTS (the `plans`
+        #    table carries a `yearly` interval for both tiers). What was false was the SIZE of the saving,
+        #    so the true half is kept and only the figure is cut.
+        t = swap(t,
+                 '<span style="padding: 2px 7px; border-radius: 6px; background: rgba(217,102,46,.16); '
+                 'color: #8F2F09; font-size: 10.5px; font-weight: 600;">−15%</span>',
+                 '',
+                 key, 'px-annual-discount-figure-removed')
+
+        # ══ ⚠️⚠️ THE DEAD CONTROLS — ONE CLASS, NOT THREE BUGS ═══════════════════════════════════════
+        #
+        # ⚠️ THE CLASS: a control that LOOKS live — an enabled `<button>` with `cursor: pointer` — carrying
+        #    a `data-` attribute `public/js/marketing.js` does not bind. The converter strips the design's
+        #    dc-runtime and keeps its markup, so every prototype handler that was never rebuilt left a
+        #    button behind. ⚠️ It is the currency switcher's class exactly (removed in `3b155dc`), and the
+        #    hour rail's (bound in the pass before this one) — the third time this shape has been found.
+        # ⚠️ `MarketingDeadControlsTest` now derives the bound set FROM the script and reds on any new one,
+        #    so this list is a record of what was removed, not the thing that keeps the rule true.
+        #
+        # ⚠️⚠️ (a) THE MONTHLY / ANNUAL TOGGLE — REMOVED, AND THE RECORDED REASON FOR REMOVING IT IS WRONG.
+        #    The standing note says it was refused because "there is no annual plan at the advertised
+        #    discount". ⚠️ THE FIRST HALF IS FALSE AND THIS FILE ALREADY SAYS SO, forty lines up: annual
+        #    billing genuinely exists (`config/billing.php` carries `yearly` prices for both tiers, the
+        #    `plans` table carries a `yearly` interval row for each, and the subscription Checkout has a
+        #    working period toggle). What was false was the SIZE of the saving — the "−15%" badge — and
+        #    that was cut on its own above.
+        # ⚠️ SO WHY REMOVE IT AT ALL? Because it does nothing, not because annual is a lie. Clicking
+        #    "Annual" on the page where money is decided leaves both prices unchanged, and an inert control
+        #    on that page ANSWERS the question — it says the annual price is the monthly one.
+        # ⚠️ AND NOT WIRED, because wiring is a build and this pass removes. `MarketingPricing` is ALREADY
+        #    interval-parameterised end to end (`tiers`/`tiersForDisplay`/`comparison`/`headline`/
+        #    `priceNote`/`whoPays`/`suffix` all take `$interval`), so wiring it is small and honest —
+        #    ⚠️ recorded for the founder as an OPTION, not done here.
+        # ⚠️ NOTHING TRUE IS LOST: the page never showed an annual price. It offered a control that did not
+        #    reach one. The cards keep saying "Billed monthly", which is what they are priced at.
+        t = cut_element(t, 'data-cycle="monthly"', 'div', key, 'px-period-toggle-removed')
+
+        # ⚠️⚠️ (a2) `data-portfolionote` — AN EMPTY DIV, AND ITS CONTENT MUST NOT COME BACK.
+        #
+        # ⚠️ THE BRIEF DESCRIBED IT AS "real pricing copy hidden by inline CSS". IT IS NOT: the element is
+        #    `<div data-portfolionote style="display:none"></div>` — EMPTY. The commercial line a reader
+        #    would think of ("No setup fee · No commission on direct bookings · …") is a DIFFERENT element
+        #    two lines below, carries no `display:none`, and has been VISIBLE on the live page all along.
+        #
+        # ⚠️⚠️ WHAT IT WAS FOR, read from the master: the prototype FILLED it from the ROI calculator —
+        #      el.textContent = 'Based on your ' + units + ' units, that\u2019s about ' + sym + monthly + ' a month.'
+        #    So its condition is a unit count AND a chosen plan AND a currency AND a billing cycle. THREE of
+        #    those four mechanisms are gone on purpose: the currency switcher (removed, EUR-only engine),
+        #    the Monthly/Annual toggle (removed, inert), and per-unit pricing itself — which this page's own
+        #    headline now REFUSES, reading "One price per property account" against a flat two-tier engine.
+        # ⚠️ SO IT IS REMOVED, NOT UNHIDDEN. Revealing it could only ever re-assert the per-unit model the
+        #    page was corrected to stop claiming; and an empty div that nothing can fill is bytes plus a
+        #    misleading hook for whoever next reads the source.
+        t = cut_element(t, 'data-portfolionote', 'div', key, 'px-portfolio-note-removed')
+
+
+        # ⚠️ (b) "DOWNLOAD PRICING AS PDF" — there is no PDF, and there never was.
+        #    ⚠️ CHECKED BOTH WAYS, not assumed: no route, controller or generator anywhere in the app
+        #      produces a pricing PDF (the app's dompdf documents are folios, statements and remittances,
+        #      all tenant-scoped and behind auth) — AND the design master gives this button NO handler
+        #      either. It was drawn, never wired, in the prototype as well as here.
+        #    ⚠️ NOT re-pointed at `window.print()` like the story buttons: "Download … as PDF" and "print
+        #      this page" are different promises, and the print stylesheet is stripped anyway (an open,
+        #      separate finding). Renaming a control to match what is easy to build is how a page starts
+        #      describing its implementation instead of its offer.
+        #    ⚠️ ITS BLURB GOES WITH IT. "Prints as a one-page summary with the plan you're viewing" is a
+        #      sentence about the button — the residue shape this exact page has now hit twice (the
+        #      currency-switcher copy above is the other). A deletion is not finished until the sentences
+        #      that depended on it are gone. The row keeps "Request a formal quote", so no empty frame is
+        #      left behind.
+        t = cut_element(t, 'Download pricing as PDF', 'button', key, 'px-pdf-button-removed')
+        t = cut_element(t, "Prints as a one-page summary with the plan you're viewing.", 'div',
+                        key, 'px-pdf-blurb-removed')
+
+
         # ⚠️⚠️ THE CARDS MOVE INTO A COMPONENT, AND THIS IS THE LOAD-BEARING PART OF THE PASS. B12 rebuilt
         #    these cards to read from the billing config — by HAND-EDITING THE GENERATED PAGE. The `@php`
         #    block and the `@foreach ($mkTiers …)` loop existed nowhere in this file, so `/pricing` had
@@ -693,6 +907,67 @@ def convert(key):
                                'portal and the guest stay app. Monthly or annual, no setup fee.')
         _NEEDLE_LOG.append((key, 'seo-per-unit-claim', 'per-unit' in _seo_title_was))
 
+        # ⚠️⚠️ EMITTED LAST IN THIS BLOCK, AND THE ORDER IS LOAD-BEARING. My first placement put it at
+        #    the TOP of the pricing transforms, before the B12 bindings ran. Two things went wrong and
+        #    only reading the artefact showed either: the Q&A it captured was the PRE-BINDING text, and
+        #    then `swap()` — which rewrites the whole document — substituted the binding INTO MY COPY
+        #    too, leaving `{{ … }}` sitting inside a PHP string literal. Built here, after every
+        #    transform, it reads the FINAL Q&A exactly as a reader will get it.
+        # ══ ⚠️⚠️ STRUCTURED DATA — ONLY THE ONE TYPE THAT IS TRUE TODAY ═══════════════════════════════
+        #
+        # ⚠️⚠️ THIS IS A CLAIMS PROBLEM, NOT A MARKUP ONE, AND ALMOST EVERYTHING FAILS IT. Structured data
+        #    is read by machines and REPRINTED BY THEM, so a false value reaches a reader BEFORE the page
+        #    and its caveats ever do. Type by type, against this repository today:
+        #      · Organization  — needs `url` (and `logo` for its rich result). APP_URL is localhost, there
+        #                        is NO DOMAIN, and public/ holds no logo image. REFUSED.
+        #      · Product/Offer — needs `price`. `MarketingPricing::isPlaceholder()` is TRUE: nobody has set
+        #                        one. A schema carrying the placeholder would put an unset number into a
+        #                        search result. REFUSED, and this is the worst of the set.
+        #      · SoftwareApplication — needs `offers`, `aggregateRating` or `review` to be valid. The first
+        #                        is the placeholder price; the other two do not exist and inventing a
+        #                        rating would be a fabricated review. REFUSED.
+        #      · WebSite / BreadcrumbList — both need URLs. Localhost again. REFUSED.
+        #      · FAQPage       — needs only questions and answers that are VISIBLE ON THE PAGE. ✅ TRUE.
+        #    ⚠️ A schema missing a required field is worse than no schema: it can be discarded as invalid
+        #    while its other assertions are still read. So the refused ones ship NOTHING, and what each
+        #    needs is recorded in `GO-LIVE-REQUIREMENTS.md` rather than left to be rediscovered.
+        #
+        # ⚠️⚠️ EMITTED AS BLADE THAT BUILDS THE ARRAY AT RENDER TIME, AND THE REASON IS A BUG I SHIPPED
+        #    FIRST. My initial version had this function `json.dumps()` the Q&A straight into a
+        #    `<script type="application/ld+json">`. ⚠️ THE RESULT DID NOT PARSE: one answer is bound to the
+        #    billing model — it contains `{{ …MarketingPricing::whoPays() }}` — so the JSON carried raw
+        #    Blade, and `\A` of `\App\Support` is an invalid JSON escape. Caught by PARSING the output,
+        #    exactly as a "validate it by eye" pass would not have.
+        #    ⚠️ AND THE DEEPER FAULT WAS THE LAYER: this converter can never see the RENDERED sentence, so
+        #    a self-check here comparing template-to-template would have been vacuous about the thing that
+        #    matters — whether the structured copy equals what a READER sees. `@json` renders the real
+        #    values; `MarketingFaqStructuredDataTest` compares the two over the SERVED page, which is the
+        #    only layer that can.
+        _faq = re.findall(r'<details[^>]*>\s*<summary[^>]*>(.*?)</summary>\s*<p[^>]*>(.*?)</p>', t, re.S)
+        _faq = [(re.sub(r'<[^>]+>', '', q).strip(), re.sub(r'<[^>]+>', '', a).strip()) for q, a in _faq]
+        _NEEDLE_LOG.append((key, 'px-faq-pairs-found', len(_faq) >= 4))
+
+        def _php(fragment):
+            """One FAQ string as a PHP expression: literals quoted, `{{ expr }}` spliced in as PHP."""
+            out = []
+            for i, part in enumerate(re.split(r'\{\{(.*?)\}\}', fragment, flags=re.S)):
+                if i % 2:
+                    out.append('(' + part.strip() + ')')          # the design's binding, kept live
+                elif part:
+                    out.append("'" + part.replace('\\', '\\\\').replace("'", "\\'") + "'")
+            return ' . '.join(out) or "''"
+
+        if _faq:
+            _rows = ', '.join(
+                "['@type' => 'Question', 'name' => %s, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => %s]]"
+                % (_php(q), _php(a)) for q, a in _faq)
+            t = t + (
+                "\n@php($vyFaqLd = ['@context' => 'https://schema.org', '@type' => 'FAQPage', "
+                "'mainEntity' => [" + _rows + "]])\n"
+                '<script type="application/ld+json">@json($vyFaqLd, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)</script>\n'
+            )
+            _NEEDLE_LOG.append((key, 'px-faq-jsonld-emitted', '$vyFaqLd' in t))
+
     if key == 'home':
         # ⚠️ THE SHARPEST FINDING OF THE SWEEP. Gate 3b/B12 bound the home teaser's PRICES \u2014 and left the
         #    tier NAMES, the unit-band segments and the feature ladder hand-written beside them. So the page
@@ -736,15 +1011,102 @@ def convert(key):
         #    goes and the promise is not re-made on the real tiers in its place.
         for _tag, _b, _a in (
             ('switching-h2', 'Migration is included on Growth and above', 'Moving your data across'),
+            # \u26a0\ufe0f\u26a0\ufe0f THE NEEDLE USED TO STOP AT "with a CSV" \u2014 MID-SENTENCE \u2014 AND SHIPPED THE REMAINDER.
+            #    The master's sentence continues "\u2026with a CSV importer and written guides, which is fine for
+            #    one property." Cutting at "CSV" left that tail dangling behind the replacement, so the
+            #    PUBLISHED page read: "\u2026ask us rather than assume it importer and written guides, which is
+            #    fine for one property." \u2014 prose ending mid-thought, live on /switching.
+            #
+            # \u26a0\ufe0f WHY EVERY SWEEP MISSED IT: the MASTER is correct and the OUTPUT is not. A check that reads
+            #    `core/*.html` sees a clean sentence. This is the wrong-layer read from the other direction,
+            #    and it is why the rule is GREP THE CONVERTED OUTPUT.
+            #
+            # \u26a0\ufe0f AND WHY THE ZERO-MATCH GUARD DID NOT CATCH IT: `_NEEDLE_LOG` proves a needle MATCHED
+            #    SOMETHING. It cannot know the needle matched the RIGHT SPAN, and it never reads the output.
+            #    A needle can match and still be wrong \u2014 see the coherence check registered below.
+            #
+            # \u26a0\ufe0f THE FIX IS THE FULL CLAUSE, to the terminal full stop, so nothing can be left behind.
             ('switching-body',
              'The import, the reconciliation, the training and the channel cutover are part of onboarding, '
-             'not a professional services line. Starter customers self-serve with a CSV',
+             'not a professional services line. Starter customers self-serve with a CSV importer and '
+             'written guides, which is fine for one property.',
              'Vyrobel imports from a CSV, and the reconciliation step below is how you check it landed '
              'correctly before you cut over. \u26a0\ufe0f What hands-on help comes with a plan is not settled '
-             'yet \u2014 ask us rather than assume it',
+             'yet \u2014 ask us rather than assume it.',
             ),
         ):
             t = swap(t, _b, _a, key, _tag)
+
+        # ⚠️⚠️ D9 — THE FALSE DATA-PORTABILITY PROMISE, AND IT IS THE MOST CONSEQUENTIAL CLAIM ON THE SITE.
+        #    It read: "Full export of reservations, guests, units, rates and statements as CSV or JSON, on
+        #    demand, from Settings." ⚠️ MEASURED against `route:list`, not inferred:
+        #      · reservations — ✗ no row-level export. `/app/reports/export.csv` emits AGGREGATES
+        #        (revenue by channel, revenue by month), which is not a reservations file.
+        #      · guests       — ✓ REAL: `app.guests.bulk.export`, CSV, `can:guests.view`.
+        #      · units        — ✗ operator side. (`owner/units/export` exists, but it is OWNER-scoped.)
+        #      · rates        — ✗ nothing, anywhere.
+        #      · statements   — ✗ operator side. (Owners export their own history.)
+        #      · "from Settings" — ✗ THE LOCATION IS FALSE TOO: all 14 `app.settings.*` routes enumerated,
+        #        none is an export. The nearest thing sits on SECURITY and emits only the ACTING USER'S own
+        #        account fields plus their own audit rows — its docblock says "#28: NOT org reservations".
+        #
+        # ⚠️⚠️ WHY THIS ONE MATTERS MORE THAN THE OTHER FALSE CLAIMS. It is on the MIGRATION page, read by
+        #    someone leaving a competitor — so it could be relied on when CHOOSING to switch. And a
+        #    data-portability promise is read as a COMPLIANCE statement: `docs/legal/DATA-INVENTORY.md`
+        #    records portability as "PARTIAL, and the gaps are the interesting part" and the operator realm
+        #    as "NO EXPORT". The legal record is RIGHT and the page was wrong — corrected here, and the
+        #    legal document deliberately NOT touched to match marketing copy.
+        #
+        # ⚠️ NARROWED, NOT NEGATED. The canon forbids answering a false claim by quoting it ("we do not
+        #    offer full export" leaves the phrase on the page for a skimmer), so this says only what is
+        #    TRUE, and names only locations that exist. Every capability below was verified against a route.
+        #    ⚠️ "No exit fee and no support ticket required" is DROPPED rather than reworded: it is a
+        #    commercial term nothing in this repository can evidence.
+        t = swap(t,
+                 'Full export of reservations, guests, units, rates and statements as CSV or JSON, on '
+                 'demand, from Settings. No exit fee and no support ticket required.',
+                 'You export from the screen that owns the data rather than as one bundle: guest records '
+                 'to CSV from Guests, revenue and channel reports to CSV, Excel or PDF from Reports, and '
+                 'maintenance costs the same way. Your own account record downloads from Security, and '
+                 'owners export their bookings, statements and payouts from the owner portal.',
+                 key, 'switching-export-claim')
+
+        # ⚠️⚠️ THE MIGRATION ESTIMATOR — REMOVED WHOLE, AND THE SENTENCE NAMES NO WEEKS EITHER.
+        #
+        # ⚠️ WHAT IT WAS: a units slider (1–300), four "what you run on today" buttons, an owners checkbox,
+        #    and computed outputs — `data-estweeks` ("4–5 weeks to cutover"), `data-estnote`, `data-estbreak`
+        #    and `data-estcost` ("Migration is included at this size").
+        # ⚠️ NOTHING BACKS ANY OF IT. There is no migration-duration model anywhere in `app/` (verified by
+        #    sweep), and VYROBEL HAS NEVER MIGRATED ANYONE — so there is not even experience to draw on.
+        #    ⚠️ `data-estcost` is worse than the duration: a COMMERCIAL PROMISE keyed to portfolio size,
+        #    and this same converter already had to strip a tier-linked migration promise ("included on
+        #    Growth and above") for having no basis. This is that claim returning through a control.
+        #
+        # ⚠️ WHY THE WHOLE SECTION AND NOT JUST THE SLIDER. The founder's ruling was "remove the slider, not
+        #    the number" — with the proviso that if NO basis exists the sentence must not name weeks either.
+        #    It does not, so it must not: a paragraph asserting "4–5 weeks" commits exactly as much as a
+        #    control showing it, with less machinery. And the heading, the "two inputs" premise and the
+        #    "honest range" justification are all ABOUT the calculation; leaving them would be a section
+        #    explaining an estimate it no longer makes — the dangling-frame shape `cut_element` documents.
+        #
+        # ⚠️ WHAT REPLACES IT SAYS ONLY WHAT IS TRUE: that nobody has been migrated yet, so a published
+        #    timeline would be invented. That is a real answer to "how long?", and it promises nothing.
+        t = cut_element(
+            t, 'data-estwrap=""', 'section', key, 'switching-estimator-removed',
+            replacement=(
+                '<section data-sec="" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 78px;">'
+                '<div data-reveal="" style="max-width: 720px;">'
+                '<h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 27px; '
+                'font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">How long yours would take</h2>'
+                '<p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">'
+                '⚠️ We would rather not guess. Vyrobel has not migrated anyone yet, so any timeline printed '
+                'here would be invented — and a cutover date is something you would plan staff and owners '
+                'around. Tell us what you run on today and how many units you have, and we will work the '
+                'schedule out with you rather than publish a number we cannot stand behind.</p>'
+                '</div></section>'
+            ),
+        )
+
         meta['description'] = ('How to move from your current property management system to Vyrobel: what '
                                'migrates, what does not, the parallel-running cutover, and a realistic '
                                'timeline.')
@@ -777,6 +1139,121 @@ def convert(key):
         )
         t = cut_element(t, 'Compare the options first', 'x-marketing.nav-link', key, 'drop-compare-cta',
                         replacement=_drop_note)
+
+    # ⚠️⚠️ D7 — THREE NUMBERS ON ONE PAGE, AND THE CANON RULE IS "NEVER TYPE A NUMBER INTO A PAGE".
+    #    The design shipped `data-modcount` reading "16 modules" while the page RENDERS 18 and the <h1>
+    #    says "Eighteen modules". ⚠️ Counted, not eyeballed: `data-module="operator"` 11 + `"guest"` 4 +
+    #    `"owner"` 3 = 18. So the h1 is right and the counter is the false one — a number that was true at
+    #    some earlier draft and was never moved again. Same shape as the glossary's "35 terms" above, and
+    #    that transform's own comment names it: an accurate hardcoded count is a wrong one waiting.
+    #
+    # ⚠️ THE COUNTER IS NOW DERIVED from the cards actually present, so it cannot drift from what renders.
+    #    ⚠️ It sits beside the filter chips, which ship no JavaScript and therefore never re-count — that
+    #    is a SEPARATE finding (the dead-control family) and is deliberately NOT touched here; deriving the
+    #    number makes the static label true, which is all this pass claims.
+    #
+    # ⚠️ THE <h1> WORD IS NOT DERIVED, AND THAT IS A STATED LIMIT. Spelling 18 as "Eighteen" would need a
+    #    number-to-words map for a single headline, and the display font's copy is deliberately hand-set.
+    #    ⚠️ Instead the build ASSERTS it: if the rendered word ever stops matching the derived count, the
+    #    needle below reports a zero-match and the driver refuses. That is the guarantee that matters —
+    #    the page cannot ship a headline the cards contradict, even though the word itself is typed.
+    # ⚠️⚠️ D7's SWEEP FOUND A FOURTH NUMBER, ON A DIFFERENT PAGE. `/` says "Sixteen modules, and every one
+    #    is in every plan" while `/modules` renders EIGHTEEN. The pass was briefed as "three numbers, one
+    #    page"; it is four numbers across two, which is what sweeping for the CLASS rather than the instance
+    #    is for. ⚠️ DERIVED ACROSS PAGES from the modules design itself, so the two can never disagree again
+    #    — the home page has no module cards of its own to count, and asserting a typed word here would only
+    #    move the drift one file over.
+    if key == 'home':
+        _msrc = io.open(f"{SRC}/modules.html", encoding='utf-8').read()
+        _mn = len(re.findall(r'data-module="', _msrc))
+        _MW = {16: 'Sixteen', 17: 'Seventeen', 18: 'Eighteen', 19: 'Nineteen', 20: 'Twenty'}
+        t = swap(t, 'Sixteen modules, and every one is in every plan',
+                 _MW.get(_mn, str(_mn)) + ' modules, and every one is in every plan',
+                 key, 'home-module-count-derived')
+
+    # ══ D1/D6 · PROGRESSIVE ENHANCEMENT — THE PROVING SUBSET ═══════════════════════════════════════
+    #
+    # ⚠️ FOUNDER RULING: BUILD, not remove. Two controls only in this pass — the home AUDIENCE LENSES and
+    #    the product STAGE STEPPER — because if the converter route works the rest is repetition, and if it
+    #    does not, that is learned on two controls rather than thirty-seven.
+    #
+    # ⚠️ INTENT RECOVERED, NOT INVENTED. The converter strips the prototype's handlers and keeps the markup,
+    #    so the original behaviour survives in the MASTERS as `sc-camel-on-click` attributes:
+    #    `lensOperator|lensOwner|lensGuest` and `stage0…stage7`. Those names state their own target, so the
+    #    intent is unambiguous. ⚠️ THE MASTERS WERE READ FOR INTENT ONLY — never for live state, which is
+    #    the wrong-layer read this project has made three times.
+    #
+    # ⚠️ WHY THE CONVERTER AND NOT HAND-WRITTEN MARKUP: a generated view is rewritten on every build, so a
+    #    hand edit is silently undone; and 37 controls hand-wired across 19 pages is 37 things that drift.
+    #    One transform here serves every page and cannot fall out of step with itself.
+    if key == 'home':
+        t = _unhide(t, 'data-lenscopy', key, 'pe/home-lens-copy-visible')
+        t = _unhide(t, 'data-lensmock', key, 'pe/home-lens-mock-visible')
+        t = _default_tab(t, 'data-lensbtn', 'operator', key, 'pe/home-lens-default-tab')
+        # ⚠️⚠️ THE NINE-HOUR RAIL — ADDED 2026-09-01, AND THE OMISSION IS THE POINT. `_unhide` did not FAIL
+        #    on these panels; it was never CALLED on them. Three call sites existed (lens copy, lens mock,
+        #    stage panels) and `data-hourpanel` was not among them, so eight of the nine day-in-the-life
+        #    panels shipped with the master's inline `display:none` and stayed invisible with or without
+        #    JavaScript — permanently. ⚠️ THE ZERO-MATCH NEEDLE GUARD COULD NEVER HAVE CAUGHT THIS: it only
+        #    records whether a transform that RAN matched anything, and this transform never ran. A guard
+        #    over UNCALLED work has to compare the served output against the rule, which is what
+        #    `MarketingProgressiveEnhancementTest` now does for every pane on the page rather than a named few.
+        t = _unhide(t, 'data-hourpanel', key, 'pe/home-hour-panels-visible')
+
+        # ⚠️ (c) THE "DAYLIGHT" DUSK TOGGLE — three buttons, one per audience lens, all inert.
+        #    ⚠️ WHAT IT DID IN THE PROTOTYPE, read from the master for INTENT ONLY: `setDusk()` put a
+        #      `data-dusk` attribute on the hero root, and a block of `[data-dusk] …` CSS repainted the
+        #      mock in dark colours. ⚠️ IT CARRIED NO INFORMATION — same panels, same numbers, different
+        #      palette — so wiring it would add script and state to change nothing a reader learns.
+        #    ⚠️ AND ITS CSS IS ALREADY GONE: the converter strips the design's <style>, so `[data-dusk]`
+        #      matches nothing in any generated view (checked: zero occurrences). Removing the buttons
+        #      therefore leaves no orphaned rule — the residue shape that outlived the ROI estimator.
+        #    ⚠️ `data-duskicon` and `data-dusklabel` sit INSIDE the button and go with it; "Daylight" and
+        #      "Dusk" appear nowhere else on the page, so no sentence is left describing a missing control.
+        _dusk = 0
+        while 'data-duskbtn' in t:
+            _before = len(t)
+            t = cut_element(t, 'data-duskbtn', 'button', key, 'px-dusk-toggle-removed-%d' % (_dusk + 1))
+            if len(t) == _before:
+                break        # cut_element already logged the miss; never spin
+            _dusk += 1
+        # ⚠️ THE COUNT IS ASSERTED, not the presence. Three lenses, three buttons: a page that renders two
+        #    or four is a page that changed shape, and the needle registry is where that must show up.
+        _NEEDLE_LOG.append((key, 'px-dusk-toggle-count-was-3', _dusk == 3))
+
+
+    if key == 'product':
+        t = _unhide(t, 'data-stagepanel', key, 'pe/product-stage-panels-visible')
+        t = _default_tab(t, 'data-stagebtn', '0', key, 'pe/product-stage-default-tab')
+
+    # ══ D1/D6 · THE LOW-RISK GROUPS ═══════════════════════════════════════════════════════════════
+    #
+    # ⚠️ SCOPE CORRECTED AGAINST THE ROUTER, not inherited: the brief named four groups, but /faq and
+    #    /glossary are NOT ROUTED (checked with `route:list`, same as /changelog, /docs and /resources).
+    #    Wiring controls on unpublished pages would be work nobody can reach, so only the two published
+    #    groups are built: the MODULE FILTERS and the STORY PRINT buttons.
+    #
+    # ⚠️ THE PRINT BUTTON HAD NO HOOK. Its only attribute is `data-noprint` — a PRINT-STYLESHEET marker
+    #    meaning "hide me when printing", carried by other elements too, so binding to it would catch the
+    #    wrong things. A dedicated hook is added here instead of overloading a presentational attribute.
+    if key in ('story-lisbon', 'story-cyclades', 'story-rotterdam'):
+        _pi = t.find('Print this story')
+        _pb = t.rfind('<button', 0, _pi) if _pi != -1 else -1
+        if _pb != -1:
+            _end = t.index('>', _pb)
+            t = t[:_pb + len('<button')] + ' data-printbtn=""' + t[_pb + len('<button'):_end + 1] + t[_end + 1:]
+        _NEEDLE_LOG.append((key, 'pe/story-print-hook', _pb != -1))
+
+    if key == 'modules':
+        _mods = len(re.findall(r'data-module="', t))
+        t = _count(t, r'(<span data-modcount=""[^>]*>)([^<]*)(</span>)',
+                   str(_mods) + ' module' + ('' if _mods == 1 else 's'), key, 'mod-count-derived')
+        _WORDS = {16: 'Sixteen', 17: 'Seventeen', 18: 'Eighteen', 19: 'Nineteen', 20: 'Twenty'}
+        _NEEDLE_LOG.append((key, 'mod-count-matches-h1',
+                            _mods > 0
+                            and re.search(r'data-modcount=""[^>]*>(\d+) module', t) is not None
+                            and int(re.search(r'data-modcount=""[^>]*>(\d+) module', t).group(1)) == _mods
+                            and _mods in _WORDS and (_WORDS[_mods] + ' modules.') in t))
 
     # (5) ⚠️ GATE 4 — THE TRY-BOOKING SANDBOX (ruling D3 = (b)). The design's page simulates a booking on a
     #     FICTIONAL property and ends in a FABRICATED confirmation email. Every honesty transform lives
@@ -1762,6 +2239,83 @@ def convert(key):
         _NEEDLE_LOG.append((key, 'FG/no-false-claim-survives', _bad == []))
         for _b in _bad:
             _NEEDLE_LOG.append((key, 'FG/still-present: ' + _b[:60], False))
+
+    # ══ ⚠️⚠️ HEADING STRUCTURE + ANCHOR RESOLUTION — GENERIC, LAST, OVER EVERY PAGE ═══════════════════
+    #
+    # ⚠️ WRITTEN AS RULES, NOT AS THREE NAMED PAGES. The F-1 lesson: a transform that is never CALLED on a
+    #    page slips past `_NEEDLE_LOG` entirely, because the log only reports on transforms that ran. So
+    #    these run for EVERY key and are no-ops where the shape is already right — a page that gains the
+    #    defect later is corrected without anybody remembering to add it to a list.
+    #
+    # ── ⓪ THE SKIP LINK MOVES TO THE SHELL — F-11 ───────────────────────────────────────────────────
+    #
+    # ⚠️⚠️ MEASURED IN A BROWSER, NOT REASONED: the skip link was the THIRD tab stop on every page checked
+    #    (logo → the menu burger → skip), because the design emits it INSIDE the page body, which the shell
+    #    renders inside `<main>` — after the whole navigation. A skip link that is not first skips nothing.
+    #    ⚠️ AND IT WAS PERMANENTLY INVISIBLE: parked at `left: -9999px` with no `:focus` rule to bring it
+    #    back. Its bounding box measured left=-9999 BEFORE focus and left=-9999 AFTER. It still worked if
+    #    activated blind, which is why every static check and every reading passed over it.
+    #
+    # ⚠️ SO IT IS CUT HERE AND RE-EMITTED BY THE SHELL, ABOVE THE NAV, WITH A REAL `:focus` RULE. Cutting
+    #    it is half the fix and must not ship alone — the shell change is in the same commit.
+    # ⚠️ `#vy-main` IS UNTOUCHED: the target `<main id="vy-main">` stays in the page body, so the shell's
+    #    link resolves to the same element the design intended.
+    # ⚠️ NO `_NEEDLE_LOG` ENTRY, for the same reason as ①–③ below: this runs on EVERY page, and a page that
+    #    legitimately never had one would RED THE BUILD FOR CORRECT WORK. The suite guards it instead, as a
+    #    rule over the rendered output of all 19 pages.
+    t = re.sub(r'\s*<a href="#vy-main"[^>]*>Skip to content</a>', '', t, count=1)
+
+    # ── ① THE PAGE'S H1 IS THE ELEMENT THE DESIGN MARKED `data-h1` ───────────────────────────────────
+    #
+    # ⚠️ THE INTENT IS IN THE MARKUP, SO NOTHING IS INVENTED — but ⚠️⚠️ `data-h1` IS NOT A UNIQUE
+    #    PAGE-TITLE MARKER, AND ASSUMING IT WAS PRODUCED A REGRESSION. The first version of this promoted
+    #    EVERY `data-h1`-marked heading; on /home the three audience lenses each carry one, so the page went
+    #    from one `<h1>` to THREE — worse than the defect being fixed, and caught only by diffing the
+    #    regenerated pages rather than by reasoning. ⚠️ The marker means "this is a hero heading", not "this
+    #    is the page title".
+    #
+    # ⚠️ SO THE RULE IS NARROW AND MATCHES THE ACTUAL DEFECT: a page with NO `<h1>` at all takes its FIRST
+    #    marked heading. /contact shipped with its title as an `<h2 data-h1>`, so a screen-reader user
+    #    navigating by heading got no page title. Copy, styling and position are untouched — the styling is
+    #    fully inline on these pages, so the level carries no visual weight.
+    #
+    # ⚠️ NO `_NEEDLE_LOG` ENTRY, DELIBERATELY. These three run on EVERY page and are no-ops wherever the
+    #    shape is already right — which is most pages. A zero-match needle exits 4, so logging them would
+    #    RED THE BUILD FOR CORRECT WORK. The guard for all three lives in the test suite instead, as a rule
+    #    over the RENDERED output of all 19 pages, which is the only place that can see a page nobody
+    #    remembered to transform.
+    if not re.search(r'<h1\b', t):
+        t = re.sub(r'<h([2-6])(\s[^>]*\bdata-h1\b[^>]*)>(.*?)</h\1>',
+                   lambda m: '<h1' + m.group(2) + '>' + m.group(3) + '</h1>', t, count=1, flags=re.S)
+
+    # ── ② AN H3 BEFORE THE PAGE'S FIRST H2 IS MIS-LEVELLED ──────────────────────────────────────────
+    #
+    # ⚠️ ESTABLISHED BY READING THE OUTLINE, NOT BY PATTERN-MATCHING A RULE. /features opens with six
+    #    top-level highlight cards as `<h3>` and only then starts its `<h2>` sections, so the outline jumped
+    #    h1→h3 and misreported the page's shape. ⚠️ NO EMPTY HEADING IS INSERTED to close the gap — that
+    #    would be a fabrication. The six cards ARE top-level groupings, so they are promoted to the level
+    #    they already occupy visually and structurally.
+    # ⚠️ THE NO-H2 CASE IS REAL AND WAS MISSED FIRST TIME. /contact's body holds ONE section heading and,
+    #    once its title was promoted to `<h1>`, no `<h2>` remained — so a `if first_h2:` guard skipped the
+    #    page entirely and left a fresh h1→h3 skip behind the fix. (The two `<h2>Cookies on this site</h2>`
+    #    on that page come from the SHELL at request time, not from this body, so they cannot close the gap.)
+    #    Splitting at the first h2 OR taking the whole body when there is none covers both shapes.
+    _first_h2 = re.search(r'<h2\b', t)
+    _cut = _first_h2.start() if _first_h2 else len(t)
+    head, tail = t[:_cut], t[_cut:]
+    if re.search(r'<h3\b', head):
+        head = re.sub(r'<h3(\b[^>]*)>(.*?)</h3>', lambda m: '<h2' + m.group(1) + '>' + m.group(2) + '</h2>', head, flags=re.S)
+    t = head + tail
+
+    # ── ③ AN IN-PAGE ANCHOR MUST NAME AN ID THAT EXISTS ─────────────────────────────────────────────
+    #
+    # ⚠️ /pricing's "Request a formal quote" pointed at `/contact#form`, and /contact has no `id="form"` —
+    #    the visitor landed at the top of the page with nothing highlighted. ⚠️ THE TARGET ALREADY EXISTS:
+    #    the contact form carries `id="vy-contact-form"` (components/marketing/contact-form.blade.php), so
+    #    the LINK is corrected to name it rather than minting a second id for one element — two identities
+    #    for one thing is the drift this project keeps removing (§N.8f). The three sibling links on the same
+    #    page point at `#demo` and are correct; only the quote link is repointed, and its text says which.
+    t = t.replace('fragment="#form"', 'fragment="#vy-contact-form"')
 
     return meta, t.strip(), left
 

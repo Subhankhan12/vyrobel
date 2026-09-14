@@ -83,6 +83,15 @@ note "APP_ENV=${APP_ENV_V:-<unset>}  APP_URL=${APP_URL_V:-<unset>}"
 
 [ -n "$(env_get APP_KEY)" ] || { fail "APP_KEY is empty. Encrypted guest PII is unreadable without it (§7.4)."; exit 2; }
 
+# ⚠️ APP_URL is LOAD-BEARING FOR SECURITY since audit H-1, not merely cosmetic. Every emailed link — the
+# password reset, both invite links, the guest claim, both email-change confirmations — is built from it,
+# and trusted-host pinning is derived from it. An empty or relative value silently disables BOTH controls
+# and sends every link to the wrong place. See DEPLOYMENT.md §7.7.
+case "${APP_URL_V}" in
+  http://*|https://*) : ;;
+  *) fail "APP_URL is empty or not absolute (got '${APP_URL_V:-<unset>}'). Emailed reset/invite links and host pinning both derive from it — see DEPLOYMENT.md §7.7."; exit 2 ;;
+esac
+
 # ⚠️ APP_DEBUG=true in production leaks stack traces, env values and query contents to the public.
 if [ "${APP_ENV_V}" = "production" ] && [ "${APP_DEBUG_V}" = "true" ]; then
   fail "APP_DEBUG=true with APP_ENV=production — refusing. That leaks stack traces and env values publicly."
@@ -178,7 +187,10 @@ else
   run "(crontab -l 2>/dev/null; echo '${CRON_LINE}') | crontab -"
 fi
 run "php artisan schedule:list"
-note "⚠️ Expect all 8 commands with a next-due time. §7.2's heartbeat is what catches later silence."
+note "⚠️ Expect all 9 commands with a next-due time (retention:prune was added 2026-08-29 · M-6)."
+note "⚠️ §7.2's heartbeat catches a DEAD CRON — not a command that throws. VERIFIED 2026-08-31: a"
+note "   throwing command writes ONE error log line, schedule:run still exits 0, the heartbeat still"
+note "   beats and /up/liveness stays 200. Watch the LOG for these eight, not the monitor."
 
 # ── 11 · UP ──────────────────────────────────────────────────────────────────────────────────────
 step "11/12 Leave maintenance mode"

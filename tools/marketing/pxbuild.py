@@ -31,6 +31,22 @@ for key in ("pricing", "home", "switching"):
     io.open(VIEWS % key, "w", encoding="utf-8").write(out)
     print("%-12s %6d chars  (leftover handlebars=%d)" % (key, len(out), left))
 
+# ⚠️⚠️ THE COHERENCE WARNING — DELIBERATELY NOT FATAL, AND THE REASON MATTERS.
+#
+# The zero-match guard below proves a needle MATCHED SOMETHING. It cannot know it matched the RIGHT SPAN,
+# and it never reads the output — so `switching-body` cut a sentence in half ("…self-serve with a CSV") and
+# published the remainder behind the replacement, with the guard reporting 0 unmatched throughout.
+# `_truncation_risk` is the only instrument here that can see that class.
+#
+# ⚠️ IT PRINTS, IT DOES NOT EXIT. Across all 19 pages it flags 7 of 123 needles, and those 7 are UNVERIFIED
+# — several look like labels and standfirsts that legitimately run on. Failing the build on them would red
+# it for correct work, which this project's own rule forbids ("a red row for correct work means the row is
+# wrong"). Promote it to fatal only after each flag has been read and either fixed or excluded.
+if C._TRUNCATION_WARNINGS:
+    print("\n⚠️ coherence warnings (a needle that may cut a sentence in half) — REVIEW, not a failure:")
+    for k, tag in C._TRUNCATION_WARNINGS:
+        print("  ⚠️ %s / %s" % (k, tag))
+
 missed = [(k, tag) for k, tag, ok in C._NEEDLE_LOG if not ok]
 print("\nhonesty needles: %d attempted, %d matched nothing" % (len(C._NEEDLE_LOG), len(missed)))
 for k, tag in missed:
