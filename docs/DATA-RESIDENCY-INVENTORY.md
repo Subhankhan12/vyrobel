@@ -42,14 +42,32 @@ guests' data. Guests' personal data is processed on the operator's instruction.
 
 | data | retention | mechanism |
 |---|---|---|
-| ⚠️⚠️ **`failed_jobs` payloads** | ⚠️ **NONE — indefinite.** Nothing prunes this table | ⚠️ **GAP. A failed queued mailable keeps a recipient email address, and in one case a full statement PDF, for as long as the row exists.** A window is a **decision to be taken**, not a default — §5. |
+| ⚠️ **`failed_jobs` payloads** — ⚠️ **CONTAINS PERSONAL DATA**: a failed queued mailable is serialised whole, so a row can hold a **recipient email address** and, for `OwnerReportMail`, **an owner's entire statement PDF** | **7 days** | `retention:prune` — ⚠️ **a PRIVACY window, not a debugging one.** Seven days is what a debugger plausibly needs; the payload is why it is not longer. (Removing the PDF from the payload is tracked separately as audit M-7.) |
 | Application log files | **14 rotations** (`LOG_DAILY_DAYS=14`, `daily` driver) | log rotation, on the host |
 | Guest identity documents | **30 days after check-out**, then hard-deleted (file + row) | `guest-documents:purge-expired` |
 | Guests marked for deletion | **14 days**, then **anonymised** (PII replaced, `anonymized_at` stamped) — ⚠️ **rows are kept**, so accounts and occupancy history survive | `guests:process-deletions` |
 | Login / security activity | **90 days** | `platform:prune-activity` |
+| In-app notifications | **90 days** | `retention:prune` |
+| Sessions — ⚠️ contains **IP address and user agent** | **30 days** | `retention:prune` (the configured session lifetime is 120 **minutes**, so this can never end a live session) |
+| Provider webhook payloads (`webhook_events`) — may contain customer identifiers | **90 days** | `retention:prune` — ⚠️ this table also **deduplicates replays**; 90 days deliberately exceeds Stripe's ~3-day retry window by a wide margin |
+| Export download records | **90 days** | `retention:prune` |
+| AI-assistant usage accounting (token counts; **no message bodies**) | **90 days** | `retention:prune` |
 
-⚠️⚠️ **ALL THREE DEPEND ON THE `schedule:run` CRON.** Without it they fail **silently** — no error, no failed
-job. See `docs/GO-LIVE-REQUIREMENTS.md` B5.
+### ⚠️⚠️ KEPT INDEFINITELY — and a lawyer must be told, because it is not a deletion
+
+| data | retention | why |
+|---|---|---|
+| `audit_events` — who changed what, when; includes **the actor's IP address and user agent on every row** | ⚠️ **INDEFINITE, by decision** | It is the **evidence** by which a disputed owner money figure is reconstructed, and a dispute surfaces late — often after the statement is paid and the period sealed. A window sized for "logs" would delete exactly the rows a dispute needs. Its size problem is solved by an index, not by deletion. |
+| `domain_events` — the business-event outbox (event type, subject, payload) | ⚠️ **INDEFINITE, by decision** | Same reason. Payloads record **which** fields changed, not their values, and carry no contact details. |
+
+⚠️ **OPEN, AND NOT DECIDED IN CODE:** `audit_events` stores an **IP address and user agent on every row**, and
+this product already treats that data class as security-monitoring signal with a **90-day** limit elsewhere
+(`login_activity`, pruned by `platform:prune-activity`). Keeping the audit **row** indefinitely is defensible;
+keeping those two **columns** indefinitely is a separate question. Nulling them past a window would preserve
+the evidence while dropping the personal data. **This needs a founder/lawyer decision — see §5.**
+
+⚠️⚠️ **EVERY WINDOW ABOVE DEPENDS ON THE `schedule:run` CRON.** Without it they fail **silently** — no error,
+no failed job. See `docs/GO-LIVE-REQUIREMENTS.md` B5.
 
 ⚠️ **These windows are fixed in code, not configurable per tenant.** Statutory guest-registration retention
 differs by jurisdiction, so a controller in a country requiring a longer or shorter period cannot currently
@@ -69,6 +87,13 @@ be accommodated. **This is a known limit, not an oversight.**
   document and discovering they disagreed.
 
 ## 5. What is NOT decided, and must be before the DPA is signed
+
+⚠️ **NEW (audit M-6, 2026-08-30) — the `audit_events` IP / user-agent columns.** Every audit row stores the
+actor's IP address and user agent, and the audit table is kept **indefinitely** because it is the evidence for
+reconstructing a disputed owner money figure. The same data class is pruned at **90 days** in `login_activity`
+as a limited-retention security signal, so the product currently answers the same question two ways. Options:
+ratify indefinite retention for the audit trail, or null those two columns past a window (which keeps the
+evidence and drops the personal data). **Not decided in code; nothing was changed.**
 
 1. ⚠️ **Hosting region** — nothing is provisioned; no claim is made here.
 2. ⚠️ **Backup location** — local vs S3, and if S3, which region.

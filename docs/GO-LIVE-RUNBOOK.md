@@ -45,7 +45,7 @@ with a gap, because a gap gets checked.
 | | what has never run | do this | ⚠️ first real failure looks like |
 |---|---|---|---|
 | 🧑 | **Mail delivery** | Trigger one real transactional email (e.g. invite yourself to the org) | ⚠️ **Silent** — a missing Postmark token or unverified sending domain means nothing arrives and no user sees an error. Check Postmark's activity feed, not the app. |
-| ⚙️ | **The scheduler + its 8 commands** | Wait for one natural tick, then check the log | ⚠️ ⚠️ **Silent and DELAYED** — a broken retention job produces no error and no failed job; you find out when data that should have been purged is still there. |
+| ⚙️ | **The scheduler + its 8 commands** | Wait for one natural tick, then check the log | ⚠️ ⚠️ **Silent to every MONITOR, and DELAYED** — VERIFIED 2026-08-31: a throwing command writes **one `error` log line** (via the exception handler, so the cron's `>> /dev/null` does not swallow it) and **nothing else** — no failed job, `schedule:run` still exits 0, the heartbeat still beats and `/up/liveness` stays **200**. So the log is the only place it shows: `grep -i error storage/logs/laravel.log`. Otherwise you find out when data that should have been purged is still there. |
 | 🧑 | **Queue workers** | Cause one queued job and watch Horizon | **Loud in Horizon, silent in the app** — the user sees success while nothing happens. |
 | 🧑 | ⚠️ **File storage, guest ID documents** | Complete one online check-in with a document | **Loud** if the disk is unwritable. ⚠️ Verify it landed in `storage/app/private` and is **not** reachable by URL. |
 | 🧑 | **Webhook endpoints from the real internet** | Use Stripe's dashboard to send a test event to **both** `/webhooks/stripe` **and** `/webhooks/stripe/connect` | ⚠️ **Silent** — a wrong secret means events are rejected with a 400 that only Stripe sees. **This is payment-taken-booking-unpaid by a second route.** Check Stripe's webhook delivery log shows 2xx. |
@@ -88,3 +88,189 @@ backup is a hypothesis.
 `ops/deploy.sh` prints the exact command with the previous SHA at both the health-check failure and on
 success. ⚠️ **A code rollback does NOT undo a migration** — the schema stays new. Restoring the database is
 a separate, deliberate decision that discards everything written since the backup.
+
+---
+
+## ⚠️ Incident · a role has lost permissions and nobody knows which
+
+**When to run this:** an operator reports that a back-office role can no longer do something it could
+yesterday, or that a colleague has lost access. Also use it after any unexplained change to
+`/app/roles`.
+
+**There is no button for this, by decision.** Recovery is a support job, not a product feature. Everything
+below is run by someone with database and `artisan tinker` access. `tests/Feature/RoleRecoveryProcedureTest.php`
+executes these exact steps, so if the procedure ever stops working the suite says so.
+
+### Step 0 — which kind of loss is it?
+
+| symptom | what changed | which table |
+|---|---|---|
+| *"everyone with role X lost something"* | the role's **permissions** | `audit_events` · `role.permissions_updated` |
+| *"one person lost access"* | that user's **role assignment** | `audit_events` · `user.role_assigned` / `user.role_revoked` |
+
+### Step 1 — find the change
+
+```sql
+SELECT id, created_at, actor_id, `after`
+FROM audit_events
+WHERE organization_id = '<ORG_ID>'
+  AND action = 'role.permissions_updated'     -- or 'user.role_revoked'
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+`after` is JSON. For a permission change it reads
+`{"role":"Front Desk","granted":[…],"revoked":[…],"actor_id":"…"}` — `revoked` is what that save removed.
+For an assignment change, `before` carries the user's **complete** role set before the change
+(`{"roles":["Front Desk"]}`) and `subject_id` is the user.
+
+### Step 2 — reconstruct the previous state
+
+The ledger stores **deltas**, so walk backwards from what the role holds now:
+
+> previous  =  current  ∪  `revoked`  −  `granted`
+
+Replay one row at a time, newest first, if more than one save is involved.
+
+### Step 3 — restore, through the service, never with raw SQL
+
+```php
+php artisan tinker
+```
+```php
+$org = '<ORG_ID>'; $role = 'Front Desk';
+$revoked = ['…'];   // ⚠️ paste the `revoked` array from the audit row
+
+app(App\Support\Tenancy\TenantContext::class)->forOrganization($org, function () use ($org, $role, $revoked) {
+    app(Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($org);
+
+    $current = App\Support\Authorization\RolePermissions::mapFor($org)[$role];
+    $restore = array_values(array_unique(array_merge($current, $revoked)));
+
+    // ⚠️ THE ACTOR MUST HOLD EVERY PERMISSION BEING RESTORED — the subset rule refuses otherwise.
+    //    Use a Property Owner (a wildcard role holds all of them).
+    $actor = App\Models\User::role('Property Owner')->firstOrFail();
+
+    app(App\Services\RolePermissionService::class)->save($actor, $role, $restore);
+    app(Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+});
+```
+
+For a lost **assignment**, the same shape with `RoleAssignmentService::assign($actor, $target, $role)` for
+each name in the row's `before.roles`.
+
+⚠️ **Going through the service is not a formality.** It re-applies the subset rule, the last-admin floor and
+the audit trail — so the repair is itself recorded, and a repair that would lock the workspace out is refused.
+
+### The other source — shipped defaults
+
+```php
+app(App\Actions\Authorization\OrganizationRoleProvisioner::class)->provision(
+    App\Models\Organization::withoutGlobalScopes()->findOrFail('<ORG_ID>')
+);
+```
+
+⚠️ **This resets EVERY role in the organisation to `config/authorization.php`.** It repairs the stripped role
+and **silently discards every deliberate customisation on every other role** — proven in
+`RoleRecoveryProcedureTest`. Use it only when shipped defaults are genuinely what the customer wants, or when
+Step 1 finds no audit row.
+
+### ⚠️ What this procedure CANNOT recover
+
+- **A change with no audit row.** `role.permissions_updated` has been written since the editable matrix
+  shipped; `user.role_assigned` / `user.role_revoked` only since **2026-08-30**. An assignment changed before
+  that date left no trace at all.
+- **Anything written outside the services** — a direct `UPDATE` on `role_has_permissions` or
+  `model_has_roles` is invisible to the ledger.
+- **The exact prior state after a gap.** The reconstruction is a replay of deltas; if any row in the chain is
+  missing, the result is a plausible state rather than the true one. Check the restored set with the operator
+  before closing the incident.
+
+⚠️ `audit_events` is **never pruned** (`App\Support\Retention\RetentionPolicy::NEVER_PRUNED`), so the history
+does not age out — but it only reaches back to the day the row type was introduced.
+
+---
+
+## ⚠️ Incident · nobody can manage roles, and no role or assignment changed
+
+**When to run this:** `/app/roles` refuses the permission matrix (403) for everyone, and nothing in
+`audit_events` shows a `role.permissions_updated` or `user.role_revoked` row. **The procedure above will not
+help** — it repairs *permissions*, and here the permissions are intact. What is missing is a role-manager who
+can **sign in**.
+
+⚠️ **The distinction that matters:** the floor
+(`App\Support\Authorization\RolePermissions::roleManagersAfter()`) counts only holders whose
+`users.status` is `active`, because an account that cannot sign in grants nobody the ability to act. So an
+organisation can hold `roles.manage` on paper and still be unable to use it.
+
+**How it happens.** Any path that deactivates a back-office login can cause it. Owner *removal* used to —
+that is fixed (the removal path now defers to `App\Support\Owner\OwnerLoginLifecycle`, which spares anyone
+holding a back-office role). ⚠️ **Two paths still can, and are recorded as open:** the owner-detail
+**"portal access" toggle** (`OwnerManageController::update`, `portal_active = false`) and the owner's own
+**Deactivate** button (`OwnerSecurityController::deactivate`). Neither consults the floor.
+
+⚠️⚠️ **It cannot be repaired from inside the product.** The password-reset broker's lookup is scoped to
+`status = active`, so the locked-out holder cannot even request a reset; and if the owner was *removed*, the
+`Owner` row is soft-deleted, so the portal toggle that would flip the login back sits behind a 404.
+
+### Step 1 — confirm this is the failure
+
+```php
+php artisan tinker
+```
+```php
+$org = '<ORG_ID>';
+
+app(App\Support\Tenancy\TenantContext::class)->forOrganization($org, function () use ($org) {
+    app(Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($org);
+
+    $map = App\Support\Authorization\RolePermissions::mapFor($org);
+
+    // Who can sign in AND manage roles? Empty here is the incident.
+    $able = App\Support\Authorization\RolePermissions::roleManagersAfter($map);
+
+    // Who holds it at all, sign-in ability ignored — these are the repair candidates.
+    $holders = [];
+    foreach ($map as $role => $perms) {
+        if (in_array(App\Support\Authorization\RolePermissions::ROLE_MANAGER_PERMISSION, $perms, true)) {
+            foreach (App\Models\User::role($role)->get() as $u) { $holders[$u->id] = $u->email.' · '.$u->status; }
+        }
+    }
+
+    dump(['able_to_sign_in' => $able, 'holders' => $holders]);
+});
+```
+
+**Read it:** `able_to_sign_in` empty **and** `holders` non-empty ⇒ this incident. If `holders` is *also*
+empty, the roles themselves were changed — use the procedure above instead.
+
+### Step 2 — reactivate one holder
+
+⚠️ **Pick a real person and confirm with the customer first.** Reactivating a login restores a working
+account; it is not a formality.
+
+⚠️ **There is no service for `users.status`** — no route, no service method, by decision (an un-archive
+control is an open founder call). Eloquent through tinker is the supported repair. **Never raw SQL:** the
+model write keeps timestamps and observers intact.
+
+```php
+$userId = '<USER_ID from Step 1 holders>';
+
+app(App\Support\Tenancy\TenantContext::class)->forOrganization('<ORG_ID>', function () use ($userId) {
+    $u = App\Models\User::withoutGlobalScopes()->findOrFail($userId);
+    $u->forceFill(['status' => App\Models\User::SIGN_IN_STATUS])->save();
+    dump([$u->email => $u->fresh()->status]);
+});
+```
+
+### Step 3 — verify, and let them reset their own password
+
+Re-run **Step 1**: `able_to_sign_in` must now be non-empty. The user can then use the ordinary
+*"Forgot password"* flow — the broker can see them again, because it is scoped to exactly the status
+Step 2 restored.
+
+⚠️ **Do not set a password for them from the console.** Their own reset keeps the credential out of the
+support channel and leaves the normal audit trail.
+
+⚠️ `tests/Feature/OwnerRemovalSparesTheLastRoleManagerTest.php` runs Steps 1–3 end to end, so if this
+procedure stops working the suite says so.

@@ -2,7 +2,7 @@
 
 > Created 2026-08-08 as part of the audit fix pass (`docs/AUDIT-COMPLETE-2026-08-07.md`, finding **F6-4**).
 >
-> ⚠️ **The gap this document exists to close.** The application's 8 scheduled commands are correctly
+> ⚠️ **The gap this document exists to close.** The application's 9 scheduled commands are correctly
 > registered in `routes/console.php` and `php artisan schedule:list` shows all of them — but **nothing in the
 > repository or the docs ever defined the one cron entry that makes Laravel's scheduler actually fire.**
 > Without it every command below silently never runs, in a way that produces no error and no alert. Two of
@@ -61,10 +61,10 @@ Laravel's scheduler is invoked every minute and decides internally which command
 add a cron line per command. Verify after deploying:
 
 ```bash
-php artisan schedule:list     # must list all 8 commands with their next due time
+php artisan schedule:list     # must list all 9 commands with their next due time
 ```
 
-### The 8 scheduled commands
+### The 9 scheduled commands
 
 | Cadence | Command | What breaks without it |
 |---|---|---|
@@ -76,6 +76,9 @@ php artisan schedule:list     # must list all 8 commands with their next due tim
 | daily 09:00 | `emails:send-payment-reminders` | Outstanding balances are never chased |
 | daily | `invites:prune-expired` | Expired invite tokens stay accepted-looking |
 | daily | `platform:prune-activity` | Platform activity log grows without bound |
+| daily 04:00 | `retention:prune` | Log-like tables grow without bound (added 2026-08-29 · audit M-6). ⚠️ `audit_events` and `domain_events` are deliberately NEVER pruned — they are the evidence for a disputed owner figure |
+
+⚠️ **IF ONE OF THESE THROWS, ALMOST NOTHING CHANGES — VERIFIED 2026-08-31.** Laravel catches it, writes **one `error` log line** through the exception handler (so the cron's `>> /dev/null` does not swallow it) and moves on. `schedule:run` still exits **0**, the §7.2 heartbeat still beats and `/up/liveness` still returns **200**. There is no failed job and no alert. **The log is the only place a failure shows.**
 
 Test one without waiting for its slot:
 
@@ -385,7 +388,7 @@ asks for evidence. **So the script installs it rather than warning about it:**
 
 ```bash
 crontab -l | grep schedule:run          # 1. the line exists, for the right user and path
-php artisan schedule:list               # 2. all 8 commands listed with a next-due time
+php artisan schedule:list               # 2. all 9 commands listed with a next-due time
 grep -c . storage/logs/schedule-*.log   # 3. evidence it actually FIRED, not merely that it is configured
 ```
 
@@ -911,6 +914,57 @@ happened.
 | **The image** | rebuilt **only when `Dockerfile.ci` changes** (the tag is its content hash) and pushed to GHCR; every other run pulls the identical published runtime |
 | **Roughly** | a full run is the suite (~2,190 tests) plus a seed — expect **8–15 minutes** of billed private-repo minutes per push |
 | **Secrets** | ⚠️ **none.** CI holds no Stripe key, no mail credential, no `APP_KEY` of consequence — `phpunit.xml:49` pins `STRIPE_FAKE=true` and Gate 0 asserts that pin still exists (#45) |
+
+### 7.7 HOST PINNING — ✅ BUILT 2026-08-30 (audit H-1)
+
+**The defect.** `route()`/`url()` build an absolute URL from the **request** host unless a root URL is
+forced, and password-reset mail is rendered **synchronously inside the request**. A poisoned `Host` therefore
+put the attacker's domain into the victim's email — carrying a valid reset **token**.
+
+Reproduced against the running app, both ways:
+
+```
+Host: attacker.example          -> http://attacker.example/reset-password/<valid token>
+X-Forwarded-Host: evil.example  -> http://evil.example/reset-password/<valid token>
+```
+
+The second needs `TRUSTED_PROXIES=*`, which `config/security.php` recommends behind a load balancer — i.e.
+the normal production posture. The first needed **nothing**: it worked with proxy trust empty.
+
+**What changed in code.**
+1. `AppServiceProvider` forces the root URL from `APP_URL`, so every generated URL is independent of the
+   request. **This is the fix.** It is guarded: with no usable host in `APP_URL` it does nothing, because
+   forcing a root URL from an unset config would break every link in the product.
+2. `bootstrap/app.php` pins `trustHosts()` to the `APP_URL` host, so an unexpected `Host` is **refused**
+   rather than silently served. **Defence in depth, not the fix** — trusted hosts bound *which* hosts may be
+   supplied; forcing the root URL removes the request from the decision entirely.
+
+⚠️ **The web server still matters.** Laravel refuses the request, but a vhost that answers any `Host` still
+lets it reach PHP. Pin `server_name` and add a `default_server` that returns 444 (nginx) or a refusing
+default vhost (Apache).
+
+**VERIFY AFTER EVERY DEPLOY** — from the server, against the live app:
+
+```bash
+# 1. The canonical host is served.
+curl -s -o /dev/null -w '%{http_code}\n' -H "Host: $CANONICAL_HOST" https://127.0.0.1/login --resolve "$CANONICAL_HOST:443:127.0.0.1"
+#    EXPECT: 200
+
+# 2. An unexpected Host is REFUSED — not served.
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: attacker.example' https://127.0.0.1/login -k
+#    EXPECT: 400 (Laravel's trusted-host rejection) or 444/403 from the web server.
+#    ⚠️ A 200 here means BOTH controls are off. Do not go live.
+
+# 3. The emailed link is built from APP_URL, not the request.
+#    Trigger one password reset for a mailbox you control, WITH a wrong Host, and read the link:
+curl -s -X POST https://127.0.0.1/forgot-password -H 'Host: attacker.example' -k \
+     -d "_token=$CSRF" -d 'email=you@yourdomain'
+#    EXPECT: the link in the received mail begins with APP_URL. If it begins with attacker.example,
+#    the root URL is not being forced — check APP_URL is set and absolute.
+```
+
+⚠️ **`APP_URL` is now load-bearing for security, not just for links.** `ops/deploy.sh` pre-flight refuses an
+empty or relative `APP_URL` for this reason.
 
 ### Ranked by harm if missing at launch — the recommended build order
 

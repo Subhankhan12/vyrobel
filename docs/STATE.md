@@ -1,223 +1,300 @@
 # Vyrobel — STATE
 
-**Read this first, and finish it.** ~220 lines — mostly tables and one-line leads, so it scans in a few minutes.
-It is ~38× shorter than `PROJECT-STATE.md`, which is why that file gets skimmed and this one should not.
-Everything else is *pointed to*, never repeated — a fact written in two files drifts, and the reader cannot tell
-which copy is stale.
+**Read this first, and finish it.** **🔬 299 lines / ~3,950 words / ~18 minutes — measured 2026-09-02**, never
+described, because ⚠️ **this header has now gone stale three times, the last within one edit of being written.** Everything else is *pointed to*, never repeated: a fact
+written in two files drifts and the reader cannot tell which copy is stale.
 
-> ⚠️ **THIS FILE GROWS EVERY PASS, AND THAT IS ITS OWN FAILURE MODE.** It went 170 → 220 lines in two passes,
-> each addition individually justified. **Prune when you update it**: a settled decision becomes one struck-through
-> line, a closed track becomes a sentence, and history moves to git. **If it stops being finishable it stops
-> working**, and the first symptom is someone acting on a premise from a section they skipped.
+> ⚠️ **THIS FILE GROWS EVERY PASS — PRUNE WHEN YOU UPDATE IT.** A settled decision becomes one struck-through line;
+> history moves to git; a section that outgrows a screen moves to its own file and gets a pointer.
+> **If it stops being finishable it stops working**, and the first symptom is someone acting on a premise from a
+> section they skipped. ⚠️ **v4 is LONGER than v3 (260 → the count below) and that is a deliberate trade: §2b and
+> §6b are the two most valuable things this sequence produced. Six sections were compressed to pay for part of it.
+> ⚠️ The first draft grew it by 46 lines while its own header claimed it had not — caught only by measuring.**
 
-> **✅ VERIFIED (date)** = read against the code on that date, by the session that wrote the line.
-> **📄 RECORDED** = written down by an earlier pass and **not re-checked**. Treat as a lead, not a fact.
+> ### The four marks — ⚠️ three were not enough
+> **🔬 MEASURED** = executed and observed · **📖 ASSERTED** = read from source, not run ·
+> **📄 RECORDED** = written down by an earlier pass, never re-checked; a lead, not a fact ·
+> ⚠️ **🖥 BROWSER** *(new 2026-09-01)* = observed in a real rendered page.
 >
-> ⚠️ **This distinction exists because this project's own canon has been confidently wrong, repeatedly, and each
-> time it cost a full pass**: the deploy script was said to refuse without a cron (it does not) · the owner payout
-> was described as a live Stripe rail (it moves no money) · the money gate was reported FULL green from a run that
-> was not full · a *derived* demo figure was recorded as a constant and a later pass "found" money missing.
-> ⚠️ **Never upgrade 📄 to ✅ because a report says so. That is the same error one layer out.**
+> ⚠️ **Why 🖥 is its own tier:** nine dead controls and eight permanently-invisible panels **survived every static
+> check ever run here**. A served-HTML test asserts the markup is present, and presence was never the defect.
+> Never upgrade a mark because a report says so — that is the same error one layer out.
 
 ---
 
 ## 1 · What this is
 
 A multi-tenant hotel / short-stay **PMS SaaS** for operators running a mix of hotels, aparthotels, villas and
-multi-unit rentals. Three logged-in realms — operator back office (`/app`), owner portal (`/owner`), guest portal
-(`/guest`) — plus a public booking storefront (`/book/{property}`), public signup, and a marketing site.
+multi-unit rentals. Three logged-in realms — operator (`/app`), owner (`/owner`), guest (`/guest`) — plus a public
+booking storefront (`/book/{property}`), public signup, and a marketing site. Built by one founder ("Subhan") with
+Claude. **`CLAUDE.md` holds the conventions and demo credentials and is auto-loaded — do not duplicate it here.**
 
-Built by one founder ("Subhan") with Claude. **`CLAUDE.md` holds the conventions and the demo credentials, and it
-is loaded automatically every session — do not duplicate it here.**
+## 2 · Where it stands
 
-## 2 · Where it actually stands
-
-**The product is built.** What remains is not feature work; it is founder decisions, credentials, and a server.
+**The product is built.** What remains is founder decisions, credentials, and a server.
 
 | | |
 |---|---|
-| Suite | **✅ VERIFIED 2026-08-26** — 2,871 tests / 2,869 passed / 0 failed / 22,278 assertions / 2 skipped. PHPStan L5 **0**, Pint clean. |
-| Demo money | **✅ VERIFIED 2026-08-26** — `ops/money-as-seeded.sh` FULL mode, all six figures unchanged; `owner_ledger` 29 rows / 730640. |
-| CI | **✅ VERIFIED 2026-08-26** — 8 gates named in `.github/workflows/ci.yml`. **📄 RECORDED** that each was violated and observed red. |
-| Marketing site | **✅ VERIFIED 2026-08-26** — 19 published pages. |
-| Documentation site | **✅ VERIFIED 2026-08-26** — **0 of 27 pages have a view.** Nothing is published; the pages are built and checked, not served. |
-| Deployment | **📄 RECORDED** complete (`DEPLOYMENT.md` §7.1–7.6). **Nothing has ever been deployed.** |
+| Suite | **🔬 2026-09-02** — 3,112 tests / 3,111 passed / 0 failed / 1 skipped / 23,738 assertions, run alone. PHPStan L5 **0**, Pint clean. ⚠️ **Re-measured across a MONTH-BOUNDARY date roll on unchanged code and identical to 2026-09-01** — a date roll has broken this suite twice, so it is re-run rather than inherited. |
+| Demo money | **🔬 2026-09-02** — `money-as-seeded.sh` **FULL**, six figures unchanged. `owner_ledger` 29 / 730640 — ⚠️ **a separate query; the gate does not print it** (§3). |
+| CI | **📄** — **8 gates, `Gate 0`–`Gate 7`** in `.github/workflows/ci.yml`. That each was observed red is 📄. |
+| Marketing site | **🖥 2026-09-01** — 19 routed pages, all loaded in a browser. `/faq`, `/glossary`, `/changelog`, `/docs` are **not routed and linked from nowhere**. |
+| Documentation site | **📖 2026-08-26** — **0 of 27 pages have a view.** Built and checked, not served. |
+| Deployment · advisories | **📄** deploy complete (`DEPLOYMENT.md` §7.1–7.6) — **nothing has ever been deployed.** **🔬 2026-08-30** `composer audit` clean; re-run it, the answer ages. |
+| §7.2 heartbeat | **📖 2026-08-31 — WIRED, and narrower than it reads.** It certifies **cron is alive** and **a worker consumes** — ⚠️ **not that any of the eight commands succeeded**: a throwing command writes one log line, `schedule:run` still exits **0**, `/up/liveness` stays **200**. ⛔ Founder: set `OPS_HEARTBEAT_PING_URL`, point a monitor at it, decide on `onFailure()`. |
 
-### ✅ Two tracks are FINISHED — do not re-open them
+### ✅ FINISHED TRACKS — do not re-open
 
-- **The documentation correction work is DONE.** ✅ VERIFIED 2026-08-28 by running the gate:
-  **0 outstanding-and-reachable, 0 blocked-on-a-decision.** Of 220 audited claims: 156 corrected · 3 corrected
-  but unmatchable · 4 half-cut · 4 verified-true · 12 parked (channels) · 41 unmatched. §6 says what each
-  remaining category would need — **none of them is a correction pass.**
-- **The payment switch is DONE.** ✅ VERIFIED 2026-08-28: **all three charge paths** resolve a connected
-  account — storefront (`BookingEngineController:552`), guest portal (`GuestFolioPaymentController:59`) and
-  the front desk (`FolioService:230`). ⚠️ **There is no platform-charge fallback:** `accountForCharge()`
-  refuses when the operator is not `charges_enabled`, so a charge either lands on their account or does not
-  happen.
-
-### ⚠️ Per-unit pricing survives in the design masters — and only there
-
-✅ **VERIFIED 2026-08-28.** Nothing per-unit is externally visible: the published `/pricing` and home derive
-price *and* suffix from `MarketingPricing`, the four invented tiers were already removed, and
-`MarketingPriceSourceTest` guards plan names, prices, the billing model, the feature gates and (since
-2026-08-28) the currency.
-
-⚠️ **Five masters still teach per-unit and would ship it if published directly** — `core/pricing.html`
-(a four-tier ladder with unit bands, over a two-plan engine), `core/home.html` (incl. the one `AggregateOffer`
-block — search engines read it), `core/terms.html`, `core/compare.html`, `core/alternatives.html`. **None has
-a route or a view.** `core/terms.html` is a contract; see open ruling 7.
-
-⚠️ **The prices are PLACEHOLDERS** (`MarketingPricing::isPlaceholder()` exists to say so). Correcting a *model*
-while printing a fictional *figure* swaps one false claim for another — which is why corrected pages state the
-shape and route to the pricing page rather than naming a price.
+- **Documentation corrections** — 🔬 2026-08-28: **0 outstanding-and-reachable** of 220 claims. §8 names what remains; **none is a correction pass.**
+- **The payment architecture** — 🔬 2026-08-28: all three charge paths resolve a connected account; **no platform-charge fallback.**
+- **The re-authentication family** — 🔬 2026-08-31, nine sensitive actions. ⚠️ A claim about *those actions and that method*, not that the realm is secure.
+- **Retention**, except open ruling 6.
+- **The audit's security findings** — closed or explicitly parked; `AUDIT-2026-08-29.md` §1 is the ranked record.
+- **Seasonal pricing** — 🖥 2026-09-01: save · review · apply, with a precedence rule governing **both** display and price.
 
 ### ⚠️ Nothing takes real money, by default
 
-- **✅ VERIFIED 2026-08-26** `PAYMENTS_GATEWAY` defaults to **`manual`** (`config/services.php:74`).
-- **✅ VERIFIED 2026-08-26** `PAYOUTS_RAIL` defaults to **`manual`** (`config/services.php:110`), described in-file as
-  *"done outside the system — the only working rail"*; `stripe_connect` is *"a config-gated SKELETON"*.
-  ⚠️ **The owner payout rail moves no money.** Earlier notes calling it a live Stripe rail were wrong.
-- **✅ VERIFIED 2026-08-26** Three guards refuse live credentials outside `production` and are bound in
-  `AppServiceProvider`: `StripeSafetyGuard`, `MailSafetyGuard`, `LlmSafetyGuard`.
-- **✅ VERIFIED 2026-08-26** `FakeChannexClient` is the bound default — **no channel connection is live.**
-- **✅ VERIFIED 2026-08-26** `LLM_FAKE` defaults true — the support assistant makes no real Anthropic call outside production.
+📖 2026-08-26. `PAYMENTS_GATEWAY` and `PAYOUTS_RAIL` default **`manual`** · `StripeSafetyGuard` / `MailSafetyGuard` /
+`LlmSafetyGuard` refuse live credentials outside `production` · `FakeChannexClient` is the bound default · `LLM_FAKE`
+defaults true. ⚠️ **The payment path has never run against real Stripe. Production is the first place it executes.**
 
-⚠️ **The payment path has never run against real Stripe** — the guards mean production is the first place it ever
-executes for real.
+## 2b · ⚠️⚠️ THE HIGHEST-YIELD STEP IN ANY PASS: VERIFY THE BRIEF FIRST
 
-## 3 · Never do these
+> ⚠️⚠️ **A BRIEF'S CENTRAL PREMISE WAS WRONG ROUGHLY HALF THE TIME.** Not its details — its *premise*, the thing the
+> whole pass was aimed at. **Checking it against the repository before acting is the most reliable finding this
+> project has produced**, and it is worth more than any individual fix, because a false premise aims every check
+> in the pass at the wrong thing.
 
-Each is absolute, and each is here because doing it once cost something.
+| The brief said | The repository said |
+|---|---|
+| "A useless write" | It persisted **1 real `inventory_blocks` row and 3 real `rate_calendar` rows at €123.00**, with audit entries and a success message |
+| "The transform MISSED those panels" | It was **never called on them** — three call sites, and that attribute was not one. A different fix entirely |
+| "Two seeding paths disagree" | **One mechanism.** `VY_SEED_DATE` is implemented *via* `setTestNow`; the fault was a helper that cleared the clock mid-test |
+| "Filter `units()`" | 🔬 It would have **erased €300.00 of real earned revenue and a completed stay** — that method is the ATTRIBUTION SET, not a unit list |
+| "This needs a change to a certified service" | **Write order sufficed.** Re-applying the covering set weakest-first through the unchanged writer |
+| "Fix it in `convert.py`" | The value came from a **head map**; `core/` is derived and gitignored, so neither was editable |
+| "The money gate reads one of two seeded worlds" | **The gate never seeds.** It reads whatever database exists |
 
-1. **Never run the suite beside other commands.** Parallel runs corrupt the shared test DB. This produced a false
-   `BookingImportTest` failure on 2026-08-26 that looked exactly like a real regression.
-2. **Never treat a report as a verification.** A verification that lives only in a chat report gets done twice, and
-   the second doing may reach a different answer.
-3. **Never cut a true half to green a gate.** If a register row is red for correct work, the row is wrong, not the page.
-4. **Never amend a certified assertion.** A fixture's world may move; an assertion may not. Fix the fixture.
-5. **Never type a number into a page.** Route to the setting or interpolate it. A typed figure is a second copy that drifts —
-   and removing a false one is correct, *re-estimating* it is the same error with better arithmetic.
-6. **Never promise a future date or capability**, in the product or on the site.
-7. **Never soften a false claim.** A hedge makes it unfalsifiable and the reader still believes it. Correct it or cut it.
-8. **Never negate a false claim by quoting it** — the false phrase stays on the page for a skimming reader.
-9. **Never fabricate seed state silently.** Demo data is flagged as demo, or it is not written.
-10. **Never edit a generated file.** `pxbuild.py:31` rewrites `resources/views/marketing/*.blade.php` from the
-    masters, so an edit there is silently undone on the next build. Transforms go in `convert.py`.
+⚠️ **Three more from the earlier sequence, in `AUDIT-2026-08-29.md`:** "37 controls" (the masters held **~90**
+handlers) · "89 of 809 unnamed" (**85 of 579**) · "four low-risk groups" (**two were unrouted**).
 
-## 4 · Open — and who must decide
+### ⚠️ And the counterpart: STOPPING IS A CORRECT OUTCOME
 
-⚠️ **Nothing below is queued work. Each is a decision, and two of them nobody in this repository can make.**
+**Three passes refused to proceed, and each refusal was right.** ⚠️ A pass that stops with evidence is not a failed
+pass — twice the instruction reversed on that evidence.
+
+1. **Forbidding per-unit plans** would have **inverted a certified assertion** to dismantle a deliberately-built,
+   terms-captured capability. → Ruling reversed to *wire the caller*.
+2. **Filtering the owner's unit set** would have **deleted real earnings**. → Ruling reversed to *split the concept*.
+3. **An ambiguous cascade** — two candidate fixes with different blast radii and no evidence to choose. → Reported.
+
+## 3 · ⚠️⚠️ THE DON'T-REGRESS LIST — consolidated, because it became a liability
+
+> ⚠️ **~26 items were carried into every brief, and ONE WAS FALSE FOR A DOZEN OF THEM.** A list too long to read is
+> a list nobody checks. **This is the list now.**
+
+| | Command | Covers |
+|---|---|---|
+| **1** | `./vendor/bin/pint --test && ./vendor/bin/phpstan analyse --memory-limit=1G && ./vendor/bin/pest` ⚠️ **suite ALONE** | Pint · PHPStan L5 · full suite = **CI Gates 1, 2, 3, 5, 7** |
+| **2** | `VY_REQUIRE_FULL=1 VY_SEED_DATE=2026-09-01 bash ops/money-as-seeded.sh` | `migrate:fresh --seed` **and** the six money figures = **CI Gate 4**. Prints `mode=FULL`. |
+| **2b** | `SELECT COUNT(*), SUM(amount_minor) FROM owner_ledger;` → **29 / 730640** | ⚠️ **Not covered by 2 and asserted by NO test** — `730640` appears in no `.php`/`.sh`/`.yml`. **The gap.** |
+
+⚠️ **1 and 2 are already CI gates**; the old block re-listed what CI enforces.
+**📄 CARRIED, never measured — deletion candidates:** *"the storefront still books"* in any **pinned** form · the
+baseline/trailer boilerplate.
+
+### ⚠️⚠️ NEVER PIN A DATE-RELATIVE FIGURE — the rule, and the instance that broke it
+
+`CLAUDE.md` already says it. ⚠️ **A dozen briefs pinned the storefront aggregate anyway** and it looked like a
+regression; no price had moved — the window rolled from a 2-night stay to a 1-night one. ✅ **The correct form:**
+fetch `/book/seaside-demo/search` with a **fixed** window and assert priced offers exist. 🔬 **2026-09-01 and again
+2026-09-02**: Double Room 3n `total_minor 25500`, One-Bedroom 3n `54000` — ⚠️ **the same figures on a window that
+moved with the calendar (21→24 Sep, then 22→25).** The offers are real; the window is not a constant. **Recorded,
+never pinned.**
+
+## 4 · Never do these
+
+1. **Never run the suite beside other commands** — parallel runs corrupt the shared test DB.
+2. **Never treat a report as a verification** — ⚠️ nor *reading* as *running*.
+3. **Never cut a true half to green a gate.** A red row for correct work means the row is wrong.
+4. **Never amend a certified assertion.** A fixture's world may move; an assertion may not.
+5. **Never type a number into a page**, and **never invent a score** you cannot point at a rendered fact to support.
+6. **Never promise a future date or capability.**
+7. **Never soften a false claim**, and **never negate one by quoting it** — the phrase stays on the page for a skimmer.
+8. **Never fabricate seed state silently.** Demo data is flagged as demo, or not written.
+9. **Never edit a generated file** — `pxbuild.py` rewrites `marketing/*.blade.php`; transforms go in `convert.py`.
+   ⚠️ And **never edit `tools/marketing/core/*.html`** — it is derived and gitignored.
+10. ⚠️ **Never pin a date-relative figure** (§3).
+11. ⚠️ **Never pin an unpinned date case to make it green** — that deletes the detector, not the defect (§6b).
+12. **Never edit a file while a suite is running** — twice done, both runs correctly discarded.
+
+## 4b · ⚠️ ARCHIVING A PROPERTY HIDES ONE ROW — that is the whole design 🔬 2026-09-01
+
+`archive()` soft-deletes the property and **nothing else**. Every child `property_id` is `cascadeOnDelete`, but **a
+soft delete fires no cascade**, so all ~20 child tables survive — **intended**: a hard delete would destroy
+reservations, folios and statements that must stay queryable.
+
+⚠️⚠️ **THE RULE:** a read is insulated from an archive **only if bounded by a set derived from `Property::query()`**.
+Operator screens are safe for free (`User::accessiblePropertyIds()`); any read reaching units **org-wide with no
+property step** still sees them — **by construction, not omission.** ⚠️ **The trap that cost two passes:**
+`OwnerPortalService::units()` is **the attribution set for history and money**, not a unit list — hence two
+accessors, `units()` and `unitsAtLiveProperties()`. `ArchivedPropertyGhostUnitsTest` pins the €300.
+
+## 5 · Open — and who must decide
+
+⚠️ **None of this is queued work. Each is a decision.**
+
+### ⛔ Only a lawyer can do these two
 
 | # | Decision | If skipped | Blocks |
 |---|---|---|---|
-| 1 | ⚠️ **Article 28 data-processing agreement** — **a lawyer's, not ours** | No lawful basis to process customer data | Any real customer |
-| 2 | ⚠️ **Flow-of-funds / money-holding question** — **a lawyer's, not ours** | Unknown regulatory exposure | Taking real money |
-| ~~3~~ | ~~The billing model~~ — **SETTLED 2026-08-28: flat, and the copy already said so.** The 2026-08-26 entry was wrong; see the wrong-layer class in §5. | — | — |
-| 4 | **Stripe live keys + the dashboard steps** (`BILLING-STRIPE-PRICES.md`) | No payments | Go-live |
-| 5 | **Hosting region, backup location, Postmark region** (`DATA-RESIDENCY-INVENTORY.md` §5) | Cannot answer a lawyer's first question | The DPA |
-| 6 | **A `failed_jobs` retention window.** It is unbounded today and a failed queued mailable persists a recipient email — and, in one case, a whole statement PDF. Three other retention windows are fixed in code; **a fourth is a decision, not a default.** | PII kept indefinitely | GDPR posture |
+| 1 | **Article 28 data-processing agreement** | No lawful basis to process customer data | Any real customer |
+| 2 | **Flow-of-funds / money-holding question** | Unknown regulatory exposure | Taking real money |
 
-| 7 | ⚠️ **`core/terms.html`'s per-unit proration clause** — *"Adding units mid-cycle is prorated"* has **no meaning under flat billing**, and terms describe what a customer agrees to pay. **Possibly a lawyer's.** Unpublished today (no route, no view). | A contract that contradicts the invoice | Publishing terms |
-| 8 | **The invented tier names surviving in code** — `PlanFactory:22` generates from `['Starter','Growth','Pro']` (test-only) and the plans migration docblock still describes four tiers. Harmless today; it is the fabricated ladder living on where a future reader may believe it. | A regenerated fixture reintroduces a phantom tier | Nothing today |
-| 9 | **`/resources`' blocker** — the founder's ruling, **undischarged**. Nothing publishes, so it changes nothing today. | — | Publishing `/resources` |
-| 10 | **Accounts v2 / controller properties** — Stripe marks Standard/Express/Custom legacy; this integration uses v1 `type: 'standard'`. Recorded as **go-live A4** in `GO-LIVE-REQUIREMENTS.md`. | Consistent today; a migration later | Scale, not launch |
-| 11 | **IP and user-agent in exception logs** — `LogSafe` scrubs email addresses only. Both are personal data under GDPR; redacting them was rejected as removing what a debugger needs. **Ratify or reverse.** | Personal data in logs for 14 rotations | GDPR posture |
+### The founder's — go-live
 
-⚠️ **Rows 1 and 2 are the only ones nobody in this repository can do.** The rest are the founder's.
+| # | Decision | If skipped | Blocks |
+|---|---|---|---|
+| 4 | **Stripe live keys + dashboard steps** | No payments | Go-live |
+| 5 | **Hosting region, backup location, Postmark region** | Cannot answer a lawyer's first question | The DPA |
+| 6 | **A `failed_jobs` retention window** — a failed mailable persists a recipient email and, once, **a whole statement PDF** | PII kept indefinitely | GDPR posture |
+| 7 | **`core/terms.html`'s per-unit proration clause** — meaningless under flat billing. Possibly a lawyer's | A contract contradicting the invoice | Publishing terms |
+| 10/11 | **IP + user-agent** in exception logs *and* platform audit rows — **same question, opposite defaults** | Personal data across rotations | GDPR posture |
 
-## 5 · How things break here — the recurring classes
+### The founder's — product, nothing blocked today
 
-⚠️ **This is the most valuable output of the work.** Each class recurred; the instances are evidence that it will again.
+**Money-adjacent, before real money moves:** **H6 permission toggles** (12 of 46 have no enforcement site — remove,
+wire or label; `KNOWN-LIMITS.md` L6) · the **widened negotiated-rate collision** (applying a season re-applies
+overlapping *applied* seasons, overwriting manual edits in their range) · **no season undo/edit/delete** (`setRate()`
+records the new price with `before` literally `null`) · the **live-plan-vs-snapshot read** · the **unalerted sync
+failure** (one log line, no monitor) · **out-of-service units still bill** (deliberate; unratified).
 
-- **Complete machinery, no front door** — *5 instances*: an uncalled re-attribution method; company accounts with no
-  screen; three restrictions with no writer; an override checked nowhere; a Connect account nobody could create.
-  **Ask what route reaches it before believing a feature exists.**
-- **A column's existence is not a capability** — `organizations.custom_domain` is read by **nothing** and no
-  `Route::domain` exists; it nearly made a false marketing claim look true. `Plan::PRICING_PER_UNIT` is the same shape.
-  **Grep for readers, not for the column.**
-- **Absence absorbed as agreement** — a silently-skipped null let a gate claim five counters having checked two.
-- **A check in the wrong place fails plausibly** — a forbidden-phrase check placed *before* the corrections it guards
-  produced exactly the failure it was built to detect; 28 corrections looked unlanded.
-- **The instrument cannot see its own blind spot** — a page read CLEARED because nothing looked at it; needles proved a
-  page *rendered*, not that it rendered the *corrected* text. **A source-scanning guard also reads its own needle** —
-  tokenise and skip comments.
-- **A false decline** — a surface saying data is absent while it sits unread in the payload. Worse than a blank: it
-  *answers* the question.
-- **An inert control is worse than an absent one** *(new 2026-08-28)* — `/pricing` shipped EUR/GBP/USD buttons over
-  a EUR-only engine, handlers stripped by the converter, on a **published** page. It **answers** the question, so
-  nobody checks it. ⚠️ **A sweep that reads names and prices will not see a control.**
-- **A guard that reads strict and is vacuous** *(new 2026-08-28)* — `expect($html)->not->toContain($needle, "msg")`
-  looks airtight, but Pest's `toContain()` is **variadic**: the message became a second needle and the assertion
-  passed on the *message's* absence. ⚠️ **Caught only because a mutation failed on an unexpected LINE and the
-  discrepancy was chased instead of accepted.** A green mutation on the wrong assertion is not a pass.
-- **A false CAUGHT is undetectable** — the mutation harness can only catch a false NOT-CAUGHT.
-  ⚠️ **Disbelieve an implausible green.**
-- **Payment taken, booking unpaid** — *4 routes*: unrouted events; a wrong signing secret; a refund object read as a
-  payment intent; a third charge path nobody switched.
-- **A guard that inspects only the failing case** *(new 2026-08-26)* — the half-cut verifier checked its declaration
-  only for claims still *outstanding*, but the wrong action made the claim bank as **DONE**, so the one act it existed
-  to catch was the one that skipped it. **Verify unconditionally.**
-- **Reading the wrong layer** *(new 2026-08-28)* — a grep over the design **masters** found per-unit billing on
-  nine pages that the **built** output had already corrected, and it produced a false "founder decision" entry in
-  this very file. **Grep `C.convert(key)`, never `core/*.html`.** Third instance of a wrong-layer read.
-- **A truncated read is a wrong read** *(new 2026-08-26)* — 200 characters of a paragraph made an uncorrected claim look
-  already-corrected. **Read the whole block before classifying it.**
-- **A brief is a lead, not a fact** *(new 2026-08-26)* — ~55 consecutive briefs each carried at least one wrong specific.
-  **Verify against the repo and say plainly when a brief is wrong** — though it is sometimes entirely right.
+**Reversibility & silence:** archiving a property is **irreversible in-app** · **the owner is told nothing** when one
+carrying their units is archived · no **un-archive** route for owner removal · no **last-owner guard on the ownership
+axis** · **pause/resume works on a ghost unit** (inert).
 
-## 6 · Finished as it can be — do not re-open
+**Left with reasons, not oversights:** ⚠️ **search** may legitimately need to find an archived unit, and the
+**subject-access export** arguably must include everything the subject is attributed. **Neither was changed — a
+data-protection decision is not made to tidy a list.**
 
-- **41 unmatched audit fragments.** The audit *paraphrased* rather than quoted, so there is no fragment to match.
-  Closing them means re-quoting the audit against the pages — **a new authoring job, not a correction pass.**
-- **12 channels claims.** Parked by ruling until a real connect flow exists. **📄 RECORDED.**
-- **3 half-cut rows.** Structurally unrepresentable by the gate's present/absent rule. **A category, not work** —
-  and closing one by deleting its true half breaks its declaration and reds the gate, by design.
-- **Known product limits.** Things to *tell* a customer, not fix: no guest self-serve data export (deletion **does**
-  exist); fixed retention windows regardless of jurisdiction; no org-wide 2FA enforcement.
+**Marketing** (`BROWSER-AUDIT-2026-09-01.md`): four **dead controls** (pricing Monthly/Annual, "Download pricing as
+PDF", footer "Join", "Daylight") · the **duplicated cookie banner** on all 19 · **13px horizontal overflow** at 375px
+on all 19 · **tap targets under 44px** (29–95/page) · the **stripped print stylesheet** (the `@page` rules never
+reach the generated views, so "Print this story" prints the site chrome) · **`data-portfolionote`** — real pricing
+copy hidden by inline CSS, referenced by nothing.
+**Accessibility:** **30 dialogs** without the D2 contract · **79 unnamed controls** · two structural keyboard
+surfaces · ⚠️ **a human check on a real phone** — no harness replaces it.
 
-## 7 · Rulings worth knowing — with their reasons
+**Also registered — point, don't re-list:** `GO-LIVE-REQUIREMENTS.md` holds **15 blocking + 7 advisable**.
+Struck: ~~the billing model~~ (settled 2026-08-28: flat).
 
-⚠️ **A ruling without its reason gets re-opened by someone who assumes it was an oversight.**
+## 6 · ⚠️ THE INSTRUMENT-ERROR CATALOGUE — the most valuable output of the work
 
-- **Direct charges on the operator's own connected account** — chosen as the *conservative* end. Whatever a lawyer
-  later says about who may hold funds, direct charges cannot be wrong on that question. **The cost is work, not risk.**
-- **Standard Connect accounts, not Express** — Express puts dispute liability on the platform.
-- **No statement-descriptor field** — on a Standard account with direct charges the descriptor comes from the
-  connected account's own settings. A field here would claim a control we do not have.
-- **The channels page is stopped** — not deferred, not "coming soon". It may make **no** future promise.
-- **The changelog was refused** — there are no release tags, so any entry would be invented. Refused on principle.
-- **The weaker money-gate mode is kept, not removed** — it is what a developer gets against a normally-seeded
-  database. It simply may no longer *look* like the real gate.
+⚠️ **🔬 2026-09-01 — 54 instances in 13 classes.** Each is a check that looked like protection and wasn't; each class
+recurred, and the next will wear a new face. **The evidence is `docs/INSTRUMENT-ERRORS.md`** — consult it when you
+write a check. The names only, so you can recognise one:
 
-## 8 · Where everything else lives
+**A** the assertion that cannot fail · **B** proving something ADJACENT · **C** the wrong layer or target ·
+**D** placed wrong in time · **E** green as an artefact of the environment · **F** the mutation that lies ·
+**G** the silent no-match · **H** the static check that cannot see runtime · **I** the pinned figure that rots ·
+**J** the read that is too small · **K** the control that answers without working · **L** the gate that can be
+lifted · ⚠️ **M** *(new)* the premise that was never checked — see §2b.
 
-**Point here; do not copy.**
+⚠️ **The four that cost the most:** a **negated variadic matcher** passing on its own absence (3 instances, one by
+the author of the lint banning it) · **`php -l` clean on an unresolved class** while the login route 500'd — **it
+parses, it does not resolve** · a **composition fatal printed as SILENCE** (zero bytes, exit 1, empty logs — ⚠️ **if
+a run returns empty, suspect a fatal before the tests**) · **a transform never called**, invisible to `_NEEDLE_LOG`.
+
+## 6b · ⚠️⚠️ THE WRONG-FIX MUTATION — mutate to the fix you REJECTED
+
+Breaking the correct fix proves a test notices *that code*. **Re-introducing the fix that was rejected proves the
+test defends the DECISION.** 🔬 Four instances, 2026-09-01: setting the flag on archive · merging the two owner-unit
+accessors (**the €300 test**) · adding a "save and apply" shortcut · a display rule differing from the write path.
+**Without it, a future author "tidying" two accessors into one gets a green suite and erases someone's money.**
+
+⚠️ **Its limit: no mutation can catch a change that makes the suite GREENER.** Pinning the one unpinned date case
+would delete the detector while turning everything green. **That is why some things are rules (§4.11), not tests.**
+
+## 7 · The corrected canon — ⚠️ the correction, not only the truth
+
+⚠️ **Recorded as corrections so nobody re-derives the wrong one.** Each was **🔬 measured false.**
+
+| Long-carried claim | Status |
+|---|---|
+| *"A guard-qualified rule against the wrong guard validates NOTHING, silently."* | ⛔ **FALSE.** A wrong-but-**defined** guard **fails closed**; an **undefined** one **throws**. |
+| *"`current_password` arrived 2026-07-27, so the suspect set is date-bounded."* | ⛔ **WITHDRAWN. Sweep by ACTION SENSITIVITY, never by date.** |
+| *"A type-the-name confirm is UI-only."* | ⛔ **FALSE** — validated server-side. It still does not stop a hijacked session. |
+| *"§N.19.6 is an unrecorded-actor defect."* | ⛔ **FALSE.** A **billing** lesson: an invariant is only as strong as the ACTORS it was checked against. |
+| *"The scheduler's failures are completely silent."* | ⚠️ **TOO STRONG.** One log line is written. **Silent to every MONITOR, not everywhere.** |
+| *"10 dompdf advisories."* · *"The deploy refuses if told to skip the cron."* | ⛔ **STALE** (dompdf v3.1.6, audit clean) · ⛔ **FALSE** (`DEPLOY_NO_CRON_INSTALL=1` warns and completes). |
+| ⚠️ *"`OwnerPortalService::units()` is a unit list."* | ⛔ **FALSE.** It is the **attribution set** for the owner's history and money (§4b). |
+| ⚠️ *"`per_unit_minor`."* | ⛔ The column is **`unit_rate_minor`**, and it is **not inert** — **six live readers**. An unpopulated column with live readers is its own category. |
+| ⚠️ *"The subscription quantity sync is missing."* | ⛔ **FALSE.** Complete — proration and idempotency already decided. **Only a caller was absent.** |
+| ⚠️ *"The money gate reads one of two seeded worlds."* | ⛔ **FALSE. The gate never seeds.** The failing world existed only inside PHPUnit and could never reach it. |
+
+### ✅ And the ones that HELD — checked, and right
+
+`owner_ledger` 29 / 730640 · **8 CI gates** · **19 marketing pages** · *"parallel runs corrupt the shared test DB"* ·
+**`GO-LIVE` B11's "four subscription plans"** — 4 `plans` rows = 2 tiers × 2 intervals · `config/billing.php:65` really
+holds the prices **A2** points at · ⚠️ **the storefront is safe from archived properties** — `ResolvePublicProperty`
+resolves through `Property::query()`, so an archived property 404s (🖥 2026-09-01).
+
+## 8 · Will never close — and the guards deliberately left INERT
+
+**41 unmatched audit fragments** (the audit paraphrased; nothing to match) · **12 channels claims** (parked) ·
+**3 half-cut rows** (unrepresentable by the gate's present/absent rule) · **known product limits** —
+`KNOWN-LIMITS.md` is the customer-facing record.
+
+**Inert on purpose:** the **revoke bound** (the symmetric half of a reachable escalation guard) · the **last-admin
+floor** (reachable on the matrix, not on revoke; counts only holders who can sign in) · the **weaker money-gate mode**.
+
+⚠️⚠️ **An open hole the floor cannot close:** `OwnerManageController` never consults it, so removing an owner can
+leave an org with **zero** sign-in-able role-managers — **unrecoverable from inside the product** (§0o.3).
+
+## 9 · Rulings worth knowing — ⚠️ a ruling without its reason gets re-opened as an oversight
+
+**Direct charges on the operator's connected account** — the conservative end: whatever a lawyer says about who may
+hold funds, direct charges cannot be wrong on it. · **Standard Connect, not Express** — Express puts dispute
+liability on the platform. · **No statement-descriptor field** — it would claim a control we do not have. · **The
+channels page is stopped**, not deferred; it may make **no** future promise. · **The changelog was refused** — no
+release tags, so any entry would be invented. · **The 22 ⚠️ caveat markers stay.** · ⚠️ **The pricing period toggle
+was refused twice — but the button is still on the page and still clickable.** A refused feature that leaves a
+live-looking control is worse than no control; that is a separate, open defect.
+
+## 10 · Where everything else lives — point, don't copy
 
 | Document | What it holds |
 |---|---|
-| `CLAUDE.md` | Conventions, stack, demo credentials. Auto-loaded every session. |
-| `GO-LIVE-RUNBOOK.md` | The ordered steps to go live. **Money switch is Phase 4, last.** |
-| `GO-LIVE-REQUIREMENTS.md` | 15 blocking + 7 advisable items before a real customer. |
-| `DATA-RESIDENCY-INVENTORY.md` | Written **for a lawyer**: every store, sub-processor, retention window. |
-| `DEPLOYMENT.md` · `DEPLOY-SCRIPT-VERIFIED-2026-08-26.md` | The runbook, and the line-by-line script verification. |
-| `CONNECT-TARGET-DESIGN.md` | Why direct charges, and the account model. |
-| `BILLING-STRIPE-PRICES.md` | ⛔ The founder's Stripe dashboard steps. |
-| `PROJECT-STATE.md` (8.3k lines) · `DECISIONS.md` (17k lines) | The full history and the §N verification canon. **Reference works — nobody reads them start to finish.** |
-| `SESSION-HANDOFF.md` | The 2026-08-22 handoff. ⚠️ **Predates the entire Connect money switch and all documentation passes.** |
-| `tools/marketing/` | The doc-site corrections gate, the forbidden-phrase check, and `spec/half_cut.py` (the half-cut / verified-true / corrected-unmatchable / founder-blocked registers). |
+| ⚠️⚠️ **`AUDIT-SUMMARY.md` (776 lines) + `AUDIT-PHASE-0.md` … `AUDIT-PHASE-14.md`** | ⚠️⚠️ **THE CURRENT PRIMARY FINDINGS RECORD (added 2026-09-14).** A fifteen-phase browser audit and the fix programme that acted on it: **F-1…F-43** with status and evidence, the open founder rulings, ⚠️ **what could never be tested**, and the method. ⚠️ **This file previously named it ZERO times, so a cold session told to start here could not find it.** The two rows below are EARLIER audits — correct as history, superseded as the current record. |
+| **`AUDIT-2026-08-29.md` (1,977 lines)** | ⚠️ **THE PRIMARY FINDINGS RECORD.** §0–§0o per-pass detail · §1 ranked · §4 false positives · §6 what could not be checked. |
+| ⚠️ **`BROWSER-AUDIT-2026-09-01.md` (266 lines)** | ⚠️ **THE RUNTIME RECORD — the only 🖥 evidence.** What the JavaScript does when clicked, the console, real contrast, real widths. ⚠️ **It SAMPLED: console on 5 of 19 pages, focus order on 1, contrast on 1, 768/1280px spot-checked only.** Its §0 coverage statement is the honest bound. |
+| **`INSTRUMENT-ERRORS.md`** | **54 instances in 13 classes** — consult when you write a check. §6 holds only the names. |
+| **`KNOWN-LIMITS.md`** | ⚠️ **The customer-facing truth** — six limits, each pinned to the code that makes it true, and where each is told. |
+| `CLAUDE.md` | Conventions, stack, demo credentials. Auto-loaded — do not duplicate here. |
+| `GO-LIVE-REQUIREMENTS.md` · `-RUNBOOK.md` · `DEPLOYMENT.md` · `BILLING-STRIPE-PRICES.md` | 15 blocking + 7 advisable; the ordered steps (**money switch is Phase 4, last**); the runbook; ⛔ the founder's Stripe steps. |
+| `DATA-RESIDENCY-INVENTORY.md` · `legal/DATA-INVENTORY.md` · `CONNECT-TARGET-DESIGN.md` | Written **for a lawyer**: every store, sub-processor, retention window; why direct charges. |
+| `PROJECT-STATE.md` · `DECISIONS.md` · `SESSION-HANDOFF.md` | Full history and the §N canon. ⚠️ **All three are stale as *current state*** — reference works only. |
 
-### ⚠️ Where existing documents disagree, and which is right
+### ⚠️ Where documents disagree, and which is right
 
-1. **`PROJECT-STATE.md` says it is superseded by `SESSION-HANDOFF.md`** — and the handoff is dated **2026-08-22**,
-   before the Connect money switch, the residency work and every documentation pass. ⚠️ **Both are stale as a
-   *current-state* source. This file is the current one; they remain correct as history.**
-2. **`PROJECT-STATE.md`'s headline suite figure (2,524)** is superseded by **✅ 2,871 (VERIFIED 2026-08-26).**
-3. **`CLAUDE.md:86` describes `PROJECT-STATE.md` as holding "the full invariant list #1–37"** — ✅ VERIFIED
-   2026-08-26 that the status block's own latest marker is **#1–73**. It is not a contradictory count; it is a
-   **stale description of another file**, written when 37 existed. ⚠️ **The number 73 is 📄 RECORDED — no pass
-   has re-derived the list.**
-4. ⚠️ **This file said the billing model was an open founder decision (2026-08-26) — it was not.** The copy
-   already said flat. Corrected 2026-08-28. **A state file can be the thing that is wrong**, which is why every
-   line here carries a mark.
-5. **`DATA-RESIDENCY-INVENTORY.md` said guests cannot self-serve erasure — that was wrong** and was corrected
-   2026-08-26: `POST /guest/account/delete` exists, with an undo and a grace period. The **export** half stands.
+1. **`PROJECT-STATE.md` / `SESSION-HANDOFF.md`** — the handoff (2026-08-22) predates the Connect switch; the
+   suite figure (2,524) is superseded by **🔬 3,112**. ⚠️ **Both are stale as *current state*; correct as history.**
+2. **`CLAUDE.md` calls `PROJECT-STATE.md` "the invariant list #1–37"** — its own latest marker is **#1–73**: a stale
+   description of another file. ⚠️ **73 is 📄 — never re-derived.**
+3. ⚠️ **This file once called the billing model an open founder decision, and once implied the money gate covers
+   `owner_ledger`. Both were wrong.** ⚠️ **A state file can be the thing that is wrong** — hence the marks.
+4. **`DATA-RESIDENCY-INVENTORY.md` said guests cannot self-serve erasure — wrong**; erasure exists with undo. The
+   **export** half stands.
+5. ⚠️ **STILL OPEN — `legal/DATA-INVENTORY.md` contradicts itself.** §299 says *"there is no /app export route"* on
+   an enumeration of `routes/web.php:836-897`, while `/app/security/export` sits at **`routes/web.php:983`** —
+   outside the range read; §170 of the same file records export correctly. ⚠️ **The conclusion may still be right**
+   (that export emits only the acting user's own account fields, so Art.15 portability is absent) **but its stated
+   reason is false.** ⛔ **A legal document is corrected by its author and a lawyer, not by a build pass.**
+6. ⚠️⚠️ **The briefs disagree with the repository roughly half the time** — §2b. **The repository is right.**
+
+---
+
+⚠️ **🔬 Measured 2026-09-14: 300 lines / ~4,039 words / ~18 minutes.** ⚠️ **This header has gone stale three times:**
+v3 claimed 237 against 260; a v4 draft claimed "held flat" while adding 46 lines; and a two-line edit made the fresh
+299-line count wrong **within the same pass, twice**. **Re-measure with `wc -l docs/STATE.md` on every edit — a length you
+describe instead of measuring is wrong by the time anyone reads it.**
