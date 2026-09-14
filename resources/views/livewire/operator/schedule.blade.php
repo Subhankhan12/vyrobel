@@ -227,12 +227,21 @@
                                                      @drop="drop('{{ $sid }}','{{ $cell['date'] }}', {{ $pureLeave ? 'true' : 'false' }})"
                                                  @endif>
                                                 @if ($cell['working'])
-                                                    <div data-shift-type="{{ $cell['type'] }}" @if ($canManage && ! $readOnly) draggable="true" @dragstart="start('{{ $sid }}','{{ $cell['date'] }}', $event)" @dragend="reset()" @click="openCell('{{ $sid }}','{{ $cell['date'] }}','{{ $cell['type'] }}')" title="Drag to move · click to change" @endif
-                                                         style="position:relative;height:100%;box-sizing:border-box;border-radius:11px;background:{{ $cell['conflict'] ? 'rgba(176,50,42,.08)' : $dc['bg'] }};border:{{ $cell['conflict'] ? '1px solid rgba(176,50,42,.4)' : $dc['border'] }};padding:8px 9px 8px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;overflow:hidden;{{ $canManage && ! $readOnly ? 'cursor:grab' : '' }}">
+                                                    {{-- ⚠️⚠️ D5 — THE TELL, AND THE ASYMMETRY IT CREATED. The EMPTY cell below is a real <button>, so a
+                                                         keyboard user could ADD a shift; this filled cell was a <div @click>, so
+                                                         they could not CHANGE one. Add worked and edit did not, on the same grid.
+                                                         ⚠️ A REAL <button>, not a div taught to behave: it is focusable, Enter and
+                                                         Space already activate it, and it is announced as a button — none of which
+                                                         a tabindex+keydown pair reproduces exactly. Drag still works; `draggable`
+                                                         is valid on a button. When the actor cannot manage, it renders as a plain
+                                                         <span> instead, because a disabled-looking button that does nothing is its
+                                                         own defect. --}}
+                                                    <button type="button" data-shift-type="{{ $cell['type'] }}" @if ($canManage && ! $readOnly) draggable="true" @dragstart="start('{{ $sid }}','{{ $cell['date'] }}', $event)" @dragend="reset()" @click="openCell('{{ $sid }}','{{ $cell['date'] }}','{{ $cell['type'] }}')" title="Drag to move · click to change" @endif
+                                                         style="position:relative;height:100%;box-sizing:border-box;border-radius:11px;background:{{ $cell['conflict'] ? 'rgba(176,50,42,.08)' : $dc['bg'] }};border:{{ $cell['conflict'] ? '1px solid rgba(176,50,42,.4)' : $dc['border'] }};padding:8px 9px 8px 12px;display:flex;flex-direction:column;justify-content:center;gap:2px;overflow:hidden;{{ $canManage && ! $readOnly ? 'cursor:grab' : '' }}font:inherit;color:inherit;text-align:left;-webkit-appearance:none;appearance:none;width:100%;">
                                                         <span style="position:absolute;top:0;left:0;bottom:0;width:3px;background:{{ $cell['conflict'] ? '#B0322A' : $dc['bar'] }}"></span>
                                                         <span style="font-size:11.5px;font-weight:600;color:{{ $cell['conflict'] ? '#B0322A' : $dc['color'] }};line-height:1.1">{{ $cell['label'] }}</span>
                                                         <span style="font-size:10px;color:{{ $cell['conflict'] ? '#B0322A' : $dc['color'] }};opacity:.75">{{ $cell['conflict'] ? '⚠ on leave' : $cell['hours'] }}</span>
-                                                    </div>
+                                                    </button>
                                                 @elseif ($cell['on_leave'])
                                                     <div style="height:100%;box-sizing:border-box;border-radius:11px;background:rgba(120,70,40,.05);border:1px dashed rgba(120,70,40,.22);display:flex;align-items:center;justify-content:center" title="Approved leave">
                                                         <span style="font-size:10.5px;font-weight:600;color:#8A6E2F">On leave</span>
@@ -255,13 +264,13 @@
                     {{-- Add / change / clear a shift — one modal, opened blank (toolbar) or pre-targeted (a cell click).
                          Posts to the SAME guarded schedule.assign. The date picker offers this week's real days only. --}}
                     @if ($canManage)
-                        <div class="vy-modal-backdrop" x-show="modal" x-cloak @click.self="closeModal()" style="z-index:50">
+                        <div class="vy-modal-backdrop" x-show="modal" x-cloak @click.self="closeModal()" style="z-index:50" @keydown.escape.window="modal = false">
                             <form method="POST" action="{{ route('app.schedule.assign') }}" class="vy-card" style="width:min(420px,94vw);padding:22px" @click.stop>
                                 @csrf
                                 <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
-                                <h2 class="vy-card-title" style="margin:0 0 14px" x-text="mType === 'off' ? 'Add shift' : 'Change shift'">Add shift</h2>
+                                <h2 class="vy-card-title" style="margin:0 0 14px" x-text="mType === 'off' ? 'Add shift' : 'Change shift'" id="vy-dlg-schedule-shift-t">Add shift</h2>
 
-                                <div class="vy-field" style="margin-bottom:12px">
+                                <div class="vy-field" style="margin-bottom:12px" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="modal" aria-labelledby="vy-dlg-schedule-shift-t">
                                     <label class="vy-field-label" for="m_user">Team member</label>
                                     <select id="m_user" name="user_id" class="vy-input" required x-model="mUser">
                                         <option value="">Choose…</option>
@@ -357,7 +366,8 @@
                             <input type="hidden" name="week" value="{{ $week }}"><input type="hidden" name="dept" value="{{ $dept }}">
                             <input type="date" name="date" class="vy-input" required aria-label="Date" style="min-width:150px">
                             <select name="shift_type" class="vy-input" required aria-label="Shift" style="min-width:120px"><option value="early">Early</option><option value="day">Day</option><option value="late">Late</option></select>
-                            <input type="text" name="department" class="vy-input" maxlength="40" placeholder="Department (optional)" style="min-width:150px">
+                            <label class="vy-sr-only" for="vy-lbl-schedule-department">Department (optional)</label>
+                            <input id="vy-lbl-schedule-department" type="text" name="department" class="vy-input" maxlength="40" placeholder="Department (optional)" style="min-width:150px">
                             <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12.5px">Post open shift</button>
                         </form>
                     @endunless
@@ -395,7 +405,11 @@
             </div>{{-- /.vy-sch-cols --}}
 
             {{-- ── Time off — request (anyone) + the manager approval queue ─────────────────────────── --}}
-            <div style="display:grid;grid-template-columns:{{ $canManage ? '1fr 1fr' : '1fr' }};gap:16px;margin-top:18px">
+            {{-- ⚠️ WAS AN INLINE `grid-template-columns: 1fr 1fr`, which is `minmax(auto, 1fr)` — a
+                 MIN-CONTENT FLOOR the tracks could not shrink below, and 95px of sideways scroll on a
+                 phone. A media query cannot live in a style attribute, so the rule moves to the shell
+                 beside the `.vy-sch-*` family it belongs to. --}}
+            <div class="vy-sch-panels @unless ($canManage) vy-sch-panels--single @endunless">
                 <section class="vy-card">
                     <h2 class="vy-card-title" style="margin-bottom:4px">Request time off</h2>
                     <p class="vy-line-sub" style="font-size:12px;margin:0 0 12px">Your own request goes to a manager to approve. Approved leave shows on the roster and blocks shifts.</p>
@@ -468,7 +482,8 @@
                                     <input type="date" name="start_date" class="vy-input" required aria-label="From" style="flex:1;min-width:120px">
                                     <input type="date" name="end_date" class="vy-input" required aria-label="To" style="flex:1;min-width:120px">
                                 </div>
-                                <input type="text" name="reason" class="vy-input" maxlength="160" placeholder="Reason (optional)" style="margin-top:8px">
+                                <label class="vy-sr-only" for="vy-lbl-schedule-reason">Reason (optional)</label>
+                                <input id="vy-lbl-schedule-reason" type="text" name="reason" class="vy-input" maxlength="160" placeholder="Reason (optional)" style="margin-top:8px">
                                 <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px">Add leave</button>
                             </form>
                         </div>

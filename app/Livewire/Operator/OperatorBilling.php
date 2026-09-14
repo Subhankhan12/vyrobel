@@ -170,6 +170,12 @@ class OperatorBilling extends Component
                 'readonly_from' => $readonlyFrom?->format('j M Y'),
             ],
             // The honest invoice history — the real trial only; paid invoices are account-gated (no fabrication).
+            // ⚠️ THE PLATFORM'S BILLING CURRENCY, NOT THE TENANT'S. What Vyrobel charges an operator is
+            // `config('billing.default_currency')` — a deliberate, separate domain from the currency that
+            // operator charges its own guests. The retention card's "Pause instead · €0" was the one string on
+            // this page that hardcoded it instead of reading it, so it would have gone stale silently had the
+            // platform currency ever changed.
+            'pauseFree' => $this->money(0, $currency),
             'invoices' => $this->invoices($org, $currency),
             'tiers' => $this->tierCards($billing),
         ]);

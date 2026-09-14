@@ -113,7 +113,7 @@ it('preserves the entire grant pivot when the form is saved unchanged', function
     // ⚠️ SAVE EXACTLY WHAT THE ROLE ALREADY HOLDS — the no-op. The controller diffs against the DB, so if
     // the restructure had dropped a `permissions[]` input the round-trip would REVOKE it here, silently.
     test()->actingAs($admin)
-        ->post(route('app.roles.permissions'), ['role' => $target['name'], 'permissions' => $target['granted']])
+        ->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => $target['name'], 'permissions' => $target['granted']])
         ->assertRedirect(route('app.roles'));
 
     // Byte-for-byte: same pairs, same count, same catalogue.
@@ -171,7 +171,7 @@ it('still grants a permission that genuinely authorises after the restructure', 
     expect(rcgCan($desk, $s, 'reviews.manage'))->toBeFalse();
 
     $granted = collect((array) config('authorization.roles')['Front Desk'])->push('reviews.manage')->unique()->values()->all();
-    test()->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $granted])
+    test()->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Front Desk', 'permissions' => $granted])
         ->assertRedirect(route('app.roles'));
 
     // ⚠️ Through the real spatie gate in the team context — the layout changed, the enforcement did not.
@@ -179,7 +179,7 @@ it('still grants a permission that genuinely authorises after the restructure', 
 
     // Revert the fixture, and prove the revoke is real too.
     $original = array_values((array) config('authorization.roles')['Front Desk']);
-    test()->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $original])
+    test()->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Front Desk', 'permissions' => $original])
         ->assertRedirect();
     expect(rcgCan($desk, $s, 'reviews.manage'))->toBeFalse();
 });

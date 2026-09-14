@@ -12,6 +12,18 @@
 <div>
     <x-operator.shell active="rates" title="Rates & availability" :subtitle="$subtitle" :viewer="$viewer">
 
+        {{-- ⚠️ `rates_error` was set by nothing and rendered by nothing — the same F-1 shape FIX 10 found
+             with `units_error`. Taking the LAST rate plan off sale is refused, and a refusal nobody sees is
+             the defect this programme closed for five other doors.
+             ⚠️ WHERE THIS LANDS: in-flow, inside the operator shell. At 375px that shell stacks 673px of
+             navigation above the content (FIX 11 measured it and correctly changed nothing), so on a phone
+             this is REACHABLE BY SCROLL AND NOT SEEN ON ARRIVAL. Stated, not claimed otherwise. --}}
+        @if (session('rates_error'))
+            <div class="vy-card vy-fade" role="alert" style="border-left: 3px solid var(--vy-amber); margin-bottom: 16px;">
+                <div style="font-size: 13.5px; color: var(--vy-ink);">{{ session('rates_error') }}</div>
+            </div>
+        @endif
+
         @if (session('rates_notice'))
             <div class="vy-card vy-fade" style="border-left: 3px solid var(--vy-accent); margin-bottom: 16px;">
                 <div style="font-size: 13.5px; color: var(--vy-ink);">{{ session('rates_notice') }}</div>
@@ -235,7 +247,7 @@
                                     <label class="vyr-check">
                                         <input type="checkbox" name="set_rate" value="1" x-model="setRate"> Set nightly rate
                                     </label>
-                                    <input type="text" name="rate" class="vy-input" placeholder="e.g. 175 or 175.50"
+                                    <input id="vy-lbl-rates-grid-rate" type="text" name="rate" class="vy-input" placeholder="e.g. 175 or 175.50"
                                         inputmode="decimal" x-model="rate" x-bind:disabled="! setRate">
                                 </div>
 
@@ -243,7 +255,8 @@
                                     <label class="vyr-check">
                                         <input type="checkbox" name="set_min_stay" value="1" x-model="setMin"> Set minimum stay
                                     </label>
-                                    <input type="number" name="min_stay" class="vy-input" min="1" max="365" placeholder="nights (blank = none)"
+                                    <label class="vy-sr-only" for="vy-lbl-rates-grid-min-stay">nights (blank = none)</label>
+                                    <input id="vy-lbl-rates-grid-min-stay" type="number" name="min_stay" class="vy-input" min="1" max="365" placeholder="nights (blank = none)"
                                         x-model="minStay" x-bind:disabled="! setMin">
                                 </div>
 
@@ -282,9 +295,17 @@
                  booked, update derived. Real POST → app.rates.bulk. ──────────────────────────────────── --}}
             @can('rates.manage')
                 @if (count($rows) > 0 && ! $readOnly)
-                    <div x-show="bulkOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="bulkOpen = false">
-                        <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;">
-                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">Bulk edit rates</h3>
+                    {{-- ⚠️⚠️ D2 — THE DIALOG CONTRACT. `x-trap` gives all three focus properties at once: focus moves IN
+     on open, is TRAPPED while open, and is RETURNED to the trigger on close. ⚠️ IT NEEDS NO NEW
+     DEPENDENCY — Livewire already bundles Alpine's focus plugin (`directive("trap")` /
+     `createFocusTrap` in livewire.esm.js); it was simply never used anywhere in 243 files.
+     ⚠️ `.noscroll` also stops the page behind scrolling. ⚠️ It does NOT make the rest of the page
+     INERT — without `inert` support or a dependency, focus is trapped and no more, and that is
+     stated rather than implied. ⚠️ Focus lands on the panel itself (`tabindex="-1"`), never on the
+     destructive button. --}}
+                <div x-show="bulkOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="bulkOpen = false" @keydown.escape.window="bulkOpen = false">
+                        <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" aria-labelledby="vy-dlg-bulk-t" tabindex="-1" x-trap.noscroll="bulkOpen">
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;" id="vy-dlg-bulk-t">Bulk edit rates</h3>
                             <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">{{ $window['label'] }} · base plan</div>
                             <form method="POST" action="{{ route('app.rates.bulk') }}">
                                 @csrf
@@ -312,9 +333,10 @@
                                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                                         <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="increase_pct" x-model="buMode" checked> Increase %</label>
                                         <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="decrease_pct" x-model="buMode"> Decrease %</label>
-                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="set_exact" x-model="buMode"> Set exact €</label>
+                                        <label class="vyr-check" style="margin: 0;"><input type="radio" name="mode" value="set_exact" x-model="buMode"> Set exact {{ $currencySymbol }}</label>
                                     </div>
-                                    <input type="text" name="amount" class="vy-input" inputmode="decimal" x-bind:placeholder="buMode === 'set_exact' ? 'e.g. 175.00' : 'e.g. 10 (percent)'" required>
+                                    <label class="vy-sr-only" for="vy-lbl-rates-grid-amount">buMode === 'set_exact' ? 'e.g. 175.00' : 'e.g. 10 (percent)'</label>
+                                    <input id="vy-lbl-rates-grid-amount" type="text" name="amount" class="vy-input" inputmode="decimal" x-bind:placeholder="buMode === 'set_exact' ? 'e.g. 175.00' : 'e.g. 10 (percent)'" required>
                                 </div>
                                 <label class="vyr-check" style="margin: 0 0 10px;">
                                     <input type="checkbox" name="update_derived" value="1"> Update derived plans too
@@ -337,14 +359,15 @@
                  the write happens only from the panel below. ───────────────────────────────────────────── --}}
             @can('rates.manage')
                 @if (count($rows) > 0 && ! $readOnly)
-                    <div x-show="unitOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="unitOpen = false">
-                        <div class="vy-card" style="max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;">
+                    <div x-show="unitOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="unitOpen = false" x-on:keydown.escape.window="unitOpen = false">
+                        <div class="vy-card" style="max-width: 560px; width: 100%; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="unitOpen" aria-labelledby="vy-dlg-rg-unit-t">
                             {{-- ⚠️ THE ONE FORM (§N.8f) — the same component the Units list opens for a single
                                  unit, so the two homes cannot drift. Dates bind to this grid's live window. --}}
                             <x-rates.unit-price-form
                                 :room-types="$roomTypeOptions"
                                 :units="$unitOptions"
                                 :bind-dates="true"
+                                heading-id="vy-dlg-rg-unit-t"
                                 subheading="{{ $window['label'] }} · a price for one unit, not the whole room type">
                                 <x-slot:actions>
                                     <button type="button" class="vy-btn" x-on:click="unitOpen = false" style="padding: 9px 16px;">Cancel</button>
@@ -364,10 +387,11 @@
                         @foreach ($vyRow['unit_rows'] as $vyU)
                             <div x-show="unitPriceFor === '{{ $vyU['id'] }}'" x-cloak
                                  style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 61; display: flex; align-items: center; justify-content: center; padding: 20px;"
-                                 x-on:click.self="unitPriceFor = null">
+                                 x-on:click.self="unitPriceFor = null" x-on:keydown.escape.window="unitPriceFor = null">
                                 <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;"
-                                     x-data="{ unitMode: 'set', unitRt: '{{ $vyRow['id'] }}' }">
+                                     x-data="{ unitMode: 'set', unitRt: '{{ $vyRow['id'] }}' }" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="unitPriceFor === '{{ $vyU['id'] }}'" aria-labelledby="vy-dlg-rg-unitprice-{{ $vyU['id'] }}">
                                     <x-rates.unit-price-form
+                          heading-id="vy-dlg-rg-unitprice-{{ $vyU['id'] }}"
                                         :room-types="$roomTypeOptions"
                                         :units="$unitOptions"
                                         :preselect="$vyU['id']"
@@ -446,8 +470,335 @@
             @endif
         @endcan
 
+        {{-- ══ SEASONAL PRICING ═══════════════════════════════════════════════════════════════════════════
+             ⚠️⚠️ THIS PANEL WRITES WHAT A GUEST IS CHARGED. The back end deliberately separates SAVING a
+             season from APPLYING it, and this panel keeps the two apart: the form below only records a
+             season, and a second, separate control writes the nights. ⚠️ There is deliberately NO
+             "save and apply" shortcut — it would look like a convenience and would remove the review step
+             that is the only protection this feature has.
+             ⚠️ Every figure in a season's row comes from `SeasonalRateService::preview()` via the component.
+             Nothing is counted here. ────────────────────────────────────────────────────────────────── --}}
+        @can('rates.manage')
+        {{-- ⚠️⚠️ THE SCOPE WRAPPER, AND WHY IT IS NOT ON THE CARD (F-20). `confirmSeason`/`editSeason`/
+             `deleteSeason` used to be declared on the `.vy-card .vy-fade` below. The Apply dialog lives inside
+             that card and resolved; the Edit and Delete dialogs are SIBLINGS of it, so they fell outside the
+             scope and threw `editSeason is not defined` / `deleteSeason is not defined` on EVERY load — neither
+             could ever open, for any role.
+             ⚠️ The scope is lifted HERE rather than the dialogs being moved INTO the card, because
+             `.vy-fade` ends its animation on `transform: translateY(0)` — a transform, which makes the card a
+             CONTAINING BLOCK for `position: fixed`. A dialog nested inside it is clamped to the card's box
+             instead of the viewport (measured: a 1148×345 overlay, panel at y=1208 in a 900px viewport — open
+             but off-screen). This wrapper is a plain div with no animation, so the dialogs stay full-viewport.
+             ⚠️ It encloses the season card and those two dialogs and NOTHING else: `@endcan` follows the
+             delete dialog immediately. --}}
+        <div x-data="{ confirmSeason: null, editSeason: null, deleteSeason: null }">
+            <div class="vy-card vy-fade" style="margin-top: 18px;">
+                <h2 class="vy-card-title" style="margin-bottom: 2px;">Seasonal pricing</h2>
+                <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">
+                    Save a season, review what it would change, then apply it. Saving writes no prices.
+                    {{-- ⚠️ THE RULE, from `SeasonPrecedence::SENTENCE` — the copy and the code are the same
+                         string, so the page can never describe a rule the product does not follow. --}}
+                    <div style="margin-top: 4px;">{{ $seasonRule }}</div>
+                </div>
+
+                @if (count($seasons) > 0)
+                    <table class="vy-table" style="margin-bottom: 14px;">
+                        <thead>
+                            <tr><th>Season</th><th>Dates</th><th>Now</th><th>After</th><th>Would change</th><th>Status</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($seasons as $vySeason)
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600; color: var(--vy-ink);">{{ $vySeason['name'] }}</div>
+                                        <div style="font-size: 11.5px; color: var(--vy-muted);">{{ $vySeason['plan_name'] }}@if ($vySeason['room_type'] !== '') · {{ $vySeason['room_type'] }}@endif</div>
+                                    </td>
+                                    <td>{{ $vySeason['starts_on'] }} → {{ $vySeason['ends_on'] }}</td>
+                                    <td>{{ $vySeason['from_display'] ?? '—' }}</td>
+                                    <td><strong>{{ $vySeason['to_display'] }}</strong></td>
+                                    <td>
+                                        {{ $vySeason['changing'] }} of {{ $vySeason['nights'] }} {{ $vySeason['nights'] === 1 ? 'night' : 'nights' }}
+                                        · {{ $vySeason['units'] }} {{ $vySeason['units'] === 1 ? 'unit' : 'units' }}
+                                        @if ($vySeason['weekend_nights'] > 0)
+                                            <div style="font-size: 11.5px; color: var(--vy-muted);">includes {{ $vySeason['weekend_nights'] }} Fri/Sat {{ $vySeason['weekend_nights'] === 1 ? 'night' : 'nights' }}, replacing any weekend uplift</div>
+                                        @endif
+                                        {{-- ⚠️ THE OVERLAP, DERIVED. Every figure comes from preview(), which
+                                             asks the precedence rule night by night. --}}
+                                        @if ($vySeason['losing_nights'] > 0)
+                                            <div style="font-size: 11.5px; color: var(--vy-accent);">{{ $vySeason['losing_nights'] }} of these {{ $vySeason['losing_nights'] === 1 ? 'night is' : 'nights are' }} governed by {{ $vySeason['losing_to'] }}, which wins under the rule</div>
+                                        @endif
+                                        {{-- ⚠️ The same disclosure at preview time, so it is seen BEFORE the
+                                             dialog rather than only at the moment of confirming. --}}
+                                        @if ($vySeason['agreed_nights'] > 0)
+                                            <div style="font-size: 11.5px; color: var(--vy-accent);">{{ $vySeason['agreed_nights'] }} of these {{ $vySeason['agreed_nights'] === 1 ? 'night carries' : 'nights carry' }} a negotiated owner rate</div>
+                                        @endif
+                                        @if ($vySeason['rewritten_nights'] > 0)
+                                            <div style="font-size: 11.5px; color: var(--vy-muted);">applying also re-writes {{ $vySeason['rewritten_nights'] }} {{ $vySeason['rewritten_nights'] === 1 ? 'night' : 'nights' }} from overlapping seasons already applied</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($vySeason['applied'])
+                                            <span style="font-size: 12px; color: var(--vy-ink);">Applied {{ $vySeason['applied_on'] }}</span>
+                                        @else
+                                            {{-- ⚠️ An unapplied season has written NOTHING. Say that, rather than
+                                                 letting the row imply those nights already carry the price. --}}
+                                            <span style="font-size: 12px; color: var(--vy-muted);">Saved · no prices written</span>
+                                        @endif
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div style="display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                            {{-- ⚠️⚠️ EDIT IS OFFERED ONLY WHILE THE SEASON IS A DRAFT. Applying overwrote the
+                                                 nightly rates and nothing recorded what they were, so an "edit" of an applied
+                                                 season could not put them back — it would imply a revert that cannot happen.
+                                                 An applied season is SUPERSEDED by authoring another, never edited. --}}
+                                            @if (! $vySeason['applied'])
+                                                <button type="button" class="vy-btn" style="padding: 7px 12px;"
+                                                        x-on:click="editSeason = {{ Illuminate\Support\Js::from($vySeason) }}">Edit</button>
+                                            @endif
+
+                                            <button type="button" class="vy-btn" style="padding: 7px 12px;"
+                                                    x-on:click="confirmSeason = {{ Illuminate\Support\Js::from($vySeason) }}">
+                                                {{ $vySeason['applied'] ? 'Apply again' : 'Apply' }}
+                                            </button>
+
+                                            <button type="button" class="vy-btn" style="padding: 7px 12px;"
+                                                    x-on:click="deleteSeason = {{ Illuminate\Support\Js::from($vySeason) }}">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">No seasons yet.</div>
+                @endif
+
+                {{-- ── Save a season. This writes NO prices. ──────────────────────────────────────────── --}}
+                <form method="POST" action="{{ route('app.seasons.store') }}" style="border-top: 1px solid var(--vy-hairline); padding-top: 14px;">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="vy-season-plan">Rate plan</label>
+                            <select id="vy-season-plan" name="rate_plan_id" class="vy-input" required>
+                                {{-- ⚠️ ACTIVE PLANS ONLY. The list below this card now includes off-sale
+                                     plans so they can be put back on sale (F-34 / FIX 15); a season must
+                                     never be definable against one. --}}
+                                @foreach ($ratePlans as $vyPlan)
+                                    @continue (! $vyPlan['is_active'])
+                                    <option value="{{ $vyPlan['id'] }}">{{ $vyPlan['name'] }}@if ($vyPlan['room_type'] !== '') — {{ $vyPlan['room_type'] }}@endif</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="vy-season-name">Season name</label>
+                            <input id="vy-season-name" name="name" type="text" maxlength="80" class="vy-input" required>
+                        </div>
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="vy-season-from">First night</label>
+                            <input id="vy-season-from" name="starts_on" type="date" class="vy-input" required>
+                        </div>
+                        <div class="vy-field" style="margin: 0;">
+                            {{-- ⚠️ INCLUSIVE, and the label says so — the service converts to the exclusive
+                                 bound once, on its own. --}}
+                            <label class="vy-field-label" for="vy-season-to">Last night (included)</label>
+                            <input id="vy-season-to" name="ends_on" type="date" class="vy-input" required>
+                        </div>
+                        <div class="vy-field" style="margin: 0;">
+                            <label class="vy-field-label" for="vy-season-price">Nightly price</label>
+                            <input id="vy-season-price" name="price" type="text" inputmode="decimal" class="vy-input" required>
+                        </div>
+                    </div>
+                    @error('price')
+                        <div style="font-size: 12px; color: var(--vy-danger, #b91c1c); margin-top: 8px;">{{ $message }}</div>
+                    @enderror
+                    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+                        <button type="submit" class="vy-btn">Save season</button>
+                    </div>
+                </form>
+
+                {{-- ── ⚠️⚠️ THE MONEY STEP. A separate, deliberate second action. ─────────────────────────
+                     ⚠️ The D2 dialog contract, unchanged: role, aria-modal, a name that resolves,
+                     tabindex="-1", x-trap bound to the show expression, and Escape. --}}
+            </div>
+
+        {{-- ══ F-37 · APPLY — LIFTED OUT OF THE CARD (FIX 16, 2026-09-14) ═══════════════════════════════
+             ⚠️⚠️ IT USED TO SIT INSIDE THE `.vy-card` ABOVE, AND THAT MADE IT A BROKEN MODAL. A card is a
+             containing block for `position: fixed` — 🔬 MEASURED: every `.vy-card` in the product computes
+             `backdrop-filter: blur(22px) saturate(1.15)`, and a backdrop-filter creates a containing block
+             on its own, with or without a transform. So this overlay resolved against the CARD, not the
+             viewport: 341×855 at (17,284) in a 375×812 window — the backdrop never covered the page, an
+             outside click could not reach it, and at some scroll offsets the panel ran off the bottom
+             (🔬 scrollY 2400: panel bottom 861 in an 812 viewport — 49px below the fold).
+
+             ⚠️ WHY IT SURVIVED FIX 02, WHICH LIFTED ITS TWO SIBLINGS: `editSeason` and `deleteSeason` threw
+             `ReferenceError` on every load, so something POINTED at them. `confirmSeason` threw nothing —
+             it opened, the D2 contract held, the console was clean, and only the geometry was wrong.
+             ⚠️ NO GUARD, NO CONSOLE SWEEP, NO MARKUP TEST AND NO ACCESSIBILITY CHECK CAN SEE THIS — only a
+             measured rect can, and this repo has no re-runnable browser suite (the Playwright work is MCP-
+             driven and not part of the regression net). So this placement is defended by a SOURCE test that
+             asserts no `role="dialog"` overlay has a `.vy-card` ancestor — a proxy for the real property,
+             and honest about being one.
+
+             ⚠️⚠️ AND THE ANIMATION IS NOT THE CAUSE, THOUGH IT LOOKS LIKE IT. `vyFadeUp` does end on
+             `transform: translateY(0)` (an identity matrix, which also clamps) — but 🔬 18 of the 25 cards
+             on this screen carry NO transform and clamp anyway, via backdrop-filter. Changing the keyframes
+             would have fixed nothing and touched ten layouts. Measured before it was attempted. --}}
+                <div x-show="confirmSeason !== null" x-cloak
+                     style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                     x-on:click.self="confirmSeason = null" @keydown.escape.window="confirmSeason = null">
+                    <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;"
+                         role="dialog" aria-modal="true" aria-labelledby="vy-dlg-season-t" tabindex="-1" x-trap.noscroll="confirmSeason !== null">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 10px;" id="vy-dlg-season-t">Apply this season?</h3>
+                        <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 10px;">
+                            <span x-text="confirmSeason?.name"></span> will overwrite
+                            <span x-text="confirmSeason?.changing"></span> of
+                            <span x-text="confirmSeason?.nights"></span> nights across
+                            <span x-text="confirmSeason?.units"></span> units, from
+                            <span x-text="confirmSeason?.from_display ?? '—'"></span> to
+                            <strong x-text="confirmSeason?.to_display"></strong> a night.
+                        </p>
+                        {{-- ⚠️⚠️ TRUE, AND VERIFIED BEFORE IT WAS WRITTEN. `setRate()` writes the new price and
+                             records an audit row whose `before` is literally null, so the prices it replaces
+                             are held nowhere. There is no undo to offer, so none is implied. --}}
+                        <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 10px;">
+                            The prices it replaces are not stored anywhere. <strong>This cannot be undone.</strong>
+                        </p>
+                        {{-- ⚠️⚠️ WHAT IT WOULD REPLACE THAT SOMEBODY NEGOTIATED. This TELLS; it does not ask.
+                             Applying is still permitted and nothing here refuses it — whether a season
+                             SHOULD be able to overwrite an agreed rate is an open decision, not this
+                             dialog's to make. The button below is unchanged.
+                             ⚠️ "Negotiated" is exact: it covers rates an owner agreed through a proposal,
+                             which is the only kind that leaves a record. See AgreedRateDisclosure. --}}
+                        <template x-if="confirmSeason?.agreed_nights > 0">
+                            <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 10px; border-left: 3px solid var(--vy-accent); padding-left: 10px;">
+                                <strong><span x-text="confirmSeason?.agreed_nights"></span></strong>
+                                <span x-text="confirmSeason?.agreed_nights === 1 ? 'of those nights carries' : 'of those nights carry'"></span>
+                                a rate negotiated with
+                                <span x-text="confirmSeason?.agreed_owners === 1 ? 'an owner' : confirmSeason?.agreed_owners + ' owners'"></span>
+                                (<span x-text="confirmSeason?.agreed_from"></span> to <span x-text="confirmSeason?.agreed_to"></span>).
+                                Applying replaces those prices, and the owner is not told.
+                            </p>
+                        </template>
+                        <template x-if="confirmSeason?.losing_nights > 0">
+                            <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 10px;">
+                                <span x-text="confirmSeason?.losing_nights"></span> of those nights are governed by
+                                <span x-text="confirmSeason?.losing_to"></span>, which wins under the rule and will be written last.
+                            </p>
+                        </template>
+                        <template x-if="confirmSeason?.rewritten_nights > 0">
+                            <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 10px;">
+                                Applying also re-writes <span x-text="confirmSeason?.rewritten_nights"></span> nights from overlapping seasons that are already applied.
+                            </p>
+                        </template>
+                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">
+                            Stays already booked keep the price they were booked at — this changes what is offered from now on.
+                        </p>
+                        <form method="POST" x-bind:action="confirmSeason?.apply_url ?? ''"
+                              style="display: flex; gap: 10px; justify-content: flex-end;">
+                            @csrf
+                            <button type="button" class="vy-btn" style="padding: 9px 16px;" x-on:click="confirmSeason = null">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Apply and overwrite those nights</button>
+                        </form>
+                    </div>
+                </div>
+
+        {{-- ── EDIT a DRAFT season. ⚠️ It saves and returns to the preview; it does NOT apply. ─────────── --}}
+        {{-- ⚠️ THE DIALOG CONTRACT, MATCHED EXACTLY. The trap expression must be the SAME expression as
+             the outer `x-show`, and Escape belongs on the outer element — the contract guard caught
+             both when these dialogs were first written with the trap bound to a different form of
+             the same condition. All thirty-seven dialogs share this shape; this makes two more. --}}
+        <div x-show="editSeason !== null" x-cloak
+             style="position: fixed; inset: 0; z-index: 60; background: rgba(43,35,32,.42); display: flex; align-items: center; justify-content: center; padding: 20px;"
+             x-on:click.self="editSeason = null" @keydown.escape.window="editSeason = null">
+            <div class="vy-card" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="editSeason !== null"
+                 aria-labelledby="vy-dlg-season-edit" style="max-width: 460px; width: 100%;">
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 10px;" id="vy-dlg-season-edit">Edit this season</h3>
+
+                {{-- ⚠️⚠️ THE TWO-STEP IS PRESERVED, AND THIS SENTENCE IS THE PROMISE. Saving records the new
+                     shape; it writes no prices. The blast radius is reviewed again, then applied — exactly
+                     as creating one does. An edit that applied immediately would destroy that. --}}
+                <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 12px;">
+                    Saving updates the season only. <strong>No prices are written</strong> until you apply it.
+                </p>
+
+                <form method="POST" x-bind:action="editSeason?.update_url ?? ''">
+                    @csrf
+                    @method('PUT')
+                    <label class="vy-field-label" for="vy-season-edit-name">Name</label>
+                    <input id="vy-season-edit-name" class="vy-input" type="text" name="name" x-bind:value="editSeason?.name" maxlength="80" required>
+
+                    <label class="vy-field-label" for="vy-season-edit-from" style="margin-top: 10px;">From</label>
+                    <input id="vy-season-edit-from" class="vy-input" type="date" name="starts_on" x-bind:value="editSeason?.starts_on" required>
+
+                    <label class="vy-field-label" for="vy-season-edit-to" style="margin-top: 10px;">To</label>
+                    <input id="vy-season-edit-to" class="vy-input" type="date" name="ends_on" x-bind:value="editSeason?.ends_on" required>
+
+                    <label class="vy-field-label" for="vy-season-edit-price" style="margin-top: 10px;">Nightly price</label>
+                    <input id="vy-season-edit-price" class="vy-input" type="text" name="price" x-bind:value="editSeason?.price_input" required>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px;">
+                        <button type="button" class="vy-btn" style="padding: 9px 16px;" x-on:click="editSeason = null">Cancel</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- ── DELETE a season. ⚠️⚠️ NOT AN UNDO, AND IT SAYS SO. ─────────────────────────────────────── --}}
+        {{-- ⚠️ THE DIALOG CONTRACT, MATCHED EXACTLY. The trap expression must be the SAME expression as
+             the outer `x-show`, and Escape belongs on the outer element — the contract guard caught
+             both when these dialogs were first written with the trap bound to a different form of
+             the same condition. All thirty-seven dialogs share this shape; this makes two more. --}}
+        <div x-show="deleteSeason !== null" x-cloak
+             style="position: fixed; inset: 0; z-index: 60; background: rgba(43,35,32,.42); display: flex; align-items: center; justify-content: center; padding: 20px;"
+             x-on:click.self="deleteSeason = null" @keydown.escape.window="deleteSeason = null">
+            <div class="vy-card" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="deleteSeason !== null"
+                 aria-labelledby="vy-dlg-season-delete" style="max-width: 460px; width: 100%;">
+                <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 10px;" id="vy-dlg-season-delete">Delete this season?</h3>
+
+                {{-- ⚠️⚠️ A CONTROL MAY NOT IMPLY MORE THAN IT DOES. Deleting an APPLIED season removes the
+                     record and leaves every night it wrote exactly as it wrote them — the prices it replaced
+                     are stored nowhere. Measured: applying moved a night to €333.00 and deleting the season
+                     left it at €333.00. An operator must not infer a revert that cannot happen. --}}
+                <template x-if="deleteSeason?.applied">
+                    <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 12px;">
+                        This season has been applied. Deleting it removes the season only —
+                        <strong>the nightly prices it wrote stay as they are</strong>, and the prices they replaced are
+                        not stored anywhere. Set those nights yourself if they are wrong.
+                    </p>
+                </template>
+                <template x-if="! deleteSeason?.applied">
+                    <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 12px;">
+                        This season has not been applied, so <strong>no prices change</strong>.
+                    </p>
+                </template>
+
+                <form method="POST" x-bind:action="deleteSeason?.delete_url ?? ''" style="display: flex; gap: 10px; justify-content: flex-end;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="vy-btn" style="padding: 9px 16px;" x-on:click="deleteSeason = null">Cancel</button>
+                    <button type="submit" class="vy-btn vy-btn--accent" style="padding: 9px 16px;">Delete season</button>
+                </form>
+            </div>
+        </div>
+        </div>{{-- closes the season scope wrapper opened above the card --}}
+
+        @endcan
+
         {{-- ── Rate plans — REAL base + derived plans (#100). Derived = base × adjustment (reconciles). ──── --}}
+        {{-- ⚠️⚠️ THIS WRAPPER IS LOAD-BEARING, AND IT IS FIX 02'S SHAPE, COPIED (F-34 / FIX 15).
+             🔬 MEASURED IN THE BROWSER, NOT READ FROM THE SOURCE: the root `x-data` at the top of this file
+             does NOT contain this card. Its 11 children are the toolbar and the grid; `Alpine.$data`-style
+             ancestor-walking from this card's buttons found ZERO `x-data` ancestors. Declaring the state up
+             there and putting controls down here reproduced F-20 EXACTLY — 16 console errors,
+             "editPlanFor is not defined", with PHPStan, Pint and the Blade compile all green. A markup test
+             would have passed.
+             ⚠️ So the scope is SELF-CONTAINED, exactly like the season wrapper below: a PLAIN div, never a
+             `.vy-fade`, enclosing the card AND its dialogs and nothing else. `.vy-fade` finishes on
+             `transform: translateY(0)`, which makes a containing block and clamps a `position: fixed` panel
+             to the card's box — the defect FIX 02's first attempt shipped, with the panel open off-screen. --}}
         @if (count($ratePlans) > 0)
+            <div x-data="{ editPlanFor: null, activePlanFor: null }">
             <div class="vy-card vy-fade" style="margin-top: 18px;">
                 <h2 class="vy-card-title" style="margin-bottom: 12px;">Rate plans</h2>
                 @foreach ($ratePlans as $plan)
@@ -466,9 +817,103 @@
                             <div style="font-size: 12px; color: var(--vy-muted);">{{ ($plan['room_type'] !== '' ? $plan['room_type'].' · ' : '').$plan['sub'] }}</div>
                         </div>
                         <span style="font-size: 11.5px; color: var(--vy-faint);">{{ $plan['channel'] }}</span>
+                        {{-- ⚠️ F-34 / FIX 15 — THE CONTROLS FIX 12 DEFERRED. It built the routes, the service
+                             and the error region and deliberately wired NO controls, because this screen
+                             carries the season dialogs whose `x-data` scope was the one "correct code nobody
+                             could reach" defect in fifteen audit phases. That left the capability real and
+                             unreachable — F-20's exact shape, created by the fix programme itself.
+                             ⚠️ These are BUTTONS, not forms: they only set state on the ROOT x-data (line 37,
+                             a plain div — NOT a `.vy-fade`), whose dialogs live outside every card below. --}}
+                        @if ($canManage)
+                            @unless ($plan['is_active'])
+                                <span style="font-size:11px;font-weight:600;color:var(--vy-accent);background:rgba(194,65,12,.10);border-radius:6px;padding:2px 7px;">Off sale</span>
+                            @endunless
+                            {{-- ⚠️ The units screen's exact control style (FIX 10), not a new one — and NOT
+                                 `vy-btn--sm`, which does not exist in the stylesheet. --}}
+                            <button type="button"
+                                    style="padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
+                                    x-on:click="editPlanFor = '{{ $plan['id'] }}'">Rename {{ $plan['name'] }}</button>
+                            <button type="button"
+                                    style="padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-muted);cursor:pointer;text-decoration:underline;"
+                                    x-on:click="activePlanFor = '{{ $plan['id'] }}'">{{ $plan['is_active'] ? 'Take '.$plan['name'].' off sale' : 'Put '.$plan['name'].' back on sale' }}</button>
+                        @endif
                     </div>
                 @endforeach
             </div>
+
+    {{-- ══ F-34 / FIX 15 · RATE-PLAN RENAME + ON/OFF-SALE DIALOGS ═══════════════════════════════════
+         ⚠️ PLACED HERE ON PURPOSE, AND THE PLACEMENT IS THE WHOLE LESSON OF FIX 02. They sit inside the
+         ROOT `x-data` (line 37 — a plain div that declares `editPlanFor`/`activePlanFor`) and OUTSIDE every
+         `.vy-fade` card. `.vy-fade` finishes its animation on `transform: translateY(0)`; a transform makes
+         the element a CONTAINING BLOCK for `position: fixed`, so a panel nested inside a card is clamped to
+         the card's box instead of the viewport. FIX 02's first attempt did exactly that and the season
+         dialogs opened OFF-SCREEN — measured then at a panel y of 1208 in a 900px viewport, open and unseen.
+         A markup test passed throughout.
+         ⚠️ The D2 contract is copied from the unit-price dialog on this same screen, not invented: role,
+         aria-modal, a RESOLVING aria-labelledby, tabindex="-1", a trap bound to ITS OWN show expression,
+         and Escape. --}}
+        <div x-cloak>
+            @foreach ($ratePlans as $vyP)
+                {{-- RENAME --}}
+                <div x-show="editPlanFor === '{{ $vyP['id'] }}'" x-cloak
+                     style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                     x-on:click.self="editPlanFor = null" x-on:keydown.escape.window="editPlanFor = null">
+                    <div class="vy-card" style="max-width: 460px; width: 100%;"
+                         role="dialog" aria-modal="true" tabindex="-1"
+                         x-trap.noscroll="editPlanFor === '{{ $vyP['id'] }}'"
+                         aria-labelledby="vy-dlg-rg-plan-edit-{{ $vyP['id'] }}">
+                        <h2 id="vy-dlg-rg-plan-edit-{{ $vyP['id'] }}" style="margin:0 0 4px;font-size:17px;">Rename rate plan {{ $vyP['name'] }}</h2>
+                        {{-- ⚠️ TRUE AND NARROW. `updateRatePlan()` accepts `name` and `code` and refuses
+                             currency, room type, the derived basis and the cancellation terms — each for a
+                             measured reason recorded on that method. So this dialog can promise that no
+                             price moves, because the route cannot move one. --}}
+                        <p class="vy-line-sub" style="margin:0 0 14px;">Only the name and code change. No nightly price moves, and a stay already sold keeps the price and terms it was sold with.</p>
+                        <form method="POST" action="{{ route('app.inventory.rate-plans.update', $vyP['id']) }}">
+                            @csrf @method('PUT')
+                            <label class="vy-field"><span class="vy-label">Plan name</span>
+                                <input class="vy-input" type="text" name="name" maxlength="255" value="{{ $vyP['name'] }}" required></label>
+                            <label class="vy-field"><span class="vy-label">Code <span style="color:var(--vy-faint);font-weight:400;">(optional)</span></span>
+                                <input class="vy-input" type="text" name="code" maxlength="60" value="{{ $vyP['code'] }}"></label>
+                            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+                                <button type="button" class="vy-btn" x-on:click="editPlanFor = null">Cancel</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">Save plan name</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {{-- ON / OFF SALE --}}
+                <div x-show="activePlanFor === '{{ $vyP['id'] }}'" x-cloak
+                     style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                     x-on:click.self="activePlanFor = null" x-on:keydown.escape.window="activePlanFor = null">
+                    <div class="vy-card" style="max-width: 480px; width: 100%;"
+                         role="dialog" aria-modal="true" tabindex="-1"
+                         x-trap.noscroll="activePlanFor === '{{ $vyP['id'] }}'"
+                         aria-labelledby="vy-dlg-rg-plan-active-{{ $vyP['id'] }}">
+                        <h2 id="vy-dlg-rg-plan-active-{{ $vyP['id'] }}" style="margin:0 0 4px;font-size:17px;">{{ $vyP['is_active'] ? 'Take '.$vyP['name'].' off sale?' : 'Put '.$vyP['name'].' back on sale?' }}</h2>
+                        @if ($vyP['is_active'])
+                            {{-- ⚠️ MEASURED, NOT ASSERTED. The storefront prices a stranger through
+                                 `BookingEngineService::cheapestRatePlan()`, which reads only active plans, so
+                                 taking one off sale really does stop it being quoted. Existing bookings are
+                                 untouched: `reservation_units` snapshots `price_minor` at booking. And no
+                                 `rate_calendar` row is written or deleted — the prices stay where they are. --}}
+                            <p class="vy-line-sub" style="margin:0 0 14px;">It stops being quoted to new guests straight away. Bookings already taken on it keep their price and terms, and its nightly prices are kept, so putting it back on sale restores them unchanged.</p>
+                        @else
+                            <p class="vy-line-sub" style="margin:0 0 14px;">It can be quoted to new guests again, at the nightly prices it already has.</p>
+                        @endif
+                        <form method="POST" action="{{ route('app.inventory.rate-plans.active', $vyP['id']) }}">
+                            @csrf
+                            <input type="hidden" name="active" value="{{ $vyP['is_active'] ? '0' : '1' }}">
+                            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                                <button type="button" class="vy-btn" x-on:click="activePlanFor = null">Cancel</button>
+                                <button type="submit" class="vy-btn vy-btn--accent">{{ $vyP['is_active'] ? 'Take off sale' : 'Put back on sale' }}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+            </div>{{-- closes the rate-plan scope opened above the card --}}
         @endif
 
         {{-- ── Channels — HONEST (#85): Direct live; OTA sync needs setup, never a fabricated "Synced". ──── --}}

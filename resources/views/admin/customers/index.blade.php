@@ -6,7 +6,8 @@
     <p class="ad-lead">Every organization on the platform.</p>
 
     <form method="GET" action="{{ route('admin.customers.index') }}" class="ad-filters">
-        <input type="search" name="search" value="{{ $filters['search'] }}" placeholder="Search name or slug…">
+        <label class="vy-sr-only" for="vy-lbl-index-search">Search name or slug…</label>
+        <input id="vy-lbl-index-search" type="search" name="search" value="{{ $filters['search'] }}" placeholder="Search name or slug…">
         <select name="status" onchange="this.form.submit()">
             <option value="">All statuses</option>
             @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled'] as $key => $label)

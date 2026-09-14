@@ -35,7 +35,7 @@ class GuestAccountController extends Controller
 {
     use ResolvesGuest;
 
-    public function show(GuestWalletService $wallet, GuestWishlistService $saved): View
+    public function show(GuestWalletService $wallet, GuestWishlistService $saved, GuestDeletionService $deletions): View
     {
         $guest = $this->guest();
         $waitlist = $saved->waitlist($guest);
@@ -74,6 +74,9 @@ class GuestAccountController extends Controller
             'deletion' => [
                 'scheduled' => $guest->scheduled_deletion_at !== null,
                 'on' => $guest->scheduled_deletion_at?->format('j M Y'),
+                // ⚠️ The count the screen WARNS with, read from the same set the erase cancels
+                // ({@see GuestDeletionService::reservationsToCancel()}) so the two can never disagree.
+                'stays' => $deletions->reservationsToCancel($guest)->count(),
             ],
         ]);
     }

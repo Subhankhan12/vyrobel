@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Auth\GuestUserProvider;
+use App\Contracts\Auth\SocialIdentityProvider;
 use App\Events\DomainEventRecorded;
+use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Listeners\AdjustOwnerLedgerOnRefund;
 use App\Listeners\AuditOAuthTokenGranted;
 use App\Listeners\DispatchNotificationsForDomainEvent;
@@ -56,6 +58,7 @@ use App\Models\PromoCode;
 use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\RateProposal;
+use App\Models\RateSeason;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
@@ -78,6 +81,7 @@ use App\Payments\Stripe\StripeSafetyGuard;
 use App\Payouts\Contracts\PayoutRail;
 use App\Payouts\Rails\ManualPayoutRail;
 use App\Payouts\Rails\StripeConnectPayoutRail;
+use App\Services\Auth\GoogleIdentityProvider;
 use App\Services\Channex\ChannelManagerClient;
 use App\Services\Channex\ChannexClient;
 use App\Services\Channex\FakeChannexClient;
@@ -110,6 +114,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Passport\Events\AccessTokenCreated;
 use Laravel\Passport\Passport;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -118,6 +123,28 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // ⚠️ F-2 — THE DEVICE AUTHORIZATION GRANT IS NOT PART OF THIS PRODUCT, and leaving it on served a
+        //    500 to strangers. Passport enables it BY DEFAULT ($deviceCodeGrantEnabled = true) and registers
+        //    `GET /oauth/device` with `web` and no auth. This project never configured it: no device view is
+        //    published and no `DeviceUserCodeViewResponse` is bound, so an UNAUTHENTICATED visitor hit
+        //    `BindingResolutionException: Target [Laravel\Passport\Contracts\DeviceUserCodeViewResponse] is
+        //    not instantiable` — a debug page full of framework internals locally, and an unexplained 500 in
+        //    production, on an endpoint nobody could use either way.
+        //
+        //    ⚠️ THE FIX IS TO NOT OFFER THE FEATURE, rather than to 404 it or render a placeholder. The OAuth
+        //    server here is the authorization-code + PKCE flow for third-party apps registered by a platform
+        //    admin (docs/OAUTH-DESIGN.md); the device grant is for input-constrained clients like TVs and
+        //    CLIs and was never designed, scoped or tested. A route that exists only because a dependency
+        //    defaults it on is not a feature. ⚠️ It must be set in register(): Passport loads its routes in
+        //    boot(), and every provider registers before any provider boots.
+        Passport::$deviceCodeGrantEnabled = false;
+
+        // ⚠️⚠️ SOCIAL SIGN-IN RESOLVES TO THE REAL PROVIDER, ALWAYS. There is no config flag that can swap in
+        //    a fake, because a fake provider reachable in production is an authentication bypass — whoever
+        //    reaches it signs in as anyone. Compare FakeChannexClient, bound by a config default of TRUE:
+        //    right for a channel manager, catastrophic here. The only fake is bound by a test, in-process,
+        //    where no route exists. The feature's off-switch is the ABSENCE OF CREDENTIALS, nothing else.
+        $this->app->bind(SocialIdentityProvider::class, GoogleIdentityProvider::class);
         // The tenant context is request/job-scoped shared state. It MUST be a singleton:
         // the BelongsToOrganization trait, the OrganizationScope, and the event recorders
         // all resolve app(TenantContext::class) and must see the same instance.
@@ -237,9 +264,62 @@ class AppServiceProvider extends ServiceProvider
         // ⚠️ Read through config(), NOT env(). `config:cache` — which the deploy runbook runs — makes Laravel
         // skip loading .env, so an env() call here returns NULL in production and this would silently never
         // fire. See config/security.php.
+        /*
+         * ⚠️⚠️ HOST-HEADER POISONING — THE EMAILED TOKEN (audit 2026-08-29 · H-1). THIS IS THE FIX.
+         *
+         * `route()`/`url()` build an ABSOLUTE url from the REQUEST's host unless a root url is forced.
+         * Password-reset mail is rendered synchronously INSIDE the request, so a poisoned `Host` put the
+         * attacker's domain into the victim's email — and the reset TOKEN travelled with it.
+         *
+         * ⚠️ REPRODUCED BOTH WAYS against the running app before this line existed:
+         *     Host: attacker.example              → http://attacker.example/reset-password/<valid token>
+         *     X-Forwarded-Host: evil.example      → http://evil.example/reset-password/<valid token>
+         *       (the second with TRUSTED_PROXIES=*, which config/security.php recommends behind a load
+         *        balancer — i.e. the NORMAL production posture)
+         *
+         * ⚠️ FORCING THE ROOT URL IS THE FIX, NOT `trustHosts()`. Trusted hosts only bound WHICH hosts may
+         * be supplied; the request would still CHOOSE among them. Forcing the root makes every generated
+         * url independent of the request entirely.
+         *
+         * ⚠️ SAFE HERE ONLY BECAUSE THIS APP IS SERVED ON EXACTLY ONE HOST — verified: zero `Route::domain`,
+         * no subdomain routing, and `organizations.custom_domain` has no reader (it is inert). If a custom
+         * domain is ever wired, THIS LINE MUST BE REVISITED FIRST.
+         *
+         * ⚠️ GUARDED: forcing a root url from an unset/!absolute APP_URL would be worse than the bug — every
+         * link in the product would break. With no usable host configured this does nothing and behaviour is
+         * exactly as before. `ops/deploy.sh` pre-flight now refuses a deploy in that state.
+         *
+         * ⚠️ BEFORE forceScheme, so the https forcing below still governs the scheme.
+         */
+        $configuredHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        if (is_string($configuredHost) && $configuredHost !== '') {
+            URL::forceRootUrl((string) config('app.url'));
+        }
+
         if ((bool) config('security.force_https')) {
             URL::forceScheme('https');
         }
+
+        /*
+         * OWNER SCOPE ON THE LIVEWIRE UPDATE PATH — DEFENCE IN DEPTH, NOT THE FIX (audit 2026-08-29 · E-1).
+         *
+         * ⚠️ THE FIX IS IN THE SCOPE. {@see \App\Models\Scopes\OwnerScope} now THROWS when an owner-linked
+         * actor reads with no owner context, so a surface that forgets this middleware fails loudly instead of
+         * returning every owner's rows. That guarantee does NOT depend on this registration.
+         *
+         * ⚠️ THIS LINE IS WHAT MAKES THE OWNER PORTAL WORK AGAIN. `/livewire/update` does not re-run
+         * route-group middleware, so without it every owner re-render would (correctly, but uselessly) 500.
+         * Livewire re-applies a persistent middleware ONLY for components whose ORIGINAL route carried it —
+         * it resolves that route from the snapshot's own path/method memo — so this is confined to `/owner/*`
+         * and no operator component is affected.
+         *
+         * ⚠️ ORDER MATTERS AND IS DELIBERATE: the scope was closed first, this was added second. Adding only
+         * this would have closed ONE surface and left the shape intact for the next path that forgets.
+         */
+        Livewire::addPersistentMiddleware([
+            SetOwnerScopeForPortal::class,
+        ]);
 
         /*
          * PASSWORD COMPOSITION — THE ONE DEFINITION (DO13-4, 2026-08-15).
@@ -382,6 +462,10 @@ class AppServiceProvider extends ServiceProvider
             'channel' => Channel::class,
             'channel_mapping' => ChannelMapping::class,
             'rate_plan' => RatePlan::class,
+            // F-22 — a season is now an AUDIT SUBJECT (rate_season.created/updated/deleted call
+            // getMorphClass()), and enforceMorphMap THROWS on an unregistered model. ⚠️ This absence is
+            // part of WHY that trail was empty: the recorder could not reference a season at all.
+            'rate_season' => RateSeason::class,
             'overbooking_conflict' => OverbookingConflict::class,
             'webhook_event' => WebhookEvent::class,
             'booking_quote' => BookingQuote::class,
@@ -428,13 +512,17 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(DomainEventRecorded::class, RecomputeAvailabilityOnInventoryChange::class);
         Event::listen(DomainEventRecorded::class, GenerateDepartureCleanTask::class);
         Event::listen(DomainEventRecorded::class, EnqueueAriPushOnInventoryChange::class);
-        // Phase 3 — turn real domain events into per-user in-app notifications (database channel). A strict
-        // one-directional consumer: it reads the event, resolves recipients, and dispatches; it records no domain
-        // events itself (no loop).
-        Event::listen(DomainEventRecorded::class, DispatchNotificationsForDomainEvent::class);
-        // Phase 3 · Sub-gate 4 — the GUEST transactional emails on their real events (booking confirmed /
-        // cancelled / refunded). Same bus, same one-directional discipline; a mail failure never breaks the event.
-        Event::listen(DomainEventRecorded::class, SendGuestTransactionalEmails::class);
+        // ⚠️⚠️ MONEY LISTENERS RUN BEFORE BEST-EFFORT ONES, AND THE ORDER IS LOAD-BEARING.
+        //
+        // These listeners are SYNCHRONOUS and run in registration order, so a throw in one stops every
+        // listener after it. The two below post MONEY; the two after them send a notification and an email.
+        // Registered the other way round — which is how this was — a failed notification meant a guest was
+        // refunded and the OWNER'S LEDGER WAS NEVER DEBITED, and `settleRefund`'s status guard made the
+        // retry a no-op, so it could never be recovered. Measured end to end before this moved.
+        //
+        // ⚠️ MONEY FIRST, TRAIL SECOND, TELLING PEOPLE THIRD. Nothing best-effort may sit between a
+        //    committed settlement and the ledger row that settlement implies.
+        //
         // #100 — a guest refund posts an owner-statement ADJUSTMENT (the owner's net-ratio share of the refund),
         // landing on the next statement close. Same bus; idempotent; a no-op for an operator-only reservation.
         Event::listen(DomainEventRecorded::class, AdjustOwnerLedgerOnRefund::class);
@@ -442,6 +530,13 @@ class AppServiceProvider extends ServiceProvider
         //    `reattributeReservation()` (whole-transaction reversal + fresh attribution) — which existed
         //    with no caller, which is exactly why the money never followed.
         Event::listen(DomainEventRecorded::class, ReattributeOwnerOnUnitMove::class);
+        // Phase 3 — turn real domain events into per-user in-app notifications (database channel). A strict
+        // one-directional consumer: it reads the event, resolves recipients, and dispatches; it records no domain
+        // events itself (no loop). Its failures are caught and logged, so they cannot abort the chain.
+        Event::listen(DomainEventRecorded::class, DispatchNotificationsForDomainEvent::class);
+        // Phase 3 · Sub-gate 4 — the GUEST transactional emails on their real events (booking confirmed /
+        // cancelled / refunded). Same bus, same one-directional discipline; a mail failure never breaks the event.
+        Event::listen(DomainEventRecorded::class, SendGuestTransactionalEmails::class);
 
         // Super Admin · Build 2 · Gate 1 — capture auth SECURITY SIGNALS (login / failed / lockout) for the
         // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);

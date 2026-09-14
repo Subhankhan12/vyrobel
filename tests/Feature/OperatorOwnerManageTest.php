@@ -83,7 +83,7 @@ it('archives an owner without destroying financials or bookings', function () {
     $statementId = $ctx['statement']->id;
     $unitId = $s['units'][0]->id;
 
-    $this->actingAs($staff)->post(route('app.owners.remove', $owner->id), ['confirm_name' => 'Amara Okafor'])
+    $this->actingAs($staff)->post(route('app.owners.remove', $owner->id), ['current_password' => 'password', 'confirm_name' => 'Amara Okafor'])
         ->assertRedirect(route('app.owners'));
 
     // The owner is soft-deleted (archived), NOT hard-deleted.
@@ -103,7 +103,7 @@ it('refuses removal when the typed name does not match', function () {
     $ctx = manageableOwner($s);
     $staff = operatorUser($s, [], 'Property Owner');
 
-    $this->actingAs($staff)->post(route('app.owners.remove', $ctx['owner']->id), ['confirm_name' => 'Wrong Name'])
+    $this->actingAs($staff)->post(route('app.owners.remove', $ctx['owner']->id), ['current_password' => 'password', 'confirm_name' => 'Wrong Name'])
         ->assertRedirect()->assertSessionHas('owners_error');
     expect(Owner::find($ctx['owner']->id))->not->toBeNull();   // still there
 });

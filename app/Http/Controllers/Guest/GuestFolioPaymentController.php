@@ -57,7 +57,7 @@ class GuestFolioPaymentController extends Controller
             $connectedAccountId = app(TenantContext::class)->forOrganization(
                 $orgId,
                 fn (): string => app(OperatorConnectService::class)->accountForCharge(
-                    Organization::withoutGlobalScopes()->findOrFail($orgId),
+                    Organization::query()->findOrFail($orgId),
                 ),
             );
 

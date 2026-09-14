@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\UnitRateOverride;
@@ -18,14 +19,17 @@ use Illuminate\Support\Facades\DB;
  * ⚠️⚠️ CONFIRM-FIRST FOUND THAT THE "SINGLE-SET AUTHORING PATH" THIS WAS TOLD TO REUSE DOES NOT EXIST.
  * Phase 1 shipped the table and {@see NightlyRate} but deliberately shipped NO authoring surface (see the
  * DECISIONS entry for 2026-08-17: "the surface is deliberately not built"), and its own sequenced list ends
- * with "bulk tooling". Nothing in `app/` writes this table — the only writers in the repo are three test
- * fixtures. So a bulk-only writer built today would BECOME the single writer, and the single-set surface
- * built tomorrow would be the SECOND one — precisely the two-sources-that-can-disagree hazard the D4-1 rule
- * exists to prevent, arrived at from the other direction.
+ * with "bulk tooling". Nothing in `app/` wrote this table at the time — the only writers in the repo were
+ * three test fixtures. So a bulk-only writer built then would BECOME the single writer, and the single-set
+ * surface built later would be the SECOND one — precisely the two-sources-that-can-disagree hazard the D4-1
+ * rule exists to prevent, arrived at from the other direction.
+ * ⚠️ TENSE CORRECTED 2026-08-31: that paragraph records the reasoning of 2026-08-17 and read as present tense.
+ * It is history. The conclusion below is what holds today.
  *
  * ⚠️ THEREFORE THIS SERVICE IS THE WRITE PATH ITSELF, NOT A BULK WRAPPER AROUND ONE. Single-set is simply
- * the N=1 call: one unit, one night. When the single-set UI ships it calls this, and there is still exactly
- * one place that decides what an override row means (§N.8f).
+ * the N=1 call: one unit, one night. The single-set UI HAS since shipped and does exactly that
+ * ({@see UnitRateActionController}), so there is still exactly one place that
+ * decides what an override row means (§N.8f).
  *
  * ⚠️⚠️ THE PREVIEW IS A CONTRACT, NOT A COURTESY — this is the whole safety model of a bulk money op. A bulk
  * mistake is not one wrong price, it is many wrong prices at once, and it is silent. So:

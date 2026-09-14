@@ -30,6 +30,23 @@ uses(RefreshDatabase::class);
 /** Seed the demo as if it were `$date`, and return the wall-clock-independent end state. */
 function seedDemoAt(string $date): array
 {
+    // ⚠️⚠️ CAPTURE THE CLOCK THIS HELPER IS INTERRUPTING — do not assume there wasn't one.
+    //
+    // `tests/Pest.php` freezes every Feature test at VY_TEST_CLOCK (2026-08-01 09:00). The `finally` below
+    // used to call the BARE `setTestNow()`, which does not restore that freeze — it CLEARS it, dropping the
+    // rest of the test onto the real wall clock. So this helper seeded the demo on the FROZEN day and then
+    // handed its caller the REAL day, and the caller asserted against the second while the database had been
+    // built from the first.
+    //
+    // ⚠️ INVISIBLE FOR AS LONG AS THE TWO SHARED A MONTH, which is why it survived all of August and went red
+    // on 1 September. ⚠️ AND IT IS NOT A MONTH-BOUNDARY BUG THAT COMES AND GOES — once the wall clock leaves
+    // the frozen month it stays wrong every day, not one day in thirty.
+    //
+    // ⚠️ RESTORING THE PREVIOUS VALUE, NOT RE-APPLYING VY_TEST_CLOCK: a caller that set its own clock before
+    // calling this gets its own clock back, and the constant is not duplicated here (§N.8f).
+    $priorMutable = Carbon::getTestNow();
+    $priorImmutable = CarbonImmutable::getTestNow();
+
     Carbon::setTestNow(CarbonImmutable::parse($date));
     CarbonImmutable::setTestNow(CarbonImmutable::parse($date));
 
@@ -47,8 +64,8 @@ function seedDemoAt(string $date): array
             'statements' => OwnerStatement::withoutGlobalScopes()->count(),
         ];
     } finally {
-        Carbon::setTestNow();
-        CarbonImmutable::setTestNow();
+        Carbon::setTestNow($priorMutable);
+        CarbonImmutable::setTestNow($priorImmutable);
     }
 }
 

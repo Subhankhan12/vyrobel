@@ -1,7 +1,13 @@
 {{-- Guest portal shell (Phase 4b) — the page chrome every guest-portal screen inherits, on the 4a guest brand
      tokens. A light, mobile-first top header (brand · Trips · Account · sign out) + a centered content column.
      The viewer is resolved from the GUEST guard (never passed in) so it can only ever be the authed guest.
-     Props: active (nav key to highlight), title (optional page heading). RAW-BLADE RULE: every `@` follows a
+     Props: active (nav key to highlight), title (the DOCUMENT title). RAW-BLADE RULE: every `@` follows a
+
+     ⚠️⚠️ `title` IS NOT A PAGE HEADING, AND THIS LINE USED TO SAY IT WAS. It feeds `<title>` and nothing
+     else. That false description is very likely how twelve signed-in screens ended up with NO heading
+     element at all while every signed-out one had exactly one: the prop looked like it supplied the
+     heading, and nothing rendered it. ⚠️ A page's `<h1>` belongs in the page, where its real subject
+     text already is — see the promotions in the guest views.
      space, newline or tag. --}}
 @props(['active' => '', 'title' => '', 'accent' => null, 'head' => null])
 @php

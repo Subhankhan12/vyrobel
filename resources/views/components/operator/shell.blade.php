@@ -75,8 +75,8 @@
             ['channels', 'Channels', 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', $channelsAllowed ? route('app.channels') : null],
         ]],
         ['FINANCE', [
-            ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', route('app.owners')],
-            ['payout-run', 'Payout run', 'M3 7h18v12H3zM3 11h18M15 15h3', route('app.payouts.run')],
+            ['owners', 'Owners', 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M16 11a3 3 0 1 0 0-6M22 20c0-3-3-5-6-5', auth()->user()?->can('reports.view') ? route('app.owners') : null],
+            ['payout-run', 'Payout run', 'M3 7h18v12H3zM3 11h18M15 15h3', auth()->user()?->can('payouts.manage') ? route('app.payouts.run') : null],
             ['reports', 'Reports', 'M9 17v-6M12 17V7M15 17v-3M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z', auth()->user()?->can('reports.view') ? route('app.reports') : null],
             ['unit-requests', 'Unit requests', 'M12 5v14M5 12h14M4 4h16', auth()->user()?->can('units.view') ? route('app.unit-requests') : null],
         ]],

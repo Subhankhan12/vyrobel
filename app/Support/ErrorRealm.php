@@ -66,6 +66,21 @@ final class ErrorRealm
         return match ($realm ?? self::current()) {
             'guest' => 'This page belongs to a different booking, or it isn’t part of your account. If you reached it from a link we sent you, the link may have expired.',
             'owner' => 'Your owner account doesn’t include this area. If you need it, ask the primary owner on your account to grant the capability.',
+            // ⚠️ NOT BRANCHED, DELIBERATELY — and this is a REPORTED observation, not an oversight.
+            // The 'admin' realm falls through to the operator wording below, which tells a PLATFORM ADMIN to
+            // "ask an administrator on your team" — they have neither. That reads like the same defect as
+            // F-3, but F-3 is scoped to the two UNAUTHENTICATED doors (the 'public' realm above); a platform
+            // admin is signed in, on their own guard. Branching it here also contradicts a certified
+            // assertion (GuestPricingDisplayAnd403Test: admin === app), which records what the guest fix
+            // pass did rather than a decision about admins. ⚠️ Changing it is a founder call, so it is
+            // written down instead of taken.
+            // ⚠️ F-3 — THE READER HERE IS NOT SIGNED IN. They have no role, no team and no administrator,
+            // so "ask an administrator on your team to grant the permission" named three things that do
+            // not exist for them. This says what is true and offers the one action that can help.
+            // ⚠️ ENUMERATION DISCIPLINE KEPT (Fix 06): it does NOT say whether the page exists, whether an
+            // account exists, or whether a link was merely expired versus never valid — distinguishing
+            // those would be an oracle. One wording covers every reason a stranger lands here.
+            'public' => 'This page isn’t available without signing in. If you followed a link we sent you, it may have expired or already been used — sign in and try again, or ask whoever sent it for a new one.',
             default => 'Your role doesn’t include this area. If you need it, ask an administrator on your team to grant the permission.',
         };
     }

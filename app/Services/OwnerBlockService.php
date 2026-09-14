@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Exceptions\Owner\OwnerBlockException;
+use App\Exceptions\Owner\OwnerUnitPropertyRemovedException;
 use App\Models\InventoryBlock;
 use App\Models\Unit;
 use App\Models\User;
@@ -163,12 +164,24 @@ class OwnerBlockService
      */
     public function ownedUnitOrFail(string $unitId): Unit
     {
-        $unit = $this->portal->units()->first(fn (Unit $u): bool => (string) $u->id === $unitId);
+        // ⚠️ LIVE INVENTORY, NOT THE ATTRIBUTION SET (2026-09-01). A block is a WRITE against sellable
+        // inventory, so it must resolve from {@see OwnerPortalService::unitsAtLiveProperties()}. Using
+        // `units()` here let an owner block dates on a unit whose PROPERTY had been archived: MEASURED, the
+        // write landed — one real `inventory_blocks` row and an audit event against a removed property — and
+        // the owner was told it had worked.
+        $unit = $this->portal->unitsAtLiveProperties()->first(fn (Unit $u): bool => (string) $u->id === $unitId);
 
-        if (! $unit instanceof Unit) {
-            throw OwnerBlockException::notYourUnit($unitId);
+        if ($unit instanceof Unit) {
+            return $unit;
         }
 
-        return $unit;
+        // ⚠️ SAY WHICH REFUSAL THIS IS. If the unit is still ATTRIBUTED to them it is theirs and the property
+        // is what has gone — telling them "not one of your units" would be false. A genuinely foreign id is
+        // absent from both sets and keeps the original tampering answer.
+        if ($this->portal->units()->contains(fn (Unit $u): bool => (string) $u->id === $unitId)) {
+            throw OwnerUnitPropertyRemovedException::forUnit($unitId);
+        }
+
+        throw OwnerBlockException::notYourUnit($unitId);
     }
 }

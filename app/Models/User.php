@@ -6,6 +6,8 @@ namespace App\Models;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Mail\PasswordResetMail;
+use App\Support\Auth\SignInCredentials;
+use App\Support\Events\AuditEventRecorder;
 use App\Support\Security\ActiveSessions;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -41,6 +43,15 @@ use Spatie\Permission\Traits\HasRoles;
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable implements OAuthenticatable
 {
+    /**
+     * ⚠️ THE ONE DEFINITION OF "THIS ACCOUNT CAN SIGN IN".
+     *
+     * `LoginRequest::authenticate()` folds this exact value into the credential query, so an account in any
+     * other state cannot authenticate. Anything that reasons about who can still ACT — notably the
+     * last-role-manager floor — must ask the same question, or it will count holders who are locked out.
+     */
+    public const SIGN_IN_STATUS = 'active';
+
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, HasUlids, Notifiable, SoftDeletes;
 
@@ -88,14 +99,80 @@ class User extends Authenticatable implements OAuthenticatable
      * sessions), while the CURRENT request's session stays valid — the caller keeps the user signed in here.
      */
     /**
+     * Does this account have a password at all?
+     *
+     * ⚠️⚠️ THE ONE DEFINITION (§N.8f), and it mirrors `Guest::isClaimed()`'s shape deliberately — the guest
+     * table has been nullable-password since the claim flow was built, and a second way of asking the same
+     * question is how two implementations of one concept drift apart (`Plan::isPerUnit()` and
+     * `PlanTerms::isPerUnit()` were once found byte-identical).
+     *
+     * ⚠️ IT READS A COLUMN AND NOTHING ELSE. No role, no permission, no team — so it CANNOT be silently
+     * false the way `can()` is without a team context set. That shape has bitten this project three times,
+     * and here it would have sent every user, password or not, to set a password forever.
+     */
+    /**
+     * External sign-in identities linked to this account (Google, and any later provider).
+     *
+     * ⚠️ A LINK IS A CREDENTIAL. {@see SignInCredentials} is the one place that counts
+     *    them, so the unlink floor and any screen that describes it cannot disagree.
+     *
+     * @return HasMany<UserIdentity, $this>
+     */
+    public function identities(): HasMany
+    {
+        return $this->hasMany(UserIdentity::class);
+    }
+
+    public function hasPassword(): bool
+    {
+        return $this->password !== null && $this->password !== '';
+    }
+
+    /**
      * @param  ?string  $keepSessionId  the session to SPARE (the browser doing the change); null kills them all
      */
     public function changePasswordTo(string $plainPassword, ?string $keepSessionId = null): void
     {
+        // ⚠️ F-9 — read BEFORE the write, or the distinction is destroyed by the line below.
+        $wasFirstSet = ! $this->hasPassword();
+
         $this->forceFill([
             'password' => $plainPassword,
             'remember_token' => Str::random(60),
         ])->save();
+
+        // ⚠️⚠️ F-9 IS A SECURITY GAP, NOT BOOKKEEPING. An account could be compromised and its password
+        // changed with nothing, anywhere, recording it — while `platform.account.password_changed` already
+        // existed for the platform admin, and this realm's NEIGHBOURS (owner.email_changed,
+        // owner.other_sessions_signed_out, owner.trusted_device_revoked) all record. The password change was
+        // the one security action in the `web` guard that recorded nowhere.
+        //
+        // ⚠️ IT LIVES HERE, NOT IN A CONTROLLER, because this is the ONE shared hash+rotate path — so the
+        // self-service change AND the token reset are both covered, and neither can drift from the other.
+        // A recorder on one controller would be the same defect in a new coat.
+        //
+        // ⚠️⚠️ NEVER THE SECRET. No password, no hash, nothing derived from either — `before` is deliberately
+        // null because the only "previous value" here is a hash, and storing it would make the audit trail
+        // the attack surface it exists to protect. What IS recorded: that it changed, to whom it belongs, and
+        // (free, from the recorder) the timestamp, IP and user-agent. These rows are OPERATOR-READABLE.
+        //
+        // ⚠️ THE ACTOR: on a self-service change the authenticated user resolves normally. On a RESET nobody
+        // is authenticated, and a null actor would close nothing — so the account holder is named, with
+        // `via` saying how the change was authorised rather than implying a session that did not exist.
+        $authId = auth()->id();
+
+        app(AuditEventRecorder::class)->record(
+            'user.password_changed',
+            $this,
+            null,
+            [
+                'first_set' => $wasFirstSet,
+                'via' => $authId !== null ? 'authenticated_session' : 'reset_token',
+                'other_sessions_terminated' => true,
+            ],
+            actorType: 'user',
+            actorId: (string) ($authId ?? $this->getKey()),
+        );
 
         // ⚠️ TERMINATE THE OTHER SESSIONS (auth pass, item 3). Rotating the remember-token kills "remember me"
         // COOKIES, but an attacker holding a live server-side session was completely unaffected — so a

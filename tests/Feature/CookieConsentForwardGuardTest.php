@@ -419,3 +419,84 @@ it('⚠️ claims on every marketing page only what is true', function () {
         Assert::assertStringNotContainsStringIgnoringCase('manage preferences', $html);
     }
 });
+
+// ══ ⚠️⚠️ THE TWO PLACEMENTS ARE DELIBERATE — AND THIS PINS THE DECISION, NOT THE COUNT ════════════════
+//
+// ⚠️ A browser audit reported "the cookie banner is rendered twice on every page" as a defect, and asked
+//    which of the two decline buttons actually governs consent — because a visitor who declines on an
+//    inert one has not declined and does not know. ⚠️ BOTH HALVES ARE FALSE, and the tests below are
+//    what make that checkable rather than a claim in a report:
+//      · ONE component, TWO placements (`mode="banner"` while unanswered, `mode="panel"` for ever, inside
+//        a COLLAPSED footer <details>) — so a visitor is painted one notice, not two.
+//      · The two forms are the SAME form: same action, same method, same `name=choice value=declined`,
+//        same hidden return. A click on either produces an identical POST. Neither can be the inert one.
+//
+// ⚠️⚠️ AND THIS IS THE WRONG-FIX MUTATION, WRITTEN DOWN (§6b). Breaking the correct arrangement proves a
+//    test notices this code; RE-INTRODUCING THE FIX THAT WAS REJECTED — deleting one of the two copies to
+//    "fix the duplicate" — is what proves the test defends the DECISION.
+// ⚠️ AND A CORRECTION TO MY OWN FIRST DRAFT OF THIS COMMENT, which said the deletion would have gone
+//    unnoticed. IT WOULD NOT: "makes declining exactly as easy as accepting" already counts FOUR submit
+//    buttons, so removing either copy reds it. ⚠️ But it reds INCIDENTALLY — that test is about dark
+//    patterns, and its message ("expected accept + decline in both the banner and the footer panel")
+//    tells the next author what the count is, never why two placements are correct. What was genuinely
+//    uncovered is below: the redirect ANCHOR lives on the panel, the footer copy is COLLAPSED (which is
+//    why "rendered twice" is not "seen twice"), answering must leave exactly ONE, and the two forms must
+//    post the IDENTICAL request. Mutation-proved both ways: deleting either copy reds three tests.
+it('⚠️ shows the banner while unanswered and the footer panel for ever — one component, two placements', function () {
+    $fresh = $this->get('/pricing')->assertOk()->getContent();
+
+    $regions = cgNoticeRegions($fresh);
+    Assert::assertCount(2, $regions,
+        'an unanswered visit must serve BOTH placements: the first-visit banner and the always-available '.
+        'footer panel. One of them has been deleted — see this block for why that is not the fix.');
+
+    // ⚠️ IDENTIFIED BY WHAT THEY ARE, NEVER BY POSITION. My first version asserted the banner was
+    //    `$regions[0]` and it red: the FOOTER panel is emitted first, because the fixed banner is appended
+    //    at the end of the shell, after the footer. Document order is incidental to this rule, and an
+    //    index is exactly the kind of assertion that reds for correct work when a layout moves.
+    $banner = collect($regions)->first(fn (string $r): bool => str_contains($r, 'position:fixed'));
+    $panel = collect($regions)->first(fn (string $r): bool => str_contains($r, 'id="vy-cookie-notice"'));
+
+    Assert::assertNotNull($banner, 'the fixed first-visit banner is gone — an unanswered visitor is asked nothing');
+    // ⚠️ Deleting the panel would also leave `#vy-cookie-notice` — the controller's redirect target — pointing
+    //    at nothing on every page.
+    Assert::assertNotNull($panel, 'the always-available footer panel is gone, and with it the redirect anchor');
+
+    // ⚠️ AND THE PANEL IS COLLAPSED. This is why "rendered twice" is not "seen twice": the footer copy
+    //    sits inside a closed <details>, one deliberate click away, so the painted page has one notice.
+    Assert::assertMatchesRegularExpression('/<details>\s*<summary[^>]*>\s*Cookies &amp; your choice/s', $fresh,
+        'the footer panel is no longer behind a collapsed disclosure — it now paints a second notice');
+
+    // ⚠️ ANSWERED: the banner goes, the panel stays, and the answer is shown to the person it concerns.
+    $answered = $this->withCookie(CookieConsent::COOKIE, json_encode([
+        'choice' => CookieConsent::DECLINED, 'version' => CookieConsent::VERSION, 'at' => '2026-09-02T00:00:00+00:00',
+    ], JSON_THROW_ON_ERROR))->get('/pricing')->assertOk()->getContent();
+
+    Assert::assertCount(1, cgNoticeRegions($answered), 'answering must leave exactly one notice — the panel');
+    Assert::assertStringNotContainsString('position:fixed;left:0;right:0;bottom:0', $answered, 'the banner survived an answer');
+    Assert::assertStringContainsString('data-cookie-choice="declined"', $answered, 'the recorded answer is not shown back');
+});
+
+it('⚠️ makes both decline buttons the same request — neither placement can be the inert one', function () {
+    $html = $this->get('/pricing')->assertOk()->getContent();
+
+    preg_match_all('/<form\b[^>]*>.*?<\/form>/s', $html, $fm);
+    $forms = array_values(array_filter($fm[0], fn (string $f): bool => str_contains($f, 'name="choice"')));
+    Assert::assertCount(2, $forms, 'the two consent forms are no longer both present');
+
+    // ⚠️ COMPARED, NOT DESCRIBED. What a submit button sends is its form's action plus its own name/value,
+    //    so if those agree across the two placements the browser cannot tell them apart — which is the
+    //    whole question the audit could not answer by looking.
+    $shape = static function (string $form): array {
+        preg_match('/action="([^"]*)"/', $form, $a);
+        preg_match('/name="return" value="([^"]*)"/', $form, $r);
+        preg_match_all('/<button[^>]*name="choice"[^>]*value="([^"]*)"/', $form, $b);
+
+        return ['action' => $a[1] ?? '', 'return' => $r[1] ?? '', 'choices' => $b[1]];
+    };
+
+    Assert::assertSame($shape($forms[0]), $shape($forms[1]),
+        'the two consent forms no longer post the same thing — one of them now governs something the '.
+        'other does not, which is exactly the defect the audit feared and this pins against');
+    Assert::assertSame([CookieConsent::ACCEPTED, CookieConsent::DECLINED], $shape($forms[0])['choices']);
+});

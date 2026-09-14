@@ -8,6 +8,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
 use App\Models\Payout;
+use App\Models\Unit;
 use App\Services\OwnerPortalService;
 use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerNextPayout;
@@ -252,6 +253,17 @@ class OwnerStatementView extends Component
      * @param  Collection<int, OwnerStatement>  $statements
      * @return array{count: int, net_total_display: string}
      */
+    /**
+     * The owner's own display currency when there is no statement to read one from — their units' property
+     * currency, the same rule {@see OwnerMyUnits} and {@see OwnerInsights} use, so the screens agree.
+     * `properties.currency` is NOT NULL; the final fallback only covers an owner with no units at all.
+     */
+    private function ownerPortfolioCurrency(): string
+    {
+        return (string) (Unit::query()->with('property')->first()?->property->currency
+            ?? config('billing.default_currency', 'EUR'));
+    }
+
     private function totals(Collection $statements): array
     {
         $perCurrency = $statements
@@ -265,7 +277,11 @@ class OwnerStatementView extends Component
 
         return [
             'count' => $statements->count(),
-            'net_total_display' => $perCurrency === [] ? $this->money(0, 'EUR') : implode(' · ', $perCurrency),
+            // ⚠️ The no-statements zero was formatted as `money(0, 'EUR')` — a literal passed to a formatter
+            // whose currency argument is required, so a GBP owner with no statements yet was shown "€0.00".
+            // With no statement there is no statement currency, so fall back to the owner's own units'
+            // property currency (the {@see OwnerMyUnits} rule) rather than asserting one.
+            'net_total_display' => $perCurrency === [] ? $this->money(0, $this->ownerPortfolioCurrency()) : implode(' · ', $perCurrency),
         ];
     }
 

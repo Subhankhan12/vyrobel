@@ -225,7 +225,7 @@ class RateActionController extends Controller
 
         $mode = (string) $request->input('mode');
         if (! in_array($mode, RateBulkService::MODES, true)) {
-            return $this->back($fromParam, 'Choose increase %, decrease %, or set exact €.');
+            return $this->back($fromParam, 'Choose increase %, decrease %, or set an exact amount.');
         }
         $nights = (string) $request->input('nights', 'whole');
         if (! in_array($nights, RateBulkService::NIGHTS, true)) {

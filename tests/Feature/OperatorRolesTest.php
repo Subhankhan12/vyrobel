@@ -63,7 +63,7 @@ it('lets an admin assign a role within their own privilege', function () {
     $admin = operatorUser($s, [], 'Group Admin');
     $member = operatorUser($s, ['name' => 'Mo Member'], 'Front Desk');
 
-    $this->actingAs($admin)->post('/app/roles/assign', ['user_id' => $member->id, 'role' => 'Hotel Manager'])
+    $this->actingAs($admin)->post('/app/roles/assign', ['current_password' => 'password', 'user_id' => $member->id, 'role' => 'Hotel Manager'])
         ->assertRedirect(route('app.roles'))->assertSessionHas('roles_notice');
 
     expect(roleNames($member, $s))->toContain('Hotel Manager');
@@ -89,7 +89,7 @@ it('refuses to assign a role with MORE access than the actor’s own — no esca
 
     // Property Owner is ['*'] — strictly MORE than Group Admin. The ROUTE admits the admin (users.manage), but
     // the SERVICE refuses the escalation and writes nothing. (Strip the subset check and this would escalate.)
-    $this->actingAs($groupAdmin)->post('/app/roles/assign', ['user_id' => $member->id, 'role' => 'Property Owner'])
+    $this->actingAs($groupAdmin)->post('/app/roles/assign', ['current_password' => 'password', 'user_id' => $member->id, 'role' => 'Property Owner'])
         ->assertRedirect(route('app.roles'))->assertSessionHas('roles_notice');
 
     expect(roleNames($member, $s))->not->toContain('Property Owner');
@@ -107,7 +107,7 @@ it('refuses an admin changing their own role', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, [], 'Group Admin');
 
-    $this->actingAs($admin)->post('/app/roles/assign', ['user_id' => $admin->id, 'role' => 'Hotel Manager'])
+    $this->actingAs($admin)->post('/app/roles/assign', ['current_password' => 'password', 'user_id' => $admin->id, 'role' => 'Hotel Manager'])
         ->assertSessionHas('roles_notice');
 
     expect(roleNames($admin, $s))->not->toContain('Hotel Manager');
@@ -120,7 +120,7 @@ it('cannot assign a role to a user in another organization', function () {
     $b = seedScenario(1);
     $outsider = operatorUser($b, ['name' => 'Ozan Outsider'], 'Front Desk');   // org B
 
-    $this->actingAs($admin)->post('/app/roles/assign', ['user_id' => $outsider->id, 'role' => 'Hotel Manager'])
+    $this->actingAs($admin)->post('/app/roles/assign', ['current_password' => 'password', 'user_id' => $outsider->id, 'role' => 'Hotel Manager'])
         ->assertSessionHas('roles_notice');
 
     expect(roleNames($outsider, $b))->not->toContain('Hotel Manager');   // untouched
@@ -133,7 +133,7 @@ it('the assign path never mutates the role→permission catalog', function () {
     $member = operatorUser($s, ['name' => 'Mo Member'], 'Front Desk');
 
     $before = rolePerms('Front Desk', $s);
-    $this->actingAs($admin)->post('/app/roles/assign', ['user_id' => $member->id, 'role' => 'Hotel Manager']);
+    $this->actingAs($admin)->post('/app/roles/assign', ['current_password' => 'password', 'user_id' => $member->id, 'role' => 'Hotel Manager']);
 
     // Front Desk's config grants are unchanged — the assign moved a user, it did not touch permissions.
     expect(rolePerms('Front Desk', $s))->toBe($before);

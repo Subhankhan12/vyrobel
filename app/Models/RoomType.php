@@ -110,12 +110,29 @@ class RoomType extends Model
     public function primaryRatePlan(): ?RatePlan
     {
         if ($this->default_rate_plan_id !== null) {
-            $default = $this->defaultRatePlan()->first();
-            if ($default !== null) {
+            // ⚠️ `relationLoaded` FIRST so an eager-loading caller is not turned into an N+1. Two callers
+            // (the operator Rates grid, UnitAvailabilityService) load `defaultRatePlan` per room type
+            // precisely to avoid a query per row; `$this->defaultRatePlan()->first()` would issue one anyway.
+            $default = $this->relationLoaded('defaultRatePlan')
+                ? $this->defaultRatePlan
+                : $this->defaultRatePlan()->first();
+
+            // ⚠️⚠️ F-34 — THE `is_active` CHECK THIS BRANCH NEVER HAD (found by FIX 12, fixed by FIX 15).
+            // The fallback below always filtered; the DECLARED-DEFAULT branch did not, so a plan taken off
+            // sale was still returned as the room type's primary — and the rate surfaces went on editing it
+            // while the storefront had stopped offering it. ⚠️ FIX 12 built the first operator-reachable way
+            // to produce that state, so this went from latent to live in the same pass that created it.
+            if ($default !== null && (bool) $default->is_active) {
                 return $default;
             }
         }
 
-        return $this->ratePlans()->where('is_active', true)->orderBy('created_at')->first();
+        // The fallback. ⚠️ It cannot come back empty in practice: `InventoryActionController::setRatePlanActive()`
+        // refuses to take the LAST active plan of a room type off sale, so at least one always survives. It is
+        // still written to return null rather than assume that — the guard is a route-level rule and this is a
+        // model, reachable from a seeder, a job or a test that never passed through it.
+        return $this->relationLoaded('ratePlans')
+            ? $this->ratePlans->first(fn (RatePlan $plan): bool => (bool) $plan->is_active)
+            : $this->ratePlans()->where('is_active', true)->orderBy('created_at')->first();
     }
 }

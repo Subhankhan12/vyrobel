@@ -83,7 +83,7 @@ it('still lets a properly-permissioned admin invite staff', function () {
     // Group Admin genuinely holds users.manage per the catalog — the check must let the real workflow through.
     $admin = operatorUser($s, ['name' => 'Ada Admin'], 'Group Admin');
 
-    $this->actingAs($admin)->post('/app/owners/invite', [
+    $this->actingAs($admin)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'New Accountant',
         'email' => 'real.hire@example.test',
         'role' => 'accountant',

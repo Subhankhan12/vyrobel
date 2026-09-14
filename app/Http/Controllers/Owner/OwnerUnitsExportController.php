@@ -29,7 +29,10 @@ class OwnerUnitsExportController extends Controller
             ? Carbon::parse($param.'-01')->startOfMonth()
             : Carbon::now()->startOfMonth();
 
-        $unitIds = array_map('strval', $portal->units()->pluck('id')->all());
+        // ⚠️ DATA LEAVING THE PRODUCT, and it must match the screen it is exported from (My Units). Live
+        // properties only — an archived property's unit would otherwise land in someone's spreadsheet as
+        // current inventory, and skew the occupancy denominator with it.
+        $unitIds = array_map('strval', $portal->unitsAtLiveProperties()->pluck('id')->all());
         $occ = OwnerOccupancy::forMonth($unitIds, $month);
 
         $filename = 'my-units-occupancy-'.$month->format('Y-m').'.csv';

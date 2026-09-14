@@ -193,5 +193,8 @@ it('offers unit-request Approve and Decline only to a role holding units.manage'
         ->and($deskHtml)->not->toContain(route('app.unit-requests.decline', $request->id));
 
     $this->actingAs($desk)->post(route('app.unit-requests.approve', $request->id))->assertForbidden();
-    expect(UnitRequest::withoutGlobalScopes()->find($request->id)->status)->toBe('pending');
+    // ⚠️ Untouched means BOTH still pending AND not trashed. The bare scope returns a soft-deleted request
+    //    exactly as it returns a live one, so a status check alone passed with the row removed (planted).
+    $after = UnitRequest::withoutGlobalScopes()->withTrashed()->find($request->id);
+    expect($after->status)->toBe('pending')->and($after->trashed())->toBeFalse();
 });

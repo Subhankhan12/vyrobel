@@ -226,13 +226,14 @@
             {{-- ── MESSAGE modal ──────────────────────────────────────────────────────────────────────── --}}
             <div x-show="msgOpen" x-cloak @keydown.escape.window="msgOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="msgOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 460px;">
-                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Message <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
+                <div @click.outside="msgOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 460px;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="msgOpen" aria-labelledby="vy-dlg-guests-list-msgopen-4">
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;" id="vy-dlg-guests-list-msgopen-4">Message <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Sent by email · replies land in your inbox.</p>
                     <form method="POST" action="{{ route('app.guests.bulk.message') }}">
                         @csrf
                         <template x-for="id in ids()" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
-                        <textarea class="vy-input" name="body" rows="5" maxlength="2000" required
+                        <label class="vy-field-label" for="vy-lbl-guests-list-body">Write your message…</label>
+                        <textarea id="vy-lbl-guests-list-body" class="vy-input" name="body" rows="5" maxlength="2000" required
                                   placeholder="Write your message…" style="width: 100%; resize: vertical;"></textarea>
                         <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; margin-top: 12px;">
                             <input type="checkbox" name="marketing" value="1" x-model="marketing">
@@ -250,12 +251,13 @@
             {{-- ── ADD TAG modal — reuses the real per-guest tag write ────────────────────────────────── --}}
             <div x-show="tagOpen" x-cloak @keydown.escape.window="tagOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="tagOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;">
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Tag <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
+                <div @click.outside="tagOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="tagOpen" aria-labelledby="vy-dlg-guests-list-tagopen-3">
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;" id="vy-dlg-guests-list-tagopen-3">Tag <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h2>
                     <form method="POST" action="{{ route('app.guests.bulk.tag') }}">
                         @csrf
                         <template x-for="id in ids()" :key="id"><input type="hidden" name="ids[]" :value="id"></template>
-                        <input class="vy-input" type="text" name="name" maxlength="255" required placeholder="Tag name…" style="width: 100%;">
+                        <label class="vy-sr-only" for="vy-lbl-guests-list-name">Tag name…</label>
+                        <input id="vy-lbl-guests-list-name" class="vy-input" type="text" name="name" maxlength="255" required placeholder="Tag name…" style="width: 100%;">
                         <p style="font-size: 11px; color: var(--vy-faint); margin: 6px 0 0;">Tags are shared across this workspace — a new name is added to the catalogue.</p>
                         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
                             <button type="button" class="vy-btn vy-btn--ghost" @click="tagOpen = false">Cancel</button>
@@ -266,10 +268,18 @@
             </div>
 
             {{-- ── DELETE (GDPR erasure) confirm — HONEST copy: PII erased, reservations retained ───────── --}}
-            <div x-show="delOpen" x-cloak @keydown.escape.window="delOpen = false"
+            {{-- ⚠️⚠️ D2 — THE DIALOG CONTRACT. `x-trap` gives all three focus properties at once: focus moves IN
+     on open, is TRAPPED while open, and is RETURNED to the trigger on close. ⚠️ IT NEEDS NO NEW
+     DEPENDENCY — Livewire already bundles Alpine's focus plugin (`directive("trap")` /
+     `createFocusTrap` in livewire.esm.js); it was simply never used anywhere in 243 files.
+     ⚠️ `.noscroll` also stops the page behind scrolling. ⚠️ It does NOT make the rest of the page
+     INERT — without `inert` support or a dependency, focus is trapped and no more, and that is
+     stated rather than implied. ⚠️ Focus lands on the panel itself (`tabindex="-1"`), never on the
+     destructive button. --}}
+                <div x-show="delOpen" x-cloak @keydown.escape.window="delOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="delOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px;">
-                    <h2 class="vy-card-title" style="margin-bottom: 4px; color: #8F3110;">Erase <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span>?</h2>
+                <div @click.outside="delOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="vy-dlg-erase-t" tabindex="-1" x-trap.noscroll="delOpen">
+                    <h2 class="vy-card-title" style="margin-bottom: 4px; color: #8F3110;" id="vy-dlg-erase-t">Erase <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span>?</h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 6px;">This can’t be undone.</p>
                     <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 14px;">
                         The selected guests’ personal data — name, contact, ID documents, notes and message history —
@@ -298,8 +308,8 @@
             {{-- ── ADD GUEST modal — a real create ────────────────────────────────────────────────────── --}}
             <div x-show="addOpen" x-cloak @keydown.escape.window="addOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="addOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">Add guest</h2>
+                <div @click.outside="addOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="addOpen" aria-labelledby="vy-dlg-guests-list-addopen-1">
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;" id="vy-dlg-guests-list-addopen-1">Add guest</h2>
                     <form method="POST" action="{{ route('app.guests.store') }}">
                         @csrf
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">

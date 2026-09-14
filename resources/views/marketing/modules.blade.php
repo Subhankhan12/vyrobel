@@ -17,8 +17,6 @@
     canonical="/modules">
 <div data-screen-label="Marketing — Modules" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 74px 28px 44px;">
@@ -60,7 +58,7 @@
       <div data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 20px 22px; border-radius: 20px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 12px 34px rgba(150,90,50,.13);">
 
         <div style="display: flex; align-items: center; gap: 9px; flex: 1; min-width: 240px; padding: 10px 14px; border-radius: 13px; background: rgba(255,255,255,.62); border: 1px solid rgba(150,90,50,.16);">
-          <svg width="15" height="15" fill="none" stroke="var(--vy-muted)" stroke-width="2.2" stroke-linecap="round" style="flex-shrink: 0;"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="2.2" stroke-linecap="round" style="flex-shrink: 0;"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
           <input type="search" placeholder="Search eighteen modules — try &quot;payout&quot; or &quot;channel&quot;" aria-label="Search modules" style="flex: 1; min-width: 0; border: none; background: none; outline: none; font-family: var(--vy-sans); font-size: 14px; color: var(--vy-ink);">
         </div>
 
@@ -71,7 +69,7 @@
           <button data-modchip="guest" aria-pressed="false" style="flex-shrink: 0; padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .24s cubic-bezier(.22,.7,.3,1);">Guest</button>
         </div>
 
-        <span data-modcount="" style="font-size: 12.5px; color: var(--vy-muted); white-space: nowrap;">16 modules</span>
+        <span data-modcount="" style="font-size: 12.5px; color: var(--vy-muted); white-space: nowrap;">18 modules</span>
       </div>
 
       <div data-modempty="" style="display: none; text-align: center; padding: 54px 20px;">
@@ -85,7 +83,7 @@
 
         <article data-reveal="" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Reservations</h2>
@@ -99,7 +97,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"></path><path d="M9 20v-6h6v6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"></path><path d="M9 20v-6h6v6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Front desk</h2>
@@ -113,7 +111,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 10h18M8 15h3"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"></rect><path d="M3 10h18M8 15h3"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Calendar &amp; availability</h2>
@@ -127,7 +125,7 @@
 
         <article data-reveal="" data-module="operator" id="operations" style="scroll-margin-top: 96px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"></path><path d="M8 7V4h8v3M3 12h18"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"></path><path d="M8 7V4h8v3M3 12h18"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Housekeeping</h2>
@@ -141,7 +139,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4z"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4z"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Maintenance</h2>
@@ -155,7 +153,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="operator" id="revenue" style="scroll-margin-top: 96px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V9M10 18V5M16 18v-6M22 18H2"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V9M10 18V5M16 18v-6M22 18H2"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Rates &amp; availability</h2>
@@ -169,7 +167,7 @@
 
         <article data-reveal="" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path><path d="M9 8h6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path><path d="M9 8h6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Reports &amp; insights</h2>
@@ -183,7 +181,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M4 7l8 6 8-6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M4 7l8 6 8-6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator · Guest</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Messaging &amp; inbox</h2>
@@ -197,7 +195,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="guest" id="guests" style="scroll-margin-top: 96px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M8 13h8"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M8 13h8"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Guest</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Direct booking storefront</h2>
@@ -211,7 +209,7 @@
 
         <article data-reveal="" data-module="guest" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M7 10h4M7 14h8"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M7 10h4M7 14h8"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Guest</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Stay portal &amp; check-in</h2>
@@ -225,7 +223,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="guest" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="3"></rect><path d="M2 11h20"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="3"></rect><path d="M2 11h20"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Guest</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Wallet, credits &amp; add-ons</h2>
@@ -239,7 +237,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="guest" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.4.8-4.7 4.3 1.3 6.3L12 17l-5.6 3 1.3-6.3L3 9.4l6.4-.8z"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.4.8-4.7 4.3 1.3 6.3L12 17l-5.6 3 1.3-6.3L3 9.4l6.4-.8z"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Guest · Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Reviews &amp; reputation</h2>
@@ -253,7 +251,7 @@
 
         <article data-reveal="" data-module="owner" id="owners" style="scroll-margin-top: 96px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13"></path><path d="M10 21v-6h4v6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-4 7 4v13"></path><path d="M10 21v-6h4v6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Owner</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Owner portal</h2>
@@ -267,7 +265,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="owner" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"></rect><circle cx="12" cy="12" r="3"></circle></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"></rect><circle cx="12" cy="12" r="3"></circle></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Owner</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Statements &amp; payouts</h2>
@@ -281,7 +279,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="owner" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4zM4 14h16v6H4z"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4zM4 14h16v6H4z"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Owner</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Tax centre &amp; agreements</h2>
@@ -295,7 +293,7 @@
 
         <article data-reveal="" data-module="operator" id="team" style="scroll-margin-top: 96px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><path d="M3 19a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><path d="M3 19a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Team, schedule &amp; access</h2>
@@ -309,7 +307,7 @@
 
         <article data-reveal="" data-reveal-delay="60" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V5a3 3 0 0 1 6 0v2M6 7h12l-1 13H7z"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V5a3 3 0 0 1 6 0v2M6 7h12l-1 13H7z"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">Operator</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Channel manager</h2>
@@ -323,7 +321,7 @@
 
         <article data-reveal="" data-reveal-delay="120" data-module="operator" style="background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px; box-shadow: 0 12px 34px rgba(150,90,50,.13); transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6z"></path><path d="M9.5 12l1.8 1.8 3.4-3.6"></path></svg></span>
+            <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); align-items: center; justify-content: center; box-shadow: 0 10px 22px rgba(194,65,12,.26);"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6z"></path><path d="M9.5 12l1.8 1.8 3.4-3.6"></path></svg></span>
             <span style="font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted);">All roles</span>
           </div>
           <h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Security &amp; settings</h2>

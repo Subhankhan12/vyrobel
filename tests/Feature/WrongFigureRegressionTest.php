@@ -111,7 +111,7 @@ it('picks the genuinely latest payout when every created_at is tied', function (
     expect(Payout::query()->pluck('created_at')->unique())->toHaveCount(1);
 
     // Go through the REAL component — asserting the corrected query here would just restate the fix.
-    $payout = Livewire::actingAs(ownerRoleUser($s))
+    $payout = Livewire::actingAs(ownerActor($owner, $s))
         ->test(OwnerReports::class)
         ->viewData('payout');
 

@@ -37,13 +37,13 @@ it('genuinely grants and revokes a real capability when the matrix is saved', fu
     // Grant it via the real matrix save → the Front Desk user's can() flips TRUE (spatie DB, mutation-proven).
     $current = app(RolePermissionService::class);
     $granted = collect((array) config('authorization.roles')['Front Desk'])->push('reviews.manage')->unique()->values()->all();
-    $this->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $granted])
+    $this->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Front Desk', 'permissions' => $granted])
         ->assertRedirect(route('app.roles'))->assertSessionHas('roles_notice');
     expect(userCan($frontDesk, $s, 'reviews.manage'))->toBeTrue();
 
     // Revoke it (save the original set) → the capability is genuinely removed again.
     $original = array_values((array) config('authorization.roles')['Front Desk']);
-    $this->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $original])
+    $this->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Front Desk', 'permissions' => $original])
         ->assertRedirect();
     expect(userCan($frontDesk, $s, 'reviews.manage'))->toBeFalse();
     unset($current);
@@ -54,7 +54,7 @@ it('refuses to edit a locked wildcard role', function () {
     $s = seedScenario(1);
     $admin = operatorUser($s, [], 'Property Owner');
 
-    $this->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Property Owner', 'permissions' => ['reservations.view']])
+    $this->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Property Owner', 'permissions' => ['reservations.view']])
         ->assertRedirect()->assertSessionHas('roles_notice', fn ($m) => str_contains($m, 'can’t be edited'));
 });
 
@@ -117,7 +117,7 @@ it('refuses to grant a permission the actor does not hold themselves — no self
     // Group Admin starts WITHOUT roles.manage (verified, not assumed) — give it to them for real.
     expect(userCan($admin, $s, 'roles.manage'))->toBeFalse();
     $withRoles = collect((array) config('authorization.roles')['Group Admin'])->push('roles.manage')->unique()->values()->all();
-    $this->actingAs($owner)->post(route('app.roles.permissions'), ['role' => 'Group Admin', 'permissions' => $withRoles])
+    $this->actingAs($owner)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Group Admin', 'permissions' => $withRoles])
         ->assertRedirect();
     expect(userCan($admin, $s, 'roles.manage'))->toBeTrue()
         ->and(userCan($admin, $s, 'billing.manage'))->toBeFalse();   // …but still NOT billing.manage
@@ -127,7 +127,7 @@ it('refuses to grant a permission the actor does not hold themselves — no self
 
     // Now the Group Admin tries to hand out a permission they do NOT hold → refused, with the real message.
     $granted = collect((array) config('authorization.roles')['Front Desk'])->push('billing.manage')->unique()->values()->all();
-    $this->actingAs($admin)->post(route('app.roles.permissions'), ['role' => 'Front Desk', 'permissions' => $granted])
+    $this->actingAs($admin)->post(route('app.roles.permissions'), ['current_password' => 'password', 'role' => 'Front Desk', 'permissions' => $granted])
         ->assertRedirect(route('app.roles'))
         ->assertSessionHas('roles_notice', fn ($m) => str_contains($m, 'grant a permission you don'));
 

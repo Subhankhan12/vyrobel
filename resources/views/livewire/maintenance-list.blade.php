@@ -119,7 +119,20 @@
                             <div style="min-width: 0; flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span style="width: 8px; height: 8px; border-radius: 2px; background: var(--vy-accent); flex: none;"></span>
-                                    <span class="vy-um-name">{{ $row['title'] }}</span>
+                                    {{-- ⚠️⚠️ THE KEYBOARD PATH INTO A WORK ORDER. The row's own `@click` (above) opens
+                                         this ticket's detail dialog, and a `<div>` with a click handler answers a
+                                         MOUSE ONLY — so a keyboard user could see every work order and open none.
+                                         ⚠️ THE ROW COULD NOT SIMPLY BECOME A `<button>`, and the earlier pass was
+                                         right to refuse: it contains an `<input type="checkbox">` (bulk select) and
+                                         an "Assign" `<button>`, and a button may not contain interactive content.
+                                         ⚠️ SO THIS ADDS A PATH AND TAKES NONE AWAY. The row keeps its whole-area
+                                         click — a convenience people use — and the TITLE becomes the real control.
+                                         ⚠️ IT MIRRORS THE ROW EXACTLY, including select mode: in `selecting` the row
+                                         toggles selection rather than opening, and so does this, or the keyboard and
+                                         the mouse would do different things from the same place. `.stop` keeps the
+                                         row handler from firing a second time on top of it. --}}
+                                    <button type="button" class="vy-um-name vy-rowopen"
+                                            @click.stop="selecting ? toggleSel('{{ $row['id'] }}') : (detail = {{ \Illuminate\Support\Js::from($row) }})">{{ $row['title'] }}</button>
                                     @if ($row['oos']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>Out of order</span> @endif
                                     @if ($row['awaiting_parts']) <span class="vy-tag tone-tag"><span class="vy-dot"></span>Awaiting parts</span> @endif
                                 </div>
@@ -215,8 +228,8 @@
         @if ($canManage)
             <div x-show="nwoOpen" x-cloak @keydown.escape.window="nwoOpen = false"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="nwoOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
-                    <h2 class="vy-card-title" style="margin-bottom: 12px;">New work order</h2>
+                <div @click.outside="nwoOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="nwoOpen" aria-labelledby="vy-dlg-maintenance-list-nwoopen-3">
+                    <h2 class="vy-card-title" style="margin-bottom: 12px;" id="vy-dlg-maintenance-list-nwoopen-3">New work order</h2>
                     <form method="POST" action="{{ route('app.maintenance.store') }}">
                         @csrf
                         <label class="vy-field-label" for="nwo_title">Issue</label>
@@ -264,8 +277,8 @@
             {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────── --}}
             <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
                  style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign">
-                    <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign technician</h2>
+                <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;" x-show="assign" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="assign" aria-labelledby="vy-dlg-maintenance-list-assign-2">
+                    <h2 class="vy-card-title" style="margin-bottom: 2px;" id="vy-dlg-maintenance-list-assign-2">Assign technician</h2>
                     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.bulk ? (sel.length + ' work order(s) selected') : assign.title) : ''"></p>
                     {{-- Shared modal: BULK posts the selected ids to bulk.assign; single posts to that ticket's route. --}}
                     <form method="POST" :action="assign && assign.bulk ? '{{ route('app.maintenance.bulk.assign') }}' : (assign ? assignUrl(assign.id) : '')">
@@ -304,12 +317,12 @@
         {{-- ── DETAIL drawer ──────────────────────────────────────────────────────────────────────── --}}
         <div x-show="detail" x-cloak @keydown.escape.window="detail = null"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: stretch; justify-content: flex-end;">
-            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail">
+            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; height: 100%; border-radius: 0; overflow: auto;" x-show="detail" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="detail" aria-labelledby="vy-dlg-maintenance-list-detail-1">
                 <template x-if="detail">
                     <div>
                         <div class="vy-detail-head" style="margin-bottom: 12px;">
                             <div>
-                                <div class="vy-detail-ref" x-text="detail.title"></div>
+                                <div class="vy-detail-ref" x-text="detail.title" id="vy-dlg-maintenance-list-detail-1"></div>
                                 <div class="vy-u-sub"><span x-text="detail.unit"></span> · <span x-text="detail.category"></span></div>
                             </div>
                             <button type="button" class="vy-btn vy-btn--ghost" style="padding: 4px 10px;" @click="detail = null">✕</button>
@@ -387,7 +400,7 @@
                                     <form method="POST" :action="'{{ route('app.maintenance.resolve', '__ID__') }}'.replace('__ID__', detail.id)">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                                            <div><label class="vy-field-label" style="font-size: 10px;">Labor</label><input class="vy-input" type="number" step="0.01" min="0" name="labor" placeholder="0.00" style="width: 100%;"></div>
+                                            <div><label class="vy-field-label" style="font-size: 10px;" for="vy-lbl-maintenance-list-labor">Labor</label><input id="vy-lbl-maintenance-list-labor" class="vy-input" type="number" step="0.01" min="0" name="labor" placeholder="0.00" style="width: 100%;"></div>
                                             <div><label class="vy-field-label" style="font-size: 10px;">Parts</label><input class="vy-input" type="number" step="0.01" min="0" name="parts" placeholder="0.00" style="width: 100%;"></div>
                                         </div>
                                         <button type="submit" class="vy-btn vy-btn--accent" style="width: 100%;">Mark resolved</button>

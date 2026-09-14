@@ -118,10 +118,26 @@ final class BillingService
     public function syncSubscriptionQuantity(Organization $organization): ?int
     {
         $subscription = $organization->currentSubscription();
-        $plan = $subscription?->plan;
 
-        if ($subscription === null || $plan === null || ! $plan->isPerUnit()) {
-            return null;
+        if ($subscription === null) {
+            return null;   // nothing subscribed — a genuine no-op, and knowably so.
+        }
+
+        // ⚠️⚠️ THE SHAPE COMES FROM THE SNAPSHOT, NOT THE LIVE CATALOGUE ROW — and `PlanTerms`' own docblock
+        //    already said so: **"Terms frozen, quantity live."** The code froze the RATE and read the SHAPE
+        //    live, which is the opposite of what the sentence promises. Whether a plan is FLAT or PER-UNIT
+        //    decides what the customer pays, so by the line drawn in `docs/BILLING-PLAN-ASSUMPTIONS.md` it is
+        //    a TERM — and a term read live is a term that can change under a customer, which is the entire
+        //    reason the snapshot exists. The comment was right; the code is now what it describes.
+        //
+        // ⚠️ AND THIS DELETES A CASE RATHER THAN GUARDING ONE. Deciding whether to sync no longer needs the
+        //    plan ROW at all, so the "plan does not resolve" branch that used to throw here is simply gone —
+        //    `terms()` still refuses when a subscription has neither a capture nor a plan, which is the only
+        //    remaining state where the answer is genuinely unknown.
+        $terms = $subscription->terms();
+
+        if (! $terms->isPerUnit()) {
+            return null;   // a flat plan does not move with the rack — nothing to re-quantify.
         }
 
         $stripeId = $subscription->stripe_subscription_id;
@@ -129,7 +145,10 @@ final class BillingService
             return null;   // not yet a live Stripe subscription (trialing, or pre-checkout) — nothing to sync.
         }
 
-        $quantity = $plan->quantityFor();
+        // ⚠️ THE QUANTITY STAYS LIVE. `PlanTerms::quantity()` is `BillableUnits::count()` for a per-unit
+        //    shape — byte-identical to `Plan::quantityFor()` — because an org that adds a unit genuinely owes
+        //    for it. **Frozen shape, live count**: the two halves must not be confused.
+        $quantity = $terms->quantity();
 
         app(StripeClientInterface::class)->updateSubscriptionQuantity(
             subscriptionId: $stripeId,
@@ -154,7 +173,20 @@ final class BillingService
     {
         $tier = (string) config('billing.trial_tier', 'pro');
 
-        return Plan::query()->where('code', $tier.'_monthly')->firstOrFail();
+        // ⚠️ The same assumption as `catalog()`, and the same correction: `firstOrFail()` surfaced a missing
+        //    trial tier as a 404, which describes a page that does not exist rather than a catalogue that is
+        //    not configured. ⚠️ It still FAILS — a trial cannot start without a plan to start it on, and
+        //    provisioning is transactional so nothing half-created survives — but it says what is wrong.
+        $plan = Plan::query()->where('code', $tier.'_monthly')->first();
+
+        if ($plan === null) {
+            throw new RuntimeException(
+                "Cannot start a trial: `billing.trial_tier` is [{$tier}] but no active plan row `{$tier}_monthly` "
+                .'exists. ⚠️ Fix the catalogue (or the config), never the guard.'
+            );
+        }
+
+        return $plan;
     }
 
     /** A specific tier's plan for an interval (e.g. 'essential', 'yearly'). */
@@ -178,9 +210,22 @@ final class BillingService
         $tiers = config('billing.tiers', []);
 
         foreach ($tiers as $code => $tier) {
-            // ensurePlans() above guarantees both interval rows exist for every config tier.
-            $monthly = Plan::query()->where('code', $code.'_monthly')->firstOrFail();
-            $yearly = Plan::query()->where('code', $code.'_yearly')->firstOrFail();
+            // ⚠️⚠️ THE COMMENT THAT USED TO SIT HERE WAS FALSE, AND IT WAS FALSE ON A MONEY PATH. It read
+            //    "ensurePlans() above guarantees both interval rows exist for every config tier" — but
+            //    `ensurePlans()` reseeds only when `Plan::query()->count() === 0`. With one plan missing and
+            //    the others present the count is non-zero, nothing is reseeded, and `firstOrFail()` threw
+            //    `ModelNotFoundException` → a **404 on /app/billing for a paying customer**, measured.
+            //
+            // ⚠️ THE GUARANTEE IS NOT MADE TRUE INSTEAD, DELIBERATELY. Reseeding here would recreate rows an
+            //    administrator had removed, on the page that sells them — a write with real consequences,
+            //    triggered by a read. Tolerating the absence is the smaller claim: a tier whose plan rows do
+            //    not resolve genuinely cannot be bought, so it is not offered.
+            $monthly = Plan::query()->where('code', $code.'_monthly')->first();
+            $yearly = Plan::query()->where('code', $code.'_yearly')->first();
+
+            if ($monthly === null || $yearly === null) {
+                continue;
+            }
 
             // Build 1 · Gate 3 — the DB `plan_features` are AUTHORITATIVE for enabled/limit (the platform admin
             // edits them); config supplies only the human LABEL (display copy). Seeded from config, so this is

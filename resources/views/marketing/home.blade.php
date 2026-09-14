@@ -17,8 +17,6 @@
     canonical="/">
 <div data-screen-label="Marketing — Home" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <!-- ═══ HERO ═══ -->
@@ -31,7 +29,7 @@
 
         <div>
           <div role="tablist" aria-label="Choose your view" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 8px 22px rgba(150,90,50,.12); margin-bottom: 24px; animation: vyFadeUp .7s cubic-bezier(.22,.7,.3,1) both;">
-            <button role="tab" aria-selected="false" data-lensbtn="operator" style="padding: 9px 17px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .28s cubic-bezier(.22,.7,.3,1);">I run properties</button>
+            <button role="tab" aria-selected="true" data-lensbtn="operator" style="padding: 9px 17px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .28s cubic-bezier(.22,.7,.3,1);">I run properties</button>
             <button role="tab" aria-selected="false" data-lensbtn="owner" style="padding: 9px 17px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .28s cubic-bezier(.22,.7,.3,1);">I own one</button>
             <button role="tab" aria-selected="false" data-lensbtn="guest" style="padding: 9px 17px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .28s cubic-bezier(.22,.7,.3,1);">I'm staying</button>
           </div>
@@ -40,7 +38,7 @@
           <div data-lenscopy="operator">
             <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 9px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 6px 18px rgba(150,90,50,.12); font-size: 12.5px; font-weight: 500; color: var(--vy-muted);">
               <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 7px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent));">
-                <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
               </span>
               For hotels, serviced apartments, villas &amp; short-stays
             </div>
@@ -66,27 +64,22 @@
               <a href="#calculator" style="display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 500; text-decoration: none;">Refine with your own rate and occupancy →</a>
             </div>
 
-            <button data-duskbtn="" aria-pressed="false" style="display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.78); background: rgba(255,252,248,.5); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer;">
-              <svg data-duskicon="" width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"></path></svg>
-              <span data-dusklabel="">Daylight</span>
-            </button>
-
             <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;">
               <a href="{{ route('signup') }}" style="position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 14px 32px rgba(194,65,12,.34); transition: transform .22s ease, box-shadow .22s ease;">
                 Start free
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
                 <span style="position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.5), rgba(255,255,255,0)); animation: vyShimmer 5.5s ease-in-out infinite;"></span>
               </a>
               <x-marketing.nav-link key="contact" fragment="#demo" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 24px; border-radius: 14px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 24px rgba(150,90,50,.12); transition: transform .22s ease, box-shadow .22s ease;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 11h18"></path></svg>
                 Book a demo
               </x-marketing.nav-link>
             </div>
 
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 26px; font-size: 13px; color: var(--vy-muted);">
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>No card required</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Live in a day</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>GDPR-ready, hosted in the EU</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>No card required</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Live in a day</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>GDPR-ready, hosted in the EU</span>
             </div>
 
             <div style="display: inline-flex; align-items: center; gap: 11px; margin-top: 24px; padding: 11px 16px 11px 13px; border-radius: 14px; background: rgba(255,252,248,.5); border: 1px solid rgba(255,255,255,.75);">
@@ -99,10 +92,10 @@
           </div>
 
           <!-- ── owner copy ── -->
-          <div data-lenscopy="owner" style="display: none;">
+          <div data-lenscopy="owner" >
             <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 9px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 6px 18px rgba(150,90,50,.12); font-size: 12.5px; font-weight: 500; color: var(--vy-muted);">
               <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 7px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent));">
-                <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
               </span>
               For owners whose property is professionally managed
             </div>
@@ -128,35 +121,30 @@
               <a href="#calculator" style="display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 500; text-decoration: none;">Refine with your own rate and occupancy →</a>
             </div>
 
-            <button data-duskbtn="" aria-pressed="false" style="display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.78); background: rgba(255,252,248,.5); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer;">
-              <svg data-duskicon="" width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"></path></svg>
-              <span data-dusklabel="">Daylight</span>
-            </button>
-
             <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;">
               <x-marketing.nav-link key="product" fragment="#owners" style="position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 14px 32px rgba(194,65,12,.34); transition: transform .22s ease, box-shadow .22s ease;">
                 See the owner portal
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
                 <span style="position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.5), rgba(255,255,255,0)); animation: vyShimmer 5.5s ease-in-out infinite;"></span>
               </x-marketing.nav-link>
               <x-marketing.nav-link key="features" fragment="#owners" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 24px; border-radius: 14px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 24px rgba(150,90,50,.12); transition: transform .22s ease, box-shadow .22s ease;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18l-7-4-7 4z"></path></svg>
                 How statements work
               </x-marketing.nav-link>
             </div>
 
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 26px; font-size: 13px; color: var(--vy-muted);">
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Statements every month, automatically</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>You approve the costs</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Your own dates, blocked in a click</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Statements every month, automatically</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>You approve the costs</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Your own dates, blocked in a click</span>
             </div>
           </div>
 
           <!-- ── guest copy ── -->
-          <div data-lenscopy="guest" style="display: none;">
+          <div data-lenscopy="guest" >
             <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 9px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 6px 18px rgba(150,90,50,.12); font-size: 12.5px; font-weight: 500; color: var(--vy-muted);">
               <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 7px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent));">
-                <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
               </span>
               For the people who actually stay
             </div>
@@ -182,27 +170,22 @@
               <a href="#calculator" style="display: inline-block; margin-top: 12px; font-size: 12.5px; font-weight: 500; text-decoration: none;">Refine with your own rate and occupancy →</a>
             </div>
 
-            <button data-duskbtn="" aria-pressed="false" style="display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.78); background: rgba(255,252,248,.5); font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer;">
-              <svg data-duskicon="" width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"></circle><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"></path></svg>
-              <span data-dusklabel="">Daylight</span>
-            </button>
-
             <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;">
               <x-marketing.nav-link key="try-booking" style="position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 14px 32px rgba(194,65,12,.34); transition: transform .22s ease, box-shadow .22s ease;">
                 Try the booking engine
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
                 <span style="position: absolute; top: 0; left: 0; width: 30%; height: 100%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.5), rgba(255,255,255,0)); animation: vyShimmer 5.5s ease-in-out infinite;"></span>
               </x-marketing.nav-link>
               <x-marketing.nav-link key="product" fragment="#guests" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 24px; border-radius: 14px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 15px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 24px rgba(150,90,50,.12); transition: transform .22s ease, box-shadow .22s ease;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path></svg>
                 See the guest app
               </x-marketing.nav-link>
             </div>
 
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 26px; font-size: 13px; color: var(--vy-muted);">
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>The property's own rate</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Check in before you arrive</span>
-              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>No app to download</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>The property's own rate</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Check in before you arrive</span>
+              <span style="display: inline-flex; align-items: center; gap: 7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>No app to download</span>
             </div>
           </div>
         </div>
@@ -216,19 +199,19 @@
               <div data-mockrail="" style="flex-shrink: 0; width: 52px; padding: 14px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255,255,255,.42); border-right: 1px solid rgba(150,90,50,.1);">
                 <span style="width: 26px; height: 26px; border-radius: 8px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); display: flex; align-items: center; justify-content: center; font-family: var(--vy-display); font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 10px;">V</span>
                 <span style="width: 30px; height: 30px; border-radius: 9px; background: rgba(217,102,46,.15); display: flex; align-items: center; justify-content: center;">
-                  <svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
                 </span>
                 <span style="width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;">
-                  <svg width="14" height="14" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
                 </span>
                 <span style="width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;">
-                  <svg width="14" height="14" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l-4-4 4-4M3 13h11M17 7l4 4-4 4M21 11H10"></path></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l-4-4 4-4M3 13h11M17 7l4 4-4 4M21 11H10"></path></svg>
                 </span>
                 <span style="width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;">
-                  <svg width="14" height="14" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"></path></svg>
                 </span>
                 <span style="width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center;">
-                  <svg width="14" height="14" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l4-9 5 4 4-8 5 13z"></path></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l4-9 5 4 4-8 5 13z"></path></svg>
                 </span>
               </div>
 
@@ -236,11 +219,11 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px;">
                   <div style="display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; padding: 6px 10px; border-radius: 9px; background: rgba(255,255,255,.6); border: 1px solid rgba(150,90,50,.12);">
-                    <svg width="11" height="11" fill="none" stroke="var(--vy-faint)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
                     <span style="font-size: 10.5px; color: var(--vy-muted);">Search guests, units…</span>
                   </div>
                   <span style="position: relative; width: 26px; height: 26px; border-radius: 8px; background: rgba(255,255,255,.6); border: 1px solid rgba(150,90,50,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <svg width="12" height="12" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 21a2 2 0 01-3.4 0"></path></svg>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--vy-faint)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 21a2 2 0 01-3.4 0"></path></svg>
                     <span style="position: absolute; top: -3px; right: -3px; min-width: 13px; height: 13px; padding: 0 3px; box-sizing: border-box; border-radius: 999px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center;">3</span>
                   </span>
                   <span style="display: flex; align-items: center; gap: 6px; padding: 4px 9px 4px 4px; border-radius: 999px; background: rgba(255,255,255,.6); border: 1px solid rgba(150,90,50,.12); flex-shrink: 0;">
@@ -363,7 +346,7 @@
 
             <div data-day-card="" style="position: absolute; bottom: -26px; left: -34px; display: flex; align-items: center; gap: 11px; padding: 13px 16px; border-radius: 16px; background: rgba(255,252,248,.86); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 16px 40px rgba(150,90,50,.22); animation: vyFadeUp .9s cubic-bezier(.22,.7,.3,1) .45s both;">
               <span data-day-icon="" style="width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"></path></svg>
               </span>
               <div>
                 <div style="font-size: 11px; color: var(--vy-muted);"><span data-day-time="">11:40</span> · <span data-day-sub="">Departure logged</span></div>
@@ -372,7 +355,7 @@
             </div>
           </div>
 
-          <div data-lensmock="owner" style="display: none;" role="img" aria-label="Illustrative owner portal showing this month's earnings, occupancy and next payout">
+          <div data-lensmock="owner"  role="img" aria-label="Illustrative owner portal showing this month's earnings, occupancy and next payout">
             <div style="position: relative; background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); border-radius: 24px; box-shadow: 0 26px 70px rgba(150,90,50,.24), inset 0 1px 0 rgba(255,255,255,.7); padding: 22px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <div>
@@ -412,7 +395,7 @@
 
             <div style="position: absolute; bottom: -26px; left: -34px; display: flex; align-items: center; gap: 11px; padding: 13px 16px; border-radius: 16px; background: rgba(255,252,248,.82); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 16px 40px rgba(150,90,50,.22);">
               <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
               </span>
               <div>
                 <div style="font-size: 11px; color: var(--vy-muted);">Expense approved by you</div>
@@ -421,7 +404,7 @@
             </div>
           </div>
 
-          <div data-lensmock="guest" style="display: none;" role="img" aria-label="Illustrative guest stay portal with check-in progress, door code and wifi">
+          <div data-lensmock="guest"  role="img" aria-label="Illustrative guest stay portal with check-in progress, door code and wifi">
             <div style="position: relative; background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); border-radius: 24px; box-shadow: 0 26px 70px rgba(150,90,50,.24), inset 0 1px 0 rgba(255,255,255,.7); padding: 22px;">
               <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <div>
@@ -457,7 +440,7 @@
 
             <div style="position: absolute; bottom: -26px; left: -34px; display: flex; align-items: center; gap: 11px; padding: 13px 16px; border-radius: 16px; background: rgba(255,252,248,.82); backdrop-filter: blur(18px) saturate(1.15); -webkit-backdrop-filter: blur(18px) saturate(1.15); border: 1px solid rgba(255,255,255,.85); box-shadow: 0 16px 40px rgba(150,90,50,.22);">
               <span style="width: 32px; height: 32px; border-radius: 10px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M4 7l8 6 8-6"></path></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M4 7l8 6 8-6"></path></svg>
               </span>
               <div>
                 <div style="font-size: 11px; color: var(--vy-muted);">From the property</div>
@@ -498,29 +481,29 @@
       <div data-trio="" style="position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;">
         <article data-reveal="" style="background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); padding: 30px 28px; transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <span style="display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); box-shadow: 0 10px 22px rgba(194,65,12,.28); margin-bottom: 20px;">
-            <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 9h18M8 4v5M8 14h4"></path></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"></rect><path d="M3 9h18M8 4v5M8 14h4"></path></svg>
           </span>
           <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">Operators</h3>
           <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">Reservations, front desk, calendar, housekeeping, maintenance, rates and reports — the whole day runs from one place, in real time, across every property you manage.</p>
-          <x-marketing.nav-link key="product" fragment="#operators" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">Explore the operator app <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
+          <x-marketing.nav-link key="product" fragment="#operators" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">Explore the operator app <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
         </article>
 
         <article data-reveal="" data-reveal-delay="90" style="background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); padding: 30px 28px; transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <span style="display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); box-shadow: 0 10px 22px rgba(194,65,12,.28); margin-bottom: 20px;">
-            <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 21v-7h6v7"></path></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 21v-7h6v7"></path></svg>
           </span>
           <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">Owners</h3>
           <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">A portal of their own: live occupancy and earnings, real statements, payout runs, approved expenses and blocked owner stays. No spreadsheets, no month-end phone calls, no guest data they shouldn't see.</p>
-          <x-marketing.nav-link key="product" fragment="#owners" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">See the owner portal <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
+          <x-marketing.nav-link key="product" fragment="#owners" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">See the owner portal <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
         </article>
 
         <article data-reveal="" data-reveal-delay="180" style="background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; box-shadow: 0 14px 40px rgba(150,90,50,.14), inset 0 1px 0 rgba(255,255,255,.65); padding: 30px 28px; transition: transform .3s cubic-bezier(.22,.7,.3,1), box-shadow .3s ease;">
           <span style="display: inline-flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent)); box-shadow: 0 10px 22px rgba(194,65,12,.28); margin-bottom: 20px;">
-            <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"></circle><path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path></svg>
           </span>
           <h3 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">Guests</h3>
           <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--vy-muted);">A branded storefront to book direct, then a stay portal that handles online check-in, ID capture, door code and wifi, add-ons, messages and their wallet credit — without a single email chain.</p>
-          <x-marketing.nav-link key="product" fragment="#guests" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">View the guest experience <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
+          <x-marketing.nav-link key="product" fragment="#guests" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none;">View the guest experience <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
         </article>
       </div>
     </section>
@@ -547,7 +530,7 @@
           </div>
           <div data-flowarrow="" style="flex-shrink: 0; width: 118px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 52px;">
             <div style="font-size: 11px; font-weight: 600; color: #8F2F09; text-align: center; line-height: 1.35;">Booking &amp; guest data</div>
-            <svg width="100" height="16" fill="none" aria-hidden="true" style="overflow: visible;">
+            <svg width="100" height="16" viewBox="0 0 100 16" fill="none" aria-hidden="true" style="overflow: visible;">
               <path d="M2 8h86" stroke="rgba(194,65,12,.28)" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"></path>
               <path d="M2 8h86" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-dasharray="14 86" style="animation: vyFlowDash 2.6s linear infinite;"></path>
               <path d="M84 3l6 5-6 5" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
@@ -565,7 +548,7 @@
           </div>
           <div data-flowarrow="" style="flex-shrink: 0; width: 118px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 52px;">
             <div style="font-size: 11px; font-weight: 600; color: #8F2F09; text-align: center; line-height: 1.35;">Revenue &amp; costs</div>
-            <svg width="100" height="16" fill="none" aria-hidden="true" style="overflow: visible;">
+            <svg width="100" height="16" viewBox="0 0 100 16" fill="none" aria-hidden="true" style="overflow: visible;">
               <path d="M2 8h86" stroke="rgba(194,65,12,.28)" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 5"></path>
               <path d="M2 8h86" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-dasharray="14 86" style="animation: vyFlowDash 2.6s linear infinite;"></path>
               <path d="M84 3l6 5-6 5" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
@@ -586,7 +569,7 @@
       <div data-reveal="" style="margin-top: 26px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 26px; border-radius: 18px; background: rgba(255,252,248,.5); border: 1px solid rgba(255,255,255,.75);">
         <span style="font-size: 14px; line-height: 1.6; color: var(--vy-muted); max-width: 700px;">Nothing crosses a boundary by hand. The maintenance cost your cleaner photographed at eleven this morning is on the owner’s statement tonight, with the work order attached.</span>
         <x-marketing.nav-link key="product" style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; text-decoration: none; flex-shrink: 0;">See the full journey
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
         </x-marketing.nav-link>
       </div>
     </section>
@@ -620,7 +603,7 @@
         </div>
 
         <div style="min-height: 210px;">
-          <div data-hourpanel="0" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="0" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Housekeeping</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">07:00</span>
@@ -628,7 +611,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Fourteen rooms to turn. The board is already ordered by who arrives first, and the two with guests waiting are pinned to the top.</p>
           </div>
-          <div data-hourpanel="1" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="1" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Front desk</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">09:00</span>
@@ -636,7 +619,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Every checkout drops its room onto the board the second it is recorded at the desk. Nobody types a list.</p>
           </div>
-          <div data-hourpanel="2" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="2" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Maintenance</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">11:00</span>
@@ -644,7 +627,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">A cleaner photographs it and marks the unit out of service from the room. It stops selling on every channel in the same second.</p>
           </div>
-          <div data-hourpanel="3" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="3" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Rates</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">13:00</span>
@@ -652,7 +635,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">A weekend uplift is applied across September and pushed to Airbnb and Booking.com. The owner sees the proposal before it goes live.</p>
           </div>
-          <div data-hourpanel="4" role="tabpanel" tabindex="0" style="">
+          <div data-hourpanel="4" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Front desk</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">15:00</span>
@@ -660,7 +643,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Eleven of today’s fourteen guests completed check-in from their sofa. Their door codes released at four this morning; the desk hands over keys it already knew were ready.</p>
           </div>
-          <div data-hourpanel="5" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="5" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Messages</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">17:00</span>
@@ -668,7 +651,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">It lands in one thread with the booking beside it, whichever channel it came from. Accepting it adds the charge to the folio.</p>
           </div>
-          <div data-hourpanel="6" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="6" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Reservations</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">19:00</span>
@@ -676,7 +659,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Two walk-ins took the last rooms at the rack rate, because the calendar knew they were free.</p>
           </div>
-          <div data-hourpanel="7" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="7" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Storefront</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">21:00</span>
@@ -684,7 +667,7 @@
             </div>
             <p style="margin: 0; max-width: 640px; font-size: 16.5px; line-height: 1.68; color: var(--vy-muted);">Nobody is at the desk. The storefront takes them anyway, at full margin, from the same calendar.</p>
           </div>
-          <div data-hourpanel="8" role="tabpanel" tabindex="0" style="display: none; ">
+          <div data-hourpanel="8" role="tabpanel" tabindex="0" >
             <div style="display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 999px; background: rgba(217,102,46,.13); font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 18px;">Owners</div>
             <div style="display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px;">
               <span style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; letter-spacing: -.03em; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; line-height: 1;">23:00</span>
@@ -697,7 +680,7 @@
         <div style="margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(150,90,50,.13); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
           <span style="font-size: 13px; color: var(--vy-muted);">Nine of these hours, and the operator touched four of them.</span>
           <x-marketing.nav-link key="features" style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; text-decoration: none;">See how each one works
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
           </x-marketing.nav-link>
         </div>
       </div>
@@ -712,7 +695,7 @@
           <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 14px;">The properties</div>
           <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 42px; line-height: 1.12; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">Software is the quiet part. This is what your guests came for.</h2>
         </div>
-        <x-marketing.nav-link key="case-studies" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; padding-bottom: 6px;">Read the operators' stories <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
+        <x-marketing.nav-link key="case-studies" style="display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; padding-bottom: 6px;">Read the operators' stories <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
       </div>
 
       <div data-gallery="" style="position: relative; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px;">
@@ -858,7 +841,7 @@
                 </div>
               </div>
               <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(150,90,50,.11); display: flex; align-items: center; gap: 10px;">
-                <span style="width: 26px; height: 26px; border-radius: 8px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round"><path d="M12 3v18M3 12h18"></path></svg></span>
+                <span style="width: 26px; height: 26px; border-radius: 8px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round"><path d="M12 3v18M3 12h18"></path></svg></span>
                 <span style="font-size: 12px; line-height: 1.5; color: var(--vy-muted);"><strong style="font-weight: 600; color: var(--vy-ink);">Apt 118 — cracked shower screen.</strong> Out of service, off sale on every channel.</span>
               </div>
             </div>
@@ -976,7 +959,7 @@
       </div>
 
       <div data-reveal="" style="text-align: center; margin-top: 40px;">
-        <x-marketing.nav-link key="how-it-works" style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 13px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 24px rgba(150,90,50,.12); transition: transform .2s ease, box-shadow .2s ease;">See the full onboarding walkthrough <svg width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
+        <x-marketing.nav-link key="how-it-works" style="display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 13px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; box-shadow: 0 8px 24px rgba(150,90,50,.12); transition: transform .2s ease, box-shadow .2s ease;">See the full onboarding walkthrough <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></x-marketing.nav-link>
       </div>
     </section>
 
@@ -985,11 +968,11 @@
       <x-marketing.nav-link key="modules" data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px; padding: 36px 38px; border-radius: 24px; background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 16px 44px rgba(150,90,50,.15); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.22,.7,.3,1), box-shadow .26s ease;">
         <div style="max-width: 640px;">
           <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 14px;">Modules</div>
-          <h2 style="margin: 0 0 12px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">Sixteen modules, and every one is in every plan</h2>
+          <h2 style="margin: 0 0 12px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; line-height: 1.14; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">Eighteen modules, and every one is in every plan</h2>
           <p style="margin: 0; font-size: 15.5px; line-height: 1.66; color: var(--vy-muted);">Reservations, front desk, calendar, housekeeping, maintenance, rates, reports, the owner portal, the guest storefront and the rest. Plans differ by portfolio size and support, not by which parts you are allowed to use.</p>
         </div>
         <span style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); font-size: 14.5px; font-weight: 500; color: var(--vy-ink); flex-shrink: 0;">Browse the catalogue
-          <svg width="16" height="16" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
         </span>
       </x-marketing.nav-link>
     </section>
@@ -1009,7 +992,7 @@
         <div data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); border-radius: 22px; padding: 30px 28px; box-shadow: 0 14px 40px rgba(150,90,50,.14); display: flex; flex-direction: column;">
           <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['name'] ?? '' }}</div>
           <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">One property account</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-0" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-0" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-ink); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[0]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix((string) (\App\Support\Marketing\MarketingPricing::tiers()[0]['shape'] ?? 'flat')) }}</span></div>
           <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Direct bookings, front desk, calendar and housekeeping — one price, any number of units.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14px; font-weight: 500; text-decoration: none; transition: transform .2s ease;">See what's included</x-marketing.nav-link>
         </div>
@@ -1018,7 +1001,7 @@
           <span style="position: absolute; top: -12px; left: 28px; padding: 5px 12px; border-radius: 999px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: .04em; box-shadow: 0 8px 20px rgba(194,65,12,.34);">Most popular</span>
           <div style="font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink);">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['name'] ?? '' }}</div>
           <div style="font-size: 13.5px; color: var(--vy-muted); margin-top: 5px;">Adds the channel manager</div>
-          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-1" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix() }}</span></div>
+          <div style="margin: 22px 0 6px; display: flex; align-items: baseline; gap: 5px;"><span data-price data-plan="home-tier-1" style="font-family: var(--vy-display); font-size: 40px; font-weight: 600; color: var(--vy-accent-text); letter-spacing: -.03em;">{{ \App\Support\Marketing\MarketingPricing::tiers()[1]['formatted'] ?? '' }}</span><span style="font-size: 13.5px; color: var(--vy-muted);">{{ \App\Support\Marketing\MarketingPricing::suffix((string) (\App\Support\Marketing\MarketingPricing::tiers()[1]['shape'] ?? 'flat')) }}</span></div>
           <p style="margin: 12px 0 22px; font-size: 14px; line-height: 1.62; color: var(--vy-muted);">Everything in the lower plan, plus the channel manager and unlimited team members.</p>
           <x-marketing.nav-link key="pricing" style="margin-top: auto; text-align: center; padding: 12px; border-radius: 12px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: 0 12px 28px rgba(194,65,12,.3); transition: transform .2s ease, box-shadow .2s ease;">Compare plans</x-marketing.nav-link>
         </div>
@@ -1046,7 +1029,7 @@
           <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 44px; line-height: 1.1; letter-spacing: -.035em; color: #fff; text-wrap: balance;">Ready to take back your bookings?</h2>
           <p style="margin: 20px auto 0; max-width: 560px; font-size: 17px; line-height: 1.62; color: rgba(255,247,240,.74);">Start free with one property, or let us walk you through the whole platform on a 30-minute call. Either way, you'll see your first direct booking this week.</p>
           <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 34px;">
-            <a href="{{ route('signup') }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 28px; border-radius: 14px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 16px 36px rgba(194,65,12,.44); transition: transform .22s ease, box-shadow .22s ease;">Start free <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
+            <a href="{{ route('signup') }}" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 28px; border-radius: 14px; background: linear-gradient(140deg,var(--vy-accent),var(--vy-accent-text)); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none; box-shadow: 0 16px 36px rgba(194,65,12,.44); transition: transform .22s ease, box-shadow .22s ease;">Start free <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
             <x-marketing.nav-link key="contact" fragment="#demo" style="display: inline-flex; align-items: center; gap: 9px; padding: 15px 26px; border-radius: 14px; background: rgba(255,247,240,.12); border: 1px solid rgba(255,247,240,.24); color: #fff; font-size: 15px; font-weight: 500; text-decoration: none; transition: transform .22s ease, background .22s ease;">Book a demo</x-marketing.nav-link>
           </div>
           <div style="margin-top: 22px; font-size: 13px; color: rgba(255,247,240,.55);">No card required · Cancel any time · Your data stays yours</div>

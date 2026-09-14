@@ -171,7 +171,7 @@
                                     <div><div class="ci-fl">Last name</div><div class="ci-readonly">{{ $lastName !== '' ? $lastName : '—' }}</div></div>
                                 </div>
                                 <div><div class="ci-fl">Email</div><div class="ci-readonly">{{ $email !== '' ? $email : '—' }}</div></div>
-                                <div><div class="ci-fl">Phone · for your arrival details</div><input class="ci-in" type="tel" name="phone" value="{{ old('phone', $phone) }}" placeholder="+351 …"></div>
+                                <div><div class="ci-fl">Phone · for your arrival details</div><input id="vy-lbl-checkin-phone" class="ci-in" type="tel" name="phone" value="{{ old('phone', $phone) }}" placeholder="+351 …"></div>
                             </div>
                             @if ($coGuests > 0)
                                 <div class="ci-note-box" style="margin-bottom:18px">
@@ -223,7 +223,8 @@
                                 @endforeach
                             </div>
                             <div class="ci-fl">Anything we should prepare? · optional</div>
-                            <textarea class="ci-in" name="arrival_note" rows="2" placeholder="Allergies, a cot, parking for a larger car…" style="resize:vertical;margin-bottom:18px">{{ old('arrival_note', $arrivalNote) }}</textarea>
+                            <label class="vy-sr-only" for="vy-lbl-checkin-arrival-note">Allergies, a cot, parking for a larger car…</label>
+                            <textarea id="vy-lbl-checkin-arrival-note" class="ci-in" name="arrival_note" rows="2" placeholder="Allergies, a cot, parking for a larger car…" style="resize:vertical;margin-bottom:18px">{{ old('arrival_note', $arrivalNote) }}</textarea>
                             <button type="submit" class="ci-btn">Complete check-in</button>
                             <button type="button" class="ci-btn-ghost" onclick="vyCiStep(2)">Back</button>
                         </div>

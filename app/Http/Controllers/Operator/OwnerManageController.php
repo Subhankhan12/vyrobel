@@ -9,22 +9,25 @@ use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\OwnerPayoutPreference;
+use App\Models\OwnerUser;
 use App\Models\Unit;
 use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Owner\OwnerLoginLifecycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
 /**
  * Operator OWNER management writes (#93) — Edit owner (commission / portal), Pause payouts, Remove owner (a careful
  * ARCHIVE-not-destroy), and Add note. All PRG (POST → controller → redirect), tenant-scoped (`{owner}` resolves via
  * the global scope → cross-org 404), gated `can:users.manage` (the same owner-management privilege as the invite),
  * read-only-respecting (#20), and audited. NEVER a destructive cascade — the financial + booking records are kept.
  */
+use RuntimeException;
+
 class OwnerManageController extends Controller
 {
     public function __construct(private AuditEventRecorder $audit) {}
@@ -144,9 +147,19 @@ class OwnerManageController extends Controller
         $model = Owner::query()->findOrFail($owner);
         $statements = app(OwnerStatementService::class);
 
-        $statement = $statements->finalize(
-            $statements->generateDraft($model->id, $data['period_start'], $data['period_end'])
-        );
+        // ⚠️ AUDIT H-2 — the service REFUSES an already-sealed period ("Cannot regenerate a finalized/locked
+        // statement."). Before this control existed nothing could reach that refusal, so it surfaced as a raw
+        // 500 the moment a real operator picked a closed period. Presented here the same way the paused()
+        // guard already is; finalize()'s own behaviour is unchanged — it still throws.
+        try {
+            $statement = $statements->finalize(
+                $statements->generateDraft($model->id, $data['period_start'], $data['period_end'])
+            );
+        } catch (RuntimeException $e) {
+            return $this->back($owner, 'owners_error',
+                'That period could not be closed: '.$e->getMessage()
+                .' Pick a period that starts after the last sealed one.');
+        }
 
         // ⚠️ Recorded as a field list, never the figures — an audit row is not a second copy of the money.
         $this->audit->record('owner.statement_finalized', $model, null, [
@@ -197,7 +210,21 @@ class OwnerManageController extends Controller
         }
 
         $model = Owner::query()->findOrFail($owner);
-        $validated = $request->validate(['confirm_name' => ['required', 'string']]);
+
+        // ⚠️ RE-AUTH (G2, 2026-08-31). This was DELIBERATELY EXCLUDED when the re-auth family closed, on the
+        // strength of its mitigations — and re-examining them is what justified adding it:
+        //   · the type-the-name confirm is SERVER-SIDE (below), so a blind POST really is refused — but a
+        //     HIJACKED session can read the owner's name straight off this page, so it does not stop the
+        //     threat the password is for;
+        //   · `can:users.manage` is real (a Housekeeping session cannot reach the route at all);
+        //   · the audit row is DETECTION, not prevention.
+        // So the password closes the one case the confirm cannot. ⚠️ BARE rule, verified not inherited:
+        // `/app` runs on plain `auth` and AUTH_GUARD is `web`; `current_password:admin` would validate NOTHING.
+        // ⚠️ ORDER: it sits AFTER `findOrFail()`, so a foreign owner id 404s whether or not a password is sent.
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'confirm_name' => ['required', 'string'],
+        ]);
 
         if (trim((string) $validated['confirm_name']) !== trim((string) $model->name)) {
             return $this->back($owner, 'owners_error', 'The name you typed doesn’t match — the owner was not removed.');
@@ -209,12 +236,72 @@ class OwnerManageController extends Controller
             // End the active management agreements.
             ManagementAgreement::query()->where('owner_id', $model->id)->where('status', 'active')
                 ->update(['status' => 'ended', 'effective_to' => CarbonImmutable::today()->toDateString()]);
-            // Portal access ends: deactivate the linked user + revoke pending invites.
-            $model->user?->forceFill(['status' => 'inactive'])->save();
+            // Portal access ends: revoke pending invites. ⚠️ THE LINKED USER'S LOGIN IS DECIDED BELOW,
+            // AFTER the owner is soft-deleted — see the note on that call.
             OwnerInvite::query()->where('owner_id', $model->id)->where('status', 'pending')->update(['status' => 'revoked']);
+
+            // ⚠️⚠️ AND THE OWNER'S SUB-USERS — added 2026-08-31, because until then this line's own promise
+            // ("Portal access ends immediately") was FALSE for any owner with a team. MEASURED before the fix:
+            // the sub-user's `owner_users` row stayed `active`, `GET /owner` stayed 200, and a payout-preference
+            // write LANDED (0 → 1 rows) on the removed owner.
+            //
+            // ⚠️ WHY A CASCADE IS THE RIGHT ANSWER HERE, AND NOT AN ASSUMPTION. Sub-users have exactly ONE
+            // creator: {@see \App\Services\OwnerTeamInviteService} — reachable only through
+            // `/owner/team/invite`, which sits behind `EnsurePrimaryOwner`. They are the OWNER'S OWN people,
+            // invited by the owner. No operator path writes `owner_users` at all. And the only route that can
+            // remove one is ALSO primary-owner-only — so once the owner's login is deactivated, NOBODY could
+            // close this access: not the operator, who has no route, and not the owner, who is locked out.
+            // "Require a second explicit action" was therefore not an available option.
+            //
+            // ⚠️ THE MECHANISM IT CLOSES: `OwnerContext` resolves sub-memberships from `owner_users` alone
+            // (OwnerContext:247), with no join to `owners`, so a row pointing at a SOFT-DELETED owner still
+            // resolved. Reads happened to come back empty because the data models' scope excludes the trashed
+            // owner — but a write needing only the owner ID went straight through.
+            //
+            // ⚠️ Soft-delete, matching how an owner removes a member themselves ("the owner scope no longer
+            // resolves them"), and the shared {@see OwnerLoginLifecycle} decides the login — so a person who
+            // also holds a back-office role keeps their account. The cascade removes an owner link; it never
+            // silently ends an unrelated working login.
+            $subUserIds = OwnerUser::query()->where('owner_id', $model->id)->pluck('user_id')
+                ->map(fn ($id): string => (string) $id)->all();
+
+            OwnerUser::query()->where('owner_id', $model->id)->get()->each(fn (OwnerUser $m) => $m->delete());
+
+            foreach (array_unique($subUserIds) as $subUserId) {
+                OwnerLoginLifecycle::disableIfOrphaned($subUserId);
+            }
             // Archive the owner (soft-delete) + mark inactive. Statements/payouts/ledger are RETAINED (no cascade).
             $model->forceFill(['status' => 'inactive'])->save();
             $model->delete();
+
+            // ⚠️⚠️ THE PRIMARY OWNER'S OWN LOGIN — THE SAME RULE AS THEIR TEAM'S, AND IT USED NOT TO BE.
+            //
+            // This line replaced an UNCONDITIONAL `$model->user?->forceFill(['status' => 'inactive'])`, which
+            // sat ten lines above the cascade that asks {@see OwnerLoginLifecycle} the identical question for
+            // sub-users. Two answers to one question in one transaction — and the docblock above already
+            // described the lifecycle's answer as though it governed both.
+            //
+            // ⚠️ WHAT THAT COST, REPRODUCED: an actor holding `users.manage` but NOT `roles.manage` could
+            // remove the owner an organisation's SOLE role-manager was linked to, deactivate that login, and
+            // permanently strip the org of role management — a LESSER permission producing the exact effect
+            // the greater one is guarded against. Measured after the fact: the matrix write 403s, and the
+            // escalation guard refuses to re-grant a wildcard role ("You can't assign a role with more access
+            // than your own"), so nothing inside the product can climb back out. Recovery is the console
+            // procedure in docs/GO-LIVE-RUNBOOK.md.
+            //
+            // ⚠️ NOT A NEW GUARD, AND DELIBERATELY NOT THE FLOOR. The floor ({@see RolePermissions::roleManagersAfter})
+            // is correct and is consulted by the two paths that CHANGE roles. This path changes a LOGIN, and the
+            // rule for "should this login still exist once an owner link is taken away?" already existed and is
+            // broader: the lifecycle spares anyone still holding a back-office role, which covers the last
+            // role-manager and every other employed staff member alike. Reused, never re-implemented (§N.8f).
+            //
+            // ⚠️⚠️ ORDER IS LOAD-BEARING: it runs AFTER `$model->delete()`. The lifecycle asks "is this person
+            // a primary owner?" against a non-trashed `Owner`, so calling it earlier would find THIS owner,
+            // treat every removal as still-owning, and spare every login — silently un-doing the removal's
+            // whole promise. `OwnerRemovalSparesTheLastRoleManagerTest` pins both directions.
+            if ($model->user_id !== null) {
+                OwnerLoginLifecycle::disableIfOrphaned((string) $model->user_id);
+            }
         });
 
         $this->audit->record('owner.archived', $model, null, ['archived' => true]);

@@ -24,11 +24,21 @@ use Carbon\CarbonImmutable;
  * price means genuinely unpriced, and that is returned as NULL rather than zero so a caller must decide what
  * an unpriced night means rather than silently selling it for nothing.
  *
- * ⚠️ THIS RESOLVER IS NOT YET WIRED INTO THE CHARGING PATH, AND THAT IS DELIBERATE — see the DECISIONS entry
- * for 2026-08-17. `BookingEngineService::priceOver()` prices a stay from a RATE PLAN before any unit is
- * assigned, so the guest storefront cannot consult a per-unit price without first deciding *when the unit is
- * chosen*, which is a product question the ruling did not settle. Wiring it blind would let the same unit
- * sell for one figure on the storefront and another on an operator screen.
+ * ⚠️⚠️ THIS RESOLVER **IS** ON THE CHARGING PATH. Corrected 2026-08-31 — the line that stood here said the
+ * opposite ("NOT YET WIRED INTO THE CHARGING PATH, AND THAT IS DELIBERATE"). That was true of D18-5 **phase 1**;
+ * **phase 2 wired it**, and the comment was never updated. A reader trusting it would conclude that editing this
+ * file cannot change what a guest is charged. It can. Editing anything here is a MONEY-PATH change.
+ *
+ * The callers, so this cannot go stale silently again:
+ *   · {@see stayTotalForUnit()} → `BookingEngineService::priceOver()` callers at :107 and :197 — the quote and
+ *     the booking, once a unit has been chosen;
+ *   · `ReservationCreateController:141` — the operator's own create path;
+ *   · `RatesGrid::unitRows()` and `OwnerUnitDetail` — display, per cell;
+ *   · `RevenueOnHold` — the maintenance revenue estimate.
+ *
+ * ⚠️ WHAT REMAINS TRUE from the original note, and is the reason for `stayTotalForUnit()`'s NULL: with no unit
+ * chosen, `BookingEngineService::priceOver()` still prices a stay from the RATE PLAN alone. The per-unit figure
+ * is consulted only once a unit is known, so a type-level quote is byte-for-byte what it always was.
  */
 final class NightlyRate
 {
@@ -50,6 +60,45 @@ final class NightlyRate
         }
 
         return self::forType($ratePlanId, $day);
+    }
+
+    /**
+     * The price AND ITS CURRENCY for a unit on a date — the same override→type precedence as {@see forUnit()},
+     * so a caller can never display a real amount beside the wrong symbol.
+     *
+     * ⚠️ WHY THIS EXISTS RATHER THAN A CURRENCY LOOKUP IN THE CALLER. `RatesGrid::unitRows()` printed every
+     * per-unit cell as EUR (a literal passed to a formatter whose currency argument is REQUIRED), so a GBP
+     * property's grid showed "€175.00" over rows priced in pounds. Resolving the currency in the caller would
+     * have put the precedence rule in two places — exactly what §N.8f/D4-1 forbid — so the ONE resolver
+     * answers both halves of the question together.
+     *
+     * ⚠️ ADDITIVE. {@see forUnit()} and {@see forType()} are untouched, so nothing on the charging path
+     * changes behaviour; this method is display-side only.
+     *
+     * @return array{minor: int, currency: string}|null NULL when the night is genuinely unpriced
+     */
+    public static function forUnitWithCurrency(string $ratePlanId, string $unitId, string $date): ?array
+    {
+        $day = CarbonImmutable::parse($date)->toDateString();
+
+        $override = UnitRateOverride::query()
+            ->where('rate_plan_id', $ratePlanId)
+            ->where('unit_id', $unitId)
+            ->whereDate('date', $day)
+            ->first(['price_minor', 'currency']);
+
+        if ($override !== null) {
+            return ['minor' => (int) $override->price_minor, 'currency' => (string) $override->currency];
+        }
+
+        $type = RateCalendar::query()
+            ->where('rate_plan_id', $ratePlanId)
+            ->whereDate('date', $day)
+            ->first(['price_minor', 'currency']);
+
+        return $type === null
+            ? null
+            : ['minor' => (int) $type->price_minor, 'currency' => (string) $type->currency];
     }
 
     /** The room-type price for a plan on a date — today's behaviour, unchanged and untouched. */

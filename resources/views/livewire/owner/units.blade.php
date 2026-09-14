@@ -71,13 +71,23 @@
                 </div>
                 <div class="vy-mu-ac-sub">{{ $acSub }}</div>
             </div>
-            <span class="vy-mu-ac-toggle">
+            {{-- ⚠️⚠️ THE KEYBOARD PATH INTO THE ACTION CENTRE — which holds RATE PROPOSALS and EXPENSE
+                 APPROVALS. Those are money decisions, and until now the only way to reveal them was to
+                 click a `<div>`. A keyboard user could not reach them at all.
+                 ⚠️ THIS WAS ALREADY A BUTTON IN EVERYTHING BUT ELEMENT — a pill with a hover lift reading
+                 "Expand"/"Collapse". Only the tag was wrong, so making it a real `<button>` adds the
+                 keyboard path without changing one pixel or removing the head's whole-area click.
+                 ⚠️ `.stop` because the head's own `@click` would otherwise toggle a second time and undo
+                 this one; `aria-expanded`/`aria-controls` because a disclosure must say what it controls
+                 and whether it is open. --}}
+            <button type="button" class="vy-mu-ac-toggle" @click.stop="open = ! open"
+                    :aria-expanded="open ? 'true' : 'false'" aria-controls="vy-mu-ac-panel">
                 <span x-text="open ? 'Collapse' : 'Expand'">Expand</span>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" :style="open ? 'transform:rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
-            </span>
+            </button>
         </div>
 
-        <div class="vy-mu-ac-reveal" :class="open ? 'is-open' : ''">
+        <div class="vy-mu-ac-reveal" id="vy-mu-ac-panel" :class="open ? 'is-open' : ''">
             <div>
                 @if ($attnCount > 0)
                     {{-- Wave-B: Status filter chips (client-side, over the REAL items by tone) + BULK actions (mark-all-read /
@@ -335,7 +345,8 @@
                                 @csrf
                                 <input type="hidden" name="subject" value="About {{ $u['name'] }}">
                                 <div style="font-size:12.5px;line-height:1.5;color:#6E635C;margin-bottom:11px">Message your management team about <strong style="color:var(--vy-ink);font-weight:600">{{ $u['name'] }}</strong> — they'll relay anything to the current or upcoming guest. (Guests are contacted through your team, never directly.)</div>
-                                <textarea name="body" rows="3" required x-ref="mbody{{ $i }}" placeholder="Message your management team about {{ $u['name'] }}…" style="width:100%;box-sizing:border-box;resize:none;border:1px solid rgba(217,102,46,.28);border-radius:11px;background:#fff;padding:10px 12px;font-family:var(--vy-sans);font-size:12.5px;line-height:1.5;color:var(--vy-ink);outline:none" class="vy-mu-msg-input"></textarea>
+                                <label class="vy-sr-only" for="vy-lbl-units-body">Message your management team about {{ $u['name'] }}…</label>
+                                <textarea id="vy-lbl-units-body" name="body" rows="3" required x-ref="mbody{{ $i }}" placeholder="Message your management team about {{ $u['name'] }}…" style="width:100%;box-sizing:border-box;resize:none;border:1px solid rgba(217,102,46,.28);border-radius:11px;background:#fff;padding:10px 12px;font-family:var(--vy-sans);font-size:12.5px;line-height:1.5;color:var(--vy-ink);outline:none" class="vy-mu-msg-input"></textarea>
                                 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
                                     @foreach (['Please share an update on this unit', 'Is everything okay with the current stay?', 'Can we schedule a visit?'] as $chip)
                                         <button type="button" @click="$refs.mbody{{ $i }}.value = @js($chip)" style="padding:5px 10px;border-radius:var(--vy-r-pill);background:rgba(255,255,255,.7);border:1px solid rgba(120,70,40,.16);color:#7A2E08;font-family:var(--vy-sans);font-size:11px;font-weight:500;cursor:pointer">{{ $chip }}</button>

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Exceptions\Owner\OwnerBlockException;
+use App\Exceptions\Owner\OwnerUnitPropertyRemovedException;
 use App\Http\Controllers\Controller;
 use App\Models\Unit;
 use App\Services\OwnerBlockService;
@@ -77,6 +78,12 @@ class OwnerBlockController extends Controller
             }
 
             $block = $blocks->block($request->user(), $data['unit_id'], $data['first_night'], $data['last_night'], $reasonNote);
+        } catch (OwnerUnitPropertyRemovedException) {
+            // ⚠️ NOT TAMPERING, so not a 403. The unit really is theirs; its property has been removed. Caught
+            // BEFORE the parent so the owner gets the true reason — the refusal itself comes from the service
+            // either way (this subclass extends OwnerBlockException, so a missed catch still refuses).
+            return redirect()->to($back)->with('block_error',
+                'That unit is at a property that has been removed, so its dates can no longer be blocked.');
         } catch (OwnerBlockException) {
             abort(403);   // a foreign unit id — tampering, not a normal outcome
         } catch (UnitUnavailableException) {

@@ -24,6 +24,7 @@ use App\Services\UnitAvailabilityService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
 use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reviews\ReviewList;
@@ -121,7 +122,10 @@ class BookingEngineController extends Controller
                 $roomTypes->map(fn (RoomType $rt): string => (string) $rt->name)->values()->all(),
                 $this->firstPhotoUrl($roomTypes),
             ),
-            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug],
+            // ⚠️ `currency_symbol` — the price-filter slider printed a hardcoded '€' (twice: once server-side and
+            // once in its `oninput` JS), so a GBP property's storefront offered to filter by euros while every
+            // room card beside it priced in pounds. The property's own currency is the authority.
+            'property' => ['name' => (string) $property->name, 'type' => $this->propertyType((string) $property->type), 'slug' => (string) $property->slug, 'currency_symbol' => MoneyFormatter::symbol((string) $property->currency)],
             'search' => [
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
@@ -550,7 +554,7 @@ class BookingEngineController extends Controller
         //    storefront cannot take a card at all — charging on the platform instead would put guest money
         //    back in Vyrobel's balance, which is the whole thing this switch removes.
         $connectedAccountId = app(OperatorConnectService::class)->accountForCharge(
-            Organization::withoutGlobalScopes()->findOrFail((string) $reservation->organization_id),
+            Organization::query()->findOrFail((string) $reservation->organization_id),
         );
 
         $session = app(StripeClientInterface::class)->createPaymentCheckout(
@@ -890,9 +894,7 @@ class BookingEngineController extends Controller
 
     private function money(int $minor, string $currency): string
     {
-        $symbol = match (strtoupper($currency)) {
-            'EUR' => '€', 'GBP' => '£', 'USD' => '$', default => strtoupper($currency).' ',
-        };
+        $symbol = MoneyFormatter::symbol($currency);   // the ONE symbol map (§N.8f — one definition per concept)
 
         return $symbol.number_format($minor / 100, 2, '.', ',');
     }

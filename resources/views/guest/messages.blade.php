@@ -10,7 +10,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div style="min-width:0">
-            <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink)">Messages</div>
+            {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">Messages</h1>
             <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Questions about your stay — parking, breakfast, wifi, late checkout. The property replies right here.</div>
         </div>
     </div>
@@ -36,8 +37,10 @@
         <div class="vy-eyebrow" style="margin-bottom:10px">New message</div>
         <form method="POST" action="{{ route('guest.messages.start') }}" style="display:flex;flex-direction:column;gap:10px">
             @csrf
-            <input class="vy-input" type="text" name="subject" placeholder="Subject (e.g. Parking)" maxlength="120" required>
-            <textarea class="vy-input" name="body" rows="3" placeholder="Your message" maxlength="5000" required style="resize:vertical"></textarea>
+            <label class="vy-sr-only" for="vy-lbl-messages-subject">Subject (e.g. Parking)</label>
+            <input id="vy-lbl-messages-subject" class="vy-input" type="text" name="subject" placeholder="Subject (e.g. Parking)" maxlength="120" required>
+            <label class="vy-sr-only" for="vy-lbl-messages-body">Your message</label>
+            <textarea id="vy-lbl-messages-body" class="vy-input" name="body" rows="3" placeholder="Your message" maxlength="5000" required style="resize:vertical"></textarea>
             <div><button type="submit" class="vy-btn">Send</button></div>
         </form>
     </section>

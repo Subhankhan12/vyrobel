@@ -24,7 +24,7 @@
             <div class="vy-nr-brand">
                 <span class="vy-nr-logo">V</span>
                 <span class="vy-nr-brand-id">
-                    <span class="vy-nr-brand-title">Reservation confirmed</span>
+                    <h1 class="vy-nr-brand-title" style="margin:0;">Reservation confirmed</h1>
                     <span class="vy-nr-brand-sub">{{ $subtitle !== '' ? $subtitle : 'Direct entry' }} · direct entry</span>
                 </span>
             </div>
@@ -82,7 +82,7 @@
         <div class="vy-nr-brand">
             <span class="vy-nr-logo">V</span>
             <span class="vy-nr-brand-id">
-                <span class="vy-nr-brand-title">New reservation</span>
+                <h1 class="vy-nr-brand-title" style="margin:0;">New reservation</h1>
                 <span class="vy-nr-brand-sub">{{ $subtitle !== '' ? $subtitle : 'Direct entry' }} · direct entry</span>
             </span>
         </div>
@@ -180,7 +180,8 @@
                                             <option value="{{ $__k }}">{{ $__label }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="text" name="restriction_override_note" class="vy-input" style="margin-top:6px"
+                                    <label class="vy-sr-only" for="vy-lbl-new-reservation-restriction-override-note">Note (required if you choose Other)</label>
+                                    <input id="vy-lbl-new-reservation-restriction-override-note" type="text" name="restriction_override_note" class="vy-input" style="margin-top:6px"
                                            maxlength="200" placeholder="Note (required if you choose Other)">
                                     <p style="font-size:11.5px;color:var(--vy-muted);margin:6px 0 0">
                                         Overriding lets this booking through. It does not change the restriction — the next
@@ -311,6 +312,7 @@
                                      reloads with ?q=; server-side search is NAME-only (#28). --}}
                                 @php $__nrSearchBase = route('app.reservations.create').'?check_in='.urlencode((string) $checkIn).'&check_out='.urlencode((string) $checkOut).'&q='; @endphp
                                 <div style="margin: 12px 0; display: flex; gap: 8px;">
+                                    <label class="vy-sr-only" for="nr-guest-q">Search a returning guest by name</label>
                                     <input type="text" id="nr-guest-q" value="{{ $query }}" class="vy-input" placeholder="Search a returning guest by name" autocomplete="off"
                                            x-on:keydown.enter.prevent="window.location = '{{ $__nrSearchBase }}' + encodeURIComponent($event.target.value)">
                                     <button type="button" class="vy-btn vy-btn--ghost" x-on:click="window.location = '{{ $__nrSearchBase }}' + encodeURIComponent(document.getElementById('nr-guest-q').value)">Search</button>

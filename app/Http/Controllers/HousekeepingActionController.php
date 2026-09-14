@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use RuntimeException;
 
 /**
  * Housekeeping task status advance — the REAL cleaning-status action, driven from the styled
@@ -51,9 +52,19 @@ class HousekeepingActionController extends Controller
             return $this->pausedRedirect();
         }
 
-        $housekeeping->updateTaskStatus($model, $target);
-
         $label = ucfirst(str_replace('_', ' ', $target));
+
+        // ⚠️ The ladder's bound lives in the SERVICE (F-15) — this controller holds no status logic, exactly as
+        // the maintenance reference does. It reports the refusal in the task's own terms: what was attempted,
+        // and what state the task is actually in. Both facts are READ off the row; neither is decided here.
+        try {
+            $housekeeping->updateTaskStatus($model, $target);
+        } catch (RuntimeException) {
+            $was = str_replace('_', ' ', (string) $model->status);
+
+            return redirect()->to(route('app.housekeeping'))
+                ->with('hk_error', "Unit {$model->unit?->code} is {$was} — it can’t be marked {$label} from there.");
+        }
 
         return redirect()->to(route('app.housekeeping'))
             ->with('hk_notice', "Unit {$model->unit?->code} marked {$label}.");

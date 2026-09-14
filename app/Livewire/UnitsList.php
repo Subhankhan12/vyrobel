@@ -66,6 +66,10 @@ class UnitsList extends Component
                 'room_type_id' => (string) $unit->room_type_id,
                 'kind' => $this->unitKindLabel((string) $unit->unit_kind),
                 'occupancy' => (int) $unit->max_occupancy,
+                // ⚠️ F-6 — the row needs the REAL flag to label its control ("Take out of service" vs
+                // "Return to service") and to prefill the edit dialog. `name` is nullable in the schema.
+                'is_active' => (bool) $unit->is_active,
+                'unit_name' => $unit->name,
                 'hk_label' => $hk['label'],
                 'hk_tone' => $hk['tone'],
                 'condition_label' => $condition['label'],

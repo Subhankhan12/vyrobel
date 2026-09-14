@@ -75,12 +75,12 @@
         @if (! $readOnly && $newRes['open'] && $property !== null && auth()->user()?->can('reservations.create'))
             <div x-data="{ open: true, dirty: false, gf: @js($newRes['form']['guest_first']), gl: @js($newRes['form']['guest_last']), adults: {{ (int) $newRes['form']['adults'] }}, source: '{{ $newRes['form']['source'] }}', sel: '', selTotal: '', selLabel: '', close() { this.open = false; history.replaceState({}, '', location.pathname + '?start={{ $window['start'] }}&days={{ $window['selected_days'] }}'); } }" x-cloak>
                 <div class="vy-modal-backdrop" x-show="open" @click="close()" style="z-index:60"
-                     x-transition.opacity>
-                    <div class="vy-modal vy-newres-modal" @click.stop>
+                     x-transition.opacity @keydown.escape.window="open = false">
+                    <div class="vy-modal vy-newres-modal" @click.stop role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="open" aria-labelledby="vy-dlg-reservation-rack-open-1">
                         {{-- header --}}
                         <div class="vy-modal-head">
                             <div style="flex:1">
-                                <h2 class="vy-modal-title">New reservation</h2>
+                                <h2 class="vy-modal-title" id="vy-dlg-reservation-rack-open-1">New reservation</h2>
                                 <div class="vy-modal-sub">{{ $property['name'] }} · direct entry</div>
                             </div>
                             <button type="button" class="vy-modal-x" @click="close()" aria-label="Close">
@@ -100,8 +100,10 @@
 
                                 <div class="vy-field-label">Guest</div>
                                 <div class="vy-newres-guest">
-                                    <input type="text" name="gf" x-model="gf" placeholder="First name" class="vy-input">
-                                    <input type="text" name="gl" x-model="gl" placeholder="Last name" class="vy-input">
+                                    <label class="vy-field-label" for="vy-lbl-reservation-rack-gf">First name</label>
+                                    <input id="vy-lbl-reservation-rack-gf" type="text" name="gf" x-model="gf" placeholder="First name" class="vy-input">
+                                    <label class="vy-field-label" for="vy-lbl-reservation-rack-gl">Last name</label>
+                                    <input id="vy-lbl-reservation-rack-gl" type="text" name="gl" x-model="gl" placeholder="Last name" class="vy-input">
                                     <div class="vy-stepper" role="group" aria-label="Adults">
                                         <button type="button" @click="adults = Math.max(1, adults - 1)" aria-label="Fewer adults">&minus;</button>
                                         <span x-text="adults + (adults === 1 ? ' adult' : ' adults')"></span>

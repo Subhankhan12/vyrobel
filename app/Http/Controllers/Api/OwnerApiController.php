@@ -61,7 +61,9 @@ class OwnerApiController extends Controller
     /** GET /api/owner/units — the owner's units (physical facts only — never door codes / Wi-Fi #33). Scope: read:units. */
     public function units(OwnerPortalService $portal): JsonResponse
     {
-        $data = $portal->units()->map(fn (Unit $u): array => [
+        // ⚠️ DATA LEAVING THE PRODUCT into a third-party integration. This endpoint answers "what inventory
+        // does this owner have?", so an archived property's unit does not belong in it.
+        $data = $portal->unitsAtLiveProperties()->map(fn (Unit $u): array => [
             'id' => (string) $u->id,
             'code' => (string) $u->code,
             'name' => $u->name,

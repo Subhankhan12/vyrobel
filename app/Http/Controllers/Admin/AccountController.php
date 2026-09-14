@@ -167,7 +167,7 @@ class AccountController extends Controller
 
         $this->audit->record('platform.account.email_changed', ['fields' => ['email']], actor: $model);
 
-        return redirect()->route('admin.login')->with('status', 'Your email address has been updated. Please sign in with your new address.');
+        return redirect()->route('admin.login')->with('status', "Your sign-in email is now {$pending}. Use that address from now on — the old one no longer works.");
     }
 
     /** The current authenticated platform admin (self-resolved from the guard, never a request id). */

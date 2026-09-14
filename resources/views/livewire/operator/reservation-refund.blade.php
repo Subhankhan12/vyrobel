@@ -12,11 +12,10 @@
     <x-operator.shell active="reservations" title="Refund a guest"
         :subtitle="$reservation['reference'] . ' · ' . $reservation['status_label']" :viewer="$viewer">
 
+        {{-- ⚠️ ONE component decides refusal-vs-success (audit D4). This view used to hardcode a tick, so
+             a refused refund or a lost inventory race rendered as a receipt. --}}
         @if (session('folio_notice'))
-            <div class="vy-toast vy-fade" role="status">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                {{ session('folio_notice') }}
-            </div>
+            <x-operator.flash-notice :message="session('folio_notice')" :refused="(bool) session('folio_refused', false)" />
         @endif
 
         <div class="vy-detail-cols vy-fade">
@@ -38,6 +37,23 @@
                     {{-- TRUE and enforced three times over: here, in the controller, and in refundPayment()
                          itself (which rejects any type that is not payment/capture). --}}
                     <div class="vy-recon" style="margin-top: 0;">Only settled payments can be refunded.</div>
+
+                    {{-- ⚠️⚠️ F-39 — THE CONSEQUENCE SITS BEFORE THE ACTION, AND THAT IS THE WHOLE FIX.
+                         This callout lived in the RIGHT RAIL's "What happens" card. At 1280 the rail is a
+                         340px column that starts higher than the second form, so the warning MEASURED above
+                         the amount-aware button (661 vs 829) and looked correctly ordered. ⚠️ THAT WAS A
+                         COLUMN ARTEFACT, NOT AN ORDER. At 375 the grid collapses to one column and the
+                         warning fell to 2152 — BELOW the one-click button at 1113 AND the amount-aware
+                         button at 1472. Neither path disclosed the consequence while the operator decided.
+                         ⚠️ MOVED, NOT COPIED — a second copy of one sentence is how two surfaces drift
+                         (§N.8f), and the wording is untouched: Phase 7 called it the best disclosure in the
+                         product and two later passes copied its register. This is a POSITION fix.
+                         ⚠️ PLACED ABOVE THE PAYMENT LIST, not inside one payment's block, so it precedes
+                         every button on BOTH paths for EVERY listed payment — one placement, no repetition. --}}
+                    <div class="vy-callout is-cost" style="margin-top: 12px;">
+                        <div class="vy-callout-title">It can’t be reversed</div>
+                        A refund reverses a payment, not the charges — so the folio shows the guest owing again. Refunds cannot be reversed once issued.
+                    </div>
 
                     @forelse ($payments as $payment)
                         <div class="vy-unit-row" style="align-items: flex-start;">
@@ -101,7 +117,8 @@
                                             <option value="goodwill">Goodwill</option>
                                             <option value="other">Other</option>
                                         </select>
-                                        <input class="vy-input" type="text" name="note" maxlength="200" placeholder="Add a note (optional)" style="margin-top: 8px;">
+                                        <label class="vy-field-label" for="vy-lbl-reservation-refund-note">Add a note (optional)</label>
+                                        <input id="vy-lbl-reservation-refund-note" class="vy-input" type="text" name="note" maxlength="200" placeholder="Add a note (optional)" style="margin-top: 8px;">
 
                                         <label class="vy-field-label" style="margin-top: 12px;">Refund to</label>
                                         <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--vy-ink);">
@@ -170,10 +187,6 @@
                     <div class="vy-callout is-oos" style="margin-top: 10px;">
                         <div class="vy-callout-title">The owner statement adjusts</div>
                         For an owner-attributed stay, the owner's net share of the refund is posted to their ledger and lands on their next statement close.
-                    </div>
-                    <div class="vy-callout is-cost" style="margin-top: 10px;">
-                        <div class="vy-callout-title">It can’t be reversed</div>
-                        A refund reverses a payment, not the charges — so the folio shows the guest owing again. Refunds cannot be reversed once issued.
                     </div>
                     <div class="vy-recon" style="margin-top: 10px;">The guest is emailed a refund confirmation automatically when the refund succeeds. Card refunds run in test mode until go-live — no real money moves yet.</div>
                 </div>

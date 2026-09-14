@@ -146,7 +146,10 @@
 
                     @if (count($ready) > 0)
                         <div class="vy-utable-wrap">
-                            <table class="vy-utable">
+                            {{-- ⚠️ `--stick-action`: this table's last column carries a MONEY action ("Create payout" /
+                                 "Mark paid") inside a 720px scroller, so at 375px it rendered outside the viewport —
+                                 the same defect as the housekeeping list. Found by the class guard, not by looking. --}}
+                            <table class="vy-utable vy-utable--stick-action">
                                 <thead>
                                     <tr>
                                         <th>Owner</th>
@@ -213,7 +216,10 @@
 
                     @if (count($pending) > 0)
                         <div class="vy-utable-wrap">
-                            <table class="vy-utable">
+                            {{-- ⚠️ `--stick-action`: this table's last column carries a MONEY action ("Create payout" /
+                                 "Mark paid") inside a 720px scroller, so at 375px it rendered outside the viewport —
+                                 the same defect as the housekeeping list. Found by the class guard, not by looking. --}}
+                            <table class="vy-utable vy-utable--stick-action">
                                 <thead>
                                     <tr>
                                         <th>Owner</th>

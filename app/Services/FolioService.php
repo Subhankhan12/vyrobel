@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Exceptions\Folio\RefundAccountUnknownException;
 use App\Exceptions\Folio\RefundExceedsPaymentException;
 use App\Models\AddOn;
+use App\Models\AuditEvent;
 use App\Models\Fee;
 use App\Models\Folio;
 use App\Models\FolioItem;
@@ -228,7 +229,7 @@ class FolioService
         //    no platform charge to fall back to, on this path either.
         $connectedAccountId = $this->gateway->name() === 'stripe'
             ? app(OperatorConnectService::class)->accountForCharge(
-                Organization::withoutGlobalScopes()->findOrFail((string) $folio->organization_id),
+                Organization::query()->findOrFail((string) $folio->organization_id),
             )
             : null;
 
@@ -345,7 +346,12 @@ class FolioService
         }
 
         if ($payment->status !== 'pending') {
-            return $payment; // already settled (or never pending) — idempotent no-op
+            // ⚠️⚠️ THE GUARD STAYS EXACTLY AS IT IS — the money is NOT re-settled. What changes is that a
+            //    retry no longer walks away with nothing: if this payment reached its terminal status but
+            //    its audit row never landed, the row is written now. See {@see resumeSettlementTrail()}.
+            $this->resumeSettlementTrail($payment, 'payment.settled', null, ['status' => (string) $payment->status]);
+
+            return $payment; // already settled (or never pending) — the settlement itself is untouched
         }
 
         $folio = $payment->folio;
@@ -594,6 +600,15 @@ class FolioService
         });
 
         if ($settled === null) {
+            // ⚠️ Same resume as `settlePayment()`, and the same restraint: nothing is re-settled and no
+            //    money moves. Only a refund that genuinely reached THIS status is eligible — a row that
+            //    was never a pending refund is left completely alone.
+            $current = $refund->fresh();
+
+            if ($current !== null && (string) $current->type === 'refund' && (string) $current->status === $toStatus) {
+                $this->resumeSettlementTrail($current, 'payment.refund_settled', ['status' => 'pending'], ['status' => $toStatus]);
+            }
+
             return $refund;   // already settled, or not a pending refund — nothing to do, nothing posted.
         }
 
@@ -611,6 +626,47 @@ class FolioService
         $this->audit->record('payment.refund_settled', $settled, ['status' => 'pending'], ['status' => $toStatus]);
 
         return $settled;
+    }
+
+    /**
+     * Write a settlement's AUDIT ROW after the fact, when the settlement committed but the trail did not.
+     *
+     * ⚠️⚠️ THE DEFECT THIS EXISTS FOR. `settlePayment()`/`settleRefund()` commit the money in a transaction
+     * and record the trail AFTER it. If a post-commit recorder throws, the money is right and the trail is
+     * holed — and the retry Stripe sends hits the handlers' own status guard and returns early, so the row
+     * stays permanently missing. **The protection and the hole were the same line.**
+     *
+     * ⚠️⚠️ THE GUARD IS NOT WEAKENED, AND THAT IS THE WHOLE POINT. Making a settled payment re-settleable
+     * to recover a record would trade a missing row for a DOUBLE WRITE ON A MONEY PATH, which is a worse
+     * trade. Nothing here re-settles anything: the recording became retryable INDEPENDENTLY of the
+     * settlement, which is the only shape that recovers the trail without touching the money.
+     *
+     * ⚠️ MONEY FIRST, TRAIL SECOND. The recorders were NOT moved inside the transaction, deliberately: a
+     * failing recorder would then roll the settlement back, and a payment the gateway TOOK which this
+     * product refused to record at all is worse than one recorded without its audit row.
+     *
+     * ⚠️ THE AUDIT ROW ONLY — the domain event is deliberately NOT re-recorded. It is written BEFORE its
+     * listeners run, so on a post-commit failure it already exists; re-recording would create a second
+     * `domain_events` row and re-fire the guest's refund email. An audit row has no such consequence: it
+     * is inert evidence with no listeners.
+     *
+     * ⚠️ IDEMPOTENT BY QUERY, not by a unique index — `audit_events` has none, being an append-only
+     * evidence table that is deliberately never pruned. A row that already exists is left alone, so a
+     * normal settlement still records exactly once.
+     */
+    private function resumeSettlementTrail(Payment $payment, string $action, ?array $before, array $after): void
+    {
+        $exists = AuditEvent::query()
+            ->where('action', $action)
+            ->where('subject_type', $payment->getMorphClass())
+            ->where('subject_id', (string) $payment->getKey())
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $this->audit->record($action, $payment, $before, $after);
     }
 
     public function refundedSettledMinor(Payment $original): int

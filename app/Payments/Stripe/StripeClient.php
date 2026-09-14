@@ -232,6 +232,30 @@ class StripeClient implements StripeClientInterface
         return new StripeConnectAccount((string) $account->id, (bool) $account->payouts_enabled);
     }
 
+    public function retrieveSubscription(string $subscriptionId): ?StripeSubscription
+    {
+        // ⚠️ Mirrors `retrieveConnectAccount` below: state is read from Stripe on every call, because Stripe
+        //    is the source of truth and a stored copy is only ever as fresh as the last event that landed.
+        $subscription = $this->sdk->subscriptions->retrieve($subscriptionId);
+
+        $priceIds = [];
+        foreach ($subscription->items->data ?? [] as $item) {
+            $priceId = $item->price->id ?? null;
+            if (is_string($priceId) && $priceId !== '') {
+                $priceIds[] = $priceId;
+            }
+        }
+
+        return new StripeSubscription(
+            id: (string) $subscription->id,
+            status: is_string($subscription->status ?? null) ? (string) $subscription->status : null,
+            customerId: is_string($subscription->customer ?? null) ? (string) $subscription->customer : null,
+            currentPeriodEnd: is_int($subscription->current_period_end ?? null) ? (int) $subscription->current_period_end : null,
+            priceIds: array_values(array_unique($priceIds)),
+            metadata: $subscription->metadata->toArray(),
+        );
+    }
+
     public function retrieveConnectAccount(string $accountId): StripeConnectAccount
     {
         $account = $this->sdk->accounts->retrieve($accountId);

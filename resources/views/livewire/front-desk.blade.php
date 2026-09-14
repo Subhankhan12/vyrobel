@@ -11,11 +11,10 @@
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
 
         {{-- Flash notice from a real check-in/out (PRG) --}}
+        {{-- ⚠️ ONE component decides refusal-vs-success (audit D4). This view used to hardcode a tick, so
+             a refused refund or a lost inventory race rendered as a receipt. --}}
         @if (session('desk_notice'))
-            <div class="vy-toast vy-fade" role="status">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                {{ session('desk_notice') }}
-            </div>
+            <x-operator.flash-notice :message="session('desk_notice')" :refused="(bool) session('desk_refused', false)" />
         @endif
 
         {{-- Toolbar: REAL day navigation (GET links). Walk-in is wired to its real create-and-check-in flow in
@@ -263,11 +262,11 @@
                 {{-- ── CHECK-IN modal — wraps the REAL, gated check-in action. The checklist + key-card counter are
                      a local staff aide-memoire (they persist nothing — no fake ID "verification"/KYC). Collect is
                      the REAL folio payment (cash/bank), shown only to a payments.record holder. ── --}}
-                <div class="vy-fdm-overlay" x-show="modal === 'checkin'" x-cloak x-transition.opacity x-on:click.self="close()">
-                    <div class="vy-fdm">
+                <div class="vy-fdm-overlay" x-show="modal === 'checkin'" x-cloak x-transition.opacity x-on:click.self="close()" x-on:keydown.escape.window="modal = null">
+                    <div class="vy-fdm" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="modal === 'checkin'" aria-labelledby="vy-dlg-front-desk-modal-checkin-5">
                         <div class="vy-fdm-head">
                             <div>
-                                <div class="vy-fdm-title">Check in <span x-text="row.guest"></span></div>
+                                <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-checkin-5">Check in <span x-text="row.guest"></span></div>
                                 <div class="vy-fdm-sub"><span x-text="row.unit || 'Unassigned'"></span> · <span x-text="row.nights"></span> <span x-text="row.nights == 1 ? 'night' : 'nights'"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
@@ -306,11 +305,11 @@
 
                 {{-- ── CHECK-OUT modal — wraps the REAL, gated check-out action + the real folio PDF + an honest
                      settle-now (real payment) when a balance remains. ── --}}
-                <div class="vy-fdm-overlay" x-show="modal === 'checkout'" x-cloak x-transition.opacity x-on:click.self="close()">
-                    <div class="vy-fdm">
+                <div class="vy-fdm-overlay" x-show="modal === 'checkout'" x-cloak x-transition.opacity x-on:click.self="close()" x-on:keydown.escape.window="modal = null">
+                    <div class="vy-fdm" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="modal === 'checkout'" aria-labelledby="vy-dlg-front-desk-modal-checkout-4">
                         <div class="vy-fdm-head">
                             <div>
-                                <div class="vy-fdm-title">Check out <span x-text="row.guest"></span></div>
+                                <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-checkout-4">Check out <span x-text="row.guest"></span></div>
                                 <div class="vy-fdm-sub"><span x-text="row.unit || 'Unassigned'"></span> · <span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span></div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
@@ -346,11 +345,19 @@
                 </div>
 
                 {{-- ── COLLECT modal — standalone on-desk payment for a due row (departures / in-house). ── --}}
-                <div class="vy-fdm-overlay" x-show="modal === 'collect'" x-cloak x-transition.opacity x-on:click.self="close()">
-                    <div class="vy-fdm vy-fdm--sm">
+                {{-- ⚠️⚠️ D2 — THE DIALOG CONTRACT. `x-trap` gives all three focus properties at once: focus moves IN
+     on open, is TRAPPED while open, and is RETURNED to the trigger on close. ⚠️ IT NEEDS NO NEW
+     DEPENDENCY — Livewire already bundles Alpine's focus plugin (`directive("trap")` /
+     `createFocusTrap` in livewire.esm.js); it was simply never used anywhere in 243 files.
+     ⚠️ `.noscroll` also stops the page behind scrolling. ⚠️ It does NOT make the rest of the page
+     INERT — without `inert` support or a dependency, focus is trapped and no more, and that is
+     stated rather than implied. ⚠️ Focus lands on the panel itself (`tabindex="-1"`), never on the
+     destructive button. --}}
+                <div class="vy-fdm-overlay" x-show="modal === 'collect'" x-cloak x-transition.opacity x-on:click.self="close()" x-on:keydown.escape.window="close()">
+                    <div class="vy-fdm vy-fdm--sm" role="dialog" aria-modal="true" aria-labelledby="vy-dlg-collect-t" tabindex="-1" x-trap.noscroll="modal === 'collect'">
                         <div class="vy-fdm-head">
                             <div>
-                                <div class="vy-fdm-title">Collect payment</div>
+                                <div class="vy-fdm-title" id="vy-dlg-collect-t">Collect payment</div>
                                 <div class="vy-fdm-sub"><span x-text="row.guest"></span> · <span x-text="row.balance"></span> due</div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
@@ -369,11 +376,11 @@
                 {{-- ── MOVE / ASSIGN modal — REAL free same-type units → the certified app.reservations.move
                      (AssignmentService::assignUnit re-checks Level B under a lock). "Open rack" is the full
                      assignment surface for a cross-type move. ── --}}
-                <div class="vy-fdm-overlay" x-show="modal === 'move'" x-cloak x-transition.opacity x-on:click.self="close()">
-                    <div class="vy-fdm">
+                <div class="vy-fdm-overlay" x-show="modal === 'move'" x-cloak x-transition.opacity x-on:click.self="close()" x-on:keydown.escape.window="modal = null">
+                    <div class="vy-fdm" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="modal === 'move'" aria-labelledby="vy-dlg-front-desk-modal-move-2">
                         <div class="vy-fdm-head">
                             <div>
-                                <div class="vy-fdm-title"><span x-text="row.unassigned ? 'Assign a unit' : ('Move ' + (row.guest || ''))"></span></div>
+                                <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-move-2"><span x-text="row.unassigned ? 'Assign a unit' : ('Move ' + (row.guest || ''))"></span></div>
                                 <div class="vy-fdm-sub"><span x-text="row.check_in_label"></span>–<span x-text="row.check_out_label"></span> · same room type</div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
@@ -422,11 +429,11 @@
                      (source=walk_in, today's dates) which prices + creates + posts the folio, then checks in and
                      returns here. Free-tonight units are real + priced; a longer stay is re-checked under the
                      booking lock. Optional "collect first night" is the real folio payment; card is deferred. ── --}}
-                <div class="vy-fdm-overlay" x-show="modal === 'walkin'" x-cloak x-transition.opacity x-on:click.self="close()">
-                    <div class="vy-fdm">
+                <div class="vy-fdm-overlay" x-show="modal === 'walkin'" x-cloak x-transition.opacity x-on:click.self="close()" x-on:keydown.escape.window="modal = null">
+                    <div class="vy-fdm" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="modal === 'walkin'" aria-labelledby="vy-dlg-front-desk-modal-walkin-1">
                         <div class="vy-fdm-head">
                             <div>
-                                <div class="vy-fdm-title">Walk-in</div>
+                                <div class="vy-fdm-title" id="vy-dlg-front-desk-modal-walkin-1">Walk-in</div>
                                 <div class="vy-fdm-sub">{{ \Carbon\CarbonImmutable::parse($walkin['today'])->format('D j M') }} · guest at the desk now</div>
                             </div>
                             <button type="button" class="vy-fdm-x" x-on:click="close()" aria-label="Close">
@@ -445,8 +452,10 @@
                             <input type="hidden" name="send_confirmation" value="0">
                             <div class="vy-fdm-body">
                                 <div class="vy-fdm-row2">
-                                    <input type="text" name="guest_first_name" x-model="wi.first" class="vy-input" placeholder="First name" autocomplete="off">
-                                    <input type="text" name="guest_last_name" x-model="wi.last" class="vy-input" placeholder="Last name" autocomplete="off">
+                                    <label class="vy-sr-only" for="vy-lbl-front-desk-guest-first-name">First name</label>
+                                    <input id="vy-lbl-front-desk-guest-first-name" type="text" name="guest_first_name" x-model="wi.first" class="vy-input" placeholder="First name" autocomplete="off">
+                                    <label class="vy-sr-only" for="vy-lbl-front-desk-guest-last-name">Last name</label>
+                                    <input id="vy-lbl-front-desk-guest-last-name" type="text" name="guest_last_name" x-model="wi.last" class="vy-input" placeholder="Last name" autocomplete="off">
                                 </div>
                                 <div class="vy-fdm-keycards" style="margin-top: 10px;">
                                     <span>Nights</span>

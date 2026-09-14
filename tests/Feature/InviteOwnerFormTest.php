@@ -47,7 +47,7 @@ it('sends an owner invite and renders the exact "Invite sent" confirmation with 
     app(OrganizationRoleProvisioner::class)->provision($s['org']);
     $op = inviteAdmin($s);
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Marisol Vega',
         'email' => 'marisol@example.test',
         'role' => 'owner',

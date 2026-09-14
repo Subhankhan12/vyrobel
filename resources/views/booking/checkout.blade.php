@@ -24,6 +24,8 @@
             .vy-co-card { background: rgba(255, 252, 248, 0.6); backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: 20px; box-shadow: 0 14px 40px rgba(150, 90, 50, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.65); padding: 22px; }
             .vy-co-h2 { margin: 0 0 14px; font-family: var(--vy-display); font-weight: 500; font-size: 16px; }
             .vy-co-fl { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #9c9089; margin-bottom: 6px; }
+            /* ⚠️ Shown ONLY when a field was rejected; nothing renders in the normal case. */
+            .vy-co-err { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: #8F2F09; }
             .vy-co-in { width: 100%; box-sizing: border-box; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.75); border-radius: 13px; padding: 11px 14px; font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); outline: none; }
             .vy-co-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
             .vy-co-secure { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--vy-muted); font-weight: 500; }
@@ -106,7 +108,12 @@
     @if ($offer === null)
         <div class="vy-co-card vy-fade">
             <div class="vy-empty">
-                That room isn’t available for these dates.
+                {{-- ⚠️⚠️ THE BRANCH THE AUDIT ACTUALLY REACHED. The `@else` below carries the checkout's
+                     `<h1>`, but THIS branch — no live offer in session, which is what a visitor gets from a
+                     stale link or an expired quote — had no heading element at all. On the page that takes
+                     money from a stranger. ⚠️ PROMOTED, not invented: this sentence already IS what the page
+                     says. `font:inherit;margin:0` keeps it rendering exactly as the text node did. --}}
+                <h1 style="font:inherit;margin:0">That room isn’t available for these dates.</h1>
                 <div style="margin-top:14px;"><a class="vy-btn vy-btn--accent" href="{{ route('booking.browse', $property['slug']) }}?{{ $back }}">Choose another room</a></div>
             </div>
         </div>
@@ -143,11 +150,46 @@
                     <div class="vy-co-card">
                         <h2 class="vy-co-h2">Your details</h2>
                         <div style="display:flex; flex-direction:column; gap:12px;">
+                            {{-- ⚠️⚠️ D3 — THE ONLY UNNAMED CONTROLS ON THE PAGE THAT TAKES MONEY FROM STRANGERS.
+                                 The label TEXT was always here and always visible; it was carried by a `<div>`,
+                                 which associates with nothing. So a sighted guest was fine — nothing vanished on
+                                 typing, because these were never placeholders — while a screen-reader user reached
+                                 three unnamed edit fields in a row and had to infer them from reading order.
+                                 ⚠️ THE FIX IS THE HOUSE PATTERN, NOT A NEW ONE: `<label class="…" for="id">` with a
+                                 VISIBLE label is what 131 `vy-field-label` sites and every other form here already
+                                 do. The class is unchanged, so the page looks EXACTLY as before.
+                                 ⚠️ NO POSTED KEY MOVED — `name=` is untouched on every input; only `id`/`for` were
+                                 added, and an `id` is not submitted. --}}
                             <div class="vy-co-2">
-                                <div><div class="vy-co-fl">First name</div><input class="vy-co-in" type="text" name="first_name" value="{{ old('first_name') }}" required></div>
-                                <div><div class="vy-co-fl">Last name</div><input class="vy-co-in" type="text" name="last_name" value="{{ old('last_name') }}" required></div>
+                                <div>
+                                    <label class="vy-co-fl" for="vy-co-first">First name</label>
+                                    <input class="vy-co-in" type="text" name="first_name" id="vy-co-first"
+                                           value="{{ old('first_name') }}" required autocomplete="given-name"
+                                           @error('first_name') aria-invalid="true" aria-describedby="vy-co-first-err" @enderror>
+                                    @error('first_name')<p class="vy-co-err" id="vy-co-first-err">{{ $message }}</p>@enderror
+                                </div>
+                                <div>
+                                    <label class="vy-co-fl" for="vy-co-last">Last name</label>
+                                    <input class="vy-co-in" type="text" name="last_name" id="vy-co-last"
+                                           value="{{ old('last_name') }}" required autocomplete="family-name"
+                                           @error('last_name') aria-invalid="true" aria-describedby="vy-co-last-err" @enderror>
+                                    @error('last_name')<p class="vy-co-err" id="vy-co-last-err">{{ $message }}</p>@enderror
+                                </div>
                             </div>
-                            <div><div class="vy-co-fl">Email</div><input class="vy-co-in" type="email" name="email" value="{{ old('email') }}" required></div>
+                            {{-- ⚠️ AND THE ERRORS ARE NOW SHOWN AT ALL. `validate()` rejects a malformed email
+                                 server-side and Laravel redirects BACK — but this view rendered only the
+                                 domain-level `booking_error` flash, so a guest whose email failed got a SILENT
+                                 BOUNCE: fields repopulated, no reason given anywhere on the page. `required`
+                                 covers the empty case in the browser and nothing covered the rejected one.
+                                 ⚠️ `aria-describedby` ties the message to its own field, so the answer to
+                                 "what failed?" is not left to reading order. --}}
+                            <div>
+                                <label class="vy-co-fl" for="vy-co-email">Email</label>
+                                <input class="vy-co-in" type="email" name="email" id="vy-co-email"
+                                       value="{{ old('email') }}" required autocomplete="email"
+                                       @error('email') aria-invalid="true" aria-describedby="vy-co-email-err" @enderror>
+                                @error('email')<p class="vy-co-err" id="vy-co-email-err">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </div>
 

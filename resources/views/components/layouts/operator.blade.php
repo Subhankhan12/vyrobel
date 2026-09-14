@@ -286,7 +286,7 @@
 
         /* Analytics — Insights + Reports (Phase 6b). */
         .vy-ins-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
-        @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: minmax(0, 1fr); } }
 
         /* ---- Operator Insights — wireframe parity ------------------------------------------------
            Scoped to .vy-ins. The page previously reused the shared .vy-ins-grid (also used by Reports,
@@ -385,9 +385,20 @@
         /* The rail's cards are stacked by the flex gap, so their own stacking margin must go. */
         .vy-sch-rail > .vy-card { margin-top: 0 !important; }
 
+        /* ⚠️ The time-off pair below the roster. `minmax(0, 1fr)` rather than `1fr` for the same reason as
+           everywhere else in this file, and they STACK on a phone rather than scroll: both panels are made
+           of CONTROLS — a request form on the left, an approve/decline queue on the right — and horizontal
+           scroll is this project's answer for wide TABLES, where a row carries the meaning, never for
+           controls a thumb has to reach. Same argument as the kanban at :1716. */
+        .vy-sch-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+        .vy-sch-panels--single { grid-template-columns: minmax(0, 1fr); }
+
         @media (max-width: 1100px) {
             .vy-sch-cols { display: block; }
             .vy-sch-rail { width: auto; margin-top: 18px; }
+        }
+        @media (max-width: 860px) {
+            .vy-sch-panels { grid-template-columns: minmax(0, 1fr); }
         }
 
         /* ---- Inbox: the conversation's reservation context strip -----------------------------------
@@ -583,7 +594,17 @@
         .vy-btn--accent:hover { transform: translateY(-1px); }
         .vy-btn--ghost { background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); border-color: var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
         .vy-btn--ghost:hover { background: rgba(255, 255, 255, 0.85); }
-        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-icobtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-icobtn:focus-visible, .vy-rowopen:focus-visible, .vy-detail-head:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        /* ⚠️⚠️ A BUTTON THAT INHERITS ITS SURROUNDINGS — the ONE reset, so a keyboard path can be added to
+           a row without changing how that row looks to everyone else. Two surfaces needed a real control
+           where the markup could not become one: a work-order row (it contains a checkbox and an assign
+           button, so a `<button>` may not wrap it) and a housekeeping lane header (it can, and does).
+           ⚠️ THE RING IS ON THE RULE ABOVE, NOT HERE. Same reason as the owner shell: this file's focus
+           rule is CLASS-SCOPED and reaches nothing it does not name, so anything new must be named in it
+           or it is focusable and invisible. */
+        .vy-rowopen { background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+        button.vy-detail-head { width: 100%; background: none; border: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 
         /* A control with no backend yet: visible, clearly non-functional, never a fake action. */
         .vy-btn.is-soon, .vy-icobtn.is-soon, .vy-pill.is-soon { opacity: .5; cursor: not-allowed; }
@@ -849,6 +870,23 @@
             font-size: 13px; font-weight: 500; color: var(--vy-ink); box-shadow: var(--vy-shadow-sm);
         }
         .vy-toast svg { color: var(--vy-accent-text); flex: none; }
+
+        /* ⚠️⚠️ A REFUSED OUTCOME (audit D4). The base `.vy-toast` is the SUCCESS skin and every view rendered
+           refusals in it, tick and all — so invariant #27 refusing an over-refund arrived looking like a
+           receipt. ⚠️ COLOUR IS THE LEAST OF THE DIFFERENCE HERE, deliberately: the component swaps the tick
+           for an alert triangle and adds a visually-hidden "Refused:" prefix, so the outcome survives a
+           monochrome screen, a colour-blind reader and a screen reader. This rule is the reinforcement, not
+           the signal. ⚠️ `#8F3110` is the palette's existing danger ink (`.vy-acct-link--danger`), reused
+           rather than a new one invented — a second red is how two surfaces come to disagree. */
+        .vy-toast--refused {
+            background: rgba(143, 49, 16, 0.09);
+            border-color: rgba(143, 49, 16, 0.28);
+            border-left-color: #8F3110;
+        }
+        .vy-toast--refused svg { color: #8F3110; }
+        /* Focus lands here programmatically (the live-region fix); never show a focus ring for that. */
+        .vy-toast--refused:focus { outline: none; }
+        .vy-toast--refused:focus-visible { outline: 2px solid #8F3110; outline-offset: 2px; }
 
         .vy-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
         .vy-summary-chip {
@@ -1615,11 +1653,120 @@
             .vy-dash .vy-dash-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {
-            .vy-shell { grid-template-columns: 1fr; }
-            .vy-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; }
+            /* ⚠️⚠️ `minmax(0, …)` AND `min-width: 0` — BOTH, AND THEY FIX DIFFERENT THINGS.
+               A bare `1fr` is `minmax(auto, 1fr)`, and that `auto` is a MIN-CONTENT FLOOR the track
+               cannot shrink below. ⚠️ But MEASURED at 375px the track was already 375 and it was the
+               ITEMS that overflowed it: `.vy-side` and `.vy-main` computed `min-width: auto`, so they
+               refused to shrink below their own content and rendered 985px wide inside a 375px track.
+               Fixing only the track leaves the items overflowing; fixing only the items leaves the track
+               with a min-content floor. Both, or the page stays wide.
+               ⚠️ THE DESKTOP RULE AT :129 ALREADY USES `minmax(0, 1fr)` — this only brings the phone rule
+               into line with it. Nothing above this breakpoint changes.
+               ⚠️ SAME DEFECT CLASS AS THE MARKETING FOOTER GRID (fixed 2026-09-02) — third instance of a
+               bare `1fr` min-content floor in this codebase, second in a shell. */
+            .vy-shell { grid-template-columns: minmax(0, 1fr); }
+            .vy-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; min-width: 0; }
+            .vy-main { min-width: 0; }
+
+            /* ⚠️⚠️ THE TOPBAR — 629px of content in 343px of room, so something has to give, and WHAT
+               gives is a design decision rather than a CSS one. MEASURED at 375px, it holds four things:
+                 · `.vy-search-pill`  219px — a real CAPABILITY (a link to /app/search)
+                 · `.vy-date-chip`    176px — DISPLAY ONLY: "Today · <date>"
+                 · the bell            38px — a real capability
+                 · `.vy-acct`         159px — the account menu (avatar + the viewer's own name)
+               ⚠️ THE TWO THINGS HIDDEN ON A PHONE ARE NAMED, because a capability that exists on desktop
+               and vanishes on a phone is a difference this project does not ship undisclosed:
+                 1. THE DATE CHIP is hidden. It is not a control, it performs no action, and today's date
+                    is a thing a phone already shows in its own status bar.
+                 2. THE ACCOUNT NAME is hidden — the TEXT only. The button, the avatar, the menu and every
+                    item in it (Profile / Security / Sign out) remain, so no capability is lost; the
+                    viewer's own name is the one label they do not need to be told.
+               ⚠️ NOTHING ELSE IS HIDDEN. The search pill keeps its label and merely truncates, so its
+               accessible name is unchanged and it does not join the unnamed-control backlog; the bell and
+               the account menu are untouched.
+               ⚠️ AND THE HEADING WRAPS. `.vy-topbar h1` is `white-space: nowrap` (deliberate, :173) and
+               measured 318px alone — on a 343px phone line that is the whole row. Wrapping is the only
+               option that keeps the page title readable without truncating it. */
+            .vy-topbar { flex-wrap: wrap; }
+            .vy-topbar h1 { white-space: normal; }
+            .vy-topbar-actions { min-width: 0; flex-wrap: wrap; }
+            .vy-search-pill { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .vy-date-chip { display: none; }
+            .vy-acct-name { display: none; }
+
+            /* ⚠️ THE LAST 14px, AND IT IS DECORATION. `.vy-tonight-glow` is an absolutely-positioned,
+               `pointer-events: none` radial blur that deliberately bleeds 30px past its wrapper on each
+               side. Inside a wide desktop column that bleed is invisible; at 375px it is 14px of the page
+               a thumb can push sideways. Contained rather than removed — the glow still renders, it just
+               stops painting outside the viewport. */
+            .vy-dash .vy-tonight-glow { left: 0; right: 0; }
+
+            /* ⚠️ FOUR MORE INSTANCES OF THE SAME TWO SHAPES, found by re-measuring every screen rather
+               than by stopping at the shell. Each was a page still overflowing after the shell was fixed:
+                 · `.vy-ins-grid` (:289) is the OTHER bare `1fr` in a phone breakpoint — the same defect as
+                   `.vy-shell`, one screen over. `/app/maintenance/costs` was 363px because of it.
+                 · `.vy-stack` and `.vy-left` are flex/grid children computing `min-width: auto`, so they
+                   refuse to shrink inside a track that can. Same mechanism as `.vy-main`.
+                 · `.vy-table` on `/app/portfolio` is a 434px table with no scroll wrapper, while this
+                   codebase already has three (`.vy-utable-wrap`, `.vyr-scroll`, `.vy-rack-scroll`). Its
+                   card gets the same treatment rather than a fourth pattern (§N.8f). */
+            .vy-ins-grid { grid-template-columns: minmax(0, 1fr); }
+            .vy-stack, .vy-left { min-width: 0; }
+            /* ⚠️⚠️ WITHDRAWN, DELIBERATELY, AND THE REASON IS THE POINT. A `.vy-card:has(> .vy-table)
+               { overflow-x: auto }` rule cleared `/app/portfolio`'s 98px — but turning a card into a
+               horizontal scroller can push a card's ACTION BUTTON off-screen inside it, and on this realm
+               those buttons are how work gets done. I could not establish within this pass that no card
+               action moves out of reach. ⚠️ A fix that hides a control is worse than the overflow it
+               removes, so the 98px stays and the table keeps a page a thumb can push 98px sideways.
+               ⚠️ THE DURABLE FIX IS A VIEW CHANGE: wrap that table in the house `.vy-utable-wrap`, as
+               `/app/units` already does. Reported, not done — it is outside this pass's scope. */
+
+            /* ⚠️ A SCROLL CONTAINER MUST NOT IMPOSE ITS CONTENT'S WIDTH ON THE PAGE. `/app/schedule`
+               wraps its 864px roster grid in `overflow-x: auto` — correctly — but the wrapper itself is a
+               grid child computing `min-width: auto`, so it sized to 864 instead of scrolling inside 375.
+               The wrapper is written as an INLINE STYLE in the view, so this matches the attribute.
+               ⚠️ REPORTED, NOT DONE: the durable fix is a `.vy-scroll-x` utility the views use instead of
+               an inline style — a view change, outside this pass's scope. This rule is the shell-level
+               equivalent and is deliberately narrow. */
+            [style*="overflow-x:auto"], [style*="overflow-x: auto"] { min-width: 0; }
             .vy-nav-group { flex-direction: row; flex-wrap: wrap; }
             .vy-nav-label { display: none; }
             .vy-main { padding: 18px 16px 48px; }
+        }
+
+        /* ⚠️⚠️ D10 — ONE KANBAN COLUMN ON A PHONE. The rule above already narrows `.vy-kanban` to two
+           columns at 1100px; two lanes at 375px is ~180px each, which is the same defect one step smaller.
+           ⚠️ LANES STACK RATHER THAN SCROLL SIDEWAYS, and that is the whole argument: a board scrolled
+           horizontally can never show two states at once, which is the only reason to draw a board at all.
+           Stacking keeps every lane full-width and legible, and vertical scrolling is the gesture a
+           housekeeper already uses one-handed in a corridor. Horizontal scroll (`overflow-x`) is this
+           project's house answer for wide TABLES — where a row carries the meaning — and a kanban is not
+           a table. ⚠️ 700px is an EXISTING shell breakpoint (see :401), not a new one for one screen. */
+        @media (max-width: 700px) {
+            .vy-kanban { grid-template-columns: minmax(0, 1fr); }
+
+            /* ⚠️⚠️ THE PRIMARY ACTION STAYS ON SCREEN WHILE THE ROW SCROLLS UNDER IT.
+               ⚠️ THE SCROLLER IS NOT THE DEFECT AND IS NOT REMOVED. `.vy-utable-wrap` is the house answer
+               for a wide table and it is the RIGHT answer here: Room · Housekeeper · Stage · Ready is one
+               unit of meaning and horizontal scrolling preserves it. What was wrong is that the column
+               carrying the ONLY control that advances a task scrolled away with the data — MEASURED at
+               375px the "Start" button sat at x=669, 294px outside a 375px viewport.
+               ⚠️ SO NOTHING IS HIDDEN AND NOTHING MOVES. Every column a desk shows, a phone still shows;
+               the action is pinned to the right edge instead of being 294px past it. A wrap-or-stack
+               answer would have reordered the row; a "hide the middle columns" answer would have removed
+               data. This removes neither.
+               ⚠️ The surface is the CARD'S OWN `--vy-glass` plus its blur, so the pinned cell reads as
+               part of the card rather than introducing a second colour (§N.8f).
+               ⚠️ 700px is an EXISTING shell breakpoint (:1650, the same one the kanban collapses at), not
+               a new set invented for one screen. */
+            .vy-utable--stick-action th:last-child,
+            .vy-utable--stick-action td:last-child {
+                position: sticky; right: 0; z-index: 1;
+                background: var(--vy-glass);
+                backdrop-filter: blur(22px) saturate(1.15);
+                -webkit-backdrop-filter: blur(22px) saturate(1.15);
+                box-shadow: -10px 0 12px -10px rgba(120, 70, 40, .30);
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {

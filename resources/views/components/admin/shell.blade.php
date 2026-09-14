@@ -148,7 +148,12 @@
         .ad-dl dt { color: var(--ad-muted); }
         .ad-dl dd { margin: 0; font-weight: 500; }
         @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } }
-    </style>
+            /* ⚠️⚠️ DEFINED, NOT ASSUMED. A visually-hidden label whose class is undefined does not hide
+           anything — it renders as stray text on the page. This shell had no `.vy-sr-only` while the
+           operator, owner and guest shells each define it, so a label placed here would have SHOWN.
+           Copied verbatim from those three: separate documents, one rule. */
+        .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+</style>
     <x-vy-scrollbar />
 </head>
 <body>

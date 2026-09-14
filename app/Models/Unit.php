@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Jobs\Billing\SyncSubscriptionQuantityJob;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
+use App\Support\Billing\BillableUnits;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -123,6 +125,51 @@ class Unit extends Model
     {
         return (bool) $this->is_active
             && ! in_array((string) $this->condition_status, self::UNBOOKABLE_CONDITIONS, true);
+    }
+
+    /**
+     * ⚠️⚠️ THE BILLING CHOKE POINT (F3, 2026-09-01) — the ONE place a unit-count change reaches billing.
+     *
+     * A per-unit subscription is charged a QUANTITY, and {@see BillableUnits::count()}
+     * derives that quantity from THESE rows. Until this hook existed, `syncSubscriptionQuantity()` was
+     * complete and had no caller at all: an org on a per-unit plan could add units forever and keep paying
+     * for its original count.
+     *
+     * ⚠️ WHY THE MODEL AND NOT THE THREE WRITERS. Three paths change the count today — the operator's
+     * `POST /units`, the operator approving an owner's unit request, and the owner's pause/resume toggle —
+     * and a call placed on each is the same defect in a new place the moment a fourth appears. Every one of
+     * them goes through an Eloquent write on THIS model, so the model is the only site that cannot be
+     * forgotten. ⚠️ Its one real blind spot is a mass `Unit::query()->update()`, which fires no events; the
+     * two that exist touch `owner_id` only and cannot move the count.
+     *
+     * ⚠️ `updated` IS FILTERED. A rename, a housekeeping-status change or an occupancy edit does not change
+     * what is billable, and dispatching on those would send Stripe a quantity it already has.
+     */
+    protected static function booted(): void
+    {
+        $sync = function (self $unit): void {
+            $organizationId = $unit->organization_id;
+
+            // Never an empty payload: `BelongsToOrganization` stamps this on create and THROWS without a
+            // tenant context, so a unit with no org cannot reach here — but a job keyed on '' would sync
+            // the wrong thing rather than nothing, which is the failure worth spending a branch on.
+            if ($organizationId !== '') {
+                SyncSubscriptionQuantityJob::dispatch($organizationId);
+            }
+        };
+
+        static::created($sync);
+        static::deleted($sync);     // soft-delete AND force-delete both fire this
+        static::restored($sync);
+
+        // Of this row's columns, only `is_active` moves the billable count. ⚠️ The count ALSO depends on the
+        // unit's property being live ({@see BillableUnits}), but that changes on the PROPERTY, which is why
+        // {@see Property::booted()} carries its own hook rather than this one trying to see across the FK.
+        static::updated(function (self $unit) use ($sync): void {
+            if ($unit->wasChanged('is_active')) {
+                $sync($unit);
+            }
+        });
     }
 
     public function inventoryBlocks(): HasMany

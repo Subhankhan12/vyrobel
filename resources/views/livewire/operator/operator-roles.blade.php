@@ -109,6 +109,11 @@
 
                         @if ($canEdit && ! $readOnly)
                             <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+                                {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do. --}}
+                                <label class="vy-field-label" for="perm_pw">Confirm with your password</label>
+                                <input id="perm_pw" type="password" name="current_password" class="vy-input"
+                                       autocomplete="current-password" required aria-label="Current password">
+                                @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 20px;">Save changes</button>
                             </div>
                         @else
@@ -153,18 +158,18 @@
                 </div>
 
                 {{-- New-role modal — honest (the back-office catalogue is fixed) --}}
-                <div x-show="newRoleOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="newRoleOpen = false">
-                    <div class="vy-card" style="max-width: 440px; width: 100%;">
-                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;">The role catalogue is fixed</h3>
+                <div x-show="newRoleOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="newRoleOpen = false" x-on:keydown.escape.window="newRoleOpen = false">
+                    <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="newRoleOpen" aria-labelledby="vy-dlg-operator-roles-newroleopen-2">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-newroleopen-2">The role catalogue is fixed</h3>
                         <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">Back-office roles are anchored to how the app grants access, so new roles aren't created here. Instead, <strong>edit an existing role's permissions</strong> above to shape exactly what its members can do — the toggles take effect immediately.</p>
                         <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="newRoleOpen = false">Got it</button></div>
                     </div>
                 </div>
 
                 {{-- Delete-role modal — honest --}}
-                <div x-show="deleteOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="deleteOpen = false">
-                    <div class="vy-card" style="max-width: 440px; width: 100%;">
-                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;">Roles can't be deleted here</h3>
+                <div x-show="deleteOpen" x-cloak style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" x-on:click.self="deleteOpen = false" x-on:keydown.escape.window="deleteOpen = false">
+                    <div class="vy-card" style="max-width: 440px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="deleteOpen" aria-labelledby="vy-dlg-operator-roles-deleteopen-1">
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 8px;" id="vy-dlg-operator-roles-deleteopen-1">Roles can't be deleted here</h3>
                         <p style="font-size: 13px; color: var(--vy-muted); line-height: 1.6; margin: 0 0 14px;">The back-office role catalogue is fixed. To take access away from a role, un-toggle its permissions above; to move a person off a role, revoke it from them in the assignment section — they keep their other roles.</p>
                         <div style="display: flex; justify-content: flex-end;"><button type="button" class="vy-btn vy-btn--accent" style="padding: 9px 16px;" x-on:click="deleteOpen = false">Got it</button></div>
                     </div>
@@ -196,11 +201,77 @@
                             </select>
                         </div>
                         @unless ($readOnly)
+                            {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do. --}}
+                            <label class="vy-field-label" for="assign_pw">Confirm with your password</label>
+                            <input id="assign_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                             <button type="submit" class="vy-btn vy-btn--accent" style="padding: 11px 18px;">Assign role</button>
                         @endunless
                     </div>
                     <div style="font-size: 11.5px; color: var(--vy-faint); margin-top: 9px;">Only roles whose access you already hold are listed — you can't grant more than your own.</div>
                 </form>
+
+                {{-- ── ⚠️ REVOKE A ROLE (M-14) — the control this page has always told operators to use ──────
+                     ⚠️ The page's own copy says "to move a person off a role, revoke it from them in the
+                     assignment section". Until 2026-08-30 no such control existed anywhere and the route was
+                     reachable only by a hand-made POST. This is that section.
+                     ⚠️ Gated exactly as the route is (`users.manage` → $canAssign) AND narrowed to the roles the
+                     actor may actually manage, so the UI never invites a refusal it could have predicted.
+                     ⚠️ NO JAVASCRIPT: the confirmation is a native <details>, so it works even where the page's
+                     Alpine does not, and a server-side test can read it. --}}
+                <div id="revoke" class="vy-card vy-fade" style="margin-top: 20px;">
+                    <h2 class="vy-card-title" style="margin-bottom: 4px;">Revoke a role</h2>
+                    <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 12px;">Removing a role takes access away immediately, and the person cannot undo it themselves. They keep any other roles they hold.</p>
+
+                    @forelse ($assignments as $holder)
+                        @php
+                            $rowKey = $holder['user_id'].'-'.\Illuminate\Support\Str::slug($holder['role']);
+                            $manageable = in_array($holder['role'], $assignableRoles, true);
+                        @endphp
+                        <div style="border-top: 1px solid var(--vy-hairline); padding: 10px 0; display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <div style="font-size: 13px; color: var(--vy-ink);">{{ $holder['name'] }}@if ($holder['is_self'])<span style="color: var(--vy-faint); font-size: 12px;"> · You</span>@endif</div>
+                                <div style="font-size: 11.5px; color: var(--vy-muted);">{{ $holder['role'] }}</div>
+                            </div>
+
+                            @if ($readOnly)
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">Your workspace is read-only right now.</span>
+                            @elseif ($holder['is_self'])
+                                {{-- ⚠️ The service refuses self-management outright; saying so beats a button that 
+                                     always fails. Same idiom as the property-scope editor. --}}
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">Ask another administrator to change your own roles.</span>
+                            @elseif (! $manageable)
+                                <span style="font-size: 11.5px; color: var(--vy-muted);">This role holds access you don't have yourself.</span>
+                            @else
+                                <details style="min-width: 260px;">
+                                    <summary style="cursor: pointer; font-size: 12px; font-weight: 600; color: rgb(150,50,42);">Revoke this role…</summary>
+                                    <form method="POST" action="{{ route('app.roles.revoke') }}" style="margin-top: 8px;">
+                                        @csrf
+                                        <input type="hidden" name="user_id" value="{{ $holder['user_id'] }}">
+                                        <input type="hidden" name="role" value="{{ $holder['role'] }}">
+                                        {{-- ⚠️ The confirmation names WHO loses WHAT — and nothing that doesn't exist. --}}
+                                        <p style="font-size: 12px; color: var(--vy-ink); line-height: 1.55; margin: 0 0 8px;">
+                                            <strong>{{ $holder['name'] }}</strong> will lose the <strong>{{ $holder['role'] }}</strong> role and everything it grants. They keep any other roles they hold.
+                                        </p>
+                                        {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do.
+                                             ⚠️ Per-ROW id — a fixed one would repeat down the page and every
+                                             row's <label for> would focus the first row's box (the defect the
+                                             team-scope editor shipped two passes ago). --}}
+                                        <label class="vy-field-label" for="revoke_pw_{{ $rowKey }}">Confirm with your password</label>
+                                        <input id="revoke_pw_{{ $rowKey }}" type="password" name="current_password" class="vy-input"
+                                               autocomplete="current-password" required aria-label="Current password">
+                                        <button type="submit" class="vy-btn" style="margin-top: 8px; padding: 8px 14px; font-size: 12px; color: rgb(150,50,42); border-color: rgba(180,68,58,.3);">Revoke {{ $holder['role'] }}</button>
+                                    </form>
+                                </details>
+                            @endif
+                        </div>
+                    @empty
+                        <div style="font-size: 12px; color: var(--vy-faint);">No one holds a back-office role yet.</div>
+                    @endforelse
+
+                    @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                </div>
             @endif
         @endif
 

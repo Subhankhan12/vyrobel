@@ -104,7 +104,7 @@ class ReservationFolioActionController extends Controller
 
         $minor = $this->parseAmountMinor($validated['amount']);
         if ($minor <= 0) {
-            return $this->back($model->id, 'Enter a charge amount greater than zero.');
+            return $this->back($model->id, 'Enter a charge amount greater than zero.', refused: true);
         }
 
         $folio = $folios->openFolio($model);
@@ -144,7 +144,7 @@ class ReservationFolioActionController extends Controller
             ->findOrFail((string) $request->input('payment'));
 
         if (! in_array($payment->status, ['succeeded', 'captured'], true) || ! in_array($payment->type, ['payment', 'capture'], true)) {
-            return $this->back($model->id, 'Only a settled payment can be refunded.');
+            return $this->back($model->id, 'Only a settled payment can be refunded.', refused: true);
         }
 
         // Refund what is genuinely LEFT, not blindly the original: FolioService bounds the CUMULATIVE total
@@ -153,7 +153,7 @@ class ReservationFolioActionController extends Controller
         $remaining = $folios->remainingRefundableMinor($payment);
 
         if ($remaining <= 0) {
-            return $this->back($model->id, 'That payment is already fully refunded.');
+            return $this->back($model->id, 'That payment is already fully refunded.', refused: true);
         }
 
         $raw = $request->input('amount');
@@ -163,7 +163,7 @@ class ReservationFolioActionController extends Controller
         $minor = $requested ? $this->parseAmountMinor($raw) : $remaining;
 
         if ($minor <= 0) {
-            return $this->back($model->id, 'Enter a refund amount greater than zero.');
+            return $this->back($model->id, 'Enter a refund amount greater than zero.', refused: true);
         }
 
         // #100 — the operator's reason (a chip label + optional note) + the destination, recorded on the refund
@@ -193,7 +193,7 @@ class ReservationFolioActionController extends Controller
 
             return $this->back($model->id, $left > 0
                 ? 'That refund was refused — only '.$this->majorUnits($left).' '.$payment->currency.' is still refundable against that payment.'
-                : 'That payment is already fully refunded.');
+                : 'That payment is already fully refunded.', refused: true);
         }
 
         return $this->back($model->id, 'Refund issued.');
@@ -249,9 +249,25 @@ class ReservationFolioActionController extends Controller
         return number_format($minor / 100, 2, '.', '');
     }
 
-    private function back(string $reservationId, string $notice): RedirectResponse
+    /**
+     * ⚠️⚠️ ONE FLASH KEY CARRIED BOTH OUTCOMES — that was the D4 defect, not the wording.
+     *
+     * `folio_notice` is read by three views, and every one of them hardcoded a CHECKMARK. So invariant
+     * #27 refusing an over-refund ("That refund was refused — only €X is still refundable") arrived under
+     * a green tick: a desk clerk reads the tick, tells the guest the money is on its way, or retries.
+     * ⚠️ THE MESSAGE WAS ALWAYS RIGHT. The outcome was simply never carried alongside it, so the view had
+     * nothing to render it from and guessed — always optimistically.
+     *
+     * ⚠️ `$refused` DEFAULTS TO FALSE so no existing success site changes meaning, and every refusal now
+     * passes it explicitly. Rendering happens in ONE place, `<x-operator.flash-notice>`; a second copy of
+     * "which icon means what" is how two screens come to disagree (§N.8f).
+     * ⚠️ NOTHING ABOUT THE REFUSAL LOGIC MOVES. This is presentation over a guard that already works.
+     */
+    private function back(string $reservationId, string $notice, bool $refused = false): RedirectResponse
     {
-        return redirect()->to(route('app.reservations.show', $reservationId))->with('folio_notice', $notice);
+        return redirect()->to(route('app.reservations.show', $reservationId))
+            ->with('folio_notice', $notice)
+            ->with('folio_refused', $refused);
     }
 
     /**
@@ -280,7 +296,7 @@ class ReservationFolioActionController extends Controller
         try {
             $accounts->bill($folio, $account);
         } catch (InvalidArgumentException $e) {
-            return $this->back($model->id, $e->getMessage());
+            return $this->back($model->id, $e->getMessage(), refused: true);
         }
 
         return $this->back($model->id, 'Billed to '.$account->name.'. The balance stays owed until they pay.');

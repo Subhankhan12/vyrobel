@@ -155,6 +155,23 @@
                         <span class="vy-card-note">occupancy · ADR · RevPAR · room revenue</span>
                     @endif
                 </div>
+                {{-- ⚠️⚠️ THE HOUSE SCROLL WRAPPER, AND IT IS THE FIX THE SHELL ASKED FOR BY NAME.
+                     `operator.blade.php:1694` records a `.vy-card:has(> .vy-table) { overflow-x: auto }`
+                     rule that cleared this page's 98px and was then WITHDRAWN, because making a whole card
+                     scroll sideways can push a card's action button out of reach — and that pass could not
+                     establish that none does. Its stated durable fix was "wrap that table in the house
+                     `.vy-utable-wrap`, as `/app/units` already does". That is this, and the shell rule is
+                     NOT restored.
+                     ⚠️ THE QUESTION THAT PASS COULD NOT ANSWER IS ANSWERED BY READING THE TABLE. Its five
+                     columns are Property · Occupancy · ADR · RevPAR · Room revenue and the `<tbody>` below
+                     holds no `<button>`, no `<a>` and no control of any kind — the far edge is a NUMBER.
+                     Nothing can be pushed out of reach because there is nothing there to push. The card's
+                     own action ("Full report ›", :153) sits in the header ABOVE this wrapper and does not
+                     move.
+                     ⚠️ `.vy-utable-wrap` only supplies `overflow-x: auto`; the `min-width: 720px` floor
+                     belongs to `.vy-utable`, which this table does not carry. So the table keeps its own
+                     434px width and simply scrolls when the page is narrower than that. --}}
+                <div class="vy-utable-wrap">
                 <table class="vy-table">
                     <thead><tr><th>Property</th><th class="vy-num">Occupancy</th><th class="vy-num">ADR</th><th class="vy-num">RevPAR</th><th class="vy-num">Room revenue</th></tr></thead>
                     <tbody>
@@ -183,6 +200,7 @@
                         @endif
                     </tbody>
                 </table>
+                </div>
             </div>
         @endif
 
@@ -190,7 +208,7 @@
         @if ($canManage)
             <div class="vy-modal-backdrop" x-cloak x-show="addOpen" x-transition.opacity
                  @keydown.escape.window="addOpen = false" @click.self="addOpen = false">
-                <div class="vy-modal" x-show="addOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-add-title">
+                <div class="vy-modal" x-show="addOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-add-title" tabindex="-1" x-trap.noscroll="addOpen">
                     <form method="POST" action="{{ route('app.portfolio.store') }}">
                         @csrf
                         <input type="hidden" name="_form" value="add">
@@ -271,7 +289,7 @@
             {{-- EDIT PROPERTY modal --}}
             <div class="vy-modal-backdrop" x-cloak x-show="editOpen" x-transition.opacity
                  @keydown.escape.window="editOpen = false" @click.self="editOpen = false">
-                <div class="vy-modal" x-show="editOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-edit-title">
+                <div class="vy-modal" x-show="editOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-edit-title" tabindex="-1" x-trap.noscroll="editOpen">
                     <form method="POST" action="{{ route('app.portfolio.update') }}">
                         @csrf
                         <input type="hidden" name="property_id" :value="editing.id">

@@ -270,6 +270,21 @@ class FakeStripeClient implements StripeClientInterface
         return new StripeConnectAccount($id, false);
     }
 
+    /**
+     * ⚠️⚠️ FAILS CLOSED, exactly as `retrieveConnectAccount` does with its `?? false`. An unregistered
+     * subscription returns NULL — it does not synthesise one. A fake that invented a plausible subscription
+     * would let a test pass against data nobody wrote, which is the `FakeChannexClient` lesson applied
+     * where failing open is not acceptable: this fake stands in on a CHARGING path.
+     *
+     * @var array<string, StripeSubscription>
+     */
+    public array $subscriptions = [];
+
+    public function retrieveSubscription(string $subscriptionId): ?StripeSubscription
+    {
+        return $this->subscriptions[$subscriptionId] ?? null;
+    }
+
     public function retrieveConnectAccount(string $accountId): StripeConnectAccount
     {
         // ⚠️ CONNECT PHASE 1 — the fake models the THREE Stripe facts separately so a test can prove that a

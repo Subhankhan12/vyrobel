@@ -77,6 +77,17 @@ function pxTextIsSane(): bool
     return str_contains(pxText($sample), 'KEEP') && ! str_contains(pxText($sample), 'var x');
 }
 
+/**
+ * ⚠️⚠️ EVERY PLAN READ IN THIS FILE IS `Plan::query()`, DELIBERATELY — NOT `withoutGlobalScopes()`.
+ *
+ * The bare form drops the `SoftDeletingScope` along with the tenant one, so these reads counted SOFT-DELETED
+ * plans. That was demonstrated, not argued: with EVERY plan trashed, the vacuity floor below still passed —
+ * a floor satisfiable by rows the page will never render is not a floor.
+ *
+ * ⚠️ And `MarketingPricing` was itself changed to `Plan::query()` (docs/SOFT-DELETE-SCOPE.md, site 1). A test
+ *    reading a WIDER set than the code it checks is the two-sources-drift hazard that fix removed, rebuilt
+ *    on the test side.
+ */
 it('PROVES the HTML stripper keeps the page body (the helper\'s own vacuity check)', function () {
     // ⚠️ EVERY ASSERTION IN THIS FILE READS `pxText()` OUTPUT, so a stripper that removes too much makes
     // every one of them vacuous — and that is not hypothetical: the first version swallowed the whole body
@@ -123,7 +134,7 @@ it('⚠️ shows no subscription price the billing engine would not charge', fun
     // into the allow-list for every flat plan, so a page showing a price of zero would have passed. A
     // subscription price of nothing is not a price the engine charges — it is a binding that resolved to
     // nothing, which is precisely the failure mode worth catching.
-    $allowed = collect(Plan::withoutGlobalScopes()->get())
+    $allowed = collect(Plan::query()->get())
         ->flatMap(fn (Plan $p): array => [
             (int) $p->price_minor,
             (int) ($p->unit_rate_minor ?? 0),
@@ -242,7 +253,7 @@ it('PROVES the price guard reads real, non-empty sources', function () {
     // ⚠️ TWO WAYS THIS GUARD COULD BE VACUOUS, both checked here rather than assumed:
     //   (a) no plans configured  ⇒ `$allowed` is empty and every page trivially "matches"
     //   (b) no price nodes render ⇒ the foreach never executes
-    expect(Plan::withoutGlobalScopes()->count())->toBeGreaterThan(0,
+    expect(Plan::query()->count())->toBeGreaterThan(0,
         'no plan rows exist, so the price guard has nothing to compare against');
 
     $html = pxText($this->get('/pricing')->assertOk()->getContent());
@@ -251,7 +262,7 @@ it('PROVES the price guard reads real, non-empty sources', function () {
 
     // ⚠️ And the allow-list must not be so wide it accepts anything — a real page price is in it, an
     // invented one is not.
-    $allowed = collect(Plan::withoutGlobalScopes()->get())
+    $allowed = collect(Plan::query()->get())
         ->map(fn (Plan $p): string => number_format(((int) $p->price_minor) / 100, 2))->unique()->all();
     expect($allowed)->toContain('49.00')->and($allowed)->not->toContain('79.00');
 });
@@ -264,7 +275,7 @@ it('⚠️⚠️ offers no currency the billing engine cannot charge — and no 
     // ⚠️ AND THE BUTTONS DID NOTHING. Their `sc-camel-on-click` handlers are stripped with the prototype
     //    runtime, so the rendered page had five dead buttons and zero script tags. An inert control is
     //    worse than an absent one: it ANSWERS the question — it says the product is sold in pounds.
-    $currencies = Plan::withoutGlobalScopes()->distinct()->pluck('currency')
+    $currencies = Plan::query()->distinct()->pluck('currency')
         ->filter()->map(fn ($c): string => strtoupper((string) $c))->all();
 
     // ⚠️ NOT VACUOUS: the engine must actually define a currency, or "no foreign currency appears" is

@@ -8,6 +8,7 @@ use App\Livewire\Owner\Concerns\FormatsOwnerData;
 use App\Models\Payout;
 use App\Models\User;
 use App\Support\Maintenance\MaintenanceSla;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Reports\OperatorRevenueBreakdown;
 
 /**
@@ -73,14 +74,10 @@ trait FormatsOperatorData
         return $n === null ? null : ($n > 0 ? 'up' : ($n < 0 ? 'down' : 'flat'));
     }
 
+    /** The ONE symbol map lives in {@see MoneyFormatter::symbol()} — never a second copy (§N.8f). */
     protected function currencySymbol(string $currency): string
     {
-        return match (strtoupper($currency)) {
-            'EUR' => '€',
-            'GBP' => '£',
-            'USD' => '$',
-            default => strtoupper($currency).' ',
-        };
+        return MoneyFormatter::symbol($currency);
     }
 
     /**

@@ -39,6 +39,8 @@ class OperatorRoles extends Component
             'matrix' => $user !== null ? $perms->matrix($user) : ['roles' => [], 'sections' => [], 'permissions' => [], 'lockable' => []],
             'members' => $roles->orgMembers(),
             'assignableRoles' => $user !== null ? $roles->assignableRolesFor($user) : [],
+            // ⚠️ M-14 — the data behind the REVOCATION control the page has always told operators to use.
+            'assignments' => $user !== null ? $roles->currentAssignments($user) : [],
             'canEdit' => $canEdit,
             'canAssign' => (bool) $user?->can('users.manage'),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),

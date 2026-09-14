@@ -18,6 +18,7 @@ use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasskeyController;
 use App\Http\Controllers\Auth\PasskeyLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\BookingEngineController;
@@ -245,6 +246,20 @@ Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:l
 Route::get('/signup', [OnboardingController::class, 'create'])->name('signup');
 Route::post('/signup', [OnboardingController::class, 'store'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+/*
+ * ⚠️⚠️ SOCIAL SIGN-IN (Google, operator realm) — PUBLIC, and OFF ENTIRELY UNTIL THE FOUNDER CONFIGURES THE
+ * CONSOLE CREDENTIALS. Both endpoints 404 while `services.google.client_id`/`client_secret` are empty, which
+ * is the state that ships today: no button, no route, no error page. The check lives in the controller
+ * rather than here, so a cached route table cannot outlive the credentials that justified it.
+ *
+ * ⚠️ The matching rule is NOT in this file and NOT in the controller — see App\Support\Auth\SocialLinking.
+ * A returning user is matched on (provider, provider_user_id) and NEVER on their email address.
+ */
+Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToProvider'])
+    ->middleware('throttle:10,1')->name('social.google.redirect');
+Route::get('/auth/google/callback', [SocialAuthController::class, 'callback'])
+    ->middleware('throttle:10,1')->name('social.google.callback');
 
 /*
  * Notification mark-read writes (Phase 3) — shared by the operator + owner feeds. Behind `auth` only (both
@@ -834,6 +849,15 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
         ->middleware('can:units.manage')->name('inventory.room-types.store');
     Route::post('/units', [InventoryActionController::class, 'storeUnit'])
         ->middleware('can:units.manage')->name('inventory.units.store');
+    // ⚠️ F-6 — a unit could be created and never changed or taken out of service. Both carry the SAME gate
+    // as creating one (`units.manage`, held by Super Admin / Property Owner / Group Admin / Hotel Manager),
+    // because changing inventory and adding it are the same authority. ⚠️ There is deliberately NO delete
+    // route: a hard delete would CASCADE the append-only `unit_status_logs` and SET NULL on `owner_ledger`
+    // and `reservation_units` — orphaning money and a sold stay's frozen price. See docs/UNIT-LIFECYCLE.md.
+    Route::put('/units/{unit}', [InventoryActionController::class, 'updateUnit'])
+        ->middleware('can:units.manage')->name('inventory.units.update');
+    Route::post('/units/{unit}/active', [InventoryActionController::class, 'setUnitActive'])
+        ->middleware('can:units.manage')->name('inventory.units.active');
     // Operator Channels exact-match — the OTA channel-manager surface. Pro-gated (`plan.feature:channels` →
     // an Essential org gets the honest "not in your plan" page). HONEST-GATED: real channel STATE, but live
     // OTA two-way sync/import is account-gated (no real Channex integration) — never a fabricated sync.
@@ -852,7 +876,18 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // to store a price, which RateActionController could report but not remedy.
     Route::post('/rates/plans', [InventoryActionController::class, 'storeRatePlan'])
         ->middleware('can:rates.manage')->name('inventory.rate-plans.store');
-    // #100 — bulk edit (increase%/decrease%/set-exact across units/nights, skip booked, update derived plans).
+
+    // ⚠️ F-6's SIBLING — a rate plan could be created and never edited or taken off sale. Same gate as
+    // creating one (`rates.manage`). ⚠️ THERE IS DELIBERATELY NO DELETE ROUTE, and the reason is measured:
+    // `rate_calendar` CASCADES on a plan delete — 929 nightly prices destroyed — and NOTHING RECORDS WHAT A
+    // RATE ROW REPLACED (no prior-value column, no snapshot table, `before` null at all eleven rate-path
+    // audit sites), so it could never be undone. It would also SET NULL on 42 `reservation_units`, strip 3
+    // room types of their default plan, and leave derived plans holding an adjustment with no basis —
+    // a percentage of nothing. See docs/RATE-PLAN-LIFECYCLE.md.
+    Route::put('/rates/plans/{ratePlan}', [InventoryActionController::class, 'updateRatePlan'])
+        ->middleware('can:rates.manage')->name('inventory.rate-plans.update');
+    Route::post('/rates/plans/{ratePlan}/active', [InventoryActionController::class, 'setRatePlanActive'])
+        ->middleware('can:rates.manage')->name('inventory.rate-plans.active');    // #100 — bulk edit (increase%/decrease%/set-exact across units/nights, skip booked, update derived plans).
     Route::post('/rates/bulk', [RateActionController::class, 'bulkApply'])->middleware('can:rates.manage')->name('rates.bulk');
 
     // D18-5 — BULK PER-UNIT overrides. ⚠️ TWO POSTS ON PURPOSE: `preview` writes NOTHING and returns the exact
@@ -868,6 +903,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // whole range, which is a revenue action, not a front-desk one.
     Route::post('/seasons', [SeasonActionController::class, 'store'])->middleware('can:rates.manage')->name('seasons.store');
     Route::post('/seasons/{season}/apply', [SeasonActionController::class, 'apply'])->middleware('can:rates.manage')->name('seasons.apply');
+    // ⚠️ EDIT AND DELETE — same gate as create and apply (`rates.manage`), because both change what a guest
+    //    would be quoted. ⚠️ Editing is refused once a season is APPLIED: applying overwrote the nightly
+    //    rates and nothing recorded what they were, so an "edit" could not put them back. See
+    //    docs/SEASON-EDIT-DELETE.md — an applied season is superseded, never edited.
+    Route::put('/seasons/{season}', [SeasonActionController::class, 'update'])->middleware('can:rates.manage')->name('seasons.update');
+    Route::delete('/seasons/{season}', [SeasonActionController::class, 'destroy'])->middleware('can:rates.manage')->name('seasons.destroy');
 
     // RATE PROPOSALS (Wave C · GATE 1) — the operator proposes a rate change to an owner (who approves/declines in
     // their portal) + may withdraw a pending one. `rates.manage` (#30, NOT Front Desk); integer money server-side.
@@ -980,6 +1021,14 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/security/ip-rules', [OperatorSecurityController::class, 'addIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.add');
     Route::delete('/security/ip-rules/{rule}', [OperatorSecurityController::class, 'removeIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.remove');
     Route::post('/security/trusted-devices/revoke', [OperatorSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:6,1')->name('security.trusted.revoke');
+
+    // ⚠️ CONNECTED SIGN-IN ACCOUNTS — self-only, and linking is reachable ONLY from an authenticated session:
+    //    being signed in is the proof that a matching email address can never be. The unlink floor (a user
+    //    must always keep one usable credential) is enforced in the controller, not in the screen.
+    Route::post('/security/connections/google', [SocialAuthController::class, 'redirectToLink'])
+        ->middleware('throttle:10,1')->name('security.connections.link');
+    Route::post('/security/connections/{identity}/unlink', [SocialAuthController::class, 'unlink'])
+        ->middleware('throttle:10,1')->name('security.connections.unlink');
     Route::get('/security/export', [OperatorSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
     // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
     // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
@@ -1144,14 +1193,17 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // no-show). POST → controller → AssignmentService (the single guarded inventory write path, which
     // frees `sold`, writes reservation_status_history and emits the domain event) → PRG.
     //
-    // ⚠️ THE STATUS GUARD LIVES IN THE CONTROLLER, and that is NOT the usual pattern — read before moving
-    // it. `AssignmentService::terminate()` has NO status guard: re-cancelling an already-cancelled
-    // reservation does not throw, it silently OVERWRITES `cancelled_at`/`cancellation_reason` (destroying
-    // the provenance the terminal panel renders) and appends a junk `cancelled → cancelled` row to the
-    // append-only audit trail. Proven empirically — see docs/DECISIONS.md 2026-07-16. So
-    // ReservationLifecycleController::CANCELLABLE / ::NO_SHOWABLE are load-bearing, not cosmetic, and the
+    // ⚠️ THE STATUS BOUND EXISTS IN BOTH LAYERS, and the controller's copy is the SURFACE half.
+    // `AssignmentService::terminate()` DOES guard its source state: it throws
+    // ReservationAlreadyTerminalException when the reservation is already in TERMINAL_STATUSES
+    // (cancelled / no_show / checked_out), BEFORE the transaction opens, so a rejected call touches no
+    // inventory. That is shipped invariant #29 in CLAUDE.md, and the method carries its own @throws.
+    // ⚠️ This comment previously stated the OPPOSITE — that terminate() had no guard and that adding one
+    // was "outstanding" — which was false and sat exactly where an engineer reads before touching the
+    // reservation lifecycle (audit F-19). Corrected 2026-09-13 against the code, not against memory.
+    // ReservationLifecycleController::CANCELLABLE / ::NO_SHOWABLE remain load-bearing: they bound WHICH
+    // source states the UI offers, which is a narrower question than "is this already terminal", and the
     // component gates its buttons off those same constants so the UI cannot offer what the write refuses.
-    // The proper fix is a guard inside terminate() itself (a service change — recorded as outstanding).
     // The controller's `catch (RuntimeException)` is still real: releaseLine() → lockAvailability() can
     // throw inside the transaction, and the rollback is total.
     Route::post('/reservations/{reservation}/cancel', [ReservationLifecycleController::class, 'cancel'])

@@ -22,8 +22,6 @@
     canonical="/integrations">
 <div data-screen-label="Marketing — Integrations" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 74px 28px 54px;">

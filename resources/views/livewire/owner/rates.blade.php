@@ -11,6 +11,14 @@
            tokens — 21 measured AA failures, the worst of the owner realm so far, on the copy that explains
            what the guardrail actually does. All moved to --vy-muted (4.80-6.76 across this page's
            sampled backgrounds; the old pair measured 1.89-3.74). */
+        /* ⚠️⚠️ WAS AN INLINE `grid-template-columns: 1fr 1fr 1fr` (twice) — `minmax(auto, 1fr)`, a
+           min-content floor, and 232px of sideways scroll: the worst of the twelve.
+           ⚠️ THESE ARE CONTROLS, AND ONE OF THEM SETS A REAL NIGHTLY RATE. So they STACK on a phone
+           rather than sit in a scroller: three date/number inputs at ~105px each are not fillable, and a
+           control a thumb has to scroll to find is the failure the portfolio fix was withdrawn over.
+           ⚠️ NOTHING ABOUT THE INPUTS CHANGED — no name, no id, no posted key. Only the container. */
+        .vy-rt-fieldrow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:10px; }
+        @media (max-width:700px) { .vy-rt-fieldrow { grid-template-columns:minmax(0,1fr); } }
         .vy-rt-card { background:rgba(255,252,248,.58); backdrop-filter:blur(22px) saturate(1.15); border:1px solid rgba(255,255,255,.75); border-radius:20px; box-shadow:0 14px 40px rgba(150,90,50,.16), inset 0 1px 0 rgba(255,255,255,.65); padding:22px 24px; }
         /* The wireframe's two columns — a wide "decide" column and a narrower "constrain/context" rail.
            Its own flex values: the main column grows aggressively (999) from a 360px basis, the rail from
@@ -97,12 +105,13 @@
                     <form method="POST" action="{{ route('owner.rate-proposals.counter', $p['id']) }}" x-show="counter" x-cloak style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
                         @csrf
                         <div style="flex:1;min-width:150px">
-                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Your counter · € / night</div>
-                            <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
+                            <div class="vy-rt-eyebrow" style="margin-bottom:6px">Your counter · {{ $currencySymbol }} / night</div>
+                            <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><input id="vy-lbl-rates-counter-rate" type="text" inputmode="decimal" name="counter_rate" required placeholder="e.g. 450" maxlength="12"></div>
                         </div>
                         <div style="flex:2;min-width:180px">
                             <div class="vy-rt-eyebrow" style="margin-bottom:6px">Note <span style="text-transform:none;letter-spacing:0;color:var(--vy-faint)">· optional</span></div>
-                            <div class="vy-rt-in"><input type="text" name="counter_note" placeholder="Why this rate" maxlength="500"></div>
+                            <div class="vy-rt-in"><label class="vy-sr-only" for="vy-lbl-rates-counter-note">Why this rate</label>
+<input id="vy-lbl-rates-counter-note" type="text" name="counter_note" placeholder="Why this rate" maxlength="500"></div>
                         </div>
                         <button type="submit" class="vy-rt-btn vy-rt-approve" style="background:linear-gradient(140deg,#E8703A,#C2410C)">Send counter</button>
                     </form>
@@ -194,11 +203,13 @@
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px">
                     <div>
                         <div class="vy-rt-eyebrow" style="margin-bottom:7px">Floor / night</div>
-                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="min" maxlength="12"></div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-floor">min</label>
+<input id="vy-lbl-rates-floor" type="text" inputmode="decimal" name="floor" value="{{ $guardrail['floor'] }}" placeholder="min" maxlength="12"></div>
                     </div>
                     <div>
                         <div class="vy-rt-eyebrow" style="margin-bottom:7px">Ceiling / night</div>
-                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">€</span><input type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="max" maxlength="12"></div>
+                        <div class="vy-rt-in"><span style="color:var(--vy-muted)">{{ $currencySymbol }}</span><label class="vy-sr-only" for="vy-lbl-rates-ceiling">max</label>
+<input id="vy-lbl-rates-ceiling" type="text" inputmode="decimal" name="ceiling" value="{{ $guardrail['ceiling'] }}" placeholder="max" maxlength="12"></div>
                     </div>
                 </div>
 
@@ -237,7 +248,7 @@
             <p style="font-size:12px;color:var(--vy-muted);margin:6px 0 14px">You can also set your own rate directly — it goes live immediately (no sign-off), for every unit in the room type.</p>
             <form method="POST" action="{{ route('owner.rates.apply') }}">
                 @csrf
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+                <div class="vy-rt-fieldrow">
                     <div class="vy-field" style="margin:0">
                         <label class="vy-field-label" for="room_type_id">Room type</label>
                         <select id="room_type_id" name="room_type_id" class="vy-input" required @change="prefill($event.target.value)">
@@ -247,13 +258,13 @@
                     <div class="vy-field" style="margin:0"><label class="vy-field-label" for="start_date">From</label><input id="start_date" type="date" name="start_date" value="{{ old('start_date', $from) }}" class="vy-input" required></div>
                     <div class="vy-field" style="margin:0"><label class="vy-field-label" for="end_date">To</label><input id="end_date" type="date" name="end_date" value="{{ old('end_date', $to) }}" class="vy-input" required></div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="rate">Nightly rate (€)</label><input id="rate" type="text" inputmode="decimal" name="rate" x-model="rate" placeholder="e.g. 175" class="vy-input" required></div>
+                <div class="vy-rt-fieldrow">
+                    <div class="vy-field" style="margin:0"><label class="vy-field-label" for="rate">Nightly rate ({{ $currencySymbol }})</label><input id="rate" type="text" inputmode="decimal" name="rate" x-model="rate" placeholder="e.g. 175" class="vy-input" required></div>
                     <div class="vy-field" style="margin:0"><label class="vy-field-label" for="weekend_uplift">Weekend uplift (%)</label><input id="weekend_uplift" type="text" inputmode="numeric" name="weekend_uplift" x-model="weekend" placeholder="0" class="vy-input"></div>
                     <div class="vy-field" style="margin:0"><label class="vy-field-label" for="min_stay">Min stay (nights)</label><input id="min_stay" type="text" inputmode="numeric" name="min_stay" x-model="min" placeholder="blank" class="vy-input"></div>
                 </div>
                 <div x-show="weekend > 0 && Number(rate) > 0" x-cloak class="vy-line-sub" style="font-size:12px;margin:0 0 12px;color:var(--vy-ink)">
-                    Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="'€' + Math.round(Number(rate) * (1 + Number(weekend)/100))"></strong> / night; weekdays stay <span x-text="'€' + rate"></span>.
+                    Fri &amp; Sat nights become <strong style="color:var(--vy-accent)" x-text="@js($currencySymbol) + Math.round(Number(rate) * (1 + Number(weekend)/100))"></strong> / night; weekdays stay <span x-text="@js($currencySymbol) + rate"></span>.
                 </div>
                 <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Update rate</button>
             </form>

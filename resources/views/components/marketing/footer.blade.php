@@ -33,7 +33,7 @@
                 <div class="vy-mk-notes-label">Operator notes, monthly</div>
                 {{-- ⚠️ Engine-less → disabled + honest (#39). No form, no action, nothing pretends to submit. --}}
                 <div class="vy-mk-notes-row">
-                    <input type="email" placeholder="you@property.com" disabled aria-disabled="true" title="Coming soon">
+                    <input id="vy-lbl-footer-you-property-com" type="email" placeholder="you@property.com" disabled aria-disabled="true" title="Coming soon">
                     <button type="button" disabled aria-disabled="true">Join</button>
                 </div>
                 <div class="vy-mk-notes-soon">Coming soon &mdash; sign-up isn&rsquo;t wired up yet.</div>

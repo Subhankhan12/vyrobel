@@ -120,13 +120,14 @@
         </div>
 
         {{-- Sign-out-others confirm (current password — a real session revocation) --}}
-        <div x-show="signOutOpen" x-cloak class="vyp-scrim" @click.self="signOutOpen = false">
-            <div class="vyp-modal">
-                <h2 class="vy-card-title">Sign out of all other devices</h2>
+        <div x-show="signOutOpen" x-cloak class="vyp-scrim" @click.self="signOutOpen = false" x-on:keydown.escape.window="signOutOpen = false">
+            <div class="vyp-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="signOutOpen" aria-labelledby="vy-dlg-operator-profile-signoutopen-1">
+                <h2 class="vy-card-title" id="vy-dlg-operator-profile-signoutopen-1">Sign out of all other devices</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">This ends every session except this one. Confirm your password.</p>
                 <form method="POST" action="{{ route('app.profile.sign-out-others') }}">
                     @csrf
-                    <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required>
+                    <label class="vy-sr-only" for="vy-lbl-operator-profile-current-password">Current password</label>
+                    <input id="vy-lbl-operator-profile-current-password" type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
                         <button type="button" class="vy-btn vy-btn--ghost" x-on:click="signOutOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Sign out others</button>

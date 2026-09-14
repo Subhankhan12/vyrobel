@@ -46,6 +46,16 @@ return [
     | Use '*' when the app is only reachable through the load balancer, or a comma-separated list of
     | proxy addresses/CIDRs.
     |
+    | ⚠️ TRUSTING A PROXY ALSO TRUSTS `X-Forwarded-Host` (see AppServiceProvider's header mask). Before
+    | audit H-1 that was a real hole: emailed links were built from the request host, so a spoofed
+    | forwarded host put an attacker's domain — and a live reset TOKEN — into a victim's email. Two
+    | controls now make '*' safe on that axis: the root URL is forced from APP_URL (so no request can
+    | choose the host of a generated link), and `trustHosts()` refuses an unexpected Host outright.
+    |
+    | ⚠️ THE ORIGINAL CAVEAT STILL STANDS AND IS THE LOAD-BEARING ONE: '*' is only safe when the app is
+    | genuinely unreachable except through the balancer. If a client can reach PHP directly, '*' still
+    | lets it spoof `X-Forwarded-For` — which is the operator IP allowlist and per-IP rate limiting.
+    |
     */
 
     'trusted_proxies' => (string) env('TRUSTED_PROXIES', ''),

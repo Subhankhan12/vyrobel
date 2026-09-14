@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\OrganizationScope;
 use App\Support\Billing\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -81,7 +82,7 @@ class Organization extends Model
      */
     public function currentSubscription(): ?Subscription
     {
-        return Subscription::withoutGlobalScopes()
+        return Subscription::withoutGlobalScopes([OrganizationScope::class])
             ->where('organization_id', $this->id)
             ->latest()
             ->first();

@@ -14,7 +14,7 @@
 
     Page-scoped CSS (.vy-bl-*) lives here. RAW-BLADE RULE: every `@` follows a space, newline or tag.
 --}}
-<x-owner.shell active="balance" title="Balance & withdrawals" :subtitle="'What’s cleared, what’s held, and where every euro is on its way to.'" :viewer="$viewer">
+<x-owner.shell active="balance" title="Balance & withdrawals" :subtitle="'What’s cleared, what’s held, and where every payment is on its way to.'" :viewer="$viewer">
     <style>
         .vy-bl-kpi--hold { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, .1); }
         /* ⚠️ On this tint NO grey token clears AA (--vy-on-grad tops out at 4.31), so the label and

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Reservations;
 
 use App\Exceptions\Folio\OutstandingBalanceException;
+use App\Listeners\GenerateDepartureCleanTask;
 use App\Models\Folio;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
@@ -18,6 +19,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Checks a reservation out. This is a pure reservation STATE transition — it does NOT touch
@@ -48,6 +50,10 @@ class CheckOutReservation
         if ($reservation->status === 'checked_out') {
             return $reservation; // idempotent
         }
+
+        // ⚠️ THE STATUS BOUND RUNS FIRST — before the money guard. A cancelled booking must be refused as
+        // cancelled, not reported as having an outstanding balance, and no side effect may fire either way.
+        $this->assertTransition($reservation);
 
         $this->assertFolioSettledOrBilled($reservation, $overrideReason, $overrideNote);
 
@@ -154,5 +160,43 @@ class CheckOutReservation
             (string) $folio->currency,
             MoneyFormatter::display($balance, (string) $folio->currency),
         );
+    }
+
+    /**
+     * ⚠️ THE LADDER'S BOUND (F-18) — see {@see CheckInReservation::assertTransition()} for the derivation.
+     *
+     * ⚠️⚠️ `confirmed` IS PERMITTED HERE, AND THAT IS A CORRECTION FORCED BY EVIDENCE, NOT A CONVENIENCE.
+     * Phase 9 reported `confirmed → checked_out` as half of F-18. It is not illegal: 🔬 `DemoSeeder` performs
+     * it TWICE through this very action (:605 the past review stay, :700 the walk-in), never checking in
+     * first — so it is a transition THE PRODUCT PERFORMS. A first map that refused it reddened 41 tests across
+     * five certified suites and **broke `migrate:fresh --seed`**. ⚠️ The guard was NOT widened to green those
+     * tests; the map was re-derived after checking a source the first derivation missed. ⚠️ Whether an express
+     * checkout with no arrival record SHOULD be legal is a founder ruling — docs/STATUS-LADDERS.md R4.
+     *
+     * ⚠️ What stays refused is the dangerous half: `cancelled`, `no_show` and (via the idempotent return)
+     * a second `checked_out` — the states AssignmentService::TERMINAL_STATUSES already declares final.
+     *
+     * ⚠️⚠️ THIS ONE HAS SIDE EFFECTS AND THE CHECK-IN ONE DOES NOT, which is why it sits above every other
+     * statement in `handle()`. 🔬 MEASURED by running an illegal checkout with this guard removed (on a
+     * `cancelled` reservation): a departure housekeeping task was created, the unit flipped `clean → dirty`
+     * ({@see GenerateDepartureCleanTask}), and 2 in-app notification rows were written. 🔬 No money and no
+     * availability moved — neither action touches AssignmentService — which confirms Phase 9's money answer.
+     *
+     * ⚠️ THE REVIEW EMAIL IS A REACHABLE PATH THE FIXTURE DID NOT EXERCISE, and the distinction matters.
+     * `SendGuestTransactionalEmails::reviewRequest()` is wired to `reservation.checked_out` and gated ONLY on
+     * the org's `review-request` template being enabled and the guest's own `reviews` preference — NEITHER of
+     * which is a status check. 🔬 It queued 0 mailables in the probe (one of those switches was closed in the
+     * fixture), so it is NOT claimed here as having fired; in production with both open, an illegal checkout
+     * would ask a guest to review a stay that never happened, and an email cannot be recalled.
+     */
+    private const ALLOWED_FROM = ['checked_in', 'confirmed'];
+
+    private function assertTransition(Reservation $reservation): void
+    {
+        $from = (string) $reservation->status;
+
+        if (! in_array($from, self::ALLOWED_FROM, true)) {
+            throw new RuntimeException("Cannot check out a {$from} reservation.");
+        }
     }
 }

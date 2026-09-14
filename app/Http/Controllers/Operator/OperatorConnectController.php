@@ -28,7 +28,7 @@ class OperatorConnectController extends Controller
     public function start(Request $request, OperatorConnectService $connect): RedirectResponse
     {
         $organizationId = app(TenantContext::class)->id();
-        $organization = Organization::withoutGlobalScopes()->findOrFail($organizationId);
+        $organization = Organization::query()->findOrFail($organizationId);
 
         try {
             $url = $connect->startOnboarding(

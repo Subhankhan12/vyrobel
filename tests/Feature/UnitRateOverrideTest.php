@@ -6,6 +6,7 @@ use App\Models\UnitRateOverride;
 use App\Services\RateAndRestrictionService;
 use App\Support\Money\Money;
 use App\Support\Pricing\NightlyRate;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -132,16 +133,40 @@ it('refuses a duplicate override for the same unit and night', function () {
 });
 
 // ── 6. ⚠️ THE OVERRIDE IS TENANT-SCOPED like every other business row ─────────────────────────────
+//
+// ⚠️⚠️ THIS TEST WAS SKIPPED ON A FALSE JUSTIFICATION (audit 2026-08-29 · H-5). The skip read
+// "covered by the shared BelongsToOrganization suite" — but TenantIsolationTest names FIVE models
+// (Guest, Property, Reservation, ReservationUnit, Unit) while NINETY-SEVEN carry the trait, and
+// `unit_rate_overrides` is not among the five. Verified by grepping the whole test tree: NOTHING
+// anywhere asserted cross-org scoping for this table.
+//
+// ⚠️ THAT TABLE HOLDS `price_minor`. An unscoped read is another operator's PRICING.
+//
+// ⚠️ The original skip's stated reason was real, though its conclusion was not: seedScenario() sets the
+// tenant context as a side effect, so "switch org by seeding another" is ambiguous about which context
+// is live at assert time. Fixed by setting the context EXPLICITLY — the ambiguity was in the fixture,
+// never in the boundary.
 it('scopes overrides to the organization', function () {
     $f = uroFixture();
-    uroOverride($f, $f['a'], URO_UNIT_PRICE);
+    $override = uroOverride($f, $f['a'], URO_UNIT_PRICE);
 
-    $other = seedScenario(1);   // a second tenant
+    $other = seedScenario(1);                                  // a genuinely separate tenant
 
-    // The global scope means the other org simply cannot see it.
+    // ⚠️ EXPLICIT, not implied: act as org B.
+    app(TenantContext::class)->set((string) $other['org']->id);
+
+    // Org B cannot see org A's override…
     expect(UnitRateOverride::query()->count())->toBe(0)
-        ->and((int) DB::table('unit_rate_overrides')->count())->toBe(1);   // …but it does exist, raw
-})->skip('scenario switching resolves tenant context per seed — covered by the shared BelongsToOrganization suite');
+        ->and(UnitRateOverride::query()->find($override->id))->toBeNull();
+
+    // …and the row genuinely exists — so the 0 above is the SCOPE, not an empty table.
+    // (An empty result from a filtered query is not an absence — §N.27.7.)
+    expect((int) DB::table('unit_rate_overrides')->count())->toBe(1);
+
+    // Back in org A it is visible again — proving the scope is a boundary, not a black hole.
+    app(TenantContext::class)->set((string) $f['s']['org']->id);
+    expect(UnitRateOverride::query()->count())->toBe(1);
+});
 
 // ── 7. ⚠️ THE MIGRATION IS REVERSIBLE WITH ZERO LOSS TO EXISTING PRICES ───────────────────────────
 it('leaves every type price intact when the capability is rolled back', function () {

@@ -7,9 +7,13 @@ namespace App\Support\Owner;
 use App\Http\Middleware\EnsureOwnerApiScope;
 use App\Http\Middleware\ResolveApiOwnerContext;
 use App\Http\Middleware\SetOwnerScopeForPortal;
+use App\Models\Owner;
+use App\Models\OwnerUser;
 use App\Models\Scopes\OwnerScope;
+use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Closure;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Holds the current OWNER-PORTAL scope for the request lifecycle (Phase 3 · Module 1 Step 6) — a
@@ -29,6 +33,21 @@ use Closure;
 class OwnerContext
 {
     private bool $active = false;
+
+    /**
+     * Memoised answer to "is the acting user linked to any owner?" — resolved at most ONCE per actor.
+     * ⚠️ THIS IS READ FROM INSIDE A GLOBAL SCOPE (audit E-1 fix), so it runs on every query of all 14
+     * owner-scoped models. It MUST NOT issue a query per call.
+     *
+     * ⚠️ KEYED TO THE ACTOR, NOT A BARE BOOL. A singleton outlives a request in a long-running worker
+     * (Horizon/queue:work), where nothing calls deactivate() between jobs — a bare bool could survive into
+     * the next job and answer for the wrong actor. Keying it to the user id makes a different (or absent)
+     * actor invalidate it automatically. `null` = not yet resolved for the current actor.
+     */
+    private ?bool $actorOwnerLinked = null;
+
+    /** The actor id the memo above was resolved FOR ('' = no authenticated actor). */
+    private ?string $actorOwnerLinkedFor = null;
 
     /**
      * THE PER-OWNER role map (P1-1 fix) — ownerId => the acting user's owner-team role ON THAT owner
@@ -105,6 +124,8 @@ class OwnerContext
         $this->active = false;
         $this->roles = [];
         $this->primaryOwnerIds = [];
+        $this->actorOwnerLinked = null;
+        $this->actorOwnerLinkedFor = null;
     }
 
     /** The acting user's role on a SPECIFIC owner (co_owner/accountant/view_only), or null if not a member. */
@@ -198,6 +219,96 @@ class OwnerContext
     public function active(): bool
     {
         return $this->active;
+    }
+
+    /**
+     * THE ONE OWNER-LINK RESOLUTION (audit E-1). Resolves the owner ids + per-owner roles for a user and
+     * ACTIVATES this context for them. {@see SetOwnerScopeForPortal} calls it on the portal routes, and
+     * {@see OwnerScope} calls it lazily for an owner-linked actor whose request never
+     * ran that middleware (`/livewire/update`).
+     *
+     * ⚠️ ONE DEFINITION, NOT TWO. A second copy of "which owners is this user linked to?" would drift from
+     * the middleware's copy, and the two would disagree about a security boundary (§N.8f).
+     *
+     * Both queries are TENANT-scoped, so a user only ever resolves owners inside the active org: the nesting
+     * sub-user ⊆ owner ⊆ org holds. Primary ownership wins over a sub-user membership on the same owner, and
+     * a role is recorded PER OWNER — never the union/highest across owners (the P1-1 over-grant).
+     */
+    public function resolveForActor(User $user): void
+    {
+        $roles = [];
+
+        $primaryOwnerIds = Owner::query()->where('user_id', $user->getKey())->pluck('id')
+            ->map(fn ($id): string => (string) $id)->all();
+        foreach ($primaryOwnerIds as $ownerId) {
+            $roles[$ownerId] = OwnerTeamRole::CO_OWNER;
+        }
+
+        $subMemberships = OwnerUser::query()
+            ->where('user_id', $user->getKey())
+            ->where('status', 'active')
+            ->get(['owner_id', 'role']);
+        foreach ($subMemberships as $membership) {
+            $ownerId = (string) $membership->owner_id;
+            if (! isset($roles[$ownerId])) {
+                $roles[$ownerId] = (string) $membership->role;
+            }
+        }
+
+        $this->activatePerOwner($roles, $primaryOwnerIds);
+    }
+
+    /**
+     * Whether the ACTING USER is linked to at least one owner (as primary account holder or as an active
+     * owner-team sub-user) in the CURRENT tenant — regardless of whether the owner context was established.
+     *
+     * ⚠️ AUDIT E-1. {@see OwnerScope} asks this when the context is INACTIVE, to tell a
+     * legitimate operator/CLI read (no owner links → no constraint) apart from an owner reading through a path
+     * that never established the scope (owner links → THROW rather than return every owner's rows).
+     *
+     * ⚠️ Resolved AT MOST ONCE per request and memoised — it is reached from a global scope, so a query per
+     * call would be a per-model-query N+1. Returns FALSE (cheaply, no query) when there is no authenticated
+     * user or no tenant context, which is the CLI/queue resting state.
+     *
+     * ⚠️ It deliberately reuses the SAME two link sources as {@see SetOwnerScopeForPortal} (owners.user_id and
+     * an ACTIVE owner_users row). Both are tenant-scoped, so this can never see another org's links.
+     */
+    public function actorIsOwnerLinked(): bool
+    {
+        // No resolved user (CLI, queue, unauthenticated) → nothing to scope to. Never triggers the user provider.
+        if (! Auth::hasUser()) {
+            return $this->memo('', false);
+        }
+
+        $user = Auth::user();
+
+        if (! $user instanceof User) {
+            return $this->memo('', false);            // guest realm / platform admin are not owner actors
+        }
+
+        $actorId = (string) $user->getKey();
+
+        if ($this->actorOwnerLinked !== null && $this->actorOwnerLinkedFor === $actorId) {
+            return $this->actorOwnerLinked;
+        }
+
+        // Owner + OwnerUser are TENANT-scoped; without a tenant context those queries would themselves throw.
+        if (! app(TenantContext::class)->hasContext()) {
+            return $this->memo($actorId, false);
+        }
+
+        $linked = Owner::query()->where('user_id', $user->getKey())->exists()
+            || OwnerUser::query()->where('user_id', $user->getKey())->where('status', 'active')->exists();
+
+        return $this->memo($actorId, $linked);
+    }
+
+    /** Record the owner-link answer against the actor it was resolved for. */
+    private function memo(string $actorId, bool $linked): bool
+    {
+        $this->actorOwnerLinkedFor = $actorId;
+
+        return $this->actorOwnerLinked = $linked;
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -62,7 +63,7 @@ class LoginRequest extends FormRequest
         $ok = Auth::validate([
             'email' => (string) $this->string('email'),
             'password' => (string) $this->string('password'),
-            'status' => 'active',
+            'status' => User::SIGN_IN_STATUS,
         ]);
 
         if (! $ok) {

@@ -7,7 +7,9 @@ namespace App\Services;
 use App\Models\Channel;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Support\Billing\BillableUnits;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 
@@ -21,10 +23,37 @@ use Illuminate\Support\Carbon;
  * queryable/exportable. A hard `delete()` is NEVER used (it would fire `property_user`'s `cascadeOnDelete`).
  *
  * Tenant-scoped: the caller resolves the property under the org scope; every transition is audited.
+ *
+ * ══ ⚠️⚠️ WHAT AN ARCHIVE ACTUALLY DOES: IT HIDES ONE ROW. THAT IS THE WHOLE DESIGN. ══════════════════
+ *
+ * ⚠️ Every child table's `property_id` IS declared `cascadeOnDelete` — and a SOFT delete fires NONE of them,
+ * because a database cascade only runs on a hard `DELETE`. That is deliberate: a hard delete would destroy
+ * reservations, folios and statements that must stay queryable and exportable for years. So after
+ * {@see archive()} the property row is hidden by `SoftDeletes` and **all ~20 child tables survive intact** —
+ * `units`, `room_types`, `rate_plans`, `inventory_blocks`, `buildings`, `property_policies`, `taxes`, `fees`,
+ * `add_ons`, `housekeeping_tasks`, `channels`, `groups`, `reservations`, `booking_quotes`, `shifts`,
+ * `overbooking_conflicts`, `property_user`, `invoices` (nullOnDelete). None of them carry `SoftDeletes` of
+ * their own, so nothing else hides them.
+ *
+ * ⚠️⚠️ THE CONSEQUENCE, STATED SO NOBODY HAS TO REDISCOVER IT: **a read is insulated from an archive only if
+ * it is bounded by a set derived from `Property::query()`** — which drops the hidden row. Any read that
+ * reaches units (or room types, or rate plans) ORG-WIDE, without a property step, still sees an archived
+ * property's rows, BY CONSTRUCTION rather than by omission. That is not a bug in this service; it is what
+ * "archive, don't destroy" means. It is also why `User::accessiblePropertyIds()` makes every operator screen
+ * safe for free, while three owner-facing and operator-facing reads had to be fixed one at a time
+ * ({@see BillableUnits::count()} and
+ * {@see OwnerPortalService::unitsAtLiveProperties()}).
+ *
+ * ⚠️ AND TWO THINGS THIS SERVICE DOES NOT DO, recorded because they surprise people:
+ *   • **Nothing is ever un-archived.** Removal is cancellable BEFORE it runs ({@see cancel()}) and there is no
+ *     restore route, command or method anywhere in the product. After `archive()` it is irreversible in-app.
+ *   • **The owner is told nothing.** No notification is sent when a property carrying their units is archived,
+ *     so their units simply stop appearing in their portal's listings. Their earnings and past stays remain
+ *     visible and correct — that is deliberate — but the silence is a known, open gap.
  */
 class PropertyRemovalService
 {
-    public function __construct(private AuditEventRecorder $audit) {}
+    public function __construct(private AuditEventRecorder $audit, private TenantContext $tenant) {}
 
     /**
      * Schedule removal. Effective date = the last checkout among non-cancelled future/current stays (so the
@@ -75,16 +104,37 @@ class PropertyRemovalService
      */
     public function processDue(ChannelConnectionService $channels): int
     {
-        $due = Property::query()
+        // ⚠️⚠️ THIS RAN FROM THE SCHEDULER WITH NO TENANT CONTEXT AND THREW EVERY NIGHT (audit 2026-08-29 · M-8).
+        // `Property::query()` is tenant-scoped, and OrganizationScope THROWS with no context — so the daily
+        // 02:00 pass raised TenantContextMissingException and archived nothing, silently. CONFIRMED by RUNNING
+        // the command as the scheduler runs it, not by reading it.
+        //
+        // ⚠️ THE SHAPE IS THE SIBLING'S, NOT A NEW ONE (§N.8f) — see GuestDeletionService::processDue():
+        //   ① DISCOVER across tenants under an explicit super-admin context, selecting the owning org id;
+        //   ② ACT once per tenant inside forOrganization(), so every write, channel disconnect and audit row
+        //      happens under that tenant's own scope.
+        //
+        // ⚠️ NOT `withoutGlobalScope`. Bypassing the scope would convert a fail-closed boundary into a nightly
+        // cross-tenant hole — the exact shape the E-1 pass refused.
+        $due = $this->tenant->runAsSuperAdmin(fn () => Property::query()
             ->whereNotNull('removal_effective_at')
             ->where('removal_effective_at', '<=', Carbon::now())
-            ->get();
+            ->get(['id', 'organization_id']));
 
-        foreach ($due as $property) {
-            $this->archive($property, $channels);
+        $count = 0;
+
+        foreach ($due as $ref) {
+            $this->tenant->forOrganization((string) $ref->organization_id, function () use ($ref, $channels, &$count): void {
+                $property = Property::query()->find($ref->getKey());
+
+                if ($property instanceof Property) {
+                    $this->archive($property, $channels);
+                    $count++;
+                }
+            });
         }
 
-        return $due->count();
+        return $count;
     }
 
     /** Archive one property NOW (used by processDue and available for an immediate effective date). */

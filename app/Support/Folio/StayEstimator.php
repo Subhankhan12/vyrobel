@@ -9,6 +9,7 @@ use App\Models\Fee;
 use App\Models\Tax;
 use App\Services\FolioService;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyFormatter;
 use Illuminate\Support\Collection;
 
 /**
@@ -73,7 +74,11 @@ final class StayEstimator
         $lines = [[
             'label' => 'Room',
             'detail' => Money::of((int) round($room->amountMinor() / max(1, $nights)), $currency)->amountMinor() > 0
-                ? '€'.number_format($room->amountMinor() / 100 / max(1, $nights), 2).' × '.$nights
+                // ⚠️ The per-night sublabel hardcoded '€' while the amount beside it was built in `$currency`
+                // — the same function's own argument. This line renders on the PUBLIC GUEST CHECKOUT
+                // (booking/checkout.blade.php:253), so a GBP property quoted "€150.00 × 4" under a "£600.00"
+                // total at the point of payment. The ONE symbol map answers it.
+                ? MoneyFormatter::symbol($currency).number_format($room->amountMinor() / 100 / max(1, $nights), 2).' × '.$nights
                 : '',
             'amount' => $room,
             'informational' => false,

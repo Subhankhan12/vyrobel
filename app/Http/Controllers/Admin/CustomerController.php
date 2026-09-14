@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Plan;
+use App\Models\Scopes\OrganizationScope;
 use App\Models\Subscription;
 use App\Support\Platform\PlatformActivity;
 use App\Support\Platform\PlatformCustomers;
@@ -68,8 +69,19 @@ class CustomerController extends Controller
     }
 
     /** Suspend a customer — a real, audited platform-lifecycle status change. */
-    public function suspend(string $organization): RedirectResponse
+    public function suspend(Request $request, string $organization): RedirectResponse
     {
+        // ⚠️ RE-AUTH (G3, 2026-08-31). ⚠️ A DIFFERENT THREAT MODEL FROM EVERY OTHER FIX IN THIS FAMILY: the
+        // platform realm is VYROBEL'S OWN STAFF, so this protects against the FOUNDER'S session being taken,
+        // not a customer's. The realm's existing controls are strong — `auth:admin`, MANDATORY 2FA behind
+        // EnsurePlatformAdminTwoFactor, and a platform audit row that DOES record the acting admin, their IP
+        // and user-agent. So the exclusion reasoning largely held: this is belt-and-braces on an already
+        // 2FA-gated surface, not a hole being closed.
+        // ⚠️ `current_password:admin` — QUALIFIED, and that is the opposite of the owner-realm answer. `/admin`
+        // runs on `auth:admin`; the BARE rule would check the `web` guard and, with no web user, validate
+        // nothing. Admin\AccountController already uses this exact rule three times.
+        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+
         $this->platform->mutate(
             'platform.customer.suspend',
             fn () => $this->resolveOrg($organization)->update(['status' => 'suspended']),
@@ -97,7 +109,7 @@ class CustomerController extends Controller
         $this->platform->mutate(
             'platform.customer.assign_plan',
             function () use ($organization, $planId): void {
-                $subscription = Subscription::withoutGlobalScopes()
+                $subscription = Subscription::withoutGlobalScopes([OrganizationScope::class])
                     ->where('organization_id', $organization)
                     ->latest()
                     ->first();

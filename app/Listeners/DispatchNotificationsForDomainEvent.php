@@ -46,8 +46,7 @@ use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
 use App\Support\Notifications\NotificationRecipients;
 use App\Support\Tenancy\TenantContext;
-use Illuminate\Support\Facades\Notification;
-
+use Illuminate\Support\Facades\Log;
 /**
  * Turns REAL domain events into notifications (Phase 3). Reacts to {@see DomainEventRecorded} — the same
  * synchronous bus the availability/ARI listeners use — and, for the event types it maps, resolves the correct
@@ -63,6 +62,9 @@ use Illuminate\Support\Facades\Notification;
  * device detection — the OTHER half of account & security) · performance digest (needs a monthly aggregator) ·
  * terms-changed (no agreement-change event is recorded anywhere). (new-review is now WIRED — Phase 5.)
  */
+use Illuminate\Support\Facades\Notification;
+use Throwable;
+
 class DispatchNotificationsForDomainEvent
 {
     /** The event types this listener maps to notifications. Each has a match arm below (the two stay in sync). */
@@ -122,25 +124,54 @@ class DispatchNotificationsForDomainEvent
             return;
         }
 
-        // Dispatch inside the event's org context so tenant-scoped reads + the spatie team resolve correctly.
-        $this->tenant->forOrganization($orgId, function () use ($domainEvent, $orgId): void {
-            // Exhaustive over HANDLED (the early return above guarantees one of these).
-            match ($domainEvent->event_type) {
-                'reservation.confirmed' => $this->newBooking($domainEvent, $orgId),
-                'reservation.checked_out' => $this->checkedOut($domainEvent, $orgId),
-                'unit.condition_changed' => $this->unitOutOfOrder($domainEvent, $orgId),
-                'maintenance_ticket.opened' => $this->urgentWorkOrder($domainEvent, $orgId),
-                'payout.paid' => $this->payoutSent($domainEvent, $orgId),
-                'owner_statement.finalized' => $this->statementFinalized($domainEvent, $orgId),
-                'channel.error' => $this->channelSyncError($domainEvent, $orgId),
-                'owner.payout_method_changed' => $this->accountSecurity($domainEvent),
-                'review.submitted' => $this->newReview($domainEvent, $orgId),
-                'inbox.thread_assigned' => $this->threadAssigned($domainEvent),
-                'inbox.message_sent' => $this->ownerMessage($domainEvent),
-                'reservation.cancelled' => $this->guestBookingCancelled($domainEvent),
-                'payment.refunded' => $this->guestRefundProcessed($domainEvent),
-            };
-        });
+        // ⚠️⚠️ A NOTIFICATION FAILURE MUST NOT ABORT THE LISTENER CHAIN, AND IT USED TO.
+        //
+        // This listener is one of several on `DomainEventRecorded`, they run SYNCHRONOUSLY in registration
+        // order, and a throw here stops every listener after it. `AdjustOwnerLedgerOnRefund` — which posts
+        // the owner's debit for a guest refund — was registered LATER, so a failure in here meant the guest
+        // was refunded and the OWNER'S LEDGER WAS NEVER DEBITED. Measured end to end: refund `succeeded`,
+        // `domain_events` row written, owner ledger unchanged, and the retry could not recover it because
+        // `settleRefund`'s status guard returns early on an already-settled row.
+        //
+        // ⚠️ ITS SIBLING ALREADY DID THIS. `SendGuestTransactionalEmails` wraps its sends in try/catch and
+        //    only logs, precisely so "a mail failure never breaks the event". This is the same rule for the
+        //    same bus — an in-app notification is best-effort in exactly the way an email is, and neither
+        //    is worth a money row. One convention, not two (§N.8f).
+        //
+        // ⚠️ IT SWALLOWS NOTHING SILENTLY: the failure is logged with the event type and id, and the
+        //    domain event itself is already durably recorded, so the notification can be reconstructed.
+        // ⚠️ THE GUARD IS INLINE RATHER THAN AROUND AN EXTRACTED METHOD, AND THAT IS DELIBERATE.
+        //    Moving the `match` into its own method separated it from the
+        //    `in_array(..., self::HANDLED)` early return that narrows `event_type`, so PHPStan could
+        //    no longer prove the match exhaustive — and that exhaustiveness is a real safety property:
+        //    adding a type to HANDLED without a branch must fail loudly, not fall through silently.
+        try {
+            // Dispatch inside the event's org context so tenant-scoped reads + the spatie team resolve correctly.
+            $this->tenant->forOrganization($orgId, function () use ($domainEvent, $orgId): void {
+                // Exhaustive over HANDLED (the early return above guarantees one of these).
+                match ($domainEvent->event_type) {
+                    'reservation.confirmed' => $this->newBooking($domainEvent, $orgId),
+                    'reservation.checked_out' => $this->checkedOut($domainEvent, $orgId),
+                    'unit.condition_changed' => $this->unitOutOfOrder($domainEvent, $orgId),
+                    'maintenance_ticket.opened' => $this->urgentWorkOrder($domainEvent, $orgId),
+                    'payout.paid' => $this->payoutSent($domainEvent, $orgId),
+                    'owner_statement.finalized' => $this->statementFinalized($domainEvent, $orgId),
+                    'channel.error' => $this->channelSyncError($domainEvent, $orgId),
+                    'owner.payout_method_changed' => $this->accountSecurity($domainEvent),
+                    'review.submitted' => $this->newReview($domainEvent, $orgId),
+                    'inbox.thread_assigned' => $this->threadAssigned($domainEvent),
+                    'inbox.message_sent' => $this->ownerMessage($domainEvent),
+                    'reservation.cancelled' => $this->guestBookingCancelled($domainEvent),
+                    'payment.refunded' => $this->guestRefundProcessed($domainEvent),
+                };
+            });
+        } catch (Throwable $e) {
+            Log::warning('Domain-event notification dispatch failed', [
+                'event_type' => $domainEvent->event_type,
+                'domain_event' => $domainEvent->id,
+                'reason' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

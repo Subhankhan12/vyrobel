@@ -50,6 +50,28 @@ return [
     | real credentials — "config-gated" per docs/DECISIONS.md.
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Google sign-in (OAuth 2.0 / OpenID Connect)
+    |--------------------------------------------------------------------------
+    |
+    | ⚠️⚠️ EMPTY IS THE SHIPPING STATE, AND IT IS A FEATURE. "Configured" and "enabled" are the same fact
+    | here — there is deliberately NO separate on/off flag, because a flag can be true while the secret is
+    | missing, and that produces the one thing this feature must never show: a sign-in button that leads to
+    | an error page. With nothing to disagree with, the button, the routes and the callback are all absent
+    | together.
+    |
+    | ⚠️ The values are the FOUNDER'S, entered from the Google Cloud console — never committed, never
+    | invented. See docs/GOOGLE-SIGN-IN.md for the exact console fields and redirect URIs.
+    |
+    */
+
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID', ''),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', ''),
+        'redirect' => env('GOOGLE_REDIRECT_URI', ''),
+    ],
+
     'channex' => [
         'base_url' => env('CHANNEX_BASE_URL', 'https://staging.channex.io/api/v1'),
         'api_key' => env('CHANNEX_API_KEY'),

@@ -143,9 +143,19 @@
                                 <input type="email" name="email" class="vy-input" placeholder="new@example.com" aria-label="New login email">
                                 @error('email') <span style="{{ $err }}">{{ $message }}</span> @enderror
                             </div>
+                            {{-- ⚠️ RE-AUTH (audit H-3). Changing the login email moves the account's identity, so
+                                 the current password is required — the same control the platform-admin and guest
+                                 account pages already carry. Without it a hijacked session became permanent. --}}
+                            <div style="flex:1;min-width:220px">
+                                <label class="vy-sr-only" for="owner_email_current_password">Current password</label>
+                                <input type="password" id="owner_email_current_password" name="current_password"
+                                       class="vy-input" placeholder="Current password"
+                                       autocomplete="current-password" required aria-label="Current password">
+                                @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                            </div>
                             <button type="submit" class="vy-btn" style="{{ $ghost }}">Change email</button>
                         </form>
-                        <span style="font-size:11px;color:var(--vy-on-grad-soft);display:block;margin-top:8px">We’ll email a confirmation link to the new address. Your email only changes once you click it.</span>
+                        <span style="font-size:11px;color:var(--vy-on-grad-soft);display:block;margin-top:8px">🔒 Your current password is required. We’ll email a confirmation link to the new address — your email only changes once you click it.</span>
                     @endif
                 </div>
             </div>
@@ -231,6 +241,13 @@
                                 <label style="{{ $lbl }}" for="t_vat">VAT number <span style="text-transform:none;font-weight:500;color:var(--vy-faint)">· optional</span></label>
                                 <input id="t_vat" type="text" name="vat_number" class="vy-input" value="{{ old('vat_number', $ownerParty['vat_number']) }}">
                             </div>
+                        </div>
+                        {{-- ⚠️ RE-AUTH: this changes the payee name on your remittance document and the residency your withholding is computed from. --}}
+                        <div class="vy-field" style="margin:14px 0 0">
+                            <label class="vy-field-label" for="settings_tax_pw">Confirm with your password</label>
+                            <input id="settings_tax_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                         </div>
                         <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
                             <span style="font-size:11px;color:var(--vy-faint)">Encrypted at rest · also editable in the Tax center.</span>

@@ -260,7 +260,17 @@ final class TryBookingSandbox
         // Calendar links embed the same identifiers in query strings.
         $with['calendar'] = ['google' => '#', 'outlook' => '#', 'ics' => '#'];
 
-        return View::make($content->view ?? 'emails.booking-confirmation', $with)->render();
+        $html = View::make($content->view ?? 'emails.booking-confirmation', $with)->render();
+
+        // ⚠️⚠️ THE EMAIL IS A DOCUMENT; THIS PAGE IS ALSO A DOCUMENT. The real template opens with its own
+        // `<h1>` — correct for an email, where it is the only heading — but inlining it here gave
+        // /try-booking TWO `<h1>`s, so the page advertised two subjects and a screen-reader user navigating
+        // by heading met "You're all set, Guest" as a peer of the page's actual title.
+        //
+        // ⚠️ THE DEMOTION IS ON THE EMBEDDED COPY ONLY, AND THAT IS THE WHOLE POINT: `emails.booking-
+        // confirmation` is UNTOUCHED, so every real send is byte-identical. Changing the template to satisfy
+        // a page would have altered mail that goes to actual guests — the wrong layer by a long way.
+        return preg_replace(['/<h1(\s|>)/i', '/<\/h1>/i'], ['<h2$1', '</h2>'], $html) ?? $html;
     }
 
     /**

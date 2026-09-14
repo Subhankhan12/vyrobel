@@ -24,7 +24,12 @@ class AccountDeletionScheduledMail extends Mailable
 {
     use BrandsGuestMail, Queueable, SerializesModels;
 
-    public function __construct(public readonly Guest $guest) {}
+    /**
+     * @param  int  $staysCancelled  how many of the guest's bookings the erase will cancel — passed in by
+     *                               {@see GuestDeletionService} from the SAME set the erase uses, so the email
+     *                               and the account screen cannot quote different numbers.
+     */
+    public function __construct(public readonly Guest $guest, public readonly int $staysCancelled = 0) {}
 
     public function envelope(): Envelope
     {
@@ -38,7 +43,16 @@ class AccountDeletionScheduledMail extends Mailable
         return new Content(view: 'emails.account-deletion', with: [
             'brand' => PropertyBrand::default(),
             'heading' => 'Your account deletion is scheduled',
-            'intro' => 'We’ve scheduled your Vyrobel guest account for deletion. You have '.GuestDeletionService::GRACE_DAYS.' days to change your mind — nothing is removed until then.',
+            // ⚠️ The erase cancels bookings and can refund — the email says so, because a deadline with no
+            // stated consequence is half a warning. Never promises a refund: it is policy-dependent.
+            'intro' => 'We’ve scheduled your Vyrobel guest account for deletion. You have '
+                .GuestDeletionService::GRACE_DAYS.' days to change your mind — nothing is removed until then.'
+                .($this->staysCancelled > 0
+                    ? ' When it runs we will also cancel the '.$this->staysCancelled.' booking'
+                        .($this->staysCancelled === 1 ? '' : 's').' you still have with us, including a stay already'
+                        .' under way. Whether any money comes back follows each booking’s cancellation policy, so'
+                        .' some or all of it may not be refunded.'
+                    : ''),
             'guestName' => GuestName::display($this->guest),
             'graceDays' => GuestDeletionService::GRACE_DAYS,
             'effective' => $effective !== null ? $effective->format('j M Y') : null,

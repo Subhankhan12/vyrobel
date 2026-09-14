@@ -37,6 +37,9 @@ if (! function_exists('pmOwner')) {
 function addMethod($test, User $user, string $iban, string $holder = 'Amara Okafor', ?string $label = null)
 {
     return $test->actingAs($user)->post('/owner/payout-method', array_filter([
+        // ⚠️ FIXTURE ONLY: changing a payout destination now re-authenticates (audit follow-up 2026-08-30).
+        // The factory default password.
+        'current_password' => 'password',
         'account_holder' => $holder, 'iban' => $iban, 'currency' => 'EUR', 'label' => $label,
     ], fn ($v) => $v !== null));
 }
@@ -89,7 +92,7 @@ it('makes the first account default and switches the default on request', functi
     $second = PayoutMethod::query()->where('iban_last4', '3000')->firstOrFail();
     expect($first->is_default)->toBeTrue()->and($second->is_default)->toBeFalse();
 
-    $this->actingAs($a['user'])->post(route('owner.payout-method.default', $second->id))
+    $this->actingAs($a['user'])->post(route('owner.payout-method.default', $second->id), ['current_password' => 'password'])
         ->assertRedirect()->assertSessionHas('payout_method_notice');
 
     expect($second->fresh()->is_default)->toBeTrue()->and($first->fresh()->is_default)->toBeFalse();
@@ -137,7 +140,7 @@ it('promotes the next account to default when the default is removed', function 
     $default = PayoutMethod::query()->where('iban_last4', '5432')->firstOrFail();
     $other = PayoutMethod::query()->where('iban_last4', '3000')->firstOrFail();
 
-    $this->actingAs($a['user'])->delete(route('owner.payout-method.remove', $default->id))
+    $this->actingAs($a['user'])->delete(route('owner.payout-method.remove', $default->id), ['current_password' => 'password'])
         ->assertRedirect()->assertSessionHas('payout_method_notice');
 
     expect(PayoutMethod::query()->whereKey($default->id)->exists())->toBeFalse()   // soft-deleted → gone
@@ -194,7 +197,7 @@ it('saves tax & remittance details from the payout-method page via the shared wr
     $a = pmOwner($s, 0, 'Amara Okafor');
 
     // The inline form's action is owner.tax.save (co-owner via $capActions); the co-owner can submit it.
-    $this->actingAs($a['user'])->post(route('owner.tax.save'), [
+    $this->actingAs($a['user'])->post(route('owner.tax.save'), ['current_password' => 'password',
         'type' => 'company', 'legal_name' => 'Seaside Group Ltd',
         'tax_id' => '501234567', 'vat_number' => 'PT501234567', 'tax_country' => 'Portugal',
     ])->assertRedirect();

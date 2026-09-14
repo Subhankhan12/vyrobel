@@ -10,6 +10,11 @@
     'to' => null,
     // When true the date inputs are Alpine-bound to the host's `from`/`to` instead of typed.
     'bindDates' => false,
+    // ⚠️ CALLER-SUPPLIED, and it must be, because this component renders MANY TIMES PER PAGE — four
+    //    times in the units list (once per unit, inside a loop) and five in the rates grid. A fixed id
+    //    here would be duplicated N times and every `aria-labelledby` pointing at it would resolve to
+    //    whichever came first. The dialog that owns each instance passes its own.
+    'headingId' => null,
     'heading' => 'Price units individually',
     'subheading' => 'a price for one unit, not the whole room type',
 ])
@@ -23,7 +28,7 @@
      several; the route, the service call and the money path are identical. --}}
 <form method="POST" action="{{ route('app.rates.units.preview') }}" data-vy-unit-price-form>
     @csrf
-    <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">{{ $heading }}</h3>
+    <h3 @if ($headingId) id="{{ $headingId }}" @endif style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 2px;">{{ $heading }}</h3>
     <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 14px;">{{ $subheading }}</div>
 
     @if ($bindDates)

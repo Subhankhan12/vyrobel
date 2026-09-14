@@ -25,8 +25,6 @@
     canonical="/about">
 <div data-screen-label="Marketing — About" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 74px 28px 60px;">
@@ -75,22 +73,22 @@
       </div>
       <div data-trio="" style="position: relative; display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
         <div data-reveal="" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px;">
-          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6z"></path></svg></span>
+          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6z"></path></svg></span>
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Honest by default</h3>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">If a cost belongs to the operator and not the owner, the software says so. We'd rather show an awkward number than a flattering one.</p>
         </div>
         <div data-reveal="" data-reveal-delay="70" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px;">
-          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg></span>
+          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg></span>
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Built for a Saturday</h3>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">Every screen is designed for the busiest changeover day, on a phone, by someone who has thirty seconds. If it only works when it's quiet, it doesn't work.</p>
         </div>
         <div data-reveal="" data-reveal-delay="140" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px;">
-          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Privacy is structural</h3>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">Owners see performance, never a guest's personal details. Guest data is minimised and anonymised on a schedule, because GDPR is a design constraint, not a checkbox.</p>
         </div>
         <div data-reveal="" data-reveal-delay="210" style="background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.76); border-radius: 20px; padding: 28px 26px;">
-          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"></path><path d="M9 20v-6h6v6"></path></svg></span>
+          <span style="display: inline-flex; width: 40px; height: 40px; border-radius: 13px; background: rgba(217,102,46,.13); align-items: center; justify-content: center; margin-bottom: 16px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9l8-5 8 5v11"></path><path d="M9 20v-6h6v6"></path></svg></span>
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink);">Your data is yours</h3>
           <p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">Export everything, any time, in formats that open. We'd rather earn the next month than trap you in the last one.</p>
         </div>

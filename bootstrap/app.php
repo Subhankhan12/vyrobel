@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RequirePasswordBeforeReauth;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
@@ -18,10 +19,37 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // ⚠️⚠️ EVENT DISCOVERY OFF — EXPLICIT REGISTRATION IS THE ONE MECHANISM (F-40, FIX 19, 2026-09-14).
+    //
+    // Laravel 13 ships `EventServiceProvider::$shouldDiscoverEvents = true`, so every class in `app/Listeners`
+    // was ALSO registered automatically as `Class@handle` — on top of the explicit `Event::listen` calls in
+    // AppServiceProvider. 🔬 MEASURED: 14 registrations on `DomainEventRecorded` where 7 were intended, plus
+    // a duplicate on `AccessTokenCreated`. Every listener ran TWICE.
+    //
+    // ⚠️ WHY EXPLICIT WINS, AND IT IS NOT A PREFERENCE: **ORDER IS LOAD-BEARING AND DISCOVERY CANNOT EXPRESS
+    // IT.** The money listeners are registered before the best-effort ones because a ledger debit was once
+    // LOST behind a notification that threw (see docs/POST-COMMIT-TRAIL.md). Discovery registers in whatever
+    // order the filesystem yields: 🔬 in the discovered set `DispatchNotificationsForDomainEvent` preceded
+    // `AdjustOwnerLedgerOnRefund` — the exact arrangement the ordering fix was written to prevent.
+    //
+    // ⚠️⚠️ CHECKED BEFORE FLIPPING IT, because unregistering a listener nobody had listed would be far worse
+    // than the duplicate: 🔬 **every discovered listener also had an explicit registration — DISCOVERED-ONLY
+    // was ZERO.** Nothing loses its registration here; 23 explicit-only registrations are untouched.
+    //
+    // ⚠️ AND THE DUPLICATE WAS NOT HARMLESS. `AuditOAuthTokenGranted` has no idempotence guard at all, so a
+    // single `AccessTokenCreated` wrote TWO audit rows — 🔬 proven by dispatching the event in a rolled-back
+    // transaction. The other seven listeners survived only because each carries its own guard, which is
+    // idempotence doing the ordering's job.
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
         // Resolve the active organization from the authenticated user on every web request,
         // syncing TenantContext + spatie team id. CLI/queue/tests use programmatic context.
         $middleware->web(append: [
+            // ⚠️⚠️ THE PASSWORDLESS ESCAPE — a STEP BEFORE the twenty-four `current_password` rules, never a
+            //    bypass around them. It only ever REDIRECTS: a user with no password who reaches a
+            //    confirmation is sent to set one and brought back; everyone else falls straight through to
+            //    the rule that was always going to run. See RequirePasswordBeforeReauth.
+            RequirePasswordBeforeReauth::class,
             SetTenantForWebRequest::class,
             // Apply the signed-in user's saved language preference (English-only strings today; the
             // preference is real and persists — see App\Http\Middleware\SetLocale).
@@ -38,6 +66,32 @@ return Application::configure(basePath: dirname(__DIR__))
         // short-circuit produces: a 403 from a permission gate, a redirect from an auth guard, a 429 from the
         // login throttle. Non-document responses (PDF/CSV streams) are skipped inside the middleware itself.
         $middleware->prepend(SecurityHeaders::class);
+
+        /*
+         * ⚠️ TRUSTED HOSTS — DEFENCE IN DEPTH, NOT THE FIX (audit 2026-08-29 · H-1).
+         *
+         * The fix is `URL::forceRootUrl()` in AppServiceProvider: it makes every generated url independent
+         * of the request, so a poisoned `Host` can no longer reach an emailed token. This adds the second
+         * half — a request arriving with an UNEXPECTED host is REFUSED rather than silently served, which is
+         * also how a misconfigured proxy announces itself instead of failing quietly.
+         *
+         * ⚠️ Derived from APP_URL, so there is ONE definition of "our host" (§N.8f) and no second list to
+         * drift. `subdomains: false` because this app does no subdomain routing (verified: zero
+         * `Route::domain`, and `organizations.custom_domain` has no reader).
+         *
+         * ⚠️ FAILS TOWARDS TODAY'S BEHAVIOUR, NOT TOWARDS A DEAD SITE: with no usable APP_URL host this
+         * returns [], Laravel filters it out, and no host restriction is applied — the same posture as
+         * before this line. A blank config must not take the site down.
+         *
+         * ⚠️ INERT IN `local` AND IN TESTS by the framework's own rule
+         * (TrustHosts::shouldSpecifyTrustedHosts()), so it cannot be proven by the suite — see
+         * HostHeaderPoisoningTest, which asserts the registration and proves the ROOT-URL half instead.
+         */
+        $middleware->trustHosts(at: static function (): array {
+            $host = parse_url((string) config('app.url'), PHP_URL_HOST);
+
+            return is_string($host) && $host !== '' ? [$host] : [];
+        }, subdomains: false);
 
         // Unauthenticated web requests to guarded routes redirect to the correct realm's login form: the PLATFORM
         // admin (/admin*) bounces to the admin login, the GUEST portal (/guest/*) to the guest login, everything

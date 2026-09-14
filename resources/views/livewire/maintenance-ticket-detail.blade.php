@@ -38,7 +38,11 @@
             <div class="vy-fade" style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
                 <div style="min-width:0;">
                     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                        <h1 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:27px;letter-spacing:-.02em;">{{ $ticket['title'] }}</h1>
+                        {{-- ⚠️ F-12 — an h2, not an h1. The operator shell already renders the page h1 ("Work order"), exactly
+                             as it does on every other screen in this realm, so a second h1 here made TWO on one page —
+                             confirmed across six audit phases. The ticket title is a heading UNDER that page title, which
+                             is what h2 means; the styling is unchanged. --}}
+                        <h2 style="margin:0;font-family:var(--vy-display);font-weight:600;font-size:27px;letter-spacing:-.02em;">{{ $ticket['title'] }}</h2>
                         <span class="vy-tag tone-{{ $ticket['status_tone'] }}"><span class="vy-dot"></span>{{ $ticket['status_label'] }}</span>
                         <span class="vy-prio tone-{{ $ticket['priority_tone'] }}">{{ $ticket['priority_label'] }}</span>
                         @if ($ticket['is_oos'])
@@ -208,7 +212,8 @@
                                                     style="padding:6px 14px;border-radius:9px;border:none;font-family:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .16s,color .16s;">{{ $k['label'] }}</button>
                                         @endforeach
                                     </div>
-                                    <textarea name="body" x-model="body" maxlength="2000" placeholder="Add an update for the team…" required
+                                    <label class="vy-sr-only" for="vy-lbl-maintenance-ticket-detail-body">Add an update for the team…</label>
+                                    <textarea id="vy-lbl-maintenance-ticket-detail-body" name="body" x-model="body" maxlength="2000" placeholder="Add an update for the team…" required
                                               style="width:100%;min-height:58px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.7);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                                     <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px;">
                                         <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 18px;font-size:12.5px;" :style="body.trim().length ? '' : 'opacity:.5;'">
@@ -332,7 +337,8 @@
                                     <form method="POST" action="{{ route('app.maintenance.parts', $ticket['id']) }}" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
                                         @csrf
                                         <input type="hidden" name="awaiting_parts" value="1">
-                                        <input class="vy-input" type="text" name="part_name" maxlength="160" placeholder="Part needed (e.g. thermostat)">
+                                        <label class="vy-sr-only" for="vy-lbl-maintenance-ticket-detail-part-name">Part needed (e.g. thermostat)</label>
+                                        <input id="vy-lbl-maintenance-ticket-detail-part-name" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="Part needed (e.g. thermostat)">
                                         <input class="vy-input" type="date" name="part_eta" aria-label="Expected arrival">
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;font-size:12px;">Mark awaiting parts</button>
                                     </form>
@@ -445,23 +451,31 @@
                         {{-- what was done → the ticket's resolution record + a timeline note --}}
                         <div style="margin-bottom:14px;">
                             <div class="vy-eyebrow" style="margin-bottom:7px;">What was done</div>
-                            <textarea name="resolution" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak." style="width:100%;min-height:66px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
+                            <textarea id="vy-lbl-maintenance-ticket-detail-resolution" name="resolution" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak." style="width:100%;min-height:66px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                         </div>
                         {{-- time spent (hours, informational) + parts cost (€, bills the owner, #17) --}}
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
                             <div>
-                                <div class="vy-eyebrow" style="margin-bottom:7px;">Time spent</div>
+                                {{-- ⚠️⚠️ D3 · MONEY-ADJACENT. `parts` posts a REAL owner-ledger charge and `time_spent` its labour
+                                 counterpart, and both were named only by an adjacent `<div>` — visible, but
+                                 associated with nothing. Two unlabelled number boxes side by side, one of which
+                                 moves money: an operator relying on a screen reader had reading order alone to
+                                 tell them apart, and a cost entered in the wrong box charges the wrong thing.
+                                 ⚠️ The label TEXT already existed and is unchanged — only the ELEMENT changed,
+                                 `<div>` → `<label for>`, so the page looks exactly as before.
+                                 ⚠️ NO POSTED KEY MOVED: `name="parts"` and `name="time_spent"` are untouched. --}}
+                                <label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-mt-time">Time spent</label>
                                 <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
                                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                                    <input type="number" inputmode="decimal" step="0.25" min="0" name="time_spent" placeholder="e.g. 1.5" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                    <input type="number" inputmode="decimal" step="0.25" min="0" name="time_spent" id="vy-mt-time" placeholder="e.g. 1.5" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
                                     <span style="color:var(--vy-faint);font-size:12px;flex-shrink:0;">h</span>
                                 </div>
                             </div>
                             <div>
-                                <div class="vy-eyebrow" style="margin-bottom:7px;">Parts cost</div>
+                                <label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-mt-parts">Parts cost</label>
                                 <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;">
                                     <span style="color:var(--vy-faint);font-size:13.5px;flex-shrink:0;">{{ $currencySymbol }}</span>
-                                    <input type="number" inputmode="decimal" step="0.01" min="0" name="parts" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
+                                    <input type="number" inputmode="decimal" step="0.01" min="0" name="parts" id="vy-mt-parts" placeholder="0.00" style="flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:13.5px;color:var(--vy-ink);padding:0;font-variant-numeric:tabular-nums;">
                                 </div>
                             </div>
                         </div>

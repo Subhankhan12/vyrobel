@@ -6,12 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Organization;
 use App\Models\Payment;
-use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeEvent;
 use App\Services\BillingWebhookService;
 use App\Services\FolioService;
 use App\Support\Tenancy\TenantContext;
+use App\Support\Webhooks\WebhookEventClaim;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,14 +47,45 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'invalid_signature'], 400);
         }
 
-        // ── SUBSCRIPTION BILLING events → resolve the org from the event metadata ──────────────────────
+        // ── SUBSCRIPTION BILLING events → resolve the org from the STRIPE OBJECT ───────────────────────
+        //
+        // ⚠️⚠️ THIS USED TO RESOLVE FROM `metadata.organization_id` ALONE, AND THAT MADE TWO HANDLERS INERT
+        //    IN PRODUCTION. The checkout stamps that metadata on the Session and on the Subscription;
+        //    Stripe does not copy it onto the invoices it generates, so a real `invoice.paid` /
+        //    `invoice.payment_failed` carried none, resolved to nothing, and was answered `202 ignored`.
+        //    Nothing ever marked an organisation `past_due`, so a customer whose card stopped working kept
+        //    full access indefinitely. Resolution now goes through {@see BillingEventOrganization}.
         if (BillingWebhookService::handles($event->type)) {
-            $orgId = $billing->organizationIdFor($event);
+            $resolution = $billing->organizationFor($event, $tenant);
+            $orgId = $resolution->organizationId;
             $orgExists = $orgId !== null && $tenant->runAsSuperAdmin(
                 fn (): bool => Organization::query()->whereKey($orgId)->exists(),
             );
+
             if (! $orgExists) {
-                return response()->json(['status' => 'ignored'], 202);
+                // ⚠️⚠️ "IGNORED" IS NOT A RESULT, AND IT USED TO LEAVE NO TRACE AT ALL — not a log line, not
+                //    a row. An event the product could not place looked exactly like one it handled
+                //    perfectly, which is the silence that hid the inert handlers for this product's whole
+                //    life. It is now RECORDED, with the reason, as a row that does NOT read as processed.
+                //
+                // ⚠️ STILL 202, DELIBERATELY. A 5xx would make Stripe retry, and an event naming an
+                //    organisation this deployment genuinely does not have would retry until it became a
+                //    poison message. Acknowledged and written down is the honest pair.
+                // ⚠️ SUPER-ADMIN, because there is no tenant context to write under — that is precisely
+                //    what could not be resolved. `webhook_events` is a tenant-scoped model, so writing the
+                //    evidence of a failed resolution would otherwise throw for the same reason it failed.
+                $tenant->runAsSuperAdmin(fn () => WebhookEventClaim::recordUnresolved(
+                    source: 'stripe',
+                    externalEventId: $event->id,
+                    eventType: $event->type,
+                    payload: $event->payload,
+                    reason: $resolution->problem
+                        ?? ($orgId === null
+                            ? 'could not resolve an organisation from the event'
+                            : "resolved organisation [{$orgId}] does not exist in this deployment"),
+                ));
+
+                return response()->json(['status' => 'unresolved'], 202);
             }
 
             return $tenant->forOrganization((string) $orgId, fn (): JsonResponse => $this->once($event, fn () => $billing->handle($event)));
@@ -119,51 +150,55 @@ class StripeWebhookController extends Controller
     }
 
     /**
-     * The receiving-side idempotency: record the event once (the unique index makes concurrent deliveries
-     * resolve to one row); a duplicate is a no-op. `$apply` runs only for the first delivery.
-     */
-    /**
-     * ⚠️⚠️ SETTLED (switch follow-up), SO IT STOPS BEING DEFERRED: this IS duplication, not correct
-     * separation — and the distinction was worth making.
+     * ⚠️⚠️ MERGED — THE TRIGGER FIRED, AND THE RECORD BELOW IS KEPT BECAUSE IT PREDICTED THIS.
+     *
+     * This docblock used to say "NOT MERGED NOW", and named the exact conditions under which it should be.
+     * BOTH have since fired: `ChannexWebhookController` is a THIRD writer of `webhook_events`, and the
+     * claim/process separation is precisely "a change of the rule's shape … a status". The rule now lives in
+     * {@see WebhookEventClaim}, once.
      *
      * ⚠️ WHAT *IS* CORRECTLY SEPARATE: the two receivers verify DIFFERENT secrets and dispatch DIFFERENT
      * handlers. That separation is real and must stay.
-     * ⚠️ WHAT IS DUPLICATED: the idempotency RULE itself. Both copies write
+     * ⚠️ WHAT *WAS* DUPLICATED: the idempotency RULE itself. Both copies wrote
      * `['source' => 'stripe', 'external_event_id' => $event->id]` against the SAME
-     * `unique(source, external_event_id)` index — one rule, one key space, two implementations that differ
-     * only in line formatting.
+     * `unique(source, external_event_id)` index — one rule, one key space, two implementations that differed
+     * only in line formatting. There is now one.
      *
      * ⚠️ SHARING THE KEY SPACE IS DELIBERATE AND LOAD-BEARING: a Stripe event id is globally unique, so an
      * event delivered to both endpoints dedupes ACROSS them. That is a property of the shared `source`
      * value — which is precisely why the two copies must not drift.
      *
-     * ⚠️ NOT MERGED NOW: a refactor inside a money pass buys no safety today and risks the thing it
-     * protects. ⚠️ THE TRIGGER, NOT A DATE — merge on the FIRST of:
+     * ⚠️ THE TRIGGER, AS WRITTEN AT THE TIME — merge on the FIRST of:
      *   · a THIRD receiver needing this guard (two that have not drifted is a warning; three is a pattern);
      *   · ANY change to the rule's shape (a new field, a different key, a TTL, a status) — the moment the
      *     two must be edited in lockstep is the moment duplicates drift.
+     * ⚠️ Both fired. The merge happened here rather than editing one rule in two files, which is the drift
+     *    this note existed to prevent. ⚠️ `ChannexWebhookController` is deliberately NOT merged in: it
+     *    QUEUES its work and its state machine lives in the job, which is a different shape, not a copy.
+     */
+    /**
+     * Run the event's work at most once — ⚠️⚠️ and let a delivery that FAILED be retried.
+     *
+     * ⚠️ THE RULE NOW LIVES IN ONE PLACE ({@see WebhookEventClaim}). This method's previous body claimed the
+     * `webhook_events` row and then tested only whether the row EXISTED, so a throw inside the closure
+     * consumed the event: Stripe retried, the row was already there, the retry was answered "duplicate", and
+     * the delivery was lost permanently. The guard and the loss mechanism were the same line.
+     *
+     * ⚠️ The two receivers' shared docblock pre-committed to merging on the first of "a THIRD receiver" or
+     * "ANY change to the rule's shape (… a status)". Both have fired — `ChannexWebhookController` is a third
+     * writer of this table, and this IS a status change — so the copies are gone rather than edited twice.
      */
     private function once(StripeEvent $event, Closure $apply): JsonResponse
     {
-        $webhookEvent = WebhookEvent::createOrFirst(
-            ['source' => 'stripe', 'external_event_id' => $event->id],
-            [
-                'event_type' => $event->type,
-                'signature_verified' => true,
-                'payload' => $event->payload,
-                'status' => WebhookEvent::STATUS_RECEIVED,
-                'received_at' => now(),
-            ],
+        $result = WebhookEventClaim::once(
+            source: 'stripe',
+            externalEventId: $event->id,
+            eventType: $event->type,
+            payload: $event->payload,
+            apply: $apply,
         );
 
-        if (! $webhookEvent->wasRecentlyCreated) {
-            return response()->json(['status' => 'duplicate'], 202);
-        }
-
-        $apply();
-        $webhookEvent->update(['status' => WebhookEvent::STATUS_PROCESSED, 'processed_at' => now()]);
-
-        return response()->json(['status' => 'processed'], 202);
+        return response()->json(['status' => $result], 202);
     }
 
     private function applyPayment(StripeEvent $event, Payment $payment, FolioService $folios): void

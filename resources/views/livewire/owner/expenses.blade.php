@@ -79,7 +79,8 @@
                                     <button type="button" class="vy-btn vy-btn--ghost" style="padding:6px 14px;font-size:12px" @click="q = !q">Query</button>
                                     <form method="POST" action="{{ route('owner.expenses.query', $a['id']) }}" x-show="q" x-cloak style="margin:0;display:flex;gap:6px;align-items:center">
                                         @csrf
-                                        <input type="text" name="note" placeholder="What's your question?" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">
+                                        <label class="vy-sr-only" for="vy-lbl-expenses-note">What's your question?</label>
+                                        <input id="vy-lbl-expenses-note" type="text" name="note" placeholder="What's your question?" maxlength="1000" class="vy-input" style="font-size:12px;max-width:220px">
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="padding:6px 12px;font-size:12px">Send</button>
                                     </form>
                                 </div>
@@ -254,7 +255,8 @@
                 <form x-show="open" x-cloak method="POST" action="{{ route('owner.messages.start') }}" data-guard-submit style="margin-top:12px">
                     @csrf
                     <input type="hidden" name="subject" value="Repair request">
-                    <textarea name="body" rows="3" required x-ref="repairBody" placeholder="Describe what needs fixing (and which unit)…"></textarea>
+                    <label class="vy-sr-only" for="vy-lbl-expenses-body">Describe what needs fixing (and which unit)…</label>
+                    <textarea id="vy-lbl-expenses-body" name="body" rows="3" required x-ref="repairBody" placeholder="Describe what needs fixing (and which unit)…"></textarea>
                     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">
                         @foreach (['Please arrange a plumber', 'The air-conditioning needs a service', 'Can someone check the appliances?'] as $chip)
                             <button type="button" @click="$refs.repairBody.value = @js($chip)" style="padding:5px 10px;border-radius:var(--vy-r-pill);background:rgba(255,255,255,.7);border:1px solid rgba(120,70,40,.16);color:#7A2E08;font-family:var(--vy-sans);font-size:11px;font-weight:500;cursor:pointer">{{ $chip }}</button>

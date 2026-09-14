@@ -26,6 +26,12 @@
             @else
                 <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" onsubmit="return confirm('Suspend {{ $org->name }}? This flags the account as suspended on the platform (it does not yet block their access).');" data-guard-submit>
                     @csrf
+                    {{-- ⚠️ RE-AUTH (G3): the `onsubmit` confirm on this form is JS only — a direct POST walks past it.
+                         This does not. `current_password:admin`, because /admin runs on the `admin` guard. --}}
+                    <label class="ad-field-label" for="suspend_pw">Confirm with your password</label>
+                    <input id="suspend_pw" type="password" name="current_password" class="ad-input"
+                           autocomplete="current-password" required aria-label="Current password">
+                    @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                     <button type="submit" class="ad-btn ad-btn--danger">Suspend customer</button>
                 </form>
             @endif

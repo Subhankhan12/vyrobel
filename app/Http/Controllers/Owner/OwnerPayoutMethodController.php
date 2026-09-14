@@ -23,8 +23,37 @@ use Illuminate\Http\Request;
  */
 class OwnerPayoutMethodController extends Controller
 {
+    /**
+     * ⚠️⚠️ RE-AUTHENTICATE BEFORE MOVING WHERE THE MONEY GOES (audit follow-up, 2026-08-30).
+     *
+     * All three actions below changed the payout destination with NO password — capability-gated only. A
+     * hijacked owner session could redirect the destination IMMEDIATELY, without the slower email takeover
+     * closed by H-3. REPRODUCED: added an attacker account and set it default, no password, both 302.
+     *
+     * ⚠️ ALL THREE, NOT JUST THE ADD. Adding an account achieves nothing on its own; SET-DEFAULT is the
+     * actual redirect, and REMOVE deletes the real account so whatever remains becomes the destination.
+     *
+     * ⚠️ THE BARE `current_password`, as {@see OwnerAccountController} uses.
+     * config/auth.php defines web · guest · admin and NO `owner` guard; /owner runs on plain `auth`, so a
+     * guard-qualified rule would silently match nothing and validate nothing.
+     *
+     * ⚠️ THE DATED CLASS, TWICE CONFIRMED: this controller is 2026-07-20 (b95228f) and the owner email change
+     * was 2026-07-25 — both BEFORE the `current_password` requirement arrived on 2026-07-27 (065b554) and was
+     * never back-applied. Owner-realm code predating that date is the bounded suspect set.
+     */
+    private function reauthenticate(Request $request): void
+    {
+        $request->validate(
+            ['current_password' => ['required', 'current_password']],
+            [],
+            ['current_password' => 'current password'],
+        );
+    }
+
     public function store(Request $request, OwnerPayoutMethodService $methods): RedirectResponse
     {
+        $this->reauthenticate($request);
+
         $data = $request->validate([
             'label' => ['nullable', 'string', 'max:80'],
             'account_holder' => ['required', 'string', 'max:255'],
@@ -48,7 +77,12 @@ class OwnerPayoutMethodController extends Controller
 
     public function setDefault(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
     {
+        // ⚠️ ORDER IS LOAD-BEARING: capability (route middleware) → OWNERSHIP → identity.
+        // assertCanManagePayout() resolves the method under the owner scope, so a cross-owner id 404s
+        // BEFORE the password is considered. Inverted, a "wrong password" on someone else's account would
+        // confirm it EXISTS AND BELONGS TO SOMEONE — an existence oracle the attacker did not have.
         $this->assertCanManagePayout($method);
+        $this->reauthenticate($request);   // ⚠️ THE actual redirect — an attacker who can only ADD achieves nothing
         try {
             $methods->setDefault($method);
         } catch (ModelNotFoundException) {
@@ -60,7 +94,9 @@ class OwnerPayoutMethodController extends Controller
 
     public function destroy(Request $request, OwnerPayoutMethodService $methods, string $method): RedirectResponse
     {
+        // ⚠️ Ownership first, identity second — same reason as setDefault(): no existence oracle.
         $this->assertCanManagePayout($method);
+        $this->reauthenticate($request);   // ⚠️ removing the real account leaves whatever remains as the destination
         try {
             $methods->remove($method);
         } catch (ModelNotFoundException) {

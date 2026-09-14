@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RoomType;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Reviews\ReviewList;
 use App\Support\Reviews\ReviewRating;
 use App\Support\Storefront\StorefrontSeo;
@@ -135,7 +136,7 @@ class StorefrontLandingController extends Controller
             $propIds = $group->pluck('id')->all();
             $rooms = $roomTypes->whereIn('property_id', $propIds);
             $capacities = $rooms->map(fn (RoomType $rt): int => (int) $rt->max_adults + (int) $rt->max_children)->filter();
-            $from = $this->fromPriceMinor($rooms);
+            $from = $this->fromPriceMinor($rooms, $group);
             $currency = (string) $group->first()->currency;
 
             $cards[] = [
@@ -170,7 +171,7 @@ class StorefrontLandingController extends Controller
         $rows = $roomTypes->map(function (RoomType $rt) use ($propsById): array {
             $property = $propsById->get((string) $rt->property_id);
             $rating = ReviewRating::forRoomType((string) $rt->getKey());
-            $from = $this->fromPriceMinor(collect([$rt]));
+            $from = $this->fromPriceMinor(collect([$rt]), collect(array_filter([$property])));
 
             return [
                 'name' => (string) $rt->name,
@@ -277,17 +278,51 @@ class StorefrontLandingController extends Controller
      *
      * @param  Collection<int, RoomType>  $rooms
      */
-    private function fromPriceMinor(Collection $rooms): ?int
+    private function fromPriceMinor(Collection $rooms, Collection $properties): ?int
     {
-        $planIds = $rooms->flatMap(fn (RoomType $rt) => $rt->ratePlans->where('is_active', true)->pluck('id'))->all();
-        if ($planIds === []) {
+        // ⚠️ "TODAY" IS THE PROPERTY'S, NOT THE SERVER'S (C1, fixed 2026-08-31). This read `now()` in the APP
+        //    timezone (UTC). For a property 14 hours ahead, 01:00 local on the 2nd is still the 1st in UTC, so
+        //    the window began on a night ALREADY PAST locally — and the cheapest such night set the public
+        //    "from €X". Reproduced: a €50 night from yesterday advertised where the real floor was €300.
+        //    ⚠️ Fallback `?: 'UTC'` is {@see \App\Support\Storefront\StorefrontOffer}'s exactly — the closest
+        //    sibling, and falsy-safe, so an EMPTY timezone string cannot reach Carbon and throw. The column is
+        //    NOT NULL default 'UTC', but `varchar` accepts '' and every fixture sets a real zone, so that path
+        //    is otherwise untested.
+        //    ⚠️ PER PROPERTY, because a town card groups SEVERAL properties and they can sit in different
+        //    zones — one shared "today" would be wrong for all but one of them.
+        $todayByProperty = $properties
+            ->mapWithKeys(fn (Property $p): array => [
+                (string) $p->getKey() => CarbonImmutable::now($p->timezone ?: 'UTC')->toDateString(),
+            ])
+            ->all();
+
+        $plansByProperty = [];
+        foreach ($rooms as $roomType) {
+            foreach ($roomType->ratePlans->where('is_active', true) as $plan) {
+                $plansByProperty[(string) $roomType->property_id][] = (string) $plan->getKey();
+            }
+        }
+
+        if ($plansByProperty === []) {
             return null;
         }
 
-        $min = RateCalendar::query()
-            ->whereIn('rate_plan_id', $planIds)
-            ->whereDate('date', '>=', CarbonImmutable::now()->toDateString())
-            ->min('price_minor');
+        // ⚠️ PLAIN COLUMN, NOT whereDate() (audit P-3) — see BookingEngineService::priceOver(). The compared
+        //    value is still a date STRING built before the query, so no day boundary moves with the index fix.
+        $query = RateCalendar::query();
+        $isFirst = true;
+
+        foreach ($plansByProperty as $propertyId => $planIds) {
+            $today = $todayByProperty[$propertyId] ?? CarbonImmutable::now('UTC')->toDateString();
+            $clause = function ($group) use ($planIds, $today): void {
+                $group->whereIn('rate_plan_id', $planIds)->where('date', '>=', $today);
+            };
+
+            $isFirst ? $query->where($clause) : $query->orWhere($clause);
+            $isFirst = false;
+        }
+
+        $min = $query->min('price_minor');
 
         return $min !== null ? (int) $min : null;
     }
@@ -333,9 +368,7 @@ class StorefrontLandingController extends Controller
 
     private function money(int $minor, string $currency): string
     {
-        $symbol = match (strtoupper($currency)) {
-            'EUR' => '€', 'GBP' => '£', 'USD' => '$', default => strtoupper($currency).' ',
-        };
+        $symbol = MoneyFormatter::symbol($currency);   // the ONE symbol map (§N.8f — one definition per concept)
 
         return $symbol.number_format($minor / 100, 0, '.', ',');
     }

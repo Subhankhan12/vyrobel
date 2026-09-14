@@ -6,7 +6,9 @@
         <div class="vy-confirm-check">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
-        <div class="vy-confirm-title">Booking confirmed</div>
+        {{-- ⚠️ PROMOTED FROM A <div>. This is the confirmation page's own visible title; only its element
+             was wrong, so the page a guest lands on after paying had no heading at all. --}}
+        <h1 class="vy-confirm-title" style="margin:0">Booking confirmed</h1>
         <div class="vy-confirm-sub">Your reservation at {{ $property['name'] }} is confirmed.</div>
 
         <div class="vy-card vy-confirm-rows">

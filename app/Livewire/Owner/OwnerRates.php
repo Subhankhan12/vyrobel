@@ -79,6 +79,7 @@ class OwnerRates extends Component
                 'proposals' => $proposals,
                 'guardrail' => $guardrail,
                 'avgDisplay' => null,
+                'currencySymbol' => $this->currencySymbol($this->ratesCurrency([], $roomTypes)),
             ]);
         }
 
@@ -97,6 +98,10 @@ class OwnerRates extends Component
             // WHERE YOU SIT — the owner's REAL average nightly rate across their room types (comp-set/market is
             // external data Vyrobel does not have → omitted, never fabricated #39).
             'avgDisplay' => $this->averageDisplay($cards),
+            // ⚠️ The rate inputs, the counter-offer field, the guardrail floor/ceiling and the weekend-uplift
+            // preview all printed a hardcoded '€'. They edit money in the RATE PLAN's currency, so a GBP
+            // portfolio labelled every one of them in euros. One page-level symbol, from the real currency.
+            'currencySymbol' => $this->currencySymbol($this->ratesCurrency($cards, $roomTypes)),
         ]);
     }
 
@@ -174,6 +179,27 @@ class OwnerRates extends Component
      *
      * @param  list<array<string, mixed>>  $cards
      */
+    /**
+     * The currency these rate editors work in — the first card's real rate-plan currency, else the owner's
+     * room-type property currency (the {@see OwnerMyUnits} rule, so the two screens agree).
+     *
+     * ⚠️ THE GUARDRAIL FLOOR/CEILING RENDER EVEN WITH NO EDITABLE ROOM TYPES, so this must answer in that
+     * branch too — hence the property fallback rather than reading the cards alone.
+     *
+     * @param  list<array<string, mixed>>  $cards
+     * @param  Collection<int, RoomType>  $roomTypes
+     */
+    private function ratesCurrency(array $cards, Collection $roomTypes): string
+    {
+        foreach ($cards as $card) {
+            if (isset($card['currency']) && is_string($card['currency']) && $card['currency'] !== '') {
+                return $card['currency'];
+            }
+        }
+
+        return (string) ($roomTypes->first()?->property->currency ?? 'EUR');
+    }
+
     private function averageDisplay(array $cards): ?string
     {
         $minors = [];

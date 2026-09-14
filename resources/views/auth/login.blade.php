@@ -71,6 +71,9 @@
         .vy-input { width: 100%; padding: 12px 14px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.8); font-family: var(--vy-sans); font-size: 14.5px; color: var(--vy-ink); transition: border-color .15s ease, box-shadow .15s ease; }
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.16); }
 
+        .vy-note { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--vy-r-md); font-size: 13px; font-weight: 500; }
+        .vy-note.is-ok { background: rgba(52,140,90,.12); border: 1px solid rgba(52,140,90,.34); color: rgb(34,110,68); }
+        .vy-note svg { flex: none; }
         .vy-error { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(224, 146, 30, 0.12); border: 1px solid rgba(224, 146, 30, 0.4); border-left: 3px solid var(--vy-amber); font-size: 13px; font-weight: 500; color: var(--vy-ink); }
         .vy-error svg { color: var(--vy-amber); flex: none; }
 
@@ -96,6 +99,17 @@
         <h1 class="vy-title">Welcome back</h1>
         <p class="vy-sub">Sign in to your Vyrobel account.</p>
 
+        {{-- ⚠️ F-4 — THE OUTCOME OF AN EMAIL CHANGE LANDS HERE AND WAS RENDERED BY NOBODY. OwnerAccountController
+             and the reset/approval paths all redirect to this page with `status`, and this view never read it:
+             a message set is not a message seen. Copied from `auth/forgot-password.blade.php`, which already
+             renders this exact key in this exact realm — not invented, and not borrowed from another shell. --}}
+        @if (session('status'))
+            <div class="vy-note is-ok" role="status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                {{ session('status') }}
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="vy-error" role="alert">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
@@ -119,6 +133,16 @@
 
             <button type="submit" class="vy-btn">Sign in</button>
         </form>
+
+        {{-- ⚠️ CONTINUE WITH GOOGLE — rendered ONLY when the founder has configured the console credentials.
+             There is no disabled state and no "coming soon": with nothing configured the route 404s, so a
+             button here would be a link to an error page. Absent is the honest presentation of absent. --}}
+        @if (app(\App\Contracts\Auth\SocialIdentityProvider::class)->enabled())
+            <a href="{{ route('social.google.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
+                <svg width="16" height="16" viewBox="0 0 48 48" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.3 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.3c-.4-1.3-.7-2.7-.7-4.3s.3-3 .7-4.3v-5.7H4.5C2.9 17.2 2 20.5 2 24s.9 6.8 2.5 10l7.3-5.7z"/><path fill="#EA4335" d="M24 10.7c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.1 29.9 2 24 2 15.5 2 8.1 6.7 4.5 13.7l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>
+                Continue with Google
+            </a>
+        @endif
 
         {{-- Passkey sign-in (Wave B · GATE 4) — passwordless WebAuthn; only shown where the browser supports it --}}
         <button type="button" id="vy-passkey-btn" class="vy-btn" style="display:none;margin-top:10px;background:transparent;color:var(--vy-accent);border:1px solid var(--vy-accent);">

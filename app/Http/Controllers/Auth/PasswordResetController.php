@@ -48,7 +48,7 @@ class PasswordResetController extends Controller
         // response is identical for sent / not-found / throttled — no account enumeration.
         Password::sendResetLink([
             'email' => $request->string('email')->lower()->trim()->value(),
-            'status' => 'active',
+            'status' => User::SIGN_IN_STATUS,
         ]);
 
         return back()->with('status', self::GENERIC_STATUS);
@@ -79,7 +79,7 @@ class PasswordResetController extends Controller
                 'password' => (string) $request->string('password'),
                 'password_confirmation' => (string) $request->string('password_confirmation'),
                 'token' => (string) $request->string('token'),
-                'status' => 'active',
+                'status' => User::SIGN_IN_STATUS,
             ],
             function (User $user, string $password): void {
                 // The ONE shared hash + remember-token-rotate path (also used by the in-app change-password

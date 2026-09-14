@@ -317,7 +317,7 @@
                                 <p class="vy-line-sub" style="margin:6px 0 16px">{{ $plan['name'] }} · {{ $pricing['units'] }} {{ \Illuminate\Support\Str::plural('unit', $pricing['units']) }}. Everything you’ve built is kept.</p>
 
                                 <div class="vy-retain-opt">
-                                    <div><strong>Pause instead · €0</strong><div class="vy-line-sub">Up to 3 months. Units, rates, owners &amp; history kept. Channels stop selling, the workspace goes read-only, and you restart with one click.</div></div>
+                                    <div><strong>Pause instead · {{ $pauseFree }}</strong><div class="vy-line-sub">Up to 3 months. Units, rates, owners &amp; history kept. Channels stop selling, the workspace goes read-only, and you restart with one click.</div></div>
                                     <form method="POST" action="{{ route('app.billing.pause') }}">@csrf<input type="hidden" name="months" value="3"><button type="submit" class="vy-btn vy-btn--accent">Pause 3 months</button></form>
                                 </div>
 

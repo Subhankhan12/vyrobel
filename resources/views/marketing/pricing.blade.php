@@ -17,8 +17,6 @@
     canonical="/pricing">
 <div data-screen-label="Marketing — Pricing" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <div data-printhead="" style="display: none; border-bottom: 1pt solid #B8ADA5; padding-bottom: 8pt; margin-bottom: 14pt;">
@@ -34,30 +32,20 @@
         <h1 data-h1="" style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 52px; line-height: 1.08; letter-spacing: -.035em; color: var(--vy-ink); text-wrap: balance; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .06s both;">{{ \App\Support\Marketing\MarketingPricing::headline() }}</h1>
         <p style="margin: 22px 0 0; font-size: 17.5px; line-height: 1.62; color: var(--vy-muted); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .13s both;">Every plan includes the booking engine, the owner portal and the guest app. Figures below are illustrative — we'll quote your portfolio properly.</p>
 
-        <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 30px; padding: 5px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 8px 22px rgba(150,90,50,.12); animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .2s both;">
-          <button data-cycle="monthly" style="padding: 10px 22px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .25s ease;">Monthly</button>
-          <button data-cycle="annual" style="padding: 10px 22px; border-radius: 999px; border: none; background: transparent; font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .25s ease; display: inline-flex; align-items: center; gap: 8px;">Annual <span style="padding: 2px 7px; border-radius: 6px; background: rgba(217,102,46,.16); color: #8F2F09; font-size: 10.5px; font-weight: 600;">−15%</span></button>
-        </div>
-
         <div data-noprint="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .32s both;">
-          <button style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,252,248,.62); font-family: var(--vy-sans); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: transform .22s ease, box-shadow .22s ease;">
-            <svg width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M4 21h16"></path></svg>
-            Download pricing as PDF
-          </button>
-          <x-marketing.nav-link key="contact" fragment="#form" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,252,248,.62); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); text-decoration: none; transition: transform .22s ease, box-shadow .22s ease;">
-            <svg width="15" height="15" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM4 7l8 6 8-6"></path></svg>
+          
+          <x-marketing.nav-link key="contact" fragment="#vy-contact-form" style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,252,248,.62); font-size: 13.5px; font-weight: 500; color: var(--vy-ink); text-decoration: none; transition: transform .22s ease, box-shadow .22s ease;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM4 7l8 6 8-6"></path></svg>
             Request a formal quote
           </x-marketing.nav-link>
         </div>
-        <div data-noprint="" style="text-align: center; font-size: 12px; color: var(--vy-muted); margin-top: 12px; animation: vyFadeUp .8s cubic-bezier(.22,.7,.3,1) .38s both;">Prints as a one-page summary with the plan you're viewing, in your selected currency.</div>
+        
       </div>
     </section>
 
     <section data-sec="" aria-labelledby="vy-plans-h" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 80px;">
       <h2 id="vy-plans-h" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;">Plans and prices</h2>
       <x-marketing.plan-cards />
-
-      <div data-portfolionote="" style="display: none; margin-top: 20px; text-align: center; font-family: var(--vy-display); font-size: 15px; font-weight: 500; color: #8F2F09;"></div>
 
       <div data-reveal="" style="margin-top: 22px; text-align: center; font-size: 13px; color: var(--vy-muted);">No setup fee · No commission on direct bookings · Card processing is billed by your payment provider</div>
     </section>
@@ -124,4 +112,7 @@
   </main>
 
 </div>
+
+@php($vyFaqLd = ['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => [['@type' => 'Question', 'name' => 'What counts as a unit?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'A unit is anything you sell a night of — a hotel room, an apartment, a villa. ⚠️ It does not change your price: the subscription is one figure per account whatever your unit count.']], ['@type' => 'Question', 'name' => 'Is there a free trial?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Yes — start with one property, no card. We\'ll import your bookings during the trial so you\'re judging the real thing, not a demo dataset.']], ['@type' => 'Question', 'name' => 'Do owners or guests pay anything?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'No. Owner portal access and the guest app are included in your plan. ' . (\App\Support\Marketing\MarketingPricing::whoPays())]], ['@type' => 'Question', 'name' => 'What happens in the off-season?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'The subscription does not move with your unit count, so a quiet season costs the same as a busy one. Annual billing is the cheaper of the two cycles.']], ['@type' => 'Question', 'name' => 'Can we cancel?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Monthly plans cancel at the end of the month, with no exit fee. You can export your bookings, statements and guest data in full before you go.']]]])
+<script type="application/ld+json">@json($vyFaqLd, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE)</script>
 </x-marketing.shell>

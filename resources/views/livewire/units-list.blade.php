@@ -6,9 +6,17 @@
      buttons referenced a variable no ancestor owned and clicking them did nothing at all. Six green tests
      missed it because they assert the markup is present, not that the interaction works; only opening the
      page in a browser showed 0 dialogs on click (the item-21 blank-rows lesson, in a new costume). --}}
-<div x-data="{ unitPriceFor: null, arrivalFor: null }">
+<div x-data="{ unitPriceFor: null, arrivalFor: null, editUnitFor: null, activeUnitFor: null }">
     <x-operator.shell active="units" title="Units" subtitle="Inventory" :viewer="$viewer">
 
+        {{-- ⚠️ `units_error` was set by nothing and rendered by nothing. The new unit controls can refuse
+             (a duplicate code, a read-only workspace), and a refusal nobody sees is the F-1 shape this
+             programme closed for four other doors. ⚠️ AT 375px THIS LANDS BELOW THE FOLD — the operator
+             shell stacks its sidebar 673px above the content, so this is reported as reachable-by-scroll,
+             never as "seen on arrival". --}}
+        @if (session('units_error') || $errors->any())
+            <div class="vy-flash is-err" role="alert" style="margin-bottom:14px;">{{ session('units_error') ?? $errors->first() }}</div>
+        @endif
         @if (session('units_notice'))
             <div class="vy-flash is-ok vy-fade" role="status">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -109,6 +117,16 @@
                                             <button type="button"
                                                     style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
                                                     x-on:click="arrivalFor = '{{ $unit['id'] }}'">Arrival info<span style="color: var(--vy-muted); text-decoration: none;">{{ $unit['arrival']['has_code'] ? ' · code set' : '' }}</span></button>
+                                        @endif
+                                        {{-- ⚠️ F-6 — a unit could be created and never changed. Both controls carry the
+                                             same gate as creating one (`units.manage`). --}}
+                                        @if ($canManageUnits ?? false)
+                                            <button type="button"
+                                                    style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-accent);cursor:pointer;text-decoration:underline;"
+                                                    x-on:click="editUnitFor = '{{ $unit['id'] }}'">Edit unit</button>
+                                            <button type="button"
+                                                    style="display:block;margin-top:4px;padding:0;border:0;background:none;font-size:11.5px;color:var(--vy-muted);cursor:pointer;text-decoration:underline;"
+                                                    x-on:click="activeUnitFor = '{{ $unit['id'] }}'">{{ $unit['is_active'] ? 'Take out of service' : 'Return to service' }}</button>
                                         @endif
                                     </td>
                                     <td>{{ $unit['kind'] }}</td>
@@ -250,10 +268,11 @@
         @foreach ($units as $vyU)
             <div x-show="unitPriceFor === '{{ $vyU['id'] }}'" x-cloak
                  style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
-                 x-on:click.self="unitPriceFor = null">
+                 x-on:click.self="unitPriceFor = null" x-on:keydown.escape.window="unitPriceFor = null">
                 <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;"
-                     x-data="{ unitMode: 'set', unitRt: '{{ $vyU['room_type_id'] }}' }">
+                     x-data="{ unitMode: 'set', unitRt: '{{ $vyU['room_type_id'] }}' }" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="unitPriceFor === '{{ $vyU['id'] }}'" aria-labelledby="vy-dlg-ul-unitprice-{{ $vyU['id'] }}">
                     <x-rates.unit-price-form
+                          heading-id="vy-dlg-ul-unitprice-{{ $vyU['id'] }}"
                         :room-types="$unitPriceRoomTypes"
                         :units="$unitPriceUnits"
                         :preselect="$vyU['id']"
@@ -282,14 +301,81 @@
 
      ⚠️ A BLANK FIELD LEAVES THE STORED VALUE ALONE — it is not an erase, because the form cannot show you
      what is there and a blank input therefore carries no intent. Clearing is explicit. --}}
+{{-- ⚠️ F-6 · EDIT + OUT-OF-SERVICE DIALOGS. The D2 contract is copied from the unit-price dialog on this
+     same screen, not invented: role, aria-modal, a RESOLVING aria-labelledby, tabindex="-1", a trap bound to
+     ITS OWN show expression, and Escape. ⚠️ Their state is declared on the ROOT x-data at the top of this
+     file — an ancestor of both the buttons and these dialogs, and not a `.vy-fade`, whose finished transform
+     creates a containing block that would clamp a position:fixed panel to the card instead of the viewport
+     (the FIX 02 defect). --}}
+@if ($canManageUnits ?? false)
+    <div x-cloak>
+        @foreach ($units as $vyE)
+            {{-- EDIT --}}
+            <div x-show="editUnitFor === '{{ $vyE['id'] }}'" x-cloak
+                 style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                 x-on:click.self="editUnitFor = null" x-on:keydown.escape.window="editUnitFor = null">
+                <div class="vy-card" style="max-width: 460px; width: 100%;"
+                     role="dialog" aria-modal="true" tabindex="-1"
+                     x-trap.noscroll="editUnitFor === '{{ $vyE['id'] }}'"
+                     aria-labelledby="vy-dlg-ul-edit-{{ $vyE['id'] }}">
+                    <h2 id="vy-dlg-ul-edit-{{ $vyE['id'] }}" style="margin:0 0 4px;font-size:17px;">Edit unit {{ $vyE['code'] }}</h2>
+                    <p class="vy-u-sub" style="margin:0 0 14px;">Renaming a unit never changes a booking that has already been taken — a stay keeps the price and the room it was sold with.</p>
+                    <form method="POST" action="{{ route('app.inventory.units.update', $vyE['id']) }}">
+                        @csrf
+                        @method('PUT')
+                        <label class="vy-label" for="vy-ul-code-{{ $vyE['id'] }}">Unit code</label>
+                        <input class="vy-inp" id="vy-ul-code-{{ $vyE['id'] }}" name="code" value="{{ $vyE['code'] }}" required maxlength="60" style="margin-bottom:10px;">
+                        <label class="vy-label" for="vy-ul-name-{{ $vyE['id'] }}">Name <span class="vy-u-sub">(optional)</span></label>
+                        <input class="vy-inp" id="vy-ul-name-{{ $vyE['id'] }}" name="name" value="{{ $vyE['unit_name'] }}" maxlength="255" style="margin-bottom:10px;">
+                        <label class="vy-label" for="vy-ul-occ-{{ $vyE['id'] }}">Maximum occupancy</label>
+                        <input class="vy-inp" id="vy-ul-occ-{{ $vyE['id'] }}" name="max_occupancy" type="number" min="1" max="30" value="{{ $vyE['occupancy'] }}" style="margin-bottom:16px;">
+                        <div style="display:flex;gap:8px;justify-content:flex-end;">
+                            <button type="button" class="vy-btn" x-on:click="editUnitFor = null">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- OUT OF SERVICE / BACK IN SERVICE — ⚠️ the copy states exactly what the control does and what
+                 it does NOT do, which is the season precedent: a control may not imply more than it does. --}}
+            <div x-show="activeUnitFor === '{{ $vyE['id'] }}'" x-cloak
+                 style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
+                 x-on:click.self="activeUnitFor = null" x-on:keydown.escape.window="activeUnitFor = null">
+                <div class="vy-card" style="max-width: 460px; width: 100%;"
+                     role="dialog" aria-modal="true" tabindex="-1"
+                     x-trap.noscroll="activeUnitFor === '{{ $vyE['id'] }}'"
+                     aria-labelledby="vy-dlg-ul-active-{{ $vyE['id'] }}">
+                    <h2 id="vy-dlg-ul-active-{{ $vyE['id'] }}" style="margin:0 0 4px;font-size:17px;">{{ $vyE['is_active'] ? 'Take unit '.$vyE['code'].' out of service?' : 'Return unit '.$vyE['code'].' to service?' }}</h2>
+                    <p class="vy-u-sub" style="margin:0 0 16px;">
+                        @if ($vyE['is_active'])
+                            It stops being offered for new bookings straight away. <strong>Bookings already taken are not affected</strong>, and nothing is deleted — you can put it back at any time.
+                        @else
+                            It becomes available for new bookings again from today.
+                        @endif
+                    </p>
+                    <form method="POST" action="{{ route('app.inventory.units.active', $vyE['id']) }}">
+                        @csrf
+                        <input type="hidden" name="active" value="{{ $vyE['is_active'] ? '0' : '1' }}">
+                        <div style="display:flex;gap:8px;justify-content:flex-end;">
+                            <button type="button" class="vy-btn" x-on:click="activeUnitFor = null">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent">{{ $vyE['is_active'] ? 'Take out of service' : 'Return to service' }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
+
 @if ($canManageUnits ?? false)
     <div x-cloak>
         @foreach ($units as $vyA)
             <div x-show="arrivalFor === '{{ $vyA['id'] }}'" x-cloak
                  style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;"
-                 x-on:click.self="arrivalFor = null">
-                <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;">
-                    <h3 class="vy-card-title" style="margin: 0 0 4px;">Arrival info — {{ $vyA['name'] ?? $vyA['code'] }}</h3>
+                 x-on:click.self="arrivalFor = null" x-on:keydown.escape.window="arrivalFor = null">
+                <div class="vy-card" style="max-width: 520px; width: 100%; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="arrivalFor === '{{ $vyA['id'] }}'" aria-labelledby="vy-dlg-units-list-arrivalfor-vya-id-1">
+                    <h3 class="vy-card-title" style="margin: 0 0 4px;" id="vy-dlg-units-list-arrivalfor-vya-id-1">Arrival info — {{ $vyA['name'] ?? $vyA['code'] }}</h3>
                     <p style="font-size: 12px; color: var(--vy-muted); margin: 0 0 14px;">Guests see this only from {{ \App\Support\Guest\ArrivalPack::LEAD_DAYS }} days before check-in.</p>
 
                     <form method="POST" action="{{ route('app.inventory.units.arrival-info', $vyA['id']) }}" style="display: grid; gap: 10px;">

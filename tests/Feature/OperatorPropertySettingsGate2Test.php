@@ -5,12 +5,12 @@ use App\Models\Folio;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\Tax;
-use App\Services\ChannelConnectionService;
 use App\Services\FolioService;
 use App\Services\PropertyRemovalService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -136,9 +136,23 @@ it('schedules removal then archives (soft-delete) without destroying records', f
     ])->assertRedirect(route('app.settings'))->assertSessionHas('settings_notice');
     expect($property->fresh()->removal_scheduled_at)->not->toBeNull();
 
-    // The effective date is in the past (last checkout 3 Jul, today is later) → processDue archives it now.
-    $count = app(PropertyRemovalService::class)->processDue(app(ChannelConnectionService::class));
-    expect($count)->toBeGreaterThanOrEqual(1);
+    // ⚠️⚠️ RUN IT THE WAY THE SCHEDULER DOES (audit 2026-08-29 · M-8). This previously called
+    // PropertyRemovalService::processDue() directly, INSIDE the tenant context that seedScenario() and
+    // actingAs() leave behind — a shape the daily 02:00 run NEVER has. The command therefore threw
+    // TenantContextMissingException every night while this test stayed green, because it was proving the
+    // service works in a situation that does not occur.
+    //
+    // ⚠️ FAILURE CLASS: "a test that encodes the bug by exercising a shape production never takes". It is a
+    // SIBLING of "a test proving something ADJACENT to what you think it proves" (the E-1 case) but not the
+    // same: there the assertion was true and simply about the wrong thing; here the assertion is about the
+    // right thing, under a SETUP that production never reproduces. The tell is different — an adjacent test
+    // looks under-scoped, this one looks thorough.
+    app(TenantContext::class)->forget();
+
+    $this->artisan('properties:process-removals')->assertExitCode(0);
+
+    // The COMMAND must run with no context; the test's own inspection below needs one restored.
+    app(TenantContext::class)->set((string) $s['org']->id);
 
     // Archived = SOFT-deleted (trashed), NOT destroyed; the reservation record is RETAINED.
     expect(Property::withTrashed()->find($property->id)->trashed())->toBeTrue();

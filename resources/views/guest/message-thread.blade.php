@@ -12,7 +12,8 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div style="min-width:0">
-            <div style="font-family:var(--vy-display);font-weight:600;font-size:17px;color:var(--vy-ink);letter-spacing:-.01em">{{ $subject }}</div>
+            {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+            <h1 style="font-family:var(--vy-display);font-weight:600;font-size:17px;color:var(--vy-ink);letter-spacing:-.01em;margin:0">{{ $subject }}</h1>
             <div style="font-size:12px;color:var(--vy-muted);margin-top:1px">With the property team</div>
         </div>
     </div>
@@ -35,7 +36,8 @@
     <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
         <form method="POST" action="{{ route('guest.messages.send', $thread) }}" style="display:flex;flex-direction:column;gap:10px">
             @csrf
-            <textarea class="vy-input" name="body" rows="3" placeholder="Write a reply…" maxlength="5000" required style="resize:vertical"></textarea>
+            <label class="vy-sr-only" for="vy-lbl-message-thread-body">Write a reply…</label>
+            <textarea id="vy-lbl-message-thread-body" class="vy-input" name="body" rows="3" placeholder="Write a reply…" maxlength="5000" required style="resize:vertical"></textarea>
             <div><button type="submit" class="vy-btn">Send</button></div>
         </form>
     </section>

@@ -305,9 +305,9 @@
             {{-- Remove-property confirm modal (Alpine) --}}
             @if ($removal !== null && ! $removal['scheduled'] && $canManageProperty && ! $readOnly)
                 <div x-data="{ open: false, typed: '' }" x-on:open-remove.window="open = true" x-cloak>
-                    <div x-show="open" style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" @click.self="open = false">
-                        <div class="vy-card" style="max-width: 460px; width: 100%;">
-                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;">Remove {{ $removal['name'] }}</h3>
+                    <div x-show="open" style="position: fixed; inset: 0; background: rgba(40,25,15,.45); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;" @click.self="open = false" @keydown.escape.window="open = false">
+                        <div class="vy-card" style="max-width: 460px; width: 100%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="open" aria-labelledby="vy-dlg-operator-settings-open-1">
+                            <h3 style="font-size: 16px; font-weight: 700; color: var(--vy-ink); margin: 0 0 4px;" id="vy-dlg-operator-settings-open-1">Remove {{ $removal['name'] }}</h3>
                             <div style="font-size: 12.5px; color: var(--vy-muted); margin-bottom: 12px;">{{ $removal['units'] }} {{ \Illuminate\Support\Str::plural('unit', $removal['units']) }}@if ($removal['in_house'] > 0)<span> · {{ $removal['in_house'] }} guests in house right now</span>@endif</div>
                             <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">
                                 <li>Removal is <strong>scheduled</strong> — the property stays live until the last checkout.</li>
@@ -387,6 +387,17 @@
                                                 <input type="checkbox" name="properties[]" value="{{ $p['id'] }}" @checked(in_array($p['id'], $m['ids'], true))> {{ $p['name'] }}
                                             </label>
                                         @endforeach
+                                        {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do.
+                                             ⚠️ The id is per-ROW: this block is inside @foreach ($teamScopes), so a fixed
+                                             id would repeat down the page and every row's <label for> would focus the
+                                             FIRST row's box. Same reason the error is shown only on the row that posted
+                                             (`user_id` is flashed back; `current_password` is not — dontFlash). --}}
+                                        <label class="vy-field-label" for="scope_pw_{{ $m['id'] }}">Confirm with your password</label>
+                                        <input id="scope_pw_{{ $m['id'] }}" type="password" name="current_password" class="vy-input"
+                                               autocomplete="current-password" required aria-label="Current password">
+                                        @if ((string) old('user_id') === (string) $m['id'])
+                                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                                        @endif
                                         <button type="submit" class="vy-btn" style="padding: 6px 12px; font-size: 12px;">Save</button>
                                     @endif
                                 </div>

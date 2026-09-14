@@ -47,6 +47,60 @@
         body { font-family: var(--vy-sans); color: var(--vy-ink); background: var(--vy-bg); background-attachment: fixed; min-height: 100vh; }
         a { color: var(--vy-accent-text); }
         :focus-visible { outline: 2.5px solid var(--vy-accent); outline-offset: 3px; border-radius: 8px; }
+
+        /* ⚠️⚠️ F-11 — THE SKIP LINK WAS PERMANENTLY INVISIBLE, AND THAT IS WORSE THAN ABSENT.
+           The design parks it at `left: -9999px` and never brings it back: MEASURED in a browser, its
+           bounding box was left=-9999 before focus AND left=-9999 after focus. A keyboard user could tab
+           to it, saw nothing (the focus ring is off-screen too), and had no way to know it existed. It
+           still WORKED if activated blind, which is why no test and no reading caught it.
+           ⚠️ The link itself now lives in this shell, above the nav — see the body below for why. */
+        .vy-mk-skip { position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px;
+            border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600;
+            text-decoration: none; }
+        .vy-mk-skip:focus { left: 12px; }
+
+        /* ⚠️⚠️ F-9 — THE SELECTED TAB WAS INDISTINGUISHABLE FROM THE UNSELECTED ONES.
+           The audit reported the hour rail's BORDER at 1.02:1 and asked whether that mattered on what was
+           then a decorative strip. Re-measured now that it is a working tab group, the answer is worse
+           than the finding: selected vs unselected measured **1.00:1** — identical background, identical
+           border, identical colour, identical weight. `marketing.js` moves `aria-selected` and the roving
+           tabindex correctly and shows the right panel, so a screen-reader user is served properly; a
+           SIGHTED user could see the panel change but not which control was active.
+           ⚠️ WHY IT HAPPENED: the design set the selected styling IMPERATIVELY (`b.style.background = on
+           ? '<a two-stop accent gradient>' : …`). The converter strips the runtime and keeps
+           the markup, so the page shipped permanently in the RESTING style — which is exactly what the
+           measurement found (`rgba(255,252,248,.55)`, weight 500, no shadow).
+           ⚠️ THE INTENT IS RECOVERED FROM THE MASTER; THE COLOURS ARE THE PROJECT'S TOKENS, AND THE
+           DIFFERENCE IS DELIBERATE. The design's handler painted a two-stop accent gradient with an
+           off-white label — but its DARK STOP and that OFF-WHITE are both on the REFUSED-TONE list (D6/E4),
+           and `MarketingCorePagesTest` reds on either. ⚠️ It caught my first attempt, which pasted them.
+           ⚠️⚠️ AND THEN IT CAUGHT ME AGAIN, FOR A BETTER REASON: my first version of THIS COMMENT quoted
+           the two refused hex values while explaining why they are not used — and a CSS comment SHIPS, so
+           the page carried them and the guard was right to red. A refused value may not appear on the page
+           even inside an apology for not using it (the canon's "never negate a claim by quoting it").
+           ⚠️ NOR IS `var(--vy-grad)` THE ANSWER, although it is the sanctioned gradient token: 🔬 white on
+           its LIGHT stop (`#E8703A`) measures **3.08:1**, under the 4.5:1 AA floor for 13px text. A
+           token-bound rule that fails the contrast it exists to fix would be the worse trade.
+           ⚠️ SO: the SOLID accent token, measured — 🔬 fill 5.06:1 against the page, label 5.18:1 on the
+           fill, plus weight 600 and a shadow, so the state has three cues and not one.
+           ⚠️ `!important` because the design's styles are INLINE on each control; the shell's own
+           responsive rules already override them the same way. */
+        [data-hourbtn][aria-selected="true"], [data-stagebtn][aria-selected="true"],
+        [data-lensbtn][aria-selected="true"], [data-modchip][aria-pressed="true"],
+        [data-cyclebtn][aria-checked="true"] {
+            background: var(--vy-accent) !important;
+            color: #fff !important;
+            border-color: var(--vy-accent) !important;
+            font-weight: 600 !important;
+            box-shadow: 0 8px 20px rgba(194, 65, 12, .28) !important;
+        }
+        /* ⚠️ AND THE RESTING BORDER, which is the finding as originally written. `rgba(255,255,255,.8)`
+           over the cream page measured 1.02:1 — the control's edge cannot be seen at all. WCAG 1.4.11
+           asks 3:1 for the boundary of a control, and these are controls a user must find to operate.
+           ⚠️ NOT applied to `[data-lensbtn]`: those ship `border: none` by design and are not in this set. */
+        [data-hourbtn], [data-stagebtn], [data-modchip], [data-cyclebtn] {
+            border-color: rgba(140, 82, 45, .7) !important;   /* 🔬 3.22:1 — measured, not chosen by eye */
+        }
         @keyframes vyShimmer { 0% { opacity: .2; transform: translateX(-120%) skewX(-18deg); } 55% { opacity: .5; } 100% { opacity: .2; transform: translateX(220%) skewX(-18deg); } }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .vy-mk-shimmer { animation: none !important; } }
 
@@ -144,7 +198,19 @@
         .vy-mk-whatsnew-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; }
         .vy-mk-whatsnew-cta { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--vy-accent-text); }
         .vy-mk-footgrid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 28px; padding: 26px 0; border-top: 1px solid var(--vy-hairline); }
-        @media (max-width: 960px) { .vy-mk-footgrid { grid-template-columns: 1fr 1fr; } }
+        /* ⚠️⚠️ F-5 — THE 13px OF HORIZONTAL OVERFLOW ON ALL 19 PAGES WAS THIS ONE LINE.
+           A `1fr` grid track is `minmax(auto, 1fr)`, and that `auto` MINIMUM is the track's min-content
+           size — a floor `1fr` cannot go below. The first footer column's min-content is ~243px, so at
+           375px the two tracks plus the 28px gap plus the footer's padding measured 388px against a 375px
+           viewport: exactly the 13px. ⚠️ MEASURED, NOT REASONED: neutralising this grid in a live browser
+           took document.scrollWidth from 388 to 375; hiding the header and hiding the cookie banner each
+           left it at 388.
+           ⚠️ THE HEADER AND THE COOKIE BANNER WERE FOLLOWERS, NOT CAUSES. Both are `position: fixed` with
+           `left:0; right:0`, so once something else widened the scrollable area they stretched to it and
+           measured 388 too — which is why a reader looking at the rendered page blames the header.
+           ⚠️ AND THE 560px COOKIE TABLE IS NOT THE CAUSE EITHER, despite extending 225px past the viewport:
+           it sits in an `overflow-x: auto` wrapper, and a scroll container does not widen its page. */
+        @media (max-width: 960px) { .vy-mk-footgrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
         .vy-mk-footbrand p { font-size: 13px; line-height: 1.6; color: var(--vy-muted); max-width: 300px; margin: 14px 0 18px; }
         .vy-mk-footcol { display: flex; flex-direction: column; gap: 8px; }
         .vy-mk-footcol a, .vy-mk-footcol span[data-vy-pending] { font-size: 13px; color: var(--vy-muted); text-decoration: none; }
@@ -241,7 +307,10 @@
             [data-steprow] [data-stepart] { order: 2; }
             [data-igrid] { grid-template-columns: 1fr 1fr !important; }
             [data-sgrid] { grid-template-columns: 1fr 1fr !important; }
-            [data-estwrap] { grid-template-columns: 1fr !important; }
+            {{-- ⚠️ `[data-estwrap]` REMOVED with the /switching migration estimator it stacked. A deletion
+                 is not finished until the rules that depended on it go too — the same residue class as the
+                 currency copy that outlived its switcher (D8), and the second time this shell has needed
+                 the follow-up read. Nothing else in the site carries that attribute. --}}
             [data-split] { grid-template-columns: 1fr !important; }
             [data-timeline] { grid-template-columns: 1fr !important; }
         }
@@ -272,6 +341,11 @@
             [data-two] { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 760px) {
+            /* ⚠️ THE CARD GRID COLLAPSES HERE. `[data-plans]` — the design's own grid container — no
+               longer exists on the page: the converter replaces that whole element with
+               <x-marketing.plan-cards />, so the rules below it target nothing. The component now owns
+               the grid and this collapses it to one column on a phone, at an EXISTING breakpoint. */
+            .vy-plan-grid { grid-template-columns: minmax(0, 1fr) !important; }
             [data-plans] { grid-template-columns: 1fr !important; }
             [data-cmpscroll] { overflow-x: auto; }
             [data-cmp] thead th { position: static !important; }
@@ -328,16 +402,80 @@
             [data-sec] { padding-left: 18px !important; padding-right: 18px !important; }
         }
 
+        /* ══ ⚠️⚠️ THE PRINT ARTEFACT — RESTORED HERE, BECAUSE THE CONVERTER CANNOT CARRY IT ═══════════
+           ⚠️ THE DESIGN SHIPS A `<style media="print">` BLOCK, and `helmet()` consumes every <style> in
+           the master before the body is even extracted — so these rules have never reached a generated
+           page. The button worked and the ARTEFACT was broken: "Print this story" produced a document
+           with the navigation bar, the footer, the decorative orbs and the cookie notice on it, and
+           WITHOUT the letterhead — because `[data-printhead]` and `[data-printfoot]` ship
+           `display: none` inline and the only rule that reveals them was in that stripped block.
+           ⚠️ THEY ARE TWO MORE HIDDEN PANES, and they belong on the hidden-pane census beside the eight
+           the hour rail once had: served, paid for in bytes, unreachable by anyone.
+           ⚠️ THE SHELL IS THE RIGHT HOME. There is nothing to "preserve through conversion" — the block
+           is gone before the converter sees the body — and print rules are global: four pages carry
+           print elements today and any page can be printed with Cmd-P, so a per-page copy would be four
+           copies of one rule (§N.8f). The design's page-specific print cosmetics are NOT reproduced;
+           what is here is the artefact contract, which is what makes a printed page a document. */
+        @media print {
+            @page { size: A4; margin: 15mm 14mm; }
+            html, body, [data-screen-label] { background: #fff !important; }
+
+            /* ⚠️ WHAT A PRINTED PAGE MUST NOT CONTAIN: chrome, decoration and anything clickable. A story
+               printed with a nav bar and a consent notice is not a document anyone keeps. */
+            .vy-mk-header, .vy-mk-footer, footer, .vy-mk-skip, .vy-mk-burger, .vy-mk-menu-box,
+            .vy-mk-mobile, [data-orb], [data-inpagenav], [data-noprint],
+            section[aria-labelledby^="vy-cookie-h-"] { display: none !important; }
+            /* ⚠️ `[data-vy-rail]` WAS IN THIS LIST AND HID THE WHOLE DOCUMENT. The design's block hides
+               `#vy-rail` — an id, a scroll-progress element that does not exist in these pages — and I
+               transcribed it as the ATTRIBUTE, which sits on each page's ROOT WRAPPER div. In print the
+               letterhead stayed hidden not because its own rule failed (it computed `display: block`
+               correctly) but because an ancestor was gone. ⚠️ Only emulating print media showed it;
+               reading the stylesheet showed a rule that looked right. */
+
+            /* ⚠️ AND WHAT IT MUST CONTAIN: the letterhead and the footer line, which exist on the page
+               already and are revealed only here. */
+            [data-printhead], [data-printfoot] { display: block !important; }
+
+            /* ⚠️ Effects that cost ink and mean nothing on paper; and `[data-reveal]` must be settled,
+               since its entrance animation may never have run before the print dialog opened. */
+            * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+                box-shadow: none !important; animation: none !important; transition: none !important; }
+            [data-reveal] { opacity: 1 !important; transform: none !important; }
+
+            main, .vy-mk-main { padding-top: 0 !important; }
+            [data-sec] { padding: 0 0 10pt !important; max-width: none !important; margin: 0 !important; }
+            h1 { font-size: 20pt !important; margin-bottom: 4pt !important; }
+            h2 { font-size: 12.5pt !important; page-break-after: avoid; margin-bottom: 4pt !important; }
+            h3 { font-size: 10.5pt !important; }
+            p, li { font-size: 9pt !important; line-height: 1.45 !important; }
+        }
+
         .vy-chip { display: inline-flex; cursor: pointer; }
         .vy-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
         .vy-chip span { display: inline-block; padding: 10px 15px; border-radius: 11px; border: 1px solid rgba(150,90,50,.2); background: rgba(255,255,255,.6); font-family: var(--vy-sans); font-size: 13px; color: var(--vy-ink); transition: all .2s ease; }
         .vy-chip input:checked + span { border-color: var(--vy-accent); background: rgba(217,102,46,.12); color: var(--vy-accent-text); font-weight: 600; }
         .vy-chip input:focus-visible + span { outline: 2.5px solid var(--vy-accent); outline-offset: 3px; }
         @media (prefers-reduced-motion: reduce) { .vy-chip span { transition: none; } }
-    </style>
+            /* ⚠️⚠️ DEFINED, NOT ASSUMED. A visually-hidden label whose class is undefined does not hide
+           anything — it renders as stray text on the page. This shell had no `.vy-sr-only` while the
+           operator, owner and guest shells each define it, so a label placed here would have SHOWN.
+           Copied verbatim from those three: separate documents, one rule. */
+        .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+</style>
     {{ $head ?? '' }}
 </head>
 <body>
+    {{-- ⚠️⚠️ F-11 — THE SKIP LINK BELONGS HERE, ABOVE THE NAV, AND IT DID NOT USED TO BE.
+         It was emitted INSIDE each page body, which the shell renders inside `<main>` — after the whole
+         navigation. MEASURED in a browser: it was the THIRD tab stop on every page checked (logo → the
+         burger → skip), which defeats the one thing a skip link is for. Shell-wide, not page-specific:
+         the same index on `/` and on a scenario page.
+         ⚠️ The burger ahead of it is NOT a defect and was not moved — the audit called it "an empty
+         `<label>`", but its text content is empty only because it wraps an SVG: it carries
+         `role="button"`, `aria-label="Open menu"` and `tabindex="0"`, and is correctly built.
+         ⚠️ It is REMOVED from the 19 generated pages in the same change (see convert.py), because two
+         skip links would be worse than one in the wrong place. --}}
+    <a class="vy-mk-skip" href="#vy-main">Skip to content</a>
     <x-marketing.nav />
     <main class="vy-mk-main">
         {{ $slot }}
@@ -351,5 +489,19 @@
     @if (\App\Support\Privacy\CookieConsent::shouldPrompt(request()))
         <x-marketing.cookie-notice mode="banner" />
     @endif
+
+    {{-- ⚠️⚠️ THE MARKETING SITE'S ONLY SCRIPT (D1/D6). It ENHANCES; it never renders content.
+         Every pane is present and visible in the HTML above — the converter strips the design's inline
+         `display:none` (`_unhide`) precisely so this file is not load-bearing. If it 404s, is blocked, or
+         never parses, the pages degrade to a long scrolling document with all content intact and indexable.
+
+         ⚠️ `defer`, so it never blocks the render it is not required for.
+         ⚠️ A PLAIN STATIC FILE, DELIBERATELY NOT `@vite`: the Vite helper THROWS when the build manifest is
+         missing, which would turn a forgotten `npm run build` into a 500 on the public marketing site —
+         strictly worse than the degraded-but-readable failure this design is built around.
+         ⚠️ `filemtime` cache-busts without a manifest; it is guarded because the file's absence must never
+         be able to break a page render. --}}
+    @php($vyMkJs = public_path('js/marketing.js'))
+    <script defer src="{{ asset('js/marketing.js') }}{{ is_file($vyMkJs) ? '?v='.filemtime($vyMkJs) : '' }}"></script>
 </body>
 </html>

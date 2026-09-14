@@ -34,16 +34,24 @@ use RuntimeException;
  * status + `cancelled_at` (+ `cancellation_reason` on a cancel), writes `reservation_status_history`, and
  * emits the domain/audit events post-commit.
  *
- * ⚠️ WHY THE TRANSITION GUARD LIVES HERE AND NOT IN THE SERVICE. `AssignmentService::terminate()` has NO
- * status guard (verified 2026-07-16, AssignmentService.php:586) — contrary to what a "guarded lifecycle"
- * reading suggests, re-cancelling an ALREADY-cancelled reservation does not throw. It would silently
- * succeed and OVERWRITE `cancelled_at`/`cancellation_reason` — destroying the real provenance the detail
- * screen renders — and append a meaningless `cancelled → cancelled` history row to an append-only audit
- * trail. So this controller checks the REAL current status against an allow-list BEFORE calling the
- * service, and refuses with a clean flash. Adding the guard to the service is the correct long-term fix
- * and is NOT in this gate's scope (its signatures are fixed); until then this allow-list is load-bearing,
- * not belt-and-braces. {@see ReservationDetail} gates the buttons off these SAME constants so the UI can
- * never offer a transition the write path will refuse.
+ * ⚠️ WHY A TRANSITION ALLOW-LIST LIVES HERE AS WELL AS IN THE SERVICE — and the service's guard is the
+ * authoritative one. `AssignmentService::terminate()` DOES check its source state: it throws
+ * ReservationAlreadyTerminalException when the reservation is already in TERMINAL_STATUSES
+ * (cancelled / no_show / checked_out), before the transaction opens, so a rejected call touches no
+ * inventory and writes nothing. That is shipped invariant #29.
+ *
+ * ⚠️ THIS DOCBLOCK PREVIOUSLY DESCRIBED THE SERVICE AS UNPROTECTED AND THE FIX AS DEFERRED. It was wrong
+ * on both counts, and it was the second place that description had been written — audit F-19 found its
+ * twin above the cancel routes. The wording is not repeated here on purpose: a correction that quotes the
+ * claim it is denying leaves the false sentence in the file for the next reader to find. Rewritten
+ * 2026-09-13 from AssignmentService::terminate() itself, not from memory of it.
+ *
+ * ⚠️ THE ALLOW-LISTS ARE STILL LOAD-BEARING, for a different and narrower reason than the old text gave:
+ * CANCELLABLE / NO_SHOWABLE bound which SOURCE states the product OFFERS the action from, which is a
+ * stricter question than "is this already terminal" — NO_SHOWABLE is `confirmed` alone, while the service
+ * would accept any non-terminal state. They shape the surface; the service bounds the data.
+ * {@see ReservationDetail} gates the buttons off these SAME constants so the UI can never offer a
+ * transition the write path will refuse.
  *
  * The `catch (RuntimeException)` is nonetheless real, not theatre: `releaseLine()` → `lockAvailability()`
  * throws `InsufficientAvailabilityException` (→ `BookingException` → `RuntimeException`) when a stay's

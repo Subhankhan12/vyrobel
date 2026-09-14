@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\Organization;
 use App\Models\Property;
+use App\Models\Scopes\OrganizationScope;
 use App\Support\Storefront\StorefrontOffer;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
@@ -74,7 +75,10 @@ class StorefrontSitemapController extends Controller
             $sellableOrgIds = [];
 
             $properties = Property::query()
-                ->withoutGlobalScopes()
+                // ⚠️ NAME THE SCOPE. The bare form also dropped `SoftDeletingScope`, so a property an
+                //    operator ARCHIVED (`PropertyRemovalService` soft-deletes it) stayed in the PUBLIC
+                //    sitemap — advertising a URL that returns 404 to the crawler that follows it.
+                ->withoutGlobalScopes([OrganizationScope::class])
                 ->where('status', 'active')
                 ->orderBy('slug')
                 ->get();
@@ -107,8 +111,9 @@ class StorefrontSitemapController extends Controller
             // an org landing offering nothing bookable is the same empty-page problem one level up. The org
             // status filter mirrors ResolvePublicOrganization, for the same 404 reason as above.
             if ($sellableOrgIds !== []) {
+                // ⚠️ `Organization` carries only `SoftDeletingScope` — there is no tenant scope on it to
+                //    escape — so the bare call did nothing but list deleted organisations.
                 $organizations = Organization::query()
-                    ->withoutGlobalScopes()
                     ->whereIn('id', array_keys($sellableOrgIds))
                     ->whereIn('status', ['trialing', 'active'])
                     ->orderBy('slug')

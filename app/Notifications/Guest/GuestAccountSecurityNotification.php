@@ -49,8 +49,12 @@ class GuestAccountSecurityNotification extends FeedNotification
 
         return [
             'title' => $scheduled ? 'Account deletion scheduled' : 'Account deletion cancelled',
+            // ⚠️ No date AND no booking COUNT here, for the same reason: this row is written once and the
+            // account page holds the authoritative figures, which move if the request is cancelled and re-made.
+            // The CONSEQUENCE is named, though — a guest should not learn from the account page alone that a
+            // pending erase cancels their stays.
             'context' => $scheduled
-                ? 'Your account is scheduled for deletion — open your account to see the date or undo it'
+                ? 'Your account is scheduled for deletion — it will also cancel any bookings you still have with us. Open your account to see the date or undo it'
                 : 'Your account will no longer be deleted',
             'url' => route('guest.account', [], false),
             'category' => 'account',

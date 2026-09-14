@@ -32,7 +32,8 @@ class OwnerWelcome extends Component
     public function render(): View
     {
         $context = app(OwnerContext::class);
-        $units = app(OwnerPortalService::class)->units();
+        // ⚠️ Onboarding shows what the owner can sell today — live properties only.
+        $units = app(OwnerPortalService::class)->unitsAtLiveProperties();
 
         return view('livewire.owner.welcome', [
             'viewer' => $this->viewer(),

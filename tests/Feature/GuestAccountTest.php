@@ -5,6 +5,7 @@ use App\Models\Guest;
 use App\Models\Message;
 use App\Models\Reservation;
 use App\Models\Review;
+use App\Services\AssignmentService;
 use App\Services\GuestDeletionService;
 use App\Services\InboxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -218,4 +219,91 @@ it('clears the check-in, message and review PII that G4/G7/G8 proved covered, th
         ->and($a->fresh()->phone)->toBeNull();                  // G4
     expect(Message::query()->where('thread_id', $thread->getKey())->first()->body)->toBe('');   // G7
     expect(Review::query()->where('guest_id', $a->getKey())->first()->operator_response)->toBeNull();   // G8
+});
+
+// ─────────────────────────── FIX 01 · F-26 — THE DELETION SCREEN MUST STATE ITS CONSEQUENCE ───────────────────────────
+// The erase cancels EVERY still-live reservation through cancelWithPolicyRefund (a real, policy-dependent refund),
+// so the screen a guest decides on must say so BEFORE the button. ⚠️ These assert the RENDERED page with <script>,
+// <style> and HTML comments STRIPPED — a warning that lives in a comment is F-21's exact defect and must fail here.
+
+/** One live booking for this guest, through the certified single write path. */
+function vyDelBook(array $s, Guest $guest, string $in = '2026-09-05', string $out = '2026-09-08'): Reservation
+{
+    return app(AssignmentService::class)->createBooking(
+        ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => $in, 'check_out' => $out, 'lead_guest_id' => $guest->getKey(), 'source' => 'direct'],
+        [['room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][0]->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => $in, 'check_out' => $out, 'price_minor' => 10000, 'currency' => 'EUR']],
+    );
+}
+
+/** Visible text only: no <script>, no <style>, no HTML comments — what a reader actually sees. */
+function vyVisibleText(string $html): string
+{
+    $html = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', ' ', $html) ?? $html;
+    $html = preg_replace('#<!--.*?-->#s', ' ', $html) ?? $html;
+
+    return (string) preg_replace('/\s+/', ' ', strip_tags($html));
+}
+
+it('warns on the account screen that deleting cancels bookings, quantified from the same set the erase uses', function () {
+    $s = seedScenario(1);
+    $a = acct('ada@example.test');
+    vyDelBook($s, $a);   // one live booking
+
+    $expected = app(GuestDeletionService::class)->reservationsToCancel($a->fresh())->count();
+    expect($expected)->toBe(1);       // the fixture is what we think it is
+
+    $text = vyVisibleText($this->actingAs($a->fresh(), 'guest')->get('/guest/account')->assertOk()->getContent());
+
+    // 1 — the consequence itself, and it is QUANTIFIED from reservationsToCancel()
+    expect($text)->toMatch('/cancels?\s+'.$expected.'\s+booking/i');
+    // 2 — the refund is stated as POLICY-DEPENDENT, never promised (a wrong reassurance is worse than silence)
+    expect($text)->toMatch('/cancellation policy/i');
+    expect($text)->toMatch('/may not be refunded/i');
+    // 3 — the LIMIT renders: a stay already under way goes too (F-21 — a limit in a comment reaches nobody)
+    expect($text)->toMatch('/already under way/i');
+    // 4 — the undo is offered, because it exists
+    expect($text)->toMatch('/undo/i');
+});
+
+it('tells a guest with no bookings that none will be cancelled, and never invents a count', function () {
+    seedScenario(1);
+    $a = acct('nobookings@example.test');
+
+    expect(app(GuestDeletionService::class)->reservationsToCancel($a->fresh())->count())->toBe(0);
+
+    $text = vyVisibleText($this->actingAs($a->fresh(), 'guest')->get('/guest/account')->assertOk()->getContent());
+
+    expect($text)->toMatch('/no bookings with us right now/i');
+    expect($text)->not->toMatch('/cancels?\s+0\s+booking/i');   // never "cancels 0 bookings"
+});
+
+it('repeats the consequence on the SCHEDULED state, where the guest decides whether to undo', function () {
+    $s = seedScenario(1);
+    $a = acct('scheduled@example.test');
+    vyDelBook($s, $a);
+
+    $this->actingAs($a->fresh(), 'guest')->post('/guest/account/delete', ['confirm' => 'DELETE'])->assertRedirect();
+
+    $text = vyVisibleText($this->actingAs($a->fresh(), 'guest')->get('/guest/account')->assertOk()->getContent());
+
+    expect($text)->toMatch('/scheduled for deletion/i');
+    expect($text)->toMatch('/cancel\s+1\s+booking/i');
+    expect($text)->toMatch('/cancellation policy/i');
+});
+
+it('carries the same consequence into the scheduled-deletion email, from the same count', function () {
+    Mail::fake();
+    $s = seedScenario(1);
+    $a = acct('mailed@example.test');
+    vyDelBook($s, $a);
+
+    $this->actingAs($a->fresh(), 'guest')->post('/guest/account/delete', ['confirm' => 'DELETE'])->assertRedirect();
+
+    Mail::assertSent(AccountDeletionScheduledMail::class, function (AccountDeletionScheduledMail $mail): bool {
+        $intro = (string) ($mail->content()->with['intro'] ?? '');
+
+        return $mail->staysCancelled === 1
+            && preg_match('/cancel the 1 booking/i', $intro) === 1
+            && preg_match('/cancellation policy/i', $intro) === 1;
+    });
 });

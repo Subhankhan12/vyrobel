@@ -12,6 +12,7 @@ use App\Models\OwnerInvite;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
+use App\Models\OwnerUser;
 use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Models\RateProposal;
@@ -19,6 +20,7 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use App\Services\PeriodLockGuard;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerCommissionRate;
@@ -271,6 +273,9 @@ class OperatorOwnerDetail extends Component
             'commissionPct' => $primary instanceof ManagementAgreement && $primary->commission_pct !== null ? rtrim(rtrim((string) $primary->commission_pct, '0'), '.') : null,
             'canManage' => (bool) auth()->user()?->can('users.manage'),
             'removeUnitNames' => $units->map(fn (Unit $u): string => (string) ($u->name ?? $u->code))->values()->all(),
+            // ⚠️ How many people go with the owner — the modal states it because removal now cascades to
+            //    the owner's team, and an operator should see the size of what they are about to close.
+            'removeTeamCount' => OwnerUser::query()->where('owner_id', $ownerId)->where('status', 'active')->count(),
             'portal' => $this->portalAccess($record, $invite),
             'kpis' => [
                 // Per currency, NEVER summed across currencies (invariant #17).
@@ -289,6 +294,10 @@ class OperatorOwnerDetail extends Component
                 'id' => (string) $u->room_type_id,
                 'name' => (string) ($u->roomType->name ?? 'Room type'),
             ])->unique('id')->values()->all(),
+            // ⚠️ The propose-a-rate form's "Proposed nightly rate (…)" label hardcoded '€'. A rate is priced in
+            // the PROPERTY's currency, which is not necessarily the owner's `payout_currency` — so this is
+            // deliberately resolved from the unit's property rather than reusing $payoutCurrency above.
+            'rateCurrencySymbol' => $this->currencySymbol((string) ($units->first()?->property->currency ?? $payoutCurrency)),
             'proposals' => $this->proposalRows($ownerId),
             'agreement' => $primary instanceof ManagementAgreement
                 ? $this->agreementCard($primary, $unitLabels, $payoutCurrency)
@@ -301,7 +310,42 @@ class OperatorOwnerDetail extends Component
             ),
             'statements' => $this->statementRows($statements),
             'payouts' => $this->payoutRows($payouts),
+            // ⚠️ AUDIT H-2 — the CLOSE-A-PERIOD control. `app.owners.close-period` and
+            // OwnerStatementService::finalize() existed with NO view referencing them, so outside the demo
+            // seeder no statement could ever be finalised and therefore NO PAYOUT COULD EVER BE CREATED.
+            // These three values are what the control needs; they change no figure and post nothing.
+            'closePeriod' => $this->closePeriodDefaults($today),
         ]);
+    }
+
+    /**
+     * Defaults for the CLOSE-A-PERIOD control (audit H-2).
+     *
+     * ⚠️ THE DEFAULT MUST BE THE NEXT **OPEN** PERIOD, NOT SIMPLY LAST MONTH. `generateDraft()` throws
+     * "Cannot regenerate a finalized/locked statement." for an already-sealed period, so a naive
+     * last-calendar-month default made the very first click fail on demo data (April–October are sealed).
+     * Found by driving the real page, not by reading it.
+     *
+     * `lockedThrough` comes from {@see PeriodLockGuard} — the SAME guard the attribution and expense
+     * services consult — so the control can never disagree with the services about what is sealed.
+     *
+     * @return array{start: string, end: string, lockedThrough: ?string, minStart: ?string}
+     */
+    private function closePeriodDefaults(Carbon $today): array
+    {
+        $lockedThrough = app(PeriodLockGuard::class)->lockedThrough($this->ownerId);
+
+        $start = $lockedThrough !== null
+            ? Carbon::parse($lockedThrough)->addDay()          // the day after everything sealed
+            : $today->copy()->subMonthNoOverflow()->startOfMonth();
+
+        return [
+            'start' => $start->toDateString(),
+            'end' => $start->copy()->endOfMonth()->toDateString(),
+            'lockedThrough' => $lockedThrough,
+            // Bounds the picker so a sealed date cannot be chosen in the first place.
+            'minStart' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->addDay()->toDateString() : null,
+        ];
     }
 
     // ── KPI band — DERIVED, per currency ─────────────────────────────────────────────────────────
@@ -397,12 +441,33 @@ class OperatorOwnerDetail extends Component
                 $from = $p->current_rate_minor !== null ? MoneyFormatter::display((int) $p->current_rate_minor, $currency) : '—';
                 $to = MoneyFormatter::display((int) $p->proposed_rate_minor, $currency);
 
+                // ⚠️⚠️ THE COUNTER MUST REACH THE SCREEN, AND IT DID NOT (audit M-14 · F1).
+                //
+                // `summary` was built from `proposed_rate_minor` for EVERY state — so a COUNTERED proposal
+                // showed the operator's OWN asking price with "Status: Countered" beneath it, and the
+                // owner's counter-offer appeared nowhere on this page. That is worse than a blank: a stale
+                // number rendered confidently, next to a label saying it had been superseded.
+                // ⚠️ The data was always there (`countered_rate_minor`, written by
+                // `RateProposalService::counter()`) and the owner's own portal already displays it
+                // (`OwnerRates:143`). Only THIS view never read it — the false-decline shape.
+                $countered = $p->isCountered() && $p->countered_rate_minor !== null;
+                $counter = $countered
+                    ? MoneyFormatter::display((int) $p->countered_rate_minor, $currency)
+                    : null;
+
                 return [
                     'id' => (string) $p->id,
                     'room_type' => (string) ($p->roomType->name ?? 'Room type'),
-                    'summary' => $from.' → '.$to.' / night',
+                    // ⚠️ On a countered row the headline is the OWNER'S number, because that is the one a
+                    //    decision would apply. The operator's original ask is kept beside it, not replaced.
+                    'summary' => $countered
+                        ? $from.' → '.$counter.' / night'
+                        : $from.' → '.$to.' / night',
+                    'proposed' => $to,
+                    'counter' => $counter,
                     'state' => (string) $p->state,
                     'pending' => $p->isPending(),
+                    'countered' => $countered,
                 ];
             })
             ->all();

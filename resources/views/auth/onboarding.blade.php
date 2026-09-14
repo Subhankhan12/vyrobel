@@ -141,12 +141,24 @@
             <section data-step="1">
                 <div class="vy-field">
                     <label class="vy-label" for="name">Your name</label>
-                    <input class="vy-input" id="name" name="name" value="{{ old('name') }}" placeholder="e.g. Ada Okafor" autocomplete="name" required>
+                    <input class="vy-input" id="name" name="name" value="{{ old('name', $social['name'] ?? '') }}" placeholder="e.g. Ada Okafor" autocomplete="name" required>
                 </div>
                 <div class="vy-field">
                     <label class="vy-label" for="email">Email</label>
-                    <input class="vy-input" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="username" required>
+                    <input class="vy-input" type="email" id="email" name="email" value="{{ old('email', $social['email'] ?? '') }}" autocomplete="username" @if ($social ?? null) readonly @endif required>
+                    @if ($social ?? null)
+                        {{-- Readonly because the server ignores a posted value here anyway and uses what Google
+                             asserted — an editable field would look accepted and silently not be. --}}
+                        <p style="font-size:11.5px;color:var(--vy-muted);margin-top:6px;">From your Google account.</p>
+                    @endif
                 </div>
+                @if ($social ?? null)
+                    {{-- ⚠️ NO PASSWORD FIELD. This account signs in with Google, and asking for a password at
+                         the very moment the person chose not to use one is the thing that makes "sign up with
+                         Google" read as broken. One is asked for later — once, when a sensitive action first
+                         needs confirming (docs/PASSWORDLESS-GATE.md). --}}
+                    <p class="vy-strength" style="margin-top:2px;"><span>You’ll sign in with Google. No password needed.</span></p>
+                @else
                 <div class="vy-two">
                     <div class="vy-field">
                         <label class="vy-label" for="password">Password</label>
@@ -160,6 +172,7 @@
                 {{-- Presentational strength meter (D14) — a VISUAL AID; the server enforces Password::min(8). --}}
                 <div class="vy-meter" id="meter"><span></span><span></span><span></span><span></span></div>
                 <div class="vy-strength"><span>{{ \App\Support\Auth\PasswordPolicy::hint() }}</span><b id="strength"></b></div>
+                @endif
                 <div class="vy-actions" data-nav>
                     <button type="button" class="vy-btn vy-btn--ghost" data-back>Back</button>
                     <button type="button" class="vy-btn" data-next>Continue</button>

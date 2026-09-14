@@ -11,17 +11,22 @@ use App\Models\Availability;
 use App\Models\Channel;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
+use App\Models\RateSeason;
 use App\Models\Restriction;
 use App\Models\RoomType;
 use App\Models\Unit;
 use App\Models\UnitRateOverride;
 use App\Services\RateAndRestrictionService;
 use App\Services\RateDerivationService;
+use App\Services\SeasonalRateService;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Pricing\NightlyRate;
+use App\Support\Pricing\SeasonPrecedence;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -132,6 +137,9 @@ class RatesGrid extends Component
 
         return view('livewire.operator.rates-grid', [
             'viewer' => $this->viewer(),
+            // ⚠️ The bulk-edit modal's "Set exact …" radio hardcoded '€'. The grid is property-scoped, so the
+            // currency the operator is typing in is whatever these plans are priced in — never a literal.
+            'currencySymbol' => $this->currencySymbol($this->gridCurrency($rates, $roomTypes)),
             'subtitle' => $this->subtitle($roomTypes->count()),
             'canManage' => (bool) auth()->user()?->can('rates.manage'),
             'dates' => array_map(fn (string $d): array => $this->dateHeader($d), $dates),
@@ -161,10 +169,100 @@ class RatesGrid extends Component
                 'to' => $fromStr,
             ],
             'ratePlans' => $this->ratePlanList($roomTypeIds),
+            'seasons' => $this->seasonList($roomTypeIds),
+            // ⚠️ THE RULE'S OWN SENTENCE, from the rule — so the copy on the page cannot drift from the code.
+            'seasonRule' => SeasonPrecedence::SENTENCE,
             'channels' => $this->channelList(),
             'pacing' => $this->pacing($availability),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /**
+     * The saved seasons for the visible room types, each carrying its REAL blast radius.
+     *
+     * ⚠️⚠️ EVERY FIGURE COMES FROM {@see SeasonalRateService::preview()}. Nothing here — and nothing in the
+     * view — re-counts nights, units or changing nights. A count estimated in Blade would be a second
+     * definition of the single number an operator is deciding on (§N.8f), on the screen that sets what a
+     * guest is charged.
+     *
+     * ⚠️ `applied` IS THE TWO-STEP MADE VISIBLE. A season that exists has written nothing; only `applied_at`
+     * says its nights carry the price. The panel shows the two states differently on purpose.
+     *
+     * ⚠️ ONE preview() PER SEASON — a handful of queries for a handful of rows. Deliberately not batched: the
+     * figure has to be the one the service itself would compute, not a faster approximation of it.
+     *
+     * @param  list<string>  $roomTypeIds
+     * @return list<array<string, mixed>>
+     */
+    private function seasonList(array $roomTypeIds): array
+    {
+        if ($roomTypeIds === []) {
+            return [];
+        }
+
+        $planIds = RatePlan::query()
+            ->whereIn('room_type_id', $roomTypeIds)
+            ->where('is_active', true)
+            ->pluck('id')
+            ->map(fn ($id): string => (string) $id)
+            ->all();
+
+        if ($planIds === []) {
+            return [];
+        }
+
+        $seasons = app(SeasonalRateService::class);
+
+        return RateSeason::query()
+            ->whereIn('rate_plan_id', $planIds)
+            ->with('ratePlan.roomType:id,name')
+            ->orderBy('starts_on')
+            ->get()
+            ->map(function (RateSeason $season) use ($seasons): array {
+                $p = $seasons->preview($season);
+
+                return [
+                    'id' => (string) $season->getKey(),
+                    // ⚠️ THE APPLY URL IS BUILT HERE, BY THE ROUTER — never concatenated in JavaScript. A
+                    // hand-assembled path to the one route that overwrites prices is a string that can drift
+                    // from the route definition without anything failing.
+                    'apply_url' => route('app.seasons.apply', $season->getKey()),
+                    // ⚠️ Built from the ROUTE, exactly as `apply_url` is and for the same reason: a
+                    //    hand-assembled path can drift from the definition without anything failing.
+                    'update_url' => route('app.seasons.update', $season->getKey()),
+                    'delete_url' => route('app.seasons.destroy', $season->getKey()),
+                    'name' => (string) $season->name,
+                    'plan_name' => (string) ($season->ratePlan->name ?? '—'),
+                    'room_type' => (string) ($season->ratePlan->roomType->name ?? ''),
+                    'starts_on' => $season->starts_on->toDateString(),
+                    'ends_on' => $season->ends_on->toDateString(),
+                    'applied' => $season->applied_at !== null,
+                    // ⚠️ The edit form's price field needs the MAJOR-unit string the create form accepts, not
+                    //    the display string — `MoneyInput::toMinor()` parses this back on the way in.
+                    'price_input' => number_format((int) $season->price_minor / 100, 2, '.', ''),
+                    'applied_on' => $season->applied_at?->format('j M Y'),
+                    // Straight from preview() — never recomputed.
+                    'nights' => $p['nights'],
+                    'units' => $p['units'],
+                    'changing' => $p['changing'],
+                    'weekend_nights' => $p['weekend_nights'],
+                    'from_display' => $p['from_minor'] === null ? null : MoneyFormatter::display($p['from_minor'], $p['currency']),
+                    'to_display' => MoneyFormatter::display($p['to_minor'], $p['currency']),
+                    // ⚠️ THE CONFLICT — straight from preview(), which asks the ONE precedence rule per night.
+                    'overlaps' => $p['overlaps'],
+                    'losing_nights' => $p['losing_nights'],
+                    'losing_to' => $p['losing_to'],
+                    'rewritten_nights' => $p['rewritten_nights'],
+                    // ⚠️⚠️ THE DISCLOSURE — straight from preview(), which reads the SAME nightly rows the
+                    //    blast radius above is computed from. It states what applying would replace; it
+                    //    changes nothing and refuses nothing (see AgreedRateDisclosure).
+                    'agreed_nights' => $p['agreed_nights'],
+                    'agreed_owners' => $p['agreed_owners'],
+                    'agreed_from' => $p['agreed_from'],
+                    'agreed_to' => $p['agreed_to'],
+                ];
+            })->all();
     }
 
     /**
@@ -183,9 +281,13 @@ class RatesGrid extends Component
 
         return RatePlan::query()
             ->whereIn('room_type_id', $roomTypeIds)
-            ->where('is_active', true)
-            // D18-6 — the plan's ROOM TYPE, eager-loaded so the list can say WHICH type each plan prices.
+            // ⚠️ OFF-SALE PLANS ARE INCLUDED (F-34 / FIX 15). This used to filter `is_active`, which was
+            // right while the card was a read-only list and became a TRAP the moment it grew a control:
+            // taking a plan off sale would have removed it from the only screen that could put it back.
+            // A one-way door is worse than no door. The row renders its state and the season selector
+            // below still offers ACTIVE plans only — a season must never be defined against a dead plan.
             ->with(['derivedFrom:id,name', 'roomType:id,name'])
+            ->orderByDesc('is_active')               // on sale first; off-sale sink to the bottom
             ->orderBy('derived_from_rate_plan_id')   // base plans (null) first
             ->orderBy('created_at')
             ->get()
@@ -196,7 +298,14 @@ class RatesGrid extends Component
                     : ($plan->is_refundable ? 'Free cancellation · the grid above' : 'Base plan');
 
                 return [
+                    // ⚠️ ADDED for the seasonal-pricing panel's plan selector — a season is defined AGAINST a
+                    // rate plan, so the form needs the real id. Display of the grid's own rows is untouched.
+                    'id' => (string) $plan->getKey(),
                     'name' => (string) $plan->name,
+                    // F-34 / FIX 15 — the row's own state, so the card can show it and the season
+                    // selector can exclude it. `code` is the second editable field (see updateRatePlan).
+                    'is_active' => (bool) $plan->is_active,
+                    'code' => (string) ($plan->code ?? ''),
                     // ⚠️ D18-6 — WHICH room type this plan prices. A rate plan belongs to a room type, and
                     // several types routinely carry a plan of the same name: the demo has THREE active
                     // "Flexible" plans (Double Room, One-Bedroom Apartment, City Studio). Without this the
@@ -412,6 +521,22 @@ class RatesGrid extends Component
      * @param  list<string>  $planIds
      * @return array<string, list<string>> plan id → the unit ids priced individually in the window
      */
+    /**
+     * The currency this grid edits in — the first real `rate_calendar` row's currency, else the scoped
+     * property's own. Both are NOT NULL columns, so this never invents one.
+     *
+     * @param  array<string, array{minor: int, currency: string}>  $rates
+     * @param  Collection<int, RoomType>  $roomTypes
+     */
+    private function gridCurrency(array $rates, Collection $roomTypes): string
+    {
+        foreach ($rates as $rate) {
+            return $rate['currency'];
+        }
+
+        return (string) ($roomTypes->first()?->property->currency ?? 'EUR');
+    }
+
     private function indexOverriddenUnits(array $planIds, string $from, string $through): array
     {
         if ($planIds === []) {
@@ -518,11 +643,16 @@ class RatesGrid extends Component
                     // which unit it prices is the blank-rows defect the bulk pass shipped and had to fix.
                     'label' => (string) ($unit->name !== null && $unit->name !== '' ? $unit->name : $unit->code),
                     'cells' => array_map(function (string $date) use ($planId, $unitId): array {
-                        $minor = NightlyRate::forUnit($planId, $unitId, $date);
+                        // ⚠️ F-38 — this read `NightlyRate::forUnit()` and printed the result as `money($minor, 'EUR')`,
+                        // a LITERAL passed to a formatter whose currency argument is required. A GBP property's grid
+                        // therefore showed euro amounts over pound prices, while the TYPE row six lines up
+                        // ({@see row()}) had always passed the real `$rate['currency']`. The resolver now answers
+                        // both halves together, so the symbol follows the same override→type precedence as the price.
+                        $priced = NightlyRate::forUnitWithCurrency($planId, $unitId, $date);
 
                         return [
                             'date' => $date,
-                            'rate' => $minor === null ? null : $this->money($minor, 'EUR'),
+                            'rate' => $priced === null ? null : $this->money($priced['minor'], $priced['currency']),
                             // Marks the exception so the operator can see WHICH units are priced apart.
                             'overridden' => NightlyRate::hasOverride($planId, $unitId, $date),
                         ];
@@ -630,13 +760,17 @@ class RatesGrid extends Component
 
     // ── Helpers ──────────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * ⚠️ DELEGATES — this used to be a SECOND definition of "the room type's primary rate plan", and it
+     * disagreed with the model's (F-34, FIX 15). Neither branch here filtered `is_active`: the default branch
+     * returned a plan taken off sale, and the fallback was saved only by the `where('is_active', true)`
+     * closure on the eager-load far above — a constraint at a distance, correct today and one edit from not
+     * being. There were THREE copies of this method in the codebase. There is now ONE, in the model, and the
+     * project's own rule is why: two computations of one concept are how surfaces drift.
+     */
     private function primaryRatePlan(RoomType $roomType): ?RatePlan
     {
-        if ($roomType->default_rate_plan_id !== null && $roomType->defaultRatePlan !== null) {
-            return $roomType->defaultRatePlan;
-        }
-
-        return $roomType->ratePlans->first();
+        return $roomType->primaryRatePlan();
     }
 
     private function subtitle(int $count): string

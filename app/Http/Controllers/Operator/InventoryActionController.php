@@ -11,6 +11,8 @@ use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\ArrivalInfoService;
 use App\Services\AvailabilityService;
+use App\Services\OwnerUnitStatusService;
+use App\Support\Events\AuditEventRecorder;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use Carbon\CarbonImmutable;
@@ -19,6 +21,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 /**
  * OPERATOR INVENTORY CREATION — room types, units and rate plans (P-6 · Gate 1).
@@ -201,6 +204,201 @@ class InventoryActionController extends Controller
      * is refused rather than guessed at: silently creating inventory on an arbitrary property is the
      * `->first()` defect Phase 6a existed to remove.
      */
+    /**
+     * EDIT A UNIT (F-6) — the operator realm could create a unit and never change it: no update route, no
+     * delete route, no Livewire action, while `units` carries both `is_active` and `deleted_at`.
+     *
+     * ⚠️ WHICH FIELDS, AND WHY ONLY THESE. `code`, `name` and `max_occupancy` are editable because none of
+     * them can reach a stay that has already been sold: 🔬 `reservation_units` snapshots `price_minor` at
+     * booking, and a reservation references the unit by ID, so renaming or recoding it cannot reprice or
+     * re-point anything. `max_occupancy` does not enter the availability count either — that counts UNITS.
+     *
+     * ⚠️ WHAT IS DELIBERATELY NOT EDITABLE. `room_type_id` is refused by omission: moving a unit between
+     * room types would move its capacity between availability pools and change what it was sold as. That is
+     * a different operation with a different blast radius, and offering it here would be the "control that
+     * implies more than it does" shape this product keeps removing. `owner_id` likewise reaches the owner
+     * ledger's attribution and is not this screen's to change.
+     *
+     * ⚠️ `code` IS UNIQUE PER PROPERTY at the database level, so the rule is scoped to this unit's property
+     * and ignores itself — without that, saving a unit unchanged would fail its own uniqueness check.
+     */
+    public function updateUnit(Request $request, AuditEventRecorder $audit, string $unit): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units')) {
+            return $guard;
+        }
+
+        $model = $this->accessibleUnit($unit);   // property-scoped → another property's id 404s
+
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:60',
+                Rule::unique('units', 'code')->where('property_id', $model->property_id)->ignore($model->getKey())],
+            'name' => ['nullable', 'string', 'max:255'],
+            'max_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
+        ]);
+
+        // ⚠️ CAPTURED BEFORE THE WRITE. A unit's previous name and code are cheap to record, unlike a rate's
+        // previous price — Phase 11 found 11 of 11 rate sites passing a null `before`, and that is why an
+        // undo could not be built there. There is no excuse for a null here.
+        $before = [
+            'code' => (string) $model->code,
+            'name' => $model->name,
+            'max_occupancy' => (int) $model->max_occupancy,
+        ];
+
+        $model->update([
+            'code' => $data['code'],
+            'name' => $data['name'] ?? null,
+            'max_occupancy' => $data['max_occupancy'] ?? $model->max_occupancy,
+        ]);
+
+        $after = [
+            'code' => (string) $model->code,
+            'name' => $model->name,
+            'max_occupancy' => (int) $model->max_occupancy,
+        ];
+
+        // ⚠️ PII-SAFE: identifiers and states only. Operators can read audit rows (four surfaces render them),
+        // so this carries no guest or contact data — a unit's code and occupancy are neither.
+        $audit->record('unit.updated', $model, $before, $after);
+
+        return redirect()->to(route('app.units'))
+            ->with('units_notice', "Unit {$model->code} updated.");
+    }
+
+    /**
+     * TAKE A UNIT OUT OF SERVICE, OR PUT IT BACK (F-6).
+     *
+     * ⚠️ THIS REUSES THE MECHANISM THAT ALREADY EXISTED rather than writing a second one. The owner realm has
+     * paused and resumed units since Wave C (#69) through {@see OwnerUnitStatusService}, which sets
+     * `is_active`, RECOMPUTES the room type's availability through the certified AvailabilityService, and
+     * audits the change. The operator simply had no entrance to it. A second `is_active` writer would be the
+     * drift this codebase keeps removing (§N.8f) — and it would have to re-derive the recompute window.
+     *
+     * ⚠️ DEACTIVATE IS NOT DELETE, AND THE SCREEN SAYS SO. Capacity is removed so NEW bookings are refused;
+     * existing reservations are untouched (append-only #7). Nothing is destroyed and it reverses exactly.
+     *
+     * ⚠️ A UNIT WITH FUTURE RESERVATIONS IS NOT REFUSED, which follows the answer the product already gave
+     * for the owner's pause rather than inventing a second one. The confirmation states it plainly instead.
+     * Whether an operator should be BLOCKED in that case is a founder ruling, not this pass's to take.
+     */
+    public function setUnitActive(Request $request, OwnerUnitStatusService $status, string $unit): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units')) {
+            return $guard;
+        }
+
+        $model = $this->accessibleUnit($unit);
+        $active = $request->boolean('active');
+        $actorId = $request->user()?->getAuthIdentifier();
+
+        if ($active) {
+            $status->reactivateByOperator($model, $actorId !== null ? (string) $actorId : null);
+        } else {
+            $status->deactivateByOperator($model, $actorId !== null ? (string) $actorId : null);
+        }
+
+        return redirect()->to(route('app.units'))->with('units_notice', $active
+            ? "Unit {$model->code} is back in service and can be booked again."
+            : "Unit {$model->code} is out of service. Existing bookings are unchanged; no new ones can be taken.");
+    }
+
+    /**
+     * EDIT A RATE PLAN — F-6's sibling, recorded in the same phase and confirmed while FIX 10 closed units.
+     *
+     * ⚠️⚠️ A UNIT IS A ROOM; A RATE PLAN IS A PRICE. 🔬 929 `rate_calendar` rows are keyed by plan, the
+     * storefront quotes a stranger from them, and seasons apply through them. So the editable set here is
+     * NARROWER than a unit's, and everything excluded is excluded for a measured reason:
+     *
+     *   · `currency` — REFUSED. {@see storeRatePlan()} already takes it from the PROPERTY and never the
+     *     request, because `priceOver()` sums `rate_calendar.price_minor` WITHOUT re-checking currency.
+     *     Editing it would silently reinterpret every existing minor-unit amount on this plan.
+     *   · `room_type_id` — REFUSED. It rebinds the plan to different inventory while its rate rows stay,
+     *     so nights priced for one room type would be quoted for another.
+     *   · `derived_from_rate_plan_id` / `adjustment` — REFUSED. These are a derived plan's pricing BASIS;
+     *     changing them reprices every night the plan quotes.
+     *   · `is_refundable` / `cancellation_policy` — REFUSED. A stay was SOLD under these terms. Changing
+     *     them would retroactively alter what a guest agreed to, which is not an edit, it is a rewrite.
+     *
+     * ⚠️ SO ONLY `name` AND `code` MOVE — the two fields that identify the plan to staff and change nothing
+     * about what it charges. 🔬 A sold stay is unreachable either way: `reservation_units` snapshots
+     * `price_minor` at booking and references the plan by ID.
+     */
+    public function updateRatePlan(Request $request, AuditEventRecorder $audit, string $ratePlan): RedirectResponse
+    {
+        if ($guard = $this->readOnly('rates')) {
+            return $guard;
+        }
+
+        $model = RatePlan::query()->findOrFail($ratePlan);   // tenant-scoped → cross-org 404
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:60',
+                Rule::unique('rate_plans', 'code')->where('room_type_id', $model->room_type_id)->ignore($model->getKey())],
+        ]);
+
+        $before = ['name' => (string) $model->name, 'code' => $model->code];
+
+        $model->update(['name' => $data['name'], 'code' => $data['code'] ?? $model->code]);
+
+        // PII-safe: a plan's name and code are neither guest nor contact data.
+        $audit->record('rate_plan.updated', $model, $before, ['name' => (string) $model->name, 'code' => $model->code]);
+
+        return redirect()->to(route('app.rates'))->with('rates_notice', "Rate plan “{$model->name}” updated. No prices changed.");
+    }
+
+    /**
+     * TAKE A RATE PLAN OFF SALE, OR PUT IT BACK.
+     *
+     * ⚠️ THE COLUMN ALREADY EXISTED AND WAS ALREADY READ — 🔬 `is_active` is filtered by the storefront's
+     * offer loop, the booking engine, the availability read and the rates grid — but NOTHING EVER WROTE IT
+     * outside creation. So this is a latent capability with no entrance, not a new concept.
+     *
+     * ⚠️⚠️ AND IT IS REFUSED FOR THE LAST ACTIVE PLAN, which is the one case that costs money silently.
+     * {@see storeRatePlan()} records why: with no active plan `cheapestRatePlan()` finds nothing and "the
+     * room type is silently unsellable". An operator taking the last plan off sale would remove a room type
+     * from sale without being told. ⚠️ Refusing is the loud error; permitting is the silent one, and this
+     * project's rule is that the fail-safe direction is set by which error is silent.
+     *
+     * ⚠️ NO PRICES ARE TOUCHED. `rate_calendar` is not written here; the plan simply stops being offered.
+     */
+    public function setRatePlanActive(Request $request, AuditEventRecorder $audit, string $ratePlan): RedirectResponse
+    {
+        if ($guard = $this->readOnly('rates')) {
+            return $guard;
+        }
+
+        $model = RatePlan::query()->findOrFail($ratePlan);
+        $active = $request->boolean('active');
+
+        if (! $active) {
+            $otherActive = RatePlan::query()
+                ->where('room_type_id', $model->room_type_id)
+                ->where('is_active', true)
+                ->whereKeyNot($model->getKey())
+                ->count();
+
+            if ($otherActive === 0) {
+                return redirect()->to(route('app.rates'))->with('rates_error',
+                    "“{$model->name}” is the only rate plan still on sale for this room type. Taking it off sale would leave nothing to quote, so the room type could not be booked at all. Add or reactivate another plan first.");
+            }
+        }
+
+        if ((bool) $model->is_active === $active) {
+            return redirect()->to(route('app.rates'))->with('rates_notice', "Rate plan “{$model->name}” was already ".($active ? 'on sale' : 'off sale').'.');
+        }
+
+        $model->update(['is_active' => $active]);
+
+        $audit->record($active ? 'rate_plan.activated' : 'rate_plan.deactivated', $model,
+            ['is_active' => ! $active], ['is_active' => $active]);
+
+        return redirect()->to(route('app.rates'))->with('rates_notice', $active
+            ? "Rate plan “{$model->name}” is back on sale."
+            : "Rate plan “{$model->name}” is off sale. Existing bookings keep the price they were sold at; no nightly prices were changed.");
+    }
+
     private function resolveProperty(Request $request): Property
     {
         $selected = app(PropertyContext::class)->id();

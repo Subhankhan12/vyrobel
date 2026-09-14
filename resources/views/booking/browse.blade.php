@@ -180,9 +180,9 @@
                 <div class="vy2-range">
                     <span class="vy2-filter-k">Max price</span>
                     <input type="range" name="max_price" min="0" max="{{ $ceiling }}" step="10" value="{{ $current }}"
-                           oninput="document.getElementById('vy2-mp').textContent = (this.value >= this.max ? 'Any price' : ('€' + this.value))"
+                           oninput="document.getElementById('vy2-mp').textContent = (this.value >= this.max ? 'Any price' : (@js($property['currency_symbol']) + this.value))"
                            onchange="this.form.submit()">
-                    <span class="vy2-range-val" id="vy2-mp">{{ $current >= $ceiling ? 'Any price' : '€'.$current }}</span>
+                    <span class="vy2-range-val" id="vy2-mp">{{ $current >= $ceiling ? 'Any price' : $property['currency_symbol'].$current }}</span>
                 </div>
             @endif
         @endif

@@ -57,7 +57,7 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
 
     // ── 1. The operator invites an owner via the REAL modal action (POST → controller → service → PRG)
     Mail::fake();
-    $this->actingAs($operator)->post('/app/owners/invite', [
+    $this->actingAs($operator)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Nadia Owner',
         'email' => $email,
         'role' => 'owner',

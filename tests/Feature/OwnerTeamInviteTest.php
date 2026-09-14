@@ -20,7 +20,7 @@ function sendTeamInvite(User $owner, string $email, string $role): string
 {
     $token = null;
     Mail::fake();
-    test()->actingAs($owner)->post('/owner/team/invite', ['email' => $email, 'name' => 'Sam Delegate', 'role' => $role])
+    test()->actingAs($owner)->post('/owner/team/invite', ['current_password' => 'password', 'email' => $email, 'name' => 'Sam Delegate', 'role' => $role])
         ->assertRedirect();
     Mail::assertSent(OwnerTeamInviteMail::class, function (OwnerTeamInviteMail $mail) use (&$token): bool {
         $token = $mail->token;
@@ -82,7 +82,7 @@ it('refuses the team screen and every mutation to a sub-user', function () {
     $co = ownerSubUser($s, $ownerId, OwnerTeamRole::CO_OWNER);   // even a CO-OWNER can't manage the team
 
     $this->actingAs($co)->get('/owner/team')->assertForbidden();
-    $this->actingAs($co)->post('/owner/team/invite', ['email' => 'x@example.test', 'role' => OwnerTeamRole::VIEW_ONLY])->assertForbidden();
+    $this->actingAs($co)->post('/owner/team/invite', ['current_password' => 'password', 'email' => 'x@example.test', 'role' => OwnerTeamRole::VIEW_ONLY])->assertForbidden();
     $this->actingAs($co)->patch('/owner/team/members/anything', ['role' => OwnerTeamRole::CO_OWNER])->assertForbidden();
     $this->actingAs($co)->delete('/owner/team/members/anything')->assertForbidden();
 });
@@ -99,11 +99,11 @@ it('lets the primary owner see the team, change a role, and remove a member', fu
     $this->actingAs($owner)->get('/owner/team')->assertOk()->assertSee('Team & access');
 
     // Change role → view_only becomes accountant.
-    $this->actingAs($owner)->patch('/owner/team/members/'.$member->id, ['role' => OwnerTeamRole::ACCOUNTANT])->assertRedirect();
+    $this->actingAs($owner)->patch('/owner/team/members/'.$member->id, ['current_password' => 'password', 'role' => OwnerTeamRole::ACCOUNTANT])->assertRedirect();
     expect($member->fresh()->role)->toBe(OwnerTeamRole::ACCOUNTANT);
 
     // Remove → the membership is gone AND the orphaned login is disabled (can't log in).
-    $this->actingAs($owner)->delete('/owner/team/members/'.$member->id)->assertRedirect();
+    $this->actingAs($owner)->delete('/owner/team/members/'.$member->id, ['current_password' => 'password'])->assertRedirect();
     expect(OwnerUser::withTrashed()->find($member->id)?->trashed())->toBeTrue();
     expect($view->fresh()->status)->toBe('disabled');
 });
@@ -117,7 +117,7 @@ it('blocks login for a removed sub-user', function () {
     $this->post('/team-invite/'.$token, ['password' => 'sub-user-pass-9', 'password_confirmation' => 'sub-user-pass-9']);
 
     $member = OwnerUser::where('owner_id', $ownerId)->firstOrFail();
-    $this->actingAs($owner)->delete('/owner/team/members/'.$member->id)->assertRedirect();
+    $this->actingAs($owner)->delete('/owner/team/members/'.$member->id, ['current_password' => 'password'])->assertRedirect();
 
     // The active-only login guard now refuses them: the credentials no longer sign in.
     auth()->guard('web')->logout();

@@ -68,11 +68,12 @@
     {{-- DO3-3 — the retry outcome. Deliberately reports what actually happened (queued, or already on its
          way, or no longer failed) rather than a blanket success: on a money surface a message that is true
          only sometimes is worse than none. --}}
+    {{-- ⚠️ ONE component decides the outcome's skin. This block used to hardcode `is-ok` + a tick for
+         EVERY message, so "finish setting up your payout account first" — an instruction the owner must
+         act on or no money arrives — arrived as a green completion. --}}
     @if (session('payout_retry_notice'))
-        <div class="vy-flash is-ok" style="margin-bottom:18px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            {{ session('payout_retry_notice') }}
-        </div>
+        <x-owner.flash-notice :message="session('payout_retry_notice')"
+                              :outcome="session('payout_retry_outcome', 'ok')" />
     @endif
 
     {{-- On-hold banner — REAL tax-hold only (a pending payout held for missing tax details); never a fake
@@ -400,7 +401,7 @@
 
                         <div class="vy-po-pref-label">Minimum payout</div>
                         <div class="vy-po-seg">
-                            @foreach (['0' => 'None', '500' => '€500', '1000' => '€1k', '2500' => '€2.5k'] as $val => $label)
+                            @foreach (['0' => 'None', '500' => $currencySymbol.'500', '1000' => $currencySymbol.'1k', '2500' => $currencySymbol.'2.5k'] as $val => $label)
                                 <label class="vy-po-seg-opt"><input type="radio" name="minimum" value="{{ $val }}" @checked($preferences['minimum_minor'] === (int) $val * 100)><span>{{ $label }}</span></label>
                             @endforeach
                         </div>
@@ -421,6 +422,13 @@
                             <span>Your stated preference. The actual payout date + release are confirmed with your operator and the payout rail.</span>
                         </div>
 
+                        {{-- ⚠️ RE-AUTH: pausing stops your payouts entirely, and a high minimum is a pause by another name. --}}
+                        <div class="vy-field" style="margin:14px 0 0">
+                            <label class="vy-field-label" for="payouts_prefs_pw">Confirm with your password</label>
+                            <input id="payouts_prefs_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                        </div>
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:14px">Save preferences</button>
                     </form>
                 @else

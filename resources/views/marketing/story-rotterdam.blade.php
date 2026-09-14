@@ -19,8 +19,6 @@
     :index="false">
 <div data-screen-label="Marketing — Story: Rotterdam" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <div data-printhead="" style="display: none; border-bottom: 1pt solid #B8ADA5; padding-bottom: 7pt; margin-bottom: 12pt;">
@@ -37,13 +35,13 @@
         <div style="position: relative; max-width: 780px;">
           <nav data-crumbs="" aria-label="Breadcrumb" style="display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; font-size: 13px; color: var(--vy-muted);">
             <x-marketing.nav-link key="home" style="text-decoration: none; font-weight: 500;">Home</x-marketing.nav-link>
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.42;flex-shrink:0;"><path d="M9 6l6 6-6 6"></path></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.42;flex-shrink:0;"><path d="M9 6l6 6-6 6"></path></svg>
             <x-marketing.nav-link key="case-studies" style="text-decoration: none; font-weight: 500;">Example scenarios</x-marketing.nav-link>
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.42;flex-shrink:0;"><path d="M9 6l6 6-6 6"></path></svg>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="opacity:.42;flex-shrink:0;"><path d="M9 6l6 6-6 6"></path></svg>
             <span aria-current="page" style="color: var(--vy-ink); font-weight: 500;">Serviced apartments</span>
           </nav>
-          <button data-noprint="" style="display: inline-flex; align-items: center; gap: 8px; margin-left: 14px; padding: 8px 15px; border-radius: 11px; border: 1px solid rgba(255,255,255,.82); background: rgba(255,252,248,.6); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; vertical-align: middle; transition: transform .2s ease;">
-            <svg width="14" height="14" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"></path></svg>
+          <button data-printbtn="" data-noprint="" style="display: inline-flex; align-items: center; gap: 8px; margin-left: 14px; padding: 8px 15px; border-radius: 11px; border: 1px solid rgba(255,255,255,.82); background: rgba(255,252,248,.6); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; vertical-align: middle; transition: transform .2s ease;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"></path></svg>
             Print this story
           </button>
           <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;"><span style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #8F2F09;">Serviced apartments</span><span style="font-size: 12.5px; color: var(--vy-muted);">· 8 min read</span></div>
@@ -125,7 +123,7 @@
       </div>
       <div data-pn="" style="display: flex; flex-wrap: wrap; gap: 14px;">
         <x-marketing.nav-link key="story-cyclades" style="flex: 1; min-width: 240px; display: flex;  align-items: center; gap: 16px; padding: 22px 24px; border-radius: 18px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 12px 32px rgba(150,90,50,.12); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.22,.7,.3,1), box-shadow .26s ease;">
-          <svg width="17" height="17" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M15 18l-6-6 6-6"></path></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M15 18l-6-6 6-6"></path></svg>
           <span style="min-width: 0;">
             <span style="display: block; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 5px;">Previous</span>
             <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); line-height: 1.3;">Island villas</span>
@@ -133,7 +131,7 @@
           </span>
         </x-marketing.nav-link>
         <x-marketing.nav-link key="story-lisbon" style="flex: 1; min-width: 240px; display: flex; flex-direction: row-reverse; text-align: right; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 18px; background: rgba(255,252,248,.6); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 12px 32px rgba(150,90,50,.12); text-decoration: none; color: inherit; transition: transform .26s cubic-bezier(.22,.7,.3,1), box-shadow .26s ease;">
-          <svg width="17" height="17" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 6l6 6-6 6"></path></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 6l6 6-6 6"></path></svg>
           <span style="min-width: 0;">
             <span style="display: block; font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 5px;">Next</span>
             <span style="display: block; font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); line-height: 1.3;">City hotel</span>

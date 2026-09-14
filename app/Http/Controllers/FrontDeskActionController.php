@@ -39,7 +39,7 @@ class FrontDeskActionController extends Controller
         // Only a confirmed booking can be checked in — guard against nonsensical transitions
         // (e.g. re-opening a checked-out stay) without weakening the underlying idempotent action.
         if ($model->status !== 'confirmed') {
-            return $this->backToBoard($request, "{$model->reference} can’t be checked in from “{$model->status}”.");
+            return $this->backToBoard($request, "{$model->reference} can’t be checked in from “{$model->status}”.", refused: true);
         }
 
         $desk->checkIn($model);
@@ -52,7 +52,7 @@ class FrontDeskActionController extends Controller
         $model = Reservation::query()->findOrFail($reservation);
 
         if ($model->status !== 'checked_in') {
-            return $this->backToBoard($request, "{$model->reference} can’t be checked out from “{$model->status}”.");
+            return $this->backToBoard($request, "{$model->reference} can’t be checked out from “{$model->status}”.", refused: true);
         }
 
         // ⚠️ THE SUPERVISOR OVERRIDE — gated on its OWN permission, checked HERE rather than relying on the
@@ -62,7 +62,7 @@ class FrontDeskActionController extends Controller
         $overrideNote = null;
         if ($request->filled('override_reason')) {
             if ($request->user()?->can('reservations.checkout_override') !== true) {
-                return $this->backToBoard($request, 'Only a supervisor can check out over an outstanding balance.');
+                return $this->backToBoard($request, 'Only a supervisor can check out over an outstanding balance.', refused: true);
             }
             $overrideReason = (string) $request->input('override_reason');
             $overrideNote = $request->filled('override_note') ? (string) $request->input('override_note') : null;
@@ -71,11 +71,11 @@ class FrontDeskActionController extends Controller
         try {
             $desk->checkOut($model, $overrideReason, $overrideNote);
         } catch (InvalidArgumentException $e) {
-            return $this->backToBoard($request, $e->getMessage());
+            return $this->backToBoard($request, $e->getMessage(), refused: true);
         } catch (OutstandingBalanceException $e) {
             // The service is the authority — this only surfaces its refusal, with the amount and the ways
             // forward, because an unhelpful block is what drives a faked payment or a voided charge.
-            return $this->backToBoard($request, $e->getMessage());
+            return $this->backToBoard($request, $e->getMessage(), refused: true);
         }
 
         return $this->backToBoard($request, "Checked out {$model->reference}.");
@@ -94,7 +94,7 @@ class FrontDeskActionController extends Controller
     {
         // READ-ONLY workspace — edits off (same guard as reschedule/create; the UI hides the control).
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->afterMove($request, $reservation, 'The workspace is paused — moves are off.');
+            return $this->afterMove($request, $reservation, 'The workspace is paused — moves are off.', refused: true);
         }
 
         $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
@@ -121,7 +121,7 @@ class FrontDeskActionController extends Controller
             $assignment->assignUnit($line, (string) $validated['unit_id'], is_string($eff) && $eff !== '' ? $eff : null);
         } catch (UnitUnavailableException|InvalidArgumentException) {
             // Occupied for these dates, or a different room type — the move is refused by the guard.
-            return $this->afterMove($request, $model->id, 'That room isn’t available for these dates — pick another.');
+            return $this->afterMove($request, $model->id, 'That room isn’t available for these dates — pick another.', refused: true);
         }
 
         return $this->afterMove($request, $model->id, "Moved {$model->reference} to a new unit.");
@@ -192,30 +192,41 @@ class FrontDeskActionController extends Controller
      * Redirect after a move: back to the FRONT-DESK BOARD when it originated there (`return_to=front-desk`,
      * preserving `?date`), otherwise to the reservation detail (the rack/detail move surface is unchanged).
      */
-    private function afterMove(Request $request, string $reservationId, string $notice): RedirectResponse
+    private function afterMove(Request $request, string $reservationId, string $notice, bool $refused = false): RedirectResponse
     {
         if ($request->input('return_to') === 'front-desk') {
             $date = $request->input('return_date');
             $target = route('app.front-desk').(is_string($date) && $date !== '' ? '?date='.urlencode($date) : '');
 
-            return redirect()->to($target)->with('desk_notice', $notice);
+            return redirect()->to($target)->with('desk_notice', $notice)->with('desk_refused', $refused);
         }
 
-        return $this->backToDetail($reservationId, $notice);
+        return $this->backToDetail($reservationId, $notice, $refused);
     }
 
-    /** Redirect back to the reservation detail with a folio_notice flash (shared by move/charge). */
-    private function backToDetail(string $reservationId, string $notice): RedirectResponse
+    /**
+     * Redirect back to the reservation detail with a folio_notice flash (shared by move/charge).
+     *
+     * ⚠️ `$refused` rides ALONGSIDE the message (audit D4). A lost inventory race — "That move isn't
+     * available — the unit or nights are already taken" — used to render under the same green checkmark as
+     * "Moved BK-1042 to 4 Sep", because the key carried no outcome for the view to read.
+     * ⚠️ THE SAME REFUSAL REACHES TWO DESTINATIONS (`desk_notice` on the board, `folio_notice` on the
+     * detail) depending on `return_to`, so BOTH carry the flag — fixing one and not the other would leave
+     * the same failure honest on one screen and a lie on the other.
+     */
+    private function backToDetail(string $reservationId, string $notice, bool $refused = false): RedirectResponse
     {
-        return redirect()->to(route('app.reservations.show', $reservationId))->with('folio_notice', $notice);
+        return redirect()->to(route('app.reservations.show', $reservationId))
+            ->with('folio_notice', $notice)
+            ->with('folio_refused', $refused);
     }
 
     /** Redirect back to the board on the same day (preserves ?date), with a flash notice. */
-    private function backToBoard(Request $request, string $notice): RedirectResponse
+    private function backToBoard(Request $request, string $notice, bool $refused = false): RedirectResponse
     {
         $date = $request->input('date');
         $target = route('app.front-desk').(is_string($date) && $date !== '' ? '?date='.urlencode($date) : '');
 
-        return redirect()->to($target)->with('desk_notice', $notice);
+        return redirect()->to($target)->with('desk_notice', $notice)->with('desk_refused', $refused);
     }
 }

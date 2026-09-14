@@ -12,6 +12,7 @@ use App\Models\OwnerUser;
 use App\Models\User;
 use App\Services\OwnerTeamInviteService;
 use App\Support\Owner\OwnerContext;
+use App\Support\Owner\OwnerLoginLifecycle;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,10 +36,40 @@ class OwnerTeamController extends Controller
 {
     public function __construct(private readonly OwnerTeamInviteService $invites) {}
 
+    /**
+     * ⚠️⚠️ RE-AUTHENTICATE BEFORE CHANGING WHO CAN GET IN (audit follow-up, 2026-08-30).
+     *
+     * Inviting, promoting and removing all changed the set of people who can reach this owner's account with
+     * NO password — gated only by {@see EnsurePrimaryOwner}. A hijacked session could mint a NEW AUTHENTICATED
+     * PRINCIPAL, which SURVIVES every control applied afterwards: the password reset, the session revocation,
+     * and the email change closed by H-3. That is why this outranks the payout destination.
+     *
+     * ⚠️ REPRODUCED, all three with no password: an invite row created for attacker@evil.test with a live
+     * token; an `accountant` promoted to `co_owner` (a takeover needing NO invitation at all); and a member
+     * removed (takeover by SUBTRACTION).
+     *
+     * ⚠️ THE BARE `current_password` — config/auth.php defines web · guest · admin and NO `owner` guard, and
+     * /owner runs on plain `auth`, so a guard-qualified rule would silently match nothing. Same rule and same
+     * shape as {@see OwnerPayoutMethodController} (§N.8f).
+     *
+     * ⚠️ CALLED AFTER OWNERSHIP IS RESOLVED, NEVER BEFORE. A cross-owner member id must 404 whether or not a
+     * password was sent; validating first would make "wrong password" mean "that member exists and belongs to
+     * someone" — an existence oracle. Order: capability (route middleware) → ownership → identity.
+     */
+    private function reauthenticate(Request $request): void
+    {
+        $request->validate(
+            ['current_password' => ['required', 'current_password']],
+            [],
+            ['current_password' => 'current password'],
+        );
+    }
+
     /** Invite a sub-user (email + role) into the primary owner's team. */
     public function invite(Request $request, OwnerContext $context): RedirectResponse
     {
         $ownerId = $this->primaryOwnerId($context);
+        $this->reauthenticate($request);
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
@@ -77,17 +108,21 @@ class OwnerTeamController extends Controller
         ]);
 
         $ownerUser = OwnerUser::query()->whereKey($member)->whereIn('owner_id', $ownerIds)->firstOrFail();
+        $this->reauthenticate($request);   // ⚠️ AFTER the 404 — no existence oracle on a cross-owner member
+
         $ownerUser->update(['role' => (string) $validated['role']]);
 
         return back()->with('team_status', 'Role updated.');
     }
 
     /** Remove a member — revokes access cleanly (and disables an orphaned login so it can't log in). */
-    public function remove(OwnerContext $context, string $member): RedirectResponse
+    public function remove(Request $request, OwnerContext $context, string $member): RedirectResponse
     {
         $ownerIds = $this->ownerIds($context);
 
         $ownerUser = OwnerUser::query()->whereKey($member)->whereIn('owner_id', $ownerIds)->firstOrFail();
+        $this->reauthenticate($request);   // ⚠️ AFTER the 404 — removal is takeover by subtraction
+
         $userId = (string) $ownerUser->user_id;
 
         DB::transaction(function () use ($ownerUser, $userId): void {
@@ -125,20 +160,14 @@ class OwnerTeamController extends Controller
      * membership anywhere, is not a primary owner, and holds no other role. This makes "removed → can't log
      * in" real. A user still tied to another owner / a real account is LEFT ACTIVE (fail-safe on shared state).
      */
+    /**
+     * ⚠️ MOVED, NOT COPIED (2026-08-31). Owner REMOVAL now makes the same decision for every sub-user at once,
+     * so the rule lives in {@see OwnerLoginLifecycle} and both paths ask it. Two copies of "may this login be
+     * disabled?" is exactly the drift §N.8f forbids.
+     */
     private function disableIfOrphaned(string $userId): void
     {
-        $user = User::query()->find($userId);
-        if ($user === null || $user->status !== 'active') {
-            return;
-        }
-
-        $stillSubUser = OwnerUser::query()->where('user_id', $userId)->where('status', 'active')->exists();
-        $isPrimaryOwner = Owner::query()->where('user_id', $userId)->exists();
-        $hasRole = $user->roles()->where('name', '!=', 'External Owner')->exists();
-
-        if (! $stillSubUser && ! $isPrimaryOwner && ! $hasRole) {
-            $user->update(['status' => 'disabled']);
-        }
+        OwnerLoginLifecycle::disableIfOrphaned($userId);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Channel;
 use App\Models\Guest;
 use App\Models\Reservation;
+use App\Support\Events\AuditEventRecorder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use InvalidArgumentException;
 
@@ -31,6 +32,7 @@ class BookingImportService
         private AssignmentService $assignment,
         private ChannelMappingGuard $guard,
         private GuestMatcher $guests,
+        private AuditEventRecorder $audit,
     ) {}
 
     /**
@@ -61,9 +63,9 @@ class BookingImportService
     }
 
     /**
-     * Apply an OTA modification. If we've never seen the booking, treat it as an import. Otherwise
-     * re-sync the reservation's lines (free/re-occupy correctly). Redelivery idempotency comes
-     * from `webhook_events` (each external event processed once).
+     * Apply an OTA modification. Unknown booking → treat it as an import; already-terminal booking →
+     * safe no-op (recorded). Otherwise re-sync the reservation's lines (free/re-occupy correctly).
+     * Redelivery idempotency comes from `webhook_events` (each external event processed once).
      *
      * @param  array<string, mixed>  $booking
      */
@@ -73,6 +75,49 @@ class BookingImportService
 
         if ($reservation === null) {
             return $this->import($channel, $booking);
+        }
+
+        // ⚠️ THE SAME RULE AS cancel(), THREE METHODS DOWN, AND FOR THE SAME REASON (F-29, 2026-09-13).
+        // build() sets `'status' => 'confirmed'` UNCONDITIONALLY, and reimportBooking() does a raw
+        // `$reservation->update($attributes)` — so an OTA modification of a terminal booking REVIVED it:
+        // status back to `confirmed`, the occupying lines released and re-taken (INVENTORY), and
+        // `total_minor` overwritten (MONEY — it is read on the confirmation email, the owner booking
+        // detail, the guests CRM and the reservations list's SUM(total_minor)).
+        //
+        // ⚠️ A NO-OP, NOT A THROW — cancel()'s reasoning applies here unchanged and is the author's own:
+        // this runs on the inbound webhook path, where ProcessChannexWebhookJob catches, marks the
+        // webhook_event FAILED and RE-THROWS into the retry backbone (retry → backoff → dead_letter). A
+        // terminal booking is an ordinary, expected redelivery, not an error, and turning it into one would
+        // stop the channel's bookings arriving with nothing on any screen to explain why.
+        // "Idempotent here; authoritative there" — reimportBooking() throws; this returns.
+        //
+        // ⚠️ SCOPE: TERMINAL_STATUSES only (cancelled / no_show / checked_out) — the shared definition, the
+        // sibling's exact rule. `checked_in` is NOT terminal and is NOT refused here: whether a channel may
+        // rewrite a stay the guest is physically in is a FOUNDER RULING, not this method's to make
+        // (docs/STATUS-LADDERS.md, R6). That case remains open and is recorded, not silently decided.
+        if (in_array((string) $reservation->status, AssignmentService::TERMINAL_STATUSES, true)) {
+            // ⚠️ THE REFUSAL LEAVES A TRAIL, WHICH cancel()'s SILENT NO-OP DOES NOT. Nobody is watching this
+            // path when it happens — there is no user, no screen and no request — so an unrecorded refusal
+            // is unrecoverable after the fact. actor_type `system` is the honest value (the enum is
+            // user/agent/system and a sync has no user); the CHANNEL is named so support can tell which
+            // integration sent it. PII-SAFE: identifiers and states only, never a value from the OTA
+            // payload — audit rows are rendered to operators (#28).
+            //
+            // ⚠️⚠️ BUT THIS ROW SURFACES ON NO SCREEN TODAY, AND THAT IS AN OPEN GAP, NOT A DESIGN. It is
+            // queryable for support and forensics and nothing more: `ReservationDetail`'s timeline reads
+            // `reservation_status_history` plus audit rows whose subject is a **Payment** (three payment
+            // actions), so a reservation-subject row is filtered out; and no operator surface reads
+            // `webhook_events` or `sync_jobs` at all. **A silent refusal is the F-13 shape** — reported by
+            // FIX 14, deliberately not fixed here, because building a channel-activity surface is a
+            // feature, not this guard.
+            $this->audit->record('reservation.ota_modification_refused', $reservation, null, [
+                'status' => (string) $reservation->status,
+                'reason' => 'terminal',
+                'channel_id' => (string) $channel->getKey(),
+                'ota_reservation_id' => $this->otaReservationId($booking),
+            ], actorType: 'system');
+
+            return $reservation; // already terminal → idempotent no-op
         }
 
         [$attributes, $lines] = $this->build($channel, $booking);

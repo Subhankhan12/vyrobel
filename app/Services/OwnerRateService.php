@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\Owner\OwnerRateException;
 use App\Models\RoomType;
+use App\Models\Scopes\OrganizationScope;
 use App\Models\Unit;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyInput;
@@ -55,7 +56,13 @@ class OwnerRateService
      */
     public function editableRoomTypes(): Collection
     {
-        $units = $this->portal->units();   // owner-scoped, fail-closed when empty
+        // ⚠️ LIVE INVENTORY, NOT THE ATTRIBUTION SET (2026-09-01). This set is BOTH the read-isolation set for
+        // the Rates screen and the WRITE allow-list behind `apply()`, so it must be the units the owner can
+        // still sell. Built from `units()` it let an owner price a room type at an ARCHIVED property:
+        // MEASURED, three real `rate_calendar` rows were written at €123.00 for a property nobody can reach.
+        // ⚠️ `units()` stays the attribution set and is NOT filtered — the same room type's PAST earnings must
+        // keep reaching Reports and the ledger.
+        $units = $this->portal->unitsAtLiveProperties();   // owner-scoped, fail-closed when empty
         // 🔒 P1-1: rates are a CAP_ACTIONS money write — editable only for owners where the acting user's
         // PER-OWNER role grants actions (a co-owner of A + view-only of B may not touch B's rates).
         $ownerIds = $this->ownerContext->ownerIdsWithCapability(OwnerTeamRole::CAP_ACTIONS);
@@ -143,7 +150,7 @@ class OwnerRateService
             throw OwnerRateException::notYourRoomType($roomTypeId);
         }
 
-        $roomType = RoomType::query()->withoutGlobalScopes()->findOrFail($roomTypeId);
+        $roomType = RoomType::query()->withoutGlobalScopes([OrganizationScope::class])->findOrFail($roomTypeId);
 
         return $this->applyTo($roomType, $from, $toExclusive, $priceMinor, $minStay, $stopSell, $weekendUpliftPct);
     }

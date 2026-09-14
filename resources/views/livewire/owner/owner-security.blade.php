@@ -84,11 +84,20 @@
             <form method="POST" action="{{ route('owner.security.password') }}">
                 @csrf
                 <div style="display:grid;gap:14px;max-width:380px;">
-                    <div>
-                        <label style="{{ $lbl }}" for="cur_pw">Current password</label>
-                        <input id="cur_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
-                        @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                    </div>
+                    {{-- ⚠️⚠️ THE SET-A-PASSWORD PATH IS THIS SAME CARD. An account with no password has nothing to
+                     confirm with — `Hash::check(x, null)` is false — so demanding a current password would make
+                     setting a FIRST one impossible and the lockout permanent. The field is omitted only in that
+                     case; for every account that HAS a password it is required exactly as before, and the
+                     controller enforces the same split rather than trusting this view. --}}
+                    @if (auth()->user()?->hasPassword())
+                        <div>
+                            <label style="{{ $lbl }}" for="cur_pw">Current password</label>
+                            <input id="cur_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
+                            @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+                        </div>
+                    @else
+                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0;">Your account does not have a password yet. Set one below — you will be asked for it when confirming sensitive changes.</p>
+                    @endif
                     <div>
                         <label style="{{ $lbl }}" for="new_pw">New password</label>
                         <input id="new_pw" type="password" name="password" class="vy-input" autocomplete="new-password" required>

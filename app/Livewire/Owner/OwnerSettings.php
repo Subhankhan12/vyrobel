@@ -156,7 +156,11 @@ class OwnerSettings extends Component
     private function region(): array
     {
         /** @var ?Unit $unit */
-        $unit = app(OwnerPortalService::class)->units()->first();
+        // ⚠️ ALSO A REAL BUG FIX. This derives the owner's currency/timezone from their first unit's
+        // PROPERTY, and an archived property resolves to null — so an owner whose alphabetically-first unit
+        // sat at a removed property was shown the hardcoded 'EUR' / 'Europe/Lisbon' fallback instead of their
+        // own live property's settings.
+        $unit = app(OwnerPortalService::class)->unitsAtLiveProperties()->first();
         $property = $unit?->property;
 
         return [

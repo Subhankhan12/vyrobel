@@ -27,6 +27,17 @@
     $cmp = \App\Support\Marketing\MarketingPricing::comparison();
     $tiers = $cmp['tiers'];
     $rows = $cmp['rows'];
+
+    // ⚠️ THE PRICE REPEATS HERE, SO IT MUST FOLLOW THE CYCLE HERE TOO. The cards above now render both
+    // billing periods; a comparison table still frozen on the monthly figure would put two different
+    // prices for one plan on one page. Both come from the same `MarketingPricing` call the cards use.
+    // ⚠️⚠️ AND THIS TABLE SHARED THE CARDS' DEFECT, ONE SECTION BELOW THEM. It built the same two
+    // independent per-interval lists and indexed the yearly one by the header's loop position, so the
+    // same single-interval plan that 500'd the cards would have 500'd here too, and the same
+    // equal-length-different-order case would have transposed the header prices silently.
+    // ⚠️ Fixing only the cards would have left the page half broken. `$tiers` now comes from
+    // `comparison()`, which returns the GROUPED tiers — each carrying its own cycles.
+    $cmpCycles = \App\Support\Marketing\MarketingPricing::CYCLES;
 @endphp
 
 <section data-sec="" id="compare-table" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 80px;">
@@ -63,7 +74,12 @@
                             {{ $tier['name'] }}
                             {{-- ⚠️ The price repeats here from the SAME source as the cards above, so the two
                                  cannot disagree — which is exactly the failure this pass exists to close. --}}
-                            <span style="display: block; font-family: var(--vy-sans); font-size: 12px; font-weight: 500; color: var(--vy-muted); margin-top: 3px;">{{ $tier['formatted'] }} {{ \App\Support\Marketing\MarketingPricing::suffix() }}</span>
+                            @foreach ($cmpCycles as $cmpCycle)
+                                @php($cmpRow = $tier['cycles'][$cmpCycle])
+                                {{-- ⚠️ `data-plan` NAMES THE ROW THE FIGURE CAME FROM, which is what makes
+                                     the pairing checkable from outside rather than merely asserted here. --}}
+                                <span data-cycleprice="{{ $cmpCycle }}" @if ($cmpRow !== null) data-plan="{{ $cmpRow['code'] }}" @else data-cycleunavailable="{{ $cmpCycle }}" @endif style="display: block; font-family: var(--vy-sans); font-size: 12px; font-weight: 500; color: var(--vy-muted); margin-top: 3px;">{{ $cmpRow !== null ? $cmpRow['formatted'].' '.$cmpRow['suffix'] : \App\Support\Marketing\MarketingPricing::cycleUnavailableNote($cmpCycle) }}</span>
+                            @endforeach
                         </th>
                     @endforeach
                 </tr>
@@ -109,8 +125,15 @@
         Everything else Vyrobel does &mdash; the direct booking engine, the front desk, housekeeping,
         maintenance, the owner portal and reporting &mdash; is in every plan. We list only what actually
         changes between them.
+        {{-- ⚠️ THE NOTE NAMES THE PERIOD ("per account, per month"), so it follows the cycle as well —
+             otherwise a visitor reading the yearly price sees "per month" underneath it. Both variants
+             ship; the script collapses one, exactly as the prices do.
+             ⚠️ The word "indicative" inside this note is the page's ONLY machine-driven signal that the
+             figures are provisional: `priceNote()` adds it when `isPlaceholder()` is true. --}}
         @if (\App\Support\Marketing\MarketingPricing::isPlaceholder())
-            <span style="display: block; margin-top: 6px;">{{ \App\Support\Marketing\MarketingPricing::priceNote() }}</span>
+            @foreach (['monthly', 'yearly'] as $cmpNoteCycle)
+                <span data-cycleprice="{{ $cmpNoteCycle }}" style="display: block; margin-top: 6px;">{{ \App\Support\Marketing\MarketingPricing::priceNote($cmpNoteCycle) }}</span>
+            @endforeach
         @endif
     </p>
 </section>

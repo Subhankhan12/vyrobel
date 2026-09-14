@@ -31,6 +31,16 @@ class OwnerTaxController extends Controller
     public function save(Request $request, OwnerTaxService $tax): RedirectResponse
     {
         $data = $request->validate([
+            // ⚠️ RE-AUTH (2026-08-31). `legal_name` is the payee printed on the remittance document, and
+            // `tax_country` is the key WithholdingService and OwnerVatService look a rate up by — so this
+            // changes what is DISCLOSED and what is WITHHELD. Saving a tax id also RELEASES held payouts.
+            // ⚠️ THE BARE RULE, RE-VERIFIED not inherited: guards are web/guest/admin/api, `/owner` runs on
+            // plain `auth`; a guard-qualified rule would silently validate nothing.
+            // ⚠️ ORDER — and why the usual "ownership before identity" does NOT bind here: this route carries
+            // NO owner id. OwnerTaxService resolves the owner from the AUTHENTICATED USER, so there is no
+            // foreign target to probe and the validation error cannot become an existence oracle. Capability
+            // is already enforced by the route's CAP_ACTIONS middleware, before any of this runs.
+            'current_password' => ['required', 'current_password'],
             'legal_name' => ['nullable', 'string', 'max:255'],
             'type' => ['required', Rule::in(['individual', 'company'])],
             'tax_country' => ['nullable', 'string', 'max:60'],

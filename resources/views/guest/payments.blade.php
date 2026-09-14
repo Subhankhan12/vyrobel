@@ -36,14 +36,15 @@
     <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(255,252,248,.72),rgba(255,246,238,.5));border:1px solid var(--vy-glass-border);border-radius:22px;box-shadow:var(--vy-shadow);padding:24px 26px;margin-bottom:18px;animation:vyFadeUp .5s cubic-bezier(.22,.61,.36,1) .06s both">
         <div style="flex:1;min-width:240px">
             <span class="vy-badge vy-badge--{{ $due ? 'pending' : 'confirmed' }}">{{ $due ? 'Balance due' : 'Paid in full · nothing due' }}</span>
-            <div style="font-family:var(--vy-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:9px">Payments</div>
+            {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:9px;margin:0">Payments</h1>
             <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">Your balance and payment history across your stays.</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:1.4;min-width:300px">
             @php $ptile = 'padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline)'; $pnum = 'font-family:var(--vy-display);font-weight:600;font-size:20px;letter-spacing:-.02em;color:var(--vy-ink);font-variant-numeric:tabular-nums;line-height:1'; $psub = 'font-size:11px;color:var(--vy-muted);margin-top:5px;display:block'; @endphp
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_charged'] }}</span><span style="{{ $psub }}">Total charged</span></div>
             <div style="{{ $ptile }}"><span style="{{ $pnum }}">{{ $overview['total_paid'] }}</span><span style="{{ $psub }}">Paid to date</span></div>
-            <div style="{{ $ptile }}"><span style="{{ $pnum }};color:{{ $due ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $due ? $overview['total_balance'] : '€0.00' }}</span><span style="{{ $psub }}">Balance due</span></div>
+            <div style="{{ $ptile }}"><span style="{{ $pnum }};color:{{ $due ? 'var(--vy-amber-text)' : 'var(--vy-green-text)' }}">{{ $due ? $overview['total_balance'] : \App\Support\Money\MoneyFormatter::display(0, $overview['currency']) }}</span><span style="{{ $psub }}">Balance due</span></div>
             {{-- WAVE 3 — the REAL refunded total, shown only when there IS one. "Paid to date" is net of
                  refunds, so without this a refunded guest saw a smaller Paid figure and nothing explaining it.
                  No refund ⇒ no tile, rather than a noisy €0.00. --}}

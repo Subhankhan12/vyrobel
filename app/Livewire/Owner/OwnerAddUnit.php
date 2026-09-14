@@ -51,8 +51,11 @@ class OwnerAddUnit extends Component
                 'amenities' => [],
                 'operatorName' => 'your management team',
                 'commissionPct' => null,
-                'currency' => 'EUR',
-                'currencySymbol' => $this->currencySymbol('EUR'),
+                // ⚠️ THE NOT-LINKED BRANCH HAS NO TENANT. There is deliberately no owner record here, so
+                // there is no tenant currency to resolve and naming one would be an assertion, not a fact.
+                // The platform default is the honest stand-in and it is READ, never typed.
+                'currency' => $platformCurrency = (string) config('billing.default_currency', 'EUR'),
+                'currencySymbol' => $this->currencySymbol($platformCurrency),
                 'firstName' => 'there',
                 'requests' => [],
                 'done' => null,
@@ -61,7 +64,7 @@ class OwnerAddUnit extends Component
             ]);
         }
 
-        $currency = (string) ($owner->payout_currency ?: 'EUR');
+        $currency = (string) ($owner->payout_currency ?: config('billing.default_currency', 'EUR'));
 
         return view('livewire.owner.add-unit', [
             'viewer' => $this->viewer(),

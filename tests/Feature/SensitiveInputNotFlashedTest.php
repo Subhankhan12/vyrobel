@@ -28,6 +28,7 @@ it('does not flash the IBAN or account holder after a failed payout-method submi
     // A syntactically plausible IBAN that FAILS the real mod-97 checksum, so validation rejects it and the
     // old-input flash is what we are inspecting.
     $response = $this->actingAs($owner)->post('/owner/payout-method', [
+        'current_password' => 'password',   // ⚠️ FIXTURE ONLY — payout-destination re-auth
         'account_holder' => 'Ada Lovelace SecretHolder',
         'iban' => 'PT50000000000000000000999',
         'label' => 'Main',
@@ -56,6 +57,7 @@ it('still stores a valid IBAN, and stores it ENCRYPTED at rest', function () {
 
     // A real mod-97-valid IBAN (the same fixture OwnerPayoutMethodTest proves valid).
     $this->actingAs($owner)->post('/owner/payout-method', [
+        'current_password' => 'password',   // ⚠️ FIXTURE ONLY — payout-destination re-auth
         'account_holder' => 'Ada Lovelace',
         'iban' => 'GB82WEST12345698765432',
         'label' => 'HardeningCheck',

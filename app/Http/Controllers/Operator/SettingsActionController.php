@@ -446,6 +446,14 @@ class SettingsActionController extends Controller
             return $readOnly;
         }
 
+        // ⚠️ RE-AUTH (2026-08-30): team scope decides WHICH PROPERTIES a user can reach — an access change,
+        // not a preference. Bare `current_password`: /app runs on the default `web` guard (verified).
+        $request->validate(
+            ['current_password' => ['required', 'current_password']],
+            [],
+            ['current_password' => 'current password'],
+        );
+
         $validated = $request->validate([
             'user_id' => ['required', 'string'],
             'scope' => ['required', 'in:all,selected'],

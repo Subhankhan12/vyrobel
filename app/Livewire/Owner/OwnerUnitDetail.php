@@ -169,6 +169,9 @@ class OwnerUnitDetail extends Component
 
         return view('livewire.owner.unit-detail', [
             'viewer' => $this->viewer(),
+            // ⚠️ The nightly-rate label and the weekend-uplift preview hardcoded '€' while every FIGURE on the
+            // page was already built in `$currency` (the unit's property currency, resolved above).
+            'currencySymbol' => $this->currencySymbol($currency),
             'unit' => $this->unitFacts($unit),
             'occupancy' => $occupancy,
             'month' => [

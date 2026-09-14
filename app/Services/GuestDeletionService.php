@@ -6,12 +6,14 @@ namespace App\Services;
 
 use App\Mail\AccountDeletionScheduledMail;
 use App\Models\Guest;
+use App\Models\Reservation;
 use App\Notifications\Guest\GuestAccountSecurityNotification;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Log\LogSafe;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -20,10 +22,16 @@ use Throwable;
  * Guest-side "delete my account" as a REVERSIBLE, SCHEDULED erase (Guest Portal · GATE 3, founder decision D2) —
  * the SAME schedule/cancel/processDue shape as {@see PropertyRemovalService} (#98). Confirming the delete stamps
  * `scheduled_deletion_at` 14 days out and emails the guest; the account stays fully usable and the guest can UNDO
- * (clear it) within the window. A daily command runs {@see processDue()} on/after the date: it cancels the guest's
- * upcoming reservations per policy (inventory/status via the certified {@see AssignmentService}; any refund stays
- * the operator's separate step — the policy is display-only) and then calls the certified {@see Guest::anonymize()}
- * GDPR erase (PII + documents + inbox + auth). NEVER immediate/destructive; NEVER a fabricated undo timer.
+ * (clear it) within the window. A daily command runs {@see processDue()} on/after the date, and then calls the
+ * certified {@see Guest::anonymize()} GDPR erase (PII + documents + inbox + auth).
+ *
+ * ⚠️⚠️ THE ERASE CANCELS BOOKINGS AND CAN MOVE MONEY — say so, because a reader who believes otherwise will
+ * under-warn the guest. {@see eraseNow()} puts every row from {@see reservationsToCancel()} through
+ * {@see ReservationCancellationService::cancelWithPolicyRefund()}, which cancels through the certified
+ * {@see AssignmentService} AND refunds the full remaining-refundable of each settled payment when
+ * {@see CancellationPolicy::isRefundable()} is true on the day the sweep runs (bounded #27) — refunding nothing
+ * when it is false. A refund there posts its own owner-ledger adjustment. NEVER immediate/destructive; NEVER a
+ * fabricated undo timer.
  *
  * PII-safe events (invariant #28): audit records WHICH field changed (`['fields' => [...]]`), never the values.
  */
@@ -96,12 +104,27 @@ class GuestDeletionService
         return $count;
     }
 
+    /**
+     * The reservations a scheduled erase WOULD cancel — anything not already cancelled / no-show / checked-out,
+     * so a stay IN PROGRESS is included.
+     *
+     * ⚠️ THE ONE DEFINITION, on purpose. {@see eraseNow()} cancels exactly this set, and the account screen quotes
+     * its count to warn the guest BEFORE they confirm. A second copy of this predicate would let the warning and
+     * the erase disagree — the drift this codebase removes wherever it finds it.
+     *
+     * @return EloquentCollection<int, Reservation>
+     */
+    public function reservationsToCancel(Guest $guest): EloquentCollection
+    {
+        return $guest->reservations()
+            ->whereNotIn('status', AssignmentService::TERMINAL_STATUSES)
+            ->get();
+    }
+
     /** Cancel the guest's still-live reservations per policy, then run the certified GDPR erase. */
     private function eraseNow(Guest $guest): void
     {
-        $live = $guest->reservations()
-            ->whereNotIn('status', AssignmentService::TERMINAL_STATUSES)
-            ->get();
+        $live = $this->reservationsToCancel($guest);
 
         foreach ($live as $reservation) {
             try {
@@ -124,7 +147,7 @@ class GuestDeletionService
             return;
         }
         try {
-            Mail::to($email)->send(new AccountDeletionScheduledMail($guest));
+            Mail::to($email)->send(new AccountDeletionScheduledMail($guest, $this->reservationsToCancel($guest)->count()));
         } catch (Throwable $e) {
             Log::warning('Account-deletion email failed', ['error' => LogSafe::message($e)]);   // never the address (no PII)
         }

@@ -21,8 +21,6 @@
     canonical="/try-booking">
 <div data-screen-label="Marketing — Try booking" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 60px 28px 34px;">
@@ -32,7 +30,7 @@
       <div style="position: relative; max-width: 660px;">
         <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 9px; border-radius: 999px; background: rgba(255,252,248,.62); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 6px 18px rgba(150,90,50,.12); font-size: 12.5px; font-weight: 500; color: var(--vy-muted); margin-bottom: 20px; animation: vyFadeUp .7s cubic-bezier(.22,.7,.3,1) both;">
           <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 7px; background: linear-gradient(140deg, var(--vy-accent-3), var(--vy-accent));">
-            <svg width="11" height="11" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5l3 2"></path><circle cx="12" cy="12" r="9"></circle></svg>
           </span>
           Sandbox · nothing is charged, no card needed
         </div>

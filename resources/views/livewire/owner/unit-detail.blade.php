@@ -229,14 +229,14 @@
                         <input type="hidden" name="unit" value="{{ $unit['id'] }}">
                         <input type="hidden" name="start_date" value="{{ now()->toDateString() }}">
                         <input type="hidden" name="end_date" value="{{ now()->addYear()->subDay()->toDateString() }}">
-                        <label class="vy-field-label" for="ud_rate">Nightly rate (€)</label>
+                        <label class="vy-field-label" for="ud_rate">Nightly rate ({{ $currencySymbol }})</label>
                         <input id="ud_rate" type="number" name="rate" step="0.01" min="0" x-model="rate" class="vy-input" style="width:100%;margin-bottom:11px" required>
                         <label class="vy-field-label" for="ud_weekend">Weekend uplift (%)</label>
                         <input id="ud_weekend" type="number" name="weekend_uplift" step="1" min="0" max="200" x-model="weekend" class="vy-input" style="width:100%;margin-bottom:11px" placeholder="Optional — e.g. 20">
                         <label class="vy-field-label" for="ud_min">Minimum stay (nights)</label>
                         <input id="ud_min" type="number" name="min_stay" min="1" max="365" value="{{ $pricing['min_stay'] }}" class="vy-input" style="width:100%;margin-bottom:8px" placeholder="Optional">
                         {{-- Live preview — the derived Fri/Sat price (base × (1 + uplift%)) before saving --}}
-                        <p x-show="weekend > 0" x-cloak class="vy-line-sub" style="font-size:11.5px;margin:0 0 8px;color:var(--vy-ink)">Fri &amp; Sat nights become <strong style="color:var(--vy-accent-text)" x-text="'€' + Math.round(rate * (1 + weekend/100))"></strong> / night; weekdays stay <span x-text="'€' + rate"></span>.</p>
+                        <p x-show="weekend > 0" x-cloak class="vy-line-sub" style="font-size:11.5px;margin:0 0 8px;color:var(--vy-ink)">Fri &amp; Sat nights become <strong style="color:var(--vy-accent-text)" x-text="@js($currencySymbol) + Math.round(rate * (1 + weekend/100))"></strong> / night; weekdays stay <span x-text="@js($currencySymbol) + rate"></span>.</p>
                         <p class="vy-line-sub" style="font-size:11px;margin:0 0 12px">Applies from today across the next year. It’s live immediately.</p>
                         <div style="display:flex;gap:9px">
                             <button type="button" class="vy-btn vy-btn--ghost" style="flex:1;justify-content:center" @click="editing = false">Cancel</button>
@@ -425,7 +425,8 @@
                 <form method="POST" action="{{ route('owner.messages.start') }}">
                     @csrf
                     <input type="hidden" name="subject" value="About {{ $unit['name'] }}">
-                    <textarea name="body" rows="3" class="vy-input" style="width:100%;resize:vertical" placeholder="Ask your management team about this unit…" required></textarea>
+                    <label class="vy-sr-only" for="vy-lbl-unit-detail-body">Ask your management team about this unit…</label>
+                    <textarea id="vy-lbl-unit-detail-body" name="body" rows="3" class="vy-input" style="width:100%;resize:vertical" placeholder="Ask your management team about this unit…" required></textarea>
                     <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:10px">Send message</button>
                 </form>
                 <a href="{{ route('owner.messages') }}" style="color:var(--vy-accent-text);font-size:12.5px;font-weight:600;display:inline-block;margin-top:10px">Open inbox →</a>

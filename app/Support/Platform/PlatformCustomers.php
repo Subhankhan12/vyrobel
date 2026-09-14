@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Property;
+use App\Models\Scopes\OrganizationScope;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -122,7 +123,7 @@ class PlatformCustomers
         }
 
         $latest = Subscription::query()
-            ->withoutGlobalScopes()
+            ->withoutGlobalScopes([OrganizationScope::class])
             ->whereIn('organization_id', $ids)
             ->with('plan:id,name')
             ->latest()

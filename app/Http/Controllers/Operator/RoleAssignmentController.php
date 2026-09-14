@@ -22,6 +22,34 @@ use Illuminate\Http\Request;
  */
 class RoleAssignmentController extends Controller
 {
+    /**
+     * ⚠️⚠️ RE-AUTHENTICATE BEFORE CHANGING WHAT A BACK-OFFICE PRINCIPAL CAN DO (2026-08-30).
+     *
+     * assign · revoke · savePermissions all changed org-wide access with NO password. The owner-side fixes
+     * protected one owner's slice; a back-office role reaches the WHOLE organisation.
+     *
+     * ⚠️ REPRODUCED, no password: Housekeeping granted "Front Desk"; the grant revoked again; and — the quiet
+     * one — the Front Desk role stripped from 20 permissions to 2, which changes NO user record and NO
+     * assignment while silently altering what EVERYONE holding that role can do.
+     *
+     * ⚠️ WHAT THIS DOES AND DOES NOT ACHIEVE. It stops a session that does not know the password. It does NOT
+     * stop a hijacked session whose holder has the password, and it is NOT what prevents escalation — that is
+     * {@see RolePermissionService}'s subset rule and {@see RoleAssignmentService}'s no-self-management rule,
+     * both of which already refuse to grant beyond the actor's own access. This is a second factor on a
+     * high-blast-radius action, not the boundary itself.
+     *
+     * ⚠️ THE BARE `current_password` — VERIFIED, not assumed: /app runs on plain `auth` and AUTH_GUARD
+     * defaults to `web`, so `current_password:admin` would validate NOTHING here, silently.
+     */
+    private function reauthenticate(Request $request): void
+    {
+        $request->validate(
+            ['current_password' => ['required', 'current_password']],
+            [],
+            ['current_password' => 'current password'],
+        );
+    }
+
     public function assign(Request $request, RoleAssignmentService $roles): RedirectResponse
     {
         return $this->manage($request, fn (User $actor, User $target, string $role) => $roles->assign($actor, $target, $role));
@@ -54,6 +82,8 @@ class RoleAssignmentController extends Controller
             return $this->back('Choose a role to edit.');
         }
 
+        $this->reauthenticate($request);   // ⚠️ the QUIET one — no user or assignment changes, yet everyone with the role is affected
+
         try {
             $result = $perms->save($actor, $roleName, $granted);
         } catch (RoleAssignmentException $e) {
@@ -78,6 +108,10 @@ class RoleAssignmentController extends Controller
 
         /** @var User $actor */
         $actor = $request->user();
+
+        // ⚠️ Covers BOTH assign and revoke (each proven separately in the tests). Placed AFTER the actor is
+        // resolved and BEFORE the target is looked up, so identity is checked before anything is disclosed.
+        $this->reauthenticate($request);
 
         $target = User::query()->find((string) $request->input('user_id'));   // global lookup; the service tenant-checks
         $roleName = trim((string) $request->input('role'));

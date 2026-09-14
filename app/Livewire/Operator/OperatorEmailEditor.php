@@ -10,6 +10,7 @@ use App\Models\EmailTemplate;
 use App\Models\Scopes\OrganizationScope;
 use App\Support\Email\EmailPreviewSample;
 use App\Support\Email\EmailTemplateCatalog;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
@@ -124,7 +125,10 @@ class OperatorEmailEditor extends Component
             'unit' => 'Apartment 2B',
             'nights' => '3',
             'reference' => 'VY-2043',
-            'balance' => '€120.00',
+            // ⚠️ The sample balance printed a hardcoded '€120.00' — an operator on a GBP property previewed
+            // their own template in euros. The AMOUNT stays illustrative (it is a sample, not a real balance);
+            // only the currency is made real, from the same reservation the preview renders from.
+            'balance' => MoneyFormatter::display(12000, EmailPreviewSample::sampleCurrency()),
         ];
         foreach ($catalog['vars'] as $var) {
             $text = str_replace('{'.$var.'}', (string) ($samples[$var] ?? '{'.$var.'}'), $text);

@@ -12,6 +12,7 @@ use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 /**
  * Housekeeping task + unit-cleanliness management. Operates entirely within the housekeeping
@@ -61,6 +62,8 @@ class HousekeepingService
     {
         $fromStatus = (string) $task->status;
 
+        $this->assertTransition($task, $status);
+
         DB::transaction(function () use ($task, $status, $by): void {
             $updates = ['status' => $status];
 
@@ -79,6 +82,20 @@ class HousekeepingService
         });
 
         $this->domainEvents->record('housekeeping.task_updated', $task, ['from' => $fromStatus, 'to' => $status]);
+
+        // ⚠️ F-17 — WHO cleaned the room. `domain_events` has NO actor column, so the domain event above
+        // proves the change happened and can never say who made it. This is the missing sibling: the three
+        // other writers in this very file (markUnitHousekeepingStatus, assign, unassign) already record here,
+        // and one of their docblocks even claims "domain + audit" for the pair. ⚠️ PII-SAFE by construction —
+        // a status and an id, no names, no contact details (these rows are operator-readable).
+        $this->audit->record(
+            'housekeeping.task_updated',
+            $task,
+            ['status' => $fromStatus],
+            ['status' => $status],
+            actorType: $by !== null ? 'user' : null,
+            actorId: $by?->getKey() !== null ? (string) $by->getKey() : null,
+        );
 
         // Sync the unit's cleanliness (separate write → its own log entry).
         if (in_array($status, ['clean', 'inspected'], true)) {
@@ -170,5 +187,50 @@ class HousekeepingService
         }
 
         return $assigned;
+    }
+
+    /**
+     * ⚠️ THE STATUS LADDER'S BOUND (F-15) — the source-state check this transition never had. Copied in shape
+     * from the reference implementation {@see MaintenanceService::assertTransition()}: the guard
+     * lives in the SERVICE, so EVERY entrance meets it (a guard on one entrance is not a guard), and the
+     * controller keeps no status logic of its own — it catches the refusal and flashes it.
+     *
+     * ⚠️⚠️ THE MAP IS DELIBERATELY THE MOST PERMISSIVE ONE THAT CLOSES THE PROVEN DEFECT. Which moves SHOULD be
+     * legal is a PRODUCT decision and is not settled here; inventing policy inside a guard would be worse than
+     * the missing guard. So this refuses only what is clearly illegal and leaves every ambiguous move working
+     * exactly as it does today, pending a founder ruling (see docs/HOUSEKEEPING-LADDER.md):
+     *
+     *   • `in_progress` and `clean` accept EVERY source state. `in_progress` is a PROGRESS MARKER, so skipping
+     *     it loses no assertion — a housekeeper who cleans a room without pressing Start is doing the job, and
+     *     refusing them would break a shift. Backward moves (a clean room found dirty, a wrong inspection) are
+     *     likewise left open. ⚠️ These are AMBIGUOUS-AND-PERMITTED, not endorsed.
+     *   • `inspected` accepts ONLY `clean` (the real step) and `inspected` (a double-press, unchanged). It is
+     *     refused from `pending` and `in_progress` because `clean` is not a marker but an ASSERTION — that a
+     *     person declared this room cleaned. Reaching guest-ready without it is exactly F-15: a dirty room
+     *     became guest-ready with `started_at` NULL, and `inspected_by` named the person who skipped the work.
+     *     That also collapses the cleaner/inspector separation F-17 shows is recorded nowhere else.
+     */
+    private const ALLOWED_FROM = [
+        'pending' => ['pending', 'in_progress', 'clean', 'inspected'],
+        'in_progress' => ['pending', 'in_progress', 'clean', 'inspected'],
+        'clean' => ['pending', 'in_progress', 'clean', 'inspected'],
+        'inspected' => ['clean', 'inspected'],
+    ];
+
+    /**
+     * Refuse a transition the ladder does not permit. Throws {@see RuntimeException} exactly as the maintenance
+     * reference does, so a caller that does not catch it fails loudly rather than writing a silent bad row.
+     */
+    private function assertTransition(HousekeepingTask $task, string $to): void
+    {
+        $from = (string) $task->status;
+
+        if (! array_key_exists($to, self::ALLOWED_FROM)) {
+            throw new RuntimeException("Unsupported housekeeping status \"{$to}\".");
+        }
+
+        if (! in_array($from, self::ALLOWED_FROM[$to], true)) {
+            throw new RuntimeException("Cannot mark a {$from} housekeeping task {$to}.");
+        }
     }
 }

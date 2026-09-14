@@ -116,7 +116,8 @@
                     @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
                     @if ($channel) <input type="hidden" name="channel" value="{{ $channel }}"> @endif
                     @if ($sort === 'oldest') <input type="hidden" name="sort" value="oldest"> @endif
-                    <input type="search" name="q" value="{{ $query }}" class="vy-input" placeholder="Search guests &amp; messages…" autocomplete="off">
+                    <label class="vy-sr-only" for="vy-lbl-operator-inbox-q">Search guests &amp; messages…</label>
+                    <input id="vy-lbl-operator-inbox-q" type="search" name="q" value="{{ $query }}" class="vy-input" placeholder="Search guests &amp; messages…" autocomplete="off">
                 </form>
                 <div class="vy-inbox-list">
                     @forelse ($rows as $row)
@@ -267,7 +268,8 @@
                         @else
                             <form method="POST" action="{{ route('app.inbox.reply', $active['id']) }}" class="vy-composer-form">
                                 @csrf
-                                <textarea name="body" rows="2" class="vy-input" placeholder="Reply via {{ $active['channel_label'] }}…" required></textarea>
+                                <label class="vy-sr-only" for="vy-lbl-operator-inbox-body">Reply via {{ $active['channel_label'] }}…</label>
+                                <textarea id="vy-lbl-operator-inbox-body" name="body" rows="2" class="vy-input" placeholder="Reply via {{ $active['channel_label'] }}…" required></textarea>
                                 <div class="vy-composer-actions">
                                     @if ($active['can_close'])
                                         <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">Close</button>
@@ -295,9 +297,9 @@
 
         {{-- ── Assign modal — INTERNAL hand-to-staff (guests never see this) ─────────────────────────── --}}
         @if ($active)
-        <div x-show="assignOpen" x-cloak class="vy-modal-backdrop" @click.self="assignOpen = false">
-            <div class="vy-modal">
-                <h2 class="vy-modal-title">Assign conversation</h2>
+        <div x-show="assignOpen" x-cloak class="vy-modal-backdrop" @click.self="assignOpen = false" @keydown.escape.window="assignOpen = false">
+            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="assignOpen" aria-labelledby="vy-dlg-operator-inbox-assignopen-3">
+                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-assignopen-3">Assign conversation</h2>
                 <p class="vy-modal-sub">{{ $active['name'] }} · they're notified in-app · the thread stays in this shared inbox.</p>
                 <form method="POST" action="{{ route('app.inbox.assign', $active['id']) }}">
                     @csrf
@@ -319,7 +321,8 @@
                         @if ($active['note'])
                             <div class="vy-assign-lastnote">Latest · {{ $active['note']['author'] }}: {{ \Illuminate\Support\Str::limit($active['note']['body'], 120) }}</div>
                         @endif
-                        <textarea name="note" rows="2" class="vy-input" placeholder="Add a note for the team (optional) — e.g. why you're handing this over"></textarea>
+                        <label class="vy-field-label" for="vy-lbl-operator-inbox-note">Add a note for the team (optional) — e.g. why you're handing this over</label>
+                        <textarea id="vy-lbl-operator-inbox-note" name="note" rows="2" class="vy-input" placeholder="Add a note for the team (optional) — e.g. why you're handing this over"></textarea>
                     </div>
                     <p class="vy-modal-note">They're notified on their device; the thread stays in this shared inbox.</p>
                     <div class="vy-modal-actions">
@@ -332,9 +335,9 @@
 
         {{-- ── Link-reservation modal — attach/change/detach the thread's reservation (real, tenant-scoped) ── --}}
         @if ($active['has_guest'] && $active['link_reservations'] !== [])
-        <div x-show="linkOpen" x-cloak class="vy-modal-backdrop" @click.self="linkOpen = false">
-            <div class="vy-modal">
-                <h2 class="vy-modal-title">Link a reservation</h2>
+        <div x-show="linkOpen" x-cloak class="vy-modal-backdrop" @click.self="linkOpen = false" @keydown.escape.window="linkOpen = false">
+            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="linkOpen" aria-labelledby="vy-dlg-operator-inbox-linkopen-2">
+                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-linkopen-2">Link a reservation</h2>
                 <p class="vy-modal-sub">{{ $active['name'] }} · pick which booking this conversation is about.</p>
                 <form method="POST" action="{{ route('app.inbox.link-reservation', $active['id']) }}">
                     @csrf
@@ -361,9 +364,9 @@
         @endif
 
         {{-- ── New message modal — pick a guest with a current/upcoming stay + start from template ──────── --}}
-        <div x-show="composeOpen" x-cloak class="vy-modal-backdrop" @click.self="composeOpen = false">
-            <div class="vy-modal">
-                <h2 class="vy-modal-title">New message</h2>
+        <div x-show="composeOpen" x-cloak class="vy-modal-backdrop" @click.self="composeOpen = false" @keydown.escape.window="composeOpen = false">
+            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="composeOpen" aria-labelledby="vy-dlg-operator-inbox-composeopen-1">
+                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
                 <p class="vy-modal-sub">Guests with a current or upcoming stay.</p>
                 <form method="POST" action="{{ route('app.inbox.start') }}">
                     @csrf
@@ -392,7 +395,8 @@
                          reviews + edits, and this exact text is what sends (`body` wins over `template` server-side). --}}
                     <div class="vy-compose-editor">
                         <span class="vy-field-label">Message</span>
-                        <textarea name="body" x-model="composeBody" rows="5" class="vy-input" placeholder="Write a message, or pick a template above to start from one — you can edit it before sending."></textarea>
+                        <label class="vy-field-label" for="vy-lbl-operator-inbox-body">Write a message, or pick a template above to start from one — you can edit it before sending.</label>
+                        <textarea id="vy-lbl-operator-inbox-body" name="body" x-model="composeBody" rows="5" class="vy-input" placeholder="Write a message, or pick a template above to start from one — you can edit it before sending."></textarea>
                     </div>
                     <p class="vy-modal-note">Starts a thread in this inbox · the guest replies wherever they booked · contact details stay private.</p>
                     <div class="vy-modal-actions">

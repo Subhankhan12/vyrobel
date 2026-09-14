@@ -13,7 +13,7 @@
          style block only renders in the wizard branch — the New-Reservation done-screen lesson). ── --}}
     <div class="vy-gb-standalone">
         <div class="vy-gb-topbar vy-fade">
-            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><span class="vy-gb-brand-title">{{ $done['title'] }}</span><span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span></span></div>
+            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">{{ $done['title'] }}</h1><span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span></span></div>
             <a class="vy-gb-close" href="{{ $done['rack_url'] }}" title="Close" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
         </div>
         <div class="vy-gb-donewrap vy-fade">
@@ -59,7 +59,7 @@
 @elseif (! $hasProperty)
     <div class="vy-gb-standalone">
         <div class="vy-gb-topbar vy-fade">
-            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><span class="vy-gb-brand-title">Group booking</span><span class="vy-gb-brand-sub">No property configured</span></span></div>
+            <div class="vy-gb-brand"><span class="vy-gb-logo">V</span><span class="vy-gb-brand-id"><h1 class="vy-gb-brand-title" style="margin:0;">Group booking</h1><span class="vy-gb-brand-sub">No property configured</span></span></div>
             <a class="vy-gb-close" href="{{ route('app.rack') }}" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg></a>
         </div>
         <div class="vy-gb-card vy-fade" style="text-align:center; padding: 40px 24px;">
@@ -74,7 +74,7 @@
             <div class="vy-gb-brand">
                 <span class="vy-gb-logo">V</span>
                 <span class="vy-gb-brand-id">
-                    <span class="vy-gb-brand-title">Group booking</span>
+                    <h1 class="vy-gb-brand-title" style="margin:0;">Group booking</h1>
                     <span class="vy-gb-brand-sub">{{ $subtitle }} · block reservation</span>
                 </span>
             </div>
@@ -138,7 +138,7 @@
                     <p class="vy-gb-sub">Name the block, the occasion, and roughly how many guests.</p>
 
                     <div class="vy-gb-field"><label class="vy-gb-label">Group name</label>
-                        <input type="text" class="vy-gb-input" x-model="name" placeholder="e.g. Okafor–Bello Wedding" autocomplete="off">
+                        <input id="vy-lbl-group-booking-e-g-okafor-bello-wedding" type="text" class="vy-gb-input" x-model="name" placeholder="e.g. Okafor–Bello Wedding" autocomplete="off">
                     </div>
                     <div class="vy-gb-field"><label class="vy-gb-label">Occasion</label>
                         <div class="vy-gb-chips">
@@ -150,9 +150,15 @@
                     <div class="vy-gb-row2">
                         <div class="vy-gb-field"><label class="vy-gb-label">Stay dates</label>
                             <div class="vy-gb-dates">
-                                <input type="date" class="vy-gb-input" x-model="ci">
-                                <span class="vy-gb-dates-arrow">→</span>
-                                <input type="date" class="vy-gb-input" x-model="co">
+                                {{-- ⚠️ F-8 — the visible "Stay dates" label above names the PAIR, not either
+                                     input, and was never associated with either. These two hidden labels
+                                     name each end of the range; the text is derived from the authored
+                                     label plus the → between them, not invented. --}}
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-in">Stay dates — check-in</label>
+                                <input type="date" id="vy-lbl-group-booking-check-in" class="vy-gb-input" x-model="ci">
+                                <span class="vy-gb-dates-arrow" aria-hidden="true">→</span>
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-check-out">Stay dates — check-out</label>
+                                <input type="date" id="vy-lbl-group-booking-check-out" class="vy-gb-input" x-model="co">
                                 <button type="button" class="vy-gb-datesbtn" x-on:click="applyDates()" x-bind:disabled="! ci || ! co || co <= ci">Check availability</button>
                             </div>
                             <div class="vy-gb-hint" x-text="datesLabel"></div>
@@ -220,7 +226,8 @@
                         <template x-for="u in selected" x-bind:key="u.id">
                             <div class="vy-gb-rooming">
                                 <span class="vy-gb-rooming-unit"><span x-text="u.code"></span> · <span class="vy-gb-faint" x-text="'sleeps ' + u.sleeps"></span></span>
-                                <input type="text" class="vy-gb-input vy-gb-rooming-input" x-model="rooming[u.id]" x-bind:name="'rooming[' + u.id + ']'" placeholder="Lead guest — TBC" autocomplete="off">
+                                <label class="vy-sr-only" for="vy-lbl-group-booking-rooming-u-id">Lead guest — TBC</label>
+                                <input id="vy-lbl-group-booking-rooming-u-id" type="text" class="vy-gb-input vy-gb-rooming-input" x-model="rooming[u.id]" x-bind:name="'rooming[' + u.id + ']'" placeholder="Lead guest — TBC" autocomplete="off">
                             </div>
                         </template>
                     </div>
@@ -235,7 +242,7 @@
                             <div class="vy-gb-label">Hold type</div>
                             <label class="vy-gb-opt" x-bind:class="holdType === 'confirmed' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="confirmed"><span><strong>Confirmed</strong><br><span class="vy-gb-opt-sub">Units held firm on the rack</span></span></label>
                             <label class="vy-gb-opt" x-bind:class="holdType === 'tentative' ? 'is-on' : ''"><input type="radio" x-model="holdType" value="tentative"><span><strong>Tentative hold</strong><br><span class="vy-gb-opt-sub">Option expires if not confirmed</span></span></label>
-                            <div class="vy-gb-field" x-show="holdType === 'tentative'" x-cloak style="margin-top:8px;"><label class="vy-gb-label">Option held until</label><input type="date" class="vy-gb-input" x-model="pickupDeadline"></div>
+                            <div class="vy-gb-field" x-show="holdType === 'tentative'" x-cloak style="margin-top:8px;"><label class="vy-gb-label" for="vy-lbl-group-booking-pickup-deadline">Option held until</label><input type="date" id="vy-lbl-group-booking-pickup-deadline" class="vy-gb-input" x-model="pickupDeadline"></div>
                         </div>
                         <div>
                             <div class="vy-gb-label">Payment</div>

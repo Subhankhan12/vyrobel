@@ -89,7 +89,7 @@ it('invites a manager and activates them as Hotel Manager staff in /app — no o
     $op = staffOperator($s, 'op-mgr@vyrobel.test');
 
     // Invite via the REAL operator action; deliberately include owner-only fields to prove they're dropped.
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Morgan Manager',
         'email' => 'morgan@example.test',
         'role' => 'manager',
@@ -144,7 +144,7 @@ it('invites an accountant and activates them as the Accountant role in /app', fu
     provisionOrgRoles($s);
     $op = staffOperator($s, 'op-acc@vyrobel.test');
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Avery Accountant',
         'email' => 'avery@example.test',
         'role' => 'accountant',
@@ -176,7 +176,7 @@ it('leaves the owner path unchanged: owner record + agreement + units, /owner, n
     provisionOrgRoles($s);
     $op = staffOperator($s, 'op-own@vyrobel.test');
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Olivia Owner',
         'email' => 'olivia@example.test',
         'role' => 'owner',
@@ -216,7 +216,7 @@ it('fails safe when the staff role is not provisioned for the org — clean erro
     $s = seedScenario(1);   // roles deliberately NOT provisioned
     $op = staffOperator($s, 'op-fs@vyrobel.test');
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Unprovisioned',
         'email' => 'unprov@example.test',
         'role' => 'manager',

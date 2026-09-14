@@ -8,11 +8,10 @@
     <x-operator.shell active="reservations" :title="$reservation['guest'] ?: $reservation['reference']"
         :subtitle="$reservation['reference'] . ' · ' . $reservation['status_label']" :viewer="$viewer">
 
+        {{-- ⚠️ ONE component decides refusal-vs-success (audit D4). This view used to hardcode a tick, so
+             a refused refund or a lost inventory race rendered as a receipt. --}}
         @if (session('folio_notice'))
-            <div class="vy-toast vy-fade" role="status">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                {{ session('folio_notice') }}
-            </div>
+            <x-operator.flash-notice :message="session('folio_notice')" :refused="(bool) session('folio_refused', false)" />
         @endif
 
         <div class="vy-detail-cols vy-fade">
@@ -271,6 +270,7 @@
                         </select>
                         <label class="vy-field-label" for="amount">Amount ({{ $reservation['currency'] }})</label>
                         <div class="vy-input-group">
+                            <label class="vy-field-label" for="amount">0.00</label>
                             <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" id="amount" placeholder="0.00">
                             <x-busy-btn class="vy-btn vy-btn--accent" busy-label="Recording…">Record</x-busy-btn>
                         </div>
@@ -340,7 +340,8 @@
                                         <option value="{{ $ct['value'] }}">{{ $ct['label'] }}</option>
                                     @endforeach
                                 </select>
-                                <input class="vy-input" type="text" name="description" maxlength="120" placeholder="Description" style="flex: 1 1 110px;">
+                                <label class="vy-field-label" for="vy-lbl-reservation-detail-description">Description</label>
+                                <input id="vy-lbl-reservation-detail-description" class="vy-input" type="text" name="description" maxlength="120" placeholder="Description" style="flex: 1 1 110px;">
                                 <input class="vy-input" type="number" inputmode="decimal" step="0.01" min="0" name="amount" placeholder="0.00" style="flex: 0 0 88px;">
                                 <x-busy-btn class="vy-btn vy-btn--ghost" busy-label="Adding…">Add</x-busy-btn>
                             </div>

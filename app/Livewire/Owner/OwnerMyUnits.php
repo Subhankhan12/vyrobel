@@ -63,7 +63,9 @@ class OwnerMyUnits extends Component
     public function render(): View
     {
         $portal = app(OwnerPortalService::class);
-        $units = $portal->units();   // owner-scoped, fail-closed when empty
+        // ⚠️ THE INVENTORY PAGE — live properties only. `units()` is the attribution set and would list a
+        // unit at an archived property beside the owner's real ones, with working editors on it.
+        $units = $portal->unitsAtLiveProperties();   // owner-scoped, fail-closed when empty
         $currency = $this->currency($units);
 
         $month = $this->resolveMonth();

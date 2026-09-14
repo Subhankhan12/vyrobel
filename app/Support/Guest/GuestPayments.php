@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Guest;
 
+use App\Http\Controllers\Guest\GuestFolioPaymentController;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\Payment;
@@ -20,8 +21,10 @@ use Illuminate\Support\Collection;
  * exact charges/paid/balance the operator + owner surfaces show, reconciling to the cent). Integer minor units.
  *
  * 🔒 The caller passes the guest (resolved from the guest guard); every booking here is one the guest leads, so
- * the hub can never surface another guest's balance. Read-only — no money moves here (the card charge is the
- * account-gated Stripe rail, deferred).
+ * the hub can never surface another guest's balance. Read-only — no money moves HERE.
+ * ⚠️ CORRECTED 2026-08-31: this said the card charge was "deferred". It is BUILT — `guest.payments.pay`
+ * ({@see GuestFolioPaymentController::pay()}) runs the hosted-Checkout rail
+ * test-mode-first; what remains deferred is only the founder's live-key flip.
  */
 final class GuestPayments
 {

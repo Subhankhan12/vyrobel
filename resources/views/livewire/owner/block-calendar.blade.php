@@ -22,6 +22,29 @@
     <style>
         .vy-cal-cols { display:flex; align-items:flex-start; gap:18px; flex-wrap:wrap; }
         .vy-cal-main { flex:1.7; min-width:480px; }
+        /* ⚠️⚠️ 121px of sideways scroll at 375px, and it is this explicit 480px floor — `.vy-cal-cols`
+           already wraps, so the side column drops below correctly; the month grid just refused to narrow.
+           ⚠️ RELAXED, NOT WRAPPED IN A SCROLLER, AND THAT IS THE WHOLE DECISION. Every day cell in this
+           grid is a CONTROL — click a day to block it, click a blocked day to release it — so a
+           horizontal scroller would put Saturday and Sunday off-screen behind a gesture, which is exactly
+           the failure the `/app/portfolio` fix was withdrawn over. Seven columns that shrink keep the
+           whole week visible and every day reachable, which is also the only reason to draw a week.
+           ⚠️ `.vy-cal-grid` needs `minmax(0, …)` for the same relaxation to reach the cells: a bare `1fr`
+           is `minmax(auto, 1fr)` and would hold the grid at its widest cell's content. */
+        @media (max-width:860px) {
+            .vy-cal-main { min-width:0; }
+            .vy-cal-grid { grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; }
+            /* ⚠️⚠️ `minmax(0, …)` ON THE TRACK WAS NOT ENOUGH, AND THE SHELL ALREADY SAYS WHY
+               (owner.blade.php:800): "`minmax(0, …)` AND `min-width: 0` — BOTH, AND THEY FIX DIFFERENT
+               THINGS." Relaxing the track let the COLUMNS shrink; the day cells are grid ITEMS computing
+               `min-width: auto`, a content-based floor, so they stayed 58px wide and the week stayed
+               406px. Measured: 121px before, still 112px with the track fixed alone.
+               ⚠️ The cells clip rather than widen — a day cell shows a number and, when the day is taken,
+               a guest's name, and the name is what was holding the floor. It truncates; the cell, its
+               state colour and its click target are all unchanged. */
+            .vy-cal-cell, .vy-cal-dow { min-width:0; overflow:hidden; }
+            .vy-cal-cell { padding:6px 4px; }
+        }
         .vy-cal-rail { flex:1; min-width:300px; display:flex; flex-direction:column; gap:18px; }
         .vy-cal-toolbar { display:flex; align-items:center; justify-content:space-between; gap:14px 20px; flex-wrap:wrap; padding:14px 16px; margin-bottom:18px; }
         .vy-cal-unit { display:inline-flex; align-items:center; gap:7px; padding:7px 14px; border-radius:var(--vy-r-pill); border:1px solid rgba(120,70,40,.16); background:rgba(255,255,255,.6); color:var(--vy-ink); font-family:var(--vy-sans); font-size:13px; font-weight:500; text-decoration:none; transition:filter .16s; }

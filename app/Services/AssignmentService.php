@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\ReservationAlreadyTerminalException;
+use App\Exceptions\Booking\ReservationTerminalModificationException;
 use App\Exceptions\Booking\RestrictionOverrideForbiddenException;
 use App\Exceptions\Booking\RestrictionsViolationException;
 use App\Exceptions\Booking\UnitUnavailableException;
@@ -267,11 +268,35 @@ class AssignmentService
      * transaction. The reservation stays confirmed (unlike cancel). Idempotency for a redelivered
      * modification is guaranteed upstream by `webhook_events` (exactly-once per external event).
      *
+     * ⚠️ "THE RESERVATION STAYS CONFIRMED" WAS AN ASSUMPTION, NOT A CHECK (F-29, 2026-09-13). It presumes the
+     * reservation WAS confirmed. `BookingImportService::build()` sets `'status' => 'confirmed'`
+     * unconditionally, so the `update()` below rewrote a `cancelled`, `no_show` or `checked_out` booking back
+     * to `confirmed` — and the release/re-occupy either side of it RE-TOOK INVENTORY for a dead booking while
+     * `total_minor` (money, read on four surfaces) was overwritten with whatever the channel last sent.
+     *
+     * ⚠️ THE GUARD IS HERE, ON THE RAW WRITER, SO IT COVERS EVERY CALLER — not on the one entrance that
+     * exists today. A guard on a single entrance is how BOTH F-18 and F-29 hid: the product's own surfaces
+     * were bounded and a second writer went around them.
+     *
+     * ⚠️ AND IT THROWS, DELIBERATELY, WHILE THE WEBHOOK PATH NO-OPS. That split is the author's own, stated
+     * in `BookingImportService::cancel()`: **"Idempotent here; authoritative there."** This is "there".
+     * `BookingImportService::modify()` refuses quietly BEFORE reaching this method, so a retrying delivery
+     * never becomes a poison message; any other caller gets a loud, catchable rejection.
+     *
      * @param  array<string, mixed>  $reservationAttributes
      * @param  list<array<string, mixed>>  $lines
+     *
+     * @throws ReservationTerminalModificationException when the reservation is already terminal
      */
     public function reimportBooking(Reservation $reservation, array $reservationAttributes, array $lines): Reservation
     {
+        // BEFORE the transaction — terminate()'s shape exactly: nothing to roll back, and no inventory is
+        // touched on a rejected call. TERMINAL_STATUSES is the SHARED definition (invariant #29), never a
+        // local copy: three callers once held their own and two disagreed.
+        if (in_array((string) $reservation->status, self::TERMINAL_STATUSES, true)) {
+            throw new ReservationTerminalModificationException((string) $reservation->status);
+        }
+
         $conflictCount = DB::transaction(function () use ($reservation, $reservationAttributes, $lines): int {
             foreach ($reservation->reservationUnits()->whereIn('status', ['active', 'overbooked'])->get() as $existing) {
                 $this->releaseLine($existing);

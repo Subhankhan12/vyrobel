@@ -52,6 +52,13 @@
         .vy-pm-checklist svg { flex: none; margin-top: 2px; color: var(--vy-accent-text); }
     </style>
 
+    {{-- ⚠️ THE FOURTH DOOR, found by sweeping this class rather than by report. `OwnerConnectController`
+         flashes `payout_method_error` ("We couldn't start Stripe onboarding") to THIS screen, and this view
+         read only the NOTICE key — so a failed Stripe onboarding looked like nothing happening at all, on
+         the screen where an owner sets up where their money goes. Same class as F-1/F-4/F-5. --}}
+    @if (session('payout_method_error'))
+        <div class="vy-flash is-err" role="alert" style="margin-bottom:14px;">{{ session('payout_method_error') }}</div>
+    @endif
     @if (session('payout_method_notice'))
         <div class="vy-flash is-ok" style="margin-bottom:16px">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -104,10 +111,20 @@
                             @if ($m['is_default'])
                                 <span class="vy-pm-radio" aria-label="Default account"><span class="vy-pm-radio-dot is-on"></span></span>
                             @else
-                                <form method="POST" action="{{ route('owner.payout-method.default', $m['id']) }}" style="margin:0">
-                                    @csrf
-                                    <button type="submit" class="vy-pm-radio" title="Make this the default account" aria-label="Set {{ $m['label'] }} as default"><span class="vy-pm-radio-dot"></span></button>
-                                </form>
+                                {{-- ⚠️ RE-AUTH ON THE REDIRECT. Setting a different account as default IS the payout
+                                     redirect — an attacker who can only ADD an account has achieved nothing. --}}
+                                <div x-data="{ ask: false }" style="margin:0">
+                                    <button type="button" class="vy-pm-radio" title="Make this the default account"
+                                            aria-label="Set {{ $m['label'] }} as default" @click="ask = !ask"><span class="vy-pm-radio-dot"></span></button>
+                                    <form x-show="ask" x-cloak method="POST" action="{{ route('owner.payout-method.default', $m['id']) }}"
+                                          style="position:absolute;z-index:5;background:var(--vy-surface,#fff);border:1px solid var(--vy-hairline);border-radius:10px;padding:10px;margin-top:6px;min-width:230px">
+                                        @csrf
+                                        <label class="vy-pm-flabel" for="def_pw_{{ $m['id'] }}">Confirm with your password</label>
+                                        <input id="def_pw_{{ $m['id'] }}" type="password" name="current_password" class="vy-input"
+                                               autocomplete="current-password" required aria-label="Current password">
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;margin-top:8px">Make default</button>
+                                    </form>
+                                </div>
                             @endif
                             <span class="vy-pm-acct-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 10h16M12 3 3 7v3h18V7zM6 10v8M10 10v8M14 10v8M18 10v8"/></svg></span>
                             <div class="vy-pm-acct-main">
@@ -117,11 +134,21 @@
                                 </div>
                                 <div class="vy-pm-acct-sub">{{ $m['holder'] }} · IBAN {{ $m['masked'] }} · {{ $m['country'] }} · {{ $m['currency'] }}</div>
                             </div>
-                            <form method="POST" action="{{ route('owner.payout-method.remove', $m['id']) }}" style="margin:0" onsubmit="return confirm('Remove this bank account?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="vy-pm-del" title="Remove this bank account" aria-label="Remove {{ $m['label'] }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
-                            </form>
+                            {{-- ⚠️ RE-AUTH ON REMOVAL. Deleting the genuine account leaves whatever remains as
+                                 the payout destination, so removal redirects the money just as surely. --}}
+                            <div x-data="{ ask: false }" style="margin:0">
+                                <button type="button" class="vy-pm-del" title="Remove this bank account"
+                                        aria-label="Remove {{ $m['label'] }}" @click="ask = !ask"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button>
+                                <form x-show="ask" x-cloak method="POST" action="{{ route('owner.payout-method.remove', $m['id']) }}"
+                                      style="position:absolute;right:0;z-index:5;background:var(--vy-surface,#fff);border:1px solid var(--vy-hairline);border-radius:10px;padding:10px;margin-top:6px;min-width:230px">
+                                    @csrf
+                                    @method('DELETE')
+                                    <label class="vy-pm-flabel" for="rm_pw_{{ $m['id'] }}">Confirm with your password</label>
+                                    <input id="rm_pw_{{ $m['id'] }}" type="password" name="current_password" class="vy-input"
+                                           autocomplete="current-password" required aria-label="Current password">
+                                    <button type="submit" class="vy-btn" style="width:100%;margin-top:8px;color:#B4400F">Remove account</button>
+                                </form>
+                            </div>
                         </div>
                     @empty
                         <div class="vy-empty">No bank account added yet — add one below so we know where to send your payouts.</div>
@@ -157,7 +184,13 @@
                                 <input id="currency" type="text" name="currency" value="{{ old('currency', $currency) }}" maxlength="3" class="vy-input" style="text-transform:uppercase" required>
                             </div>
                         </div>
-                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center">Save bank account</button>
+                        {{-- ⚠️ RE-AUTH (audit follow-up). Changing where money is sent requires the current
+                             password — the same control the account-email change carries. --}}
+                        <div class="vy-pm-flabel" style="margin-top:10px">Confirm with your password</div>
+                        <input type="password" name="current_password" class="vy-input"
+                               autocomplete="current-password" required aria-label="Current password">
+                        @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:10px">Save bank account</button>
                     </form>
                     <p class="vy-line-sub" style="font-size:11.5px;margin-top:10px">Your IBAN is encrypted at rest. Your first account becomes the default automatically.</p>
                 </section>
@@ -206,6 +239,13 @@
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
                             <span>Your stated preference. The actual payout date + release are confirmed with your operator and the payout rail.</span>
                         </div>
+                        {{-- ⚠️ RE-AUTH: pausing stops your payouts entirely, and a high minimum is a pause by another name. --}}
+                        <div class="vy-field" style="margin:14px 0 0">
+                            <label class="vy-field-label" for="pm_prefs_pw">Confirm with your password</label>
+                            <input id="pm_prefs_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                        </div>
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:14px">Save schedule</button>
                     </form>
                 </section>
@@ -244,6 +284,13 @@
                         <div class="vy-po-pref-note" style="display:flex;align-items:flex-start;gap:7px;margin-top:12px;font-size:11.5px;color:var(--vy-on-grad-soft);line-height:1.5">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
                             <span>Saved in your Tax Center; a valid tax ID releases any held payout. Your tax ID + VAT number are stored encrypted.</span>
+                        </div>
+                        {{-- ⚠️ RE-AUTH: this changes the payee name on your remittance document and the residency your withholding is computed from. --}}
+                        <div class="vy-field" style="margin:14px 0 0">
+                            <label class="vy-field-label" for="pm_tax_pw">Confirm with your password</label>
+                            <input id="pm_tax_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                         </div>
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:14px">Save tax details</button>
                     </form>

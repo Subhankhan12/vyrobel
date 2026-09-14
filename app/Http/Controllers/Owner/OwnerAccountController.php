@@ -105,13 +105,29 @@ class OwnerAccountController extends Controller
         $user = $request->user();
         abort_if($user === null, 403);
 
+        // ⚠️⚠️ RE-AUTHENTICATE BEFORE MOVING THE LOGIN IDENTITY (audit 2026-08-29 · H-3).
+        //
+        // This validated ONLY the address, and that made a hijacked session PERMANENT: park an attacker's
+        // address, open the confirmation from that inbox (the verify route is public + `signed`, so it needs
+        // no session at all), and the login email MOVES — after which a password reset goes to the attacker.
+        // REPRODUCED end to end before this line existed: users.email became attacker-inbox@evil.test.
+        //
+        // ⚠️ THE SIBLING'S RULE, NOT A THIRD WAY (§N.8f). Admin/AccountController:111 uses
+        // `current_password:admin` because the platform realm authenticates on the `admin` guard; the guest
+        // account controller uses `current_password:guest`. The owner portal authenticates on the DEFAULT
+        // `web` guard (routes/web.php:1257 — plain `auth`), and there is NO `owner` guard in config/auth.php,
+        // so the correct rule here is the BARE `current_password`. Verified, not assumed.
+        //
+        // ⚠️ No owner can be locked out by this: `users.password` is NOT NULL, and the owner-team invite sets
+        // a password when the sub-user accepts.
         $data = $request->validate([
+            'current_password' => ['required', 'current_password'],
             'email' => [
                 'required', 'email', 'max:255',
                 Rule::unique('users', 'email')->ignore($user->getKey()),
                 Rule::notIn([(string) $user->email]),
             ],
-        ], [], ['email' => 'email address']);
+        ], [], ['email' => 'email address', 'current_password' => 'current password']);
 
         $newEmail = (string) $data['email'];
         $user->forceFill(['pending_email' => $newEmail])->save();

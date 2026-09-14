@@ -311,10 +311,16 @@ class BookingEngineService
         $start = CarbonImmutable::parse($checkIn)->startOfDay();
         $end = CarbonImmutable::parse($checkOut)->startOfDay();
 
+        // ⚠️ PLAIN COLUMN, NOT whereDate() (audit P-3, fixed 2026-08-31). `rate_calendar.date` is a DATE
+        //    column, so `DATE(date)` was the identity function — it changed nothing about what matched and
+        //    cost the index range: EXPLAIN went `ref`/206 rows (every row of the plan, filtered afterwards)
+        //    where it now goes `range`/14. This is the read the PUBLIC booking page waits on.
+        //    ⚠️ The compared values are unchanged — still date STRINGS built before the query — so no day
+        //    boundary moves. RateCalendarDateIndexTest proves that in zones 14h ahead and 11h behind UTC.
         $prices = RateCalendar::query()
             ->where('rate_plan_id', $ratePlanId)
-            ->whereDate('date', '>=', $start->toDateString())
-            ->whereDate('date', '<', $end->toDateString())
+            ->where('date', '>=', $start->toDateString())
+            ->where('date', '<', $end->toDateString())
             ->get()
             ->keyBy(fn (RateCalendar $r): string => CarbonImmutable::parse($r->date)->toDateString());
 

@@ -15,7 +15,8 @@
             </div>
             <div style="min-width:0">
                 <span class="vy-badge vy-badge--{{ $trip['stage_tone'] }}" style="margin-bottom:9px">{{ $trip['stage_label'] }}</span>
-                <div style="font-family:var(--vy-display);font-weight:700;font-size:25px;letter-spacing:-.02em;line-height:1.12;color:var(--vy-ink)">{{ $trip['property'] }}</div>
+                {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+                <h1 style="font-family:var(--vy-display);font-weight:700;font-size:25px;letter-spacing:-.02em;line-height:1.12;color:var(--vy-ink);margin:0">{{ $trip['property'] }}</h1>
                 @if ($trip['location'] !== '')
                     <div style="font-size:13px;color:var(--vy-muted);margin-top:5px">{{ $trip['location'] }} · hosted with Vyrobel</div>
                 @endif

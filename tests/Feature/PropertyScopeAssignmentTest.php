@@ -66,7 +66,7 @@ it('⚠️ stops the "all properties" fallback firing once a user is actually sc
     Assert::assertEqualsCanonicalizing([(string) $a->id, (string) $b->id], $before,
         'the unscoped baseline is wrong — this test would not be proving that scoping narrows anything');
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 
@@ -79,7 +79,7 @@ it('⚠️ stops the "all properties" fallback firing once a user is actually sc
 it('⚠️ keeps a scoped user out of the other property’s working context', function () {
     ['org' => $org, 'a' => $a, 'b' => $b, 'admin' => $admin, 'staff' => $staff] = scopeScenario();
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 
@@ -93,11 +93,11 @@ it('⚠️ keeps a scoped user out of the other property’s working context', f
 it('returns a user to full-org access when scope is set back to all', function () {
     ['org' => $org, 'a' => $a, 'b' => $b, 'admin' => $admin, 'staff' => $staff] = scopeScenario();
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'all',
     ])->assertRedirect();
 
@@ -113,7 +113,7 @@ it('⚠️ refuses to scope a user who belongs to another organisation', functio
     $victim = operatorUser(['org' => $theirs], ['name' => 'Victim Vic'], 'Hotel Manager');
     app(TenantContext::class)->set((string) $mine->id);
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $victim->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 
@@ -131,7 +131,7 @@ it('⚠️ silently drops a foreign property id rather than writing it', functio
     $foreign = Property::create(['name' => 'Foreign Villa', 'type' => 'villa', 'currency' => 'EUR', 'timezone' => 'UTC']);
     app(TenantContext::class)->set((string) $mine->id);
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'selected',
         'properties' => [(string) $b->id, (string) $foreign->id],
     ])->assertRedirect();
@@ -181,7 +181,7 @@ it('renders the scope editor on the settings page without leaking raw Blade', fu
 it('⚠️ refuses to let an administrator change their own property access', function () {
     ['org' => $org, 'b' => $b, 'admin' => $admin] = scopeScenario();
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $admin->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 
@@ -192,7 +192,7 @@ it('⚠️ refuses to let an administrator change their own property access', fu
 it('records an audit event naming the before and after scope', function () {
     ['org' => $org, 'b' => $b, 'admin' => $admin, 'staff' => $staff] = scopeScenario();
 
-    $this->actingAs($admin)->post('/app/settings/team-scope', [
+    $this->actingAs($admin)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $staff->getKey(), 'scope' => 'selected', 'properties' => [(string) $b->id],
     ])->assertRedirect();
 

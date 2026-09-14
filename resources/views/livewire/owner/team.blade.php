@@ -93,19 +93,25 @@
                             <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
                                 <div style="font-size:11.5px;color:var(--vy-faint)">{{ $member['last_active'] }}</div>
                                 {{-- Role change (real, retained over the wireframe's display-only pill) + Remove --}}
-                                <form method="POST" action="{{ route('owner.team.members.role', $member['id']) }}" style="display:flex;gap:6px;align-items:center;margin:0">
+                                <form method="POST" action="{{ route('owner.team.members.role', $member['id']) }}" style="display:flex;gap:6px;align-items:center;margin:0" x-data="{ ask: false }">
                                     @csrf
                                     @method('PATCH')
-                                    <select name="role" class="vy-input" style="padding:4px 7px;font-size:11.5px" aria-label="Role for {{ $member['name'] }}">
+                                    <select name="role" class="vy-input" style="padding:4px 7px;font-size:11.5px" aria-label="Role for {{ $member['name'] }}" @change="ask = true">
                                         @foreach ($roles as $role)
                                             <option value="{{ $role['value'] }}" @selected($member['role'] === $role['value'])>{{ $role['label'] }}</option>
                                         @endforeach
                                     </select>
+                                    <input x-show="ask" x-cloak type="password" name="current_password" class="vy-input"
+                                           style="padding:4px 7px;font-size:11.5px;max-width:150px" placeholder="Your password"
+                                           autocomplete="current-password" aria-label="Confirm with your password">
                                     <button type="submit" class="vy-tm-mini">Save</button>
                                 </form>
-                                <form method="POST" action="{{ route('owner.team.members.remove', $member['id']) }}" style="margin:0" onsubmit="return confirm('Remove {{ $member['name'] }}? They can no longer sign in.')">
+                                <form method="POST" action="{{ route('owner.team.members.remove', $member['id']) }}" style="display:flex;gap:6px;align-items:center;margin:0" onsubmit="return confirm('Remove {{ $member['name'] }}? They can no longer sign in.')">
                                     @csrf
                                     @method('DELETE')
+                                    <input type="password" name="current_password" class="vy-input"
+                                           style="padding:4px 7px;font-size:11.5px;max-width:150px" placeholder="Your password"
+                                           autocomplete="current-password" required aria-label="Confirm with your password">
                                     <button type="submit" class="vy-tm-mini vy-tm-mini--danger">Remove</button>
                                 </form>
                             </div>
@@ -137,6 +143,9 @@
                     </div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap">
                         <input type="email" name="email" aria-label="Email address to invite" value="{{ old('email') }}" placeholder="name@email.com" class="vy-input" style="flex:1;min-width:200px;border-radius:30px;padding:12px 14px" autocomplete="off" required>
+                            {{-- ⚠️ RE-AUTH: an invite mints a NEW authenticated principal, which outlives every
+                                 later password reset and session revocation. --}}
+                            <input type="password" name="current_password" aria-label="Confirm with your password" placeholder="Your password" class="vy-input" style="flex:1;min-width:170px;border-radius:30px;padding:12px 14px" autocomplete="current-password" required>
                         <button type="submit" class="vy-btn vy-btn--accent" style="padding:12px 22px;border-radius:30px">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2 15 22l-4-9-9-4z"/></svg>
                             Send invite

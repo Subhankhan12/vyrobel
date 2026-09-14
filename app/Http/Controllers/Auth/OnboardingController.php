@@ -38,20 +38,38 @@ class OnboardingController extends Controller
 
     private const CURRENCIES = ['EUR', 'GBP', 'USD'];
 
-    public function create(): View|RedirectResponse
+    public function create(Request $request): View|RedirectResponse
     {
         if (Auth::guard('web')->check()) {
             return redirect()->to('/app/dashboard');
         }
 
+        // ⚠️⚠️ A VERIFIED PROVIDER IDENTITY WAITING IN THE SESSION — and NOWHERE ELSE. "Sign up with Google"
+        //    cannot be one click: provisioning needs seven business facts and a callback supplies two. So the
+        //    person authenticates, then completes THIS form with their name and email filled in and the
+        //    password field gone. Until they submit it they are not an account, and if they walk away there
+        //    is nothing to clean up — no user, no organisation, no trial.
+        $social = $this->pendingSocialIdentity($request);
+
         return view('auth.onboarding', [
             'types' => self::TYPES,
             'currencies' => self::CURRENCIES,
+            'social' => $social,
         ]);
     }
 
     public function store(Request $request, TenantProvisioningService $provisioner): RedirectResponse
     {
+        $social = $this->pendingSocialIdentity($request);
+
+        if ($social !== null) {
+            // ⚠️⚠️ THE ADDRESS IS OVERWRITTEN WITH WHAT THE PROVIDER ASSERTED. The form shows it, so an edited
+            //    value would look accepted; trusting it would let someone authenticate as themselves and then
+            //    provision an organisation under a different address with their own Google account attached —
+            //    an account takeover assembled entirely out of a pre-filled field.
+            $request->merge(['email' => $social['email']]);
+        }
+
         $data = $request->validate([
             'org_name' => ['required', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
@@ -62,16 +80,27 @@ class OnboardingController extends Controller
             // Neutral email handling: a duplicate does NOT get a "that email is taken" message that confirms
             // an account exists — it fails with a generic, non-committal error.
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            // ⚠️ The password is required EXCEPT when a verified provider identity is completing this form —
+            //    that account has no password by construction, and one is asked for later, only when a
+            //    sensitive action first needs it (docs/PASSWORDLESS-GATE.md).
+            'password' => $social === null
+                ? ['required', 'confirmed', Password::defaults()]
+                : ['prohibited'],
         ], [
             'email.unique' => 'We couldn’t create your account with these details. If you already have one, sign in.',
         ]);
 
         $result = $provisioner->provision(
             organization: ['name' => $data['org_name'], 'country' => null, 'currency' => $data['currency']],
-            founder: ['name' => $data['name'], 'email' => $data['email'], 'password' => $data['password']],
+            founder: ['name' => $data['name'], 'email' => $data['email'], 'password' => $data['password'] ?? null],
             property: ['name' => $data['property_name'], 'type' => $data['property_type'], 'location' => $data['location'] ?? null],
+            // ⚠️ Written INSIDE the provisioning transaction, so an organisation can never exist with a
+            //    passwordless founder and no way for them to sign in.
+            identity: $social,
         );
+
+        // Consumed: the stash is single-use, so a back-button resubmit cannot provision a second org.
+        $request->session()->forget(SocialAuthController::SIGNUP_KEY);
 
         // Log the founder in on the web guard (fixation protection), exactly like accept-invite activation.
         Auth::guard('web')->login($result['user']);
@@ -81,5 +110,49 @@ class OnboardingController extends Controller
             // ⚠️ P-6 · Gate 1 — the very first sentence a new tenant reads. It used to name three steps, none of
             // which was possible. Now it names the two that are, in the order the storefront needs them.
             'Welcome to Vyrobel! '.$result['property']->name.' is ready — add a room type and a unit, then a rate plan with prices, and you can take bookings.');
+    }
+
+    /**
+     * The verified provider identity this signup is completing, if any.
+     *
+     * ⚠️⚠️ THE EMAIL AND NAME COME FROM THE SESSION STASH, NEVER FROM THE FORM. The form pre-fills them for
+     *    the person to see, but a posted value could be edited — and if the submitted address were trusted,
+     *    someone could authenticate as themselves and provision an organisation under somebody else's
+     *    address, with the provider link attached to it. The stash is what the provider actually asserted.
+     *
+     * ⚠️ It expires. An abandoned flow resumed hours later starts again rather than silently using a stale
+     *    assertion.
+     *
+     * @return array{provider: string, provider_user_id: string, email: string, name: string}|null
+     */
+    private function pendingSocialIdentity(Request $request): ?array
+    {
+        $stash = $request->session()->get(SocialAuthController::SIGNUP_KEY);
+
+        if (! is_array($stash)) {
+            return null;
+        }
+
+        $issued = (string) ($stash['issued_at'] ?? '');
+        $provider = (string) ($stash['provider'] ?? '');
+        $providerUserId = (string) ($stash['provider_user_id'] ?? '');
+        $email = (string) ($stash['email'] ?? '');
+
+        if ($provider === '' || $providerUserId === '' || $email === '' || $issued === '') {
+            return null;
+        }
+
+        if (now()->parse($issued)->addMinutes(60)->isPast()) {
+            $request->session()->forget(SocialAuthController::SIGNUP_KEY);
+
+            return null;
+        }
+
+        return [
+            'provider' => $provider,
+            'provider_user_id' => $providerUserId,
+            'email' => $email,
+            'name' => (string) ($stash['name'] ?? ''),
+        ];
     }
 }

@@ -50,7 +50,8 @@
                         @csrf
                         <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Remove</button>
                         <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                            <input type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
+                            <label class="vy-sr-only" for="vy-lbl-passkeys-current-password">Your password</label>
+                            <input id="vy-lbl-passkeys-current-password" type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
                             <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
                         </div>
                     </form>

@@ -63,6 +63,8 @@
         .ad-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 12px; font-family: var(--ad-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--ad-grad); border: none; cursor: pointer; box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35); transition: transform .15s ease, box-shadow .15s ease; }
         .ad-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(99, 102, 241, 0.45); }
         .ad-btn:focus-visible, .ad-link:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+        .ad-notice { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--ad-r-md); background: rgba(126, 217, 160, 0.10); border: 1px solid rgba(126, 217, 160, 0.34); border-left: 3px solid #7ED9A0; font-size: 13px; font-weight: 500; color: #CFF3DD; }
+        .ad-notice svg { color: #7ED9A0; flex: none; }
         .ad-error { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; padding: 11px 14px; border-radius: var(--ad-r-md); background: rgba(245, 158, 158, 0.10); border: 1px solid rgba(245, 158, 158, 0.34); border-left: 3px solid var(--ad-danger); font-size: 13px; font-weight: 500; color: #FBD5D5; }
         .ad-note { font-size: 12.5px; color: var(--ad-muted); margin-top: 14px; line-height: 1.55; }
         .ad-link { color: var(--ad-accent); text-decoration: none; font-weight: 500; }
@@ -86,6 +88,18 @@
         @endif
         @if ($sub !== '')
             <p class="ad-sub">{{ $sub }}</p>
+        @endif
+
+        {{-- ⚠️ F-5 — THE OUTCOME OF AN EMAIL CHANGE LANDED HERE AND NOTHING RENDERED IT. All four outcomes
+             (valid · expired · already-in-use · tampered) redirect to an admin auth page with `status`, so the
+             message is the ONLY thing distinguishing them — and it was invisible. Placed in the shared auth
+             component rather than one view, so every door in this realm shows it. ⚠️ `role="status"`, not
+             "alert": this is an outcome, not an error, and the two announce differently. --}}
+        @if (session('status'))
+            <div class="ad-notice" role="status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                {{ session('status') }}
+            </div>
         @endif
 
         @if ($errors->any())

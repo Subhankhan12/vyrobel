@@ -1,8 +1,16 @@
 {{-- One housekeeping room card (board lane). Real task data; clicking opens the detail drawer.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-{{-- GATE 8.1 — the card is DRAGGABLE only when it can actually advance (the EXACT condition its forward
-     button uses: assigned, or already past pending), so a drag never bypasses the "Assign to start" rule. --}}
-@php $hkDraggable = ($canManage ?? $canAssign) && $card['next'] !== [] && ($card['assignee'] || $card['status'] !== 'pending'); @endphp
+{{-- GATE 8.1 — the card is DRAGGABLE only when it can actually advance, and that condition is the EXACT
+     one its forward button uses, so a drag can never do what the button cannot.
+     ⚠️ F-16 — THE ASSIGNEE CLAUSE WAS REMOVED FROM BOTH, TOGETHER. It read `($card['assignee'] ||
+     $card['status'] !== 'pending')` and enforced a rule THE SERVER DOES NOT HAVE: 🔬 `assertTransition()`
+     bounds STATUS only, nothing in the status path reads `assigned_to`, and the List view has always
+     started unassigned tasks successfully. So this board was stricter than the server AND told the user a
+     false reason ("Assign to start"). ⚠️ The rule is now stated in ONE place — the server — and every
+     surface simply offers what it permits, rather than three copies that can drift apart again.
+     ⚠️ Whether a task SHOULD require an assignee before starting is a founder ruling, not a view's to make;
+     it is tabulated with the others in docs/STATUS-LADDERS.md. --}}
+@php $hkDraggable = ($canManage ?? $canAssign) && $card['next'] !== []; @endphp
 <div class="vy-card @if ($hkDraggable) vy-hk-drag @endif" style="padding: 11px; margin-bottom: 10px; border-left: 3px solid var(--vy-accent);"
      :class="density === 'compact' && 'vy-hk-compact'"
      @if ($hkDraggable) draggable="true" @dragstart="hkStart($event, '{{ $card['id'] }}', '{{ $card['status'] }}')" @dragend="hkEnd()" @endif>
@@ -54,14 +62,12 @@
     <div style="margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--vy-hairline); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
         @if ($card['status'] === 'inspected')
             <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Guest-ready</span>
-        @elseif (($canManage ?? $canAssign) && $card['next'] !== [] && ($card['assignee'] || $card['status'] !== 'pending'))
+        @elseif (($canManage ?? $canAssign) && $card['next'] !== [])
             <form method="POST" action="{{ route('app.housekeeping.status', $card['id']) }}" style="display: inline;">
                 @csrf
                 <input type="hidden" name="status" value="{{ $card['next'][0]['to'] }}">
                 <button type="submit" class="vy-btn vy-btn--accent" style="padding: 5px 14px; font-size: 12px;">{{ $card['next'][0]['label'] }}</button>
             </form>
-        @elseif ($card['status'] === 'pending' && ! $card['assignee'])
-            <span class="vy-muted" style="font-size: 11.5px;">Assign to start</span>
         @endif
         @if ($card['completed_label'])
             <span class="vy-u-sub">{{ $card['completed_label'] }}</span>

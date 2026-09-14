@@ -41,6 +41,30 @@
      }">
     <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Today’s cleaning across your rooms" :viewer="$viewer">
 
+        {{-- ⚠️ F-13 — THE BOARD USED TO SAY NOTHING. A role with `housekeeping.view` and not
+             `housekeeping.manage` sees every task row and ZERO controls, which reads as a broken screen.
+             🔬 Three roles reach it that way: Front Desk, Maintenance and Guest Support Agent.
+
+             ⚠️ THE CONTROLS STAY ABSENT — that is the BETTER outcome, and it is not the defect. A present
+             control that refuses wastes a shift; the missing part was ever saying WHY. So this adds the
+             explanation and no control.
+
+             ⚠️ PLACED HERE DELIBERATELY, ABOVE THE FLASH REGION. 🔬 At 375px this shell stacks its whole
+             navigation above the content: the `h1` sits at ~691px, the flash region at ~903px and the task
+             table at ~1210px in an 812px viewport. An in-flow message down with the flashes would be BELOW
+             THE FOLD — the silence being fixed, merely relocated. Here it lands inside the first screen.
+
+             ⚠️ NO SCRIPT REQUIRED: plain Blade, no Alpine, no toggle — this board once shipped with its
+             default view cloaked and lost 13 forms, so anything added here must survive a blocked bundle.
+
+             The register is the product's own ("… isn't in your plan"; the owner portal naming who can
+             grant): say what you cannot do, and name who can fix it. --}}
+        @unless ($canManage ?? $canAssign)
+            <div class="vy-flash" role="status" style="margin-bottom:14px;background:rgba(224,146,30,.10);border:1px solid rgba(224,146,30,.32);border-left:3px solid var(--vy-amber);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:500;color:var(--vy-ink);">
+                You can see today’s cleaning, but not update it. Changing a room’s cleaning status needs housekeeping access — a Property Owner or Group Admin can grant it.
+            </div>
+        @endunless
+
         {{-- GATE 8.4 — the assign / assign-all toast with a REAL Undo (a POST to the gated unassign route —
              a genuine server-side revert, never a fabricated client-only "undo"). --}}
         @if (session('hk_notice'))
@@ -154,7 +178,16 @@
             </div>
 
             {{-- Lanes --}}
-            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start;">
+            {{-- ⚠️⚠️ D10 — THE HOUSE KANBAN CLASS, WHICH ALREADY EXISTED AND WHICH THIS BOARD NEVER USED.
+                 `.vy-kanban` is defined in the operator shell (layouts/operator.blade.php:944) as EXACTLY this
+                 grid, and the shell's responsive block already narrows it to two columns at 1100px. This board
+                 hand-rolled the same four columns INLINE, so it inherited the base grid's shape and none of its
+                 responsiveness — which is the real reason this file contains zero `@media` queries. The rule was
+                 never missing; the class was (§N.8f: one definition, used).
+                 ⚠️ `gap: 14px` STAYS INLINE deliberately. The shared class uses 16px, and adopting it would
+                 silently retune the DESK layout this pass is required to leave alone. The inline gap overrides
+                 the class, so the wide view is pixel-identical to before. --}}
+            <div class="vy-kanban" style="gap: 14px;">
                 @foreach ($columns as $column)
                     {{-- A lane is a forward-only drop target while a card is in flight (a card is dropped here to
                          advance its status). Backward lanes never highlight and reject the drop. --}}
@@ -162,7 +195,16 @@
                          :class="(hkForward('{{ $column['key'] }}') ? 'is-drop ' : '') + (laneOpen('{{ $column['key'] }}') ? '' : 'is-collapsed')"
                          @dragover.prevent @drop.prevent="hkDrop('{{ $column['key'] }}')">
                         {{-- The lane header toggles collapse (a collapsed lane stays a drop target). --}}
-                        <div class="vy-detail-head" style="margin-bottom: 10px; cursor: pointer; user-select: none;" @click="toggleLane('{{ $column['key'] }}')">
+                        {{-- ⚠️⚠️ FOUND BY SWEEPING THE CLASS, NOT BY BEING REPORTED — a third instance of
+                             "a click handler no keyboard can activate", on a lane a keyboard user could
+                             therefore never collapse or expand.
+                             ⚠️ AND HERE THE WHOLE HEAD CAN BE THE NATIVE ELEMENT, unlike the other two: it
+                             contains only spans and an svg — phrasing content — so a `<button>` may wrap it
+                             and the entire header stays the click target it already was. Nothing is traded
+                             away, which is why this is the shape to prefer when the content permits it. --}}
+                        <button type="button" class="vy-detail-head" style="margin-bottom: 10px; user-select: none;"
+                                @click="toggleLane('{{ $column['key'] }}')"
+                                :aria-expanded="laneOpen('{{ $column['key'] }}') ? 'true' : 'false'">
                             <span style="font-size: 13px; font-weight: 700; color: var(--vy-ink);">
                                 <span class="vy-tag tone-{{ $column['tone'] }}" style="padding: 2px 8px;"><span class="vy-dot"></span>{{ $column['label'] }}</span>
                             </span>
@@ -170,7 +212,7 @@
                                 <span class="vy-muted" style="font-size: 12px;">{{ count($column['tasks']) }}</span>
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vy-muted" style="transition: transform .15s;" :style="laneOpen('{{ $column['key'] }}') ? 'transform: rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
                             </span>
-                        </div>
+                        </button>
                         <div x-show="laneOpen('{{ $column['key'] }}')">
                             @forelse ($column['tasks'] as $card)
                                 @include('livewire.partials.hk-card', ['card' => $card])
@@ -184,10 +226,29 @@
         </div>
 
         {{-- ═══ LIST VIEW ═══ --}}
-        <div x-show="view === 'list'" x-cloak>
+        {{-- ⚠️⚠️ DELIBERATELY NOT CLOAKED — THIS IS THE BRANCH THAT IS VISIBLE AT INIT.
+             `x-data` starts at `localStorage.getItem('vy:hk:view') || 'list'`, so with no stored preference
+             this list IS the initial view. Cloaking it as well as the board meant that when Alpine did not
+             arrive — a bundle 404 after a deploy, a CSP refusal (this project has had one), a dropped
+             network — BOTH branches stayed `display: none` and the entire working surface vanished:
+             13 real `<form method="POST">` and 7 submit buttons in the DOM and unreachable. Measured.
+             ⚠️ The status/assign forms are SERVER-RENDERED POSTs to certified gated routes; they work
+             without Alpine. Cloaking them threw away functionality that was already there.
+             ⚠️ THE CLOAK'S REAL PURPOSE IS PRESERVED: the `board` branch above starts FALSE and stays
+             cloaked, so nothing flashes both views at once. The cost is a brief flash of the list for a
+             user whose stored preference is `board` — cosmetic, on a minority path, against a blank screen
+             on the failure path. ⚠️ NEVER CLOAK WHAT IS VISIBLE IN THE INITIAL STATE. --}}
+        <div x-show="view === 'list'">
             <div class="vy-card vy-card--flush vy-fade">
                 <div class="vy-utable-wrap">
-                    <table class="vy-utable">
+                    {{-- ⚠️ `--stick-action` PINS THE ACTION COLUMN ON A PHONE. This table is 720px wide by
+                         design and scrolls sideways inside `.vy-utable-wrap` — correct for a wide table,
+                         where a row IS the unit of meaning. ⚠️ But the 5th column holds the button that
+                         ADVANCES THE TASK, and at 375px it rendered at x=669: a housekeeper had to
+                         discover a sideways scroll inside the table before they could mark a room clean.
+                         ⚠️ The modifier is scoped to THIS table: `.vy-utable` is shared by seven screens
+                         and pinning a column is only right where the last cell is a primary action. --}}
+                    <table class="vy-utable vy-utable--stick-action">
                         <thead><tr><th>Room</th><th>Housekeeper</th><th>Stage</th><th>Ready</th><th></th></tr></thead>
                         <tbody>
                             @forelse ($rows as $card)
@@ -251,8 +312,10 @@
         {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────────── --}}
         <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px;" x-show="assign">
-                <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign housekeeper</h2>
+            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
+                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
+            <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="assign" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assign-t" tabindex="-1" x-trap.noscroll="assign">
+                <h2 class="vy-card-title" style="margin-bottom: 2px;" id="vy-hk-assign-t">Assign housekeeper</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.unit + ' · ' + assign.type) : ''"></p>
                 <form method="POST" :action="assign ? assignUrl(assign.id) : ''">
                     @csrf
@@ -288,8 +351,10 @@
         {{-- ── ASSIGN-ALL confirm (the balance is computed + applied server-side) ──────────────────── --}}
         <div x-show="assignAllOpen" x-cloak @keydown.escape.window="assignAllOpen = false"
              style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            <div @click.outside="assignAllOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px;">
-                <h2 class="vy-card-title" style="margin-bottom: 2px;">Assign all unassigned</h2>
+            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
+                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
+            <div @click.outside="assignAllOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assignall-t" tabindex="-1" x-trap.noscroll="assignAllOpen">
+                <h2 class="vy-card-title" style="margin-bottom: 2px;" id="vy-hk-assignall-t">Assign all unassigned</h2>
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Balanced by load &amp; who has the fewest open rooms — waiting-guest rooms first.</p>
                 <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 16px;">{{ $unassignedCount }} unassigned {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }} will be shared across {{ count($crew) }} {{ \Illuminate\Support\Str::plural('housekeeper', count($crew)) }}.</p>
                 <form method="POST" action="{{ route('app.housekeeping.assign-all') }}">
@@ -306,7 +371,9 @@
         {{-- ── ROOM DETAIL modal (GATE 8.2 — was a right-side drawer; now a centered modal via the shared
              .vy-modal-backdrop, whose grid centering survives x-show's inline-display toggle). ── --}}
         <div x-show="detail" x-cloak @keydown.escape.window="detail = null" class="vy-modal-backdrop" style="z-index: 50;">
-            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail">
+            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
+                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
+            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail" role="dialog" aria-modal="true" aria-label="Task detail" tabindex="-1" x-trap.noscroll="detail">
                 <template x-if="detail">
                     <div>
                         <div class="vy-detail-head" style="margin-bottom: 12px;">

@@ -78,6 +78,19 @@ final class EmailPreviewSample
     }
 
     /** A real successful refund if one exists; else an in-memory sample bound to the sample reservation. */
+    /**
+     * The currency the preview's sample figures should read in — the same reservation the preview renders
+     * from, so an operator on a GBP property never previews their own template in euros.
+     */
+    public static function sampleCurrency(): string
+    {
+        $reservation = Reservation::query()->latest()->first();
+
+        return $reservation === null
+            ? (string) config('billing.default_currency', 'EUR')
+            : (string) $reservation->currency;
+    }
+
     private static function sampleRefund(Reservation $reservation): Payment
     {
         $real = Payment::query()->where('type', 'refund')->where('status', 'succeeded')

@@ -101,8 +101,15 @@ it('parks a new email + mails a verify link WITHOUT switching the login email', 
     $c = accountCast();
     $before = (string) $c['owner']->email;
 
+    // ⚠️ FIXTURE ONLY (audit 2026-08-29 · H-3). The email change now RE-AUTHENTICATES, as the platform-admin
+    // and guest paths already did — without the current password a hijacked session could move the login
+    // identity permanently. The request payload therefore has to carry it; EVERY ASSERTION BELOW IS
+    // UNCHANGED. ('password' is the User factory's default — UserFactory:31.)
     $this->actingAs($c['owner'])
-        ->post('/owner/account/email', ['email' => 'brand-new@example.test'])
+        ->post('/owner/account/email', [
+            'current_password' => 'password',
+            'email' => 'brand-new@example.test',
+        ])
         ->assertRedirect();
 
     $fresh = $c['owner']->fresh();

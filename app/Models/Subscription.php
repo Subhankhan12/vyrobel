@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\MissingPlanTermsException;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Support\Billing\PlanTerms;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -75,20 +76,44 @@ class Subscription extends Model
 
         static::updating(function (self $subscription): void {
             // A plan CHANGE re-agrees the terms; anything else must leave them frozen.
+            // ⚠️ `mustCapture` — see below. On a CHANGE a silent failure is not "no terms", it is the OLD
+            //    terms surviving under a new `plan_id`: a confident wrong number, the worst shape available.
             if ($subscription->isDirty('plan_id')) {
-                $subscription->fillCapturedTerms();
+                $subscription->fillCapturedTerms(mustCapture: true);
             }
         });
     }
 
-    /** Set (but do not save) the captured columns from the currently-referenced plan. */
-    private function fillCapturedTerms(): void
+    /**
+     * Set (but do not save) the captured columns from the currently-referenced plan.
+     *
+     * ⚠️⚠️ THE SILENT NO-OP BECAME LOAD-BEARING, AND THE TWO CALLERS NEEDED DIFFERENT ANSWERS. `Plan::find()`
+     * respects soft-deletion, so a plan row that no longer resolves used to mean "capture nothing, say
+     * nothing" — harmless while the billing SHAPE was read live, and not harmless once the shape is read
+     * from this capture.
+     *
+     * ⚠️ ON CREATE it may still fail quietly: the result is a subscription with NO captured terms and no
+     * plan, and `terms()` refuses that outright — loudly, and before any number exists. Nothing can be
+     * billed on it, so the downstream refusal is sufficient.
+     *
+     * ⚠️⚠️ ON A PLAN CHANGE it must NOT. There, a quiet failure leaves the PREVIOUS terms in place while
+     * `plan_id` points somewhere else — so the subscription would keep billing the old model while every
+     * screen showed the new plan. That is not an absent answer, it is a confident wrong one, which is
+     * precisely what this codebase refuses to ship.
+     */
+    private function fillCapturedTerms(bool $mustCapture = false): void
     {
         $plan = Plan::query()->find($this->plan_id);
 
-        if ($plan !== null) {
-            $this->forceFill(PlanTerms::fromPlan($plan)->toCapturedColumns());
+        if ($plan === null) {
+            if ($mustCapture) {
+                throw MissingPlanTermsException::cannotRecapture((string) $this->plan_id);
+            }
+
+            return;
         }
+
+        $this->forceFill(PlanTerms::fromPlan($plan)->toCapturedColumns());
     }
 
     /**
@@ -100,7 +125,11 @@ class Subscription extends Model
      *
      * ⚠️ FALLS BACK TO THE PLAN ONLY IF NEVER CAPTURED. The migration backfills every existing row, so this
      * should not trigger in practice — but a subscription created by some future path that forgets to capture
-     * must still price correctly rather than return zero. It is a safety net, not a supported mode.
+     * must still price correctly. It is a safety net, not a supported mode.
+     *
+     * ⚠️⚠️ AND IF NEITHER SOURCE EXISTS IT THROWS. `fillCapturedTerms()` is a no-op when the plan does not
+     * resolve, so a subscription created against a SOFT-DELETED plan lands here with no capture and no
+     * plan — measured, not assumed. Answering that with a number was the defect.
      */
     public function terms(): PlanTerms
     {
@@ -113,7 +142,16 @@ class Subscription extends Model
 
         $plan = $this->plan;
 
-        return $plan !== null ? PlanTerms::fromPlan($plan) : PlanTerms::fromCaptured([]);
+        if ($plan === null) {
+            // ⚠️⚠️ NEITHER SOURCE. This used to be `PlanTerms::fromCaptured([])`, which answered €0 and
+            //    marked the tax KNOWN. The safety net described above was quietly a second failure mode:
+            //    it did not "still price correctly rather than return zero" — returning zero is exactly
+            //    what it did, with confidence. What this subscription owes is genuinely unknown, so the
+            //    only honest move is to refuse and let the caller (or the job's retry/`failed()`) surface it.
+            throw MissingPlanTermsException::forSubscription((string) $this->getKey());
+        }
+
+        return PlanTerms::fromPlan($plan);
     }
 
     /** What this subscription owes this period — its OWN terms, the org's LIVE unit count. */

@@ -59,7 +59,7 @@ it('suspend + reactivate are AUDITED admin actions that really change the status
     $admin = platformAdmin();
 
     $this->actingAs($admin, 'admin')
-        ->post(route('admin.customers.suspend', $org->id))
+        ->post(route('admin.customers.suspend', $org->id), ['current_password' => 'password'])
         ->assertRedirect(route('admin.customers.show', $org->id));
 
     expect($org->fresh()->status)->toBe('suspended');

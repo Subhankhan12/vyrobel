@@ -289,13 +289,17 @@ class UnitAvailabilityService
         return [$sum, $rows->count() === count($nights), $currency];
     }
 
+    /**
+     * ⚠️ DELEGATES — this used to be a SECOND definition of "the room type's primary rate plan", and it
+     * disagreed with the model's (F-34, FIX 15). Neither branch here filtered `is_active`: the default branch
+     * returned a plan taken off sale, and the fallback was saved only by the `where('is_active', true)`
+     * closure on the eager-load far above — a constraint at a distance, correct today and one edit from not
+     * being. There were THREE copies of this method in the codebase. There is now ONE, in the model, and the
+     * project's own rule is why: two computations of one concept are how surfaces drift.
+     */
     private function primaryRatePlan(RoomType $roomType): ?RatePlan
     {
-        if ($roomType->default_rate_plan_id !== null && $roomType->defaultRatePlan !== null) {
-            return $roomType->defaultRatePlan;
-        }
-
-        return $roomType->ratePlans->first();
+        return $roomType->primaryRatePlan();
     }
 
     /**

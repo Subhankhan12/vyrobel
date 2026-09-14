@@ -24,7 +24,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.9 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
         </div>
         <div style="min-width:0">
-            <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink)">How was your stay?</div>
+            {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+            <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin:0">How was your stay?</h1>
             <div style="font-size:13px;color:var(--vy-muted);margin-top:3px">{{ $property }} · {{ $stay }}</div>
         </div>
     </div>
@@ -125,7 +126,8 @@
 
             <section class="vy-card" style="margin-bottom:14px">
                 <div class="vy-eyebrow" style="margin-bottom:10px">Tell us more</div>
-                <textarea name="body" rows="4" maxlength="5000" placeholder="What did you love, or what could be better?" style="width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--vy-glass-border);font-family:var(--vy-sans);font-size:14px;background:#fff;resize:vertical"></textarea>
+                <label class="vy-sr-only" for="vy-lbl-review-body">What did you love, or what could be better?</label>
+                <textarea id="vy-lbl-review-body" name="body" rows="4" maxlength="5000" placeholder="What did you love, or what could be better?" style="width:100%;padding:11px 13px;border-radius:12px;border:1px solid var(--vy-glass-border);font-family:var(--vy-sans);font-size:14px;background:#fff;resize:vertical"></textarea>
                 <label style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--vy-muted);margin-top:12px">
                     <input type="checkbox" name="private" value="1"> Send privately to the manager (not published)
                 </label>

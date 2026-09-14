@@ -16,8 +16,6 @@
     canonical="/switching">
 <div data-screen-label="Marketing — Switching" data-vy-rail="" style="min-height: 100vh; font-family: var(--vy-sans); color: var(--vy-ink); background: linear-gradient(135deg, #F6C89B 0%, #F1B896 20%, #EBD9CF 46%, #D9D6D2 70%, #E7DCD4 100%); background-attachment: fixed; position: relative; overflow-x: clip;">
 
-  <a href="#vy-main" style="position: absolute; left: -9999px; top: 12px; z-index: 900; padding: 12px 18px; border-radius: 12px; background: var(--vy-ink); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none;">Skip to content</a>
-
   <main id="vy-main" style="position: relative; padding-top: 74px;">
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 78px 28px 52px;">
@@ -40,7 +38,7 @@
         <div data-reveal="" style="background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); border-radius: 20px; padding: 32px 30px; box-shadow: 0 14px 40px rgba(150,90,50,.15);">
           <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 20px;">
             <span style="width: 34px; height: 34px; border-radius: 11px; background: rgba(217,102,46,.14); display: flex; align-items: center; justify-content: center;">
-              <svg width="18" height="18" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
             </span>
             <h2 style="margin: 0; font-family: var(--vy-display); font-size: 20px; font-weight: 600; color: var(--vy-ink);">What comes across</h2>
           </div>
@@ -56,7 +54,7 @@
         <div data-reveal="" data-reveal-delay="80" style="background: rgba(255,252,248,.6); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); border-radius: 20px; padding: 32px 30px; box-shadow: 0 14px 40px rgba(150,90,50,.15);">
           <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 20px;">
             <span style="width: 34px; height: 34px; border-radius: 11px; background: rgba(139,120,105,.16); display: flex; align-items: center; justify-content: center;">
-              <svg width="18" height="18" fill="none" stroke="var(--vy-muted)" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--vy-muted)" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
             </span>
             <h2 style="margin: 0; font-family: var(--vy-display); font-size: 20px; font-weight: 600; color: var(--vy-ink);">What doesn't, and why</h2>
           </div>
@@ -72,66 +70,7 @@
       </div>
     </section>
 
-    <section data-sec="" id="estimate" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 60px;">
-      <div data-reveal="" style="max-width: 620px; margin-bottom: 28px;">
-        <div style="font-size: 11.5px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--vy-accent-text); margin-bottom: 14px;">Estimate your own</div>
-        <h2 style="margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 32px; line-height: 1.14; letter-spacing: -.03em; color: var(--vy-ink); text-wrap: balance;">How long yours would take</h2>
-        <p style="margin: 15px 0 0; font-size: 16px; line-height: 1.64; color: var(--vy-muted);">Two inputs. The answer is a window rather than a date, because channel reconnections queue and we would rather quote the honest range.</p>
-      </div>
-
-      <div data-reveal="" data-estwrap="" style="display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: stretch;">
-
-        <div style="padding: 28px 30px; border-radius: 22px; background: rgba(255,252,248,.62); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid rgba(255,255,255,.8); box-shadow: 0 14px 40px rgba(150,90,50,.14);">
-
-          <div style="margin-bottom: 26px;">
-            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 14px; margin-bottom: 12px;">
-              <label for="vy-est-units" style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink);">Units in the portfolio</label>
-              <span data-estunits="" style="font-family: var(--vy-display); font-size: 19px; font-weight: 600; color: var(--vy-accent-text); font-variant-numeric: tabular-nums;">40</span>
-            </div>
-            <input id="vy-est-units" type="range" min="1" max="300" step="1" value="40" style="width: 100%; accent-color: var(--vy-accent); cursor: pointer;">
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--vy-muted); margin-top: 5px;"><span>1</span><span>300 units</span></div>
-          </div>
-
-          <div style="margin-bottom: 24px;">
-            <div style="font-size: 14.5px; font-weight: 500; color: var(--vy-ink); margin-bottom: 12px;">What you run on today</div>
-            <div role="group" aria-label="Current system" style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <button data-estsrc="api" aria-pressed="true" style="padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .24s cubic-bezier(.22,.7,.3,1);">A modern PMS with an API</button>
-              <button data-estsrc="export" aria-pressed="false" style="padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .24s cubic-bezier(.22,.7,.3,1);">A PMS that can export CSV</button>
-              <button data-estsrc="sheets" aria-pressed="false" style="padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .24s cubic-bezier(.22,.7,.3,1);">Spreadsheets and a channel manager</button>
-              <button data-estsrc="none" aria-pressed="false" style="padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,252,248,.55); font-family: var(--vy-sans); font-size: 13px; font-weight: 500; color: var(--vy-ink); cursor: pointer; transition: all .24s cubic-bezier(.22,.7,.3,1);">Nothing — we start clean</button>
-            </div>
-          </div>
-
-          <div style="padding-top: 20px; border-top: 1px solid rgba(150,90,50,.13);">
-            <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-              <input type="checkbox" style="margin-top: 3px; accent-color: var(--vy-accent); cursor: pointer;">
-              <span><span style="display: block; font-size: 14px; font-weight: 500; color: var(--vy-ink);">Some units have owners</span><span style="display: block; font-size: 12.5px; color: var(--vy-muted); margin-top: 2px;">Statement history and agreements have to come across too</span></span>
-            </label>
-          </div>
-        </div>
-
-        <div style="position: relative; overflow: hidden; padding: 30px 32px; border-radius: 22px; background: linear-gradient(160deg, var(--vy-dark), #251C17); box-shadow: 0 24px 60px rgba(60,35,20,.32); display: flex; flex-direction: column;">
-          <div style="position: absolute; top: -80px; right: -50px; width: 240px; height: 240px; border-radius: 50%; background: var(--vy-accent-3); filter: blur(60px); opacity: .36;"></div>
-          <div style="position: relative; display: flex; flex-direction: column; height: 100%;">
-            <div style="font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,247,240,.55); margin-bottom: 16px;">Realistic window</div>
-            <div style="display: flex; align-items: baseline; gap: 9px;">
-              <span data-estweeks="" style="font-family: var(--vy-display); font-size: 46px; font-weight: 600; color: #fff; letter-spacing: -.035em; line-height: 1; font-variant-numeric: tabular-nums;">4–5</span>
-              <span style="font-size: 15px; color: rgba(255,247,240,.7);">weeks to cutover</span>
-            </div>
-            <div data-estnote="" style="font-size: 13.5px; line-height: 1.6; color: rgba(255,247,240,.72); margin-top: 12px;">An API export means we pull the data ourselves, so week one is mostly reconciliation rather than waiting.</div>
-
-            <div style="height: 1px; background: rgba(255,247,240,.16); margin: 24px 0 20px;"></div>
-
-            <div data-estbreak="" style="display: flex; flex-direction: column; gap: 12px;"></div>
-
-            <div style="margin-top: auto; padding-top: 22px;">
-              <div data-estcost="" style="padding: 14px 16px; border-radius: 14px; background: linear-gradient(140deg, rgba(232,112,58,.24), rgba(194,65,12,.16)); border: 1px solid rgba(232,112,58,.34); font-size: 13.5px; line-height: 1.55; color: #fff;">Migration is included at this size.</div>
-              <div style="font-size: 11.5px; line-height: 1.6; color: rgba(255,247,240,.5); margin-top: 14px;">A window, not a quote. Channel reconnections queue at the OTA end, which is the part neither of us controls.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <section data-sec="" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 78px;"><div data-reveal="" style="max-width: 720px;"><h2 style="margin: 0 0 10px; font-family: var(--vy-display); font-size: 27px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink);">How long yours would take</h2><p style="margin: 0; font-size: 14.5px; line-height: 1.66; color: var(--vy-muted);">⚠️ We would rather not guess. Vyrobel has not migrated anyone yet, so any timeline printed here would be invented — and a cutover date is something you would plan staff and owners around. Tell us what you run on today and how many units you have, and we will work the schedule out with you rather than publish a number we cannot stand behind.</p></div></section>
 
     <section data-sec="" id="timeline" style="max-width: 1240px; margin: 0 auto; padding: 0 28px 78px;">
       <h2 data-reveal="" style="margin: 0 0 8px; font-family: var(--vy-display); font-weight: 600; font-size: 34px; letter-spacing: -.03em; color: var(--vy-ink);">The cutover, week by week</h2>
@@ -212,7 +151,7 @@
 
         <div data-reveal="" data-reveal-delay="180" style="padding: 26px 26px; border-radius: 18px; background: rgba(255,252,248,.55); border: 1px solid rgba(255,255,255,.75);">
           <h3 style="margin: 0 0 9px; font-family: var(--vy-display); font-size: 16.5px; font-weight: 600; color: var(--vy-ink);">"What if I want to leave?"</h3>
-          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">Full export of reservations, guests, units, rates and statements as CSV or JSON, on demand, from Settings. No exit fee and no support ticket required. A product that has to trap you isn't worth switching to.</p>
+          <p style="margin: 0; font-size: 14px; line-height: 1.66; color: var(--vy-muted);">You export from the screen that owns the data rather than as one bundle: guest records to CSV from Guests, revenue and channel reports to CSV, Excel or PDF from Reports, and maintenance costs the same way. Your own account record downloads from Security, and owners export their bookings, statements and payouts from the owner portal. A product that has to trap you isn't worth switching to.</p>
         </div>
 
       </div>
@@ -222,7 +161,7 @@
       <div data-reveal="" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 34px; border-radius: 20px; background: rgba(255,252,248,.58); backdrop-filter: blur(20px) saturate(1.15); -webkit-backdrop-filter: blur(20px) saturate(1.15); border: 1px solid rgba(255,255,255,.78); box-shadow: 0 14px 38px rgba(150,90,50,.14);">
         <div style="max-width: 620px;">
           <h2 style="margin: 0 0 8px; font-family: var(--vy-display); font-size: 21px; font-weight: 600; color: var(--vy-ink);">Moving your data across</h2>
-          <p style="margin: 0; font-size: 14.5px; line-height: 1.64; color: var(--vy-muted);">Vyrobel imports from a CSV, and the reconciliation step below is how you check it landed correctly before you cut over. ⚠️ What hands-on help comes with a plan is not settled yet — ask us rather than assume it importer and written guides, which is fine for one property.</p>
+          <p style="margin: 0; font-size: 14.5px; line-height: 1.64; color: var(--vy-muted);">Vyrobel imports from a CSV, and the reconciliation step below is how you check it landed correctly before you cut over. ⚠️ What hands-on help comes with a plan is not settled yet — ask us rather than assume it.</p>
         </div>
         <x-marketing.nav-link key="pricing" style="display: inline-flex; align-items: center; gap: 9px; padding: 14px 24px; border-radius: 13px; background: rgba(255,255,255,.66); border: 1px solid rgba(255,255,255,.85); color: var(--vy-ink); font-size: 14.5px; font-weight: 500; text-decoration: none; flex-shrink: 0; transition: transform .22s ease, box-shadow .22s ease;">See the plans</x-marketing.nav-link>
       </div>

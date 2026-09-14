@@ -61,15 +61,26 @@ class OwnerPayoutRetryController extends Controller
 
         // Pre-flight, for an honest message only (the service re-decides under its lock).
         if ((string) $row->status !== 'failed') {
-            return back()->with('payout_retry_notice', 'That payout is no longer in a failed state, so nothing was re-queued.');
+            // NEUTRAL: the payout left the failed state on its own. Nothing to retry, and nothing lost.
+            return $this->notice('That payout is no longer in a failed state, so nothing was re-queued.', 'neutral');
         }
 
         if (PayoutRecovery::liveReplacement($row) !== null) {
-            return back()->with('payout_retry_notice', 'A replacement payout for that statement is already on its way — nothing further was queued.');
+            // NEUTRAL, and deliberately NOT a refusal: the owner's money IS on its way. Painting this red
+            // would invent a problem — the honesty defect this pass exists to avoid, one layer over.
+            return $this->notice('A replacement payout for that statement is already on its way — nothing further was queued.', 'neutral');
         }
 
         if (PayoutRecovery::blockers($owner) !== []) {
-            return back()->with('payout_retry_notice', 'Please finish setting up your payout account first — another attempt would fail the same way.');
+            // ⚠️⚠️ THE ONE TRUE REFUSAL, AND THE SHARPEST MESSAGE ON THIS SURFACE. It is an INSTRUCTION
+            // rendered, until now, as a COMPLETION: `PayoutRecovery::blockers()` returns actionable items
+            // with a CTA ("Connect your payout account" → owner.payout-method), so the retry did not happen
+            // AND WILL NEVER HAPPEN until the owner acts. Under a green tick they do nothing and wait for
+            // money that is not coming.
+            // ⚠️ LATENT TODAY, LIVE AT CUTOVER: blockers() returns [] unless `PAYOUTS_RAIL=stripe_connect`,
+            // which defaults to `manual` — so this branch becomes reachable exactly when real money starts
+            // moving, which is the worst possible moment to discover it.
+            return $this->notice('Please finish setting up your payout account first — another attempt would fail the same way.', 'refused');
         }
 
         try {
@@ -77,11 +88,29 @@ class OwnerPayoutRetryController extends Controller
         } catch (RuntimeException) {
             // The row moved on between the read and the lock (a webhook landing mid-request) — the guard
             // did its job; say so plainly rather than reporting a queue that did not happen.
-            return back()->with('payout_retry_notice', 'That payout is no longer in a failed state, so nothing was re-queued.');
+            return $this->notice('That payout is no longer in a failed state, so nothing was re-queued.', 'neutral');
         }
 
-        return back()->with('payout_retry_notice', $result->wasRecentlyCreated
-            ? 'We’ve queued this payout for another attempt. You’ll see it in your payout history.'
-            : 'A replacement payout for that statement is already on its way — nothing further was queued.');
+        return $result->wasRecentlyCreated
+            ? $this->notice('We’ve queued this payout for another attempt. You’ll see it in your payout history.', 'ok')
+            : $this->notice('A replacement payout for that statement is already on its way — nothing further was queued.', 'neutral');
+    }
+
+    /**
+     * ⚠️ THE OUTCOME RIDES WITH THE MESSAGE — that was the whole defect, not the wording.
+     *
+     * `payout_retry_notice` carried only text, and the view rendered every one of them through
+     * `class="vy-flash is-ok"` — a skin literally named for success, with a green tick. The messages were
+     * already careful (the view's own comment says they report what actually happened rather than a blanket
+     * success); the SKIN contradicted them.
+     * ⚠️ THREE outcomes, because two is wrong here: see <x-owner.flash-notice> for why a no-op must not be
+     * painted as a failure.
+     * ⚠️ NO MESSAGE TEXT AND NO REFUSAL LOGIC CHANGES IN THIS PASS.
+     *
+     * @param  'ok'|'neutral'|'refused'  $outcome
+     */
+    private function notice(string $message, string $outcome): RedirectResponse
+    {
+        return back()->with('payout_retry_notice', $message)->with('payout_retry_outcome', $outcome);
     }
 }

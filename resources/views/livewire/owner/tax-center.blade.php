@@ -182,6 +182,13 @@
                             </div>
                         </div>
 
+                        {{-- ⚠️ RE-AUTH: this changes the payee name on your remittance document and the residency your withholding is computed from. --}}
+                        <div class="vy-field" style="margin:14px 0 0">
+                            <label class="vy-field-label" for="taxcenter_tax_pw">Confirm with your password</label>
+                            <input id="taxcenter_tax_pw" type="password" name="current_password" class="vy-input"
+                                   autocomplete="current-password" required aria-label="Current password">
+                            @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                        </div>
                         {{-- 🔒 an accountant may READ tax & documents but SAVING is co-owner-only ($capActions);
                              gating the control too (never invite a 403). --}}
                         <div style="margin-top:22px">

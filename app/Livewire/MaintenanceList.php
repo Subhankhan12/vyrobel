@@ -79,12 +79,17 @@ class MaintenanceList extends Component
             ->get();
 
         $photos = $this->photosForTickets($tickets);
-        $allCards = $tickets->map(fn (MaintenanceTicket $t): array => $this->card($t, $setting, $photos, $now))->all();
+        // ⚠️ RESOLVED BEFORE THE CARDS, not after. `maintenance_tickets.currency` is the ONE nullable currency
+        // column in the schema ("filled at resolve"), so an UNRESOLVED ticket genuinely has none — and the card
+        // fell back to a hardcoded 'EUR', which on a GBP property priced its cost estimate in the wrong money.
+        // The property's currency is the real answer and was already being computed one block below.
+        $pageCurrency = $this->currency($readIds);
+        $allCards = $tickets->map(fn (MaintenanceTicket $t): array => $this->card($t, $setting, $photos, $now, $pageCurrency))->all();
 
         // OOS units (real condition_status) + the real revenue on hold.
         $oosUnits = Unit::query()->whereIn('property_id', $readIds)->where('condition_status', 'out_of_service')->orderBy('code')->get();
         $onHold = RevenueOnHold::forUnits($oosUnits->pluck('id')->map(fn ($id): string => (string) $id)->all(), $today);
-        $currency = $this->currency($readIds);
+        $currency = $pageCurrency;
 
         $cards = array_values(array_filter($allCards, fn (array $c): bool => $this->matches($c, $filter, $search)));
 
@@ -125,7 +130,7 @@ class MaintenanceList extends Component
      * @param  array<string, list<array{id: string, url: string}>>  $photos
      * @return array<string, mixed>
      */
-    private function card(MaintenanceTicket $ticket, MaintenanceSetting $setting, array $photos, CarbonImmutable $now): array
+    private function card(MaintenanceTicket $ticket, MaintenanceSetting $setting, array $photos, CarbonImmutable $now, string $pageCurrency): array
     {
         $assignee = $ticket->assignedTo;
         $priority = $this->maintenancePriorityMeta((string) $ticket->priority);
@@ -133,7 +138,7 @@ class MaintenanceList extends Component
         $unit = $ticket->unit;
         $oos = $ticket->takes_out_of_service && $unit !== null && $unit->condition_status === 'out_of_service';
         $sla = MaintenanceSla::evaluate($ticket, $setting, $now);
-        $currency = (string) ($ticket->currency ?? 'EUR');
+        $currency = (string) ($ticket->currency ?? $pageCurrency);
 
         return [
             'id' => (string) $ticket->id,

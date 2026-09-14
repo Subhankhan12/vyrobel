@@ -39,6 +39,10 @@ class PlanIntegrity
             'code' => [
                 'required', 'string', 'max:64', 'regex:/^[a-z0-9_]+$/',
                 Rule::unique('plans', 'code')->ignore($ignorePlanId)->whereNull('deleted_at'),
+                // ⚠️ A UNIQUE CODE IS NOT A UNIQUE TIER. `essential` and `essential_monthly` are different
+                //    codes that derive the SAME tier, and the pricing page then renders one of them and
+                //    silently drops the other. {@see UniquePlanTierCycle}.
+                new UniquePlanTierCycle($ignorePlanId),
             ],
             'name' => ['required', 'string', 'max:120'],
             'pricing_type' => ['required', Rule::in(self::SHAPES)],

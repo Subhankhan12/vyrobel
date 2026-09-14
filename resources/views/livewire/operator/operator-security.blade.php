@@ -6,6 +6,15 @@
 <div x-data="{ ipOpen: false, exportOpen: false, signOutOpen: false, revokeId: null }">
     <x-operator.shell active="security" title="Security" :viewer="$viewer">
 
+        {{-- ⚠️ F-1, BOTH HALVES. `password_status` carries TWO messages to this page and this view read
+             neither: the passwordless gate's interruption ("set a password and you'll be brought back") AND
+             the confirmation that a password change SUCCEEDED. Phase 3 proved the second by changing a real
+             password and watching the screen say nothing. ⚠️ This is a NAMING MISMATCH, not a missing region —
+             the region below already worked; it simply never read this key. The owner realm's own security
+             view has rendered `password_status` all along, which is why only operators were silent. --}}
+        @if (session('password_status'))
+            <div class="vy-flash" role="status" style="margin-bottom:14px;background:rgba(26,127,75,.10);color:#1a7f4b;border:1px solid rgba(26,127,75,.2);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:500">{{ session('password_status') }}</div>
+        @endif
         @if (session('security_notice'))
             <div class="vy-flash" style="margin-bottom:14px;background:rgba(26,127,75,.10);color:#1a7f4b;border:1px solid rgba(26,127,75,.2);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:500">{{ session('security_notice') }}</div>
         @endif
@@ -64,11 +73,33 @@
                      (optionally hidden) username fields") and it was the only console output this page
                      produced. It is display-only: `autocomplete` + `readonly`, no `name`, so it is NEVER
                      submitted and the change-password payload is byte-identical. --}}
+                {{-- ⚠️⚠️ D3 — THE TRUE PLACEHOLDER-ONLY SHAPE, and the one that bites a SIGHTED user too.
+                     Three password boxes that look identical, each named only by a placeholder that VANISHES the
+                     moment you type. Halfway through, "which box am I in?" has no answer left on screen.
+                     ⚠️ VISIBLE labels, not hidden ones or `aria-label`: the house pattern is
+                     `<label class="vy-field-label" for="id">` (131 sites), and an invisible fix would leave the
+                     sighted half of the defect in place. The placeholders stay as hints.
+                     ⚠️ NO POSTED KEY MOVED — `name=` untouched; only `id`/`for` added.
+                     ⚠️ The `aria-hidden` username field below is the CORRECT password-manager pattern and is
+                     deliberately left unnamed — it is hidden from assistive tech on purpose. --}}
                 <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly
                        aria-hidden="true" tabindex="-1" style="display:none;">
-                <input type="password" name="current_password" class="vy-input" placeholder="Current password" autocomplete="current-password" required style="margin-bottom:8px;">
-                <input type="password" name="password" class="vy-input" placeholder="New password" autocomplete="new-password" required style="margin-bottom:8px;">
-                <input type="password" name="password_confirmation" class="vy-input" placeholder="Confirm new password" autocomplete="new-password" required style="margin-bottom:12px;">
+                <label class="vy-field-label" for="vy-sec-cur">Current password</label>
+                {{-- ⚠️⚠️ THE SET-A-PASSWORD PATH IS THIS SAME CARD. An account with no password has nothing to
+                     confirm with — `Hash::check(x, null)` is false — so demanding a current password would make
+                     setting a FIRST one impossible and the lockout permanent. The field is omitted only in that
+                     case; for every account that HAS a password it is required exactly as before, and the
+                     controller enforces the same split rather than trusting this view. --}}
+                @if (auth()->user()?->hasPassword())
+                    <label class="vy-field-label" for="vy-sec-cur">Current password</label>
+                    <input type="password" name="current_password" id="vy-sec-cur" class="vy-input" placeholder="Current password" autocomplete="current-password" required style="margin-bottom:8px;">
+                @else
+                    <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 10px;">Your account does not have a password yet. Set one below — you will be asked for it when confirming sensitive changes.</p>
+                @endif
+                <label class="vy-field-label" for="vy-sec-new">New password</label>
+                <input type="password" name="password" id="vy-sec-new" class="vy-input" placeholder="New password" autocomplete="new-password" required style="margin-bottom:8px;">
+                <label class="vy-field-label" for="vy-sec-conf">Confirm new password</label>
+                <input type="password" name="password_confirmation" id="vy-sec-conf" class="vy-input" placeholder="Confirm new password" autocomplete="new-password" required style="margin-bottom:12px;">
                 {{-- ⚠️ DO13-4: this form enforced a composition rule and stated NOTHING, so a rejection gave the
                      operator no way to comply. It was also the LAST screen found — a copy-sweep for "8
                      characters" could not see it precisely because it never made the claim (§N.8f: a search
@@ -128,6 +159,54 @@
             ghost="background:transparent;border:1px solid var(--vy-glass-border);"
             err="font-size:12px;color:#B0322A;display:block;margin-top:6px;" />
 
+        {{-- ══ CONNECTED SIGN-IN ACCOUNTS ═══════════════════════════════════════════════════════════════
+             ⚠️ REAL rows only — this account's own `user_identities`. Nothing is shown when Google is not
+             configured, because the routes 404 in that state and a control that leads to an error page is
+             worse than no control. ⚠️ The unlink refusal is enforced in the route; the disabled state below
+             merely EXPLAINS it, and says why rather than going quiet. --}}
+        <section class="vy-card" id="sec-connections" style="margin-top:14px;">
+            <h2 class="vy-card-title" style="margin-bottom:4px;">Connected sign-in accounts</h2>
+            <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px;">Sign in to Vyrobel with an account you already have.</p>
+
+            @if (session('connections_status'))
+                <p style="font-size:12.5px;color:#1E7A4B;margin:0 0 10px;">{{ session('connections_status') }}</p>
+            @endif
+            @if (session('connections_error'))
+                <p style="font-size:12.5px;color:#B0322A;margin:0 0 10px;">{{ session('connections_error') }}</p>
+            @endif
+
+            @forelse ($connections as $connection)
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--vy-glass-border);">
+                    <div>
+                        <div style="font-size:13.5px;color:var(--vy-ink);font-weight:600;">{{ ucfirst($connection['provider']) }}</div>
+                        <div style="font-size:12px;color:var(--vy-muted);">{{ $connection['email'] }} · last used {{ $connection['last_used'] }}</div>
+                    </div>
+                    @if ($connection['can_unlink'])
+                        <form method="POST" action="{{ route('app.security.connections.unlink', $connection['id']) }}">
+                            @csrf
+                            <button type="submit" class="vy-btn" style="background:transparent;border:1px solid var(--vy-glass-border);color:var(--vy-ink);">Disconnect</button>
+                        </form>
+                    @else
+                        {{-- ⚠️ Disabled AND explained — the footer "Join" pattern. A control that simply stops
+                             working teaches nothing; this one says exactly what to do to make it work. --}}
+                        <div style="text-align:right;max-width:280px;">
+                            <button type="button" class="vy-btn" disabled aria-disabled="true" aria-describedby="vy-unlink-why-{{ $connection['id'] }}" style="background:transparent;border:1px solid var(--vy-glass-border);color:var(--vy-muted);cursor:not-allowed;">Disconnect</button>
+                            <p id="vy-unlink-why-{{ $connection['id'] }}" style="font-size:11.5px;color:var(--vy-muted);margin:6px 0 0;">{{ \App\Support\Auth\SignInCredentials::unlinkRefusalReason() }}</p>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div style="font-size:13.5px;color:var(--vy-muted);">No sign-in accounts connected</div>
+            @endforelse
+
+            @if ($socialEnabled && collect($connections)->where('provider', 'google')->isEmpty())
+                <form method="POST" action="{{ route('app.security.connections.link') }}" style="margin-top:12px;">
+                    @csrf
+                    <button type="submit" class="vy-btn" style="background:transparent;border:1px solid var(--vy-glass-border);color:var(--vy-ink);">Connect Google</button>
+                </form>
+            @endif
+        </section>
+
         <div id="sec-sessions" class="vy-card vy-fade" style="margin-bottom:16px;max-width:560px;">
             <h2 class="vy-card-title" style="margin-bottom:6px;">Active sessions &amp; devices</h2>
             @forelse ($sessions as $sess)
@@ -181,14 +260,16 @@
 
         {{-- ── MODALS ──────────────────────────────────────────────────────────────────────────────────── --}}
         {{-- Add IP --}}
-        <div x-show="ipOpen" x-cloak class="vyp-scrim" @click.self="ipOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;">
-            <div class="vy-card" style="max-width:400px;width:90%;">
-                <h2 class="vy-card-title">Add to allowlist</h2>
+        <div x-show="ipOpen" x-cloak class="vyp-scrim" @click.self="ipOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;" @keydown.escape.window="ipOpen = false">
+            <div class="vy-card" style="max-width:400px;width:90%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="ipOpen" aria-labelledby="vy-dlg-operator-security-ipopen-4">
+                <h2 class="vy-card-title" id="vy-dlg-operator-security-ipopen-4">Add to allowlist</h2>
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:4px 0 12px;">An exact IP or a CIDR block. Your current address is <strong>{{ $currentIp }}</strong>.</p>
                 <form method="POST" action="{{ route('app.security.ip-rules.add') }}">
                     @csrf
-                    <input type="text" name="ip_address" class="vy-input" placeholder="203.0.113.4 or 203.0.113.0/24" value="{{ $currentIp }}" required style="margin-bottom:8px;">
-                    <input type="text" name="label" class="vy-input" maxlength="80" placeholder="Label (e.g. Office)" style="margin-bottom:12px;">
+                    <label class="vy-sr-only" for="vy-lbl-operator-security-ip-address">203.0.113.4 or 203.0.113.0/24</label>
+                    <input id="vy-lbl-operator-security-ip-address" type="text" name="ip_address" class="vy-input" placeholder="203.0.113.4 or 203.0.113.0/24" value="{{ $currentIp }}" required style="margin-bottom:8px;">
+                    <label class="vy-sr-only" for="vy-lbl-operator-security-label">Label (e.g. Office)</label>
+                    <input id="vy-lbl-operator-security-label" type="text" name="label" class="vy-input" maxlength="80" placeholder="Label (e.g. Office)" style="margin-bottom:12px;">
                     <div style="display:flex;justify-content:flex-end;gap:10px;">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="ipOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Add to allowlist</button>
@@ -198,9 +279,9 @@
         </div>
 
         {{-- Data export --}}
-        <div x-show="exportOpen" x-cloak class="vyp-scrim" @click.self="exportOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;">
-            <div class="vy-card" style="max-width:400px;width:90%;" x-data="{ range: 'all', format: 'json' }">
-                <h2 class="vy-card-title">Export your data</h2>
+        <div x-show="exportOpen" x-cloak class="vyp-scrim" @click.self="exportOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;" @keydown.escape.window="exportOpen = false">
+            <div class="vy-card" style="max-width:400px;width:90%;" x-data="{ range: 'all', format: 'json' }" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="exportOpen" aria-labelledby="vy-dlg-operator-security-exportopen-3">
+                <h2 class="vy-card-title" id="vy-dlg-operator-security-exportopen-3">Export your data</h2>
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:4px 0 12px;">Your account details and the actions you’ve taken. Downloads to this device.</p>
                 <form method="GET" action="{{ route('app.security.export') }}">
                     <label class="vy-field-label">Format</label>
@@ -220,9 +301,9 @@
         </div>
 
         {{-- Sign out all others (re-auth) --}}
-        <div x-show="signOutOpen" x-cloak class="vyp-scrim" @click.self="signOutOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;">
-            <div class="vy-card" style="max-width:380px;width:90%;">
-                <h2 class="vy-card-title">Sign out of all other devices</h2>
+        <div x-show="signOutOpen" x-cloak class="vyp-scrim" @click.self="signOutOpen = false" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;" @keydown.escape.window="signOutOpen = false">
+            <div class="vy-card" style="max-width:380px;width:90%;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="signOutOpen" aria-labelledby="vy-dlg-operator-security-signoutopen-2">
+                <h2 class="vy-card-title" id="vy-dlg-operator-security-signoutopen-2">Sign out of all other devices</h2>
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:4px 0 12px;">This ends every session except this one. Confirm your password.</p>
                 <form method="POST" action="{{ route('app.profile.sign-out-others') }}">
                     @csrf
@@ -239,9 +320,17 @@
         </div>
 
         {{-- Revoke trusted device (re-auth) — one modal, the target id bound via revokeId --}}
-        <div x-show="revokeId !== null" x-cloak class="vyp-scrim" @click.self="revokeId = null" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;">
-            <div class="vy-card" style="max-width:380px;width:90%;">
-                <h2 class="vy-card-title">Revoke trusted device</h2>
+        {{-- ⚠️⚠️ D2 — THE DIALOG CONTRACT. `x-trap` gives all three focus properties at once: focus moves IN
+     on open, is TRAPPED while open, and is RETURNED to the trigger on close. ⚠️ IT NEEDS NO NEW
+     DEPENDENCY — Livewire already bundles Alpine's focus plugin (`directive("trap")` /
+     `createFocusTrap` in livewire.esm.js); it was simply never used anywhere in 243 files.
+     ⚠️ `.noscroll` also stops the page behind scrolling. ⚠️ It does NOT make the rest of the page
+     INERT — without `inert` support or a dependency, focus is trapped and no more, and that is
+     stated rather than implied. ⚠️ Focus lands on the panel itself (`tabindex="-1"`), never on the
+     destructive button. --}}
+                <div x-show="revokeId !== null" x-cloak class="vyp-scrim" @click.self="revokeId = null" style="position:fixed;inset:0;background:rgba(30,20,15,.4);display:flex;align-items:center;justify-content:center;z-index:50;" @keydown.escape.window="revokeId = null">
+            <div class="vy-card" style="max-width:380px;width:90%;" role="dialog" aria-modal="true" aria-labelledby="vy-dlg-revoke-t" tabindex="-1" x-trap.noscroll="revokeId !== null">
+                <h2 class="vy-card-title" id="vy-dlg-revoke-t">Revoke trusted device</h2>
                 <p style="font-size:12.5px;color:var(--vy-muted);margin:4px 0 12px;">It will need a 2FA code next time. Confirm your password.</p>
                 <form method="POST" action="{{ route('app.security.trusted.revoke') }}">
                     @csrf

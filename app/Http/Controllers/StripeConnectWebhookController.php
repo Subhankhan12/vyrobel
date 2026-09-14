@@ -7,15 +7,16 @@ namespace App\Http\Controllers;
 use App\Models\Owner;
 use App\Models\Payment;
 use App\Models\Payout;
-use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeEvent;
 use App\Services\FolioService;
 use App\Services\OwnerPayoutService;
 use App\Support\Tenancy\TenantContext;
+use App\Support\Webhooks\WebhookEventClaim;
 use Closure;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -40,7 +41,7 @@ class StripeConnectWebhookController extends Controller
         }
 
         return match (true) {
-            $event->type === 'account.updated' => $this->handleAccountUpdated($event, $tenant),
+            $event->type === 'account.updated' => $this->handleAccountUpdated($event, $tenant, $stripe),
             in_array($event->type, ['transfer.created', 'transfer.updated'], true) => $this->handleTransfer($event, $tenant, $payouts),
 
             // ⚠️⚠️ THE MONEY SWITCH — a DIRECT charge lives on the connected account, so ITS events arrive
@@ -130,7 +131,34 @@ class StripeConnectWebhookController extends Controller
         );
     }
 
-    private function handleAccountUpdated(StripeEvent $event, TenantContext $tenant): JsonResponse
+    /**
+     * `account.updated` → the owner's payouts-enabled flag, ⚠️⚠️ READ BACK FROM STRIPE, NOT TAKEN FROM THE
+     * PAYLOAD.
+     *
+     * ⚠️⚠️ THIS FLAG GATES MONEY LEAVING. It used to be written straight from `data.object.payouts_enabled`,
+     * so a LATE `account.updated` re-enabled payouts for an owner Stripe had since disabled — and Stripe
+     * disables them for reasons that matter: failed verification, a dispute, sanctions screening. The
+     * subscription path proved the shape of the fix one pass ago; this is the same shape on the rail where
+     * money leaves.
+     *
+     * ⚠️⚠️ THE READ-BACK HAPPENS **BEFORE** `once()`, AND THAT ORDERING IS LOAD-BEARING. `once()` claims the
+     * `webhook_events` row FIRST and only then runs its closure, so anything that throws INSIDE the closure
+     * leaves the row claimed — and Stripe's retry reads `wasRecentlyCreated === false` and returns
+     * "duplicate". The event would be **permanently lost**, which is the exact failure this sequence of
+     * passes exists to prevent. Failing before the claim lets a retry work.
+     *
+     * ⚠️⚠️ AND THE TWO DIRECTIONS ARE NOT TREATED ALIKE, DELIBERATELY. Wrongly DISABLING delays an owner's
+     * money and they tell us; wrongly ENABLING sends money at a rail Stripe has closed and nobody finds out,
+     * because this product has no reconciliation job, no drift check and no alert. So:
+     *   · ENABLE requires a CONFIRMED LIVE READ. If the account cannot be read, the delivery is allowed to
+     *     fail so Stripe retries, and the flag keeps its last confirmed value.
+     *   · DISABLE may apply from the payload alone — it is Stripe's own SIGNED statement, and acting on it
+     *     early errs in the recoverable direction.
+     * ⚠️ THE SYMMETRIC ALTERNATIVE (never apply the payload in either direction) was considered and rejected:
+     *    it is simpler, but during a Stripe outage it would leave a stale ENABLED flag standing while Stripe
+     *    had already closed the rail — choosing simplicity over the money-leaving direction.
+     */
+    private function handleAccountUpdated(StripeEvent $event, TenantContext $tenant, StripeClientInterface $stripe): JsonResponse
     {
         $accountId = $event->objectField('id');
         $owner = $accountId === null ? null : $tenant->runAsSuperAdmin(
@@ -140,7 +168,32 @@ class StripeConnectWebhookController extends Controller
             return response()->json(['status' => 'ignored'], 202);
         }
 
-        $enabled = $event->objectBool('payouts_enabled');
+        $claimed = $event->objectBool('payouts_enabled');
+
+        try {
+            // ⚠️ The account as Stripe reports it NOW. Two events in any order both write this same answer,
+            //    so ordering stops mattering — the case is removed rather than guarded.
+            $enabled = $stripe->retrieveConnectAccount($accountId)->payoutsEnabled;
+        } catch (Throwable $e) {
+            if ($claimed) {
+                // ⚠️⚠️ NEVER ENABLE ON UNVERIFIED EVIDENCE. Rethrowing before `once()` has claimed the row
+                //    means Stripe retries this event cleanly; the flag keeps its last CONFIRMED value.
+                Log::warning('Could not read the Connect account back — refusing to ENABLE payouts from the payload alone', [
+                    'owner' => $owner->getKey(),
+                    'account' => $accountId,
+                ]);
+
+                throw $e;
+            }
+
+            // ⚠️ A DISABLE is the safe direction, and the payload is Stripe's own signed statement.
+            Log::warning('Could not read the Connect account back — applying the payload’s DISABLE, the safe direction', [
+                'owner' => $owner->getKey(),
+                'account' => $accountId,
+            ]);
+
+            $enabled = false;
+        }
 
         return $tenant->forOrganization((string) $owner->organization_id, fn (): JsonResponse => $this->once(
             $event,
@@ -171,35 +224,45 @@ class StripeConnectWebhookController extends Controller
      *
      * ⚠️ WHAT *IS* CORRECTLY SEPARATE: the two receivers verify DIFFERENT secrets and dispatch DIFFERENT
      * handlers. That separation is real and must stay.
-     * ⚠️ WHAT IS DUPLICATED: the idempotency RULE itself. Both copies write
+     * ⚠️ WHAT *WAS* DUPLICATED: the idempotency RULE itself. Both copies wrote
      * `['source' => 'stripe', 'external_event_id' => $event->id]` against the SAME
-     * `unique(source, external_event_id)` index — one rule, one key space, two implementations that differ
-     * only in line formatting.
+     * `unique(source, external_event_id)` index — one rule, one key space, two implementations that differed
+     * only in line formatting. There is now one.
      *
      * ⚠️ SHARING THE KEY SPACE IS DELIBERATE AND LOAD-BEARING: a Stripe event id is globally unique, so an
      * event delivered to both endpoints dedupes ACROSS them. That is a property of the shared `source`
      * value — which is precisely why the two copies must not drift.
      *
-     * ⚠️ NOT MERGED NOW: a refactor inside a money pass buys no safety today and risks the thing it
-     * protects. ⚠️ THE TRIGGER, NOT A DATE — merge on the FIRST of:
+     * ⚠️ THE TRIGGER, AS WRITTEN AT THE TIME — merge on the FIRST of:
      *   · a THIRD receiver needing this guard (two that have not drifted is a warning; three is a pattern);
      *   · ANY change to the rule's shape (a new field, a different key, a TTL, a status) — the moment the
      *     two must be edited in lockstep is the moment duplicates drift.
+     * ⚠️ Both fired. The merge happened here rather than editing one rule in two files, which is the drift
+     *    this note existed to prevent. ⚠️ `ChannexWebhookController` is deliberately NOT merged in: it
+     *    QUEUES its work and its state machine lives in the job, which is a different shape, not a copy.
+     */
+    /**
+     * Run the event's work at most once — ⚠️⚠️ and let a delivery that FAILED be retried.
+     *
+     * ⚠️ THE RULE NOW LIVES IN ONE PLACE ({@see WebhookEventClaim}). This method's previous body claimed the
+     * `webhook_events` row and then tested only whether the row EXISTED, so a throw inside the closure
+     * consumed the event: Stripe retried, the row was already there, the retry was answered "duplicate", and
+     * the delivery was lost permanently. The guard and the loss mechanism were the same line.
+     *
+     * ⚠️ The two receivers' shared docblock pre-committed to merging on the first of "a THIRD receiver" or
+     * "ANY change to the rule's shape (… a status)". Both have fired — `ChannexWebhookController` is a third
+     * writer of this table, and this IS a status change — so the copies are gone rather than edited twice.
      */
     private function once(StripeEvent $event, Closure $apply): JsonResponse
     {
-        $webhookEvent = WebhookEvent::createOrFirst(
-            ['source' => 'stripe', 'external_event_id' => $event->id],
-            ['event_type' => $event->type, 'signature_verified' => true, 'payload' => $event->payload, 'status' => WebhookEvent::STATUS_RECEIVED, 'received_at' => now()],
+        $result = WebhookEventClaim::once(
+            source: 'stripe',
+            externalEventId: $event->id,
+            eventType: $event->type,
+            payload: $event->payload,
+            apply: $apply,
         );
 
-        if (! $webhookEvent->wasRecentlyCreated) {
-            return response()->json(['status' => 'duplicate'], 202);
-        }
-
-        $apply();
-        $webhookEvent->update(['status' => WebhookEvent::STATUS_PROCESSED, 'processed_at' => now()]);
-
-        return response()->json(['status' => 'processed'], 202);
+        return response()->json(['status' => $result], 202);
     }
 }

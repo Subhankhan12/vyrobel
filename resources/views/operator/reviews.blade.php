@@ -101,7 +101,8 @@
                 <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--vy-hairline);display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
                     <form method="POST" action="{{ route('app.reviews.respond', $review['id']) }}" style="flex:1;min-width:220px;display:flex;gap:8px">
                         @csrf
-                        <input type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--vy-hairline);font-family:inherit;font-size:13px">
+                        <label class="vy-sr-only" for="vy-lbl-reviews-response">Write a response…</label>
+                        <input id="vy-lbl-reviews-response" type="text" name="response" maxlength="2000" placeholder="Write a response…" value="{{ $review['response'] }}" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--vy-hairline);font-family:inherit;font-size:13px">
                         <button type="submit" style="padding:9px 15px;border-radius:20px;border:none;background:var(--vy-accent);color:#fff;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer">Respond</button>
                     </form>
                     @if (! $review['private'] && $review['status'] !== 'published')

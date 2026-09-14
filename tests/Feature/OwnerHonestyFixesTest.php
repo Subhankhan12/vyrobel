@@ -48,7 +48,7 @@ it('accepts a saved tax id with no residency selected, and that alone satisfies 
 
     // The exact payload an owner outside the 17 countries can produce: residency left blank.
     test()->actingAs($f['user'])
-        ->post(route('owner.tax.save'), [
+        ->post(route('owner.tax.save'), ['current_password' => 'password',
             'type' => 'individual',
             'tax_country' => '',          // ⚠️ not listed → left blank
             'tax_id' => 'XX-9988776',

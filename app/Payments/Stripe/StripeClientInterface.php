@@ -77,6 +77,16 @@ interface StripeClientInterface
      * rather than at the next renewal, so the customer-facing "prorated" promise becomes true. Passing false
      * would defer it silently, which is the shape of claim this project treats as a defect (§N.8d).
      */
+    /**
+     * The subscription as Stripe reports it RIGHT NOW, or null when Stripe does not know it.
+     *
+     * ⚠️⚠️ THIS IS WHAT MAKES WEBHOOK ORDER IRRELEVANT. A handler that writes an event's payload writes
+     * whatever was true when that event was generated; a handler that reads the object back writes what is
+     * true now, so a late event and an on-time one produce the same result. ⚠️ Returning null means Stripe
+     * genuinely does not have it — never "we could not reach Stripe", which throws so the delivery retries.
+     */
+    public function retrieveSubscription(string $subscriptionId): ?StripeSubscription;
+
     public function updateSubscriptionQuantity(string $subscriptionId, int $quantity, bool $prorate = true, ?string $idempotencyKey = null): void;
 
     /**

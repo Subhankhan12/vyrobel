@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Marketing;
 
 use App\Models\Plan;
+use App\Models\PlanFeature;
 use App\Support\Money\MoneyFormatter;
 
 /**
@@ -39,13 +40,60 @@ final class MarketingPricing
     public const SHAPE_PER_UNIT = 'per_unit';
 
     /**
+     * ⚠️⚠️ THE CATALOGUE SELLS BOTH SHAPES — an answer the page-level question needs and did not have.
+     *
+     * `shape()` used to return `per_unit` the moment ANY plan was per-unit, which is a defensible answer to
+     * "does this product sell per-unit at all" and a FALSE one to "what is this plan". Page-level prose
+     * asks the first question; a card asks the second. With both shapes live, neither single-model sentence
+     * is true, so there is a third state rather than a coin-flip between two falsehoods.
+     */
+    public const SHAPE_MIXED = 'mixed';
+
+    /**
+     * The billing cycles the catalogue can express — a CLOSED set, mirroring the `plans.interval` enum.
+     *
+     * ⚠️ WHY IT IS A CONSTANT AND NOT TWO STRINGS IN A VIEW. Both `/pricing` surfaces render every cycle;
+     * a view that spells the list itself is a second definition of what cycles exist, and adding a third
+     * interval to the enum would then light up one surface and not the other.
+     */
+    public const CYCLES = ['monthly', 'yearly'];
+
+    /**
+     * ⚠️⚠️ THE TIER'S OWN IDENTITY — the thing a monthly row and a yearly row of the SAME plan share.
+     *
+     * A plan CODE carries its interval (`essential_monthly`), so a code is unique per row and useless as a
+     * cross-cycle identity; the `plans` table has no tier column at all. This strips the interval suffix,
+     * which is the convention every seeded and admin-created code follows.
+     *
+     * ⚠️ IT REPLACES `str($code)->before('_')`, which was the previous derivation in two places. That form
+     * agrees with this one on every code that exists today (`essential_monthly` → `essential`) and is wrong
+     * on the first multi-word one: `pro_plus_monthly` → `pro`, silently COLLIDING with the Pro tier and
+     * handing a card the wrong feature list. One definition, and the safer of the two (§N.8f).
+     */
+    public static function tierKey(string $code): string
+    {
+        foreach (self::CYCLES as $interval) {
+            if (str_ends_with($code, '_'.$interval)) {
+                return substr($code, 0, -strlen($interval) - 1);
+            }
+        }
+
+        return $code;
+    }
+
+    /**
      * The publishable tiers, in catalogue order — read from the rows the engine bills from.
      *
      * @return list<array{code: string, name: string, shape: string, amount_minor: int, formatted: string, interval: string, unit_rate_minor: ?int}>
      */
     public static function tiers(string $interval = 'monthly'): array
     {
-        $plans = Plan::withoutGlobalScopes()
+        // ⚠️⚠️ `query()`, NOT `withoutGlobalScopes()`. `Plan` is a GLOBAL catalogue and carries exactly ONE
+        //    global scope — `SoftDeletingScope` — so the bare call escaped a tenant scope THAT DOES NOT
+        //    EXIST on this model and removed the soft-delete filter as its only real effect. A plan an
+        //    admin had deleted stayed advertised here, with a price and a Stripe id behind it, while
+        //    `BillingService` (which uses `Plan::query()`) could no longer find it.
+        $plans = Plan::query()
             ->where('interval', $interval)
             ->where('is_active', true)
             ->orderBy('price_minor')
@@ -77,13 +125,17 @@ final class MarketingPricing
      */
     public static function shape(string $interval = 'monthly'): string
     {
+        $shapes = [];
+
         foreach (self::tiers($interval) as $tier) {
-            if ($tier['shape'] === self::SHAPE_PER_UNIT) {
-                return self::SHAPE_PER_UNIT;
-            }
+            $shapes[(string) $tier['shape']] = true;
         }
 
-        return self::SHAPE_FLAT;
+        if (count($shapes) > 1) {
+            return self::SHAPE_MIXED;
+        }
+
+        return isset($shapes[self::SHAPE_PER_UNIT]) ? self::SHAPE_PER_UNIT : self::SHAPE_FLAT;
     }
 
     /**
@@ -93,11 +145,11 @@ final class MarketingPricing
      * page independently of what is charged. Flip the seeded plans to `per_unit` and every marketing
      * surface says "per unit" the same day — and not one day earlier.
      */
-    public static function suffix(string $interval = 'monthly'): string
+    public static function suffix(string $shape, string $interval = 'monthly'): string
     {
         $period = $interval === 'yearly' ? 'yr' : 'mo';
 
-        return self::shape($interval) === self::SHAPE_PER_UNIT
+        return $shape === self::SHAPE_PER_UNIT
             ? '/ unit / '.$period
             : '/ '.$period;
     }
@@ -120,27 +172,142 @@ final class MarketingPricing
         return array_map(function (array $tier) use ($catalogue, $interval): array {
             // ⚠️ The plan CODE carries its interval (`essential_monthly`); the config catalogue is keyed by
             // tier alone (`essential`). Derive the tier key rather than assume they match — they do not.
-            $tierKey = (string) str($tier['code'])->before('_');
+            $tierKey = self::tierKey((string) $tier['code']);
             $features = (array) ($catalogue[$tierKey]['features'] ?? []);
 
+            // ⚠️⚠️ WHAT A PLAN GATES IS `plan_features`, NOT THE CONFIG. The platform admin edits
+            //    `plan_features` (Admin\PlanController) and `Organization::planAllows()` reads it at
+            //    runtime — so a card rendered from `config/billing.php` could advertise a capability the
+            //    plan no longer grants, or hide one it does. Two sources for one concept is exactly the
+            //    drift §N.8f exists to stop, and on this page it would be a FALSE CLAIM where money is
+            //    decided.
+            // ⚠️ THE LABEL still comes from the catalogue — it is the only place a human-readable name
+            //    lives; `plan_features.key` is a slug. So: the catalogue says what a feature is CALLED,
+            //    `plan_features` says whether this plan HAS it and up to what limit.
+            // ⚠️ FALLS BACK TO THE CATALOGUE when a plan has no `plan_features` rows — the config-only
+            //    path (`fromConfig`) must keep working, and an empty table must not blank every card.
+            $gates = PlanFeature::query()
+                ->whereHas('plan', fn ($q) => $q->where('code', $tier['code']))
+                ->get()
+                ->keyBy('key');
+
             $lines = [];
-            foreach ($features as $feature) {
-                if (($feature['enabled'] ?? false) !== true) {
+            foreach ($features as $key => $feature) {
+                $gate = $gates->get(is_string($key) ? $key : ($feature['key'] ?? ''));
+
+                $enabled = $gate !== null ? (bool) $gate->enabled : (($feature['enabled'] ?? false) === true);
+                if (! $enabled) {
                     continue;   // a gate that is OFF is not a selling point — it is simply absent
                 }
+
                 $label = (string) ($feature['label'] ?? '');
-                $limit = $feature['limit'] ?? null;
+                $limit = $gate !== null ? $gate->limit : ($feature['limit'] ?? null);
                 $lines[] = $limit === null ? $label : $label.' (up to '.$limit.')';
             }
 
             return $tier + [
-                'sub' => self::shape($interval) === self::SHAPE_PER_UNIT
+                // ⚠️ THE KEY TRAVELS WITH THE ROW so no caller re-derives it — see `tierKey()`.
+                'key' => $tierKey,
+                // ⚠️ THE ROW'S OWN SHAPE, not the catalogue's. `$tier['shape']` is `plans.pricing_type`
+                //    carried straight off the row by `tiers()`, so a per-unit plan cannot describe a flat
+                //    one — which is exactly what a catalogue-wide read did.
+                'sub' => (string) $tier['shape'] === self::SHAPE_PER_UNIT
                     ? 'Per active unit'
                     : 'One price, any number of units',
                 'cycle' => $interval === 'yearly' ? 'Billed yearly' : 'Billed monthly',
                 'features' => $lines,
             ];
         }, self::tiers($interval));
+    }
+
+    /**
+     * ⚠️⚠️ ONE ROW PER TIER, CARRYING EVERY CYCLE — the shape that makes a MISPAIRING IMPOSSIBLE.
+     *
+     * ⚠️ WHAT THIS REPLACES, AND WHY A BOUNDS CHECK WOULD NOT HAVE DONE. Both `/pricing` surfaces built two
+     * INDEPENDENT lists — `tiersForDisplay('monthly')` and `tiersForDisplay('yearly')` — and then paired
+     * them BY POSITION (`$yearly[$loop->parent->index]`). Two facts made that unsafe, and only the first
+     * announces itself:
+     *
+     *   1. **DIFFERENT LENGTHS → a hard 500.** `tiers()` filters on `interval`, so a plan that exists in one
+     *      interval only makes one list shorter. Reproduced: a third monthly-only plan gave
+     *      `Undefined array key 2` and `/pricing` returned 500. ⚠️ And the admin panel creates ONE plan per
+     *      interval, so a founder adding a third tier CANNOT AVOID passing through that state.
+     *   2. **⚠️⚠️ EQUAL LENGTHS, DIFFERENT ORDER → NO ERROR AT ALL.** `tiers()` orders by `price_minor`
+     *      INDEPENDENTLY PER INTERVAL. Any yearly pricing that does not preserve the monthly rank silently
+     *      transposes the columns. Reproduced: `/pricing` returned **200** with the Essential card showing
+     *      another tier's yearly figure. A wrong price under the right plan name is worse than a 500,
+     *      because a 500 announces itself.
+     *
+     * ⚠️ HOW MISPAIRING IS NOW IMPOSSIBLE, not merely guarded. A row is filed under the group its OWN
+     * `key` names, at the cycle its OWN `interval` names. No index is computed anywhere, so there is no
+     * arithmetic to be wrong: the yearly figure under a card is that tier's own yearly row or it is
+     * absent. Ordering, length and price rank cannot enter into it. ⚠️ Nothing needs to enforce that the
+     * two lists agree, because there are no longer two lists.
+     *
+     * ⚠️ A MISSING CYCLE IS `null`, NOT A ZERO AND NOT A DERIVED FIGURE. An annual-only tier is a
+     * legitimate product; an annual price computed from a monthly one is an invented price.
+     * {@see self::cycleUnavailableNote()} is what a surface says instead.
+     *
+     * ⚠️ ORDER: cycles in `CYCLES` order, so today's monthly-price ordering is unchanged and a tier that
+     * exists only in a later cycle appends rather than reshuffling the page.
+     *
+     * ⚠️ COLLISION: if two plans in one interval derive the same `key`, the FIRST is kept. That is a data
+     * error, not a display case — see `docs/PRICING-PAIRING.md`; the rule belongs in `PlanIntegrity`, and
+     * plan validation is a money path with its own decision.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function tiersWithCycles(): array
+    {
+        $groups = [];
+
+        foreach (self::CYCLES as $interval) {
+            foreach (self::tiersForDisplay($interval) as $tier) {
+                $key = (string) $tier['key'];
+
+                $groups[$key] ??= [
+                    'key' => $key,
+                    'name' => (string) $tier['name'],
+                    'code' => (string) $tier['code'],
+                    'sub' => (string) $tier['sub'],
+                    'features' => (array) $tier['features'],
+                    'cycles' => array_fill_keys(self::CYCLES, null),
+                ];
+
+                // ⚠️ `??=` — the row is placed at ITS OWN interval, and a second row deriving the same key
+                //    in the same cycle never overwrites the first.
+                // ⚠️⚠️ THE RELABEL WAS HERE. This stamped a CATALOGUE-WIDE suffix onto every tier's row,
+                //    so the day one per-unit plan went live every flat card read "/ unit / mo" — €49 shown
+                //    as per-unit against a plan that charges €49 flat, on the page where money is decided.
+                //    The suffix now comes from the ROW's own shape, which `tiers()` already carried.
+                $groups[$key]['cycles'][$interval] ??= $tier + ['suffix' => self::suffix((string) $tier['shape'], $interval)];
+            }
+        }
+
+        return array_values($groups);
+    }
+
+    /**
+     * What a surface says where a tier has no row for a cycle — ⚠️ HONEST, and never a number.
+     *
+     * ⚠️ WHY A SENTENCE AND NOT AN OMITTED BLOCK. With scripts off both cycles are visible (the
+     * visible-by-default rule), and the switcher collapses one; a tier that simply omitted its yearly
+     * block would leave a HOLE where a price belongs the moment a visitor pressed "Annual" — which reads
+     * as a broken page, not as an absent product. Stating the fact keeps the switch whole.
+     *
+     * ⚠️ WHY NOTHING IS DERIVED. The obvious alternative — showing 12 × the monthly figure — invents a
+     * price the engine would not charge, on the page where money is decided. `isPlaceholder()` is TRUE
+     * besides, so it would be arithmetic over numbers nobody has set.
+     *
+     * ⚠️ PRESENT TENSE, NO ROADMAP. It states what is true now and promises no future cycle.
+     * ⚠️ It is COPY, and short enough for a table header as well as a card — the founder may reword it;
+     * what must not change is that it carries no figure.
+     */
+    public static function cycleUnavailableNote(string $interval): string
+    {
+        return $interval === 'yearly'
+            ? 'Annual billing not offered'
+            : 'Monthly billing not offered';
     }
 
     /**
@@ -171,10 +338,17 @@ final class MarketingPricing
      *     differences: int
      * }
      */
-    public static function comparison(string $interval = 'monthly'): array
+    public static function comparison(): array
     {
         $catalogue = (array) config('billing.tiers', []);
-        $tiers = self::tiersForDisplay($interval);
+
+        // ⚠️⚠️ THE COLUMNS ARE THE GROUPED TIERS, NOT ONE INTERVAL'S LIST — and the parameter this method
+        //    used to take is GONE rather than ignored. It only ever chose which interval's list became the
+        //    columns, which meant a tier sold on annual billing ONLY had no column at all: it vanished
+        //    from the comparison while appearing on the cards above it, on the same page.
+        //    ⚠️ A parameter that no longer changes anything is worse than none — a caller passing 'yearly'
+        //    would reasonably believe it had asked for something.
+        $tiers = self::tiersWithCycles();
 
         // ⚠️ The union of feature keys, in the catalogue's own order — never a hand-written row list.
         $keys = [];
@@ -192,8 +366,8 @@ final class MarketingPricing
             $cells = [];
 
             foreach ($tiers as $tier) {
-                // The plan CODE carries its interval (`essential_monthly`); the catalogue is keyed by tier.
-                $feature = (array) ($catalogue[(string) str($tier['code'])->before('_')]['features'][$key] ?? []);
+                // ⚠️ The tier's own key — `tierKey()`, the ONE derivation (§N.8f), carried on the row.
+                $feature = (array) ($catalogue[(string) $tier['key']]['features'][$key] ?? []);
                 $label = $label !== '' ? $label : (string) ($feature['label'] ?? $key);
                 $has = ($feature['enabled'] ?? false) === true;
                 // ⚠️ `array_key_exists`, NOT `?? null` — and the difference is visible on the page. A purely
@@ -246,17 +420,33 @@ final class MarketingPricing
      */
     public static function headline(string $interval = 'monthly'): string
     {
-        return self::shape($interval) === self::SHAPE_PER_UNIT
-            ? 'One price per unit. The direct channel pays for it.'
-            : 'One price per property account. The direct channel pays for it.';
+        // ⚠️ THREE ANSWERS, BECAUSE THERE ARE THREE STATES. With both shapes live neither single-model
+        //    sentence is true, and picking one would put a false claim at the top of the pricing page.
+        return match (self::shape($interval)) {
+            self::SHAPE_PER_UNIT => 'One price per unit. The direct channel pays for it.',
+            self::SHAPE_MIXED => 'Priced per account or per unit, depending on the plan. The direct channel pays for it.',
+            default => 'One price per property account. The direct channel pays for it.',
+        };
     }
 
     /** The small-print note beside the prices — likewise derived, and honest about the placeholder status. */
     public static function priceNote(string $interval = 'monthly'): string
     {
-        $model = self::shape($interval) === self::SHAPE_PER_UNIT
-            ? 'per active unit, per month'
-            : 'per account, per month, whatever your unit count';
+        // ⚠️⚠️ THE PERIOD FOLLOWS THE INTERVAL, AND IT DID NOT USED TO. This method has always TAKEN an
+        //    `$interval` and then hardcoded "per month" in both branches — harmless while every surface
+        //    rendered monthly, and a live falsehood the moment `/pricing` could show a yearly price:
+        //    "€490.00 / yr" beside "Prices are per account, per month" is worse than showing no yearly
+        //    price at all. ⚠️ A control that changes the number and leaves the period beside it unchanged
+        //    is the failure this fix exists to prevent.
+        $period = $interval === 'yearly' ? 'per year' : 'per month';
+
+        // ⚠️ The mixed wording names both models rather than asserting one of them for every card —
+        //    each card already carries its own suffix, and this line must not contradict them.
+        $model = match (self::shape($interval)) {
+            self::SHAPE_PER_UNIT => 'per active unit, '.$period,
+            self::SHAPE_MIXED => 'per account or per active unit depending on the plan, '.$period,
+            default => 'per account, '.$period.', whatever your unit count',
+        };
 
         return 'Prices are '.$model.(self::isPlaceholder() ? ', indicative and' : ',').' exclusive of VAT.';
     }
@@ -267,9 +457,11 @@ final class MarketingPricing
      */
     public static function whoPays(string $interval = 'monthly'): string
     {
-        return self::shape($interval) === self::SHAPE_PER_UNIT
-            ? 'You pay per unit; nobody else is billed.'
-            : 'You pay one subscription; nobody else is billed.';
+        return match (self::shape($interval)) {
+            self::SHAPE_PER_UNIT => 'You pay per unit; nobody else is billed.',
+            self::SHAPE_MIXED => 'You pay for the plan you choose; nobody else is billed.',
+            default => 'You pay one subscription; nobody else is billed.',
+        };
     }
 
     /** Are the published prices still the config's flagged PLACEHOLDERS? */

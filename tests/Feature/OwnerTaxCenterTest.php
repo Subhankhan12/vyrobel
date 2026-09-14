@@ -64,7 +64,7 @@ it('saves the tax id encrypted at rest', function () {
     $s = seedScenario(1);
     $f = taxOwnerFull($s, 0, 20000, 'Amara Okafor', false);
 
-    $this->actingAs($f['user'])->post('/owner/tax', [
+    $this->actingAs($f['user'])->post('/owner/tax', ['current_password' => 'password',
         'type' => 'individual', 'legal_name' => 'Amara Okafor', 'tax_country' => 'Portugal', 'tax_id' => '501234567',
     ])->assertRedirect(route('owner.tax'))->assertSessionHas('tax_notice');
 
@@ -85,7 +85,7 @@ it('holds a payout until a tax id is on file, then releases it', function () {
     expect($f['payout']->fresh()->status)->toBe('pending');   // untouched, still owed
 
     // The owner adds a tax ID…
-    $this->actingAs($f['user'])->post('/owner/tax', ['type' => 'individual', 'tax_id' => '501234567'])->assertRedirect();
+    $this->actingAs($f['user'])->post('/owner/tax', ['current_password' => 'password', 'type' => 'individual', 'tax_id' => '501234567'])->assertRedirect();
 
     // …and the SAME payout can now be paid — released, for real.
     $paid = app(OwnerPayoutService::class)->pay($f['payout']->fresh());
@@ -135,7 +135,7 @@ it('never lets one owner’s save affect another owner', function () {
     $a = taxOwnerFull($s, 0, 20000, 'Amara Okafor', false);
     $b = taxOwnerFull($s, 1, 20000, 'Bruno Vale', false);
 
-    $this->actingAs($a['user'])->post('/owner/tax', ['type' => 'individual', 'tax_id' => 'AAA111']);
+    $this->actingAs($a['user'])->post('/owner/tax', ['current_password' => 'password', 'type' => 'individual', 'tax_id' => 'AAA111']);
 
     // A is complete; B is still untouched (no owner id in the request → the write can only ever be A's own).
     expect($a['owner']->fresh()->hasTaxDetails())->toBeTrue()
@@ -149,7 +149,7 @@ it('stores the VAT-registered flag through the shared tax store and clears the n
     $f = taxOwnerFull($s, 0, 20000, 'Amara Okafor', false);
 
     // Register for VAT with a number (the same owner.tax.save path the whole app uses).
-    $this->actingAs($f['user'])->post('/owner/tax', [
+    $this->actingAs($f['user'])->post('/owner/tax', ['current_password' => 'password',
         'type' => 'company', 'tax_id' => '501234567', 'vat_registered' => '1', 'vat_number' => 'PT501234567',
     ])->assertRedirect(route('owner.tax'));
     $owner = $f['owner']->fresh();
@@ -161,7 +161,7 @@ it('stores the VAT-registered flag through the shared tax store and clears the n
 
     // De-register (the toggle off submits vat_registered=0): the flag goes false AND the number is dropped —
     // the flag is the source of truth, so no stale VAT number lingers on the letterhead.
-    $this->actingAs($f['user'])->post('/owner/tax', [
+    $this->actingAs($f['user'])->post('/owner/tax', ['current_password' => 'password',
         'type' => 'company', 'tax_id' => '501234567', 'vat_registered' => '0', 'vat_number' => 'PT501234567',
     ])->assertRedirect();
     $owner = $f['owner']->fresh();

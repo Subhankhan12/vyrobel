@@ -10,6 +10,21 @@
         .vy-msg-wrap { display:flex; gap:18px; align-items:stretch; height:calc(100vh - 150px); min-height:460px; }
         .vy-msg-rail { width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; min-height:0; }
         .vy-msg-pane { flex:1; min-width:0; display:flex; flex-direction:column; min-height:0; }
+        /* ⚠️⚠️ 106px of sideways scroll at 375px: `.vy-msg-rail` is a hard `width:320px; flex-shrink:0`
+           and `.vy-msg-wrap` has no `flex-wrap`, so 320 + 18 of gap + a pane that cannot reach zero was
+           simply wider than the page. On a phone the two panes STACK — the rail (the conversation list)
+           above, the open thread below.
+           ⚠️ THE FIXED HEIGHT HAS TO GO WITH IT. `height: calc(100vh - 150px)` is right for two panes
+           side by side and wrong for two stacked: it would squeeze both into one screen. The wrap goes
+           auto-height and the thread keeps a bounded, scrollable height of its own, so the composer
+           below it stays reachable instead of being pushed off the bottom.
+           ⚠️ Nothing is hidden and no control is removed — the same list, thread and composer, in one
+           column instead of two. */
+        @media (max-width:860px) {
+            .vy-msg-wrap { flex-direction:column; height:auto; min-height:0; }
+            .vy-msg-rail { width:auto; min-width:0; }
+            .vy-msg-thread { max-height:60vh; }
+        }
         .vy-msg-search { display:flex; align-items:center; gap:9px; padding:8px 12px; border-radius:12px; background:rgba(255,252,248,.7); border:1px solid var(--vy-glass-border); box-shadow:inset 0 1px 0 rgba(255,255,255,.6); }
         .vy-msg-search input { flex:1; min-width:0; border:none; outline:none; background:transparent; font:inherit; font-size:13px; color:var(--vy-ink); }
         .vy-msg-tabs { display:flex; gap:3px; padding:3px; border-radius:12px; background:rgba(120,70,40,.06); border:1px solid rgba(255,255,255,.6); }

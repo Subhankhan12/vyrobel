@@ -111,7 +111,7 @@ it('sources S1-042 — separate accounts, and the acting account is stamped on w
 
     // (b) THE STAMP: an audited action records the account that performed it, not merely that it happened.
     $property = $s['property'];
-    $this->actingAs($alice)->post('/app/settings/team-scope', [
+    $this->actingAs($alice)->post('/app/settings/team-scope', ['current_password' => 'password',
         'user_id' => (string) $bob->getKey(), 'scope' => 'selected', 'properties' => [(string) $property->id],
     ])->assertRedirect();
 

@@ -27,6 +27,12 @@ Schedule::command('emails:send-pre-arrival')->dailyAt('09:00');
 // older than 90 days, daily (GDPR — security-monitoring purpose, limited retention). See PrunePlatformActivity.
 Schedule::command('platform:prune-activity')->daily();
 
+// ⚠️⚠️ THE RECONCILIATION — it REPORTS drift between this product and Stripe, and never repairs it.
+//    Every defect in the billing sequence was silent; this is the standing version of "somebody looked".
+//    ⚠️ Its own last-successful-run time is printed in its header, so a run that stops happening is
+//    visible from the command itself rather than only from a log nobody reads.
+Schedule::command('billing:reconcile')->dailyAt('04:00');
+
 // Payout engine (Phase 2) — the automated owner payout run, daily. INERT unless PAYOUT_ENGINE_ENABLED is on
 // (the command self-guards), and TEST-MODE unless live keys + production. The command selects owners due today
 // per their payout preferences and disburses via the certified PayoutRunService. ⚠️ Real money only at go-live.
@@ -44,14 +50,34 @@ Schedule::command('guests:process-deletions')->dailyAt('03:00');
 // checkout" promise real. Daily.
 Schedule::command('guest-documents:purge-expired')->dailyAt('03:30');
 
+// ⚠️ RETENTION SWEEP (audit 2026-08-29 · M-6) — delete rows past their declared window from the log-like
+// stores. Windows + reasoning live in ONE place: App\Support\Retention\RetentionPolicy.
+// ⚠️ `audit_events` and `domain_events` are DELIBERATELY NOT swept — they are evidence for reconstructing a
+// disputed owner figure, and a dispute surfaces late. That refusal is guarded by RetentionPolicyTest.
+Schedule::command('retention:prune')->dailyAt('04:00');
+
 // ─────────────────────────────────────────────────────────────────────────────────────────────────
-// DEPLOY §7.2 — LIVENESS. ⚠️ None of the eight commands above runs more often than daily, so none of
+// DEPLOY §7.2 — LIVENESS. ⚠️ None of the nine commands above runs more often than daily, so none of
 // them can prove the scheduler is alive at any useful resolution: a cron that died at 09:01 would look
 // identical to a healthy one until tomorrow. These two entries exist ONLY to be observed.
 //
 // ⚠️ AND NOTE WHAT THIS FILE CANNOT DO FOR ITSELF. If cron stops, everything below stops too — a check
 // living here could never report its own absence. That is why the alarm is an EXTERNAL monitor polling
 // /up/liveness, and optionally a dead-man's-switch ping. This half only leaves the evidence.
+//
+// ⚠️⚠️ WHAT THESE TWO CERTIFY, AND WHAT THEY DO NOT — VERIFIED 2026-08-31, because the deploy script's
+// note used to read as though they covered more. They prove CRON IS ALIVE and A WORKER IS CONSUMING.
+// They say NOTHING about whether the NINE commands above SUCCEEDED, and cannot: they are separate
+// scheduled entries, and Laravel runs each event independently.
+//
+// ⚠️ MEASURED: when a scheduled command throws, `ScheduleRunCommand` catches it, dispatches
+// `ScheduledTaskFailed` (nothing in app/ listens) and calls `$handler->report($e)` — so exactly ONE
+// error log line is written. `schedule:run` still exits 0, this heartbeat still beats, the dead-man's
+// ping still fires and /up/liveness still returns 200. A heartbeat that beats through failure certifies
+// only that the beater ran.
+//
+// ⛔ CLOSING THAT IS A FOUNDER DECISION, deliberately not taken here: an `->onFailure()` hook on each of
+// the nine (pinging the same dead-man's-switch on a /fail endpoint), or log-based alerting.
 // ─────────────────────────────────────────────────────────────────────────────────────────────────
 Schedule::call(fn () => Heartbeat::beat(Heartbeat::SCHEDULER))
     ->everyMinute()

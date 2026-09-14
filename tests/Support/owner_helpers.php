@@ -41,6 +41,34 @@ if (! function_exists('ownUnit')) {
     }
 }
 
+if (! function_exists('ownerActor')) {
+    /**
+     * A portal user who IS the given owner (`owners.user_id`), so an owner-scoped read sees THAT owner's data.
+     *
+     * ⚠️ WHY THIS EXISTS (audit E-1 follow-up, 2026-08-29). Several fixtures attributed their data to an owner
+     * built by {@see ownUnit()} — which creates an Owner with NO user — and then acted as `ownerRoleUser()`,
+     * which mints a SECOND owner and reassigns the unit to it. The acting user therefore owned the UNIT but not
+     * the LEDGER DATA, and the assertions only passed because OwnerScope fell open on the
+     * `Livewire::actingAs()->test()` path (which, like /livewire/update, runs no route middleware).
+     * Now that the scope holds on every path, the fixture has to say what it always meant: act as the owner who
+     * actually owns the data. The assertions are untouched — only the fixture's world is corrected.
+     */
+    function ownerActor(Owner $owner, array $scenario): User
+    {
+        $user = User::factory()->create(['name' => 'Olive Owner', 'status' => 'active']);
+
+        Membership::create([
+            'organization_id' => $scenario['org']->id,
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $owner->forceFill(['user_id' => $user->id])->save();
+
+        return $user;
+    }
+}
+
 if (! function_exists('postRoom')) {
     /** Open a folio and post the lump room charge (how BookingEngineService posts room revenue). */
     function postRoom(Reservation $reservation, int $minor): void

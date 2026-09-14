@@ -234,7 +234,8 @@
                         <div class="vy-inv-lbl" x-text="nameLabel()">Owner name</div>
                         <div class="vy-inv-inwrap">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.9-3.4 3.7-5.5 7-5.5s6.1 2.1 7 5.5"/></svg>
-                            <input type="text" name="name" value="{{ old('name') }}" maxlength="120" required placeholder="Person or company">
+                            <label class="vy-sr-only" for="vy-lbl-owners-name">Person or company</label>
+                            <input id="vy-lbl-owners-name" type="text" name="name" value="{{ old('name') }}" maxlength="120" required placeholder="Person or company">
                         </div>
                         @error('name')<div class="vy-inv-help" style="color:var(--vy-accent)">{{ $message }}</div>@enderror
                     </div>
@@ -244,7 +245,8 @@
                         <div class="vy-inv-lbl">Email</div>
                         <div class="vy-inv-inwrap">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6C645F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 8l9 6 9-6"/></svg>
-                            <input type="email" name="email" value="{{ old('email') }}" maxlength="190" required placeholder="Where the invite is sent">
+                            <label class="vy-sr-only" for="vy-lbl-owners-email">Where the invite is sent</label>
+                            <input id="vy-lbl-owners-email" type="email" name="email" value="{{ old('email') }}" maxlength="190" required placeholder="Where the invite is sent">
                         </div>
                         @error('email')<div class="vy-inv-help" style="color:var(--vy-accent)">{{ $message }}</div>@enderror
                     </div>
@@ -336,6 +338,11 @@
                     {{-- actions --}}
                     <div style="display:flex;gap:10px">
                         <button type="button" class="vy-inv-cancel" @click="open = false">Cancel</button>
+                        {{-- ⚠️ RE-AUTH: this changes what a back-office principal can do. --}}
+                        <label class="vy-field-label" for="invite_pw">Confirm with your password</label>
+                        <input id="invite_pw" type="password" name="current_password" class="vy-input"
+                               autocomplete="current-password" required aria-label="Current password">
+                        @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                         <button type="submit" class="vy-inv-send">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
                             Send invite

@@ -54,7 +54,7 @@ it('DISPLAY ONLY — an absorbed refund moves no owner figure and posts no ledge
 it('the owner page renders the note, with the REAL amount and no guest data', function () {
     [$s, $owner, $reservation] = absorbedNoteScenario(5000, Payment::BORNE_BY_OPERATOR);
 
-    Livewire::actingAs(ownerRoleUser($s))
+    Livewire::actingAs(ownerActor($owner, $s))
         ->test(OwnerBookingDetail::class, ['booking' => $reservation->id])
         ->assertSee('Refunds we covered')
         ->assertSee('50.00')                                     // the REAL refund amount
@@ -64,7 +64,7 @@ it('the owner page renders the note, with the REAL amount and no guest data', fu
 it('ABSENT → SILENT — no note and no zero placeholder when nothing was absorbed', function () {
     [$s, $owner, $reservation] = absorbedNoteScenario(5000, null);   // owner-borne
 
-    Livewire::actingAs(ownerRoleUser($s))
+    Livewire::actingAs(ownerActor($owner, $s))
         ->test(OwnerBookingDetail::class, ['booking' => $reservation->id])
         ->assertDontSee('Refunds we covered');
 });
@@ -77,7 +77,7 @@ it('an OWNER-borne refund still renders as an Adjustment deduction, not as the n
         ->where('entry_type', 'adjustment')
         ->count())->toBe(1);
 
-    Livewire::actingAs(ownerRoleUser($s))
+    Livewire::actingAs(ownerActor($owner, $s))
         ->test(OwnerBookingDetail::class, ['booking' => $reservation->id])
         ->assertSee('Adjustment');
 });
@@ -88,7 +88,7 @@ it('SEVERAL refunds with a MIX of borne-by — only the absorbed ones appear', f
     $folios->refundPayment($payment, Money::of(2000, 'EUR'), 'second', null, null);                       // owner
     $folios->refundPayment($payment, Money::of(1000, 'EUR'), 'third', null, Payment::BORNE_BY_OPERATOR);  // absorbed
 
-    $response = Livewire::actingAs(ownerRoleUser($s))
+    $response = Livewire::actingAs(ownerActor($owner, $s))
         ->test(OwnerBookingDetail::class, ['booking' => $reservation->id]);
 
     $response->assertSee('30.00')->assertSee('10.00');   // both absorbed refunds listed

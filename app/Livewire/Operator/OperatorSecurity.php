@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Contracts\Auth\SocialIdentityProvider;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Livewire\Concerns\PreparesTwoFactor;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\IpAllowRule;
 use App\Models\Passkey;
 use App\Models\User;
+use App\Support\Auth\SignInCredentials;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Security\ActiveSessions;
 use Carbon\CarbonImmutable;
@@ -73,9 +75,25 @@ class OperatorSecurity extends Component
                 ])->all()
             : [];
 
+        // ⚠️ CONNECTED SIGN-IN ACCOUNTS — the user's OWN linked providers, self-only by the same user-scoped
+        //    read as passkeys above. `canUnlink` is computed HERE only so the control can explain itself; the
+        //    refusal that actually protects the account is enforced in the unlink route.
+        $connections = $user instanceof User
+            ? $user->identities()->orderBy('created_at')->get()->map(fn ($i): array => [
+                'id' => (string) $i->getKey(),
+                'provider' => (string) $i->provider,
+                'email' => (string) ($i->provider_email ?? ''),
+                'last_used' => $i->last_used_at !== null ? CarbonImmutable::parse($i->last_used_at)->diffForHumans() : 'not used yet',
+                'can_unlink' => SignInCredentials::mayUnlink($user, (string) $i->getKey()),
+            ])->all()
+            : [];
+
         return view('livewire.operator.operator-security', [
             'viewer' => $this->viewer(),
             'passkeys' => $passkeys,
+            'connections' => $connections,
+            'socialEnabled' => app(SocialIdentityProvider::class)->enabled(),
+            'hasPassword' => $user instanceof User && $user->hasPassword(),
             'twoFactor' => $this->twoFactorPanel('app.security.2fa'),
             'sessions' => $sessions,
             'trusted' => $trusted,

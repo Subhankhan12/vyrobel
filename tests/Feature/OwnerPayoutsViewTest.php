@@ -167,7 +167,7 @@ it('saves payout preferences for a co-owner and refuses a non-payout role', func
     $a = payoutOwner($s, 0, 20000);
 
     // Co-owner (primary) saves — the row persists (mutation-proven).
-    $this->actingAs($a['user'])->post(route('owner.payouts.preferences'), [
+    $this->actingAs($a['user'])->post(route('owner.payouts.preferences'), ['current_password' => 'password',
         'frequency' => 'twice_monthly', 'payout_day' => 2, 'minimum' => '500', 'paused' => '1',
     ])->assertRedirect();
 

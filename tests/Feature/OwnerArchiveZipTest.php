@@ -155,6 +155,8 @@ it('gives an accountant the same archive whether or not a payout account exists'
 
     // The owner adds a real payout account — an IBAN now exists to leak.
     $this->actingAs($a['user'])->post(route('owner.payout-method'), [
+        // ⚠️ FIXTURE ONLY — payout-destination re-auth. The ZIP-parity claim below is untouched.
+        'current_password' => 'password',
         'label' => 'Main', 'account_holder' => 'Amara Okafor',
         'iban' => 'PT50000201231234567890154', 'currency' => 'EUR',
     ]);

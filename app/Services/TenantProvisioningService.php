@@ -9,7 +9,9 @@ use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Property;
+use App\Models\Scopes\OrganizationScope;
 use App\Models\User;
+use App\Models\UserIdentity;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -62,13 +64,14 @@ final class TenantProvisioningService
      * + rate-limits + guards enumeration); this service owns only the atomic write.
      *
      * @param  array{name: string, country?: ?string, currency?: string}  $organization
-     * @param  array{name: string, email: string, password: string}  $founder
+     * @param  array{name: string, email: string, password: ?string}  $founder
+     * @param  array{provider: string, provider_user_id: string, email?: string}|null  $identity
      * @param  array{name: string, type: string, location?: ?string, timezone?: ?string}  $property
      * @return array{organization: Organization, user: User, property: Property}
      */
-    public function provision(array $organization, array $founder, array $property): array
+    public function provision(array $organization, array $founder, array $property, ?array $identity = null): array
     {
-        return DB::transaction(function () use ($organization, $founder, $property): array {
+        return DB::transaction(function () use ($organization, $founder, $property, $identity): array {
             $currency = strtoupper((string) ($organization['currency'] ?? 'EUR'));
 
             // ① PRE-TENANT — create the org with no tenant/permission context (chicken-and-egg escape).
@@ -87,14 +90,36 @@ final class TenantProvisioningService
             $this->provisioner->provision($org);
 
             // ③ Inside the new org's context: founder + membership + role + first property.
-            return $this->tenant->forOrganization($org->id, function () use ($org, $founder, $property, $currency): array {
-                $user = User::create([
+            return $this->tenant->forOrganization($org->id, function () use ($org, $founder, $property, $currency, $identity): array {
+                // ⚠️ THE PASSWORD IS OPTIONAL, AND ABSENT IS NOT THE SAME AS EMPTY. A founder who signed up
+                //    through a provider has no password at all; the key is omitted so the nullable column
+                //    takes NULL rather than a hash of nothing. See docs/PASSWORDLESS-GATE.md — an empty hash
+                //    denies every guess exactly as null does, but only null reads as "there isn't one".
+                $attributes = [
                     'name' => $founder['name'],
                     'email' => $founder['email'],
-                    'password' => $founder['password'],   // hashed by the 'hashed' cast
                     'status' => 'active',
                     'locale' => 'en',
-                ]);
+                ];
+
+                if (($founder['password'] ?? null) !== null) {
+                    $attributes['password'] = $founder['password'];   // hashed by the 'hashed' cast
+                }
+
+                $user = User::create($attributes);
+
+                // ⚠️⚠️ THE PROVIDER LINK IS PART OF THE SAME TRANSACTION. If it could not be written, the
+                //    organisation must not exist either: a founder with no password and no link would be an
+                //    organisation nobody can sign in to, provisioned successfully.
+                if ($identity !== null) {
+                    UserIdentity::create([
+                        'user_id' => $user->id,
+                        'provider' => $identity['provider'],
+                        'provider_user_id' => $identity['provider_user_id'],
+                        'provider_email' => $identity['email'] ?? $founder['email'],
+                        'last_used_at' => now(),
+                    ]);
+                }
 
                 Membership::create([
                     'organization_id' => $org->id,
@@ -111,7 +136,14 @@ final class TenantProvisioningService
                     'name' => $property['name'],
                     // Property slug is the PUBLIC storefront identifier (/book/{slug}) — unique GLOBALLY, so
                     // the check drops the tenant scope (a fresh org has none of its own yet anyway).
-                    'slug' => $this->uniqueSlug(Property::query()->withoutGlobalScopes(), Str::slug($property['name']) ?: 'property'),
+                    'slug' => $this->uniqueSlug(
+                        // ⚠️ `withTrashed()` IS THE POINT HERE, and it is now said out loud. `properties.slug`
+                        //    carries a UNIQUE index that a soft-deleted row STILL OCCUPIES, so a slug check
+                        //    that hid archived rows would pick a slug the INSERT then rejects — and would
+                        //    hand an archived property's public URL to a different property.
+                        Property::query()->withoutGlobalScopes([OrganizationScope::class])->withTrashed(),
+                        Str::slug($property['name']) ?: 'property',
+                    ),
                     'type' => $property['type'],
                     'currency' => $currency,
                     'timezone' => $property['timezone'] ?? 'UTC',

@@ -53,7 +53,7 @@ it('invites an owner: pending owner + invited login + email, all tenant-scoped',
     $s = seedScenario(1);
     $op = operatorFor($s);
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Marisol Vaz',
         'email' => 'marisol@example.test',
         'role' => 'owner',
@@ -84,7 +84,7 @@ it('drops a unit id belonging to another org from the assignment', function () {
     $s = seedScenario(1);                 // context now org A
     $op = operatorFor($s);
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'A Owner',
         'email' => 'aowner@example.test',
         'role' => 'owner',
@@ -106,7 +106,7 @@ it('rejects an unknown role with a validation error and creates no invite', func
     $s = seedScenario(1);
     $op = operatorFor($s);
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Nope',
         'email' => 'nope@example.test',
         'role' => 'wizard',   // not owner|manager|accountant
@@ -121,7 +121,7 @@ it('surfaces a graceful error (not a crash) when the email is already an active 
     $op = operatorFor($s);
     User::factory()->create(['email' => 'taken@example.test', 'status' => 'active']);
 
-    $this->actingAs($op)->post('/app/owners/invite', [
+    $this->actingAs($op)->post('/app/owners/invite', ['current_password' => 'password',
         'name' => 'Taken',
         'email' => 'taken@example.test',
         'role' => 'owner',

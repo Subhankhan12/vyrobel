@@ -48,9 +48,20 @@ class ChangePasswordController extends Controller
         /** @var User $user */
         $user = $request->user();   // SELF only — never a request-supplied id.
 
-        $request->validate([
+        // ⚠️⚠️ THE CONFIRMATION IS REQUIRED WHENEVER THERE IS A PASSWORD TO CONFIRM WITH — and the rule
+        //    itself is UNCHANGED. An account with no password (a future social signup; the schema now
+        //    permits it) has nothing to verify against: `Hash::check(x, null)` is false, so demanding it
+        //    would make setting a first password impossible and the lockout permanent.
+        //    ⚠️ THIS IS NOT A WEAKENING. For every account that HAS a password the rule is exactly as it
+        //    was, and a passwordless user reaches here only on their OWN authenticated session, setting
+        //    their OWN first credential — there is no other secret they could be asked for.
+        $confirmation = $user->hasPassword()
             // 🔒 verified against the authenticated user's real hash BEFORE any change (anti-hijack guard).
-            'current_password' => ['required', 'current_password'],
+            ? ['required', 'current_password']
+            : ['prohibited'];
+
+        $request->validate([
+            'current_password' => $confirmation,
             // The same rule set as PasswordResetController::reset — length + confirmation.
             'password' => ['required', 'confirmed', PasswordRule::defaults()],
         ]);

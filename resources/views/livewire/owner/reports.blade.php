@@ -51,7 +51,11 @@
         .vy-rep-exttl { font-size:13px; font-weight:500; }
         .vy-rep-exsub { font-size:11px; color:var(--vy-faint); margin-top:1px; }
 
-        .vy-rep-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:20px; }
+        /* ⚠️ `minmax(0, …)`, not a bare `1fr` — that `auto` minimum is a min-content floor the tracks
+           cannot shrink below, and it was 113px of sideways scroll at 375px. The band then steps down
+           the way the shell's `.vy-kpi-grid` family does rather than staying 3-up on a phone. */
+        .vy-rep-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-bottom:20px; }
+        @media (max-width:640px) { .vy-rep-kpis { grid-template-columns:minmax(0,1fr); } }
         .vy-rep-kpi-val { font-family:var(--vy-display); font-weight:600; font-size:30px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
         .vy-rep-kpi-delta { font-size:13px; font-weight:500; color:var(--vy-accent-text); }
         .vy-rep-kpi-note { font-size:12px; color:var(--vy-faint); }
@@ -60,6 +64,30 @@
         @media (max-width:1040px) { .vy-rep-cols { grid-template-columns:1fr; } }
 
         .vy-rep-chart { display:flex; align-items:flex-end; gap:10px; height:164px; margin-top:6px; }
+        /* ⚠️ THE LAST 2px. Each bar's value label is `position:absolute; left:0; right:0` centred over
+           its column with `white-space: nowrap`, so on a phone — twelve columns in ~300px — a label wider
+           than its own column overflows it EQUALLY on both sides. Eleven of those bleeds land on a
+           neighbouring column and are invisible; the twelfth lands past the card and is 2px of pushable
+           page.
+           ⚠️ THE FIGURES ARE NOT CLIPPED AND NOT SHRUNK. Clipping would cut a digit off a money figure
+           and truncation would be worse than the overflow. The row is simply given the small inset the
+           outermost labels were already using, so the bleed has somewhere to land inside the card. */
+        /* ⚠️⚠️ THE LAST 13px, AND IT IS THE SAME TWO-PART LESSON THIS FILE'S SHELL ALREADY WRITES DOWN
+           (owner.blade.php:800): the container floor and the ITEM floor are different things.
+           `.vy-rep-bar-col` is `flex: 1` with `min-width: auto` — a content-based floor set by the month
+           label — so twelve columns refused to shrink below their labels and the row stayed wider than
+           the card. Relaxing the columns is what actually clears it.
+           ⚠️ AND THEN THE LABELS THEMSELVES. Both the month name and the value above each bar are
+           CENTRED and `nowrap`, so a label wider than its own ~24px column bleeds equally past both its
+           edges; eleven of those bleeds land on a neighbour and are invisible, the twelfth lands past the
+           card. They are stepped down a size on a phone rather than clipped or truncated — every month
+           and every figure stays completely readable, which on a money surface is the point. */
+        @media (max-width:860px) {
+            .vy-rep-bar-col { min-width:0; }
+            .vy-rep-bar-label { font-size:8.5px; }
+            .vy-rep-bar-val .txt { font-size:8.5px; }
+            .vy-rep-chart { gap:6px; padding-left:6px; padding-right:6px; }
+        }
         .vy-rep-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; }
         .vy-rep-bar-area { position:relative; width:100%; height:120px; }
         .vy-rep-bar-prior { position:absolute; left:8%; right:8%; bottom:0; border-radius:6px 6px 0 0; background:rgba(120,70,40,.07); border:1px dashed rgba(120,70,40,.32); border-bottom:none; }
@@ -77,7 +105,11 @@
         .vy-rep-perf-stat { text-align:right; }
         .vy-rep-perf-stat .k { font-size:10px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--vy-faint); }
         .vy-rep-perf-stat .v { font-family:var(--vy-display); font-weight:600; font-size:15px; font-variant-numeric:tabular-nums; margin-top:2px; }
-        .vy-rep-urow { display:grid; grid-template-columns:1.5fr .8fr .9fr 1fr 1.1fr; align-items:center; gap:14px; padding:12px 10px; margin:0 -10px; border-top:1px solid var(--vy-hairline); font-size:13px; }
+        /* ⚠️ The same bare-`1fr` floor, five tracks of it. These rows are FIGURES (nights · occupancy ·
+           net · share) with no control in them, so they keep their columns and simply narrow — the unit
+           name in the first track wraps. Not a scroll wrapper: the header row above is a separate element
+           and a scroller around one but not the other would slide the columns out of alignment. */
+        .vy-rep-urow { display:grid; grid-template-columns:1.5fr .8fr .9fr 1fr 1.1fr; grid-template-columns:minmax(0,1.5fr) minmax(0,.8fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,1.1fr); align-items:center; gap:14px; padding:12px 10px; margin:0 -10px; border-top:1px solid var(--vy-hairline); font-size:13px; }
         .vy-rep-urow.head { border-top:none; padding-bottom:8px; font-size:10px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--vy-faint); }
         .vy-rep-urow .rt { text-align:right; font-variant-numeric:tabular-nums; }
         .vy-rep-uname { font-size:13.5px; font-weight:500; }
@@ -106,6 +138,13 @@
 
         .vy-rep-hero { position:relative; }
         .vy-rep-hero-glow { position:absolute; inset:-30px -28px -34px; background:radial-gradient(ellipse at 50% 55%, rgba(232,112,58,.38), transparent 70%); filter:blur(26px); pointer-events:none; }
+        /* ⚠️ THE LAST 13px, AND IT IS DECORATION — the THIRD instance of this exact shape, after
+           `.vy-tonight-glow` (operator shell) and `.vy-ov-payout-halo` (owner shell): an absolutely
+           positioned, `pointer-events: none` blur that bleeds ~28px past its card on each side. Harmless
+           in a wide column, 13px of pushable page at 375px. Contained, not removed.
+           ⚠️ MUST SIT AFTER the rule above, not before it: `inset` sets `left`/`right`, the selectors have
+           equal specificity, so source order is the only thing that decides which wins. */
+        @media (max-width:860px) { .vy-rep-hero-glow { left:0; right:0; } }
         .vy-rep-hero-card { position:relative; background:var(--vy-grad-dark); border-radius:20px; box-shadow:var(--vy-shadow-dark); padding:20px; color:#fff; }
         .vy-rep-hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#B9ABA0; margin-bottom:12px; }
         .vy-rep-hero-fig { font-family:var(--vy-display); font-weight:600; font-size:28px; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }

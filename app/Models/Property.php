@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Jobs\Billing\SyncSubscriptionQuantityJob;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\HasAmenities;
 use App\Models\Concerns\HasDocuments;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
 use App\Models\Concerns\HasTags;
+use App\Support\Billing\BillableUnits;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -107,6 +109,38 @@ class Property extends Model
     public function roomTypes(): HasMany
     {
         return $this->hasMany(RoomType::class);
+    }
+
+    /**
+     * ⚠️⚠️ THE BILLING CHOKE POINT FOR AN ARCHIVE (2026-09-01) — the companion to {@see Unit::booted()}.
+     *
+     * {@see BillableUnits::count()} excludes units on a soft-deleted property, so
+     * archiving one CHANGES the billable quantity. ⚠️ But archiving touches only THIS row — every unit is left
+     * exactly as it was — so not one of `Unit`'s model events fires, and without this hook the count would move
+     * while Stripe was never told: the F3 defect reappearing one table over.
+     *
+     * ⚠️ `restored` IS HOOKED TOO, though no in-product restore path exists today (removal is cancellable before
+     * it runs, and irreversible after). It costs one line and makes the pair correct by construction rather than
+     * by the current absence of a caller — which is precisely the assumption that produced the original gap.
+     *
+     * ⚠️ IT MUST WORK FROM THE NIGHTLY COMMAND. `PropertyRemovalService::processDue()` archives from
+     * `properties:process-removals` with no request at all, inside `TenantContext::forOrganization()`. The job
+     * carries a scalar org id and establishes its own context, so it does not depend on an ambient one — and a
+     * nightly run archiving several properties for one org collapses to a single sync on a real queue, because
+     * the job is unique-until-processing per organization.
+     */
+    protected static function booted(): void
+    {
+        $syncBilling = function (self $property): void {
+            $organizationId = $property->organization_id;
+
+            if ($organizationId !== '') {
+                SyncSubscriptionQuantityJob::dispatch($organizationId);
+            }
+        };
+
+        static::deleted($syncBilling);
+        static::restored($syncBilling);
     }
 
     public function units(): HasMany

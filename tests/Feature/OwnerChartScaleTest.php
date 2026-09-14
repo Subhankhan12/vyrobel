@@ -50,9 +50,9 @@ function ownerWithMonths(array $scenario, array $netsMinor, ?int $goalMinor): Ow
 it('scales the bars to the real data, not to an out-of-reach goal', function () {
     $s = seedScenario(1);
     // A goal ~7x the best month — the demo's own shape before the fix.
-    ownerWithMonths($s, [40000, 60000, 88560], 600000);
+    $owner = ownerWithMonths($s, [40000, 60000, 88560], 600000);
 
-    $series = Livewire::actingAs(ownerRoleUser($s))->test(OwnerDashboard::class)->viewData('series');
+    $series = Livewire::actingAs(ownerActor($owner, $s))->test(OwnerDashboard::class)->viewData('series');
 
     $pcts = array_column($series['bars'], 'pct');
 
@@ -63,9 +63,9 @@ it('scales the bars to the real data, not to an out-of-reach goal', function () 
 
 it('says so when the goal sits above the plotted range, rather than implying proximity', function () {
     $s = seedScenario(1);
-    ownerWithMonths($s, [40000, 88560], 600000);
+    $owner = ownerWithMonths($s, [40000, 88560], 600000);
 
-    $goal = Livewire::actingAs(ownerRoleUser($s))->test(OwnerDashboard::class)->viewData('series')['goal'];
+    $goal = Livewire::actingAs(ownerActor($owner, $s))->test(OwnerDashboard::class)->viewData('series')['goal'];
 
     expect($goal['above_range'])->toBeTrue()
         ->and($goal['display'])->toContain('6,000.00');   // the REAL figure is still stated
@@ -74,9 +74,9 @@ it('says so when the goal sits above the plotted range, rather than implying pro
 it('keeps the goal inside the chart when it is genuinely within reach', function () {
     $s = seedScenario(1);
     // A goal BELOW the best month — it must plot normally, not be flagged.
-    ownerWithMonths($s, [40000, 88560], 50000);
+    $owner = ownerWithMonths($s, [40000, 88560], 50000);
 
-    $goal = Livewire::actingAs(ownerRoleUser($s))->test(OwnerDashboard::class)->viewData('series')['goal'];
+    $goal = Livewire::actingAs(ownerActor($owner, $s))->test(OwnerDashboard::class)->viewData('series')['goal'];
 
     expect($goal['above_range'])->toBeFalse()
         ->and($goal['pct'])->toBeLessThan(100)
@@ -85,8 +85,8 @@ it('keeps the goal inside the chart when it is genuinely within reach', function
 
 it('renders no goal line at all when the owner has set no target', function () {
     $s = seedScenario(1);
-    ownerWithMonths($s, [40000, 88560], null);
+    $owner = ownerWithMonths($s, [40000, 88560], null);
 
     // Never a fabricated goal (#39).
-    expect(Livewire::actingAs(ownerRoleUser($s))->test(OwnerDashboard::class)->viewData('series')['goal'])->toBeNull();
+    expect(Livewire::actingAs(ownerActor($owner, $s))->test(OwnerDashboard::class)->viewData('series')['goal'])->toBeNull();
 });

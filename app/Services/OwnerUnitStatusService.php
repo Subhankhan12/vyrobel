@@ -41,6 +41,30 @@ class OwnerUnitStatusService
         $this->setActive($unit, true, 'owner.unit_resumed', $actorId);
     }
 
+    /**
+     * ⚠️ THE OPERATOR'S ENTRANCE TO THE SAME MECHANISM (F-6). An operator could create a unit and never take
+     * it out of service: no update route, no delete route, no Livewire action — while this service already
+     * removed a unit's capacity correctly for OWNERS. Rather than write a second `is_active` writer, both
+     * realms now share this one: the availability recompute, the idempotent no-op and the audit row are
+     * defined once and cannot drift (§N.8f).
+     *
+     * ⚠️ THE EVENT NAME IS THE ONLY DIFFERENCE, and it is not cosmetic — recording an operator's action as
+     * `owner.unit_paused` would put the wrong realm in the trail that FIX 05 built to answer "who did this".
+     *
+     * ⚠️ SCOPE IS THE CALLER'S JOB, unchanged: the owner path resolves the unit under OwnerScope, the
+     * operator path under the tenant scope. This method adds no scoping of its own and removes none.
+     */
+    public function deactivateByOperator(Unit $unit, ?string $actorId = null): void
+    {
+        $this->setActive($unit, false, 'unit.deactivated', $actorId);
+    }
+
+    /** The operator's resume — see {@see deactivateByOperator()}. */
+    public function reactivateByOperator(Unit $unit, ?string $actorId = null): void
+    {
+        $this->setActive($unit, true, 'unit.reactivated', $actorId);
+    }
+
     private function setActive(Unit $unit, bool $active, string $event, ?string $actorId): void
     {
         if ((bool) $unit->is_active === $active) {
@@ -57,6 +81,18 @@ class OwnerUnitStatusService
             $today->copy()->addDays(self::WINDOW_DAYS)->toDateString(),
         );
 
-        $this->audit->record($event, $unit, ['is_active' => ! $active], ['is_active' => $active]);
+        // ⚠️ `$actorId` WAS ACCEPTED AND THEN DROPPED — found while wiring the operator entrance (F-6). The
+        // recorder falls back to auth()->user(), which resolves over HTTP, so the trail was correct for both
+        // realms' real callers; but a job or console caller passing an actor explicitly would have written a
+        // NULL actor, which is precisely what FIX 05 established closes nothing. Passing it through costs a
+        // line and makes the parameter mean what its name says.
+        $this->audit->record(
+            $event,
+            $unit,
+            ['is_active' => ! $active],
+            ['is_active' => $active],
+            actorType: $actorId !== null ? 'user' : null,
+            actorId: $actorId,
+        );
     }
 }

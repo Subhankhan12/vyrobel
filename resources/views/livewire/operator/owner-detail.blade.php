@@ -25,7 +25,7 @@
 
      RAW-BLADE RULE: never write `word@directive` — Blade's \B guard would ship the raw source to the
      page as ordinary text. Every `@` below follows a space, a newline or a tag. --}}
-<div x-data="{ editOpen: false, removeOpen: false }">
+<div x-data="{ editOpen: false, removeOpen: false, closeOpen: false }">
     <x-operator.shell active="owners" :title="$owner['name']"
         :subtitle="$owner['type_label'] . ' · Paid in ' . $owner['payout_currency']" :viewer="$viewer">
 
@@ -161,7 +161,7 @@
                                     <label style="font-size:12px;color:var(--vy-muted)">Room type
                                         <select name="room_type_id" class="vy-input" required>@foreach ($roomTypes as $rt)<option value="{{ $rt['id'] }}">{{ $rt['name'] }}</option>@endforeach</select>
                                     </label>
-                                    <label style="font-size:12px;color:var(--vy-muted)">Proposed nightly rate (€)<input type="text" name="rate" class="vy-input" placeholder="185" required></label>
+                                    <label style="font-size:12px;color:var(--vy-muted)">Proposed nightly rate ({{ $rateCurrencySymbol }})<input type="text" name="rate" class="vy-input" placeholder="185" required></label>
                                     <label style="font-size:12px;color:var(--vy-muted)">Weekend uplift %<input type="text" name="weekend_uplift" class="vy-input" placeholder="optional"></label>
                                     <label style="font-size:12px;color:var(--vy-muted)">Min stay<input type="text" name="min_stay" class="vy-input" placeholder="optional"></label>
                                     <label style="font-size:12px;color:var(--vy-muted)">From<input type="date" name="from_date" class="vy-input" value="{{ now()->toDateString() }}" required></label>
@@ -176,12 +176,31 @@
                             <div class="vy-unit-row">
                                 <div>
                                     <div class="vy-um-name">{{ $p['room_type'] }} · {{ $p['summary'] }}</div>
-                                    <div class="vy-um-sub">Status: {{ ucfirst($p['state']) }}</div>
+                                    {{-- ⚠️⚠️ THE COUNTER REACHES THE SCREEN (audit M-14 · F1). This line read only
+                                         "Status: Countered" while the headline above showed the operator's OWN ask —
+                                         a stale number rendered confidently beside a label saying it was superseded. --}}
+                                    <div class="vy-um-sub">
+                                        Status: {{ ucfirst($p['state']) }}
+                                        @if ($p['countered'])
+                                            · owner countered at <strong>{{ $p['counter'] }}</strong> (you proposed {{ $p['proposed'] }})
+                                        @endif
+                                    </div>
                                 </div>
                                 @if ($p['pending'])
                                     <form method="POST" action="{{ route('app.rate-proposals.withdraw', $p['id']) }}" style="margin:0">
                                         @csrf
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="padding:5px 11px;font-size:11.5px">Withdraw</button>
+                                    </form>
+                                @elseif ($p['countered'])
+                                    {{-- ⚠️⚠️ THE MISSING FRONT DOOR. `app.rate-proposals.accept-counter` was built and
+                                         gated `can:rates.manage`, and NO view reached it — so the owner's counter could be
+                                         neither seen nor taken. ⚠️ MONEY PATH: accepting applies the OWNER'S rate through
+                                         the certified `RateProposalService::acceptCounter()`, which refuses a proposal that
+                                         is not countered and audits the applied figure. This adds the door, not the
+                                         permission. ⚠️ The amount is ON the button, so the decision names its own number. --}}
+                                    <form method="POST" action="{{ route('app.rate-proposals.accept-counter', $p['id']) }}" style="margin:0">
+                                        @csrf
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:5px 11px;font-size:11.5px">Accept {{ $p['counter'] }}</button>
                                     </form>
                                 @endif
                             </div>
@@ -283,7 +302,17 @@
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Statements</h2>
-                        <span class="vy-eyebrow">{{ count($statements) }}</span>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <span class="vy-eyebrow">{{ count($statements) }}</span>
+                            {{-- ⚠️ AUDIT H-2 — the front door for `app.owners.close-period`. The route, the
+                                 permission and OwnerStatementService::finalize() all existed; NO view reached
+                                 them, so outside the demo seeder no statement could be finalised and no payout
+                                 could ever be created. Gated on the SAME permission as the route
+                                 (`payouts.manage`, via $canPayout) so the control and the gate cannot diverge. --}}
+                            @if ($canPayout)
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="closeOpen = true">Close a period…</button>
+                            @endif
+                        </div>
                     </div>
                     @if (count($statements) > 0)
                         <div class="vy-utable-wrap">
@@ -326,7 +355,12 @@
                             </table>
                         </div>
                     @else
-                        <div class="vy-empty">No statements for this owner yet.</div>
+                        <div class="vy-empty">
+                            No statements for this owner yet.
+                            @if ($canPayout)
+                                <div style="margin-top:6px;font-size:12.5px">Close a period to produce the first one — a payout can only be created from a finalised statement.</div>
+                            @endif
+                        </div>
                     @endif
                 </div>
 
@@ -472,7 +506,8 @@
                     @if ($canManage)
                         <form method="POST" action="{{ route('app.owners.note', $ownerId) }}" style="margin-top: 12px;">
                             @csrf
-                            <textarea name="body" rows="2" class="vy-input" placeholder="Add an internal note…" required></textarea>
+                            <label class="vy-sr-only" for="vy-lbl-owner-detail-body">Add an internal note…</label>
+                            <textarea id="vy-lbl-owner-detail-body" name="body" rows="2" class="vy-input" placeholder="Add an internal note…" required></textarea>
                             <div style="display: flex; justify-content: flex-end; margin-top: 8px;"><button type="submit" class="vy-btn vy-btn--ghost">Add note</button></div>
                         </form>
                     @endif
@@ -521,7 +556,19 @@
                 <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">Removing {{ $owner['name'] }} means:</p>
                 <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">
                     <li>@if (count($removeUnitNames)){{ implode(', ', $removeUnitNames) }} become @else Their units become @endif unassigned — <strong>bookings stay intact</strong></li>
-                    <li>Portal access ends immediately</li>
+                    {{-- ⚠️ THIS LINE USED TO BE FALSE. It said "Portal access ends immediately" while the owner's
+                         TEAM kept theirs — measured: an active sub-user still reached /owner, and a payout-preference
+                         write still LANDED on the removed owner. Removal now cascades to the team, so the claim is
+                         true — and it is spelled out rather than merely restored, because an operator deserves to
+                         know the team goes with the owner. --}}
+                    <li>Portal access ends immediately — for {{ $owner['name'] }} <strong>and everyone on their team</strong>@if ($removeTeamCount > 0) ({{ $removeTeamCount }} {{ $removeTeamCount === 1 ? 'person' : 'people' }})@endif</li>
+                    {{-- ⚠️ THIS LINE USED TO BE TOO NARROW. It said "Anyone on the TEAM", because the sparing rule
+                         (OwnerLoginLifecycle — a login survives while the person still holds a back-office role)
+                         was applied to sub-users only; the owner's OWN login was deactivated unconditionally.
+                         That let an actor with `users.manage` but not `roles.manage` strip an org of role
+                         management by removing the owner its sole role-manager was linked to. The rule now
+                         governs both, so the copy names both. --}}
+                    <li>Anyone who also works for you — <strong>including {{ $owner['name'] }}</strong> — keeps their own login; only their access to this owner ends</li>
                     <li>All statements &amp; payout records <strong>stay archived for accounting</strong></li>
                     <li>Any scheduled final payout is honored before the account closes</li>
                 </ul>
@@ -529,12 +576,63 @@
                     @csrf
                     <label class="vy-field-label" for="conf">Type the owner's name to confirm</label>
                     <input id="conf" type="text" name="confirm_name" class="vy-input" placeholder="{{ $owner['name'] }}" autocomplete="off">
+                    {{-- ⚠️ RE-AUTH (G2): the name above is printed on this page, so a hijacked session can simply read it.
+                         The password is the factor such a session may not have. --}}
+                    <label class="vy-field-label" for="remove_owner_pw" style="margin-top:12px">Confirm with your password</label>
+                    <input id="remove_owner_pw" type="password" name="current_password" class="vy-input"
+                           autocomplete="current-password" required aria-label="Current password">
+                    @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="removeOpen = false">Keep owner</button>
                         <button type="submit" class="vy-btn vy-btn--accent" style="background: #B4400F;">Remove owner permanently</button>
                     </div>
                 </form>
                 <p style="font-size: 11px; color: var(--vy-faint); margin: 12px 0 0; text-align: center;">This can't be undone · re-adding them later starts a fresh owner record.</p>
+            </div>
+        </div>
+        @endif
+
+        {{-- ══ CLOSE A PERIOD modal (audit H-2) ══════════════════════════════════════════════════════
+             ⚠️ EVERY CLAIM BELOW WAS VERIFIED AGAINST THE CODE BEFORE IT WAS WRITTEN:
+               · finalize() sets `locked = true` and the statement cannot be edited afterwards;
+               · PeriodLockGuard marks a later line dated inside a sealed period `prior_period_adjustment`,
+                 which carries onto the NEXT statement and never touches the sealed one;
+               · the collection gate leaves uncollected revenue unclaimed for a later statement;
+               · closing does NOT pay anyone — a payout is created separately on the Payout run screen.
+             ⚠️ It deliberately promises NO timing and does not claim the owner is emailed: a notification
+             fires only when the owner has a linked user account, so the portal is the unconditional truth. --}}
+        @if ($canPayout)
+        <div x-show="closeOpen" x-cloak class="vyo-scrim" @click.self="closeOpen = false">
+            <div class="vyo-modal">
+                <h2 class="vy-card-title">Close a period for {{ $owner['name'] }}</h2>
+                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 4px 0 12px;">This finalises a statement. It cannot be undone.</p>
+                <ul style="font-size: 12.5px; color: var(--vy-ink); line-height: 1.7; padding-left: 18px; margin: 0 0 14px;">
+                    <li>The statement is <strong>sealed</strong> — its figures can no longer change</li>
+                    <li>Anything that arrives later dated inside this period becomes a <strong>prior-period adjustment</strong> on the next statement</li>
+                    <li>Revenue not yet collected from guests <strong>stays unclaimed</strong> and appears on a later statement</li>
+                    <li>{{ $owner['name'] }} can see the statement in their owner portal</li>
+                    <li><strong>Nothing is paid by this.</strong> A payout is created separately on the Payout run screen</li>
+                </ul>
+                @if ($closePeriod['lockedThrough'])
+                    <p style="font-size:12px;color:var(--vy-muted);margin:0 0 12px;">Already sealed for this owner up to <strong>{{ $closePeriod['lockedThrough'] }}</strong>.</p>
+                @endif
+                <form method="POST" action="{{ route('app.owners.close-period', $ownerId) }}">
+                    @csrf
+                    <div style="display:flex;gap:10px">
+                        <div style="flex:1">
+                            <label class="vy-field-label" for="period_start">Period start</label>
+                            <input id="period_start" type="date" name="period_start" class="vy-input" value="{{ $closePeriod['start'] }}" @if ($closePeriod['minStart']) min="{{ $closePeriod['minStart'] }}" @endif required>
+                        </div>
+                        <div style="flex:1">
+                            <label class="vy-field-label" for="period_end">Period end</label>
+                            <input id="period_end" type="date" name="period_end" class="vy-input" value="{{ $closePeriod['end'] }}" @if ($closePeriod['minStart']) min="{{ $closePeriod['minStart'] }}" @endif required>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="closeOpen = false">Cancel</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">Close period &amp; finalise statement</button>
+                    </div>
+                </form>
             </div>
         </div>
         @endif

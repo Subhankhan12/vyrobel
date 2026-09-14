@@ -12,6 +12,7 @@ use App\Support\Owner\OwnerContext;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Owner PRICING GUARDRAILS write (Owner Rates exact-match #81) — the owner saves the limits their manager
@@ -38,8 +39,13 @@ class OwnerGuardrailController extends Controller
             'ceiling' => ['nullable', 'string', 'max:12'],
         ]);
 
-        $floor = ($validated['floor'] ?? '') !== '' ? MoneyInput::toMinor($validated['floor']) : null;
-        $ceiling = ($validated['ceiling'] ?? '') !== '' ? MoneyInput::toMinor($validated['ceiling']) : null;
+        // ⚠️⚠️ THE SAME FAIL-OPEN SHAPE AS THE PAYOUT MINIMUM, on a bound whose entire job is bounding.
+        // This read `… !== '' ? MoneyInput::toMinor(…) : null`, and `toMinor()` returns NULL for anything
+        // unparseable — so a typo in the floor was stored as "no floor", and the owner was told
+        // "Guardrails saved — your manager prices within these limits." There were no limits.
+        // ⚠️ Blank still means "no bound"; a value that was TYPED and cannot be read is now a refusal.
+        $floor = $this->boundMinor($validated['floor'] ?? null, 'floor');
+        $ceiling = $this->boundMinor($validated['ceiling'] ?? null, 'ceiling');
 
         // A floor above the ceiling is nonsense — reject cleanly rather than storing a band nothing fits in.
         if ($floor !== null && $ceiling !== null && $floor > $ceiling) {
@@ -58,5 +64,30 @@ class OwnerGuardrailController extends Controller
         );
 
         return back()->with('owner_notice', 'Guardrails saved — your manager prices within these limits.');
+    }
+
+    /**
+     * A typed price bound in integer minor units — NULL only when the field was genuinely left blank.
+     *
+     * ⚠️ The distinction the old code could not make: "left blank" (no bound wanted) versus "typed and
+     * unreadable" (a bound wanted, and lost). Only the first may become NULL.
+     */
+    private function boundMinor(?string $input, string $field): ?int
+    {
+        $raw = trim((string) $input);
+
+        if ($raw === '') {
+            return null;   // no bound, deliberately
+        }
+
+        $minor = MoneyInput::toMinor($raw);
+
+        if ($minor === null) {
+            throw ValidationException::withMessages([
+                $field => 'Enter a '.$field.' above zero, e.g. 120 or 120.50 — or leave it blank for no limit.',
+            ]);
+        }
+
+        return $minor;
     }
 }

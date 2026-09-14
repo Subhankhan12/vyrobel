@@ -29,6 +29,15 @@ class InviteOwnerController extends Controller
 {
     public function store(Request $request, OwnerInviteService $invites): RedirectResponse
     {
+        // ⚠️ RE-AUTH (2026-08-30): this mints a NEW principal — `manager`/`accountant` map to real back-office
+        // roles (Hotel Manager / Accountant), so it changes who can reach the whole organisation.
+        // Bare `current_password`: /app runs on the default `web` guard (verified).
+        $request->validate(
+            ['current_password' => ['required', 'current_password']],
+            [],
+            ['current_password' => 'current password'],
+        );
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190'],

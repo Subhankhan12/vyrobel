@@ -423,6 +423,32 @@ it('⚠️ renders the REAL confirmation mail with every link defused (#33)', fu
     tbAssertNothingActionable($preview, tbPage(), 'the default stay');
 });
 
+// ══ ⚠️⚠️ F-7b — THE EMBEDDED EMAIL MAY NOT CARRY A SECOND PAGE H1 ═════════════════════════════════
+//
+// ⚠️ /try-booking inlines a COMPLETE email document, and that document opens with its own `<h1>` — correct
+// for an email, where it is the only heading. Inlined, it gave the page TWO `<h1>`s, so the page advertised
+// two subjects and a screen-reader user met "You're all set, Guest" as a peer of the page's real title.
+//
+// ⚠️⚠️ THIS ASSERTION LIVES HERE, NOT WITH THE OTHER HEADING GUARDS, AND THE REASON IS THE POINT. The
+// generic rule in `MarketingProgressiveEnhancementTest` renders the VIEW, and the sandbox only renders the
+// confirmation when a real bookable stay exists — which it does not in a bare render, nor on a plain GET of
+// the route in the test environment. So that guard came back GREEN with the fix removed: it could not see
+// the defect at all. This file already builds a real preview, so it is the only place the rule can bite.
+//
+// ⚠️ THE EMAIL TEMPLATE ITSELF IS UNTOUCHED — the demotion is applied to the EMBEDDED COPY only, so every
+// real send is byte-identical. Asserting on the template would have been the wrong layer entirely.
+it('⚠️ demotes the embedded mail’s h1 so the page keeps exactly one', function () {
+    $data = tbAssertNotVacuous();
+
+    $preview = TryBookingSandbox::confirmationPreview($data);
+    Assert::assertNotNull($preview);
+
+    // ⚠️ NOT VACUOUS: the mail's heading really is in there — it has simply stopped being an <h1>.
+    Assert::assertStringContainsString('all set', $preview, 'the preview is not showing the mail heading at all');
+    Assert::assertStringNotContainsString('<h1', $preview, 'the embedded mail still carries an <h1>');
+    Assert::assertStringContainsString('<h2', $preview, 'the mail heading was removed rather than demoted');
+});
+
 it('⚠️ keeps #33 defused on the INTERACTIVE path too, for every picked stay', function () {
     // ⚠️ THE PICKED PATH IS A NEW WAY TO REACH THE SAME RENDER — which is exactly why it needs its own
     // assertion. A defusing that only ran for the default window would leak the moment anyone picked.

@@ -11,7 +11,8 @@
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
             <div style="min-width:0">
                 <div style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-accent-text)">Receipt</div>
-                <div style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:3px">{{ $trip['property'] }}</div>
+                {{-- ⚠️ PROMOTED FROM A <div>, NOT INVENTED. This text was already the page's visible title; only its ELEMENT was wrong, so a screen reader navigating by heading found nothing on this screen. ⚠️ `margin:0` keeps the rendering byte-identical — an <h1> carries default margins a <div> does not. --}}
+                <h1 style="font-family:var(--vy-display);font-weight:700;font-size:24px;letter-spacing:-.02em;color:var(--vy-ink);margin-top:3px;margin:0">{{ $trip['property'] }}</h1>
                 <div style="font-size:12.5px;color:var(--vy-muted);margin-top:4px">{{ $trip['check_in'] }} → {{ $trip['check_out'] }}</div>
             </div>
             <div style="text-align:right;flex-shrink:0">

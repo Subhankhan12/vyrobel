@@ -254,7 +254,10 @@ it('⚠️ shows on /pricing exactly what the billing engine charges', function 
     // appearing to check the engine. Seeding makes it exercise the primary path.
     $this->seed(BillingPlanSeeder::class);
 
-    $plans = Plan::withoutGlobalScopes()
+    // ⚠️ `Plan::query()` — the SAME rows /pricing renders. `withoutGlobalScopes()` drops the
+    //    SoftDeletingScope, so this asserted the page shows plans it correctly hides (site 1 of
+    //    docs/SOFT-DELETE-SCOPE.md changed `MarketingPricing` to `Plan::query()` for exactly that reason).
+    $plans = Plan::query()
         ->where('interval', 'monthly')->where('is_active', true)->orderBy('price_minor')->get();
     Assert::assertGreaterThan(0, $plans->count(), 'no plans — this assertion would be vacuous');
 
@@ -271,7 +274,10 @@ it('⚠️ shows on /pricing exactly what the billing engine charges', function 
     }
 
     // The suffix follows the real shape — flat today, so no page may claim "per unit".
-    Assert::assertSame('/ mo', MarketingPricing::suffix());
+    // ⚠️ `suffix()` now REQUIRES the shape it is describing, because reading it catalogue-wide let ONE
+    //    per-unit plan relabel every flat card. The assertion is unchanged in meaning: with an all-flat
+    //    catalogue the shape is flat and the suffix is "/ mo".
+    Assert::assertSame('/ mo', MarketingPricing::suffix(MarketingPricing::shape()));
     Assert::assertStringNotContainsString('/ unit / mo', $html, '/pricing claims a per-unit model the engine does not run');
 
     // …and the two prices the design hard-coded must be gone from BOTH pages that carried them.

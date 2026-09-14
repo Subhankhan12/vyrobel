@@ -297,8 +297,8 @@
             @unless ($guest['anonymized'])
                 <div x-show="editOpen" x-cloak @keydown.escape.window="editOpen = false"
                      style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                    <div @click.outside="editOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;">
-                        <h2 class="vy-card-title" style="margin-bottom: 12px;">Edit profile</h2>
+                    <div @click.outside="editOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="editOpen" aria-labelledby="vy-dlg-guest-profile-editopen-1">
+                        <h2 class="vy-card-title" style="margin-bottom: 12px;" id="vy-dlg-guest-profile-editopen-1">Edit profile</h2>
                         <form method="POST" action="{{ route('app.guests.update', $guest['id']) }}">
                             @csrf
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">

@@ -262,7 +262,14 @@
         .vy-btn--accent:hover { transform: translateY(-1px); }
         .vy-btn--ghost { background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); border-color: var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
         .vy-btn--ghost:hover { background: rgba(255, 255, 255, 0.85); }
-        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-pill:focus-visible, .vy-period-btn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-pill:focus-visible, .vy-period-btn:focus-visible, .vy-mu-ac-toggle:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* ⚠️⚠️ `.vy-mu-ac-toggle` IS ADDED TO THE RULE ABOVE, NOT GIVEN ITS OWN — one definition of the
+           focus ring, so the two cannot drift apart the way two `match`es do.
+           ⚠️ AND IT HAD TO BE ADDED AT ALL, WHICH IS THE POINT. This shell's focus rule is CLASS-SCOPED,
+           not universal: it names `.vy-btn`, `.vy-nav-item`, `.vy-pill`, `.vy-period-btn` and nothing
+           else. A new `<button>` carrying any other class gets NO RING — which is exactly how the app
+           audit found 3 of 35 stops focusable but invisible. A control that can be focused invisibly is
+           unusable by keyboard even when it works. */
 
         /* A control that has no backend yet: visible, clearly non-functional, never a fake action. */
         .vy-btn.is-soon, .vy-icobtn.is-soon { opacity: .5; cursor: not-allowed; }
@@ -368,13 +375,25 @@
         .vy-empty { text-align: center; color: var(--vy-muted); padding: 40px 20px; font-size: 13.5px; }
 
         /* ---- Dashboard components (shared) --------------------------------------------------- */
-        .vy-kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        /* ⚠️⚠️ `minmax(0, 1fr)`, NOT `1fr`. A bare `1fr` is `minmax(auto, 1fr)`, and that `auto` is a
+           MIN-CONTENT FLOOR the track cannot shrink below — so this 3-up band rendered ~530-570px wide
+           inside a 375px page and pushed `/owner/expenses` (159px), `/owner/balance` (157px) and
+           `/owner/payouts` (195px) sideways. Same defect class as `.vy-shell` (operator.blade.php:1635)
+           and the marketing footer grid; this is the instance the owner shell kept.
+           ⚠️ AND IT HAD NO BREAKPOINT AT ALL — the two modifiers below each collapse on a small screen
+           and the base rule they modify never did. The two rules below mirror them exactly: 3 → 2 at the
+           `--4` breakpoint, 2 → 1 at the `--2` breakpoint, so the whole family now behaves alike.
+           ⚠️ PLACED HERE, ABOVE THE MODIFIERS, ON PURPOSE. These are single-class selectors, so source
+           order decides: a `--4` or `--2` element still matches its own later rule and is UNCHANGED. */
+        .vy-kpi-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        @media (max-width: 900px) { .vy-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 640px) { .vy-kpi-grid { grid-template-columns: minmax(0, 1fr); } }
         /* Count modifier: 4-up KPI band (opt-in — existing repeat(3) pages are untouched). */
         .vy-kpi-grid--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
         @media (max-width: 900px) { .vy-kpi-grid--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         /* Count modifier: 2-up KPI band (opt-in — 2 uniform tiles span the full band width instead of leaving an empty 3rd column). */
         .vy-kpi-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        @media (max-width: 640px) { .vy-kpi-grid--2 { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .vy-kpi-grid--2 { grid-template-columns: minmax(0, 1fr); } }
         .vy-kpi {
             background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
             -webkit-backdrop-filter: blur(22px) saturate(1.15);
@@ -464,7 +483,7 @@
 
         /* Metric row — 3 glass link-cards with a ↗ corner + optional occupancy sparkline. */
         .vy-ov-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        @media (max-width: 640px) { .vy-ov-metrics { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .vy-ov-metrics { grid-template-columns: minmax(0, 1fr); } }
         .vy-ov-metric {
             display: block; text-decoration: none; color: inherit; background: var(--vy-glass);
             backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
@@ -584,7 +603,7 @@
         .vy-mu-addbtn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--vy-r-pill); background: var(--vy-grad); border: none; color: #fff; font-family: var(--vy-sans); font-size: 13px; font-weight: 500; text-decoration: none; box-shadow: 0 6px 16px rgba(194, 65, 12, .34); transition: transform .14s ease; }
         .vy-mu-addbtn:hover { transform: translateY(-2px); }
         .vy-mu-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        @media (max-width: 640px) { .vy-mu-stats { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .vy-mu-stats { grid-template-columns: minmax(0, 1fr); } }
         .vy-mu-stat { background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px; transition: transform .14s ease, box-shadow .14s ease; }
         .vy-mu-stat:hover { transform: translateY(-2px); box-shadow: 0 18px 48px rgba(150, 90, 50, .22), inset 0 1px 0 rgba(255, 255, 255, .65); }
         /* ⚠️ The pre-AA #9C9089 logged at Owner-1 as 'carried to the My Units gate'. Measured HERE: 2.28-2.78
@@ -602,6 +621,10 @@
         .vy-mu-ac-title { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 16.5px; letter-spacing: -.01em; }
         .vy-mu-ac-count { min-width: 21px; height: 21px; padding: 0 6px; box-sizing: border-box; border-radius: 20px; background: var(--vy-grad); color: #fff; font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; box-shadow: 0 3px 9px rgba(194, 65, 12, .36); }
         .vy-mu-ac-sub { font-size: 12.5px; color: var(--vy-muted)   /* 4.13 — renders only when attention items exist */; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        /* ⚠️ This was a `<span>` STYLED as a button — a pill with a hover lift and the word "Expand"
+           inside it. It looked like the control it was not, so the affordance already existed and only
+           the ELEMENT was wrong. As a real `<button>` it needs the UA's own font and border reset. */
+        .vy-mu-ac-toggle { font: inherit; cursor: pointer; -webkit-appearance: none; appearance: none; }
         .vy-mu-ac-toggle { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 8px 15px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, .55); border: 1px solid rgba(120, 70, 40, .16); color: #7A2E08; font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: background .16s ease, transform .14s ease; }
         .vy-mu-ac-toggle:hover { background: rgba(255, 255, 255, .92); transform: translateY(-1px); }
         .vy-mu-ac-toggle svg { transition: transform .34s cubic-bezier(.22, .61, .36, 1); }
@@ -797,12 +820,56 @@
             .vy-cols { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 860px) {
-            .vy-shell { grid-template-columns: 1fr; }
-            .vy-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; }
+            /* ⚠️⚠️ `minmax(0, …)` AND `min-width: 0` — BOTH, AND THEY FIX DIFFERENT THINGS.
+               A bare `1fr` is `minmax(auto, 1fr)`, and that `auto` is a MIN-CONTENT FLOOR the track
+               cannot shrink below. ⚠️ But MEASURED at 375px the track was already 375 and it was the
+               ITEMS that overflowed it: `.vy-side` and `.vy-main` computed `min-width: auto`, so they
+               refused to shrink below their own content and rendered 985px wide inside a 375px track.
+               Fixing only the track leaves the items overflowing; fixing only the items leaves the track
+               with a min-content floor. Both, or the page stays wide.
+               ⚠️ THE DESKTOP RULE AT :129 ALREADY USES `minmax(0, 1fr)` — this only brings the phone rule
+               into line with it. Nothing above this breakpoint changes.
+               ⚠️ SAME DEFECT CLASS AS THE MARKETING FOOTER GRID (fixed 2026-09-02) — third instance of a
+               bare `1fr` min-content floor in this codebase, second in a shell. */
+            .vy-shell { grid-template-columns: minmax(0, 1fr); }
+            .vy-side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; min-width: 0; }
+            .vy-main { min-width: 0; }
             .vy-nav-group { flex-direction: row; flex-wrap: wrap; }
             .vy-nav-label { display: none; }
             .vy-main { padding: 18px 16px 48px; }
             .vy-hero-figure { font-size: 44px; }
+
+            /* ⚠️⚠️ THIS BLOCK WAS A HALF-COPY. Everything above is verbatim from the operator shell's own
+               `≤860px` block (operator.blade.php:1634) — comment included — but the copy stopped at
+               `.vy-main` and the operator block continues for another 45 lines. The four rules below are
+               the remainder, and each one was still costing an owner screen its horizontal stillness.
+
+               ⚠️ THE TOPBAR. `.vy-topbar` is `display: flex; justify-content: space-between` with no
+               `flex-wrap`, and `.vy-topbar-actions` computes `min-width: auto`, so on any page whose
+               heading is long the row simply exceeds the viewport rather than wrapping —
+               `/owner/notification-preferences` ("Notification preferences") by 36px. Wrapping is the
+               same answer the operator shell reached at :1669, and it hides nothing: no owner control is
+               removed on a phone, the row just uses a second line. */
+            .vy-topbar { flex-wrap: wrap; }
+            .vy-topbar-actions { min-width: 0; flex-wrap: wrap; }
+
+            /* ⚠️ A flex/grid child computing `min-width: auto` refuses to shrink inside a track that can.
+               Same mechanism as `.vy-main` above, one level in. (operator.blade.php:1693) */
+            .vy-stack { min-width: 0; }
+
+            /* ⚠️ A SCROLL CONTAINER MUST NOT IMPOSE ITS CONTENT'S WIDTH ON THE PAGE — a wrapper written
+               `overflow-x: auto` still sizes to its content when it is itself a grid child with an
+               `auto` minimum, so it grows the page instead of scrolling inside it.
+               (operator.blade.php:1710 — matched to the attribute because the views write it inline.) */
+            [style*="overflow-x:auto"], [style*="overflow-x: auto"] { min-width: 0; }
+
+            /* ⚠️ THE LAST 14px ON `/owner` AND `/owner/units`, AND IT IS DECORATION. `.vy-ov-payout-halo`
+               is an absolutely-positioned, `pointer-events: none` blur that deliberately bleeds 30px past
+               its card on each side. In a wide desktop column that bleed is invisible; at 375px it is
+               14px of page a thumb can push sideways. CONTAINED, NOT REMOVED — the halo still renders, it
+               just stops painting outside the viewport. Exactly what `.vy-tonight-glow` gets in the
+               operator shell (:1681), which is the same shape in the same role. */
+            .vy-ov-payout-halo { left: 0; right: 0; }
         }
 
         /* ---- Add-Unit wizard (Screen · Owner Add Unit) — .vy-au-* --------------------------------- */
@@ -932,7 +999,7 @@
         .vy-au-done-actions { display: flex; gap: 10px; margin-top: 10px; }
         .vy-au-done-actions .vy-au-cta--ghost { margin-top: 0; background: rgba(255,255,255,.6); border-color: rgba(120,70,40,.14); color: var(--vy-ink); flex: 1; }
         .vy-au-done-actions .vy-au-cta--ghost:hover { background: rgba(255,255,255,.85); color: var(--vy-ink); }
-        @media (max-width: 640px) { .vy-au-drops { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .vy-au-drops { grid-template-columns: minmax(0, 1fr); } }
 
         /* NOTE — the Owner Bookings page's exact-match components (breadcrumb, "over time" chart, the
            target ring, filters, sortable headers, pagination) are PAGE-SCOPED in
