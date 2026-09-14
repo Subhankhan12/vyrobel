@@ -78,13 +78,53 @@ REFERENCE_DATE="2026-09-01"
 EXPECTED_FULL="929 / 10928000 / 0 / 42 / 16 / 0"
 EXPECTED_INVARIANT="929 / 0 / 16 / 0"
 
+# ⚠️⚠️ SCOPED TO TENANT ONE (`vyrobel-demo`) — FIX 17, 2026-09-14. READ THIS BEFORE CHANGING IT.
+#
+# The product gained a SECOND demo organisation. That moves every GLOBAL count in this file, and there were
+# two honest responses: re-pin the six figures, or scope them to the organisation they have always described.
+#
+# ⚠️ SCOPING WAS CHOSEN, and the reason matters more than the choice:
+#   • The six figures keep their EXACT values. Fifteen audit phases and sixteen fix passes quoted
+#     `929 / 10928000 / 0 / 42 / 16 / 0`; every one of those reports stays comparable. A re-pin would make
+#     each historical quotation ambiguous — "which baseline was that?" — for no gain.
+#   • This gate's subject has always been THE PINNED DEMO MONEY, which is tenant one's. A second tenant's
+#     money has never been verified by anybody, so folding it into the assertion would make the gate assert
+#     something nobody has checked.
+#   • A re-pin is for when the guarded thing legitimately CHANGED (as `model_has_roles` 7 → 14 did, when the
+#     roles themselves changed). Tenant one's money did not change at all here; the database merely gained an
+#     unrelated neighbour. Re-baselining to accommodate a neighbour is how a gate stops meaning anything.
+#   • Scoping is strictly TIGHTER, not looser: it still fails on any change to exactly what it always guarded.
+#
+# ⚠️ THE COST, STATED PLAINLY: this gate no longer sees tenant two's money. That is deliberate — tenant two
+#   exists to make the seventeen money-write routes exercisable WITHOUT risking anything pinned. Its figures
+#   are PRINTED below as RECORDED, never asserted, so a reader can see them and never mistake them for a pin.
+#
+# ⚠️ Resolved by SLUG, not by id: organisation ids are ULIDs regenerated on every `migrate:fresh --seed`.
 MEASURE='
-    echo DB::table("rate_calendar")->count()
-        ." / ".(int) DB::table("rate_calendar")->sum("price_minor")
-        ." / ".DB::table("unit_rate_overrides")->count()
-        ." / ".DB::table("reservations")->count()
-        ." / ".DB::table("payments")->count()
-        ." / ".DB::table("rate_seasons")->count();
+    $t1 = DB::table("organizations")->where("slug", "vyrobel-demo")->value("id");
+    if ($t1 === null) { echo "NO-TENANT-ONE"; return; }
+    echo DB::table("rate_calendar")->where("organization_id", $t1)->count()
+        ." / ".(int) DB::table("rate_calendar")->where("organization_id", $t1)->sum("price_minor")
+        ." / ".DB::table("unit_rate_overrides")->where("organization_id", $t1)->count()
+        ." / ".DB::table("reservations")->where("organization_id", $t1)->count()
+        ." / ".DB::table("payments")->where("organization_id", $t1)->count()
+        ." / ".DB::table("rate_seasons")->where("organization_id", $t1)->count();
+'
+
+# RECORDED, NEVER ASSERTED — every other organisation's equivalent figures, so they are visible and cannot be
+# confused with the pin above.
+MEASURE_OTHERS='
+    $t1 = DB::table("organizations")->where("slug", "vyrobel-demo")->value("id");
+    $rows = DB::table("organizations")->where("slug", "!=", "vyrobel-demo")->get(["id","slug"]);
+    foreach ($rows as $o) {
+        echo "OTHER ".$o->slug.": "
+            .DB::table("rate_calendar")->where("organization_id",$o->id)->count()." / "
+            .(int) DB::table("rate_calendar")->where("organization_id",$o->id)->sum("price_minor")." / "
+            .DB::table("unit_rate_overrides")->where("organization_id",$o->id)->count()." / "
+            .DB::table("reservations")->where("organization_id",$o->id)->count()." / "
+            .DB::table("payments")->where("organization_id",$o->id)->count()." / "
+            .DB::table("rate_seasons")->where("organization_id",$o->id)->count().PHP_EOL;
+    }
 '
 
 ACTUAL="$(php artisan tinker --execute="${MEASURE}" 2>/dev/null | tr -d '\r' | grep -E '^[0-9]+ / ' | tail -1)"
@@ -121,6 +161,11 @@ fi
 # The four date-invariant figures, in order: rate_calendar count / overrides / payments / seasons.
 ACTUAL_INVARIANT="$(echo "${ACTUAL}" | awk -F ' / ' '{print $1" / "$3" / "$5" / "$6}')"
 
+OTHERS="$(php artisan tinker --execute="${MEASURE_OTHERS}" 2>/dev/null | tr -d '\r' | grep -E '^OTHER ' || true)"
+echo "  scope:     ⚠️ TENANT ONE (vyrobel-demo) ONLY — see the note in this file."
+if [ -n "${OTHERS}" ]; then
+  echo "${OTHERS}" | sed 's/^/             📄 RECORDED, NOT ASSERTED — /'
+fi
 echo "             (rate_calendar / SUM(price_minor) / unit_rate_overrides / reservations / payments / rate_seasons)"
 echo "  actual:    ${ACTUAL}"
 

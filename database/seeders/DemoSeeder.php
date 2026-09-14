@@ -63,6 +63,7 @@ use App\Services\ReservationCancellationService;
 use App\Services\ReviewService;
 use App\Services\ShiftRosterService;
 use App\Services\TaxRateService;
+use App\Support\Demo\DemoDataSafetyGuard;
 use App\Support\Media\PlaceholderImage;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
@@ -246,6 +247,11 @@ class DemoSeeder extends Seeder
 
     public function run(): void
     {
+        // ⚠️⚠️ Reachable directly as `db:seed --class=DemoSeeder`, which never runs DatabaseSeeder — so the
+        // refusal has to live here as well as there. See DemoDataSafetyGuard: an allow-list of development
+        // environments, because the old production-only check failed open on staging (measured).
+        DemoDataSafetyGuard::ensurePermitted((string) app()->environment(), 'the demo organisation');
+
         $tenant = app(TenantContext::class);
 
         $org = $tenant->runAsSuperAdmin(fn () => Organization::firstOrCreate(
@@ -361,6 +367,60 @@ class DemoSeeder extends Seeder
             ['status' => 'active', 'invited_at' => now()],
         );
         $housekeeper->syncRoles(['Housekeeping']);
+
+        // ══ THE REMAINING SEVEN BACK-OFFICE ROLES ══════════════════════════════════════════════════════
+        //
+        // ⚠️⚠️ SEVEN OF THE ELEVEN BACK-OFFICE ROLES HAD NO LOGIN, AND EVERY AUDIT IN THIS PROJECT WAS
+        //    BLIND TO THEM. Four were represented — Property Owner, Hotel Manager, Accountant, Housekeeping
+        //    — which are the TOP and the BOTTOM of the permission ladder. Every non-wildcard role is a
+        //    strict subset of Group Admin, and Front Desk is a strict subset of Hotel Manager, so auditing
+        //    as Hotel Manager exercises everything Front Desk may do and NOTHING Front Desk is denied. The
+        //    middle of the ladder had never been driven.
+        //
+        // ⚠️ FRONT DESK IS THE POINT. It is the role most people will use every day — check-in, check-out,
+        //    taking a payment at the desk — and it had no account, so the "19 ungated screens" census was
+        //    measured as HOUSEKEEPING, the narrowest role in the catalogue.
+        //
+        // ⚠️ SUPER ADMIN AND GUEST ARE DELIBERATELY ABSENT and are not an oversight:
+        //    • `Super Admin` is a GLOBAL, cross-tenant role. Phase 7a explicitly stopped assigning it to a
+        //      founder (RBAC defect #2); the platform realm is `PlatformAdmin`, a different table and guard.
+        //      Seeding a User with it would rebuild the exact cross-tenant credential that was removed.
+        //    • `Guest` grants `guest_portal.view`, and `/guest` authenticates against the `Guest` model on
+        //      its own guard. A `User` holding it reaches nothing — it is vestigial for this realm.
+        //
+        // ⚠️ Each is a REAL role assignment on the org's spatie team (via `syncRoles` inside the org
+        //    context, exactly as the four above) plus an active Membership — which is how the team is set.
+        //    A role assignment with no team makes `can()` return FALSE for everything, which would make
+        //    every audit using these accounts wrong in the same direction.
+        //
+        // ⚠️ NONE OF THEM OWNS ANYTHING THAT EARNS. They hold no Owner record, no unit, no payout method
+        //    and no ledger line, so the money gate is untouched by their existence.
+        foreach ([
+            // The primary daily role: books, assigns, checks in and out, takes payment at the desk.
+            ['Front Desk', 'demo-frontdesk@vyrobel-demo.test', 'Marta Silva'],
+            // Runs the whole organisation: the only seeded role besides Property Owner holding users.manage.
+            ['Group Admin', 'demo-groupadmin@vyrobel-demo.test', 'Inês Carvalho'],
+            // Prices and availability: rates, restrictions, and the reports that justify them. No guest data.
+            ['Revenue Manager', 'demo-revenue@vyrobel-demo.test', 'Tomás Ribeiro'],
+            // Takes and cancels bookings over the phone. ⚠️ Can cancel where Front Desk cannot.
+            ['Reservation Agent', 'demo-agent@vyrobel-demo.test', 'Sofia Almeida'],
+            // Fixes things: work orders and the units they attach to. No money, no guests.
+            ['Maintenance', 'demo-maintenance@vyrobel-demo.test', 'Paulo Nunes'],
+            // Corporate accounts and reviews. ⚠️ Reads guests but holds no reservation permission at all.
+            ['Marketing Manager', 'demo-marketing@vyrobel-demo.test', 'Beatriz Lopes'],
+            // Answers guests after the fact: reads bookings and folios, replies to reviews. Read-only on money.
+            ['Guest Support Agent', 'demo-support@vyrobel-demo.test', 'Miguel Costa'],
+        ] as [$roleName, $email, $personName]) {
+            $member = User::firstOrCreate(
+                ['email' => $email],
+                ['name' => $personName, 'password' => Hash::make('password'), 'status' => 'active', 'email_verified_at' => now()],
+            );
+            Membership::firstOrCreate(
+                ['organization_id' => $org->id, 'user_id' => $member->id],
+                ['status' => 'active', 'invited_at' => now()],
+            );
+            $member->syncRoles([$roleName]);
+        }
 
         // --- Mixed property ---
         $property = Property::create([

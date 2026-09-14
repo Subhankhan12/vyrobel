@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Support\Demo\DemoDataSafetyGuard;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
-use RuntimeException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,12 +28,15 @@ class DatabaseSeeder extends Seeder
         // true rather than a documented hope.
         //
         // Production platform admins are created out-of-band: `php artisan admin:create`.
-        if (app()->isProduction()) {
-            throw new RuntimeException(
-                'Refusing to seed in production. These seeders create DEMO accounts with the password "password", '
-                .'including a platform super-admin. Use `php artisan admin:create` instead — see docs/DEPLOYMENT.md.'
-            );
-        }
+        // ⚠️⚠️ AN ALLOW-LIST, NOT A DENY-LIST — and the difference was MEASURED, not argued. The check here
+        // used to be `app()->isProduction()`, which compares APP_ENV to one exact string and therefore fails
+        // OPEN everywhere else. Driven against a scratch database, `APP_ENV=staging` seeded
+        // `admin@vyrobel-demo.test` with the password `password` — a platform super-admin above tenancy.
+        // `staging`, `uat`, `qa` and a typo such as `producton` all did the same.
+        //
+        // {@see DemoDataSafetyGuard} permits demo data in a NAMED development environment and nowhere else,
+        // the same inversion `StripeSafetyGuard` applies to a live Stripe key.
+        DemoDataSafetyGuard::ensurePermitted((string) app()->environment(), 'the demo database');
 
         // ⚠️⚠️ AN OPTIONAL REFERENCE DATE, FOR REPRODUCIBILITY ONLY — `VY_SEED_DATE=YYYY-MM-DD`.
         //
@@ -65,6 +68,10 @@ class DatabaseSeeder extends Seeder
             BillingPlanSeeder::class,   // the placeholder plan catalog (Phase 7b) — before the demo org's trial
             DemoSeeder::class,
             PlatformAdminSeeder::class, // Super Admin · Gate 0 — the demo platform admin (separate realm, above tenancy)
+            // ⚠️ FIX 17 — the SECOND organisation. It exists so every "tenant-scoped → cross-org 404" claim
+            //    can be DRIVEN rather than read. It carries its own DemoDataSafetyGuard call (a --class= run
+            //    never reaches this file) and touches nothing belonging to `vyrobel-demo`.
+            SecondTenantSeeder::class,
         ]);
 
         // Dev convenience only: a global platform user (not tenant data).

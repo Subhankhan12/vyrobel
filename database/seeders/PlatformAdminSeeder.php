@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\PlatformAdmin;
+use App\Support\Demo\DemoDataSafetyGuard;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -25,9 +26,11 @@ class PlatformAdminSeeder extends Seeder
         // ⚠️ Defence in depth: this seeder can be invoked on its own (`db:seed --class=PlatformAdminSeeder`),
         // so it refuses production independently of DatabaseSeeder. It mints a super-admin whose password is
         // the literal string "password", in a realm that sits ABOVE tenancy.
-        if (app()->isProduction()) {
-            throw new \RuntimeException('Refusing to seed a DEMO platform admin in production — use `php artisan admin:create`.');
-        }
+        // ⚠️⚠️ GUARDED HERE TOO, AND THAT IS THE POINT. `db:seed --class=PlatformAdminSeeder` NEVER RUNS
+        // `DatabaseSeeder`, so this class's own check is the only thing between a mistyped command and a
+        // publicly-known super-admin. That is exactly how the hole was demonstrated: calling this seeder
+        // directly with APP_ENV=staging created `admin@vyrobel-demo.test` / `password`.
+        DemoDataSafetyGuard::ensurePermitted((string) app()->environment(), 'a demo platform admin');
 
         PlatformAdmin::query()->updateOrCreate(
             ['email' => 'admin@vyrobel-demo.test'],
