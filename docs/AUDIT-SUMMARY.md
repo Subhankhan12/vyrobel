@@ -29,6 +29,13 @@ WORKFLOW, NOT A ONE-OFF STATE** — the condition was closed by one pass and reo
 ⚠️ **This document is the only record of the findings in §2b and the rulings in §4 — count them there, not
 here.** It went eight passes stale once already; §2 said "two are closed" while twenty were.
 
+⚠️⚠️ **AND SINCE FIX 48 A GUARD COUNTS THEM FOR YOU.** `AuditRegisterIsSelfConsistentTest` re-derives the
+census from §2 and §2b's rows and then fails when **any** finding-status claim anywhere under `docs/` disagrees
+with its authoritative row. **Five hand sweeps in five consecutive passes each fixed what they saw and each
+left more behind** — the last of them reported a clean sweep after correcting two of one claim's three
+surfaces. ⚠️ **A status is not a row; it is a claim with more surfaces than anyone counts.** Run the guard; do
+not sweep by eye.
+
 **Evidence tiers used throughout.** 🔬 MEASURED · 🖥 BROWSER · 📖 ASSERTED · 📄 RECORDED.
 **Only 🔬 and 🖥 were ever treated as facts.**
 
@@ -67,7 +74,7 @@ adding up their headlines — see the closure ledger.
 | ✅ **CLOSED** | **20** | F-1, F-2, F-4, F-5, F-6, F-7, F-8, F-9, F-11, F-12, F-13, F-15, F-16, F-17, F-18, F-19, F-20, F-22, F-26, F-27 |
 | ◐ **PARTLY CLOSED** | **1** | F-3 (the `public` realm closed; the **admin** realm reverted and reported as F-32 — ⚠️ **F-32 is now ACCEPTED BY RULING under R-ADMIN-COPY, established FIX 45; F-3 stays PARTIAL for the same reason**) |
 | ✅ **CLOSED (FIX 35)** | **1** | **F-23** — wired 2026-09-19 on R-GATE. The category is now EMPTY: nothing is built-but-unwired. |
-| ⛔→✅ **WAS BLOCKED; ALL FIVE RULED 2026-09-19** | **5** | ⚠️ **FIX 41 CLOSED TWO OF THESE.** **F-10 → ✅ CLOSED** (R-F10 recorded and pinned in both directions; it read ⚠️ PREMISE FAILED here for nine passes because the answer arrived after FIX 32 ended) · **F-14 → ✅ CLOSED** (R-PHANTOM: the seventeen kept, documented and pinned BY NAME) · **F-24 → ✅ CLOSED (FIX 43)** (R-ARCHIVE built: the owner is notified from the archive writer) · F-21 → **BUILD QUEUED** · F-25 → **ACCEPTED BY RULING** (the owner is deliberately not notified) |
+| ⛔→✅ **WAS BLOCKED; ALL FIVE RULED 2026-09-19** | **5** | ⚠️ **FIX 41 CLOSED TWO OF THESE.** **F-10 → ✅ CLOSED** (R-F10 recorded and pinned in both directions; it read ⚠️ PREMISE FAILED here for nine passes because the answer arrived after FIX 32 ended) · **F-14 → ✅ CLOSED** (R-PHANTOM: the seventeen kept, documented and pinned BY NAME) · **F-24 → ✅ CLOSED (FIX 43)** (R-ARCHIVE built: the owner is notified from the archive writer) · **F-21 → ✅ CLOSED (FIX 46)** (the agreed-rate disclosure now states its own scope) · F-25 → **ACCEPTED BY RULING** (the owner is deliberately not notified) |
 | | **27** | |
 
 ⚠️⚠️ **THE STATES THAT ARE NEITHER OPEN NOR CLOSED, because calling them either would be false:**
@@ -77,6 +84,14 @@ the founder weighed it and chose to leave it (F-25, F-32, F-33, F-49, F-52, F-58
 without a trigger is an acceptance wearing a different word.** F-36 is the first, and what moves it is the
 Channex cutover: its trigger lives as **A10 in `docs/GO-LIVE-REQUIREMENTS.md`**, beside the other thing that
 must be true before the channel is switched on.
+
+⚠️⚠️ **AND ⛔ OPEN IS A LIVE STATE AGAIN — FIX 48, 2026-09-19.** For one day this register had none, and
+**that zero was an artefact of where the findings were kept, not of the product**: the final verification's
+own six findings lived in `FINAL-VERIFICATION.md` §7 and in a report, and **a report is evidence ABOUT the
+repository, not the repository.** Entering them ended the zero. ⚠️ **Four rows are open: F-59, F-60, F-61,
+F-62** — one needs an enumeration, one needs a founder ruling, and two are disclosed-not-repaired. ⚠️ **None
+is a regression; every one of them was already true and simply unrecorded.** ⚠️⚠️ **A zero that survives by
+keeping findings outside the register is the most dangerous number this project can print.**
 
 ⚠️ **"Closed" means one thing here: the defect no longer reproduces, and a test fails if it returns.** It does
 not mean the surrounding area was swept. **Five of the twenty closures also produced a NEW finding** in the
@@ -117,6 +132,8 @@ code beside them (§2b) — §N.13.1's shape, holding again.
 | **FIX 29** | 2026-09-14 | F-45, F-46, F-47 | The three closures, each mutation-proven. ⚠️ **F-44 RE-GRADED 🟡→🟠 with nine further sites** — and one of them (`RatesGrid:537`) had been written **by FIX 22 while closing that very class**. Two certified tests updated to pin BOTH branches. ⚠️ Left its work uncommitted. |
 | **FIX 30** | 2026-09-19 | — | Committed FIX 29's three closures, then corrected this document where it stated what only the tree can answer. ⚠️ **Twelve stale absolutes found where three were reported**, including §8's flat *"this programme committed nothing"*. The preamble now points at `git status` instead of freezing an answer. |
 | **FIX 31** | 2026-09-19 | — | §4 rebuilt as a decision surface: thirteen rulings re-measured from the source, each given today's default and named options; R-SUSPEND, R-REVERSE and R6 transcribed in; the ladder reduced to one table. ⚠️ **R-SEASON's edit half CLOSED BY CODE**; R-RATE and R-ADMIN-COPY both smaller than recorded. |
+| ⚠️ **FIX 32 – FIX 47** | 2026-09-19 | — | ⚠️⚠️ **NOT LEDGERED — THIS TABLE STOPPED BEING MAINTAINED AFTER FIX 31 AND SIXTEEN PASSES ARE MISSING FROM IT.** They are not lost: each is recorded in the STATUS column of the finding it closed, in §2 and §2b, which is where the live record lives. ⚠️ **Noticed by FIX 48 and recorded rather than back-filled** — reconstructing sixteen rows from their findings would be a derivation nobody could check, and this row is true where sixteen invented ones would not be. |
+| **FIX 48** | 2026-09-19 | **V-1 … V-6** → F-59, F-60, F-61, F-62 | ⚠️⚠️ **THE VERIFICATION'S OWN SIX FINDINGS, ENTERED — AND THE ZERO ENDED HONESTLY.** They had lived only in `FINAL-VERIFICATION.md` §7, so *"zero open"* was true only because they were outside the register. Classified before entry: **two were record contradictions and were FIXED**, **one was an INSTRUMENT fault** and went to `INSTRUMENT-ERRORS.md` class N (it earns no finding number), and **three became rows** beside a fourth from the same document's guard table. ⚠️⚠️ **AND THE REAL DELIVERABLE IS THE GUARD:** `AuditRegisterIsSelfConsistentTest` parses every `F-<n>` mention under `docs/` and fails when one disagrees with its authoritative row. 🔬 **On its first run — before any fix — it reproduced V-1 and V-2 unaided and found THREE MORE surfaces nobody had named: five stale claims across three findings, where the verification had reported two.** ⚠️ It then caught **this pass's own prose**, twenty minutes after it was written. |
 
 ### CLOSURE LEDGER — what proved each closure
 
@@ -239,6 +256,11 @@ closure is recorded as partial.**
 | **F-38** | 🟠 MED | operator | **The rates grid labels every per-unit price in EUR, whatever the property's currency is.** 🔬 `RatesGrid::unitRows()` calls `$this->money($minor, 'EUR')` — a hardcoded literal — while the room-type row two hundred lines up correctly passes `$rate['currency']`. On the GBP tenant every per-unit nightly price renders as **€90.00** when the stored row is **GBP 9000**. ⚠️ **The amount is right and the label is wrong**, which is the dangerous direction: an operator reading €90 on a £90 room has no arithmetic cue that anything is off. ⚠️ **NOT a cross-tenant leak** — the figure is the tenant's own; it was invisible for the whole programme only because every property was EUR. | FIX 17, 2026-09-14 | ✅ **CLOSED — FIX 22, 2026-09-14.** The resolver now answers price AND currency together (`NightlyRate::forUnitWithCurrency`), so the symbol follows the same override→type precedence as the figure. 🔬 Mutation-proven in BOTH currencies |
 | **F-37** | 🟠 MED | operator | **The season APPLY dialog is clamped inside the `.vy-fade` card — FIX 02 lifted two of three dialogs out, not three.** 🖥 MEASURED (FIX 15): its overlay is a containing-block child of `div.vy-card.vy-fade` (`transform: matrix(1,0,0,1,0,0)`), so `position: fixed` resolves to the CARD, not the viewport. At **375×812 the panel lands at y=755 and runs to 1069 — off the bottom of the screen**; at 1280×900 the panel is visible but the overlay is 988×381 at (261,204) instead of covering the viewport, so the backdrop does not catch clicks outside the card. ⚠️ `editSeason` and `deleteSeason` threw `ReferenceError` and were moved out; `confirmSeason` never threw, so nothing pointed at it. ⚠️⚠️ **This is the APPLY dialog — the one that writes money.** The fix is to move it beside the other two, inside the same plain wrapper. | FIX 15, 2026-09-14 | ✅ **CLOSED (FIX 16)** — lifted out of the card, beside the two siblings FIX 02 moved. 🔬 After: overlay **375×812 @(0,0)** at every scroll offset (was 341×855 @(17,284)); panel y=20, fully visible; D2 green; the agreed-rate clause proven to FIRE and render. ⚠️ **Corrected shape: the off-screen panel is INTERMITTENT** (scroll- and content-dependent — 49px below the fold at one offset, fully visible at others); **the broken backdrop was CONSTANT**. A test asserting only "panel in viewport" would itself be flaky |
 | **F-35** | 🟡 LOW | tests | **The suite is non-hermetic.** 🔬 `Http::preventStrayRequests()` occurs **0 times** in `tests/` and `app/`. A suite that *could* reach the internet is non-hermetic whether or not it currently does. ⚠️ **This is a hardening item and was NOT the cause of anything observed** — see the process finding in §6. | the suite investigation, 2026-09-13 | ✅ **CLOSED (FIX 47) — RULED 2026-09-19: enable it.** `Http::preventStrayRequests()` now runs in `Tests\TestCase::setUp()`. ⚠️⚠️ **THE CLOSURE IS "THE `Http` FACADE IS GUARDED", NOT "THE SUITE MAKES NO OUTBOUND REQUESTS"** — the second is a bigger claim and this pass did not measure it. 🔬 **What it CANNOT see, enumerated:** **Stripe**, whose SDK transports through its own `CurlClient` (held instead by the `StripeClientInterface` seam + `FakeStripeClient` + `StripeSafetyGuard`) · a raw `curl_*` call or a directly constructed `GuzzleHttp\Client` (🔬 **neither appears in `app/` today**) · anything a queued job does in another process. ⚠️ **PROVEN ON, not assumed:** an unfaked request throws `StrayRequestException`, and with the line removed **the same request went through** — so the suite genuinely could reach the internet. ⚠️⚠️ **ZERO tests reddened, and that is a finding rather than an anticlimax:** all three facade users (`ChannexClient`, `AnthropicLlmClient`, `GoogleIdentityProvider`) already sit behind an interface seam bound to a fake, so nothing strayed — **but nothing GUARANTEED that.** A fourth facade user without a seam, or one test binding a real client, would have gone straight out. The guard makes it structural |
+| **F-59** | 🟠 MED | programme | ⚠️⚠️ **THE "17 MONEY-WRITE ROUTES" DENOMINATOR IS ENUMERATED NOWHERE, SO THE COVERAGE CLAIM BUILT ON IT CANNOT BE CHECKED.** 🔬 §5 says fourteen remain unexecuted; briefs have said ten; a router sweep finds **54** write routes touching money-adjacent concepts. **No list of the seventeen exists in any document**, so neither remainder is derivable and the set's membership rule was never written down. ⚠️ **A denominator nobody can reconstruct cannot be audited.** ⚠️ FIX 48 removed every `N of M` claim and replaced it with the RULE plus the enumerated list of what HAS been driven — the false arithmetic is gone, but the set itself is still unenumerated. | FINAL VERIFICATION **V-3**, 2026-09-19 | ⛔ **OPEN.** Closing it means enumerating the money-write routes with the rule that admits each one, and pinning that derivation — or ruling that the set is retired and coverage is stated per route. |
+| **F-60** | 🟠 MED | operator | ⚠️⚠️ **TWO RESERVATION-LADDER TRANSITIONS SHIP A DEFAULT NOBODY DECIDED.** 🔬 `STATUS-LADDERS.md` carries **R2** (`no_show → checked_in`) and **R5** (`enquiry`/`tentative` → `checked_in`) with **no ruling marker**, and neither appears in §4's answers table — while the programme's headline read *"every ruling is answered"*. ⚠️ Both are **refused** today, and R2's own row calls it *"the commonest real-world case in the list"* — a guest arriving at 01:00 after the night audit. **An unruled transition is not neutral: the product is already shipping one of the options.** | FINAL VERIFICATION **V-4**, 2026-09-19 | ⛔ **OPEN — A FOUNDER RULING, NOT WORK.** FIX 48 measured today's behaviour and costed the options (`docs/STATUS-LADDERS.md` §2a) and **deliberately did not decide**. |
+| **F-61** | 🟠 MED | instrument | ⚠️⚠️ **THE MONEY GATE AND A WALKABLE TENANT TWO ARE MUTUALLY EXCLUSIVE, AND THE COLLISION IS STRUCTURAL.** 🔬 `mode=FULL` requires seeding at `VY_SEED_DATE=2026-09-01`; tenant two is seeded with a 14-day trial, which therefore expires **2026-09-15**; at any real present date `EnsureSubscriptionActive` correctly holds its whole `/app/*` back office at the paywall. ⚠️ **Neither gate is wrong — invariant #41 is doing its job** — but the instrument that proves money now disables the instrument that proves cross-tenant operator behaviour, and **the writable tenant is the only one that may be written to**. ⚠️⚠️ **DO NOT "FIX" THIS BY EXTENDING THE TRIAL, MOVING THE CLOCK, OR RE-SEEDING AT A LATER DATE** — that is re-baselining a fixture to make a check pass. FIX 48 **disclosed** it (the gate now prints it, `KNOWN-LIMITS.md` **L8**) and repaired nothing. | FINAL VERIFICATION **V-5**, 2026-09-19 | ⛔ **OPEN — A FOUNDER CHOICE.** The two options on the record are a **disposable third tenant** or **accepting the remainder as establish-only**; neither is a session's to pick. |
+| **F-62** | 🟡 LOW | instrument | ⚠️ **THE MONEY GATE COMPARES COUNTS AND SUMS, SO AN EQUAL-AND-OPPOSITE PAIR OF ERRORS NETS TO ZERO AND PASSES.** A second, independent blindness from the tenant-one scoping already on the record: the gate asserts six aggregates, and two compensating movements inside one of them are invisible to it. ⚠️ It is **not** a claim that this has happened — it is a claim about what a green gate can and cannot mean. FIX 48 recorded it **in the gate's own header and output**, where the person who would be misled is actually reading. | FINAL VERIFICATION §5 guard table, 2026-09-19 | ⛔ **OPEN — DISCLOSED, NOT REPAIRED.** Row-level identity checking is real work with a real chance of re-baselining something by accident; it was deliberately not attempted in the pass that found it. |
+
 
 ⚠️ **F-33 is the one finding whose evidence exists in no file.** FIX 11 changed nothing, so it wrote no
 report; its 375px measurement lives only in the conversation that took it. **This row is now its only record** —
@@ -354,7 +376,8 @@ throw inside a listener (the shape FIX 14 forbade).
 
 ⚠️⚠️ **AT 375px IT IS STILL NOT VISIBLE ON ARRIVAL, AND THAT IS NOT FIXABLE HERE.** The fold is 812; the
 refund card's own TITLE renders at **904** and the content grid begins at **711**. So nothing inside this card
-can be above the fold — **F-33 exactly**, open and blocked on the mobile-navigation decision. The warning now
+can be above the fold — **F-33 exactly**, which is now ⚠️ **ACCEPTED BY RULING**: the back office is
+desktop-only by decision (`KNOWN-LIMITS.md` L7), so this is a stated limit, not a pending fix. The warning now
 sits as early in the flow as an in-flow element can: it went from **1340px below the fold to 166px below it**,
 and from 1039px *after* the first button to 269px *before* it.
 
@@ -649,8 +672,8 @@ separate named action, so a plain check-in can never silently undo a checkout �
 
 ⚠️⚠️ **ANSWERED 2026-09-19 — FIVE OF THE SIX WERE RULED IN ONE SITTING AND BUILT OR RECORDED IN FIX 46.**
 This table was written by FIX 45 to make them askable; it is kept as the record of **what was put and what was
-chosen**, with each row's outcome below it. ⚠️ **Only F-35 is still open, and it has its own pass** — its blast
-radius is unknown and its delta must be uncontaminated.
+chosen**, with each row's outcome below it. ⚠️ **F-35 is ✅ CLOSED (FIX 47)** — it had its own pass because its blast
+radius was unknown and its delta had to be uncontaminated.
 
 | finding | ruled | outcome |
 |---|---|---|
@@ -659,7 +682,7 @@ radius is unknown and its delta must be uncontaminated.
 | **F-33** | the back office is **desktop-only** | ⚠️ ACCEPTED BY RULING — `KNOWN-LIMITS.md` **L7**, with the counter-argument recorded |
 | **F-36** | **deferred** until the channel goes live | ⚠️ **DEFERRED** — trigger: **A10 in `GO-LIVE-REQUIREMENTS.md`** |
 | **F-58** | per-property visibility is **enough** | ⚠️ ACCEPTED BY RULING — and what it rests on is now pinned |
-| **F-35** | — | ⛔ **STILL OPEN — its own pass** |
+| **F-35** | **enable it** | ✅ CLOSED (FIX 47) — it had its own pass; the delta had to be uncontaminated |
 
 ⚠️ **The options as they were put are kept below.** They were re-measured from the code before being offered,
 which is why two of them moved: F-21 had TWO limits where its row recorded one, and F-44 had twelve sites
@@ -747,9 +770,23 @@ risking anything pinned, because tenant two's money is nobody's baseline:
   a fixture. ⚠️ **THE GENERAL LESSON: rebuilding as a restore erases the upstream state the NEXT cluster
   needs.** A pass that rebuilds pays for it two passes later.
 
-* **The 17 money-write routes** — ⚠️ **THREE are now exercised**: the **refund** (FIX 18), the **season apply**
-  (FIX 20) and **statement finalization** (FIX 21), all in tenant two. **Fourteen remain never executed**; each
-  needs its own pass and its own brief.
+* ⚠️⚠️ **THE MONEY-WRITE ROUTES — AND THE DENOMINATOR IS UNKNOWN, SO THIS LINE STATES THE RULE AND NOT A
+  FRACTION (F-59).** ⚠️ It read *"3 of 17 exercised, fourteen remain"*; briefs read *"ten remain"*. 🔬 **No list
+  of the seventeen exists in any document**, and a router sweep finds **54** write routes touching
+  money-adjacent concepts — so "17" was a curated subset whose membership rule was never written down, and
+  **neither remainder was ever derivable.** ⚠️ **A fraction whose denominator nobody can reconstruct is not a
+  coverage measurement**, so it has been removed rather than corrected.
+
+  ⚠️ **THE RULE THAT REPLACES IT: a money-write route counts as EXERCISED only when a pass DROVE it and
+  recorded the row it wrote. Everything else is read, not run** — and reading is 📖, which this programme has
+  already been burned by once (`reverse()` travelled as a measurement through four briefs and held two HIGH
+  defects the first time anybody ran it).
+
+  🔬 **DRIVEN, each with the pass that drove it, all in tenant two:** the **refund** (FIX 18) · the **season
+  apply** (FIX 20) · **statement finalization** (FIX 21) · and **two clusters of unstated size** (FIX 27,
+  FIX 28) whose membership was never written down either. ⚠️ **`payouts/create` and `payouts/pay` are blocked
+  STRUCTURALLY**, not merely unscheduled — they need a finalized statement, and `migrate:fresh --seed` erases
+  tenant two every pass. **Everything not on that list is unexercised.**
 * ⚠️ **The "a booked stay keeps the price it was booked at" claim is CLOSED.** Asserted in copy and proven only
   from the schema for twenty passes; FIX 20 could not test it (no stay overlapped its range). 🔬 A statement
   period containing a booked stay was finalized and `reservation_units.price_minor` was **27,000 before and
@@ -778,13 +815,24 @@ risking anything pinned, because tenant two's money is nobody's baseline:
 **Unchanged and still untestable here:** anything needing a real card, device, provider or proxy; the
 authenticated platform-admin realm.
 
+⚠️⚠️ **AND SINCE 2026-09-15 THE BROWSER TIER IS STRUCTURALLY NARROWER THAN IT WAS — F-61, added FIX 48.**
+🔬 `mode=FULL` requires seeding at the money gate's reference date `2026-09-01`; tenant two is seeded with a
+**14-day trial**, so that seed expires it on **2026-09-15**. At any real present date `EnsureSubscriptionActive`
+correctly holds **every** tenant-two `/app/*` route at `/app/billing`. ⚠️ **Both gates are right — invariant
+#41 is doing its job — but tenant one may never be written to and tenant two's BACK OFFICE can no longer be
+reached, so any journey needing a tenant-two operator surface cannot be walked without disabling one of the
+two instruments.** ⚠️⚠️ **DO NOT EXTEND THE TRIAL, MOVE THE CLOCK OR RE-SEED AT A LATER DATE TO WALK IT** —
+that is re-baselining a fixture to make a check pass. Tenant two's **owner portal is not gated** and stays
+reachable. Disclosed in the gate's own output and `KNOWN-LIMITS.md` **L8**; **repaired nowhere**, because the
+two ways out — a disposable third tenant, or accepting the remainder as establish-only — are founder choices.
+
 | gap | why |
 |---|---|
 | **Any currency but EUR** | 🔬 **CLOSED by FIX 22 (2026-09-14).** Every fixture in the repo was EUR — `seedScenario()`, `book()`, the demo tenant — so a hardcoded `'€'` was **indistinguishable** from a resolved currency in all 3,400 tests. ⚠️ Proven, not argued: with F-38 reintroduced, the EUR case passed **green** while the GBP tenant rendered euros over pound prices. A **GBP fixture** now runs beside a EUR control, plus three source guards. ⚠️ **The general form of this gap is still open elsewhere: any dimension a fixture fixes to one value is a dimension the suite cannot test.** |
 | **Multi-tenancy / cross-organisation isolation** | 🔬 **one organisation seeded.** The single largest untested property in the product. Every "tenant-scoped → cross-org 404" claim in the codebase is **read, never exercised.** |
 | **Owner-to-owner isolation** | 🔬 **one owner seeded.** UNTESTED, not passed. A second owner would also make the union-vs-per-owner capability question (P13 §0) exercisable. |
 | **Guest session-to-session interference** | 🔬 **one claimed guest.** The direction that carries risk — a guest reaching another's data — **was** fully tested (16/16 refused). |
-| **The 17 money-write routes** | Untouched by instruction in every phase. Refunds, payments, payouts, statement finalization were **established by reading, never executed.** |
+| **The money-write routes** ⚠️ **(count UNKNOWN — F-59)** | Untouched by instruction in every phase. Refunds, payments, payouts and statement finalization were **established by reading, never executed**. ⚠️ **The "17" this row used to name is enumerated in no document**; see §5's rule above for what has actually been driven. |
 | **The season apply path** | 🔬 No prior-value trail exists anywhere (`before` is `null` at all 11 rate-path audit sites; no snapshot table; no column). A season apply **cannot be reversed**, so it was never performed. |
 | **Anything needing a real card, device or provider** | Stripe live keys · Channex sync · WhatsApp/OTA inbox · SMS · guest ID/KYC · production email delivery. All account-gated. |
 | **The authenticated platform-admin realm** | 📄 Mandatory 2FA (`EnsurePlatformAdminTwoFactor`); 📄 9 of its screens remain unaudited. |
@@ -1020,9 +1068,9 @@ recording. ⚠️ **Not a ruling — a reading of the evidence.**
 3. ~~**F-26 / F-27**~~ ✅ **DONE (FIX 01, FIX 08).**
 4. **F-23** — ✅ **CLOSED (FIX 35).** ⚠️ This item read *"BUILT AND UNWIRED. Blocked on R-GATE"* until FIX 41.
 5. ~~**F-17 / F-22 / F-9**~~ ✅ **DONE (FIX 05), as one pass**, exactly as suggested.
-6. **The founder rulings (§4)** — ⚠️ **still the binding constraint, and now the ONLY one.** ⚠️ **FIX 41: this said "Nine rulings" gating F-23 among others; fifteen decisions were put and answered on 2026-09-19 and F-23 is closed.** Nine rulings
+6. **The founder rulings (§4)** — ⚠️⚠️ **ALL PUT AND ANSWERED 2026-09-19; NO LONGER A CONSTRAINT AT ALL.** ⚠️ **FIX 41: this said "Nine rulings" gating F-23 among others; fifteen decisions were put and answered on 2026-09-19 and F-23 is closed.** Nine rulings
    gate five findings plus F-23 plus F-32. ⚠️ **STALE — F-23 is CLOSED (FIX 35) and F-32 is ACCEPTED BY RULING (established FIX 45). Re-derive in §2/§2b.** **They cost nothing to decide and no further code can close them.**
-7. ~~**F-16, F-13**~~ ✅ **DONE (FIX 07).** ~~**F-24**~~ ✅ **DONE (FIX 43).** **F-21** remains blocked on §4; **F-25** is ACCEPTED BY RULING.
+7. ~~**F-16, F-13**~~ ✅ **DONE (FIX 07).** ~~**F-24**~~ ✅ **DONE (FIX 43).** ~~**F-21**~~ ✅ **DONE (FIX 46).** **F-25** is ACCEPTED BY RULING.
 8. **The untestable list (§5)** — ⚠️ **untouched, exactly as it was.** A second organisation, a second owner
    and a second claimed guest would convert the single largest block of unknowns into measurable ones.
    **This is the highest-value work left in the product that is not a founder ruling.**
@@ -1035,7 +1083,7 @@ recording. ⚠️ **Not a ruling — a reading of the evidence.**
    and it is a ruling, not work.
 2. **§5's second organisation / second owner / second guest** — the largest unknown, and testable.
    ⚠️ **Now the highest-value work in the product that is not a founder ruling.**
-3. ~~**F-35**~~ ✅ **DONE (FIX 47).** ⚠️⚠️ **THE REGISTER NOW HAS NO OPEN FINDINGS AT ALL** — every one of the fifty-eight is closed, accepted by ruling, contained, partial by ruling, or deferred with a named trigger. ⚠️ **That is not the same as "nothing is left"**: §5's untestable list is unchanged, and what stands between this and a paying customer is still not code. **Previously read:** *"the last of the fix programme's own open findings"*. ⚠️ **FIX 46 CLOSED OR RECORDED THE OTHER FIVE** (F-21 and F-44 closed; F-33 and F-58 accepted by ruling; F-36 **deferred with a trigger**). F-35 has its own pass because enabling `preventStrayRequests()` has an unknown blast radius and its delta must be uncontaminated. ⚠️ **Previously read:** *"F-21, F-33, F-35, F-36, F-44, F-58 … smallest first."* ⚠️ **F-32 LEFT THIS LIST IN FIX 45**, not by being fixed but by being re-read against **R-ADMIN-COPY**, which had already answered it — it is now ACCEPTED BY RULING. ⚠️ **All six are now DECIDABLE in §4.** ⚠️ **CORRECTED FIX 44, and it was stale independently of this pass**: it read *"F-34, F-33, F-32, F-35"* while **F-34 is closed** and four others had joined. 🔬 Re-derived from the register, never counted from this line.
+3. ~~**F-35**~~ ✅ **DONE (FIX 47).** ⚠️⚠️ **THE REGISTER HAD NO OPEN FINDINGS FOR EXACTLY ONE DAY, AND FIX 48 ENDED THAT — HONESTLY.** ⚠️⚠️ **THE ZERO WAS TRUE ONLY BECAUSE THE FINAL VERIFICATION'S OWN SIX FINDINGS HAD NEVER BEEN ENTERED INTO THE REGISTER: they lived in `FINAL-VERIFICATION.md` §7 and in a report, and a report is evidence ABOUT the repository, not the repository.** FIX 48 classified all six — two were record contradictions and were FIXED, one was an instrument fault and went to `INSTRUMENT-ERRORS.md`, and **three became real rows (F-59, F-60, F-61)** beside a fourth the same document had recorded in its guard table (**F-62**). ⚠️ **Re-derive the census in §2/§2b; do not read a number here.** ⚠️ **And the old caveat still stands**: §5's untestable list is unchanged, and what stands between this and a paying customer is still not code. **Previously read:** *"the last of the fix programme's own open findings"*. ⚠️ **FIX 46 CLOSED OR RECORDED THE OTHER FIVE** (F-21 and F-44 closed; F-33 and F-58 accepted by ruling; F-36 **deferred with a trigger**). F-35 has its own pass because enabling `preventStrayRequests()` has an unknown blast radius and its delta must be uncontaminated. ⚠️ **Previously read:** *"F-21, F-33, F-35, F-36, F-44, F-58 … smallest first."* ⚠️ **F-32 LEFT THIS LIST IN FIX 45**, not by being fixed but by being re-read against **R-ADMIN-COPY**, which had already answered it — it is now ACCEPTED BY RULING. ⚠️ **All six are now DECIDABLE in §4.** ⚠️ **CORRECTED FIX 44, and it was stale independently of this pass**: it read *"F-34, F-33, F-32, F-35"* while **F-34 is closed** and four others had joined. 🔬 Re-derived from the register, never counted from this line.
 4. **The rulings** — founder work, not session work. ⚠️ **FIX 14 added R6, so there are ten in §4's register
    plus the seventeen ladder decisions.**
 

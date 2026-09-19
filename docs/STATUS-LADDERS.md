@@ -18,7 +18,7 @@
 > ⚠️⚠️ **RULED 2026-09-19 — the answers are in `docs/AUDIT-SUMMARY.md` §4.** R4 **REFUSE** (`confirmed →
 > checked_out`, build queued — it will redden `ReservationLadderTest`, deliberately) · R6 **LEAVE THE OTA
 > AUTHORITATIVE** (pinned) · R-HK-11 **KEEP THE LADDER PERMISSIVE** (pinned) · H4 **PERMIT REOPEN-TO-PENDING,
-> DELIBERATELY** (pinned). ⚠️ **R1 and R3 were NOT put and remain open.**
+> DELIBERATELY** (pinned). ⚠️⚠️ **CORRECTED FIX 48: this read "R1 and R3 were NOT put and remain open" while the rows below read ✅ RULED — the same file contradicting itself for two passes.** R1 and R3 were both put and answered 2026-09-19 and both are BUILT (FIX 33, FIX 34). ⚠️ **R2 and R5 are the two that were never put — see §2a.**
 >
 > ⚠️⚠️ **DECIDE FROM `docs/AUDIT-SUMMARY.md` §4, NOT FROM HERE.** §4 carries every transition in ONE table
 > with today's measured default beside it. **This file is the reasoning behind those rows** — why each default
@@ -82,6 +82,78 @@ guest is physically in. It is a reservation decision but belongs beside the writ
 | **R3** ✅ **RULED — PERMIT + REVERSE; BUILT (FIX 34)** | May a **check-out be reversed** (wrong guest, same day)? | `checked_out → checked_in` | ✅ **via `ReverseCheckOut`, with disclosure** | ⚠️ the departure already created a cleaning task and dirtied the unit; reversing the status does not reverse those |
 | **R4** ✅ **RULED — REFUSE (2026-09-19), BUILT** | May a stay be **checked out without ever being checked in** (express departure)? | `confirmed → checked_out` | ❌ **refused since FIX 33** | ⚠️ see below — this one was measured, not reasoned, and it changed the answer |
 | **R5** | May an **enquiry or tentative** booking check in directly? | `enquiry/tentative → checked_in` | ❌ refused | skips confirmation, so a stay exists with no confirmed sale behind it |
+
+### ⚠️⚠️ §2a · R2 AND R5 — THE TWO THAT WERE NEVER PUT (added FIX 48, 2026-09-19 · **F-60**)
+
+⚠️⚠️ **"EVERY RULING HAS BEEN ANSWERED" WAS FALSE, AND IT WAS FALSE IN EVERY DOCUMENT THAT SAID IT.** R2 and
+R5 carry no ruling marker above and appear in **no** row of `AUDIT-SUMMARY.md` §4's answers table. ⚠️ **An
+unruled transition is not neutral — the product is already shipping one of the options**, and both have been
+refused in production code the whole time.
+
+⚠️⚠️ **THIS SECTION MAKES THEM DECIDABLE AND DECIDES NEITHER.** No guard was added, no message changed, no
+behaviour touched. 🔬 Everything below was **MEASURED BY DRIVING THE CODE** on 2026-09-19, not read from it —
+this programme has already been burned once by a plausible sentence that nobody had executed.
+
+#### R2 · `no_show → checked_in` — the guest who turns up at 01:00
+
+🔬 **TODAY, DRIVEN:** `CheckInReservation::ALLOWED_FROM = ['confirmed']`, so the action throws
+`RuntimeException` and **the row does not move**. The message is the informative one R1 earned:
+*"Cannot check in a no_show reservation: the booking is closed and the room may already have been resold.
+A returning guest needs a new booking."* ⚠️ Already pinned by `ReservationLadderTest`.
+
+⚠️⚠️ **WHAT MARKING THE NO-SHOW HAS ALREADY DONE — 🔬 MEASURED, and this is the real content of the decision.**
+By the time anyone asks to revive the booking, `AssignmentService::terminate()` has already:
+
+| effect | 🔬 measured |
+|---|---|
+| **released the inventory** | `availability.sold` over the stay went **2 → 0** — ⚠️ **the room is back on sale and may already have been resold** |
+| stamped `cancelled_at` | yes (`cancellation_reason` stays **null** — `markNoShow()` passes none) |
+| appended `reservation_status_history` | 1 → 2 rows |
+| recorded `audit_events` | 1 → 2 |
+| recorded `domain_events` `reservation.no_show` | 1 → 2 — ⚠️ **and `EnqueueAriPushOnInventoryChange` subscribes to it, so an ARI push to the channel managers is queued: the freed night may already have been re-advertised externally** |
+
+⚠️ **No guest-facing notification fires on a no-show** (🔬 nothing in `app/Notifications` or `app/Mail`
+subscribes to it), so nothing was said to the guest that would have to be unsaid.
+
+⚠️⚠️ **CHECK THIS BEFORE RULING IT — R1 MAY ALREADY ANSWER IT IN A ROW IT DOES NOT NAME.** 🔬
+`CheckInReservation` refuses `'cancelled', 'no_show'` **in one shared `match` arm with one shared message**,
+and R1's recorded reasoning — *"the room may already have been resold, and reinstating one is an AVAILABILITY
+question, not a status write"* — is 🔬 **exactly what the measurement above shows happens on a no-show too.**
+⚠️ **But R1's text names `cancelled` only, and that is what was put to the founder.** F-32 went eleven passes
+unclosed because a ruling had already answered it in a row it did not name — **so this is flagged, not
+concluded.** The cheap question is: *does R1 extend to `no_show`?*
+
+| option | what it means | cost · risk |
+|---|---|---|
+| **A · keep it refused** (ships today) | a returning no-show needs a NEW booking, which re-checks availability | **zero** — no code; ratifying it costs one line in §4 and the existing pin already holds it |
+| **B · permit it, with a real availability re-check** | check-in re-acquires the night through `AssignmentService` and fails if it was resold | **medium** — it is a booking operation wearing a status-change costume; needs the single-write-path treatment, a no-overlap proof, and a decision about the ARI push already sent |
+| **C · permit a bare status flip** | set `checked_in` and move on | ⚠️⚠️ **REJECT — this is F-18's exact defect.** It would put a guest in a room the system has already resold, and it is the shape the ladder was bounded to stop |
+
+#### R5 · `enquiry`/`tentative` → `checked_in` — the walk-up
+
+🔬 **TODAY, DRIVEN (this transition is exercised by NO test in the repository — FIX 48 drove it to find out):**
+both are refused with `RuntimeException`, and **the row does not move** (`status` unchanged,
+`guest_checked_in_at` still null).
+
+⚠️ **But the refusal falls through to the GENERIC `default` arm** — 🔬 *"Cannot check in a enquiry
+reservation."* / *"Cannot check in a tentative reservation."* That differs from R1/R2's message in two ways
+worth knowing before ruling: it **does not tell the desk what to do** (R1's ruling was specifically that a
+refusal must name the way out), and it reads *"a enquiry"*. ⚠️ **Neither was changed here** — copy on an
+unruled path is part of what is being decided, not a free fix.
+
+⚠️ **Unlike R2, nothing has fired.** An `enquiry` or `tentative` booking is pre-confirmation: no inventory was
+released, no termination event was recorded, nothing was pushed. **The objection is commercial, not
+operational** — a stay would exist with no confirmed sale behind it.
+
+| option | what it means | cost · risk |
+|---|---|---|
+| **A · keep it refused** (ships today) | the desk confirms the booking first, then checks in — two steps, both real | **zero** — no code. ⚠️ If chosen, the generic message is worth replacing with one that names the step (*"confirm this booking first"*), which is the R1 principle |
+| **B · permit it, confirming as a side effect** | check-in promotes the booking to `confirmed` and then proceeds | **medium** — confirmation is where price, availability and the sale are settled; doing it implicitly inside a check-in hides a commercial act inside an operational one |
+| **C · permit it bare** | a `checked_in` stay with no confirmed sale behind it | ⚠️ **the objection the row already records** — it breaks the assumption every revenue surface makes about `confirmed` |
+
+⚠️⚠️ **NOTHING IN THIS SECTION IS A RECOMMENDATION.** Both are stated so the founder is choosing rather than
+ratifying, and **both cost nothing to leave exactly as they are this week.**
+
 
 ### ⚠️⚠️ R4 deserves its own paragraph, because the first map got it wrong
 
@@ -183,6 +255,13 @@ not terminal**, so copying the sibling does not reach it, and deciding it is the
 | # | question | the move | today |
 |---|---|---|---|
 | **R6** | May an inbound channel modification rewrite a stay **the guest is physically in**? | `checked_in` → `confirmed` (plus dates, price and unit lines) | ⚠️ **STILL PERMITTED** — unguarded, exactly as before FIX 14 |
+
+⚠️⚠️ **RULED 2026-09-19 — R6: LEAVE THE OTA AUTHORITATIVE. The channel keeps the last word over a stay in
+progress, including its price, and `checked_in` stays OUT of `TERMINAL_STATUSES`.** It is **SATISFIED** (the
+code was already right) and **pinned by `OtaTerminalModificationTest`**, whose own note warns that a future
+pass will want to add `checked_in` to `TERMINAL_STATUSES` and that doing so is the change the test exists to
+catch. ⚠️ **The paragraph below is the reasoning that was put to the founder, kept as the record of the
+argument — it is no longer an open question.**
 
 ⚠️ **R6 is the symptom §4 opened with** — *"a guest physically in the room would show as not yet arrived"* —
 and it is the one case the fix does **not** close. It is listed here rather than decided. ⚠️ **The commercial

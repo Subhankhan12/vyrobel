@@ -1,6 +1,6 @@
 # Vyrobel — THE INSTRUMENT-ERROR CATALOGUE
 
-**A check that looked like protection and wasn't.** **54 instances in 13 classes**, gathered from the audit, every
+**A check that looked like protection and wasn't.** **54 instances in 13 classes** — ⚠️ **a FOURTEENTH class (N) was added 2026-09-19; recount rather than trusting either figure**, gathered from the audit, every
 fix pass, and the first browser audit. ⚠️ **Each class recurred, and the next instance will wear a new face — learn
 the class, not the instance.**
 
@@ -15,7 +15,7 @@ this file holds the evidence. Per-pass detail lives in `docs/AUDIT-2026-08-29.md
 > past what a cold reader finishes, and **a state file nobody finishes is worse than a short one.**
 
 ---
-## The thirteen classes
+## The classes — ⚠️ **count the rows; this heading said "thirteen" while a fourteenth was added beneath it**
 
 | Class | Instances |
 |---|---|
@@ -32,6 +32,7 @@ this file holds the evidence. Per-pass detail lives in `docs/AUDIT-2026-08-29.md
 | **K · The control that answers without working** | An **inert control** — EUR/GBP/USD buttons over a EUR-only engine, on a **published** page; it *answers* the question, so nobody checks it. · A **false decline** — a surface saying data is absent while it sits unread in the payload. · **Complete machinery, no front door — 5 instances.** Ask what route reaches it. · **A column's existence is not a capability** — `organizations.custom_domain` is read by nothing. **Grep for readers.** · ⚠️⚠️ **2026-09-01 — ONE ROOT CAUSE, FIVE DEAD CONTROLS: a `data-` attribute the script never binds.** Nine hour buttons on `/`, the `/pricing` Monthly–Annual toggle, "Download pricing as PDF", the footer "Join" on all 19 pages, and the "Daylight" theme toggle. **It is one class, not five bugs** — ask which selector binds it, not whether the markup looks wired. |
 | **M · The premise that was never checked** | ⚠️⚠️ **The largest class by yield, and it is about the BRIEF, not the code.** A central premise was corrected by the pass that executed it roughly **half the time** — see `STATE.md` §2b for the instances. It belongs here because a false premise is an instrument error one layer out: it aims every check at the wrong thing. **Verify the premise against the repository before acting on it.** |
 | **L · The gate that can be lifted** | A device gate satisfied by a **virtual instrument** — check for one before settling for a flag (passkeys were proven end-to-end in Chromium exactly that way). |
+| **N · The refusal probe with no positive control** | ⚠️⚠️ **NEW 2026-09-19 (FINAL VERIFICATION V-6) — AND IT LOOKED LIKE PERFECT ISOLATION.** A guest-isolation probe used a **wrong URI** and returned **404 for every id — including the guest's OWN**. Every foreign id was refused, the sweep was clean, and it proved **nothing**: a broken instrument and a perfectly isolated system are the same observation when every answer is negative. ⚠️ Caught only by adding a case that SHOULD succeed and watching it succeed. **THE RULE: every isolation or refusal probe carries a POSITIVE CONTROL in the SAME RUN, and the report says what the control returned.** ⚠️ A 404 without a control that succeeds is not a refusal. · Same shape as class **G**, one layer up: there the pattern never matched; here the *route* never existed. |
 
 ---
 

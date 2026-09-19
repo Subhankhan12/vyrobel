@@ -344,6 +344,34 @@ to route into a later pass.
 | **V-5** | 🔬 **Seeding at the money gate's reference date expires tenant two's trial**, putting its entire operator back office behind the paywall. The FULL money gate and a walkable tenant two are now mutually exclusive, and nothing warns a future pass. | 🟠 **instrument conflict** |
 | **V-6** | ⚠️ **An instrument fault in this pass, recorded against itself.** My first guest-isolation probe used a wrong URI and returned 404 for *every* id including the guest's own — a clean-looking green that proved nothing. It was caught only by adding a positive control. **A 404 without a control that succeeds is not a refusal.** | 🟡 method |
 
+### ⚠️ WHERE EACH OF THE SIX WENT — added by FIX 48, 2026-09-19
+
+⚠️⚠️ **NOTHING ABOVE THIS LINE WAS EDITED.** The measurements and the refusals in §6 stand exactly as taken;
+this section only says where each finding was routed, because **the six lived in this document and in a report,
+and a report is evidence ABOUT the repository, not the repository.** Until they were entered, the register's
+"zero open" was true only because they were outside it.
+
+⚠️ **They were CLASSIFIED before being entered — filing a method fault as a product defect would corrupt the
+register in the opposite direction.**
+
+| # | classified as | where it went |
+|---|---|---|
+| **V-1** | a contradiction inside the record | ✅ **FIXED** in `AUDIT-SUMMARY.md` §8 item 7 — **and a second surface of the same claim** (F-21 as `BUILD QUEUED` in §2's pass ledger) that no V-row had named |
+| **V-2** | a contradiction inside the record | ✅ **FIXED** in §4 — **both** surfaces: the table row and the prose sentence above it |
+| **V-3** | a defect someone must act on | ➡️ **F-59** (⛔ OPEN) |
+| **V-4** | half record contradiction, half live undecided default | ✅ headline **FIXED**; the undecided default is ➡️ **F-60** (⛔ OPEN, a founder ruling) |
+| **V-5** | a defect someone must act on | ➡️ **F-61** (⛔ OPEN) — **disclosed, not repaired**: the gate now prints it and `KNOWN-LIMITS.md` **L8** carries it |
+| **V-6** | ⚠️⚠️ **an INSTRUMENT fault, not a product defect** | ➡️ `docs/INSTRUMENT-ERRORS.md` class **14**. **It earns no finding number**, and it is the most valuable of the six: a probe that 404s for every id *including its own control's* looks exactly like perfect isolation. |
+
+⚠️ **A fourth row came from §5's guard table rather than §7:** the money gate compares **counts and sums**, so
+an equal-and-opposite pair of errors nets to zero and passes — now ➡️ **F-62** (⛔ OPEN, disclosed on the gate
+itself).
+
+⚠️⚠️ **SO THE ZERO IN §1 IS HISTORICAL FROM 2026-09-19.** 🔬 Re-derive at `AUDIT-SUMMARY.md` §2/§2b, which is
+now guarded by `AuditRegisterIsSelfConsistentTest`. **This document's §1 table was true when taken and this
+line is the correction beside it, exactly as §1's own preamble warns.**
+
+
 ---
 
 ## 8 · ⚠️⚠️ WHAT IS STILL REQUIRED BEFORE A REAL CUSTOMER
