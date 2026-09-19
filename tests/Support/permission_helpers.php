@@ -136,3 +136,34 @@ function vyPermissionStrip(string $source, bool $blade): string
 
     return $source;
 }
+
+if (! defined('VY_UNREAD_PERMISSIONS')) {
+    /**
+     * ⚠️ EVERY ENTRY CARRIES A REASON AND A RULING, never a widened pattern. `remove` / `wire` / `reclassify`
+     * are recorded as the OPTION each needs, not as something this pass performed.
+     */
+    define('VY_UNREAD_PERMISSIONS', [
+        // ── The capability IS enforced, under a DIFFERENT permission ────────────────────────────────────
+        'taxes.manage' => 'Tax editing exists at POST /app/settings/tax-fees but is gated by `properties.manage`. ⚠️ MEASURED: a Hotel Manager holding `taxes.manage` is refused 403. Needs a ruling — wire the route to this permission, or drop it.',
+        'fees.manage' => 'Same as taxes.manage — /app/settings/fees/add is gated by `properties.manage`.',
+        'restrictions.manage' => 'Stay restrictions are edited through the rates surface, gated by `rates.manage`.',
+        'availability.manage' => 'Availability is written only through AssignmentService, reached via `rates.manage`/`reservations.manage`.',
+        'availability.view' => 'Availability is read through the calendar and rack, gated by `rates.view`/`reservations.view`.',
+        'housekeeping.view' => 'The housekeeping board (GET /app/housekeeping) carries no gate at all; every WRITE is gated by `housekeeping.manage`. See the ungated-screens section of the doc.',
+
+        // ── The capability does not exist as an operator surface ────────────────────────────────────────
+        'invoices.view' => 'No invoice surface exists — invoice numbering is an explicit "Soon" in Settings.',
+        'invoices.issue' => 'Same — nothing issues an invoice.',
+        'amenities.manage' => 'No amenity management surface exists.',
+        'corporate_accounts.manage' => 'No corporate-account surface exists; `reservations.source` carries `corporate` but nothing manages accounts.',
+        'guest_documents.manage' => 'Guest ID documents are handled by the guest realm and the retention purge, never by an operator permission.',
+        'api.manage' => 'The OAuth/API surface is platform-admin only (`oauth:register-client`), deliberately not self-serve.',
+        'organizations.manage' => 'Organisations are created only by TenantProvisioningService; the platform admin realm has its own guard.',
+        'addons.manage' => 'Add-ons are a GUEST request flow (POST /guest/reservation/{r}/manage/add-ons); no operator surface consumes this.',
+
+        // ── Enforced by a ROLE allow-list rather than a permission ──────────────────────────────────────
+        'owner_portal.view' => 'The owner realm is gated by role (`EnsureBackOfficeAccess` + the External Owner role), not by this permission. Held as the marker of the owner role.',
+        'guest_portal.view' => 'The guest realm has its own guard and its own auth guard entirely.',
+        'payments.view' => 'Payment reads ride on the folio surfaces, gated by `folios.view`; the only /payments routes are guest-realm.',
+    ]);
+}

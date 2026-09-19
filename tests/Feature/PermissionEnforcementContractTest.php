@@ -17,34 +17,9 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
  */
 uses(DatabaseTransactions::class);
 
-/**
- * ⚠️ EVERY ENTRY CARRIES A REASON AND A RULING, never a widened pattern. `remove` / `wire` / `reclassify`
- * are recorded as the OPTION each needs, not as something this pass performed.
- */
-const VY_UNREAD_PERMISSIONS = [
-    // ── The capability IS enforced, under a DIFFERENT permission ────────────────────────────────────
-    'taxes.manage' => 'Tax editing exists at POST /app/settings/tax-fees but is gated by `properties.manage`. ⚠️ MEASURED: a Hotel Manager holding `taxes.manage` is refused 403. Needs a ruling — wire the route to this permission, or drop it.',
-    'fees.manage' => 'Same as taxes.manage — /app/settings/fees/add is gated by `properties.manage`.',
-    'restrictions.manage' => 'Stay restrictions are edited through the rates surface, gated by `rates.manage`.',
-    'availability.manage' => 'Availability is written only through AssignmentService, reached via `rates.manage`/`reservations.manage`.',
-    'availability.view' => 'Availability is read through the calendar and rack, gated by `rates.view`/`reservations.view`.',
-    'housekeeping.view' => 'The housekeeping board (GET /app/housekeeping) carries no gate at all; every WRITE is gated by `housekeeping.manage`. See the ungated-screens section of the doc.',
-
-    // ── The capability does not exist as an operator surface ────────────────────────────────────────
-    'invoices.view' => 'No invoice surface exists — invoice numbering is an explicit "Soon" in Settings.',
-    'invoices.issue' => 'Same — nothing issues an invoice.',
-    'amenities.manage' => 'No amenity management surface exists.',
-    'corporate_accounts.manage' => 'No corporate-account surface exists; `reservations.source` carries `corporate` but nothing manages accounts.',
-    'guest_documents.manage' => 'Guest ID documents are handled by the guest realm and the retention purge, never by an operator permission.',
-    'api.manage' => 'The OAuth/API surface is platform-admin only (`oauth:register-client`), deliberately not self-serve.',
-    'organizations.manage' => 'Organisations are created only by TenantProvisioningService; the platform admin realm has its own guard.',
-    'addons.manage' => 'Add-ons are a GUEST request flow (POST /guest/reservation/{r}/manage/add-ons); no operator surface consumes this.',
-
-    // ── Enforced by a ROLE allow-list rather than a permission ──────────────────────────────────────
-    'owner_portal.view' => 'The owner realm is gated by role (`EnsureBackOfficeAccess` + the External Owner role), not by this permission. Held as the marker of the owner role.',
-    'guest_portal.view' => 'The guest realm has its own guard and its own auth guard entirely.',
-    'payments.view' => 'Payment reads ride on the folio surfaces, gated by `folios.view`; the only /payments routes are guest-realm.',
-];
+// ⚠️ `VY_UNREAD_PERMISSIONS` MOVED to tests/Support/permission_helpers.php (FIX 42), beside the census
+//    that computes against it. It is the ONE register, and a `const` in a test file is only defined
+//    when THAT file loads — the cross-file fatal FIX 41 removed twice already.
 
 it('⚠️⚠️ every permission the matrix offers is enforced somewhere, or recorded here with its reason', function () {
     $unread = vyUnreadPermissions();
@@ -144,4 +119,105 @@ it('⚠️ a permission check with NO team set fails silently to false — the s
         'if this ever returns true, the silent-false shape has changed and the warning above is stale');
 
     setPermissionsTeamId($s['org']->id);
+});
+
+// ══ THE PARTITION — FIX 42 ═════════════════════════════════════════════════════════════════════════
+
+/**
+ * ⚠️⚠️ ONE STRUCTURE, NOT THREE LISTS (founder ruling, 2026-09-19 — consolidate the census to one source).
+ *
+ * ⚠️ THERE WERE THREE NUMBERS FOR ONE CONCEPT. This register held seventeen; `KnownLimitsAreStillTrueTest`
+ * L6 asserted TWELVE under a comment saying "all eleven"; and `docs/KNOWN-LIMITS.md` said "12 of 46" in its
+ * headline and "The 11" in its prose over a table listing twelve. 🔬 Each disagreement is now accounted for
+ * and the second census is gone — L6 delegates here.
+ *
+ * ⚠️⚠️ WHAT THIS ADDS, STATED HONESTLY. `vyEnforcedPermissions()` and `vyUnreadPermissions()` filter ONE map
+ * with complementary predicates, so "none in both, none in neither" between THOSE TWO is true by
+ * construction and asserting it would prove nothing. The load-bearing half is that the partition is taken
+ * against the HAND-WRITTEN register and the CONFIG catalogue, neither of which the census can influence:
+ *
+ *   · every catalogue permission is enforced, or recorded in `VY_UNREAD_PERMISSIONS` — none in neither;
+ *   · no recorded permission is also enforced — none in both;
+ *   · and the two sides together are exactly the catalogue, nothing outside it.
+ *
+ * ⚠️ "ENFORCED" IS DEFINED, NOT ASSUMED — {@see vyPermissionEnforcement()}. A permission counts as enforced
+ * when its name appears, IN QUOTES INSIDE A CALL, as one of: a `can:` route-middleware string; a Blade
+ * `@can`/`@canany` directive; or a `->can` / `->cannot` / `Gate::allows|denies|authorize|check` /
+ * `authorize` / `hasPermissionTo` argument — in `app/`, `routes/` or `resources/views/`, after comments,
+ * `<style>`, `<script>` and heredocs are stripped. ⚠️ A NEW ENFORCEMENT STYLE IS NOT COVERED UNTIL IT IS
+ * ADDED THERE, and a reader adding one should expect this test to redden until they do.
+ */
+it('⚠️⚠️ FIX 42 — the catalogue partitions exactly into enforced and registered-as-unread', function () {
+    $catalogue = vyPermissionCatalogue();
+    $enforced = vyEnforcedPermissions();
+    $registered = array_keys(VY_UNREAD_PERMISSIONS);
+
+    sort($catalogue);
+    sort($enforced);
+    sort($registered);
+
+    // ⚠️ NON-VACUITY FIRST — every assertion below passes trivially on an empty world.
+    expect(count($catalogue))->toBeGreaterThan(40, 'the catalogue is empty or unreadable; this proves nothing');
+    expect($enforced)->not->toBeEmpty('nothing was found enforced — the census is not walking');
+
+    // ── none in BOTH ────────────────────────────────────────────────────────────────────────────────
+    expect(array_values(array_intersect($enforced, $registered)))->toBe([],
+        'a permission is recorded as read-by-nothing AND is enforced. One of the two is wrong: if it gained '
+        .'a real gate, remove its entry here and from docs/PHANTOM-PERMISSIONS.md.');
+
+    // ── none in NEITHER ─────────────────────────────────────────────────────────────────────────────
+    expect(array_values(array_diff($catalogue, $enforced, $registered)))->toBe([],
+        'a permission the roles matrix offers is neither enforced anywhere nor recorded as unread. Enforce '
+        .'it, or record it with its reason — an unrecorded phantom is a false statement about access.');
+
+    // ── and NOTHING OUTSIDE the catalogue ───────────────────────────────────────────────────────────
+    expect(array_values(array_diff(array_merge($enforced, $registered), $catalogue)))->toBe([],
+        'the register or the census names a permission the catalogue does not contain');
+
+    // ⚠️ THE ARITHMETIC, STATED — three numbers collapsed into one identity.
+    expect(count($enforced) + count($registered))->toBe(count($catalogue),
+        sprintf('enforced %d + registered %d != catalogue %d', count($enforced), count($registered), count($catalogue)));
+});
+
+/**
+ * ⚠️⚠️ THE UNIVERSE ITSELF — the check the deleted census made possible by getting it wrong.
+ *
+ * 🔬 L6 counted over `config('authorization.roles')` — the permissions GRANTED TO A ROLE — rather than over
+ * the catalogue, and skipped `'*'`. So its universe was 46, not 51, and FIVE catalogue permissions were
+ * structurally invisible to it: `api.manage`, `billing.manage`, `organizations.manage`, `roles.manage` and
+ * `settings.manage`, each held ONLY through a wildcard role. Two of them (`api.manage`,
+ * `organizations.manage`) are phantoms, so L6 could never have seen them however good its matcher was.
+ *
+ * ⚠️ THE REMAINING THREE ARE R-F10's THREE, and their absence from every non-wildcard role is the ruling —
+ * pinned separately by `SeededDefaultKeepsTheThreeTest`. Nothing here should be read as questioning it.
+ *
+ * ⚠️ WHAT THIS GUARDS is the other direction, which nothing asserted: a role granting a permission that is
+ * not in the catalogue at all. That would be a grant no matrix could display and no census could classify.
+ */
+it('⚠️ every permission granted to a role exists in the catalogue', function () {
+    $catalogue = vyPermissionCatalogue();
+
+    $granted = [];
+    foreach ((array) config('authorization.roles', []) as $role => $perms) {
+        if (! is_array($perms)) {
+            continue;
+        }
+        foreach ($perms as $perm) {
+            if ($perm !== '*') {
+                $granted[(string) $perm][] = (string) $role;
+            }
+        }
+    }
+
+    expect(count($granted))->toBeGreaterThan(40, 'no role grants anything; this world is empty');
+
+    $orphans = [];
+    foreach (array_diff(array_keys($granted), $catalogue) as $perm) {
+        $orphans[] = $perm.' (granted to '.implode(', ', $granted[$perm]).')';
+    }
+    sort($orphans);
+
+    expect($orphans)->toBe([],
+        'a role grants a permission that is not in the catalogue, so no matrix can show it and no census '
+        ."can classify it:\n".implode("\n", $orphans));
 });

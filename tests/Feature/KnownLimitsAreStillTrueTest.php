@@ -104,50 +104,43 @@ it('⚠️ L5 — implements two-factor, enforces it for platform admins, and ca
     }
 });
 
-// ── L6 · the toggle census — the number the document states ──────────────────────────────────────
+// ── L6 · the toggle census — ⚠️⚠️ ONE SOURCE (FIX 42) ────────────────────────────────────────────
 //
-// ⚠️ This pins the COUNT, because the count is the part that has moved every time it was measured. It is
-// deliberately a direct search per permission, not one clever pattern — a pattern narrower than the
-// codebase's idioms produced a wrong figure five separate times in this sequence.
-it('⚠️ L6 — has exactly the number of unenforced permissions the document states', function () {
-    $catalogue = config('authorization.roles', []);
-    $perms = [];
-    foreach ($catalogue as $granted) {
-        if (! is_array($granted)) {
-            continue;
-        }
-        foreach ($granted as $p) {
-            if ($p !== '*') {
-                $perms[$p] = true;
-            }
-        }
-    }
+// ⚠️⚠️ THIS TEST USED TO RUN ITS OWN CENSUS, AND IT WAS THE WEAKEST OF THREE. It asserted TWELVE names
+// under a comment saying "all eleven", while the register held SEVENTEEN. 🔬 All three disagreements are
+// now accounted for:
+//
+//   · THE MATCHER. It was a bare `str_contains()` over every `.php` file concatenated, with NO comment
+//     stripping — so a permission MERELY NAMED IN PROSE counted as enforced. 🔬 Measured: `guest_portal.view`,
+//     `housekeeping.view` and `owner_portal.view` appear in the codebase ONLY inside docblocks and a Blade
+//     comment, and that is the entire reason this test called them enforced. A certified test staying green
+//     while the thing it checks is broken is the worst outcome class this project has.
+//   · THE UNIVERSE. It counted over `config('authorization.roles')` and skipped `'*'`, so its denominator
+//     was 46, not 51, and five wildcard-only permissions were structurally invisible to it — including
+//     `api.manage` and `organizations.manage`, two phantoms it could never have found however good its
+//     matcher was.
+//   · THE COMMENT. "all eleven" was copied from docs/KNOWN-LIMITS.md, which says "12 of 46" in its headline
+//     and "The 11" in its prose over a table listing twelve. The typo was in the document first.
+//
+// ⚠️ THE CENSUS NOW LIVES IN ONE PLACE — {@see vyUnreadPermissions()} in tests/Support/permission_helpers.php,
+// with the register beside it, pinned BY NAME by `PhantomPermissionRegisterIsPinnedTest` and partitioned
+// against the catalogue by `PermissionEnforcementContractTest`. This file no longer keeps a second list;
+// it asserts that the document's figure comes from that source, and keeps the part nothing else asserts.
+it('⚠️ L6 — the toggle census comes from the ONE source, and the coarser gates still protect the writes', function () {
+    // ⚠️ DELEGATED, NOT RESTATED. A second list here is how three numbers for one concept happened.
+    $unread = vyUnreadPermissions();
+    sort($unread);
 
-    $haystack = '';
-    foreach (['app', 'routes', 'resources'] as $dir) {
-        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($dir), FilesystemIterator::SKIP_DOTS));
-        foreach ($it as $file) {
-            if ($file->isFile() && in_array($file->getExtension(), ['php'], true)) {
-                $haystack .= (string) file_get_contents($file->getPathname());
-            }
-        }
-    }
+    $registered = array_keys(VY_UNREAD_PERMISSIONS);
+    sort($registered);
 
-    $unenforced = array_values(array_filter(
-        array_keys($perms),
-        fn (string $p): bool => ! str_contains($haystack, $p)
-    ));
-    sort($unenforced);
+    expect($unread)->toBe($registered,
+        'docs/KNOWN-LIMITS.md §L6 describes the unread-permission census. Its figure comes from '
+        .'vyUnreadPermissions(); if that has moved, update the document rather than re-counting here.');
 
-    // ⚠️ The document names all eleven. If one gains a gate — or a new phantom appears — this reds.
-    expect($unenforced)->toBe([
-        'addons.manage', 'amenities.manage', 'availability.manage', 'availability.view',
-        'corporate_accounts.manage', 'fees.manage', 'guest_documents.manage', 'invoices.issue',
-        'invoices.view', 'payments.view', 'restrictions.manage', 'taxes.manage',
-    ]);
-
-    // ⚠️ AND THE POINT THAT MATTERS: the writes are not open. The coarser gates the document names must
-    //    still be the ones actually protecting them.
+    // ⚠️⚠️ AND THE PART NOTHING ELSE ASSERTS — the point of L6, kept verbatim. The permissions may be
+    //    unread, but the WRITES they appear to describe are not open: a coarser gate really does protect
+    //    them, and that is what makes this "not a limit" rather than a hole.
     $routes = file_get_contents(base_path('routes/web.php'));
     expect($routes)->toContain("'/settings/tax-fees'");
     expect($routes)->toContain('can:properties.manage');
