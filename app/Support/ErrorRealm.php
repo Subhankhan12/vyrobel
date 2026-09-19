@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Services\RoleAssignmentService;
+use App\Support\Owner\OwnerContext;
+
 /**
  * The ONE derivation of "which realm is this error page being shown in" (guest fix pass, F5).
  *
@@ -38,6 +41,37 @@ final class ErrorRealm
     }
 
     /**
+     * ⚠️⚠️ F-50 — IS THE PERSON READING THIS ACTUALLY AN OWNER? The `/owner` 403 is reached by TWO different
+     * people and the realm alone cannot tell them apart, because {@see self::current()} branches on the PATH.
+     *
+     * ⚠️ 🔬 BOTH AUDIENCES ARE REAL AND WERE MEASURED, not assumed:
+     *   · **owner-linked** — a sub-user refused ONE capability ({@see EnsureOwnerCapability}), or a
+     *     non-primary owner ({@see EnsurePrimaryOwner}), or a tampered id in an owner controller. For them
+     *     "ask the primary owner to grant the capability" is exactly right.
+     *   · **not owner-linked at all** — 🔬 reachable through the product's OWN path: revoke a staff user's
+     *     last back-office role ({@see RoleAssignmentService::revoke()}, which guards the last
+     *     ROLE-MANAGER but not the last role) and their membership stays active. They then meet
+     *     {@see EnsureOwnerPortalAccess}'s 403 and are told to ask about a capability on an owner account
+     *     they do not have.
+     *
+     * ⚠️ ONE DEFINITION (§N.8f): this asks `OwnerContext::actorIsOwnerLinked()` — the SAME call the gate
+     * itself makes, already memoised for this request by the middleware that refused them. A second copy of
+     * "is this an owner" on an error surface is exactly the drift this codebase keeps removing.
+     *
+     * ⚠️ FAIL-SAFE DIRECTION: if the question cannot be answered (no tenant context, CLI), it answers NO —
+     * which routes the reader to `/`, a page that works for everybody. The opposite default would send them
+     * back to the door that just refused them.
+     */
+    private static function ownerLinked(): bool
+    {
+        try {
+            return app(OwnerContext::class)->actorIsOwnerLinked();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Where "back" goes for this realm, and what that control is called.
      *
      * @return array{0: string, 1: string}
@@ -61,7 +95,18 @@ final class ErrorRealm
             'guest' => auth('guest')->check()
                 ? ['/guest/trips', 'Back to your trips']
                 : ['/guest/claim', 'Access your bookings'],
-            'owner' => ['/owner', 'Back to your portal'],
+            // ⚠️⚠️ F-50 — "Back to your portal" → `/owner` → REFUSED AGAIN. That loop is the finding, and it
+            // is the THIRD time this shape has appeared here: F-27's paid-but-unclaimed window, F-47's claim
+            // failure offering a door that needed the account being created, and now this. The class is
+            // **a refusal that offers a way out which is not one.**
+            //
+            // ⚠️ 🔬 AND THE OBVIOUS SECOND CHOICE IS ALSO A TRAP: a reader who is not owner-linked was
+            // MEASURED getting 403 on `/app/dashboard` too, and `/login` bounces them there. `/` is the only
+            // destination that admitted them — established by following each one as that person, never by
+            // picking the one that sounded right.
+            'owner' => self::ownerLinked()
+                ? ['/owner', 'Back to your portal']
+                : ['/', 'Back to Vyrobel'],
             'app' => ['/app/dashboard', 'Back to the dashboard'],
             default => ['/', 'Back to safety'],
         };
@@ -79,7 +124,13 @@ final class ErrorRealm
     {
         return match ($realm ?? self::current()) {
             'guest' => 'This page belongs to a different booking, or it isn’t part of your account. If you reached it from a link we sent you, the link may have expired.',
-            'owner' => 'Your owner account doesn’t include this area. If you need it, ask the primary owner on your account to grant the capability.',
+            // ⚠️⚠️ F-50 — ONE MESSAGE WAS SERVING TWO READERS. The capability wording below is exactly right
+            // for an owner sub-user and NONSENSE for somebody with no owner account, who was being told to
+            // ask about a capability they could never be granted.
+            'owner' => self::ownerLinked()
+                ? 'Your owner account doesn’t include this area. If you need it, ask the primary owner on your account to grant the capability.'
+                : 'The owner portal is for property owners, and your account isn’t linked to one. If that’s '
+                    .'wrong, ask whoever manages your Vyrobel account to restore your access.',
             // ⚠️ NOT BRANCHED, DELIBERATELY — and this is a REPORTED observation, not an oversight.
             // The 'admin' realm falls through to the operator wording below, which tells a PLATFORM ADMIN to
             // "ask an administrator on your team" — they have neither. That reads like the same defect as
@@ -114,7 +165,9 @@ final class ErrorRealm
     {
         return match ($realm ?? self::current()) {
             'guest' => 'If this keeps happening, reply to your booking confirmation email and the property will help.',
-            'owner' => 'If this keeps happening, contact the primary owner on your account, or your property manager.',
+            'owner' => self::ownerLinked()
+                ? 'If this keeps happening, contact the primary owner on your account, or your property manager.'
+                : 'If this keeps happening, contact whoever set up your Vyrobel account.',
             default => 'If this keeps happening, contact your Vyrobel administrator.',
         };
     }
