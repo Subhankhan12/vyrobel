@@ -91,6 +91,86 @@ it('⚠️⚠️ proves how much it actually read — files and mentions, not ju
     expect($c['mentions_scanned'])->toBeGreaterThan(0);
 });
 
+// ── 2c. ⚠️⚠️ THE SAME CLASS, ONE NAMESPACE OVER — THE RULINGS ─────────────────────────────────────
+//
+// ⚠️⚠️ THREE REAL CONTRADICTIONS WERE INVISIBLE TO THE F-ID SCAN BECAUSE THEY CARRY NO F-ID.
+// `STATUS-LADDERS.md` said "R1 and R3 were NOT put and remain open" while its OWN ROWS below read ✅ RULED,
+// and R6's block still read as undecided after being ruled and pinned. Both were found BY EYE, which is the
+// method this file exists to replace. 🔬 Mutation-proved at FIX 49: restoring that exact sentence makes this
+// fail with "R3 claimed UNDECIDED, authoritative DECIDED" and the file and line.
+it('⚠️⚠️ no ruling-state claim anywhere under docs/ contradicts §4', function () {
+    $offenders = vyRulingContradictions();
+
+    $report = array_map(
+        fn (array $o): string => sprintf(
+            "%s:%d — %s is claimed %s but the record says %s\n      %s",
+            $o['file'], $o['line'], $o['id'], $o['claimed'], $o['authoritative'], $o['text']
+        ),
+        $offenders
+    );
+
+    expect($offenders)->toBe([],
+        "⚠️⚠️ A RULING IS DESCRIBED AS SOMETHING THE RECORD DOES NOT SAY IT IS.\n"
+        ."⚠️ If a RULED behaviour is being called undecided, a pass is about to re-litigate a closed decision.\n"
+        ."⚠️ If an UNRULED one is being called answered, somebody is about to skip asking.\n\n  "
+        .implode("\n\n  ", $report)."\n"
+    );
+});
+
+it('⚠️ derives the rulings from §4 first, and never lets the ladder file overwrite it', function () {
+    $rulings = vyAuthoritativeRulings();
+
+    // 🔬 §4's answers table holds 15 rows; R1/R3 sit in the table beneath it; R2/R5 come from the ladder.
+    expect(count($rulings))->toBeGreaterThanOrEqual(19,
+        'the ruling map collapsed — §4\'s table shape has changed');
+
+    // ⚠️⚠️ THE REGRESSION THIS PINS: an earlier draft let the ladder loop run second and OVERWRITE §4, so
+    // R6 and H4 — both SATISFIED in §4 — were reported UNDECIDED. Two sources of truth, wrong one winning,
+    // inside a guard built to stop precisely that.
+    expect($rulings['R6'] ?? null)->toBe('DECIDED', 'R6 is SATISFIED in §4 and pinned by OtaTerminalModificationTest');
+    expect($rulings['H4'] ?? null)->toBe('DECIDED', 'H4 is SATISFIED in §4');
+    expect($rulings['R-SEASON'] ?? null)->toBe('DECIDED', 'the named rulings must parse at all');
+
+    // ⚠️ R5 is the one genuinely unruled transition and F-60 depends on it staying visible as such.
+    expect($rulings['R5'] ?? null)->toBe('UNDECIDED', 'R5 is still unruled — F-60 closes when it is ruled');
+
+    // ⚠️⚠️ H1–H3 are deliberately ABSENT, not asserted either way: R-HK-11 ruled "keep the housekeeping
+    // ladder permissive — all fourteen permitted moves stay", which arguably answers them without naming
+    // them. That is the F-32 shape and a question for the founder, not for a parser.
+    foreach (['H1', 'H2', 'H3'] as $unclaimed) {
+        expect($rulings)->not->toHaveKey($unclaimed,
+            "{$unclaimed} must not be asserted — R-HK-11 may cover it and this guard does not decide that");
+    }
+});
+
+it('⚠️⚠️ reads a bare R<n> as a ladder ruling ONLY where that numbering applies (F-63)', function () {
+    $scope = vyRulingNumberedScope();
+
+    // 🔬 F-63: `R2` names a DIFFERENT, already-ruled question in HOUSEKEEPING-LADDER.md and a third thing
+    // again in DECISIONS.md. Treating the token as global would MANUFACTURE the false conclusion F-63 warns
+    // about — a reader concluding the reservation R2 was answered because the housekeeping R2 was.
+    expect(array_keys($scope))->toBe(['docs/AUDIT-SUMMARY.md', 'docs/STATUS-LADDERS.md'],
+        '⚠️⚠️ THE NUMBERED-RULING SCOPE CHANGED. It is a NAMESPACE rule, not a list of excused defects: '
+        .'outside these two files a bare R<n> is a different question (F-63). Adding a file here asserts '
+        .'that its R-numbers mean the reservation ladder — prove that before you do it.');
+
+    foreach ($scope as $path => $reason) {
+        expect(base_path($path))->toBeReadableFile("scoped file {$path} does not exist");
+        expect(trim($reason))->not->toBeEmpty("scoped file {$path} carries no reason");
+    }
+});
+
+it('⚠️ classifies a ruling state and ignores prose', function (string $text, ?string $expected) {
+    expect(vyRulingClaimIn($text))->toBe($expected, "misclassified: {$text}");
+})->with([
+    ['✅ **BUILT (FIX 35)**', 'DECIDED'],
+    ['**SATISFIED**', 'DECIDED'],
+    ['⛔ **NOT BUILT — QUARANTINED (FIX 38)**', 'DECIDED'],   // ⚠️ a quarantine IS an answer
+    ['were NOT put and remain open', 'UNDECIDED'],
+    ['is still unruled', 'UNDECIDED'],
+    ['the rate was rebuilt and the room was cleaned', null],  // lower-case prose is not a marker
+]);
+
 // ── 3. ⚠️ THE ALLOW-LIST, CAPPED ──────────────────────────────────────────────────────────────────
 it('⚠️ the frozen-file list has not grown — an allow-list is how a guard dies quietly', function () {
     $frozen = vyFrozenFindingSurfaces();

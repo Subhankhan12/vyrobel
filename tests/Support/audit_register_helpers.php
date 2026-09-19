@@ -455,6 +455,249 @@ function vyRegisterIsParenthesised(string $line, int $offset): bool
     return $close === false || $close < $open;
 }
 
+// ═══ THE RULINGS — the same class, one namespace over ═══════════════════════════════════════════
+//
+// ⚠️⚠️ THREE REAL CONTRADICTIONS WERE INVISIBLE TO THE F-ID SCAN BECAUSE THEY CARRY NO F-ID:
+// `STATUS-LADDERS.md` said "R1 and R3 were NOT put and remain open" while its OWN ROWS below read ✅ RULED;
+// R6's block still read as undecided after being ruled and pinned. Both were found by eye. This closes that.
+//
+// ⚠️⚠️ AND IT IS NAMESPACE-AWARE, BECAUSE F-63 PROVED IT HAS TO BE. `R2` names a DIFFERENT, ALREADY-RULED
+// question in `HOUSEKEEPING-LADDER.md` (a cleaned room going backward — §4 calls it H2), and a THIRD thing
+// again in `DECISIONS.md`. A scan that treated `R<n>` as global would manufacture exactly the false
+// conclusion F-63 exists to warn about.
+
+/** ⚠️ A NAMED ruling (`R-GATE`, `R-SEASON`, …) is unambiguous across the whole record. */
+const VY_RULING_NAMED_TOKEN = '/(?<![A-Za-z0-9_-])(R-[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)(?![A-Za-z0-9_-])/u';
+
+/** ⚠️ A NUMBERED ruling (`R1`, `H4`) is only the reservation/housekeeping ladder INSIDE the two files below. */
+const VY_RULING_NUMBERED_TOKEN = '/(?<![A-Za-z0-9_-])([RH]\d+)(?![A-Za-z0-9_-])/u';
+
+/**
+ * ⚠️⚠️ THE ONLY FILES WHERE A BARE `R1`/`H4` MEANS THE LADDER RULING. This is a SCOPE rule, not an
+ * allow-list of excused defects: outside these two the same token is a different namespace (F-63), so
+ * scanning it would invent contradictions rather than find them. Capped by a test.
+ */
+function vyRulingNumberedScope(): array
+{
+    return [
+        'docs/AUDIT-SUMMARY.md' => '§4 defines the ladder numbering; its answers table is authoritative.',
+        'docs/STATUS-LADDERS.md' => 'The reservation ladder itself — R1…R6 and the H-rulings by reference.',
+    ];
+}
+
+/**
+ * ⚠️ TWO STATES, NOT FIVE. The contradiction that actually happens is "decided" versus "nobody decided",
+ * and collapsing BUILT/SATISFIED/NOT BUILT into DECIDED makes the check robust without making it vague:
+ * all three mean the founder answered. A mention claiming a ruling is unruled when it is answered — or
+ * answered when it is not — is the defect.
+ */
+function vyRulingClaimIn(string $text): ?string
+{
+    $decided = ['/\bRULED\b/u', '/\bSATISFIED\b/u', '/\bBUILT\b/u', '/\bDECIDED\b/u', '/\bANSWERED\b/u'];
+    // ⚠️ "unruled"/"undecided" are CASE-INSENSITIVE: unlike "closed" or "open", neither is an ordinary
+    //    English word that turns up incidentally here — every occurrence is a status claim.
+    $undecided = ['/\bUNRULED\b/iu', '/\bUNDECIDED\b/iu', '/\bNOT\s+PUT\b/iu', '/\bnever\s+put\b/iu',
+        '/\bremains?\s+open\b/iu', '/\bstill\s+open\b/iu', '/\bnot\s+ruled\b/iu'];
+
+    $best = null;
+    $bestAt = PHP_INT_MAX;
+
+    foreach ([['DECIDED', $decided], ['UNDECIDED', $undecided]] as [$state, $patterns]) {
+        foreach ($patterns as $pattern) {
+            if (! preg_match_all($pattern, $text, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            foreach ($m[0] as [$needle, $at]) {
+                // ⚠️ "NOT BUILT" is a DECIDED state (R-REVERSE was ruled: quarantine it), so a negation in
+                // front of BUILT must NOT flip it — but "not ruled" is already an UNDECIDED pattern above.
+                if ($state === 'DECIDED' && ! str_contains($needle, 'BUILT')
+                    && vyRegisterClaimIsNegated($text, $at)) {
+                    continue;
+                }
+
+                if ($at < $bestAt) {
+                    $bestAt = $at;
+                    $best = $state;
+                }
+            }
+        }
+    }
+
+    return $best;
+}
+
+/**
+ * Every ruling with a recorded answer, derived from §4's answers table, the R1/R3 table beneath it, and the
+ * ladder rows' own `RULED` markers in `STATUS-LADDERS.md`.
+ *
+ * @return array<string, string>
+ */
+function vyAuthoritativeRulings(?string $root = null): array
+{
+    $root = rtrim($root ?? base_path(), '/');
+    $rulings = [];
+
+    // §4 and its neighbours: any table row anchored on a ruling id, inside section 4.
+    $h2 = '';
+    foreach (file($root.'/'.VY_REGISTER_FILE, FILE_IGNORE_NEW_LINES) as $line) {
+        if (str_starts_with($line, '## ')) {
+            $h2 = trim(substr($line, 3));
+        }
+
+        if (! str_starts_with($h2, '4 ·') || ! str_starts_with($line, '|')) {
+            continue;
+        }
+
+        $cells = array_map('trim', explode('|', trim($line, '|')));
+        $anchor = vyRegisterStripQuotedHistory($cells[0] ?? '');
+
+        // ⚠️ Anchored, and the NAMED form is tried first: `R-HK-11` must not be read as the bare `R`…
+        if (preg_match('/^[*\s`]*(R-[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*)(?![A-Za-z0-9_-])/u', $anchor, $m)) {
+            $id = $m[1];
+        } elseif (preg_match('/^[*\s`]*([RH]\d+)(?![A-Za-z0-9_-])/u', $anchor, $m)) {
+            $id = $m[1];
+        } else {
+            continue;
+        }
+
+        // A row inside §4's answers/decision tables records an ANSWER; the ladder table records today's
+        // default and is not itself a ruling, so only rows whose cells state a state are taken.
+        $state = vyRulingClaimIn(vyRegisterStripQuotedHistory(implode(' ', array_slice($cells, 1))));
+
+        if ($state !== null && ! isset($rulings[$id])) {
+            $rulings[$id] = $state;
+        }
+    }
+
+    // ⚠️⚠️ §4 WINS. The ladder's own rows fill in ONLY what §4 does not carry — an earlier draft of this
+    // function let this second loop overwrite §4 and reported R6 and H4 as UNDECIDED when §4 rules both
+    // SATISFIED. Two sources of truth, and the wrong one winning, in a guard built to stop exactly that.
+    foreach (file($root.'/docs/STATUS-LADDERS.md', FILE_IGNORE_NEW_LINES) as $line) {
+        if (! str_starts_with($line, '|')) {
+            continue;
+        }
+
+        $cells = array_map('trim', explode('|', trim($line, '|')));
+        $anchor = $cells[0] ?? '';
+
+        if (! preg_match('/^[*\s`]*([RH]\d+)(?![A-Za-z0-9_-])/u', $anchor, $m)) {
+            continue;
+        }
+
+        if (isset($rulings[$m[1]])) {
+            continue;
+        }
+
+        if (str_contains($anchor, 'RULED')) {
+            $rulings[$m[1]] = 'DECIDED';
+
+            continue;
+        }
+
+        // ⚠️⚠️ AN ABSENT MARKER MEANS "UNRULED" ONLY WHERE THE RECORD SAYS SO. §2a establishes exactly that
+        // for the RESERVATION ladder, so a bare `R<n>` row there is asserted UNDECIDED. ⚠️ It does NOT hold
+        // for the H-rulings: **R-HK-11 ruled "keep the housekeeping ladder permissive — all fourteen
+        // permitted moves stay", which arguably answers H1–H3 without naming them** — the F-32 shape, and a
+        // question for the founder rather than for a parser. **So they are left OUT of the map entirely
+        // rather than asserted either way.** An id with no authoritative answer is simply not checked.
+        if (str_starts_with($m[1], 'R')) {
+            $rulings[$m[1]] = 'UNDECIDED';
+        }
+    }
+
+    ksort($rulings);
+
+    return $rulings;
+}
+
+/**
+ * Every ruling-state claim under `docs/` that disagrees with the authoritative answer.
+ *
+ * @return array<int, array{file: string, line: int, id: string, claimed: string, authoritative: string, text: string}>
+ */
+function vyRulingContradictions(?string $root = null): array
+{
+    $root = rtrim($root ?? base_path(), '/');
+    $rulings = vyAuthoritativeRulings($root);
+    $frozen = vyFrozenFindingSurfaces();
+    $numberedScope = vyRulingNumberedScope();
+    $offenders = [];
+
+    foreach (vyRegisterMarkdownFiles($root) as $path) {
+        $relative = ltrim(str_replace($root, '', $path), '/');
+
+        if (isset($frozen[$relative])) {
+            continue;
+        }
+
+        $numbered = isset($numberedScope[$relative]);
+
+        foreach (file($path, FILE_IGNORE_NEW_LINES) as $i => $original) {
+            $line = vyRegisterStripQuotedHistory($original);
+            $hits = [];
+
+            foreach ([VY_RULING_NAMED_TOKEN, VY_RULING_NUMBERED_TOKEN] as $k => $token) {
+                if ($k === 1 && ! $numbered) {
+                    continue;
+                }
+
+                if (preg_match_all($token, $line, $m, PREG_OFFSET_CAPTURE)) {
+                    foreach ($m[1] as [$id, $at]) {
+                        $hits[$at] = $id;
+                    }
+                }
+            }
+
+            if ($hits === []) {
+                continue;
+            }
+
+            ksort($hits);
+            $positions = array_keys($hits);
+
+            foreach ($positions as $k => $at) {
+                $id = $hits[$at];
+
+                if (! isset($rulings[$id])) {
+                    continue;
+                }
+
+                // The ladder rows and §4's tables ARE the record — never read them as claims about it.
+                if (str_starts_with(ltrim($line), '|') && vyRegisterIsRowAnchor($line, $at)) {
+                    continue;
+                }
+
+                $from = $at + strlen($id);
+                $next = $positions[$k + 1] ?? strlen($line);
+                $fragment = substr($line, $from, min($next - $from, VY_CLAIM_WINDOW));
+
+                if (vyRegisterIsParenthesised($line, $at)) {
+                    $close = strpos($fragment, ')');
+                    $fragment = $close === false ? '' : substr($fragment, 0, $close);
+                }
+
+                $claim = vyRulingClaimIn($fragment);
+
+                if ($claim === null || $claim === $rulings[$id]) {
+                    continue;
+                }
+
+                $offenders[] = [
+                    'file' => $relative,
+                    'line' => $i + 1,
+                    'id' => $id,
+                    'claimed' => $claim,
+                    'authoritative' => $rulings[$id],
+                    'text' => trim(mb_substr($original, 0, 200)),
+                ];
+            }
+        }
+    }
+
+    return $offenders;
+}
+
 /**
  * Is this id the anchor of its table row — i.e. the first cell holds it and nothing else of substance?
  */
