@@ -250,16 +250,66 @@ function vyFrozenFindingSurfaces(): array
 }
 
 /**
- * Every finding-status claim anywhere under `docs/` that disagrees with its authoritative row.
+ * ⚠️⚠️ WHAT THIS SCAN ACTUALLY READ — because a detector that silently reads half of `docs/` looks EXACTLY
+ * like a clean repository, and that is not hypothetical here.
  *
- * @return array<int, array{file: string, line: int, id: int, claimed: string, authoritative: string, text: string}>
+ * 🔬 The session memory's own index was 206 lines, over its limit, and had been silently truncating its tail
+ * for an unknown number of passes: part of the record was simply not being read, and every gap it caused was
+ * attributed to something else. **A coverage claim nobody asserts is a coverage claim nobody can check.**
+ *
+ * ⚠️ NOTHING IS TRUNCATED WHEN READING: every file is read whole with `file()`. The only files not scanned
+ * are the frozen ones, which are COUNTED here rather than silently dropped.
+ *
+ * @return array{files_present:int, files_scanned:int, files_frozen:int, mentions_scanned:int, mentions_frozen:int, bytes_scanned:int}
  */
-function vyRegisterContradictions(?string $root = null): array
+function vyRegisterScanCoverage(?string $root = null): array
 {
     $root = rtrim($root ?? base_path(), '/');
-    $authoritative = vyAuthoritativeRegister($root.'/'.VY_REGISTER_FILE);
     $frozen = vyFrozenFindingSurfaces();
 
+    $present = 0;
+    $scanned = 0;
+    $skipped = 0;
+    $mentions = 0;
+    $mentionsFrozen = 0;
+    $bytes = 0;
+
+    foreach (vyRegisterMarkdownFiles($root) as $path) {
+        $present++;
+        $relative = ltrim(str_replace($root, '', $path), '/');
+        $body = file_get_contents($path);
+        $hits = preg_match_all(VY_FINDING_TOKEN, $body);
+
+        if (isset($frozen[$relative])) {
+            $skipped++;
+            $mentionsFrozen += $hits;
+
+            continue;
+        }
+
+        $scanned++;
+        $mentions += $hits;
+        $bytes += strlen($body);
+    }
+
+    return [
+        'files_present' => $present,
+        'files_scanned' => $scanned,
+        'files_frozen' => $skipped,
+        'mentions_scanned' => $mentions,
+        'mentions_frozen' => $mentionsFrozen,
+        'bytes_scanned' => $bytes,
+    ];
+}
+
+/**
+ * Every `.md` under `docs/`, sorted. ONE walker, used by both the scan and its coverage count — two walkers
+ * would let the coverage figure describe a different set of files than the scan actually read.
+ *
+ * @return array<int, string>
+ */
+function vyRegisterMarkdownFiles(string $root): array
+{
     $files = [];
     $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/docs'));
 
@@ -270,6 +320,34 @@ function vyRegisterContradictions(?string $root = null): array
     }
 
     sort($files);
+
+    return $files;
+}
+
+/**
+ * Every finding-status claim anywhere under `docs/` that disagrees with its authoritative row.
+ *
+ * ⚠️⚠️ THREE LIMITS, STATED RATHER THAN DISCOVERED LATER. None of them truncates a FILE; all three bound how
+ * far a CLAIM is searched for, and two of them can cause a MISS:
+ *
+ *   1. ⚠️ **Line-scoped.** A claim that wraps onto the next line is not seen. **Can miss.** Markdown tables —
+ *      which is where statuses actually live — are single-line, so the exposure is prose.
+ *   2. ⚠️ **{@see VY_CLAIM_WINDOW}** bounds how far past an id a claim may sit. **Can miss** a claim further
+ *      away; without it the scan read a sentence 200 characters downstream about something else and reported
+ *      it against F-38.
+ *   3. The quote stripper's 400-character span bound. A longer quotation is NOT stripped, so a quoted
+ *      historical status would be read as live — **a false positive, never a miss**, which is the safe
+ *      direction: it surfaces for triage instead of passing silently.
+ *
+ * @return array<int, array{file: string, line: int, id: int, claimed: string, authoritative: string, text: string}>
+ */
+function vyRegisterContradictions(?string $root = null): array
+{
+    $root = rtrim($root ?? base_path(), '/');
+    $authoritative = vyAuthoritativeRegister($root.'/'.VY_REGISTER_FILE);
+    $frozen = vyFrozenFindingSurfaces();
+
+    $files = vyRegisterMarkdownFiles($root);
 
     $registerPath = realpath($root.'/'.VY_REGISTER_FILE);
     $authoritativeLines = [];

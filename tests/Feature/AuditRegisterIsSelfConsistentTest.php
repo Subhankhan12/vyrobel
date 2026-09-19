@@ -64,6 +64,33 @@ it('⚠️⚠️ no finding-status claim anywhere under docs/ contradicts its au
     );
 });
 
+// ── 2b. ⚠️⚠️ COVERAGE — A DETECTOR THAT READS HALF OF docs/ LOOKS EXACTLY LIKE A CLEAN REPOSITORY ──
+//
+// ⚠️⚠️ NOT HYPOTHETICAL. 🔬 The session memory's own index was 206 lines, over its limit, and had been
+// SILENTLY TRUNCATING ITS TAIL for an unknown number of passes — part of the record was simply not being
+// read, and every gap it caused was attributed to something else. A green scan proves nothing until the
+// scan's own reach is asserted.
+it('⚠️⚠️ proves how much it actually read — files and mentions, not just a green', function () {
+    $c = vyRegisterScanCoverage();
+
+    // ⚠️ NOTHING VANISHES SILENTLY: every markdown file under docs/ is either scanned or explicitly frozen.
+    expect($c['files_scanned'] + $c['files_frozen'])->toBe($c['files_present'],
+        'a file under docs/ was neither scanned nor frozen — the walker dropped it');
+
+    // ⚠️ FLOORS, not equalities: docs/ grows, and a brittle equality would be edited away rather than
+    // investigated. 🔬 Measured at FIX 48: 188 present = 170 scanned + 18 frozen · 467 mentions scanned
+    // (7.85 MB) + 286 frozen = 753. A COLLAPSE in reach is what these catch.
+    expect($c['files_scanned'])->toBeGreaterThanOrEqual(170,
+        "coverage COLLAPSED: only {$c['files_scanned']} files scanned, was 170 at FIX 48");
+    expect($c['mentions_scanned'])->toBeGreaterThanOrEqual(400,
+        "coverage COLLAPSED: only {$c['mentions_scanned']} finding mentions scanned, was 467 at FIX 48");
+    expect($c['bytes_scanned'])->toBeGreaterThanOrEqual(7_000_000,
+        "coverage COLLAPSED: only {$c['bytes_scanned']} bytes read, was 7,852,989 at FIX 48");
+
+    // The register itself must be inside what was read — a scan that skipped it would be vacuous.
+    expect($c['mentions_scanned'])->toBeGreaterThan(0);
+});
+
 // ── 3. ⚠️ THE ALLOW-LIST, CAPPED ──────────────────────────────────────────────────────────────────
 it('⚠️ the frozen-file list has not grown — an allow-list is how a guard dies quietly', function () {
     $frozen = vyFrozenFindingSurfaces();
