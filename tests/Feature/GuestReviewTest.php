@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Mail\ReviewRequestMail;
 use App\Models\Guest;
@@ -44,6 +45,8 @@ if (! function_exists('revCompletedBook')) {
     function revCompletedBook(array $s, Guest $guest, Unit $unit): Reservation
     {
         $res = revBook($s, $guest, $unit);
+        // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+        app(CheckInReservation::class)->handle($res);
         app(CheckOutReservation::class)->handle($res);   // checked_out → a completed (PAST) stay
 
         return $res->fresh();
@@ -129,6 +132,8 @@ it('fires the review-request email on checkout', function () {
     $a = revGuest($s['guest'], 'ada@example.test');
     $res = revBook($s, $a, $s['units'][0]);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($res);
     app(CheckOutReservation::class)->handle($res);
 
     Mail::assertSent(ReviewRequestMail::class);

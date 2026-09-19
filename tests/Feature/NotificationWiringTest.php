@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\Channel;
 use App\Models\CompanyAccount;
@@ -92,6 +93,8 @@ it('notifies operators of a balance still due at check-out', function () {
     ]);
     app(CompanyAccountService::class)
         ->bill(app(FolioService::class)->openFolio($reservation), $account);
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($reservation);
     app(CheckOutReservation::class)->handle($reservation);   // fires reservation.checked_out
 
     expect(notifsOfType($operator, BalanceDueNotification::class))->toBe(1);
@@ -105,6 +108,8 @@ it('does NOT notify a balance due when the folio is settled in full', function (
     postRoom($reservation, 20000);
     $folio = app(FolioService::class)->openFolio($reservation);
     app(FolioService::class)->recordPayment($folio, Money::of(20000, 'EUR'));   // paid in full → balance 0
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($reservation);
     app(CheckOutReservation::class)->handle($reservation);
 
     expect(notifsOfType($operator, BalanceDueNotification::class))->toBe(0);
@@ -195,6 +200,8 @@ it('respects the preference toggle for a newly-wired event (balance_due off → 
     ]);
     app(CompanyAccountService::class)
         ->bill(app(FolioService::class)->openFolio($reservation), $account);
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($reservation);
     app(CheckOutReservation::class)->handle($reservation);
 
     expect(notifsOfType($operator, BalanceDueNotification::class))->toBe(0);   // gated off — not delivered

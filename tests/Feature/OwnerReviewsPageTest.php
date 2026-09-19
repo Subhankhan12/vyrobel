@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\Membership;
 use App\Models\Owner;
@@ -139,6 +140,8 @@ it('persists the guest per-category sub-ratings through ReviewService::submit', 
         ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => '2026-06-01', 'check_out' => '2026-06-04', 'lead_guest_id' => $s['guest']->getKey(), 'source' => 'direct'],
         [['room_type_id' => $s['roomType']->id, 'unit_id' => $c['unit']->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2026-06-01', 'check_out' => '2026-06-04', 'price_minor' => 10000, 'currency' => 'EUR']],
     );
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($res);
     app(CheckOutReservation::class)->handle($res);   // → completed → reviewable
 
     $review = app(ReviewService::class)->submit($s['guest'], $res->fresh(), [

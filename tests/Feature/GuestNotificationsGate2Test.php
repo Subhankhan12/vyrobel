@@ -227,6 +227,8 @@ it('G7 invites the guest to review a completed stay, and emails exactly once', f
     $guest = g2Guest($s);
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(FrontDeskService::class)->checkIn($reservation);
     app(FrontDeskService::class)->checkOut($reservation);
 
     $row = $guest->fresh()->notifications()->where('type', GuestReviewRequestNotification::class)->first();

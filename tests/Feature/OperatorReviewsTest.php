@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\NotificationPreference;
 use App\Models\Reservation;
@@ -22,6 +23,8 @@ if (! function_exists('revComplete')) {
             ['property_id' => $s['property']->id, 'currency' => 'EUR', 'check_in' => $in, 'check_out' => $out, 'lead_guest_id' => $s['guest']->getKey(), 'source' => 'direct'],
             [['room_type_id' => $s['roomType']->id, 'unit_id' => $s['units'][0]->id, 'rate_plan_id' => $s['ratePlan']->id, 'check_in' => $in, 'check_out' => $out, 'price_minor' => 10000, 'currency' => 'EUR']],
         );
+        // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+        app(CheckInReservation::class)->handle($res);
         app(CheckOutReservation::class)->handle($res);   // → checked_out (no folio → no balance-due noise)
 
         return $res->fresh();

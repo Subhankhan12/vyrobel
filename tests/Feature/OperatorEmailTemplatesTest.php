@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Mail\ReviewRequestMail;
 use App\Models\EmailTemplate;
@@ -71,6 +72,8 @@ it('does not send an email switched off on its real trigger, but sends when on',
     Mail::fake();
     $s = seedScenario(1);
     $res = emailTplBooking($s);
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($res);
     app(CheckOutReservation::class)->handle($res);
     Mail::assertSent(ReviewRequestMail::class);
 
@@ -78,6 +81,8 @@ it('does not send an email switched off on its real trigger, but sends when on',
     Mail::fake();
     app(EmailTemplateService::class)->setEnabled((string) $s['org']->id, 'review-request', false, null);
     $res2 = book($s, ['unit_id' => $s['units'][0]->id, 'check_in' => '2026-09-05', 'check_out' => '2026-09-07']);
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($res2);
     app(CheckOutReservation::class)->handle($res2);
     Mail::assertNotSent(ReviewRequestMail::class);
 });

@@ -88,6 +88,8 @@ it('still emails a review request when the guest has NOT opted out (default = se
     gepGuest($s);
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(FrontDeskService::class)->checkIn($reservation);
     app(FrontDeskService::class)->checkOut($reservation);
 
     Mail::assertSent(ReviewRequestMail::class, 1);
@@ -101,6 +103,8 @@ it('does NOT email a review request when the guest has opted out', function () {
     GuestEmailPreferences::set($guest, 'reviews', receiving: false);
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(FrontDeskService::class)->checkIn($reservation);
     app(FrontDeskService::class)->checkOut($reservation);
 
     Mail::assertNotSent(ReviewRequestMail::class);
@@ -115,6 +119,8 @@ it('suppresses only the category the guest opted out of', function () {
     GuestEmailPreferences::set($guest, 'payment', receiving: false);   // payment OFF, reviews untouched
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(FrontDeskService::class)->checkIn($reservation);
     app(FrontDeskService::class)->checkOut($reservation);
 
     Mail::assertSent(ReviewRequestMail::class, 1);      // the OTHER category still sends

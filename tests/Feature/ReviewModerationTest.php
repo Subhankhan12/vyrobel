@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Exceptions\Guest\ReviewNotAllowedException;
 use App\Models\Reservation;
@@ -116,6 +117,8 @@ it('refuses to publish a private review', function () {
 it('moves a submitted review through the moderation states', function () {
     $s = seedScenario(1);
     $res = modBook($s, '2026-09-01', '2026-09-04');
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($res);
     app(CheckOutReservation::class)->handle($res);
 
     $review = app(ReviewService::class)->submit($s['guest'], $res->fresh(), ['rating' => 5]);

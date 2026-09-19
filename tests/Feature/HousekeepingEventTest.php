@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Models\HousekeepingTask;
 use App\Models\UnitStatusLog;
@@ -18,6 +19,8 @@ it('creates exactly one departure task via the checkout listener without touchin
 
     expect(HousekeepingTask::count())->toBe(0);
 
+    // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out.
+    app(CheckInReservation::class)->handle($reservation);
     app(CheckOutReservation::class)->handle($reservation); // emits event; listener creates the task
 
     $task = HousekeepingTask::query()->first();
