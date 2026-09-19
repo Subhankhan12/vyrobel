@@ -1297,6 +1297,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // controller carries no authorize(), so these route gates are the actor gate (#20/#30).
     Route::post('/front-desk/{reservation}/check-in', [FrontDeskActionController::class, 'checkIn'])->middleware('can:reservations.checkin')->name('front-desk.check-in');
     Route::post('/front-desk/{reservation}/check-out', [FrontDeskActionController::class, 'checkOut'])->middleware('can:reservations.checkout')->name('front-desk.check-out');
+
+    // ⚠️ R3 (founder, 2026-09-19) — reversing a mis-clicked checkout. TWO routes on purpose: the GET is the
+    //    confirmation surface (it writes nothing and shows what CANNOT be undone), the POST performs it.
+    //    Gated on `reservations.checkout` — the same desk that made the mistake corrects it.
+    Route::get('/front-desk/{reservation}/reverse-checkout', [FrontDeskActionController::class, 'reverseCheckoutConfirm'])->middleware('can:reservations.checkout')->name('front-desk.reverse-checkout');
+    Route::post('/front-desk/{reservation}/reverse-checkout', [FrontDeskActionController::class, 'reverseCheckout'])->middleware('can:reservations.checkout')->name('front-desk.reverse-checkout.store');
 });
 
 /*

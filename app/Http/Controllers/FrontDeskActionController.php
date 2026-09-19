@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Reservations\ReverseCheckOut;
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
 use App\Exceptions\Folio\OutstandingBalanceException;
@@ -15,6 +16,7 @@ use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 use InvalidArgumentException;
 
 /**
@@ -90,6 +92,38 @@ class FrontDeskActionController extends Controller
      * occupied / cross-type target is refused by the service and surfaced as a flash — the UI offered only
      * free same-type units, but the service is the authority under the lock.
      */
+    /**
+     * R3 — the confirmation surface. ⚠️ It WRITES NOTHING: the operator must see every consequence, including
+     * the one that cannot be undone, BEFORE pressing rather than after.
+     */
+    public function reverseCheckoutConfirm(Request $request, ReverseCheckOut $reverse, string $reservation): View|RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);
+
+        if ($model->status !== 'checked_out') {
+            return $this->backToBoard($request, "{$model->reference} is not checked out, so there is no checkout to reverse.", refused: true);
+        }
+
+        return view('operator.reverse-checkout', [
+            'reservation' => $model,
+            'disclosure' => $reverse->preview($model),
+        ]);
+    }
+
+    /** R3 — perform it, and carry the disclosure back to the board so the record of what was NOT undone survives the redirect. */
+    public function reverseCheckout(Request $request, ReverseCheckOut $reverse, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);
+
+        if ($model->status !== 'checked_out') {
+            return $this->backToBoard($request, "{$model->reference} is not checked out, so there is no checkout to reverse.", refused: true);
+        }
+
+        $disclosure = $reverse->handle($model, $request->user());
+
+        return $this->backToBoard($request, "{$model->reference} is checked in again. ".$disclosure['review_email']['message']);
+    }
+
     public function move(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse
     {
         // READ-ONLY workspace — edits off (same guard as reschedule/create; the UI hides the control).
