@@ -690,6 +690,24 @@
                                 Applying also re-writes <span x-text="confirmSeason?.rewritten_nights"></span> nights from overlapping seasons that are already applied.
                             </p>
                         </template>
+                        {{-- ⚠️⚠️ F-21 (FIX 46) — THE DISCLOSURE STATES ITS OWN SCOPE.
+                             The count above was correct and its LIMITS were invisible: they lived only in the
+                             Blade comment further up, which never renders. 🔬 Derived from
+                             AgreedRateDisclosure::forSeason(): a night is counted only when an APPROVED
+                             RateProposal covers it, AND only while the current price STILL EQUALS the agreed
+                             figure. An owner's SELF-SET rate (OwnerRateService::apply()) leaves no proposal,
+                             so it is excluded by the first rule rather than by a rule of its own.
+
+                             ⚠️⚠️ IT RENDERS UNCONDITIONALLY, AND THAT IS THE POINT. Inside the
+                             `agreed_nights > 0` template it would be hidden at ZERO — the case where an
+                             operator most needs to know the count does not see everything. "0 nights carry a
+                             negotiated rate" otherwise reads as "nothing is at risk".
+
+                             ⚠️ IT STATES THE RULE, NOT A LIST OF EXCLUSIONS, so it cannot be incomplete — and
+                             carries no figure, date or count, which would go stale the instant it rendered. --}}
+                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 10px;">
+                            That count sees only rates agreed through a proposal, and only while the price still matches what was agreed. A rate an owner set themselves, or one that has since moved, is not counted here.
+                        </p>
                         <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">
                             Stays already booked keep the price they were booked at — this changes what is offered from now on.
                         </p>

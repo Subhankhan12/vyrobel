@@ -236,3 +236,35 @@ it('renders no fabricated trend, smart-pricing or channel-sync status', function
         ->assertDontSee('Queued')
         ->assertDontSee('All channels');          // no rate_plan↔channel model
 });
+
+// ── ⚠️⚠️ F-21 — THE AGREED-RATE DISCLOSURE STATES ITS OWN SCOPE (founder ruling, 2026-09-19) ────────
+/**
+ * ⚠️⚠️ THE COUNT WAS CORRECT AND ITS LIMITS WERE INVISIBLE. 🔬 `AgreedRateDisclosure::forSeason()` counts a
+ * night only when an **APPROVED `RateProposal`** covers it AND the current price **still equals** the agreed
+ * figure. An owner's self-set rate (`OwnerRateService::apply()`) leaves no proposal, so it is excluded by the
+ * first rule. ⚠️ Until FIX 46 all of that lived in a **Blade comment, which never renders** — so an operator
+ * read "3 nights carry a negotiated rate" as "that is all that is at risk".
+ *
+ * ⚠️⚠️ IT IS ASSERTED ON THE RENDERED PAGE, NOT ON A VARIABLE OR A KEY. F-1, F-4 and F-5 were each "the value
+ * was set and nothing rendered" — the whole finding is that the limit existed and was never shown.
+ *
+ * ⚠️⚠️ AND IT MUST RENDER WITH NO SEASON SELECTED AND NO AGREED NIGHTS, which is the case it matters most in:
+ * inside the `agreed_nights > 0` template it would be hidden at ZERO, exactly when "nothing is at risk" is the
+ * wrong conclusion to draw.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (F-21) — the disclosure says what its count cannot see', function () {
+    $s = seedScenario(1);
+
+    $html = $this->actingAs(operatorUser($s, [], 'Property Owner'))
+        ->get('/app/rates?from=2026-09-01')
+        ->assertOk()
+        ->getContent();
+
+    // ⚠️ THE SCOPE SENTENCE — the rule, stated positively, so it cannot be an incomplete list of exclusions.
+    expect($html)->toContain('That count sees only rates agreed through a proposal');
+    expect($html)->toContain('only while the price still matches what was agreed');
+    expect($html)->toContain('A rate an owner set themselves, or one that has since moved, is not counted here');
+
+    // ⚠️ AND IT DOES NOT REPLACE OR CONTRADICT THE LINE THAT WAS ALREADY THERE — both must stand.
+    expect($html)->toContain('Applying replaces those prices, and the owner is not told');
+});
