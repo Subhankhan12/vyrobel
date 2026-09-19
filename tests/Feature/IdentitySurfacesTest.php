@@ -22,15 +22,19 @@ function isOwnerUser(array $s): User
     return $u;
 }
 
-// ⚠️⚠️ THE F-23 TESTS BELOW ARE SKIPPED, AND THE REASON IS THE FINDING.
-// EnsureOwnerPortalAccess is written, tested and proven (3 mutations, all discriminating) — but wiring it
-// onto the owner route group turned 35 CERTIFIED TESTS RED across 29 files, and they are not oversights:
-// 14 assert the portal RENDERS EMPTY for a non-owner ("fail closed via the middleware" — assertOk() plus
-// "No units"/"No statements"), 9 assert an owner-scoped 404 that the gate now pre-empts with 403, and 7
-// assert that EVERY back-office role reaches /owner and sees no owner data.
-// ⚠️ That is a DIRECT CONFLICT between a recorded audit finding (F-23) and ~30 recorded decisions that
-// encode the opposite as intended behaviour. Amending 30 certified assertions is a founder's call, not a
-// fix pass's. The gate is UNWIRED pending that ruling; re-enabling it is one line in routes/web.php.
+// ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 (R-GATE): WIRE IT, AND GATE BEFORE SCOPE. These four cases were
+// SKIPPED from `702efe1f` until that ruling, and the skip reason was itself the finding:
+// `EnsureOwnerPortalAccess` was written and mutation-proven, but wiring it turned 35 CERTIFIED TESTS RED
+// across 29 files — 14 asserting the portal RENDERS EMPTY for a non-owner ("fail closed via the middleware":
+// assertOk() plus "No units"/"No statements"), 9 asserting an owner-scoped 404 the gate pre-empts, and 7
+// asserting that EVERY back-office role reaches /owner and sees no owner data.
+//
+// ⚠️⚠️ THAT WAS A DIRECT CONFLICT between a recorded audit finding and ~30 recorded decisions encoding the
+// opposite as intended. Amending certified assertions was correctly refused as a founder's call. The founder
+// has now made it: the refusal is the intended behaviour, so those assertions moved and these un-skipped.
+//
+// ⚠️ THE ORDERING IS PART OF THE RULING. Gate-before-scope means a non-owner is refused BEFORE any owner
+// resolution runs — so the 403 discloses nothing about whether the resource behind it exists.
 it('⚠️⚠️ F-23 — an OPERATOR is bounced from EVERY owner entrance, not just the dashboard', function (string $route) {
     $s = seedScenario(1);
     $operator = operatorUser($s, [], 'Hotel Manager');
@@ -38,7 +42,7 @@ it('⚠️⚠️ F-23 — an OPERATOR is bounced from EVERY owner entrance, not 
     // ⚠️ THE WRONG-FIX MUTATION'S TARGET: gating one route leaves the others admitting. Each is asserted.
     $this->actingAs($operator)->get(route($route))
         ->assertRedirect(route('app.dashboard'));
-})->with(['owner.dashboard', 'owner.balance', 'owner.payouts', 'owner.settings', 'owner.bookings', 'owner.documents'])->skip('F-23 gate unwired pending a founder ruling — see the banner above');
+})->with(['owner.dashboard', 'owner.balance', 'owner.payouts', 'owner.settings', 'owner.bookings', 'owner.documents']);
 
 it('⚠️ F-23 — the bounce sends an operator somewhere USEFUL, mirroring invariant #26', function () {
     $s = seedScenario(1);
@@ -47,7 +51,7 @@ it('⚠️ F-23 — the bounce sends an operator somewhere USEFUL, mirroring inv
     // #26 sends an owner who lands on /app to their own home rather than a dead end. This is its mirror.
     $this->actingAs($operator)->get(route('owner.dashboard'))->assertRedirect(route('app.dashboard'));
     $this->actingAs($operator)->get(route('app.dashboard'))->assertOk();
-})->skip('F-23 gate unwired pending a founder ruling');
+});
 
 it('⚠️ F-23 — a REAL OWNER still reaches every one of those screens', function (string $route) {
     $s = seedScenario(1);
@@ -55,7 +59,7 @@ it('⚠️ F-23 — a REAL OWNER still reaches every one of those screens', func
 
     // NON-VACUITY: if the gate refused everyone, the test above would pass for the wrong reason.
     $this->actingAs($owner)->get(route($route))->assertOk();
-})->with(['owner.dashboard', 'owner.balance', 'owner.payouts', 'owner.settings'])->skip('F-23 gate unwired pending a founder ruling');
+})->with(['owner.dashboard', 'owner.balance', 'owner.payouts', 'owner.settings']);
 
 it('⚠️ F-23 — the two routes that must serve NON-owners are deliberately NOT gated', function () {
     // A pending owner-team invitee is not `active`, so they are not owner-linked — gating the acceptance
@@ -68,7 +72,7 @@ it('⚠️ F-23 — the two routes that must serve NON-owners are deliberately N
     expect($gated[0]->count())->toBeGreaterThan(100)
         ->and($gated[1]->pluck('action.as')->values()->all())
         ->toBe(['owner.team.invite.accept', 'owner.account.email.verify']);
-})->skip('F-23 gate unwired pending a founder ruling');
+});
 
 it('⚠️⚠️ F-27 — a guest arriving from a booking link is NOT greeted as a returning user', function () {
     // The five email links all sit behind auth:guest, so an unclaimed guest is bounced here with the
@@ -93,4 +97,38 @@ it('⚠️ F-27 — a plain visit to the guest sign-in is UNCHANGED', function (
     expect($html)->toContain('<h1 class="vy-title">Welcome back</h1>')
         ->and($html)->not->toContain('<h1 class="vy-title">Access your booking</h1>')
         ->and(substr_count($html, '<h1'))->toBe(1);
+});
+
+/**
+ * ⚠️⚠️ R-GATE'S ORDERING, MADE OBSERVABLE. The founder ruled GATE BEFORE SCOPE, and an ordering nothing can
+ * tell apart is an unproven ruling rather than a satisfied one — so this is the test that discriminates.
+ *
+ * ⚠️ THE RESPONSE IS IDENTICAL EITHER WAY: the gate's decision does not depend on the scope, so a refused
+ * actor gets the same redirect whichever order the two middlewares run in. What differs is the WORK DONE FOR
+ * SOMEONE WHO IS NOT AN OWNER. `SetOwnerScopeForPortal` calls `OwnerContext::resolveForActor()`, which runs
+ * its own owner queries AND ACTIVATES the owner context. Gate-first means none of that happens: a non-owner
+ * is turned away before the product does any owner resolution on their behalf.
+ *
+ * ⚠️ THAT IS THE POINT OF FAIL-CLOSED-EARLIEST, and it is why the ordering was ruled rather than left open.
+ *
+ * ⚠️ THE MUTATION: swap the two middlewares in routes/web.php → the refused request resolves the owner
+ * context first and the owner-table query count rises → RED.
+ */
+it('⚠️⚠️ R-GATE — the gate runs BEFORE the scope: a refused actor costs NO owner resolution', function () {
+    $s = seedScenario(1);
+    $operator = operatorUser($s, [], 'Hotel Manager');
+
+    $ownerQueries = 0;
+    DB::listen(function ($q) use (&$ownerQueries): void {
+        if (str_contains($q->sql, '`owners`') || str_contains($q->sql, '`owner_users`')) {
+            $ownerQueries++;
+        }
+    });
+
+    $this->actingAs($operator)->get(route('owner.dashboard'))->assertRedirect(route('app.dashboard'));
+
+    // ⚠️ THE GATE'S OWN CHECK IS ALLOWED TO ASK (that IS the gate) — what must NOT happen is the SCOPE also
+    //    resolving this actor's owners on the way to refusing them.
+    expect($ownerQueries)->toBeLessThanOrEqual(2,
+        'gate-before-scope: a non-owner must be refused before any owner resolution runs — got '.$ownerQueries.' owner queries');
 });
