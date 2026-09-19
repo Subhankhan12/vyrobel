@@ -503,14 +503,14 @@ the product is already shipping one of the options.** The "today" column is that
 🔬 **Re-measured from the source on 2026-09-19 (FIX 31), not copied from the descriptions above.** Where
 today's behaviour differs from what an entry used to record, the entry says so.
 
-**THIRTEEN decisions.** ⚠️ **FIX 41: of the 9 findings this once gated, F-10, F-14, F-23 and F-48 are CLOSED and F-25 and F-49 ACCEPTED BY RULING — F-21, F-24 and F-32 remain.** ⚠️ **FIX 43: F-24 is now CLOSED too — only F-21 and F-32 remain.** (As written: F-10, F-14, F-21, F-23, F-24, F-25, F-32, F-48, F-49) plus
+**⚠️⚠️ THE ROWS ARE THE COUNT — THIS SENTENCE NO LONGER STATES ONE.** It said *"THIRTEEN decisions"* while the section below said *"fifteen"* and its answer table carried a different number again. ⚠️ **Three counts of one section, in the register that spent FIX 42 collapsing three drifted censuses into one.** Removed rather than picked (FIX 45): **count the rows**, which is the rule this document already applies to every other heading. ⚠️ **FIX 41: of the 9 findings this once gated, F-10, F-14, F-23 and F-48 are CLOSED and F-25 and F-49 ACCEPTED BY RULING — F-21, F-24 and F-32 remain.** ⚠️ **FIX 43: F-24 is now CLOSED too — only F-21 and F-32 remain.** (As written: F-10, F-14, F-21, F-23, F-24, F-25, F-32, F-48, F-49) plus
 the remainder of F-15 and the last quarter of F-29. **Five cost nothing to build** (they ratify or reverse a
 line of config or copy); **eight commit to a build.** ⚠️ **R-PHANTOM moves the most surface** — one answer
 settles 17 permissions; **R-RATE** and **R-ADMIN-COPY** each release two findings.
 
 ### ⚠️⚠️ THE ANSWERS — DECIDED BY THE FOUNDER, 2026-09-19
 
-**Fifteen decisions were put and answered on 2026-09-19.** The option tables below are kept deliberately: they
+**The decisions below were all put and answered on 2026-09-19 — ⚠️ count the rows; this sentence used to say "Fifteen" and disagreed with the preamble and with the table itself (removed FIX 45).** The option tables below are kept deliberately: they
 are the record of **what was not chosen**, which is worth as much as what was. ⚠️ **States: DECIDED · SATISFIED
 (the code already does it and a test now pins it) · QUEUED (decided, build pending) · PREMISE FAILED.**
 
@@ -637,7 +637,9 @@ separate named action, so a plain check-in can never silently undo a checkout �
 | **R6** | May an **inbound channel** rewrite a stay **the guest is physically in**? 🔬 Confirmed today: `AssignmentService::reimportBooking()` guards `TERMINAL_STATUSES` = cancelled/no_show/checked_out. **`checked_in` is not terminal, so the rewrite is permitted** — status, dates, price and unit lines. Latent only because Channex is account-gated. | **A** — permitted | **Leave**: a real OTA can legitimately extend a stay mid-visit, and refusing drops a genuine change | **Refuse** it, as the three terminal statuses are refused | small (one status added to a guard) · last quarter of **F-29** · reversible ⚠️ **MOVES MONEY — `total_minor` is rewritten by the same raw update** |
 | **R-HK-11** | Which housekeeping transitions are legitimate? See the ladder below — **one table, one sitting.** | **A** — 14 of 16 permitted | **Ratify** the permissive map | **Tighten** named rows | small per row · remainder of **F-15** · reversible |
 
-### The ladder — 16 housekeeping moves and 5 reservation moves, one table
+### The ladder — every housekeeping and reservation move, one table
+
+⚠️ **THIS HEADING SAID "16 housekeeping moves and 5 reservation moves" AND DISAGREED WITH ITS OWN ROWS** (🔬 six reservation rulings R1–R6; the housekeeping rows sum to seventeen moves as grouped). **The numbers were REMOVED, not corrected (FIX 45)** — establishing which reading was intended would have meant deciding something, and this pass decides nothing. **Count the rows.**
 
 🔬 **Derived from the constants on 2026-09-19**, not from an earlier description:
 `HousekeepingService::ALLOWED_FROM` (keyed by target) · `CheckInReservation::ALLOWED_FROM = ['confirmed']` ·
