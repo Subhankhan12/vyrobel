@@ -52,10 +52,19 @@ it('⚠️ F-18 — refuses check-in from every TERMINAL state, proven by row st
     $before = rlRow($r);
 
     expect(fn () => app(CheckInReservation::class)->handle($r))
-        ->toThrow(RuntimeException::class, "Cannot check in a {$from} reservation.");
+        ->toThrow(RuntimeException::class);
 
     expect(rlRow($r))->toBe($before)
         ->and(rlRow($r)['status'])->toBe($from);
+
+    // ⚠️⚠️ R1 (founder, 2026-09-19) — THE REFUSAL MUST NAME THE WAY OUT. A front desk with a guest standing
+    // in front of them needs the next move, not only a closed door. A bare "cannot check in a cancelled
+    // reservation" is what this replaced.
+    try {
+        app(CheckInReservation::class)->handle($r);
+    } catch (RuntimeException $e) {
+        expect($e->getMessage())->toContain($from === 'checked_out' ? 'departure has already been recorded' : 'needs a new booking');
+    }
 })->with(['cancelled', 'no_show', 'checked_out']);
 
 it('⚠️ F-18 — refuses check-out from a booking that was never checked in, proven by row state', function (string $from) {
@@ -64,21 +73,50 @@ it('⚠️ F-18 — refuses check-out from a booking that was never checked in, 
     $before = rlRow($r);
 
     expect(fn () => app(CheckOutReservation::class)->handle($r))
-        ->toThrow(RuntimeException::class, "Cannot check out a {$from} reservation.");
+        ->toThrow(RuntimeException::class);
 
     expect(rlRow($r))->toBe($before);
+
+    try {
+        app(CheckOutReservation::class)->handle($r);
+    } catch (RuntimeException $e) {
+        expect($e->getMessage())->toContain('needs a new booking');
+    }
 })->with(['cancelled', 'no_show']);
 
-it('⚠️⚠️ confirmed → checked_out IS PERMITTED — the map was re-derived, not widened to green a test', function () {
+/**
+ * ⚠️⚠️ THIS CASE REPLACES A PINNED ANSWER. Until 2026-09-19 it read "confirmed → checked_out IS PERMITTED"
+ * and asserted the opposite of what it asserts now. That pin was doing its job: **the founder's ruling R4
+ * turned it red, and this edit is the record of the decision** — not a quiet fix to a failing test.
+ *
+ * ⚠️ WHAT THE OLD PIN PROTECTED, AND WHY IT IS NO LONGER NEEDED. `DemoSeeder` performed this transition at
+ * three sites (:605 the past review stay, :700 the walk-in, and five times inside `seedOwnerReviews`), so an
+ * earlier map that refused it reddened 41 tests and broke `migrate:fresh --seed`. **The seeder now walks the
+ * real ladder** — it checks in first — so the product no longer performs the transition at all.
+ *
+ * ⚠️ THE GUARD IS IN THE ACTION, NOT THE CONTROLLER. Driving the action directly is the whole point: F-18
+ * existed because the guard sat one layer above the write, and an HTTP-only test stayed green over it.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (R4) — a stay CANNOT be checked out without being checked in', function () {
     $s = seedScenario(1);
     $r = book($s, ['unit_id' => $s['units'][0]->id]);
+    $before = rlRow($r);
 
-    // 🔬 DemoSeeder:605 and :700 perform exactly this through this action, never checking in first. A map
-    // that refused it reddened 41 tests across five certified suites AND broke `migrate:fresh --seed`.
-    // ⚠️ Asserted so that TIGHTENING it later is a deliberate act that breaks a test — R4 in STATUS-LADDERS.md.
-    app(CheckOutReservation::class)->handle($r);
+    expect(fn () => app(CheckOutReservation::class)->handle($r))->toThrow(RuntimeException::class);
 
-    expect((string) $r->fresh()->status)->toBe('checked_out');
+    // ⚠️ THE ROW, NOT THE EXCEPTION — a refusal that still wrote would be the defect in a new coat.
+    expect(rlRow($r))->toBe($before)
+        ->and(rlRow($r)['status'])->toBe('confirmed');
+
+    // ⚠️ AND THE MESSAGE NAMES BOTH REAL CASES, or the desk is left with no next move.
+    try {
+        app(CheckOutReservation::class)->handle($r);
+    } catch (RuntimeException $e) {
+        expect($e->getMessage())
+            ->toContain('checked in before it can be checked out')
+            ->toContain('leaving early')
+            ->toContain('no-show');
+    }
 });
 
 it('⚠️⚠️ AN ILLEGAL CHECK-OUT FIRES NO SIDE EFFECT — no task, no dirty unit, no review email to a real guest', function () {
