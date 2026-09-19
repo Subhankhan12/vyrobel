@@ -547,44 +547,45 @@ role below Property Owner by default?* **That is a different decision and this p
 | # | the ruling | state |
 |---|---|---|
 | **R1** | **REFUSE `cancelled` → `checked_in`.** A cancelled booking cannot be revived into an occupied stay; the room may already have been resold. | ✅ **BUILT (FIX 33)** — behaviour was already correct; what changed is the **refusal message**, which now tells the desk a returning guest needs a NEW BOOKING instead of only closing the door. Pinned by `ReservationLadderTest`. |
-| **R3** | **PERMIT `checked_out` → `checked_in`, AND REVERSE WHAT THE CHECKOUT DID** — a real undo of a mis-clicked checkout, not a status flip. | ⛔ **STOPPED — NOT BUILT. See below.** |
+| **R3** | **PERMIT `checked_out` → `checked_in`, AND REVERSE WHAT THE CHECKOUT DID** — a real undo, not a status flip. ⚠️ FIX 33 STOPPED on it (the review email cannot be recalled); the founder then ruled **RECORD THE SEND, THEN REVERSE AND DISCLOSE**. | ✅ **BUILT (FIX 34)** — `CheckoutReversalTest` |
 
-### ⚠️⚠️ R3 — STOPPED BEFORE BUILDING: THE CHECKOUT FIRES SOMETHING THAT CANNOT BE UNDONE
+### ✅ R3 — BUILT (FIX 34), AND THE BOUNDARY IS THE PART THAT MATTERS
 
-**The ruling is for a REAL undo. 🔬 Every side effect of `reservation.checked_out` was enumerated from the
-code and classified. One of them cannot be reversed, so an undo built today would be a FALSE UNDO — and this
-project's canon is that a false undo is worse than none.**
+**Three pieces, as ruled.** (1) the review-request send is now RECORDED; (2) `ReverseCheckOut` reverses what
+it can and DISCLOSES what it cannot, before the operator presses; (3) the review link survives a re-opened
+stay instead of 404ing the guest it already invited.
 
-| # | side effect | where | classification |
-|---|---|---|---|
-| 1 | `reservations.status` → `checked_out` | the action | ✅ **REVERSIBLE** |
-| 2 | `reservation_status_history`, `domain_events`, `audit_events` rows | the action / recorders | ✅ **CORRECT AS-IS** — append-only (#7); the undo appends its own rows rather than erasing these |
-| 3 | departure `HousekeepingTask` created per unit | `GenerateDepartureCleanTask` | ⚠️ **REVERSIBLE WITH A DECISION** — only while still `pending`. Cancelling a task a cleaner has already started is a decision about someone's work, not a rollback |
-| 4 | each unit flipped `clean → dirty` | same listener, via `HousekeepingService` | ⚠️ **REVERSIBLE WITH A DECISION** — and arguably should NOT be reversed: the guest is back in the room |
-| 5 | `BalanceDueNotification` → operators | `DispatchNotificationsForDomainEvent` | ⚠️ **REVERSIBLE WITH A DECISION** — an in-app row somebody may already have read |
-| 6 | `GuestReviewRequestNotification` → the guest | same | ⚠️ **REVERSIBLE WITH A DECISION** — same, but the audience is the guest |
-| 7 | ⚠️⚠️ **`ReviewRequestMail` EMAILED TO THE GUEST** | `SendGuestTransactionalEmails::reviewRequest()` | ⛔ **NOT REVERSIBLE** |
-| 8 | a guest REVIEW may already have been submitted | `ReviewService::submit()` | ⛔ **NOT REVERSIBLE** — and it would then be a published review of a stay the product says is still in house |
+⚠️⚠️ **THE HARD PART WAS NOT THE MIGRATION — IT WAS THE BOUNDARY IT CREATED.** Every stay that checked out
+before `guest_review_invites` existed has NO ROW, and an absent record means something completely different
+from an empty one. **Three states, three representations:**
 
-⚠️⚠️ **WHY #7 IS FATAL TO A CLEAN BUILD, IN THREE MEASURED PARTS:**
+| what the data says | what the operator is told |
+|---|---|
+| a row **with** `sent_at` | *"A review request was emailed to the guest on … It cannot be recalled."* |
+| a row **without** `sent_at` | *"No review request was sent — "* **and why** (operator's switch, guest's preference, or no contact) |
+| ⚠️⚠️ **no row at all** | *"We have no record of whether a review request was sent … it checked out before this product started recording them."* |
 
-* **The email cannot be recalled.** It asks the guest to review a stay that, after the undo, has not finished.
-* 🔬 **It leaves NO RECORD.** `sendToGuest()` calls `Mail::to(...)->send()` and persists nothing, so the undo
-  cannot even honestly TELL the operator whether an email went out — it could only re-derive it from two
-  switches (`EmailTemplateResolver::enabled(...,'review-request')` and the guest's own `reviews` preference),
-  **either of which may have changed since**.
-* 🔬 **The undo BREAKS the link it already sent.** Review submission is gated on
-  `ReviewService::isCompleted()` → `ReservationStage::PAST`, and `checked_in` resolves to **IN_HOUSE**. So the
-  guest who was invited to review now gets a **404** on the link in their inbox.
+⚠️ **THE ROW'S EXISTENCE IS THE MARKER.** From the migration onward EVERY checkout writes exactly one row per
+stay whatever the outcome, so an absence can only mean "predates the record". A nullable column on
+`reservations` would have collapsed the last two states into one empty value, and **that collapse was the
+defect**. Read through `GuestReviewInvite::stateFor()` — never by testing a column for emptiness.
 
-⚠️ **THE NEW QUESTION THIS RAISES IS THE FOUNDER'S, AND THIS PASS DOES NOT ANSWER IT:** should the undo
-**(a)** reverse what it can and disclose what it cannot, accepting that the disclosure is a reconstruction
-rather than a record; **(b)** be REFUSED whenever a review email may have gone out, making the undo available
-only in the window before the event fans out; or **(c)** be built only after the send is made recordable, so
-the undo can state the truth rather than infer it? ⚠️ **(c) is the only option under which the undo is whole,
-and it is a schema change.**
+⚠️⚠️ **THERE IS NO BACKFILL, DELIBERATELY.** Past sends left no trace; deriving one from `checked_out` plus
+the two feature switches would be a guess, and **an invented row cannot be told from a real one afterwards.**
+🔬 The demo seed deletes ONE invite row so the UNKNOWN state is visible on a real screen — it creates an
+absence, it does not fabricate a record.
 
-⚠️ **R4 and R1 were built anyway — they are independent of R3 and neither touches this.**
+⚠️ **WHAT THE UNDO REFUSES TO DECIDE.** A still-`pending` departure task is removed; a **STARTED** one is left
+alone and reported, because cancelling work someone has begun is an instruction, not an undo. The unit stays
+`dirty` — the guest is back in the room, so "clean" could be false the moment it is asserted. Notifications
+already delivered stay delivered. **All of it appears on the confirmation screen before the press.**
+
+⚠️ **NO GUEST PII.** 🔬 The table's columns are `id, organization_id, reservation_id, outcome, sent_at,
+channel, created_at, updated_at` — no address, no name, no body.
+
+⚠️ **R4, R1 AND R6 ARE UNDISTURBED.** `CheckInReservation` still accepts `confirmed` only — the reversal is a
+separate named action, so a plain check-in can never silently undo a checkout — and `checked_in` stays out of
+`TERMINAL_STATUSES`.
 
 ### ⚠️ THE BUILD QUEUE — decided, none built
 
