@@ -81,7 +81,11 @@ class OperatorPortfolio extends Component
 
         $needsAttention = 0;
         $revenueMonthMinor = 0;
-        $revenueCurrency = (string) ($properties->first()->currency ?? 'EUR');
+        // ⚠️ F-44 (FIX 46) — NOTHING IS IN SCOPE TO DERIVE FROM when this collection is empty: there is
+        //    no owner here and no property either. ⚠️ So the literal becomes the ONE product default
+        //    (`config('billing.default_currency')`) rather than a hidden assumption repeated per file.
+        //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
+        $revenueCurrency = (string) ($properties->first()->currency ?? config('billing.default_currency', 'EUR'));
 
         $cards = $properties->map(function (Property $property) use ($desk, $today, $monthStart, $monthEnd, $channelByProperty, &$needsAttention, &$revenueMonthMinor): array {
             $occ = PropertyOccupancy::forProperties([(string) $property->id], $today);
@@ -214,7 +218,11 @@ class OperatorPortfolio extends Component
             ];
         })->all();
 
-        $currency = (string) ($properties->first()->currency ?? 'EUR');
+        // ⚠️ F-44 (FIX 46) — NOTHING IS IN SCOPE TO DERIVE FROM when this collection is empty: there is
+        //    no owner here and no property either. ⚠️ So the literal becomes the ONE product default
+        //    (`config('billing.default_currency')`) rather than a hidden assumption repeated per file.
+        //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
+        $currency = (string) ($properties->first()->currency ?? config('billing.default_currency', 'EUR'));
         $group = PerformanceMetrics::forProperties($this->accessibleIds, $start, $end, $currency);
 
         return [

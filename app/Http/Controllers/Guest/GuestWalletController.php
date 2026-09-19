@@ -37,7 +37,11 @@ class GuestWalletController extends Controller
         $guest = $this->guest();
         $now = CarbonImmutable::now();
         $entries = $this->wallet->entries($guest);
-        $currency = (string) ($entries->first()->currency ?? 'EUR');
+        // ⚠️ F-44 (FIX 46) — NOTHING IS IN SCOPE TO DERIVE FROM when this collection is empty: there is
+        //    no owner here and no property either. ⚠️ So the literal becomes the ONE product default
+        //    (`config('billing.default_currency')`) rather than a hidden assumption repeated per file.
+        //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
+        $currency = (string) ($entries->first()->currency ?? config('billing.default_currency', 'EUR'));
 
         return view('guest.wallet', [
             'spendable' => MoneyFormatter::display($this->wallet->spendableMinor($guest), $currency),

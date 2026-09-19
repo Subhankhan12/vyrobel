@@ -328,6 +328,11 @@ class MaintenanceList extends Component
         $id = $readIds[0] ?? null;
         $property = $id !== null ? Property::query()->whereKey($id)->first() : null;
 
-        return (string) ($property->currency ?? 'EUR');
+        // ⚠️⚠️ F-44 (FIX 46) — FOUND BY THE GUARD, NOT BY THE REGISTER. The nine recorded sites were
+        //    `$collection->first()`; this is the same defect one shape over — a `->first()` query that finds
+        //    NOTHING when no property is accessible, so the literal fires. ⚠️ Invisible to the schema for the
+        //    same reason: `properties.currency` is NOT NULL, and a row that does not exist has no column.
+        //    ⚠️ Nothing is in scope to derive from here, so the literal becomes the ONE product default.
+        return (string) ($property->currency ?? config('billing.default_currency', 'EUR'));
     }
 }

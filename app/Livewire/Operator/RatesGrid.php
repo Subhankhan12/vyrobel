@@ -534,7 +534,11 @@ class RatesGrid extends Component
             return $rate['currency'];
         }
 
-        return (string) ($roomTypes->first()?->property->currency ?? 'EUR');
+        // ⚠️ F-44 (FIX 46) — NOTHING IS IN SCOPE TO DERIVE FROM when this collection is empty: there is
+        //    no owner here and no property either. ⚠️ So the literal becomes the ONE product default
+        //    (`config('billing.default_currency')`) rather than a hidden assumption repeated per file.
+        //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
+        return (string) ($roomTypes->first()?->property->currency ?? config('billing.default_currency', 'EUR'));
     }
 
     private function indexOverriddenUnits(array $planIds, string $from, string $through): array

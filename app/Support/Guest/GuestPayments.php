@@ -46,7 +46,11 @@ final class GuestPayments
             ->get()
             ->keyBy('reservation_id');
 
-        $currency = (string) ($reservations->first()->currency ?? 'EUR');
+        // ⚠️ F-44 (FIX 46) — NOTHING IS IN SCOPE TO DERIVE FROM when this collection is empty: there is
+        //    no owner here and no property either. ⚠️ So the literal becomes the ONE product default
+        //    (`config('billing.default_currency')`) rather than a hidden assumption repeated per file.
+        //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
+        $currency = (string) ($reservations->first()->currency ?? config('billing.default_currency', 'EUR'));
         $totalBalance = 0;
         $totalPaid = 0;
         $totalCharged = 0;

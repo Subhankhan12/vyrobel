@@ -197,7 +197,14 @@ class OwnerRates extends Component
             }
         }
 
-        return (string) ($roomTypes->first()?->property->currency ?? 'EUR');
+        // ⚠️⚠️ F-44 (FIX 46) — THE FALLBACK FIRES ON AN EMPTY COLLECTION, NOT A NULL COLUMN.
+        //    A GBP owner with nothing yet to show was quoted EUROS. ⚠️ The amount is right and the
+        //    symbol is wrong, which is the dangerous direction: zero looks the same in every currency.
+        //    ⚠️ THE OWNER THEMSELVES STILL CARRIES ONE — `owners.payout_currency` is char(3) NOT NULL.
+        //    Same answer F-46 gave for this class; the last resort is CONFIG, never a literal.
+        return (string) ($roomTypes->first()?->property->currency
+            ?? $this->ownerPayoutCurrency()
+            ?? config('billing.default_currency', 'EUR'));
     }
 
     private function averageDisplay(array $cards): ?string
