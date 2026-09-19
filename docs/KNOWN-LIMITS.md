@@ -137,7 +137,7 @@ permission toggles do not take effect"* is a sentence no product should ship: an
 unchecks *"manage taxes"* believes access was removed. That is the same class as a dead control or a false
 claim — and this project **fixed** both of those rather than documenting them.
 
-**Verified here, all of them — 12 of 46 permissions have no enforcement site**, not 14 of 51.
+**⚠️⚠️ SUPERSEDED — 17 of 51, corrected FIX 42. This read "12 of 46 … not 14 of 51".** 🔬 Both of its numbers were wrong, for two separate reasons, and the census that produced them has been DELETED in favour of one source ({@see `vyUnreadPermissions()`}, pinned by name in `PhantomPermissionRegisterIsPinnedTest` and partitioned against the catalogue in `PermissionEnforcementContractTest`): **the MATCHER** was a bare `str_contains` with no comment stripping, so `guest_portal.view`, `housekeeping.view` and `owner_portal.view` — named in the codebase ONLY inside docblocks and a Blade comment — counted as enforced; and **the DENOMINATOR** counted permissions granted to a role while skipping `'*'`, so the five held only through a wildcard (`api.manage`, `billing.manage`, `organizations.manage`, `roles.manage`, `settings.manage`) were structurally invisible. ⚠️ See `docs/PHANTOM-PERMISSIONS.md` for the seventeen and their three shapes.
 ⚠️ The earlier count was reached with a pattern narrower than the codebase's idioms — and so were two of
 my own attempts at it: a shell census undercounted by one because the permission list had no trailing
 newline (`while read` silently drops the last line), and a `grep` for `availability.view` matched prose
@@ -145,7 +145,7 @@ because the `.` was an unescaped regex wildcard. The figure below comes from a l
 per permission over every `.php` file in `app/`, `routes/` and `resources/` — 966 files — and is pinned by
 `KnownLimitsAreStillTrueTest` so it cannot drift again.
 
-⚠️⚠️ **In no case is a write left unprotected.** The 11 fall into three different shapes:
+⚠️⚠️ **In no case is a write left unprotected.** ⚠️ **The table below lists TWELVE and this sentence said "The 11" — the typo the deleted test's comment faithfully copied. Corrected FIX 42: the twelve below are a SUBSET of the seventeen, and the authoritative three-shape breakdown is in `docs/PHANTOM-PERMISSIONS.md`.** These fall into three different shapes:
 
 | Shape | Permissions | What is actually true |
 |---|---|---|

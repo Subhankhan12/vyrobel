@@ -36,8 +36,15 @@ layer that performs the write, every entrance meets it, and the controller holds
 
 ⚠️ **What FIX 04 actually closed:** reviving a **terminal** reservation. `cancelled` and `no_show` can no
 longer reach `checked_in` or `checked_out`, and a `checked_out` stay can no longer walk back to `checked_in` —
-the three states `AssignmentService::TERMINAL_STATUSES` already declares final. ⚠️ `confirmed → checked_out`
-stays permitted (R4 below).
+the three states `AssignmentService::TERMINAL_STATUSES` already declares final.
+
+⚠️⚠️ **THE PARAGRAPH ABOVE IS FIX 04's STATE AND TWO OF ITS CLAIMS HAVE SINCE BEEN RULED THE OTHER WAY —
+corrected FIX 42.** It read *"a `checked_out` stay can no longer walk back to `checked_in`"* and
+*"`confirmed → checked_out` stays permitted (R4 below)"*. 🔬 Both are now false in the code: **R3 was ruled
+PERMIT-WITH-REVERSAL and BUILT (FIX 34)** — `ReverseCheckOut` is routed at
+`front-desk/{reservation}/reverse-checkout` — and **R4 was ruled REFUSE and BUILT (FIX 33)**, which removed
+`confirmed` from `CheckOutReservation::ALLOWED_FROM`, now `['checked_in']`. ⚠️ The R3 and R4 answer rows
+below were correct throughout; only this prose went unswept.
 
 ⚠️⚠️ **THIS DOCUMENT EXISTS FOR ONE REASON: both fixes deliberately declined to decide what SHOULD be legal.**
 A guard that invents policy is worse than a missing guard, because it looks authoritative. Below is every move

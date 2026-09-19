@@ -163,7 +163,7 @@ accessors, `units()` and `unitsAtLiveProperties()`. `ArchivedPropertyGhostUnitsT
 
 ### The founder's — product, nothing blocked today
 
-**Money-adjacent, before real money moves:** **H6 permission toggles** (12 of 46 have no enforcement site — remove,
+**Money-adjacent, before real money moves:** **H6 permission toggles** (⚠️ **17 of 51 — corrected FIX 42; this said "12 of 46", a figure produced by a census with no comment stripping over a denominator blind to wildcard roles**) (remove,
 wire or label; `KNOWN-LIMITS.md` L6) · the **widened negotiated-rate collision** (applying a season re-applies
 overlapping *applied* seasons, overwriting manual edits in their range) · **no season undo/edit/delete** (`setRate()`
 records the new price with `before` literally `null`) · the **live-plan-vs-snapshot read** · the **unalerted sync
