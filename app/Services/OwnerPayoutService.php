@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\Owner\PayoutHeldException;
+use App\Exceptions\Owner\PayoutReversalQuarantinedException;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
@@ -287,6 +288,25 @@ class OwnerPayoutService
      */
     public function reverse(Payout $paid, string $reason): Payout
     {
+        // ⚠️⚠️⚠️ QUARANTINED — R-REVERSE (founder, 2026-09-19), AFTER FIX 37's STOP. THIS REFUSES BEFORE ANY
+        //    WRITE, AND THAT POSITION IS THE POINT: a guard placed lower would append the reversal, strand the
+        //    statement, and only then complain. Nothing below this line may execute.
+        //
+        // ⚠️⚠️ A COMMENT IS NOT A QUARANTINE. This project has already been misled by documentation that
+        //    described a guard which did not exist, so the refusal is CODE and it is pinned by a test
+        //    ({@see \Tests\Feature\PayoutReversalIsUnguardedTest}).
+        //
+        // ⚠️⚠️ THE THROW IS DELIBERATE AND THE NO-THROW RULE DOES NOT APPLY HERE. FIX 14 forbade throwing
+        //    inside an EXTERNAL SYNC, where a throw becomes retry → dead letter → an undiagnosable outage.
+        //    This method has 🔬 ZERO callers and ZERO routes, so reaching it is a PROGRAMMER ERROR and must be
+        //    loud. ⚠️ DO NOT soften this to a log, a null return or a no-op.
+        //
+        // ⚠️ THE BODY BELOW IS KEPT ON PURPOSE. Quarantine means UNREACHABLE, not deleted: this is the record
+        //    of how the inverse was designed and the starting point for whoever fixes F-53 and F-54 properly.
+        //    ⚠️ It has never been run in production — FIX 37 was the first pass that ever EXECUTED it, and
+        //    executing it is how both defects were found.
+        throw PayoutReversalQuarantinedException::make((string) $paid->getKey());
+        // @phpstan-ignore-next-line deadCode.unreachable (deliberate — see the quarantine note above)
         if ($paid->status !== 'paid') {
             throw new RuntimeException("Only a paid payout can be reversed (status: {$paid->status}).");
         }
