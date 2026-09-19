@@ -5,6 +5,11 @@ Written to be readable by someone who has read nothing else in this repository.
 
 > ⚠️ **READ §8 BEFORE ACTING ON ANY OF THIS.** A green verification does **not** mean ready to sell. Everything
 > in §8 is still required before a real customer, **none of it is code, and none of it has moved.**
+>
+> ⚠️⚠️ **THIS IS A DATED SNAPSHOT, NOT A LIVE RECORD.** Every count below (44 findings, 32 closed, 12 open) was
+> true when this ran on **2026-09-14** and has since moved — the register now runs to **F-49**, and five passes
+> have landed since. **Re-derive from `docs/AUDIT-SUMMARY.md` §2 and §2b; do not quote a figure from this
+> document as current state.** Its *verdicts* stand; only its *arithmetic* is of its date.
 
 ---
 

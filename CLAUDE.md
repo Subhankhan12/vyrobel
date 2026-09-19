@@ -88,4 +88,4 @@ Keep this file lean and high-signal — it loads into context every session. Det
 - ⚠️ **On a new session read `docs/MEMORY.md`** — the rules that settled real arguments, the recurring
   instrument traps, the pinned figures with the commands that measure them, the founder's OPEN RULINGS
   (a session must not decide these) and the blocked-on map. Then `docs/KNOWN-LIMITS.md`
-  (⚠️ untracked as of 2026-09-05). **Then read `docs/STATE.md`** — it is dated, marks every fact MEASURED / ASSERTED / RECORDED, and states its own reading time in its header. The older surfaces (`PROJECT-STATE.md`, `DECISIONS.md`, `SESSION-HANDOFF.md`) remain correct as HISTORY and as reference works, but they are long enough to be skimmed and their headline figures are stale.
+  (🔬 tracked as of 2026-09-19). **Then read `docs/STATE.md`** — it is dated, marks every fact MEASURED / ASSERTED / RECORDED, and states its own reading time in its header. The older surfaces (`PROJECT-STATE.md`, `DECISIONS.md`, `SESSION-HANDOFF.md`) remain correct as HISTORY and as reference works, but they are long enough to be skimmed and their headline figures are stale.

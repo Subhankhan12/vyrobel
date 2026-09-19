@@ -6,13 +6,28 @@
 `git diff --name-only` filtered by session mtime returned **zero tracked files** at the end of every phase.
 The only repo writes were the fifteen `docs/AUDIT-PHASE-*.md` reports and this summary.
 
-⚠️ **A separate FIX programme began on 2026-09-12 and does change code. FOURTEEN PASSES HAVE RUN.** §2 carries
-its live status, re-derived per finding on 2026-09-13; each fix is scoped to one finding, gated on the suite +
-PHPStan L5 + Pint + the money gate (**`mode=FULL`**), and **commits nothing**. ⚠️ **Everything the programme
-changed is still uncommitted working-tree state** — the same condition that hid F-20.
+⚠️ **A separate FIX programme began on 2026-09-12 and does change code.** §2 and §2b carry its live status;
+each fix is scoped to one finding and gated on the suite + PHPStan L5 + Pint + the money gate
+(**`mode=FULL`** — ⚠️ **which is scoped to TENANT ONE and is blind to the second organisation, so a green
+there proves nothing about tenant two**).
 
-⚠️ **This document is the only record of eight findings (§2b) and nine rulings (§4).** It went eight passes
-stale once already; §2 said "two are closed" while twenty were.
+⚠️⚠️ **THIS PREAMBLE STATES NO COUNTS, DELIBERATELY.** It once carried a stale pass count, a stale finding
+count and a stale ruling count at the same time — and **two different pass counts in one document**. **Count
+the pass rows in §2's ledger; re-derive the findings from the registers in §2 and §2b; count the rulings in
+§4.** A number written into a preamble has no mechanism to stay true. ⚠️⚠️ **AND THE PASS LEDGER IN §2 IS
+ITSELF INCOMPLETE — it stops at FIX 23.** Later passes are recorded in §2b's "found by" column and in the
+project memory record, not in that table. **Counting its rows gives the ledger's length, not the programme's.**
+
+⚠️⚠️ **ON WHAT IS COMMITTED, `git` IS THE AUTHORITY — NOT THIS SENTENCE.** Durably true: the programme's first
+**twenty-three passes were committed on 2026-09-14 in seven unpushed commits ending at `19c59931`**, which
+closed the condition that hid F-20. ⚠️ **What sits ON TOP of that is a moving quantity — run
+`git status --porcelain`.** 🔬 2026-09-19: FIX 29's three closures (F-45, F-46, F-47) were found sitting
+uncommitted and were committed by FIX 30. ⚠️⚠️ **WORK LEFT IN THE TREE IS A RECURRING DEFAULT OF THIS
+WORKFLOW, NOT A ONE-OFF STATE** — the condition was closed by one pass and reopened by the very next.
+**A reader who checks is right; a reader who trusts a frozen sentence is not.**
+
+⚠️ **This document is the only record of the findings in §2b and the rulings in §4 — count them there, not
+here.** It went eight passes stale once already; §2 said "two are closed" while twenty were.
 
 **Evidence tiers used throughout.** 🔬 MEASURED · 🖥 BROWSER · 📖 ASSERTED · 📄 RECORDED.
 **Only 🔬 and 🖥 were ever treated as facts.**
@@ -39,7 +54,9 @@ Guest Support Agent.
 ## 2 · FINDINGS — F-1 … F-27
 
 **All 27 were OPEN at the close of the audit programme; fixing was out of scope by instruction in every
-phase.** ⚠️ **Thirteen fix passes have since run. The status column below is the live record.**
+phase.** ⚠️ **Many fix passes have since run — count the rows in the ledger below rather than trusting a
+number in this sentence, which disagreed with the preamble's for sixteen passes. The status column is the
+live record.**
 
 ⚠️ **THIS SECTION WAS LAST RECONCILED DURING FIX 03 AND WAS EIGHT PASSES STALE.** It read "two are closed"
 while twenty were. 🔬 The count below was **re-derived one finding at a time from the fix reports**, not by
@@ -57,7 +74,7 @@ adding up their headlines — see the closure ledger.
 not mean the surrounding area was swept. **Five of the twenty closures also produced a NEW finding** in the
 code beside them (§2b) — §N.13.1's shape, holding again.
 
-### The fourteen passes
+### The pass ledger — ⚠️ count the rows, and note it ENDS AT FIX 23
 
 | pass | date | findings | what it changed |
 |---|---|---|---|
@@ -119,7 +136,7 @@ regression net; where it rests on a browser reading, it is **not re-runnable** a
 | # | realm | finding | evidence |
 |---|---|---|---|
 | **F-15** ✅ CLOSED (FIX 03) | operator | **The housekeeping status ladder is unbounded.** The controller validates the target and never the row's current state. 🔬 A `pending` task was driven straight to `inspected`: a dirty room became guest-ready in one request, `started_at` still NULL, `inspected_by` naming the person who skipped both steps. ⚠️ Bounded 2026-09-13 by `HousekeepingService::assertTransition()` — the guard in the SERVICE (its one status writer), the controller holding no status logic. ⚠️ **The map refuses 2 of 16 moves and leaves 11 AMBIGUOUS ones permitted, pending founder rulings — `docs/HOUSEKEEPING-LADDER.md`.** | P8 — proven by row state, restored exactly |
-| **F-20** ✅ CLOSED (FIX 02) | operator | **The season Edit and Delete dialogs could never open.** 🔬 `ReferenceError: editSeason is not defined` on every load of `/app/rates`: the buttons sit inside an `x-data` scope, their dialogs outside it. Routes, controller logic and guards are all correct — proven by direct invocation — and **no operator can reach any of it.** ⚠️ Lives in **uncommitted** work (`editSeason`: 0 occurrences in HEAD, 11 in the working tree). | P11 — DOM containment + clicking, with a positive control |
+| **F-20** ✅ CLOSED (FIX 02) | operator | **The season Edit and Delete dialogs could never open.** 🔬 `ReferenceError: editSeason is not defined` on every load of `/app/rates`: the buttons sit inside an `x-data` scope, their dialogs outside it. Routes, controller logic and guards are all correct — proven by direct invocation — and **no operator can reach any of it.** ⚠️ Lived in **then-uncommitted** work — 🔬 as measured at the time, `editSeason`: 0 occurrences in HEAD, 11 in the working tree (committed 2026-09-14, `19c59931`; the measurement stands, its tense did not). | P11 — DOM containment + clicking, with a positive control |
 
 ### 🟠 MEDIUM
 
@@ -432,7 +449,8 @@ Four shapes recur, and naming them scopes the fix better than the individual ite
    The product explains disabled states *superbly* where money is involved and where a capability is
    refused — the owner realm's 403 names the exact human who can grant access. The gaps are where a
    *consequence* needs disclosing.
-4. **A control that renders and does nothing** (F-20). One instance, in uncommitted work. 🔬 Tested for
+4. **A control that renders and does nothing** (F-20). One instance, in work that was **then** uncommitted
+   (committed 2026-09-14, `19c59931`). 🔬 Tested for
    across 30 operator screens and every owner and guest screen: **not reproduced anywhere else.**
 
 ### ⚠️ RE-CHECKED IN FIX 13 — the classes were incomplete, and one grew
@@ -458,8 +476,10 @@ outside the set it enumerated.
 ## 4 · OPEN FOUNDER RULINGS — decisions this programme deliberately did not make
 
 ⚠️ **NONE OF THESE IS DECIDED HERE, AND FIX 13 DECIDES NONE OF THEM.** What is new is the third column:
-**what each ruling is holding up.** Thirteen passes established that these are not paperwork — they are the
-binding constraint on the remaining findings. **Five findings are blocked on rulings and nothing else.**
+**what each ruling is holding up.** The fix programme established that these are not paperwork — they are the
+binding constraint on the remaining findings. ⚠️ **How many findings are blocked on a ruling has GROWN: count
+them in §2 and §2b rather than here.** ⚠️ **And this table is not complete — R-SUSPEND (F-48) and R-REVERSE
+(F-49) are recorded in §2b's status column and have never been transcribed into this section.**
 
 | ruling | the question | what it blocks |
 |---|---|---|
@@ -478,8 +498,9 @@ binding constraint on the remaining findings. **Five findings are blocked on rul
 
 **This list is as valuable as the findings. Nothing below was examined; none of it may be assumed sound.**
 
-⚠️ **SIXTEEN FIX PASSES CLOSED NONE OF IT. FIX 17 (2026-09-14) IS THE FIRST THAT DID — and it closes less
-than it unlocks, which is the distinction this section exists to keep.**
+⚠️ **THE FIRST SIXTEEN FIX PASSES CLOSED NONE OF IT. FIX 17 (2026-09-14) WAS THE FIRST THAT DID, and FIX 26
+closed a second line — each closing less than it unlocks, which is the distinction this section exists to
+keep.**
 
 **✅ CLOSED by FIX 17** — a second organisation now exists (`northgate-demo-city-rooms`, GBP, provisioned through
 `TenantProvisioningService`), so:
@@ -743,7 +764,8 @@ now stands on the original reading alone (📄 **RECORDED** — true when taken,
 - 🔬 **The guest realm is the cleanest surface in the product**: zero heading defects, zero unnamed
   controls, zero focus-ring gaps, zero console errors, zero body overflow at 375px. ⚠️ **The operator shell
   is NOT** — see F-33.
-- 🔬 **Zero append-only residue across all fourteen fix passes.** Every figure this programme pinned —
+- 🔬 **Zero append-only residue across every fix pass measured to date** (last re-measured 2026-09-14; the
+  pass count is in §2's ledger, not here). Every figure this programme pinned —
   `rate_calendar` **929 rows / sum 10928000** · `owner_ledger` 29 / 730640 · `reservations` 42 ·
   `payments` 16 · `role_has_permissions` 260 — is **unmoved**. ⚠️ **The md5 that used to appear here has been
   REMOVED**: it is date-dependent and cannot detect a write (§6). **Pin the count and the sum.**
@@ -761,8 +783,11 @@ recording. ⚠️ **Not a ruling — a reading of the evidence.**
 1. ~~**F-20**~~ ✅ **DONE (FIX 02).** ⚠️ **The root cause is a PROCESS finding and it is still open:** the
    defect lived in **uncommitted** work (+296 lines in one view; `editSeason` absent from HEAD), which is
    exactly why no guard and no earlier audit saw it — the clean-console claim of 2026-09-02 was true when
-   made. **Work of that size sitting uncommitted is the condition that hid it**, and nothing in any of the
-   fourteen passes changed that condition. ⚠️ **It is still true today: this programme committed nothing.**
+   made. **Work of that size sitting uncommitted is the condition that hid it**, and no pass changed that
+   condition until **FIX 24 committed twenty-three passes on 2026-09-14** (`19c59931`, seven commits,
+   unpushed). ⚠️⚠️ **BUT THE CONDITION RECURS: FIX 29 left its work in the tree the very next pass, and FIX 30
+   committed it on 2026-09-19. The process finding is NOT closed — it is a recurring default. Run
+   `git status`; do not trust this line.**
 2. ~~**F-15**~~ ✅ **DONE (FIX 03)**, ~~**F-18**~~ ✅ **DONE (FIX 04)**, ~~**F-29**~~ ✅ **DONE (FIX 14).** The
    reference implementation was copied **three times**, and the third copy was the one that found the writer
    the other two had gone around. ⚠️ **R6 is the remainder** — `checked_in`, which no sibling's rule covers.
