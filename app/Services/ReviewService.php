@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Exceptions\Guest\ReviewNotAllowedException;
 use App\Models\Guest;
 use App\Models\Reservation;
+use App\Models\ReservationStatusHistory;
 use App\Models\Review;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
@@ -33,9 +34,33 @@ class ReviewService
     }
 
     /** A stay is reviewable once it is a completed (PAST) stay — checked out, or a confirmed stay now past. */
+    /**
+     * ⚠️⚠️ R3 (founder, 2026-09-19) — "HAS EVER COMPLETED A STAY", NOT "IS PAST RIGHT NOW".
+     *
+     * A guest who was emailed a review request must not meet a 404 because staff corrected a mis-clicked
+     * checkout. `ReservationStage` puts a re-opened stay in IN_HOUSE — correctly, the guest IS in the room —
+     * so a gate reading the stage alone revokes an invitation the product already sent.
+     *
+     * ⚠️⚠️ THE CHANGE IS SCOPED HERE, NOT IN THE ENUM, AND THAT IS DELIBERATE. `ReservationStage::PAST` is
+     * read by the owner bookings tabs, the guest trips tabs and trip labels, and the guest reservation
+     * controller; widening the enum would widen all of them and start calling occupied rooms "past".
+     * `isCompleted()` has three callers and all three are the review path.
+     *
+     * ⚠️ IT STILL REFUSES A STAY THAT NEVER COMPLETED — the history is the evidence, and a stay that has
+     * never reached `checked_out` has no such row.
+     */
     public function isCompleted(Reservation $reservation, ?CarbonInterface $today = null): bool
     {
-        return ReservationStage::for($reservation, $today) === ReservationStage::PAST;
+        if (ReservationStage::for($reservation, $today) === ReservationStage::PAST) {
+            return true;
+        }
+
+        // ⚠️ THE REOPENED CASE. `reservation_status_history` already records everything a stay has been
+        //    through, so the invitation survives the correction without a new column to keep in step.
+        return ReservationStatusHistory::query()
+            ->where('reservation_id', $reservation->getKey())
+            ->where('to_status', 'checked_out')
+            ->exists();
     }
 
     /**
