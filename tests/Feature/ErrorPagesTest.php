@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Guest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -51,6 +52,22 @@ it('serves the branded 403 when a permission gate refuses', function () {
 
 it('points the user back to their OWN realm', function () {
     // A guest sent to the operator dashboard would be a dead end — and a realm confusion.
-    $this->get('/guest/nope')->assertSee('Back to your trips', false);
+    //
+    // ⚠️⚠️ AND "their own realm" NOW MEANS A DESTINATION THAT WORKS (F-47, FIX 29). This asserted
+    // "Back to your trips" unconditionally — correct for a SIGNED-IN guest, and itself a dead end for the
+    // signed-out one, who has no account to return to. That is the exact failure this test's own comment
+    // warns about, encoded in its expected value. The destination now follows the SESSION, so both branches
+    // are pinned here rather than one.
+    $this->get('/guest/nope')->assertSee('Access your bookings', false);   // signed out → the claim door
     $this->get('/no-such-page-here')->assertSee('Back to safety', false);
+});
+
+it('sends a SIGNED-IN guest back to their trips', function () {
+    // ⚠️ THE CONTROL FOR THE BRANCH ABOVE — without it, a fix that sent everyone to the claim door would
+    // pass while breaking the realm's real home.
+    $s = seedScenario(1);
+    $guest = Guest::withoutGlobalScopes()->whereKey($s['guest']->id)->first();
+    $guest->forceFill(['password' => 'claimed-Passw0rd!', 'email_verified_at' => now()])->save();
+
+    $this->actingAs($guest, 'guest')->get('/guest/nope')->assertSee('Back to your trips', false);
 });

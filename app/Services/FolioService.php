@@ -122,6 +122,27 @@ class FolioService
             'amount_minor' => $amount->amountMinor(),
         ]);
 
+        // ⚠️⚠️ WHO POSTED THIS. A charge INCREASES WHAT A GUEST OWES and recorded no author: this method wrote
+        // the domain event above and nothing else, while every payment method in this same file
+        // ({@see recordPayment}, {@see recordCheckoutIntent}, {@see settlePayment}) writes BOTH. That is
+        // F-17/F-22's class — a write with no actor — in a writer FIX 05's sweep never reached.
+        //
+        // ⚠️ A DOMAIN EVENT CANNOT ANSWER "WHO": `domain_events` has NO actor column. The business outbox
+        // records that a charge happened; only `audit_events` records who made it happen.
+        //
+        // ⚠️ ONE GUARD, EVERY CALLER. `postAddOn()`, `applyTax()` and `applyFee()` all funnel through this
+        // method, so the trail covers them without a second recorder on each entrance.
+        //
+        // ⚠️ `before` IS NULL BY FACT, NOT BY OMISSION — a charge is an APPEND: no previous value exists for
+        // a line that did not exist. (Contrast the rate path, where eleven sites pass null over a real prior
+        // value, which is why undo is unbuildable there.)
+        //
+        // ⚠️ PII-SAFE (#28): the type and the integer amount — never the guest, never free text.
+        $this->audit->record('folio.charge_posted', $item, null, [
+            'type' => $type,
+            'amount_minor' => $amount->amountMinor(),
+        ]);
+
         return $item->refresh();
     }
 
@@ -158,6 +179,12 @@ class FolioService
         });
 
         $this->domainEvents->record('folio.wallet_credit_applied', $item, ['amount_minor' => $line->amountMinor()]);
+
+        // ⚠️ THE SAME GAP, THE SECOND (AND LAST) WRITER. 🔬 Exactly two places in this codebase create a
+        // `FolioItem` — this one and {@see postCharge()} — so with both recording an author, no folio line
+        // can be written without one. A wallet credit REDUCES what is owed rather than increasing it, but
+        // "who moved this guest's money" is the same question.
+        $this->audit->record('folio.wallet_credit_applied', $item, null, ['amount_minor' => $line->amountMinor()]);
 
         return $item->refresh();
     }

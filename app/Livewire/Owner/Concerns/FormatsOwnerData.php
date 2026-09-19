@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Livewire\Owner\Concerns;
 
+use App\Models\Owner;
 use App\Models\User;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Owner\OwnerBookingsReader;
+use App\Support\Owner\OwnerContext;
 use App\Support\Reservations\ReservationStage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -36,7 +38,40 @@ trait FormatsOwnerData
             }
         }
 
-        return 'EUR';
+        // ⚠️⚠️ F-44, LIVE RATHER THAN LATENT. This returned a bare 'EUR' here, and the fallback fires on an
+        // EMPTY COLLECTION — not on a null column. So a GBP owner with no statement and no payout yet saw
+        // "EARNED YTD €0.00" and "NEXT PAYOUT €0.00" on the page that tells them what they have earned, on
+        // their FIRST DAY. ⚠️ The amount was right and the symbol was wrong, which is the dangerous
+        // direction: there is no arithmetic cue that anything is off.
+        //
+        // ⚠️ THE CORRECT SOURCE IS THE OBJECT, NEVER A DEFAULT. When no row carries a currency, the owner
+        // themselves still does: `owners.payout_currency` is `char(3)` NOT NULL — the currency they are PAID
+        // in, which is exactly what these four screens (dashboard, balance, payouts, expenses) report.
+        //
+        // ⚠️ WHY NOT SHOW NO SYMBOL AT ALL. That is the honest answer only when nothing can derive it; here
+        // something can. A dash would hide a fact the database holds.
+        //
+        // ⚠️ F-38's SCHEMA EVIDENCE COULD NOT SEE THIS. FIX 22 proved 45 `?? 'EUR'` fallbacks unreachable by
+        // reading NOT NULL columns — true, and irrelevant to a fallback keyed on an EMPTY SET.
+        return $this->ownerPayoutCurrency() ?? (string) config('billing.default_currency', 'EUR');
+    }
+
+    /**
+     * The acting owner's own payout currency, or null when no owner is resolvable (a non-owner actor, which
+     * the portal gate refuses anyway). Unscoped by id: `owners` is the tenant's own table and the ids come
+     * from the already-resolved owner context.
+     */
+    private function ownerPayoutCurrency(): ?string
+    {
+        $ids = app(OwnerContext::class)->ownerIds();
+
+        if ($ids === []) {
+            return null;
+        }
+
+        $currency = Owner::query()->whereKey($ids)->value('payout_currency');
+
+        return is_string($currency) && $currency !== '' ? $currency : null;
     }
 
     /** Format integer minor units for display, e.g. 1037000 EUR → "€10,370.00" (or "+…" / "−…"). */

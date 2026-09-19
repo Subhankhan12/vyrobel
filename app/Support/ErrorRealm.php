@@ -46,7 +46,21 @@ final class ErrorRealm
     {
         return match ($realm ?? self::current()) {
             'admin' => ['/admin', 'Back to the console'],
-            'guest' => ['/guest/trips', 'Back to your trips'],
+            // ⚠️⚠️ A GUEST WHO CANNOT CLAIM HAS NO ACCOUNT, SO "your trips" IS A LOGIN WALL. The refusal copy
+            // is already good — 403, no identity leak, the expiry named, a human route suggested — but its
+            // only CLICKABLE route required the very account the person was trying to create. Someone whose
+            // claim link expired simply left, and nothing in this product would ever report it.
+            //
+            // ⚠️ SO THE DESTINATION FOLLOWS THE SESSION, not the URL prefix. Signed in → their trips, which
+            // was always right. NOT signed in → the claim door, which is `web`-only (no auth guard) and is
+            // the one place a stranger can start over.
+            //
+            // ⚠️ ENUMERATION DISCIPLINE KEPT (#6's rule): this is the same public door anyone may open. It
+            // reveals nothing about whether a booking exists — the wording does not change, only where the
+            // link points, and it points somewhere that works.
+            'guest' => auth('guest')->check()
+                ? ['/guest/trips', 'Back to your trips']
+                : ['/guest/claim', 'Access your bookings'],
             'owner' => ['/owner', 'Back to your portal'],
             'app' => ['/app/dashboard', 'Back to the dashboard'],
             default => ['/', 'Back to safety'],

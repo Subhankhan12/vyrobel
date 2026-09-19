@@ -126,7 +126,10 @@ it('speaks to a guest in guest terms and never about roles or teams they do not 
 
 // ── 5. ⚠️ THE BACK-LINK AND THE BODY READ THE SAME DERIVATION (the anti-drift point of the helper) ────────
 it('derives the back-link and the 403 body from one realm source so they cannot disagree', function () {
-    foreach ([['guest', '/guest/trips'], ['owner', '/owner'], ['app', '/app/dashboard'], ['admin', '/admin'], ['public', '/']] as [$realm, $home]) {
+    // ⚠️ THE GUEST HOME IS SESSION-DEPENDENT SINCE F-47 (FIX 29): signed out it is the claim door, because
+    // "your trips" needs the account a failed claimer has not made. ⚠️ THE CONTRACT THIS TEST EXISTS FOR IS
+    // UNCHANGED — one derivation feeds both the layout's back-link and the 403 body, so they cannot drift.
+    foreach ([['guest', '/guest/claim'], ['owner', '/owner'], ['app', '/app/dashboard'], ['admin', '/admin'], ['public', '/']] as [$realm, $home]) {
         expect(ErrorRealm::home($realm)[0])->toBe($home);
     }
 
