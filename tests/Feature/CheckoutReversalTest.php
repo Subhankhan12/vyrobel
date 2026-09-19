@@ -4,11 +4,13 @@ use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Actions\Reservations\ReverseCheckOut;
 use App\Mail\ReviewRequestMail;
+use App\Models\Guest;
 use App\Models\GuestReviewInvite;
 use App\Models\HousekeepingTask;
 use App\Models\Reservation;
 use App\Services\ReviewService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
@@ -252,4 +254,106 @@ it('⚠️ the POST performs the reversal and carries the disclosure back', func
         ->assertRedirect();
 
     expect((string) $stay->fresh()->status)->toBe('checked_in');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5 · THE TRIPS CARD — FIX 34's RESIDUAL, CLOSED
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** A CLAIMED guest holding a stay that was checked out and then reversed. */
+function rcoReopenedForGuest(): array
+{
+    $s = seedScenario(1);
+    $stay = rcoStay($s);
+    app(ReverseCheckOut::class)->handle($stay);
+
+    $guest = Guest::withoutGlobalScopes()->whereKey($s['guest']->id)->first();
+    $guest->forceFill(['password' => 'claimed-Passw0rd!', 'email_verified_at' => now()])->save();
+
+    return ['scenario' => $s, 'stay' => $stay->fresh(), 'guest' => $guest];
+}
+
+/**
+ * ⚠️⚠️ FIX 34 CLOSED THE LINK AND REPORTED THE CARD AS A RESIDUAL — this closes it.
+ *
+ * The emailed review link is gated on `ReviewService::isCompleted()`, which FIX 34 widened to *has this stay
+ * ever completed*. The trips CARD went on asking `ReservationStage::PAST`, and a re-opened stay is IN_HOUSE —
+ * so the guest held a link that worked and a list with no button for the same action. **The screen disagreed
+ * with the server about the guest's own stay.**
+ *
+ * ⚠️ THE CARD NOW ASKS THE SAME RULE, via the batch form `isCompleted()` itself delegates to — one rule,
+ * asked two ways, never two computations of one concept.
+ */
+it('⚠️⚠️ the trips list offers the review button for a REOPENED stay — the same answer the link gives', function () {
+    Mail::fake();
+    $c = rcoReopenedForGuest();
+
+    // ⚠️ THE STAY IS BACK IN HOUSE — the exact state in which the card used to hide the button.
+    expect((string) $c['stay']->status)->toBe('checked_in');
+
+    $html = $this->actingAs($c['guest'], 'guest')->get('/guest/trips')->assertOk()->getContent();
+
+    expect($html)->toContain(route('guest.review', $c['stay']->getKey()));
+
+    // ⚠️ AND THE LINK STILL WORKS — the card and the server must agree, which is the whole finding.
+    $this->actingAs($c['guest'], 'guest')->get(route('guest.review', $c['stay']->getKey()))->assertOk();
+});
+
+/**
+ * ⚠️⚠️ THE CONTROL, AND IT CAN FAIL. A card that offered "review" to every stay would pass the case above
+ * while being far worse. A stay that has NEVER completed must still have no button.
+ */
+it('⚠️ and a stay that has never completed still has NO review button', function () {
+    $s = seedScenario(1);
+    $r = book($s, ['unit_id' => $s['units'][0]->id]);
+    app(CheckInReservation::class)->handle($r);
+
+    $guest = Guest::withoutGlobalScopes()->whereKey($s['guest']->id)->first();
+    $guest->forceFill(['password' => 'claimed-Passw0rd!', 'email_verified_at' => now()])->save();
+
+    $html = $this->actingAs($guest, 'guest')->get('/guest/trips')->assertOk()->getContent();
+
+    expect($html)->not->toContain(route('guest.review', $r->getKey()));
+});
+
+/**
+ * ⚠️⚠️ THE N+1 IS PART OF THE FIX — a page that is correct and slow is not finished, and a per-card
+ * `exists()` is exactly why FIX 34 reported this residual rather than fixing it in passing.
+ *
+ * ⚠️ MEASURED WITH SEVERAL TRIPS, NOT ONE: with one card, "does the count grow" cannot be asked at all. The
+ * assertion is that the review decision costs a FIXED number of queries regardless of how many trips exist.
+ */
+it('⚠️⚠️ decides reviewability in ONE query however many trips there are', function () {
+    Mail::fake();
+    $s = seedScenario(3);
+
+    $guest = Guest::withoutGlobalScopes()->whereKey($s['guest']->id)->first();
+    $guest->forceFill(['password' => 'claimed-Passw0rd!', 'email_verified_at' => now()])->save();
+
+    // ⚠️⚠️ PERTURBED ON PURPOSE, AND THE FIRST ATTEMPT AT THIS FIXTURE WAS VACUOUS. Stays that are simply
+    //    checked out are PAST BY DATE, and `isCompleted()` short-circuits on the stage WITHOUT a query — so a
+    //    genuine per-card N+1 still cost zero history queries and this test passed under the very mutation it
+    //    exists to catch. 🔬 Confirmed by running that mutation.
+    //
+    // ⚠️ THESE STAYS ARE REVERSED, so each is `checked_in` (NOT past) and only the HISTORY branch can answer
+    //    — which is precisely the branch that would fire once per card.
+    foreach ([0, 1, 2] as $i) {
+        $r = book($s, ['unit_id' => $s['units'][$i]->id]);
+        app(CheckInReservation::class)->handle($r);
+        app(CheckOutReservation::class)->handle($r->fresh());
+        app(ReverseCheckOut::class)->handle($r->fresh());
+        expect((string) $r->fresh()->status)->toBe('checked_in');   // the stage branch cannot answer
+    }
+
+    $count = 0;
+    DB::listen(function ($q) use (&$count): void {
+        if (str_contains($q->sql, 'reservation_status_history')) {
+            $count++;
+        }
+    });
+
+    $this->actingAs($guest, 'guest')->get('/guest/trips')->assertOk();
+
+    expect($count)->toBeLessThanOrEqual(1,
+        'the reviewability decision must not cost a query per trip — got '.$count.' for 3 stays');
 });

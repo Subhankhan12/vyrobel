@@ -3,10 +3,41 @@
 declare(strict_types=1);
 
 use App\Models\Fee;
+use App\Models\Membership;
+use App\Models\Owner;
 use App\Models\Tax;
+use App\Models\User;
 use App\Support\ErrorRealm;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
+use App\Support\Owner\OwnerContext;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * ⚠️⚠️ F-50 (FIX 40) — THE OWNER 403 NOW HAS TWO AUDIENCES, so a test that calls it with NO ACTOR is asking
+ * an incomplete question. This puts a genuinely owner-LINKED actor in scope; the assertions below then pin
+ * BOTH branches, which is what the anti-drift contract this file exists for actually requires.
+ */
+function gpd403AsOwner(callable $fn): void
+{
+    $s = seedScenario(1);
+    $user = User::factory()->create(['status' => 'active']);
+    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+    Owner::factory()->create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+
+    test()->actingAs($user);
+    app(TenantContext::class)->set((string) $s['org']->id);
+    app(OwnerContext::class)->resolveForActor($user->fresh());
+
+    $fn();
+
+    // ⚠️⚠️ AND IT RESTORES THE WORLD. Without this the actor stays signed in and every LATER assertion in the
+    //    same test silently reads the owner-LINKED branch — the B half would pass for the wrong reason, which
+    //    is the vacuous shape this project keeps catching.
+    Auth::logout();
+    app(OwnerContext::class)->deactivate();
+}
 
 // GUEST FIX PASS — F2 (the card sublabel enumerates what the total folds in) + F5 (the 403 body is
 // realm-branched). From the sealed guest deep-parity audit.
@@ -112,9 +143,18 @@ it('speaks to a guest in guest terms and never about roles or teams they do not 
         // …and it says something USEFUL, so this is not passing on an empty string.
         ->and($guest)->toContain('booking');
 
-    // The owner realm is branched too — an owner's capabilities come from their primary owner, not a team.
-    expect(ErrorRealm::forbiddenMessage('owner'))->toContain('primary owner')
-        ->and(ErrorRealm::forbiddenMessage('owner'))->not->toContain('your team');
+    // ⚠️⚠️ THE OWNER REALM SERVES TWO READERS SINCE F-50 (FIX 40), AND BOTH ARE PINNED HERE.
+    // A: owner-LINKED — capabilities come from their primary owner, not a team. The original assertion.
+    gpd403AsOwner(function (): void {
+        expect(ErrorRealm::forbiddenMessage('owner'))->toContain('primary owner')
+            ->and(ErrorRealm::forbiddenMessage('owner'))->not->toContain('your team');
+    });
+
+    // B: NOT owner-linked — 🔬 reachable by revoking a staff user's last back-office role. Telling them to
+    // ask about a capability on an account they do not have was the defect; it must never come back.
+    expect(ErrorRealm::forbiddenMessage('owner'))->not->toContain('primary owner')
+        ->and(ErrorRealm::forbiddenMessage('owner'))->not->toContain('capability')
+        ->and(ErrorRealm::forbiddenMessage('owner'))->toContain('isn’t linked to one');
 
     // ⚠️ THE OPERATOR REALM IS UNCHANGED — this pass reframed the other realms, it did not rewrite the
     // operator's message, which was correct for an actor that genuinely has a role and a team.
@@ -129,9 +169,16 @@ it('derives the back-link and the 403 body from one realm source so they cannot 
     // ⚠️ THE GUEST HOME IS SESSION-DEPENDENT SINCE F-47 (FIX 29): signed out it is the claim door, because
     // "your trips" needs the account a failed claimer has not made. ⚠️ THE CONTRACT THIS TEST EXISTS FOR IS
     // UNCHANGED — one derivation feeds both the layout's back-link and the 403 body, so they cannot drift.
-    foreach ([['guest', '/guest/claim'], ['owner', '/owner'], ['app', '/app/dashboard'], ['admin', '/admin'], ['public', '/']] as [$realm, $home]) {
+    // ⚠️ THE OWNER ENTRY MOVED OUT OF THIS LIST — since F-50 it depends on WHO is asking, exactly as the
+    //    guest entry has since F-47. Both branches are pinned immediately below.
+    foreach ([['guest', '/guest/claim'], ['app', '/app/dashboard'], ['admin', '/admin'], ['public', '/']] as [$realm, $home]) {
         expect(ErrorRealm::home($realm)[0])->toBe($home);
     }
+
+    // ⚠️⚠️ F-50 — "Back to your portal" pointed a NON-owner straight back at the door that refused them.
+    //    🔬 `/app/dashboard` refuses them too, so `/` is the only destination that admits them.
+    gpd403AsOwner(fn () => expect(ErrorRealm::home('owner')[0])->toBe('/owner'));
+    expect(ErrorRealm::home('owner')[0])->toBe('/');
 
     // ⚠️ A realm the layout knows about is a realm the body knows about — that is the whole reason the
     // derivation moved into one class instead of being matched twice.
@@ -193,8 +240,13 @@ it('never tells a guest to contact a Vyrobel administrator they do not have', fu
         // …and it points somewhere a guest can actually go.
         ->and($guest)->toContain('booking confirmation');
 
-    expect(ErrorRealm::supportLine('owner'))->toContain('primary owner')
-        ->and(ErrorRealm::supportLine('owner'))->not->toContain('Vyrobel administrator');
+    // ⚠️ BOTH AUDIENCES AGAIN (F-50) — and neither is told to contact a Vyrobel administrator they do not have.
+    gpd403AsOwner(function (): void {
+        expect(ErrorRealm::supportLine('owner'))->toContain('primary owner')
+            ->and(ErrorRealm::supportLine('owner'))->not->toContain('Vyrobel administrator');
+    });
+    expect(ErrorRealm::supportLine('owner'))->not->toContain('primary owner')
+        ->and(ErrorRealm::supportLine('owner'))->toContain('set up your Vyrobel account');
 
     // ⚠️ THE OPERATOR REALMS ARE UNCHANGED — they genuinely have a Vyrobel administrator.
     expect(ErrorRealm::supportLine('app'))->toBe('If this keeps happening, contact your Vyrobel administrator.');
