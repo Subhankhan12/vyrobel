@@ -18,6 +18,7 @@ use App\Models\Fee;
 use App\Models\Floor;
 use App\Models\Guest;
 use App\Models\GuestCreditEntry;
+use App\Models\GuestReviewInvite;
 use App\Models\ManagementAgreement;
 use App\Models\Media;
 use App\Models\Membership;
@@ -1771,6 +1772,19 @@ class DemoSeeder extends Seeder
             if ($response !== null) {
                 $reviews->respond($review, $response);
                 Review::withoutEvents(fn () => $review->forceFill(['responded_at' => $published->addHours(3 + $i)])->save());
+            }
+
+            // ⚠️⚠️ DEMO (R3) — THE THIRD STATE, MADE VISIBLE. Every stay checked out from the
+            // `guest_review_invites` migration onward leaves a row, so in a freshly seeded demo EVERY stay
+            // would be "known" and the UNKNOWN state — a stay that checked out before the product started
+            // recording — would never appear on any screen. Removing the row for the OLDEST review anchor
+            // reproduces exactly what a pre-migration stay looks like: an ABSENCE.
+            //
+            // ⚠️ THIS IS NOT A BACKFILL AND NOT AN INVENTED RECORD. It creates no row and claims nothing; it
+            // deletes one so the demo can show an operator what "we have no record" looks like. Flagged demo,
+            // like every row in this seeder.
+            if ($i === 0) {
+                GuestReviewInvite::query()->where('reservation_id', $stay->getKey())->delete();
             }
         }
     }
