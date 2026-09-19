@@ -245,7 +245,11 @@ it('still records the in-app notification when the guest has muted the EMAIL', f
     // ...and the preference service the in-app path uses is untouched by this feature.
     expect(NotificationPreferences::CATALOG['guest_payment_due']['audience'])->toBe('guest');
     expect(NotificationPreferences::catalogFor('operator'))->toHaveCount(16);
-    // ⚠️ 10 since the arrival-secret REVEAL notification (cluster E follow-up): a credential to an
-    // owner's own building being read is an always-on Account event. The pin moves only with a reason.
-    expect(NotificationPreferences::catalogFor('owner'))->toHaveCount(10);
+    // ⚠️ 11 since FIX 43 (R-ARCHIVE, F-24): an owner is now told when a property holding their units is
+    // ARCHIVED — always-on, because nothing is ever un-archived and a notice they could switch off would
+    // reinstate the silence that finding names. It was 10 from the arrival-secret REVEAL notification
+    // (cluster E follow-up), itself always-on for the same class of reason.
+    // ⚠️ THE PIN MOVES ONLY WITH A REASON, and moving it IS the visible record of the decision — the
+    //    operator count is untouched at 16, because the new entry is owner-audience.
+    expect(NotificationPreferences::catalogFor('owner'))->toHaveCount(11);
 });
