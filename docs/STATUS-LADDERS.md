@@ -1,5 +1,10 @@
 # The three status ladders — and the per-transition decisions only the founder can make
 
+> ⚠️⚠️ **RULED 2026-09-19 — the answers are in `docs/AUDIT-SUMMARY.md` §4.** R4 **REFUSE** (`confirmed →
+> checked_out`, build queued — it will redden `ReservationLadderTest`, deliberately) · R6 **LEAVE THE OTA
+> AUTHORITATIVE** (pinned) · R-HK-11 **KEEP THE LADDER PERMISSIVE** (pinned) · H4 **PERMIT REOPEN-TO-PENDING,
+> DELIBERATELY** (pinned). ⚠️ **R1 and R3 were NOT put and remain open.**
+>
 > ⚠️⚠️ **DECIDE FROM `docs/AUDIT-SUMMARY.md` §4, NOT FROM HERE.** §4 carries every transition in ONE table
 > with today's measured default beside it. **This file is the reasoning behind those rows** — why each default
 > was chosen, and what the two passes disagreed about. ⚠️ **Counts in this file are of its date; the rows in

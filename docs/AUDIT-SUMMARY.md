@@ -67,7 +67,7 @@ adding up their headlines — see the closure ledger.
 | ✅ **CLOSED** | **20** | F-1, F-2, F-4, F-5, F-6, F-7, F-8, F-9, F-11, F-12, F-13, F-15, F-16, F-17, F-18, F-19, F-20, F-22, F-26, F-27 |
 | ◐ **PARTLY CLOSED** | **1** | F-3 (the `public` realm closed; the **admin** realm reverted and reported as F-32) |
 | 🔨 **BUILT · UNWIRED** | **1** | F-23 (written and mutation-proven; **deliberately not wired**, blocked on R-GATE) |
-| ⛔ **BLOCKED ON A FOUNDER RULING** | **5** | F-10, F-14, F-21, F-24, F-25 |
+| ⛔→✅ **WAS BLOCKED; ALL FIVE RULED 2026-09-19** | **5** | F-14, F-21, F-24 → **BUILD QUEUED** · F-25 → **ACCEPTED BY RULING** (the owner is deliberately not notified) · F-10 → ⚠️ **PREMISE FAILED**, see §4 |
 | | **27** | |
 
 ⚠️ **"Closed" means one thing here: the defect no longer reproduces, and a test fails if it returns.** It does
@@ -156,15 +156,15 @@ regression net; where it rests on a browser reading, it is **not re-runnable** a
 | **F-5** ✅ CLOSED (FIX 06) | admin auth | Admin email-verification outcome never shown — same shape, making it a class three doors wide. | P2 |
 | **F-6** ✅ CLOSED (FIX 10) | operator | **A unit can be created and never edited or removed** — no update/delete route or Livewire action, despite `is_active` and `deleted_at` columns. | P3 |
 | **F-9** ✅ CLOSED (FIX 05) | operator | A password change writes **no audit row**, while an export does. | P3 |
-| **F-10** ⛔ BLOCKED | platform | `billing.manage` / `settings.manage` / `roles.manage` are reachable by nobody below Property Owner. | P4 |
+| **F-10** ⚠️ **PREMISE FAILED (FIX 32)** — the three are ALREADY grantable through the role matrix; the real question (should the SEEDED DEFAULT grant them?) was never put | platform | `billing.manage` / `settings.manage` / `roles.manage` are reachable by nobody below Property Owner. | P4 |
 | **F-11** ✅ CLOSED (FIX 09) | operator | Navigation dead ends — a **per-link filtering gap**. ⚠️ The scaling claim was **RETRACTED** in P7; measured tally across ten roles: 1·2·0·2·2·2·1·1·2·(1). | P5, retracted P7 |
 | **F-13** ✅ CLOSED (FIX 07) | operator | The housekeeping board renders with zero controls and no explanation. ⚠️ **Bounded** in P7, then **located** in P8: it is the *Board* view, and it *does* say "Assign to start" — a rule the server does not have. | P6→P8 |
 | **F-16** ✅ CLOSED (FIX 07) | operator | **Two views of one screen state different rules and the server agrees with neither.** The choice lives in `localStorage['vy:hk:view']` — one click on "Board" leaves a housekeeper unable to start any task, with no server trace. | P8 |
 | **F-17** ✅ CLOSED (FIX 05) | operator | A housekeeping status change writes **no audit row**, while three siblings in the same service do. `domain_events` has no actor column and the table has no `started_by`/`completed_by` — **who cleaned a room is recoverable from nowhere.** | P8 |
 | **F-18** ✅ CLOSED (FIX 04) | operator | `CheckInReservation` / `CheckOutReservation` guard only *target-equals-current*, never a legal **source** state. 🔬 Proven in rolled-back transactions: a cancelled booking → `checked_in`; a confirmed booking → `checked_out`. ⚠️ **Latent — no reachable caller today**; both live callers guard correctly. | P9 |
-| **F-21** ⛔ BLOCKED | operator | The agreed-rate disclosure is **correct but its scope is invisible** — the limit (it cannot see an owner's self-set rate) lives only in a **Blade comment**, which never renders. | P11 |
+| **F-21** ⛔ **QUEUED — RULED 2026-09-19 (R-RATE: seasons may overwrite; the disclosure covers it)** | operator | The agreed-rate disclosure is **correct but its scope is invisible** — the limit (it cannot see an owner's self-set rate) lives only in a **Blade comment**, which never renders. | P11 |
 | **F-23** 🔨 BUILT · UNWIRED (FIX 08) | owner | **No positive "is an owner" gate.** 🔬 An operator reached `/owner`, `/balance`, `/payouts`, `/settings` (all 200) and downloaded a statement CSV. **No data leaked** — every figure €0.00, the CSV 2 lines (watermark + header). An unguarded admission with a misleading surface, and the inverse of invariant #26. | P13 |
-| **F-25** ⛔ BLOCKED | owner | **An owner cannot discover that a season replaced their negotiated rate.** No notification covers it; the only listener on `rate_calendar.updated` pushes to channel managers; `/owner/rates` shows today's value with no history — and that screen is co-owner only. | P13 |
+| **F-25** ⚠️⚠️ **ACCEPTED BY RULING, 2026-09-19 — NEITHER OPEN NOR CLOSED.** The founder chose operator-side disclosure without owner notification, so the owner still cannot discover this. Pinned by `AgreedRateDisclosureTest`. Calling it closed would be false; calling it open implies work nobody intends | owner | **An owner cannot discover that a season replaced their negotiated rate.** No notification covers it; the only listener on `rate_calendar.updated` pushes to channel managers; `/owner/rates` shows today's value with no history — and that screen is co-owner only. | P13 |
 | **F-26** ✅ CLOSED (FIX 01) | guest | **Account deletion cancels and refunds upcoming bookings; the guest was under-told.** 🔬 `processDue()` calls `cancelWithPolicyRefund` on every live reservation. ⚠️ **The audit overstated this**: the screen already said *"Upcoming reservations are cancelled per the property's policy"* — a Phase 14 `grep -o 'This schedules[^<]*'` stopped at the first `<` and missed it. What was genuinely wrong: it said "**Upcoming**" while the code cancels *every* live booking **including a stay in progress**; it did not quantify; and the scheduled state, the email and the notification said nothing at all. ⚠️ The class docblock also contradicted its own method ("the policy is display-only"). | P14, corrected in FIX 01 |
 | **F-27** ✅ CLOSED (FIX 08) | guest | **The paid-but-unclaimed window.** The confirmation page's only action is "Back to {property}"; the email's five deep links use `route()` not `signedRoute()` and land a first-time guest on `/guest/login`, headed **"Welcome back"**, where the bridge is a footer link. | P14 |
 
@@ -172,14 +172,14 @@ regression net; where it rests on a browser reading, it is **not re-runnable** a
 
 | # | realm | finding | evidence |
 |---|---|---|---|
-| **F-3** ◐ PARTLY CLOSED (FIX 09) | auth | Role-flavoured 403 copy on roleless doors. | P1 |
+| **F-3** ◐ **PARTIAL BY RULING — RULED 2026-09-19 (R-ADMIN-COPY: the 403 fallthrough stays)**; closed for `public` by FIX 09 | auth | Role-flavoured 403 copy on roleless doors. | P1 |
 | **F-7** ✅ CLOSED (FIX 09) | operator | `/app/reservations/create` and `/app/group-booking` render **zero `h1`**. Confirmed P9. | P3, P9 |
 | **F-8** ✅ CLOSED (FIX 09) | operator | Two unnamed date inputs on `/app/group-booking`. | P3 |
 | **F-12** ✅ CLOSED (FIX 09) | operator | Two `h1` on the maintenance ticket detail. 🔬 **Confirmed six times** (P5, P9, P10, P11, P12 ×2). | P5 → P12 |
 | **F-14** ⛔ BLOCKED | operator | `housekeeping.view` is enforced nowhere. ⚠️ **REGISTERED** — in `PHANTOM-PERMISSIONS.md`, asserted by a test, awaiting a founder ruling. **Not a discovery.** | P6, re-framed P9 |
 | **F-19** ✅ CLOSED (FIX 09) | operator | A route comment **inverts the truth**: it states `AssignmentService::terminate()` has no status guard and calls the fix "outstanding". 🔬 The guard exists and throws; `CLAUDE.md` records it as shipped invariant #29. | P9 |
 | **F-22** ✅ CLOSED (FIX 05) | operator | Season create / edit / delete write **no audit row** — 🔬 `audit_events` unmoved across all three operations. | P11 |
-| **F-24** ⛔ BLOCKED | owner | **No notification of any kind when a property is archived.** The *financial* consequence is handled deliberately ("money that was earned does not stop having been earned"); the communication is absent. | P13 |
+| **F-24** ⛔ **QUEUED — RULED 2026-09-19 (R-ARCHIVE: notify the owner; keep it irreversible)** | owner | **No notification of any kind when a property is archived.** The *financial* consequence is handled deliberately ("money that was earned does not stop having been earned"); the communication is absent. | P13 |
 
 ---
 
@@ -483,7 +483,7 @@ outside the set it enumerated.
 
 ## 4 · OPEN FOUNDER RULINGS — the decision surface
 
-⚠️ **NOTHING HERE IS DECIDED, AND NO PASS MAY DECIDE ONE.** Every entry states what ships **today** by
+⚠️ **DECIDED 2026-09-19 — the answers are the first table below; NO PASS MAY REVISIT ONE.** Every entry states what ships **today** by
 default, the named options, what each costs, and what it releases. ⚠️⚠️ **AN UNDECIDED RULING IS NOT NEUTRAL —
 the product is already shipping one of the options.** The "today" column is that option.
 
@@ -494,6 +494,75 @@ today's behaviour differs from what an entry used to record, the entry says so.
 the remainder of F-15 and the last quarter of F-29. **Five cost nothing to build** (they ratify or reverse a
 line of config or copy); **eight commit to a build.** ⚠️ **R-PHANTOM moves the most surface** — one answer
 settles 17 permissions; **R-RATE** and **R-ADMIN-COPY** each release two findings.
+
+### ⚠️⚠️ THE ANSWERS — DECIDED BY THE FOUNDER, 2026-09-19
+
+**Fifteen decisions were put and answered on 2026-09-19.** The option tables below are kept deliberately: they
+are the record of **what was not chosen**, which is worth as much as what was. ⚠️ **States: DECIDED · SATISFIED
+(the code already does it and a test now pins it) · QUEUED (decided, build pending) · PREMISE FAILED.**
+
+| ruling | THE ANSWER (founder, 2026-09-19) | state | pinned by |
+|---|---|---|---|
+| **R-GATE** | **WIRE IT — GATE BEFORE SCOPE.** ⚠️ If the gate cannot resolve an owner before `OwnerScope` runs, that is a **STOP-AND-REPORT**, never a silent switch to after-scope. | **QUEUED** | — |
+| **R6** | **LEAVE THE OTA AUTHORITATIVE.** The channel keeps the last word over a checked-in stay, including its price. `checked_in` stays out of `TERMINAL_STATUSES`. | **SATISFIED** | `OtaTerminalModificationTest` |
+| **R-SUSPEND** | **SUSPENSION CLOSES THE BOOKING PATH.** A suspended organisation stops taking bookings. | **QUEUED** | — |
+| **R-REVERSE** | **ROUTE IT FOR OPERATORS**, with a confirmation surface. | **QUEUED** | — |
+| **R-ARCHIVE** | **NOTIFY THE OWNER; KEEP IT IRREVERSIBLE.** No un-archive is built. | **QUEUED** | — |
+| **R-RATE** | **SEASONS MAY OVERWRITE AN AGREED RATE**; the operator-side disclosure covers it. ⚠️⚠️ **THE OWNER IS NOT NOTIFIED — F-25 is ACCEPTED BY RULING, not closed.** | **SATISFIED** | `AgreedRateDisclosureTest` |
+| **R-PHANTOM** | **KEEP THE SEVENTEEN, DOCUMENT THEM, PIN THE EXACT REGISTER WITH A TEST.** No seeder or role-table churn. | **QUEUED** (test only) | — |
+| **R-F10** | ⚠️⚠️ **NOT RECORDED — PREMISE FAILED. See below.** | **PREMISE FAILED** | — |
+| **R-SUPPORT** | **KEEP THREADS ORGANISATION-WIDE.** `assigned_to` stays a hint, never an access filter. | **SATISFIED** | `InboxCoreTest` |
+| **R7** | **LEAVE THE POINTER.** `default_rate_plan_id` is not cleared on deactivation; the accessor's `is_active` filter is the mechanism. | **SATISFIED** | `PrimaryRatePlanActiveTest` |
+| **R-ADMIN-COPY** | **LEAVE THE 403 FALLTHROUGH.** The admin branch and back-link stay; the body stays generic. ⚠️ **F-3 remains PARTIAL BY RULING.** | **SATISFIED** | `SevenSmallFindingsTest` |
+| **R-HK-11** | **KEEP THE HOUSEKEEPING LADDER PERMISSIVE.** All fourteen permitted moves stay. | **SATISFIED** | `HousekeepingLadderTest` |
+| **H4** | **PERMIT REOPEN-TO-PENDING, DELIBERATELY.** It stops being an accident and becomes a decision. | **SATISFIED** | `HousekeepingLadderTest` |
+| **R-SEASON** | **CONFIRM THE DESIGN — NO GUARD ON RE-APPLY.** Re-applying the whole covering set weakest-first is how precedence governs price. (Its edit half was already closed by code.) | **SATISFIED** | `SeasonPrecedenceTest` |
+| **R4** | **REFUSE `confirmed` → `checked_out`.** A stay must be checked in before it can be checked out. | **QUEUED** | — |
+
+⚠️⚠️ **EVERY "SATISFIED" ROW IS A BEHAVIOUR A FUTURE PASS WILL READ AS A DEFECT AND HELPFULLY CORRECT.** Each
+pin is named for its decision and was proven by **flipping the behaviour and requiring RED** — a test that
+still passes with the behaviour reversed pins nothing. ⚠️ **The sharpest is R-SEASON: adding an idempotency
+guard to `apply()` looks like a fix and BREAKS PRICING.**
+
+### ⚠️⚠️ R-F10 — THE PREMISE FAILED, SO NO ANSWER IS RECORDED
+
+**The ruling put was "make the three grantable to back-office roles". 🔬 They already are.**
+
+`billing.manage`, `settings.manage` and `roles.manage` are in the global catalogue
+(`config/authorization.php`), and `RolePermissionService::matrix()` offers **`catalogPermissions()` — the
+entire catalogue, with no exclusion list — to every editable back-office role.** `RolePermissions`' own
+docblock describes the round trip as already possible: *"A Property Owner grants Hotel Manager `roles.manage`
++ `billing.manage` through the matrix. LEGITIMATE."*
+
+⚠️ **F-10's claim is about the SEEDED DEFAULT, not about grantability.** 🔬 Measured in tenant one: all three
+are held by **Super Admin and Property Owner** and by no role below. Nothing prevents an operator granting
+them today.
+
+⚠️ **So the real question was never asked:** *should the seeded role catalogue grant any of the three to a
+role below Property Owner by default?* **That is a different decision and this pass does not answer it.**
+⚠️ **No role table, seeder or permission was touched, so no pinned figure moved.**
+
+### ⚠️ R1 AND R3 — NOT DECIDED, BROUGHT BACK
+
+They were not named when the rulings were put. **They remain open and this pass does not decide them.**
+
+| # | transition | today | the permissive reading | the restrictive reading |
+|---|---|---|---|---|
+| **R1** | `cancelled → checked_in` — may a cancelled booking be reinstated when the guest changes their mind? | ❌ refused | a guest changing their mind is ordinary business | the room may have been **resold**; reinstating needs an availability re-check, not a status write |
+| **R3** | `checked_out → checked_in` — may a check-out be reversed (wrong guest, same day)? | ❌ refused | a same-day mis-tap is ordinary front-desk error | the departure already **created a cleaning task and dirtied the unit**; reversing the status does not reverse those |
+
+### ⚠️ THE BUILD QUEUE — decided, none built
+
+| build | touches | closes | ⚠️ |
+|---|---|---|---|
+| **R-SUSPEND** | the **public storefront** — nine `/book/{property}` routes | **F-48** | ⚠️⚠️ **TRAVELS ALONE.** It changes who can sell; option B takes a live storefront down. |
+| **R-REVERSE** | **real owner money** — routes `OwnerPayoutService::reverse()` | **F-49** | ⚠️⚠️ **TRAVELS ALONE.** It puts an irreversible-feeling action in the UI. |
+| **R-GATE** | `/owner` middleware; the gate is **already written and mutation-proven** | **F-23** + un-skips its tests | ⚠️ **gate-BEFORE-scope**; if an owner cannot be resolved that early, STOP AND REPORT |
+| **R4** | `CheckOutReservation::ALLOWED_FROM` | last of the reservation ladder | ⚠️⚠️ **WILL REDDEN `ReservationLadderTest`'s `confirmed → checked_out IS PERMITTED`** — that test currently pins the OLD answer. **Editing it IS the visible record of the decision; it must be deliberate, named and explained in its commit, never a quiet fix to a red.** ⚠️ `DemoSeeder` performs this transition twice and must check in first. |
+| **R-ARCHIVE** | a new owner notification at archive time | **F-24** | no un-archive is built |
+| **R-PHANTOM** | a test only — no seeder or role-table churn | **F-14** | closes only when its test lands |
+
+### The options — kept as the record of what was NOT chosen
 
 ### The free ones — a decision, not a project
 
