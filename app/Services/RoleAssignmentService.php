@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\Authorization\RoleAssignmentException;
+use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Models\Membership;
 use App\Models\User;
 use App\Support\Authorization\RolePermissions;
@@ -179,6 +180,7 @@ class RoleAssignmentService
         $this->withTeam(function () use ($actor, $target, $roleName): void {
             $this->assertManageable($actor, $target, $roleName);
             $this->assertNotLastRoleManager($target, $roleName);
+            $this->assertNotLastRole($target, $roleName);
             $before = $this->currentRoleNames($target);
             $target->removeRole($roleName);
             $this->recordRoleChange('user.role_revoked', $actor, $target, $roleName, $before);
@@ -310,6 +312,49 @@ class RoleAssignmentService
                 'That’s the last person who can manage access — give someone else a role that includes it first, or your workspace would be locked out.',
             );
         }
+    }
+
+    /**
+     * ⚠⚠ F-56 — A MEMBER ALWAYS HOLDS AT LEAST ONE ROLE (founder ruling, 2026-09-19).
+     *
+     * ⚠⚠ THE STATE THIS FORBIDS IS NOT HYPOTHETICAL — THE PRODUCT COULD REACH IT, AND ONE WAS BUILT.
+     * {@see assertNotLastRoleManager()} above asks whether the ORGANISATION keeps someone able to manage
+     * access; nothing asked whether the TARGET keeps anything. So an admin could strip a colleague's only
+     * role and leave them an active member of the organisation holding nothing — a person who logs in, is
+     * refused `/app` by {@see EnsureBackOfficeAccess} (an allow-list, so no role
+     * fails closed) and refused `/owner` as well. 🔬 FIX 40 manufactured exactly that person on
+     * purpose, by calling `removeRole()` on a user's last role, to reach the 403 copy F-50 rewrote.
+     *
+     * ⚠ THE RULING IS THAT THE STATE IS WRONG, NOT THAT THE SCREEN IS. Membership and role answer two
+     * different questions — "are they in this organisation" and "what may they do here" — and a member
+     * holding no role is an answer to the first with none to the second. Removing access is removing the
+     * MEMBERSHIP; that path exists and is where this refusal points.
+     *
+     * ⚠ THE REFUSAL NAMES THE WAY OUT. A wall with no door teaches an operator to route around it, and
+     * the route around this one is worse than the thing it forbids.
+     *
+     * ⚠ ORDER IS DELIBERATE: this runs AFTER the last-role-manager floor, so a revocation that would
+     * lock the workspace out still reports THAT, which is the more serious of the two and names a
+     * different remedy. Every case the older guard already refused keeps its existing message byte for
+     * byte; this one speaks only where the old path used to succeed.
+     *
+     * ⚠ AND IT MUST NOT FIRE WHEN OTHERS REMAIN — that is the positive control. A guard that refused
+     * every revocation would satisfy a deny-direction test perfectly while breaking the feature.
+     */
+    private function assertNotLastRole(User $target, string $roleName): void
+    {
+        // ⚠ The CURRENT set less the one being removed — read inside {@see withTeam()} like every other
+        //    role read here, because spatie answers for no team outside it and would report an empty set,
+        //    turning this guard into an unconditional refusal.
+        $remaining = array_values(array_diff($this->currentRoleNames($target), [$roleName]));
+
+        if ($remaining !== []) {
+            return;
+        }
+
+        throw new RoleAssignmentException(
+            'That’s this member’s only role, and every member must keep at least one. To take their access away entirely, remove them from the organisation instead.',
+        );
     }
 
     private function targetInActingOrg(User $target): bool
