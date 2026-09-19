@@ -517,7 +517,7 @@ are the record of **what was not chosen**, which is worth as much as what was. �
 | **R-HK-11** | **KEEP THE HOUSEKEEPING LADDER PERMISSIVE.** All fourteen permitted moves stay. | **SATISFIED** | `HousekeepingLadderTest` |
 | **H4** | **PERMIT REOPEN-TO-PENDING, DELIBERATELY.** It stops being an accident and becomes a decision. | **SATISFIED** | `HousekeepingLadderTest` |
 | **R-SEASON** | **CONFIRM THE DESIGN — NO GUARD ON RE-APPLY.** Re-applying the whole covering set weakest-first is how precedence governs price. (Its edit half was already closed by code.) | **SATISFIED** | `SeasonPrecedenceTest` |
-| **R4** | **REFUSE `confirmed` → `checked_out`.** A stay must be checked in before it can be checked out. | **QUEUED** | — |
+| **R4** | **REFUSE `confirmed` → `checked_out`.** A stay must be checked in before it can be checked out. | ✅ **BUILT (FIX 33)** | `ReservationLadderTest` |
 
 ⚠️⚠️ **EVERY "SATISFIED" ROW IS A BEHAVIOUR A FUTURE PASS WILL READ AS A DEFECT AND HELPFULLY CORRECT.** Each
 pin is named for its decision and was proven by **flipping the behaviour and requiring RED** — a test that
@@ -542,14 +542,49 @@ them today.
 role below Property Owner by default?* **That is a different decision and this pass does not answer it.**
 ⚠️ **No role table, seeder or permission was touched, so no pinned figure moved.**
 
-### ⚠️ R1 AND R3 — NOT DECIDED, BROUGHT BACK
+### ⚠️ R1 AND R3 — RULED 2026-09-19, AND R3 IS STOPPED
 
-They were not named when the rulings were put. **They remain open and this pass does not decide them.**
+| # | the ruling | state |
+|---|---|---|
+| **R1** | **REFUSE `cancelled` → `checked_in`.** A cancelled booking cannot be revived into an occupied stay; the room may already have been resold. | ✅ **BUILT (FIX 33)** — behaviour was already correct; what changed is the **refusal message**, which now tells the desk a returning guest needs a NEW BOOKING instead of only closing the door. Pinned by `ReservationLadderTest`. |
+| **R3** | **PERMIT `checked_out` → `checked_in`, AND REVERSE WHAT THE CHECKOUT DID** — a real undo of a mis-clicked checkout, not a status flip. | ⛔ **STOPPED — NOT BUILT. See below.** |
 
-| # | transition | today | the permissive reading | the restrictive reading |
-|---|---|---|---|---|
-| **R1** | `cancelled → checked_in` — may a cancelled booking be reinstated when the guest changes their mind? | ❌ refused | a guest changing their mind is ordinary business | the room may have been **resold**; reinstating needs an availability re-check, not a status write |
-| **R3** | `checked_out → checked_in` — may a check-out be reversed (wrong guest, same day)? | ❌ refused | a same-day mis-tap is ordinary front-desk error | the departure already **created a cleaning task and dirtied the unit**; reversing the status does not reverse those |
+### ⚠️⚠️ R3 — STOPPED BEFORE BUILDING: THE CHECKOUT FIRES SOMETHING THAT CANNOT BE UNDONE
+
+**The ruling is for a REAL undo. 🔬 Every side effect of `reservation.checked_out` was enumerated from the
+code and classified. One of them cannot be reversed, so an undo built today would be a FALSE UNDO — and this
+project's canon is that a false undo is worse than none.**
+
+| # | side effect | where | classification |
+|---|---|---|---|
+| 1 | `reservations.status` → `checked_out` | the action | ✅ **REVERSIBLE** |
+| 2 | `reservation_status_history`, `domain_events`, `audit_events` rows | the action / recorders | ✅ **CORRECT AS-IS** — append-only (#7); the undo appends its own rows rather than erasing these |
+| 3 | departure `HousekeepingTask` created per unit | `GenerateDepartureCleanTask` | ⚠️ **REVERSIBLE WITH A DECISION** — only while still `pending`. Cancelling a task a cleaner has already started is a decision about someone's work, not a rollback |
+| 4 | each unit flipped `clean → dirty` | same listener, via `HousekeepingService` | ⚠️ **REVERSIBLE WITH A DECISION** — and arguably should NOT be reversed: the guest is back in the room |
+| 5 | `BalanceDueNotification` → operators | `DispatchNotificationsForDomainEvent` | ⚠️ **REVERSIBLE WITH A DECISION** — an in-app row somebody may already have read |
+| 6 | `GuestReviewRequestNotification` → the guest | same | ⚠️ **REVERSIBLE WITH A DECISION** — same, but the audience is the guest |
+| 7 | ⚠️⚠️ **`ReviewRequestMail` EMAILED TO THE GUEST** | `SendGuestTransactionalEmails::reviewRequest()` | ⛔ **NOT REVERSIBLE** |
+| 8 | a guest REVIEW may already have been submitted | `ReviewService::submit()` | ⛔ **NOT REVERSIBLE** — and it would then be a published review of a stay the product says is still in house |
+
+⚠️⚠️ **WHY #7 IS FATAL TO A CLEAN BUILD, IN THREE MEASURED PARTS:**
+
+* **The email cannot be recalled.** It asks the guest to review a stay that, after the undo, has not finished.
+* 🔬 **It leaves NO RECORD.** `sendToGuest()` calls `Mail::to(...)->send()` and persists nothing, so the undo
+  cannot even honestly TELL the operator whether an email went out — it could only re-derive it from two
+  switches (`EmailTemplateResolver::enabled(...,'review-request')` and the guest's own `reviews` preference),
+  **either of which may have changed since**.
+* 🔬 **The undo BREAKS the link it already sent.** Review submission is gated on
+  `ReviewService::isCompleted()` → `ReservationStage::PAST`, and `checked_in` resolves to **IN_HOUSE**. So the
+  guest who was invited to review now gets a **404** on the link in their inbox.
+
+⚠️ **THE NEW QUESTION THIS RAISES IS THE FOUNDER'S, AND THIS PASS DOES NOT ANSWER IT:** should the undo
+**(a)** reverse what it can and disclose what it cannot, accepting that the disclosure is a reconstruction
+rather than a record; **(b)** be REFUSED whenever a review email may have gone out, making the undo available
+only in the window before the event fans out; or **(c)** be built only after the send is made recordable, so
+the undo can state the truth rather than infer it? ⚠️ **(c) is the only option under which the undo is whole,
+and it is a schema change.**
+
+⚠️ **R4 and R1 were built anyway — they are independent of R3 and neither touches this.**
 
 ### ⚠️ THE BUILD QUEUE — decided, none built
 

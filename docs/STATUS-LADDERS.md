@@ -1,5 +1,20 @@
 # The three status ladders — and the per-transition decisions only the founder can make
 
+> ⚠️⚠️ **BUILT 2026-09-19 (FIX 33): R4 and R1 are now enforced in the ACTIONS that write the status.**
+> `CheckOutReservation::ALLOWED_FROM = ['checked_in']` — `confirmed` is refused, and `DemoSeeder` was changed
+> to check in first at **all seven** of its checkout sites rather than the guard being widened to suit it.
+> `CheckInReservation::ALLOWED_FROM = ['confirmed']` is unchanged; R1's refusal **message** now names the way
+> out. ⚠️⚠️ **R3 IS STOPPED, NOT BUILT** — the checkout emails the guest a review request that cannot be
+> recalled, leaves no record that it was sent, and the undo breaks the very link it sent (a checked-in stay is
+> IN_HOUSE, not PAST, so the review 404s). **A false undo is worse than none; the remaining question is the
+> founder's and is stated in §4.**
+>
+> ⚠️ **H1 WAS QUESTIONED AND UPHELD (2026-09-19).** `pending → clean` — marking a room clean without ever
+> starting it — was put back to the founder because this project's own fail-safe rule points the other way
+> (the wrong permission fails SILENTLY: a room reaches guest-ready with no record it was cleaned, while the
+> wrong refusal costs one click and says so). **The founder re-affirmed it. It stays permitted.** Recorded
+> because a rule that was challenged and upheld is worth more than one never examined — do not re-open it.
+>
 > ⚠️⚠️ **RULED 2026-09-19 — the answers are in `docs/AUDIT-SUMMARY.md` §4.** R4 **REFUSE** (`confirmed →
 > checked_out`, build queued — it will redden `ReservationLadderTest`, deliberately) · R6 **LEAVE THE OTA
 > AUTHORITATIVE** (pinned) · R-HK-11 **KEEP THE LADDER PERMISSIVE** (pinned) · H4 **PERMIT REOPEN-TO-PENDING,
@@ -55,10 +70,10 @@ guest is physically in. It is a reservation decision but belongs beside the writ
 
 | # | the question | move | today | if you say yes |
 |---|---|---|---|---|
-| **R1** | May a **cancelled** booking be reinstated when the guest changes their mind? | `cancelled → checked_in` | ❌ refused | the room may have been resold; reinstating needs an availability re-check, not just a status write |
+| **R1** ✅ **RULED — REFUSE (2026-09-19)** | May a **cancelled** booking be reinstated when the guest changes their mind? | `cancelled → checked_in` | ❌ refused | the room may have been resold; reinstating needs an availability re-check, not just a status write |
 | **R2** | May a **no-show** become a late check-in? | `no_show → checked_in` | ❌ refused | the commonest real-world case in the list — a guest arriving at 01:00 after the night audit ran |
-| **R3** | May a **check-out be reversed** (wrong guest, same day)? | `checked_out → checked_in` | ❌ refused | ⚠️ the departure already created a cleaning task and dirtied the unit; reversing the status does not reverse those |
-| **R4** | May a stay be **checked out without ever being checked in** (express departure)? | `confirmed → checked_out` | ✅ **permitted** | ⚠️ see below — this one was measured, not reasoned, and it changed the answer |
+| **R3** ⚠️ **RULED — PERMIT + REVERSE; STOPPED, NOT BUILT (see §4)** | May a **check-out be reversed** (wrong guest, same day)? | `checked_out → checked_in` | ❌ still refused | ⚠️ the departure already created a cleaning task and dirtied the unit; reversing the status does not reverse those |
+| **R4** ✅ **RULED — REFUSE (2026-09-19), BUILT** | May a stay be **checked out without ever being checked in** (express departure)? | `confirmed → checked_out` | ❌ **refused since FIX 33** | ⚠️ see below — this one was measured, not reasoned, and it changed the answer |
 | **R5** | May an **enquiry or tentative** booking check in directly? | `enquiry/tentative → checked_in` | ❌ refused | skips confirmation, so a stay exists with no confirmed sale behind it |
 
 ### ⚠️⚠️ R4 deserves its own paragraph, because the first map got it wrong
