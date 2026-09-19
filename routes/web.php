@@ -133,6 +133,7 @@ use App\Http\Controllers\StripeWebhookController;
 use App\Http\Middleware\EnforceIpAllowlist;
 use App\Http\Middleware\EnsureBackOfficeAccess;
 use App\Http\Middleware\EnsureOwnerCapability;
+use App\Http\Middleware\EnsureOwnerPortalAccess;
 use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
 use App\Http\Middleware\EnsurePrimaryOwner;
@@ -1312,7 +1313,20 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
  * fails closed. Typed models are resolved owner+tenant-scoped in render() (never RMB props). Styled
  * owner PWA is the design pass.
  */
-Route::middleware(['auth', SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
+// ⚠️⚠️ R-GATE (founder, 2026-09-19) — WIRED, AND ORDERED BEFORE THE SCOPE. `EnsureOwnerPortalAccess` was
+// built and mutation-proven in `702efe1f` and left deliberately unregistered pending this ruling, because
+// wiring it reddens ~35 certified assertions that encode "a non-owner sees an EMPTY portal" as intended.
+// The founder ruled the refusal, so those assertions move.
+//
+// ⚠️ THE ORDER IS THE RULING: the gate runs BEFORE SetOwnerScopeForPortal, so a non-owner is refused before
+// any owner resolution happens at all. 🔬 It can decide that early because
+// `OwnerContext::actorIsOwnerLinked()` reads the two link sources DIRECTLY from the actor and needs only the
+// tenant context (set by the `web` group), never the owner scope.
+//
+// ⚠️ THE TWO ROUTES THAT MUST SERVE NON-OWNERS ARE EXEMPT BY CONSTRUCTION, not by an exclusion list: both
+// `owner.team.invite.accept` (a pending invitee is not yet owner-linked) and `owner.account.email.verify`
+// (a signed link opened from a new inbox, possibly with no session) are registered OUTSIDE this group.
+Route::middleware(['auth', EnsureOwnerPortalAccess::class, SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
     // Phase 7c · SG2 — owner-team capability gates ({@see EnsureOwnerCapability}). Named locals keep the
     // per-route middleware legible; the primary owner acts as co_owner (all capabilities), so every existing
     // owner flow is unaffected — these only restrict invited sub-users to their role's grid.
