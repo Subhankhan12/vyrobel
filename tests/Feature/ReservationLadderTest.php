@@ -60,10 +60,33 @@ it('⚠️ F-18 — refuses check-in from every TERMINAL state, proven by row st
     // ⚠️⚠️ R1 (founder, 2026-09-19) — THE REFUSAL MUST NAME THE WAY OUT. A front desk with a guest standing
     // in front of them needs the next move, not only a closed door. A bare "cannot check in a cancelled
     // reservation" is what this replaced.
+    //
+    // ⚠️⚠️ THIS ASSERTION WAS WIDENED BY A RULING, NOT BY A FAILURE (FIX 49, F-60). It read one ternary over
+    // a SHARED message; the founder extended R1 to `no_show` and split the two arms, so `no_show` now names
+    // the route a receptionist should actually take. ⚠️ The route was DRIVEN before it was named: 🔬
+    // reschedule REFUSES a released line, and a new reservation SUCCEEDS and re-takes the nights. Asserting
+    // the old shared phrase here would now pass over copy that points nowhere.
     try {
         app(CheckInReservation::class)->handle($r);
     } catch (RuntimeException $e) {
-        expect($e->getMessage())->toContain($from === 'checked_out' ? 'departure has already been recorded' : 'needs a new booking');
+        expect($e->getMessage())->toContain(match ($from) {
+            'checked_out' => 'departure has already been recorded',
+            'no_show' => 'take a New reservation on the front desk',
+            default => 'needs a new booking',
+        });
+    }
+
+    // ⚠️ AND THE `no_show` COPY MUST STAY TRUE TO WHAT WAS MEASURED, not merely mention a control.
+    if ($from === 'no_show') {
+        try {
+            app(CheckInReservation::class)->handle($r);
+        } catch (RuntimeException $e) {
+            expect($e->getMessage())
+                ->toContain('released back to sale')      // 🔬 availability.sold 2 → 0
+                ->toContain('re-checks availability')     // 🔬 why a status write is not enough
+                ->toContain('stay on the guest record')   // 🔬 the folio and the no-show survive
+                ->not->toContain('reschedule');           // 🔬 DRIVEN: reschedule refuses a released line
+        }
     }
 })->with(['cancelled', 'no_show', 'checked_out']);
 

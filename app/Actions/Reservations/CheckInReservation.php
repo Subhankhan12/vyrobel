@@ -78,6 +78,25 @@ class CheckInReservation
     private const ALLOWED_FROM = ['confirmed'];
 
     /**
+     * ⚠️⚠️ EXTENDED BY THE FOUNDER, 2026-09-19 — R1 COVERS `no_show` TOO (F-60). The ruling's reasoning was
+     * always an AVAILABILITY argument, and 🔬 it is literally true of a no-show: `markNoShow()` funnels
+     * through `AssignmentService::terminate()`, which RELEASES THE LINE — measured, `availability.sold` over
+     * the stay went 2 → 0 — and records a domain event `EnqueueAriPushOnInventoryChange` subscribes to, so
+     * the freed nights may already have been pushed to the channels. **Permitting the transition would be a
+     * re-booking against inventory that may no longer exist.** Only the ruling's TEXT named `cancelled`; the
+     * refusal itself was already correct and is unchanged.
+     *
+     * ⚠️⚠️ THE MESSAGES ARE NOW SPLIT, AND THE `no_show` ARM NAMES A ROUTE THAT WAS DRIVEN BEFORE IT WAS
+     * NAMED. 🔬 Measured 2026-09-19: **reschedule is NOT a way out** — `AssignmentService::reschedule()`
+     * refuses with *"Only an active reservation line can be rescheduled"* because the line is no longer
+     * active. 🔬 **A new reservation IS** — booking the same nights for the same guest succeeded and took
+     * `availability.sold` back 0 → 2. 🔬 The cost was measured too: the no-show keeps its own folio (a 5,000
+     * minor-unit fee survived it) and the guest ends with two reservations.
+     *
+     * ⚠️ **A refusal that names a route which does not exist is worse than one that names none** — it sends a
+     * night receptionist hunting for a button nobody built, at 2am, with a guest at the desk. "New
+     * reservation" is the front desk's own label for the control (`app.reservations.store`).
+     *
      * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R1: `cancelled` → `checked_in` STAYS REFUSED. A cancelled
      * booking cannot be revived into an occupied stay: the room may already have been resold, and reinstating
      * one is an AVAILABILITY question, not a status write. ⚠️ The refusal was already correct — this ruling
@@ -97,8 +116,14 @@ class CheckInReservation
 
         throw new RuntimeException(match ($from) {
             // ⚠️ R1 — F-18's exact shape: a rolled-back probe once revived a cancelled booking this way.
-            'cancelled', 'no_show' => "Cannot check in a {$from} reservation: the booking is closed and the "
+            'cancelled' => 'Cannot check in a cancelled reservation: the booking is closed and the '
                 .'room may already have been resold. A returning guest needs a new booking.',
+
+            // ⚠️⚠️ R1 EXTENDED TO `no_show` (F-60). The route below was DRIVEN before it was named.
+            'no_show' => 'Cannot check in a no-show reservation: the booking is closed and its nights were '
+                .'released back to sale. To put this guest in a room, take a New reservation on the front '
+                .'desk — it re-checks availability before it books. The no-show and any fee already charged '
+                .'on it stay on the guest record.',
             'checked_out' => 'Cannot check in a checked-out reservation: the departure has already been '
                 .'recorded and acted on. Reversing a checkout is not available.',
             default => "Cannot check in a {$from} reservation.",

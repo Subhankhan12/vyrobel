@@ -77,8 +77,8 @@ guest is physically in. It is a reservation decision but belongs beside the writ
 
 | # | the question | move | today | if you say yes |
 |---|---|---|---|---|
-| **R1** ✅ **RULED — REFUSE (2026-09-19)** | May a **cancelled** booking be reinstated when the guest changes their mind? | `cancelled → checked_in` | ❌ refused | the room may have been resold; reinstating needs an availability re-check, not just a status write |
-| **R2** | May a **no-show** become a late check-in? | `no_show → checked_in` | ❌ refused | the commonest real-world case in the list — a guest arriving at 01:00 after the night audit ran |
+| **R1** ✅ **RULED — REFUSE (2026-09-19); ⚠️ EXTENDED TO `no_show` 2026-09-19 (F-60)** | May a **cancelled — or no-show —** booking be reinstated when the guest changes their mind or turns up? | `cancelled → checked_in` · `no_show → checked_in` | ❌ refused | the room may have been resold; reinstating needs an availability re-check, not just a status write. ⚠️ 🔬 For a no-show this is LITERAL: `markNoShow()` already released the line (`availability.sold` 2 → 0) and fired the event the channel push subscribes to |
+| **R2** ✅ **RULED — REFUSE (2026-09-19), AS AN EXTENSION OF R1 (F-60)** | May a **no-show** become a late check-in? | `no_show → checked_in` | ❌ refused | the commonest real-world case in the list — a guest arriving at 01:00 after the night audit ran. ⚠️ **The refusal did not change; the ruled TEXT and the refusal MESSAGE did** — the message now names the route (`New reservation` on the front desk), which was DRIVEN before it was named. Pinned by `ReservationLadderTest` |
 | **R3** ✅ **RULED — PERMIT + REVERSE; BUILT (FIX 34)** | May a **check-out be reversed** (wrong guest, same day)? | `checked_out → checked_in` | ✅ **via `ReverseCheckOut`, with disclosure** | ⚠️ the departure already created a cleaning task and dirtied the unit; reversing the status does not reverse those |
 | **R4** ✅ **RULED — REFUSE (2026-09-19), BUILT** | May a stay be **checked out without ever being checked in** (express departure)? | `confirmed → checked_out` | ❌ **refused since FIX 33** | ⚠️ see below — this one was measured, not reasoned, and it changed the answer |
 | **R5** | May an **enquiry or tentative** booking check in directly? | `enquiry/tentative → checked_in` | ❌ refused | skips confirmation, so a stay exists with no confirmed sale behind it |
@@ -87,7 +87,7 @@ guest is physically in. It is a reservation decision but belongs beside the writ
 for the HOUSEKEEPING questions (§4 calls those **H1**–**H4**), and `docs/DECISIONS.md` uses `R2`/`R3`/`R5`
 for something else again. ⚠️ **An answer under one of those numbers is not an answer to the question below.**
 
-### ⚠️⚠️ §2a · R2 AND R5 — THE TWO THAT WERE NEVER PUT (added FIX 48, 2026-09-19 · **F-60**)
+### ⚠️⚠️ §2a · R2 AND R5 — PUT AFTER ALL: ⚠️ **R2 IS NOW RULED, R5 IS NOT** (FIX 48 · amended FIX 49 · **F-60**)
 
 ⚠️⚠️ **"EVERY RULING HAS BEEN ANSWERED" WAS FALSE, AND IT WAS FALSE IN EVERY DOCUMENT THAT SAID IT.** R2 and
 R5 carry no ruling marker above and appear in **no** row of `AUDIT-SUMMARY.md` §4's answers table.
@@ -108,7 +108,23 @@ refused in production code the whole time.
 behaviour touched. 🔬 Everything below was **MEASURED BY DRIVING THE CODE** on 2026-09-19, not read from it —
 this programme has already been burned once by a plausible sentence that nobody had executed.
 
-#### R2 · `no_show → checked_in` — the guest who turns up at 01:00
+#### R2 · `no_show → checked_in` — ✅ **RULED 2026-09-19: REFUSE, AS AN EXTENSION OF R1**
+
+⚠️⚠️ **THE FOUNDER EXTENDED R1 RATHER THAN WRITING A NEW RULING, AND THAT IS THE RIGHT SHAPE:** R1's
+recorded reasoning — *"the room may already have been resold, and reinstating one is an AVAILABILITY
+question, not a status write"* — is 🔬 **literally true of a no-show**, as the measurements below show. Only
+R1's TEXT named `cancelled`; it now names both. ⚠️ **The refusal itself never changed.**
+
+⚠️ **WHAT DID CHANGE (FIX 49): the shared message was SPLIT**, and the `no_show` arm names the route —
+⚠️⚠️ **after the route was DRIVEN, not before.** 🔬 `reschedule` **REFUSES** a released line
+(*"Only an active reservation line can be rescheduled"*), so naming it would have sent a night receptionist
+hunting for a dead end; 🔬 a **new reservation SUCCEEDS** and takes `availability.sold` back **0 → 2**.
+🔬 The cost was measured too: the no-show **keeps its own folio** (a 5,000-minor fee survived it) and the
+guest ends with **two reservations**. The copy says exactly those things and nothing else.
+
+⚠️ **The original analysis is kept below as the record of what was put.**
+
+#### R2 — the analysis as it was put
 
 🔬 **TODAY, DRIVEN:** `CheckInReservation::ALLOWED_FROM = ['confirmed']`, so the action throws
 `RuntimeException` and **the row does not move**. The message is the informative one R1 earned:
