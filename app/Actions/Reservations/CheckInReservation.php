@@ -77,12 +77,31 @@ class CheckInReservation
      */
     private const ALLOWED_FROM = ['confirmed'];
 
+    /**
+     * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R1: `cancelled` → `checked_in` STAYS REFUSED. A cancelled
+     * booking cannot be revived into an occupied stay: the room may already have been resold, and reinstating
+     * one is an AVAILABILITY question, not a status write. ⚠️ The refusal was already correct — this ruling
+     * changed no behaviour. What it changed is the MESSAGE: a front desk facing a guest who is standing there
+     * needs to be told what to do, not only what they may not do.
+     *
+     * ⚠️ `checked_out` → `checked_in` is R3 and is NOT built: the undo cannot honestly reverse the review
+     * email the checkout already sent. See docs/STATUS-LADDERS.md.
+     */
     private function assertTransition(Reservation $reservation): void
     {
         $from = (string) $reservation->status;
 
-        if (! in_array($from, self::ALLOWED_FROM, true)) {
-            throw new RuntimeException("Cannot check in a {$from} reservation.");
+        if (in_array($from, self::ALLOWED_FROM, true)) {
+            return;
         }
+
+        throw new RuntimeException(match ($from) {
+            // ⚠️ R1 — F-18's exact shape: a rolled-back probe once revived a cancelled booking this way.
+            'cancelled', 'no_show' => "Cannot check in a {$from} reservation: the booking is closed and the "
+                .'room may already have been resold. A returning guest needs a new booking.',
+            'checked_out' => 'Cannot check in a checked-out reservation: the departure has already been '
+                .'recorded and acted on. Reversing a checkout is not available.',
+            default => "Cannot check in a {$from} reservation.",
+        });
     }
 }

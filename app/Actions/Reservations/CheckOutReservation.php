@@ -189,14 +189,35 @@ class CheckOutReservation
      * fixture), so it is NOT claimed here as having fired; in production with both open, an illegal checkout
      * would ask a guest to review a stay that never happened, and an email cannot be recalled.
      */
-    private const ALLOWED_FROM = ['checked_in', 'confirmed'];
+    private const ALLOWED_FROM = ['checked_in'];
 
+    /**
+     * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R4: `confirmed` → `checked_out` IS REFUSED. A stay must be
+     * checked in before it can be checked out. The docblock above records the history: `confirmed` was
+     * PERMITTED here from FIX 04 until this ruling, because the seeder performed it and the map was derived
+     * from what the product did. The founder has now decided what the product SHOULD do, and the seeder was
+     * changed to check in first rather than the guard widened to suit it.
+     *
+     * ⚠️ THE REFUSAL NAMES THE WAY OUT. A front desk that hits a bare "cannot do that" has no next move, so
+     * the message says which transition covers each real case — otherwise the guard just teaches people to
+     * route around it.
+     */
     private function assertTransition(Reservation $reservation): void
     {
         $from = (string) $reservation->status;
 
-        if (! in_array($from, self::ALLOWED_FROM, true)) {
-            throw new RuntimeException("Cannot check out a {$from} reservation.");
+        if (in_array($from, self::ALLOWED_FROM, true)) {
+            return;
         }
+
+        throw new RuntimeException(match ($from) {
+            // ⚠️ R4, and the case a front desk actually meets: the guest is leaving and was never arrived.
+            'confirmed' => 'Cannot check out a confirmed reservation: a stay must be checked in before it can '
+                .'be checked out. If the guest stayed and is leaving early, check them in first and then out. '
+                .'If they never arrived, mark the booking a no-show instead.',
+            'cancelled', 'no_show' => "Cannot check out a {$from} reservation: the booking is closed and no "
+                .'stay took place. A guest who turned up after all needs a new booking.',
+            default => "Cannot check out a {$from} reservation.",
+        });
     }
 }
