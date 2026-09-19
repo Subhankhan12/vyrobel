@@ -167,3 +167,82 @@ if (! defined('VY_UNREAD_PERMISSIONS')) {
         'payments.view' => 'Payment reads ride on the folio surfaces, gated by `folios.view`; the only /payments routes are guest-realm.',
     ]);
 }
+
+/**
+ * ⚠️⚠️ F-44 — EVERY CURRENCY FALLBACK KEYED ON A POSSIBLY-EMPTY COLLECTION (FIX 46).
+ *
+ * ⚠️⚠️ WHY THIS SHAPE AND NOT "no hardcoded currency anywhere". 🔬 `app/` holds ~39 `?? 'XXX'` literals, and
+ * FIX 22 proved FORTY-FIVE of that family UNREACHABLE by reading the schema: every `currency` column is NOT
+ * NULL, so the branch cannot fire. That evidence was correct — **and blind to exactly one case**. A fallback
+ * written as `$collection->first()->currency ?? 'EUR'` is keyed on an EMPTY SET, not a null column, and no
+ * schema can see an empty set. That blind spot IS F-44, and it is the only thing this guard asks about.
+ * ⚠️ Forbidding all thirty-nine would need a thirty-nine-entry allow-list, which is how a guard dies quietly.
+ *
+ * ⚠️⚠️ IT IS VARIABLE-AWARE, BECAUSE A SINGLE-LINE REGEX FINDS ONLY SEVEN OF THE NINE. `OwnerReports` and
+ * `OwnerInsights` assign `$first = $units->first();` on one line and coalesce on the next — a guard that
+ * missed two of the very sites it exists for would be decorative. Any variable assigned from `->first()`
+ * inside a file is tracked, and a later coalesce against it counts.
+ *
+ * ⚠️ IT REUSES {@see vyPermissionStrip()} — comments, heredocs, `<style>` and `<script>` gone before the scan.
+ * A THIRD SCANNER WOULD BE THE DEFECT FIX 42 SPENT A PASS REMOVING, committed while closing a recurrence.
+ *
+ * ⚠️ ROOTS ARE NAMED: `app/` only. `tests/` and `docs/` are NEVER read, so this guard cannot match its own
+ * description — asserted in the test, not claimed in a comment.
+ *
+ * @return list<string> "path:line  code" for each offending fallback
+ */
+function vyCurrencyEmptyCollectionFallbacks(): array
+{
+    $root = __DIR__.'/../../app';
+    $base = realpath(__DIR__.'/../../').'/';
+    $out = [];
+
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS));
+
+    foreach ($it as $file) {
+        if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.php')) {
+            continue;
+        }
+
+        $path = str_replace($base, '', (string) $file->getRealPath());
+        $source = vyPermissionStrip((string) file_get_contents((string) $file->getRealPath()), false);
+        $lines = explode("\n", $source);
+
+        foreach ($lines as $i => $line) {
+            if (! preg_match("/\?\?\s*'[A-Z]{3}'/", $line)) {
+                continue;
+            }
+
+            // ⚠⚠ SAME EXPRESSION, or assigned from ->first() WITHIN A SHORT BACKWARD WINDOW.
+            //    ⚠ File-wide tracking was tried first and OVER-MATCHED: eight sites where a `$property`
+            //    in one method shares its name with a `$properties->first()` in another. A guard that is red
+            //    on arrival needs an allow-list to survive, and an allow-list is how a guard dies quietly.
+            //    ⚠ The window is SIX lines because the two multi-line cases this guard exists for
+            //    (`OwnerReports`, `OwnerInsights`) assign `$first = $units->first();` two lines above.
+            $keyedOnFirst = str_contains($line, '->first(');
+
+            if (! $keyedOnFirst) {
+                for ($back = 1; $back <= 6 && ($i - $back) >= 0; $back++) {
+                    $prev = $lines[$i - $back];
+
+                    if (! preg_match('/(\$[A-Za-z_]\w*)\s*=\s*[^;]*->first\s*\(/', $prev, $m)) {
+                        continue;
+                    }
+
+                    if (preg_match('/'.preg_quote($m[1], '/').'\s*\??->/', $line)) {
+                        $keyedOnFirst = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($keyedOnFirst) {
+                $out[] = $path.':'.($i + 1).'  '.trim($line);
+            }
+        }
+    }
+
+    sort($out);
+
+    return $out;
+}
