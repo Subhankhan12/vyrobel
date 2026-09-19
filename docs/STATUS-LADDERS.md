@@ -83,10 +83,24 @@ guest is physically in. It is a reservation decision but belongs beside the writ
 | **R4** ✅ **RULED — REFUSE (2026-09-19), BUILT** | May a stay be **checked out without ever being checked in** (express departure)? | `confirmed → checked_out` | ❌ **refused since FIX 33** | ⚠️ see below — this one was measured, not reasoned, and it changed the answer |
 | **R5** | May an **enquiry or tentative** booking check in directly? | `enquiry/tentative → checked_in` | ❌ refused | skips confirmation, so a stay exists with no confirmed sale behind it |
 
+⚠️⚠️ **THESE `R`-NUMBERS ARE LOCAL TO THIS FILE (F-63).** `docs/HOUSEKEEPING-LADDER.md` has its own `R1`–`R4`
+for the HOUSEKEEPING questions (§4 calls those **H1**–**H4**), and `docs/DECISIONS.md` uses `R2`/`R3`/`R5`
+for something else again. ⚠️ **An answer under one of those numbers is not an answer to the question below.**
+
 ### ⚠️⚠️ §2a · R2 AND R5 — THE TWO THAT WERE NEVER PUT (added FIX 48, 2026-09-19 · **F-60**)
 
 ⚠️⚠️ **"EVERY RULING HAS BEEN ANSWERED" WAS FALSE, AND IT WAS FALSE IN EVERY DOCUMENT THAT SAID IT.** R2 and
-R5 carry no ruling marker above and appear in **no** row of `AUDIT-SUMMARY.md` §4's answers table. ⚠️ **An
+R5 carry no ruling marker above and appear in **no** row of `AUDIT-SUMMARY.md` §4's answers table.
+
+⚠️⚠️ **AND THEY ARE GENUINELY UNRULED, NOT MERELY UNMIGRATED — THE OBVIOUS ESCAPE WAS CHECKED FIRST AND IT
+CLOSED.** 🔬 §4's table reaches seventeen rulings only by adding rows from outside it, so this file
+demonstrably holds rulings §4 does not — which raised the hope that R2 and R5 were answered here and simply
+never migrated. **They are not.** Every `R2`/`R5` mention in the entire record was swept: this file (their
+own unruled rows), §4's ladder table (state *"deliberate"*, which is the pre-ruling default and not an
+answer), `FINAL-VERIFICATION.md` (reporting them as unruled), and two files where **`R2` means something
+else entirely** — `HOUSEKEEPING-LADDER.md`'s own `R2` (a cleaned room going backward, **permitted**) and
+`DECISIONS.md`'s docs-triage `R2`. ⚠️ **That near-miss is now F-63.** ⚠️ The two extra ruled rows are **R1
+and R3**, both in the table directly below §4's answers — not R2, not R5. ⚠️ **An
 unruled transition is not neutral — the product is already shipping one of the options**, and both have been
 refused in production code the whole time.
 

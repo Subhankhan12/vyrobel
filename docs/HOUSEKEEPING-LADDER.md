@@ -50,6 +50,13 @@ So `inspected` is reachable only from `clean` (the real step) and from `inspecte
 Each has a defensible answer in both directions and **the code does not currently say**. Per the brief's rule,
 where a choice was forced the **permissive** reading was taken, so today's behaviour is preserved until ruled.
 
+⚠️⚠️ **THESE `R`-NUMBERS ARE LOCAL TO THIS FILE. THEY ARE NOT THE RESERVATION-LADDER RULINGS (F-63).**
+🔬 `R1`–`R4` below are the HOUSEKEEPING questions, which `AUDIT-SUMMARY.md` §4 calls **H1**–**H4** and which
+were ruled together under **R-HK-11** (*keep the ladder permissive*) and **H4**. ⚠️ The reservation ladder's
+`R1`–`R6` live in `docs/STATUS-LADDERS.md` and are **different questions with different answers** — this
+file's `R2` is *"may a clean room go backward"* (permitted), **not** *"may a no-show check in"* (refused,
+and ⚠️ **still unruled** — see `STATUS-LADDERS.md` §2a). **Do not read an answer here as an answer there.**
+
 | # | the question | moves | permitted today | what it costs |
 |---|---|---|---|---|
 | **R1** | May a room be marked clean without ever being started? | `pending→clean` | ✅ yes | `started_at` stays NULL forever; the board's "Elapsed" bar has no basis; guest-ready is then two clicks from dirty |

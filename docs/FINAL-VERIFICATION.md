@@ -363,6 +363,10 @@ register in the opposite direction.**
 | **V-5** | a defect someone must act on | ➡️ **F-61** (⛔ OPEN) — **disclosed, not repaired**: the gate now prints it and `KNOWN-LIMITS.md` **L8** carries it |
 | **V-6** | ⚠️⚠️ **an INSTRUMENT fault, not a product defect** | ➡️ `docs/INSTRUMENT-ERRORS.md` class **14**. **It earns no finding number**, and it is the most valuable of the six: a probe that 404s for every id *including its own control's* looks exactly like perfect isolation. |
 
+⚠️ **A FIFTH row, F-63, was not in this document at all** — it surfaced when FIX 48 followed V-4's lead and
+found that `R2` names a DIFFERENT, already-ruled question in `HOUSEKEEPING-LADDER.md`, so a reader checking
+whether the reservation R2 was answered elsewhere could read *its* ✅ and conclude wrongly.
+
 ⚠️ **A fourth row came from §5's guard table rather than §7:** the money gate compares **counts and sums**, so
 an equal-and-opposite pair of errors nets to zero and passes — now ➡️ **F-62** (⛔ OPEN, disclosed on the gate
 itself).
