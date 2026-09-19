@@ -57,10 +57,39 @@ class ReviewService
 
         // ⚠️ THE REOPENED CASE. `reservation_status_history` already records everything a stay has been
         //    through, so the invitation survives the correction without a new column to keep in step.
+        return $this->everCheckedOut([$reservation->getKey()]) !== [];
+    }
+
+    /**
+     * ⚠️⚠️ THE SAME QUESTION, ASKED FOR MANY — AND IT EXISTS SO A LIST SURFACE NEED NOT ASK IT PER ROW.
+     *
+     * FIX 34 widened "can this be reviewed" to *has this stay ever completed* and scoped it to this service,
+     * because widening {@see ReservationStage::PAST} would have started calling occupied rooms "past". The
+     * emailed review LINK asked this service; the guest trips CARD went on asking the stage, so a stay whose
+     * checkout had been reversed offered a working link and no button (FIX 34 reported that residual).
+     *
+     * ⚠️ ONE DEFINITION (§N.8f): {@see self::isCompleted()} now DELEGATES here, so the singular and the
+     * batch cannot drift — there is one rule, asked two ways, not two computations of one concept.
+     *
+     * ⚠️ AND IT IS ONE QUERY FOR THE WHOLE SET. A per-card `exists()` would have made the trips list N+1,
+     * which is exactly why FIX 34 reported the residual instead of fixing it in passing.
+     *
+     * @param  list<string>  $reservationIds
+     * @return list<string> those that have EVER reached `checked_out`
+     */
+    public function everCheckedOut(array $reservationIds): array
+    {
+        if ($reservationIds === []) {
+            return [];
+        }
+
         return ReservationStatusHistory::query()
-            ->where('reservation_id', $reservation->getKey())
+            ->whereIn('reservation_id', $reservationIds)
             ->where('to_status', 'checked_out')
-            ->exists();
+            ->distinct()
+            ->pluck('reservation_id')
+            ->map(fn ($id): string => (string) $id)
+            ->all();
     }
 
     /**

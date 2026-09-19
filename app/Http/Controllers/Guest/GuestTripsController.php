@@ -9,6 +9,7 @@ use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Review;
+use App\Services\ReviewService;
 use App\Support\Guest\GuestTrip;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
@@ -33,7 +34,7 @@ class GuestTripsController extends Controller
     /** @var list<string> */
     private const TABS = ['upcoming', 'past', 'cancelled'];
 
-    public function index(Request $request): View
+    public function index(Request $request, ReviewService $reviews): View
     {
         $today = CarbonImmutable::today();
         $guest = $this->guest();
@@ -41,11 +42,29 @@ class GuestTripsController extends Controller
         $reservations = $guest->reservations()->with('property')->orderByDesc('check_in')->get();
         $reviewed = array_flip(Review::query()->whereIn('reservation_id', $reservations->pluck('id')->all())->pluck('reservation_id')->all());
 
-        $cards = $reservations->map(function (Reservation $reservation) use ($today, $reviewed): array {
+        // ⚠️⚠️ THE CARD ASKS THE SAME QUESTION THE EMAILED LINK ASKS. Until FIX 40 this flag read
+        //    `stage === PAST` while {@see \App\Http\Controllers\Guest\GuestReviewController} gated the link
+        //    on {@see ReviewService::isCompleted()} — which FIX 34 widened to *has this stay ever completed*.
+        //    A guest whose mis-clicked checkout was REVERSED therefore held a review link that still worked
+        //    while the button for the same action had vanished from this list. The screen disagreed with the
+        //    server about the guest's own stay.
+        //
+        // ⚠️ ONE QUERY, NOT ONE PER CARD — the batch form exists precisely so this list does not become N+1,
+        //    which is why FIX 34 reported the residual rather than fixing it in passing. It is the SAME rule
+        //    as the singular call, not a copy: `isCompleted()` delegates to it.
+        $everCompleted = array_flip($reviews->everCheckedOut(
+            $reservations->pluck('id')->map(fn ($id): string => (string) $id)->all(),
+        ));
+
+        $cards = $reservations->map(function (Reservation $reservation) use ($today, $reviewed, $everCompleted): array {
             $card = GuestTrip::card($reservation, $today);
             $isReviewed = isset($reviewed[(string) $reservation->getKey()]);
             $card['reviewed'] = $isReviewed;
-            $card['reviewable'] = ! $isReviewed && $card['stage'] === ReservationStage::PAST;
+
+            // ⚠️ `stage === PAST` OR ever-checked-out — the two halves of `isCompleted()`, in that order,
+            //    so a stay that is PAST by date still qualifies without touching the batch result.
+            $card['reviewable'] = ! $isReviewed
+                && ($card['stage'] === ReservationStage::PAST || isset($everCompleted[(string) $reservation->getKey()]));
 
             return $card;
         });
