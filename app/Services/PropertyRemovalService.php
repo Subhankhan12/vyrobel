@@ -62,10 +62,26 @@ class PropertyRemovalService
     public function __construct(private AuditEventRecorder $audit, private TenantContext $tenant) {}
 
     /**
-     * Schedule removal. Effective date = the last checkout among non-cancelled future/current stays (so the
-     * property stays live until then); immediate (today) when there are none. Records who requested it.
+     * ⚠️⚠️ THE ONE DEFINITION OF "AFTER THE LAST STAY" (F-57 · FIX 44). Both callers ask this: {@see schedule()}
+     * when an operator plans a removal, and {@see processDue()} again at the moment it would act.
+     *
+     * ⚠️ IT IS `schedule()`'s ORIGINAL RULE, MOVED NOT REWRITTEN — byte-identical in statuses, column and
+     * boundary. A second computation of one concept is how three permission censuses drifted apart (FIX 42),
+     * and "the last stay" is exactly the kind of rule that grows a second opinion.
+     *
+     * ⚠️⚠️ WHAT COUNTS, STATED SO A NEW STATUS CAN BE JUDGED. `reservations.status` is an enum of SEVEN:
+     * `enquiry`, `tentative`, `confirmed`, `checked_in`, `checked_out`, `cancelled`, `no_show`. This excludes
+     * **two** — `cancelled` and `no_show` — so **five count**, and that includes `enquiry` and `tentative`.
+     *   · ⚠️ AN UNCONVERTED ENQUIRY THEREFORE HOLDS A PROPERTY OPEN. That is the inherited rule, not a choice
+     *     made here; it errs toward never archiving over somebody, which is the direction F-57 was about.
+     *   · ⚠️ `checked_out` counts too, which only reaches beyond today on an early departure.
+     * ⚠️ A NEW STATUS IS INCLUDED BY DEFAULT — the list is a DENY-list. That is deliberate: a status nobody
+     * thought about should keep a property alive, never archive it.
+     *
+     * ⚠️ THE COLUMN IS `check_out` AND THE BOUNDARY IS INCLUSIVE OF TODAY (`>=`), so a stay departing today
+     * still counts; the answer is `max(check_out)` at start of day, or TODAY when there is no such stay.
      */
-    public function schedule(Property $property, string $requestedBy): void
+    private function effectiveDateFor(Property $property): CarbonImmutable
     {
         $today = CarbonImmutable::today();
 
@@ -75,9 +91,18 @@ class PropertyRemovalService
             ->whereDate('check_out', '>=', $today->toDateString())
             ->max('check_out');
 
-        $effective = $lastCheckout !== null
+        return $lastCheckout !== null
             ? CarbonImmutable::parse($lastCheckout)->startOfDay()
             : $today;
+    }
+
+    /**
+     * Schedule removal. Effective date = the last checkout among non-cancelled future/current stays (so the
+     * property stays live until then); immediate (today) when there are none. Records who requested it.
+     */
+    public function schedule(Property $property, string $requestedBy): void
+    {
+        $effective = $this->effectiveDateFor($property);
 
         $property->forceFill([
             'removal_scheduled_at' => Carbon::now(),
@@ -133,14 +158,68 @@ class PropertyRemovalService
             $this->tenant->forOrganization((string) $ref->organization_id, function () use ($ref, $channels, &$count): void {
                 $property = Property::query()->find($ref->getKey());
 
-                if ($property instanceof Property) {
-                    $this->archive($property, $channels);
-                    $count++;
+                if (! $property instanceof Property) {
+                    return;
                 }
+
+                // ⚠️⚠️ F-57 (FIX 44) — RE-DERIVED AT THE MOMENT OF ACTING, NOT TRUSTED FROM THE SCHEDULE.
+                //    `removal_effective_at` was computed from the stays that existed when the operator
+                //    PLANNED the removal, and 🔬 nothing recomputed it afterwards — so a booking taken the
+                //    next day outran it and a confirmed guest was archived over. The date has to mean
+                //    "after the last stay" WHEN IT ACTS.
+                //
+                // ⚠️ THE SAME PREDICATE AS THE SELECTION ABOVE (`<= now`), deliberately: a stay departing
+                //    TODAY still archives today, exactly as before. Only a stay reaching BEYOND today defers.
+                $effective = $this->effectiveDateFor($property);
+
+                if ($effective->gt(Carbon::now())) {
+                    $this->deferRemoval($property, $effective);
+
+                    return;
+                }
+
+                $this->archive($property, $channels);
+                $count++;
             });
         }
 
         return $count;
+    }
+
+    /**
+     * ⚠️⚠️ THE ARCHIVE SLID — NOT PERFORMED, NOT CANCELLED (F-57 · FIX 44).
+     *
+     * ⚠️⚠️ THE STORED DATE IS UPDATED, AND THAT IS THE WHOLE VISIBILITY STORY. 🔬 `removal_effective_at` is
+     * read by exactly one surface — the operator's property Settings page, which already renders *"Removal is
+     * scheduled — the property stays live until the last checkout on **X**. You can cancel any time before it
+     * runs."* Writing the new date there makes that sentence TRUE again and makes the deferral visible through
+     * a surface that already exists, rather than through one this pass had no ruling to build.
+     * ⚠️ The alternative — leave the column stale and re-check tomorrow — would have left a date that is both
+     * unread-by-most AND wrong, which is worse than one nobody reads.
+     *
+     * ⚠️⚠️ AND IT IS AUDITED, BECAUSE NOBODY PRESSED ANYTHING. A deferral is a decision the system makes on
+     * its own, at 02:00, with no human in the request. F-9, F-17 and F-22 were all "a write with no actor";
+     * this records the actor as `system` EXPLICITLY rather than relying on the recorder's default, so a future
+     * caller that happens to hold a session cannot silently attribute it to a person.
+     *
+     * ⚠️⚠️ THE ACCEPTED CONSEQUENCE, WRITTEN WHERE IT HAPPENS: **A PROPERTY THAT KEEPS TAKING BOOKINGS NEVER
+     * ARCHIVES.** Each run pushes the date out to the newest last-checkout. The founder weighed that against
+     * blocking the operator from selling a property they had scheduled for removal, and chose this. It is not
+     * a bug to be fixed by someone who finds a removal that has been pending for a year.
+     */
+    private function deferRemoval(Property $property, CarbonImmutable $effective): void
+    {
+        $was = $property->removal_effective_at?->toDateTimeString();
+
+        $property->forceFill(['removal_effective_at' => $effective->toDateTimeString()])->save();
+
+        $this->audit->record(
+            'property.removal_deferred',
+            $property,
+            ['removal_effective_at' => $was],
+            ['removal_effective_at' => $effective->toDateTimeString(), 'reason' => 'a stay reaches beyond the scheduled date'],
+            actorType: 'system',
+        );
     }
 
     /** Archive one property NOW (used by processDue and available for an immediate effective date). */

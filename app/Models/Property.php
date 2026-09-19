@@ -9,6 +9,7 @@ use App\Models\Concerns\HasDocuments;
 use App\Models\Concerns\HasMedia;
 use App\Models\Concerns\HasNotes;
 use App\Models\Concerns\HasTags;
+use App\Services\PropertyRemovalService;
 use App\Support\Billing\BillableUnits;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +28,12 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $address
  * @property Carbon|null $bookings_paused_at
  * @property Carbon|null $removal_scheduled_at
- * @property Carbon|null $removal_effective_at
+ * @property Carbon|null $removal_effective_at ⚠️ WHEN THE ARCHIVE MAY RUN — "after the last stay", KEPT TRUE.
+ *                                             ⚠️⚠️ IT IS NOT A HISTORICAL RECORD OF THE SCHEDULING MOMENT. {@see PropertyRemovalService::processDue()}
+ *                                             RE-DERIVES it each run and WRITES IT FORWARD when a stay reaches beyond it (F-57 · FIX 44), so a
+ *                                             booking taken after scheduling defers the archive instead of being archived over. ⚠️ THE ACCEPTED
+ *                                             CONSEQUENCE: a property that keeps taking bookings never archives. ⚠️ An unlabelled date column is
+ *                                             how F-57 was born — this label is the fix for that half.
  * @property string|null $removal_requested_by
  * @property bool $brand_powered_by
  * @property string|null $brand_accent
