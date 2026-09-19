@@ -180,3 +180,36 @@ it('cancels a scheduled removal', function () {
         ->assertRedirect(route('app.settings'))->assertSessionHas('settings_notice');
     expect($s['property']->fresh()->removal_scheduled_at)->toBeNull();
 });
+
+// ── ⚠️⚠️ F-58 — PER-PROPERTY REMOVAL VISIBILITY IS ENOUGH (founder ruling, 2026-09-19) ──────────────
+/**
+ * ⚠️⚠️ THIS PINS A DECISION, NOT A MECHANISM, AND IT IS THE DANGEROUS KIND. The founder ruled that seeing a
+ * pending removal on that property's own Settings page is ENOUGH — **no portfolio-wide list of pending
+ * removals, and no notification when one defers.** A later pass reading "you can only find this by opening
+ * the property" as a gap would build one of those, which is work nobody asked for.
+ *
+ * ⚠️ WHAT THAT RULING RESTS ON IS THE THING ASSERTED HERE: the date and the cancel control genuinely RENDER.
+ * 🔬 Nothing asserted that before FIX 46 — `RemovalDateIsReDerivedTest` names the sentence in a docblock and
+ * pins the DATE BEING REWRITTEN, which is a different claim. If this page stopped showing it, per-property
+ * visibility would be zero visibility and the ruling would rest on nothing.
+ *
+ * ⚠️ NOT A DUPLICATE: FIX 44 pinned that a deferral writes the new date forward. This pins that the operator
+ * can see it at all.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (F-58) — a pending removal is visible on its own property, and that is enough', function () {
+    $s = seedScenario(1);
+
+    app(PropertyRemovalService::class)->schedule($s['property']->fresh(), 'ops@example.test');
+
+    $response = $this->actingAs(operatorUser($s, [], 'Property Owner'))->get('/app/settings');
+
+    $response->assertOk()
+        ->assertSee('Removal is scheduled')
+        ->assertSee('the property stays live until the last checkout on')
+        ->assertSee('You can cancel any time before it runs.');
+
+    // ⚠️ AND THE DATE ITSELF IS RENDERED — the sentence without it would be an empty promise.
+    $response->assertSee($s['property']->fresh()->removal_effective_at->format('j M Y'));
+
+    assertNoRawBlade($response);
+});

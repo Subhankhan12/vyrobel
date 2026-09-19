@@ -130,6 +130,31 @@ written**, because the honest sentence names a gap a buyer weighs.
 
 ---
 
+## L7 · The back office is desktop-only
+
+⚠️⚠️ **RULED 2026-09-19 (F-33): this is a POSITION, not a defect awaiting a fix.** 🔬 The operator shell folds
+at 375px and the navigation becomes unreachable; the shell carries twelve media queries and **none of them
+touches the nav** — there is no drawer, no toggle, no hamburger. **54 screens sit inside that shell.**
+
+**The customer-facing sentence:** *"The operator back office is designed for a desktop or laptop screen. The
+guest and owner portals work on a phone."*
+
+⚠️ **FIX 11 TRIED THE OBVIOUS FIX AND IT WAS WORSE** — collapsing the nav pushed all 22 links off-screen,
+caught by one further measurement. A mobile navigation for this shell is a real project, not a media query.
+
+⚠️⚠️ **THE ARGUMENT AGAINST THIS POSITION, RECORDED SO IT CAN BE RE-OPENED HONESTLY: housekeeping staff in a
+real hotel work from a phone.** They are the role least likely to have a laptop and the most likely to need
+the product mid-shift — and `Housekeeping` is one of the eleven back-office roles, inside this shell. ⚠️ A
+position recorded bare looks like nobody thought about it; this one was weighed, and the counter-argument is
+the thing a future reader should weigh again.
+
+⚠️ **NO PRODUCT SURFACE STATES THIS TODAY.** 🔬 Nothing in `resources/views/` carries a supported-browser or
+system-requirements statement, and **none was invented here** — the ruling was a position, not a feature.
+Somewhere for it to live (a line on `/security`, in onboarding, or in the marketing footer) is a small piece
+of work and **a founder decision, reported not taken**.
+
+---
+
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some
