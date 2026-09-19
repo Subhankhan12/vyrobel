@@ -66,11 +66,10 @@ it('scopes units to the owner, hides other owners, and fails closed for a non-li
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/units')
-        ->assertOk()
-        ->assertSee('No units')       // fail closed — empty, never all owners
-        ->assertDontSee('AUNIT')
-        ->assertDontSee('BUNIT');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/units')->assertForbidden();
 });
 
 // ── Batch B · GATE 2 — REAL per-unit analytics (revenue · nightly rate · best performer · earned) ──

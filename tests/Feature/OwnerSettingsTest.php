@@ -178,10 +178,13 @@ it('renders the preferences & access sections honestly and reuses the real backe
 // ── 5. #42 — the owner-party write is PRIMARY-OWNER-ONLY; a non-primary-owner is refused ─────────
 it('forbids the owner-party (business) write to a user who is not the primary owner', function () {
     $s = seedScenario(1);
-    // A back-office staff user is not the primary owner → EnsurePrimaryOwner refuses before the controller.
+    // ⚠️ R-GATE (founder, 2026-09-19): the refusal now happens EARLIER and as a redirect. A back-office
+    //    staff user is not owner-LINKED, so EnsureOwnerPortalAccess sends them home before
+    //    EnsurePrimaryOwner is ever consulted. The fact this test exists to hold — that a non-primary-owner
+    //    cannot write the owner party — is unchanged and is asserted on the ROW below.
     $staff = operatorUser($s, ['name' => 'Not An Owner'], 'Hotel Manager');
 
-    $this->actingAs($staff)->post('/owner/settings', ['name' => 'Hacker'])->assertForbidden();
+    $this->actingAs($staff)->post('/owner/settings', ['name' => 'Hacker'])->assertRedirect(route('app.dashboard'));
 
     expect(Owner::query()->where('name', 'Hacker')->exists())->toBeFalse();
 });

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Owner;
 use App\Models\TrustedDevice;
 use App\Models\User;
 use App\Support\Auth\TrustedDeviceService;
@@ -18,9 +19,17 @@ uses(RefreshDatabase::class);
 //   • the token is stored ONLY as a hash — never the plaintext;
 //   • a trust is self-only (user A's cookie never trusts user B) + revocable (remove → challenged again).
 
+/**
+ * ⚠️⚠️ R-GATE (founder, 2026-09-19) — THE ACTOR IS NOW OWNER-LINKED, AND THAT IS A CORRECTION. Trusted
+ * devices are an OWNER-PORTAL security feature and these routes live under `/owner`, but this fixture used a
+ * plain Front Desk operator — which worked only because the portal had no positive "is an owner" gate. With
+ * the gate wired, a back-office user is sent to their own home, so the fixture now builds the actor the
+ * feature is actually for. ⚠️ Fixing the FIXTURE, never the guard.
+ */
 function trust2faUser(array $s): array
 {
     $user = operatorUser($s, ['name' => 'Tess Trust', 'password' => 'pw-correct-1'], 'Front Desk');
+    Owner::factory()->create(['user_id' => $user->id, 'status' => 'active']);
     $svc = app(TwoFactorService::class);
     $svc->startEnrollment($user);
     $secret = (string) $user->two_factor_secret;

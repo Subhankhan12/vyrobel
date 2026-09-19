@@ -227,6 +227,8 @@ it('fails closed for a non-linked user', function () {
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/rates')
-        ->assertOk()->assertSee('don’t have any room types to price');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/rates')->assertForbidden();
 });

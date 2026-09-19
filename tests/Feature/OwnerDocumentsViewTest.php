@@ -270,13 +270,10 @@ it('scopes documents to the owner, hides another owner\'s documents and links, a
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $x['s']['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/documents')
-        ->assertOk()
-        ->assertSee('No documents yet')
-        ->assertDontSee('€170.00')
-        ->assertDontSee('€425.00')
-        ->assertDontSee('€754.80')
-        ->assertDontSee('No. 1');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/documents')->assertForbidden();
 });
 
 // ── No unrendered Blade leaks to the owner ───────────────────────────────────────────────────────

@@ -138,8 +138,10 @@ it('shows only the owner’s own units and fails closed for a non-linked user', 
 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
-    $this->actingAs($stranger)->get('/owner/calendar')
-        ->assertOk()->assertSee('No units are linked');   // empty owner set → nothing to block
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/calendar')->assertForbidden();
 });
 
 // ── 7. A REPEAT expands into N REAL individual blocks sharing one series_id (never a fake series) ───

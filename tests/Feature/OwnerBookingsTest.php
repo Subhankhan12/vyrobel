@@ -121,7 +121,11 @@ it('404s another owner’s booking detail and fails closed for a non-linked user
     // A non-linked authenticated member → empty owner set → the owned-unit check is empty → 404 (fail closed).
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
-    $this->actingAs($stranger)->get('/owner/bookings/'.$mine->id)->assertNotFound();
+    // ⚠️ R-GATE (founder, 2026-09-19): a NON-LINKED user is now refused at the realm door by
+    //    EnsureOwnerPortalAccess, BEFORE any owner resolution runs — so this is a 403 about the AREA, not a
+    //    404 about the resource. ⚠️ Cross-OWNER 404s above are untouched: an owner passes the gate and the
+    //    scope still withholds another owner's rows.
+    $this->actingAs($stranger)->get('/owner/bookings/'.$mine->id)->assertForbidden();
 });
 
 // ── 3. NET RECONCILES to the owner ledger, to the cent (list + detail) ────────────────────────────

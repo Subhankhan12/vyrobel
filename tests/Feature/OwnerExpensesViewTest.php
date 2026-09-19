@@ -262,13 +262,10 @@ it('scopes expenses to the owner, hides other owners, and fails closed for a non
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/expenses')
-        ->assertOk()
-        ->assertSee('No expenses')
-        ->assertDontSee('Turnover clean')
-        ->assertDontSee('Chimney sweep')
-        ->assertDontSee('€50.00')
-        ->assertDontSee('€444.00');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/expenses')->assertForbidden();
 });
 
 // ── 3. Expense CSV — owner-scoped, EXPORTS-gated, never another owner's rows ───────────────────────

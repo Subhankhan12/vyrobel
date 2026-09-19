@@ -138,11 +138,15 @@ it('answers a user with no owner link identically with and without a password', 
     $with = $this->actingAs($stranger->fresh())->post(route('owner.payouts.preferences'),
         prefPayload(['current_password' => 'password']));
 
+    // ⚠️⚠️ THE PROPERTY THIS TEST HOLDS IS INDISTINGUISHABILITY, AND IT SURVIVES THE RULING INTACT — the
+    //    two answers are still identical, so a password still reveals nothing about whether one was needed.
     expect($without->getStatusCode())->toBe($with->getStatusCode());
-    expect($without->getStatusCode())->toBe(404);
-    // ⚠️ A 404 body, not a validation redirect: the refusal says nothing about what the route wanted.
-    $without->assertNotFound();
-    $with->assertNotFound();
+
+    // ⚠️ R-GATE (founder, 2026-09-19): a user with no owner link is now turned away at the realm door, so
+    //    the shared answer is a redirect home rather than a 404. It still says nothing about what the route
+    //    wanted — the refusal happens before the route's own requirements are ever evaluated.
+    $without->assertRedirect(route('app.dashboard'));
+    $with->assertRedirect(route('app.dashboard'));
 });
 
 // ── 4. 🖥️ THE FIELD EXISTS ON EVERY FORM THAT POSTS TO EITHER ROUTE ────────────────────────────────

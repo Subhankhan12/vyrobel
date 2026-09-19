@@ -192,13 +192,10 @@ it('scopes the archive to the owner, hides other owners, and fails closed for a 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $x['s']['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/archive')
-        ->assertOk()
-        ->assertSee('No finalized statements yet')
-        ->assertDontSee('€170.00')
-        ->assertDontSee('€425.00')
-        ->assertDontSee('€754.80')
-        ->assertDontSee('€924.80');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/archive')->assertForbidden();
 });
 
 // ── 4. The design's fabrications are NOT ported (honesty rule · invariant #19) ────────────────────

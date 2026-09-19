@@ -134,14 +134,10 @@ it('scopes the balance to the owner, hides other owners, and fails closed for a 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/balance')
-        ->assertOk()
-        ->assertSee('No balance activity')
-        ->assertSee('€0.00')            // Available / On hold / In transit all zero
-        ->assertDontSee('+€200.00')
-        ->assertDontSee('+€500.00')
-        // the agreement read is NOT OwnerScope-backed — it is gated explicitly, so it must fail closed too.
-        ->assertDontSee('Monthly');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/balance')->assertForbidden();
 });
 
 // ── 3. REAL per-row flags: prior-period badge, an honestly unstatemented row, exact running balance ──

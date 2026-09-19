@@ -112,12 +112,15 @@ it('lets no owner-scoped WRITE through on the spared login', function () {
     $dana = $c['dana']->fresh();
     expect($dana->status)->toBe(User::SIGN_IN_STATUS);   // the login lives…
 
-    // …and owner-scoped action does not: the owner is soft-deleted, so no owner context resolves.
+    // …and owner-scoped action does not. ⚠️ R-GATE (founder, 2026-09-19): the removal severed Dana's owner
+    //    link, so she is no longer owner-LINKED and is refused at the realm door — sent to the back office
+    //    she still legitimately belongs to — rather than reaching the route and 404ing inside it. The fact
+    //    this test holds is that NO OWNER-SCOPED WRITE LANDS, and it is asserted on the ROW below.
     $write = test()->actingAs($dana)->post(route('owner.payouts.preferences'), [
         'payout_frequency' => 'monthly',
         'current_password' => 'secret-Passw0rd!',
     ]);
-    expect($write->getStatusCode())->toBe(404);
+    $write->assertRedirect(route('app.dashboard'));
     expect(DB::table('owner_payout_preferences')->where('owner_id', $c['owner']->id)->count())->toBe(0);
 });
 

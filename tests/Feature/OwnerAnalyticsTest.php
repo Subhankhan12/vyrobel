@@ -113,12 +113,14 @@ it('fails closed for a non-owner reaching owner analytics — empty, never someo
     book($s, ['unit_id' => $s['units'][0]->id, 'price_minor' => 20000]);
     $s['units'][0]->update(['code' => 'SOMEONES-UNIT']);
 
-    // A back-office user with NO Owner link: the owner scope activates EMPTY (fail-closed) → they see the
-    // empty owner portal, NEVER the real owner's unit or earnings.
-    $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/owner/reports')
-        ->assertOk()
-        ->assertSee('No units linked to your account yet')
-        ->assertDontSee('SOMEONES-UNIT');
+    // ⚠️ R-GATE (founder, 2026-09-19): a back-office user with NO owner link is no longer shown an empty
+    //    owner portal — they are sent to their OWN home, mirroring invariant #26 which bounces an owner out
+    //    of /app. The scope still fails closed underneath; the gate simply refuses before it is consulted.
+    $response = $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get('/owner/reports');
+    $response->assertRedirect(route('app.dashboard'));
+
+    // ⚠️ AND NOTHING LEAKED ON THE WAY OUT — the redirect body carries no owner data.
+    expect($response->getContent())->not->toContain('SOMEONES-UNIT');
 });
 
 // ── 5. ⚠️ GROSS-TO-NET reconciles with the REAL agreement commission rate — never the wireframe's 15% ──

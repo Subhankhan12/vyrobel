@@ -54,12 +54,14 @@ it('fails closed for a disabled sub-user and a plain member with no owner link',
     // only users WITH owner access, so this falls through to the scope's own fail-closed: the page renders but
     // shows nothing. Either way the sub-user never sees a unit.
     $disabled = ownerSubUser($s, $ownerId, 'view_only', 'disabled');
-    $this->actingAs($disabled)->get('/owner/units')->assertOk()->assertDontSee('SECRETUNIT');
+    // ⚠️ R-GATE: a DISABLED sub-user's `owner_users` row is not `active`, so they are no longer owner-linked
+    //    and are refused at the door rather than shown an empty portal.
+    $this->actingAs($disabled)->get('/owner/units')->assertForbidden();
 
     // A plain org member with no owner link at all — same empty scope, same fail-closed.
     $stranger = User::factory()->create(['status' => 'active']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
-    $this->actingAs($stranger)->get('/owner/units')->assertOk()->assertDontSee('SECRETUNIT');
+    $this->actingAs($stranger)->get('/owner/units')->assertForbidden();
 });
 
 // ── 4. ✅ UNREGRESSED — the primary owner still sees their own units ────────────────────────────────

@@ -165,7 +165,10 @@ it('fails closed for a non-linked user and defers the live rail honestly', funct
 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
-    $this->actingAs($stranger)->get('/owner/payout-method')->assertOk()->assertSee('No owner account is linked');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/payout-method')->assertForbidden();
 });
 
 // ── Exact-match: the rebuilt page renders the real account + schedule + tax form + payouts-go-to ───

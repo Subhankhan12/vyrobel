@@ -138,19 +138,21 @@ it('⚠️ lets every seeded role through the back-office gate, and shows them n
     // Each reaches /app (EnsureBackOfficeAccess is a role allow-list, invariant #26) …
     $this->actingAs($user)->get('/app/dashboard')->assertOk();
 
-    // ⚠️⚠️ … AND /owner ANSWERS 200, WHICH IS NOT WHAT I EXPECTED AND IS RECORDED AS MEASURED. The owner
-    //    portal is not gated on `owner_portal.view` — none of these roles holds it — so what protects it is
-    //    `SetOwnerScopeForPortal` resolving to no owner and every query returning nothing. The page renders
-    //    an EMPTY SHELL: no owner name, no bank details, no statement figures.
+    // ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 (R-GATE) — AND THIS TEST ASKED FOR THE RULING BY NAME. It used
+    //    to record, as MEASURED, that /owner answered 200 for every back-office role: the portal was not
+    //    gated on any permission, and what protected it was `SetOwnerScopeForPortal` resolving to no owner
+    //    so every query returned nothing. It said that was "defence by SCOPE ALONE — the protection is that
+    //    the data is not there, not that the door is shut", and deliberately did not gate it because gating
+    //    was the founder's call.
     //
-    // ⚠️ SO THIS IS DEFENCE BY SCOPE ALONE, and it is asserted here rather than assumed: the protection is
-    //    that the data is not there, not that the door is shut. Reported for the outstanding phantom-
-    //    permission ruling — `owner_portal.view` gates none of these routes — and deliberately NOT gated
-    //    here, because gating it is the founder's call and would change who reaches what.
+    // ⚠️ THE CALL IS MADE: the door is now shut. `EnsureOwnerPortalAccess` runs BEFORE the scope, so a
+    //    back-office role is sent to its OWN home — the mirror of invariant #26 — rather than shown an
+    //    owner's portal that is not theirs. `owner_portal.view` still gates none of these routes; the gate
+    //    asks whether the actor is owner-LINKED, which is a different question and the right one.
     expect($user->can('owner_portal.view'))->toBeFalse();
 
     $response = $this->actingAs($user)->get('/owner');
-    expect($response->getStatusCode())->toBe(200);
+    $response->assertRedirect(route('app.dashboard'));
 
     $body = $response->getContent();
     expect(str_contains($body, 'Demo Owner'))->toBeFalse('an operator must never see an owner name on /owner')

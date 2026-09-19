@@ -99,10 +99,12 @@ it('is self-only — a non-linked user cannot file a request', function () {
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
     $this->actingAs($stranger)->post('/owner/add-unit', ['requested_name' => 'Ghost Unit', 'requested_kind' => 'room'])
-        ->assertNotFound();   // no linked owner → nothing to file against
+        // ⚠️ R-GATE (founder, 2026-09-19): refused at the realm door before any owner resolution, so a 403
+        //    about the AREA rather than a 404 about the resource. The row assertion below is unchanged.
+        ->assertForbidden();
     expect(UnitRequest::query()->where('requested_name', 'Ghost Unit')->exists())->toBeFalse();
 
-    $this->actingAs($stranger)->get('/owner/add-unit')->assertOk()->assertSee('No owner account is linked');
+    $this->actingAs($stranger)->get('/owner/add-unit')->assertForbidden();
 });
 
 // ── 5. An invalid (non-enum) kind is rejected ─────────────────────────────────────────────────────

@@ -81,9 +81,10 @@ it('never lets a user read or mark another user’s notifications', function () 
     $b = User::factory()->create(['name' => 'Bruno Vale']);
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $b->id, 'status' => 'active']);
 
-    // B's feed shows nothing of A's…
-    $this->actingAs($b)->get('/owner/notifications')
-        ->assertOk()->assertSee('All caught up')->assertDontSee('Payout sent');
+    // ⚠️ R-GATE (founder, 2026-09-19): B is a member with no owner link, so the OWNER feed is now refused
+    //    at the realm door rather than rendered empty. The isolation being tested is unchanged and is
+    //    asserted below on the route that is NOT owner-gated.
+    $this->actingAs($b)->get('/owner/notifications')->assertForbidden();
 
     // …and B cannot mark A's notification read (it isn't in B's relation → 404); A's stays unread.
     $this->actingAs($b)->post('/notifications/'.$aNotification->id.'/read')->assertNotFound();

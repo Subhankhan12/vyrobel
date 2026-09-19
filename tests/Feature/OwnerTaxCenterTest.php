@@ -125,8 +125,8 @@ it('renders a reconciling annual summary and a self-only PDF', function () {
 
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
-    $this->actingAs($stranger)->get('/owner/tax/2026/summary.pdf')->assertNotFound();   // no linked owner
-    $this->actingAs($stranger)->get('/owner/tax')->assertOk()->assertSee('No owner account is linked');
+    $this->actingAs($stranger)->get('/owner/tax/2026/summary.pdf')->assertForbidden();   // R-GATE: refused at the realm door
+    $this->actingAs($stranger)->get('/owner/tax')->assertForbidden();
 });
 
 // ── 5. SELF-ONLY — one owner's save never touches another's ───────────────────────────────────────

@@ -112,11 +112,10 @@ it('scopes payouts to the owner, hides other owners, and fails closed for a non-
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get('/owner/payouts')
-        ->assertOk()
-        ->assertSee('No payouts')
-        ->assertDontSee('€170.00')
-        ->assertDontSee('€425.00');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/payouts')->assertForbidden();
 });
 
 // ── 3. The on-hold banner shows the REAL tax-hold only (never a fabricated "verification pending") ──

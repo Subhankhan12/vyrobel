@@ -35,8 +35,10 @@ it('fails closed for a non-linked user', function () {
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
     // No linked owner → the honest empty state (no units), never someone else's data.
-    $this->actingAs($stranger)->get('/owner/welcome')->assertOk()
-        ->assertSee('No units are linked to your account yet');
+    // ⚠️ R-GATE (founder, 2026-09-19): this asserted the portal RENDERS EMPTY for a non-owner — the
+    //    behaviour F-23 recorded as the defect. The refusal is now the intended answer: a non-owner is
+    //    turned away at the realm door instead of being shown an owner's portal that is not theirs.
+    $this->actingAs($stranger)->get('/owner/welcome')->assertForbidden();
 });
 
 // ── The payout card answers "is an account on file?", and nothing else ────────────────────────────

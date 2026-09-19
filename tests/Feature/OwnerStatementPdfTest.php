@@ -210,7 +210,11 @@ it('fails closed for a non-linked user', function () {
     $stranger = User::factory()->create();
     Membership::create(['organization_id' => $s['org']->id, 'user_id' => $stranger->id, 'status' => 'active']);
 
-    $this->actingAs($stranger)->get("/owner/statements/{$a['statement']->id}/pdf")->assertNotFound();
+    // ⚠️ R-GATE (founder, 2026-09-19): a NON-LINKED user is now refused at the realm door by
+    //    EnsureOwnerPortalAccess, BEFORE any owner resolution runs — so this is a 403 about the AREA, not a
+    //    404 about the resource. ⚠️ Cross-OWNER 404s above are untouched: an owner passes the gate and the
+    //    scope still withholds another owner's rows.
+    $this->actingAs($stranger)->get("/owner/statements/{$a['statement']->id}/pdf")->assertForbidden();
 });
 
 // ── The document's ink stays post-AA — a statement is read on WHITE PAPER ─────────────────────────
