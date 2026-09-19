@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Channel;
+use App\Models\Owner;
 use App\Models\Property;
 use App\Models\Reservation;
+use App\Models\Unit;
+use App\Models\User;
+use App\Notifications\Owner\PropertyArchivedNotification;
 use App\Support\Billing\BillableUnits;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Tenancy\TenantContext;
@@ -47,9 +51,11 @@ use Illuminate\Support\Carbon;
  * ⚠️ AND TWO THINGS THIS SERVICE DOES NOT DO, recorded because they surprise people:
  *   • **Nothing is ever un-archived.** Removal is cancellable BEFORE it runs ({@see cancel()}) and there is no
  *     restore route, command or method anywhere in the product. After `archive()` it is irreversible in-app.
- *   • **The owner is told nothing.** No notification is sent when a property carrying their units is archived,
- *     so their units simply stop appearing in their portal's listings. Their earnings and past stays remain
- *     visible and correct — that is deliberate — but the silence is a known, open gap.
+ *   • **The owner IS told, as of FIX 43 (R-ARCHIVE, F-24).** ⚠️ This entry used to read *"The owner is told
+ *     nothing … the silence is a known, open gap"*, and that gap is now closed: {@see archive()} notifies every
+ *     owner holding a unit at the property, separately, via {@see PropertyArchivedNotification}. Their earnings
+ *     and past stays remain visible and correct — that was always deliberate — and the notice says so rather
+ *     than leaving them to infer it from units that stopped appearing.
  */
 class PropertyRemovalService
 {
@@ -143,8 +149,57 @@ class PropertyRemovalService
         Channel::query()->where('property_id', $property->getKey())->get()
             ->each(fn (Channel $channel) => $channels->disconnect($channel));
 
+        // ⚠️⚠️ CAPTURED BEFORE THE DELETE. After `delete()` the row is hidden by SoftDeletes, so a name read
+        //    afterwards — or re-resolved by a queued notification — would find nothing.
+        $propertyName = (string) $property->name;
+        $owners = $this->ownerUsersFor($property);
+
         $this->audit->record('property.archived', $property, null, ['fields' => ['deleted_at']]);
 
         $property->delete();   // SoftDeletes — sets deleted_at; NEVER a hard delete (no FK cascade fires).
+
+        // ⚠️⚠️ R-ARCHIVE (F-24) — AFTER the archive has actually landed, so the notice can never claim an
+        //    event that did not happen. ⚠️ AND IT FIRES FROM THE WRITER, NOT A CALLER: `processDue()` and any
+        //    future entrance reach the archive through this method, so each inherits the notice for free.
+        //    F-18 existed because a guard sat one layer above the write.
+        foreach ($owners as $user) {
+            $user->notify(new PropertyArchivedNotification($propertyName));
+        }
+    }
+
+    /**
+     * ⚠️ EVERY OWNER HOLDING A UNIT AT THIS PROPERTY, as their linked portal USER — deduplicated.
+     *
+     * ⚠️ OWNERS ATTACH PER-UNIT (`units.owner_id`), so ONE PROPERTY CAN HAVE SEVERAL, and each is notified
+     * SEPARATELY about their own position. A single message naming all of them would tell each owner who the
+     * others are, which is a leak.
+     *
+     * ⚠️ AN OWNER WITH NO LINKED USER CANNOT BE TOLD, and is skipped rather than crashed on: `owners.user_id`
+     * is nullable and an owner record can exist before anyone has claimed the portal. 📄 RECORDED as a residual
+     * in FIX 43's report — the product has no other channel to reach them.
+     *
+     * @return list<User>
+     */
+    private function ownerUsersFor(Property $property): array
+    {
+        $ownerIds = Unit::query()
+            ->where('property_id', $property->getKey())
+            ->whereNotNull('owner_id')
+            ->distinct()
+            ->pluck('owner_id')
+            ->all();
+
+        if ($ownerIds === []) {
+            return [];
+        }
+
+        $userIds = Owner::query()
+            ->whereIn('id', $ownerIds)
+            ->whereNotNull('user_id')
+            ->distinct()
+            ->pluck('user_id')
+            ->all();
+
+        return $userIds === [] ? [] : User::query()->whereIn('id', $userIds)->get()->all();
     }
 }

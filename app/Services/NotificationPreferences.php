@@ -107,6 +107,15 @@ class NotificationPreferences
         // read is not a preference. ⚠️ A reveal is SILENT where an overwrite is DETECTABLE, so this feed row
         // is the only thing that makes it visible to the owner without them opening an audit log.
         'arrival_secret_revealed' => ['label' => 'Arrival details viewed', 'description' => 'Someone viewed a stored door code or wifi password for your unit — always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
+        // ⚠️⚠️ R-ARCHIVE (founder ruling, 2026-09-19) — F-24. A property carrying an owner's units can be
+        // archived, and until FIX 43 the owner was told NOTHING: their units simply stopped appearing.
+        // ⚠️ ALWAYS ON, DELIBERATELY, AND THIS IS A PRODUCT-VISIBLE CHOICE. The ruling is that the owner is
+        //    NOTIFIED of an event that CANNOT BE UNDONE — nothing is ever un-archived. A notice the owner can
+        //    switch off would satisfy the letter of that and reinstate exactly the silence F-24 names, for the
+        //    one event where there is no second chance to find out. It also guarantees the `database` row that
+        //    RECORDS the send (FIX 34's lesson: a mail with no record cannot be spoken about afterwards).
+        //    ⚠️ The founder can reverse this to a toggle; it is recorded here so the choice is visible.
+        'property_archived' => ['label' => 'Property archived', 'description' => 'A property holding your units was archived — permanent, and always on', 'group' => 'Account', 'audience' => 'owner', 'always_on' => true, 'default' => true, 'email_default' => true],
     ];
 
     /**
