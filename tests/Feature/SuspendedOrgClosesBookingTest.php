@@ -104,17 +104,54 @@ it('✅ POSITIVE CONTROL — an ACTIVE organisation still takes bookings', funct
 });
 
 /**
- * ⚠️⚠️ `suspended` AND NOTHING ELSE. The column is enum('trialing','active','suspended','cancelled').
- * `cancelled` is NOT closed by this guard — and that is a DELIBERATE non-decision, not an oversight:
- * inferring that a cancelled account should behave like a suspended one is a commercial policy the founder
- * has not been asked for. ⚠️ This pins the non-decision so a later pass has to change it on purpose.
+ * ⚠️⚠️ THIS CASE REPLACES A PINNED ANSWER, AND THE RED THAT FORCED THE EDIT WAS THE PIN WORKING.
+ *
+ * Until 2026-09-19 it read "acts on `suspended` ONLY — `cancelled` and `trialing` are untouched" and asserted
+ * that a CANCELLED organisation **still took bookings**. FIX 36 pinned that deliberately, in its own words
+ * "so a later change is deliberate", because inferring that a cancelled account should behave like a
+ * suspended one would have been guessing a commercial policy.
+ *
+ * ⚠️⚠️ **F-51 — THE FOUNDER RULED IT, 2026-09-19: `cancelled` CLOSES THE BOOKING PATH TOO.** So the old
+ * expectation is replaced here rather than quietly deleted, and `trialing` — still unruled — keeps its own
+ * assertion below so the two cannot be confused for one decision.
  */
-it('⚠️ acts on `suspended` ONLY — `cancelled` and `trialing` are untouched by this ruling', function (string $status) {
+it('⚠️⚠️ RULED 2026-09-19 (F-51) — a CANCELLED organisation stops taking bookings, exactly like a suspended one', function () {
     $s = socWorld();
-    Organization::query()->whereKey($s['org']->id)->update(['status' => $status]);
+    Organization::query()->whereKey($s['org']->id)->update(['status' => 'cancelled']);
+
+    $this->get("book/{$s['property']->slug}")->assertNotFound();
+});
+
+/**
+ * ⚠️⚠️ `trialing` IS STILL UNRULED AND STILL SELLS — a trialing organisation is mid-trial and genuinely
+ * trading. ⚠️ Pinned separately from the F-51 case above so nobody reads "two states close" as "three do".
+ */
+it('⚠️ `trialing` is UNRULED and untouched — a trialing organisation still takes bookings', function () {
+    $s = socWorld();
+    Organization::query()->whereKey($s['org']->id)->update(['status' => 'trialing']);
 
     $this->get("book/{$s['property']->slug}")->assertOk();
-})->with(['trialing', 'cancelled']);
+});
+
+/**
+ * ⚠️⚠️ THE STRONGEST FORM OF F-51, AND WHY IT IS ONE TEST RATHER THAN TWO: it asserts that `suspended` and
+ * `cancelled` are INDISTINGUISHABLE on the public surface — same status, same body, byte for byte. A future
+ * divergence then breaks visibly here instead of drifting quietly on one state.
+ */
+it('⚠️⚠️ F-51 — `suspended` and `cancelled` are INDISTINGUISHABLE to the public', function () {
+    $a = socWorld();
+    Organization::query()->whereKey($a['org']->id)->update(['status' => 'suspended']);
+    $suspended = $this->get("book/{$a['property']->slug}");
+
+    $b = socWorld();
+    Organization::query()->whereKey($b['org']->id)->update(['status' => 'cancelled']);
+    $cancelled = $this->get("book/{$b['property']->slug}");
+
+    expect($cancelled->getStatusCode())->toBe($suspended->getStatusCode());
+
+    // ⚠️ THE BODIES TOO — a reader must not be able to tell WHICH state closed the door.
+    expect($cancelled->getContent())->toBe($suspended->getContent());
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3 · THE OVER-REACH CONTROL — an existing guest is NOT stranded
@@ -126,7 +163,7 @@ it('⚠️ acts on `suspended` ONLY — `cancelled` and `trialing` are untouched
  * runs `ResolvePublicProperty`, so this cannot break by construction — asserted anyway, because "cannot
  * happen" is what every stranding bug says beforehand.
  */
-it('⚠️⚠️ does NOT strand an existing guest — they reach their stay while a stranger is refused, in ONE run', function () {
+it('⚠️⚠️ does NOT strand an existing guest — they reach their stay while a stranger is refused, in ONE run', function (string $status) {
     $s = seedScenario(1);          // the guest-portal fixture; the stranger half uses its own bookable world
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
     $shop = socWorld();
@@ -134,8 +171,10 @@ it('⚠️⚠️ does NOT strand an existing guest — they reach their stay whi
     $guest = Guest::withoutGlobalScopes()->whereKey($s['guest']->id)->first();
     $guest->forceFill(['password' => 'claimed-Passw0rd!', 'email_verified_at' => now()])->save();
 
-    socSuspend($s);
-    socSuspend($shop);
+    // ⚠️ BOTH CLOSED STATES — F-51 (2026-09-19) made `cancelled` behave like `suspended`, and a cancelled
+    //    account's guests are no less owed the stay they already hold.
+    Organization::query()->whereKey($s['org']->id)->update(['status' => $status]);
+    Organization::query()->whereKey($shop['org']->id)->update(['status' => $status]);
 
     // ⚠️ THE STRANGER IS REFUSED …
     $this->get("book/{$shop['property']->slug}")->assertNotFound();
@@ -146,4 +185,4 @@ it('⚠️⚠️ does NOT strand an existing guest — they reach their stay whi
 
     // ⚠️ AND NOTHING WAS DONE TO THEIR BOOKING — the ruling closes the shop, it does not cancel stays.
     expect((string) $reservation->fresh()->status)->toBe('confirmed');
-});
+})->with(['suspended', 'cancelled']);

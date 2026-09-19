@@ -353,6 +353,30 @@ it('⚠️ lists a SELLABLE property — and DROPS it the moment it stops being 
     expect($this->get('/sitemap-storefront.xml')->getContent())->not->toContain($url);
 })->group('storefront-seo');
 
+/**
+ * ⚠️⚠️ THE ORGANISATION, NOT JUST THE PROPERTY — AND THIS WAS UNPINNED UNTIL FIX 39. FIX 36 closed this
+ * query for a SUSPENDED organisation (F-48) and FIX 39 added `cancelled` (F-51), but nothing asserted
+ * either: 🔬 a mutation reverting the exclusion passed a full suite run. The sitemap's own comment warns
+ * against "advertising a URL that returns 404 to the crawler that follows it", which is exactly what an
+ * unpinned exclusion allows to come back.
+ *
+ * ⚠️ BOTH CLOSED STATES, AND A CONTROL THAT CAN FAIL — the property is asserted PRESENT while the
+ * organisation is active, so "never listed" cannot pass because the fixture was never listable.
+ */
+it('⚠️⚠️ never lists a property whose ORGANISATION is closed for booking (F-48 suspended, F-51 cancelled)', function (string $status) {
+    $t = seoSellableTenant('orgclosed'.$status);
+    $url = route('booking.browse', ['property' => (string) $t['property']->slug]);
+
+    // ⚠️ THE CONTROL FIRST: it really is listed while the organisation is open.
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    expect($this->get('/sitemap-storefront.xml')->getContent())->toContain($url);
+
+    Organization::query()->whereKey($t['org_id'])->update(['status' => $status]);
+
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    expect($this->get('/sitemap-storefront.xml')->getContent())->not->toContain($url);
+})->with(['suspended', 'cancelled'])->group('storefront-seo');
+
 it('⚠️ never lists a property whose page would 404 (status != active)', function () {
     $t = seoSellableTenant('inactive');
     $url = route('booking.browse', ['property' => (string) $t['property']->slug]);

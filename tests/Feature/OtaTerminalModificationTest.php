@@ -1,8 +1,10 @@
 <?php
 
 use App\Exceptions\Booking\ReservationTerminalModificationException;
+use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\AuditEvent;
 use App\Models\ChannelMapping;
+use App\Models\Organization;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Services\AssignmentService;
@@ -198,3 +200,42 @@ it('⚠️⚠️ RULED 2026-09-19 (R6) — an inbound channel MAY still rewrite 
     expect((string) $after->status)->toBe('confirmed', 'R6: the channel re-confirms a checked-in stay');
     expect((int) $after->total_minor)->toBe(99999, 'R6: the channel may reprice a stay in progress');
 });
+
+/**
+ * ⚠️⚠️ F-52 — RULED BY THE FOUNDER, 2026-09-19: THE CHANNEL MANAGER KEEPS ITS AUTHORITY OVER A SUSPENDED
+ * ORGANISATION. THIS IS A DECISION, NOT AN OVERSIGHT.
+ *
+ * ⚠️⚠️ IT LOOKS EXACTLY LIKE THE DEFECT F-48 WAS, WHICH IS WHY IT IS PINNED. A suspended tenant whose public
+ * storefront is closed ({@see ResolvePublicProperty}) but whose OTA bookings still land
+ * reads, at a glance, like the guard was simply missed on one path. It was not: the founder ruled this path
+ * stays open, and a future pass that "closes the gap" would be building past a decision.
+ *
+ * ⚠️⚠️ THE REASONING — refusing the sync DOES NOT PREVENT THE SALE. The OTA has already sold the room; the
+ * guest holds a real reservation whatever this product does. Dropping it here closes no door — it only
+ * BLINDS THE PMS to a booking that exists, turning a billing dispute into a DOUBLE-BOOKING and a guest
+ * arriving at a room already given away. A closed storefront stops NEW sales; a refused sync loses the
+ * record of one that already happened.
+ *
+ * ⚠️ AND IT COULD NOT BE A QUIET REFUSAL ANYWAY: this is the retrying webhook path, where a throw becomes
+ * FAILED → retry → dead letter (FIX 14). The full reasoning also lives in `BookingImportService`'s docblock,
+ * which is where somebody tempted to add the check would actually be standing.
+ *
+ * ⚠️ THE MUTATION THAT PROVES THIS PIN: add an organisation-status check to the import → this goes RED.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (F-52) — an OTA booking STILL LANDS for a SUSPENDED organisation, deliberately', function (string $status) {
+    ['scenario' => $s, 'channel' => $channel] = otaMappedScenario(units: 2);
+    $payload = channexBookingPayload();
+
+    // ⚠️ THE PUBLIC DOOR IS SHUT — the same organisation, the same moment. That contrast is the finding.
+    Organization::query()->whereKey($s['org']->id)->update(['status' => $status]);
+    expect((string) Organization::query()->whereKey($s['org']->id)->value('status'))->toBe($status);
+
+    $reservation = app(BookingImportService::class)->import($channel, $payload['booking']);
+
+    // ⚠️ THE ROW, NOT THE RETURN VALUE — a booking that exists in the world now exists in the PMS too.
+    expect($reservation)->not->toBeNull();
+    $row = Reservation::query()->withoutGlobalScopes()->find($reservation->id);
+    expect($row)->not->toBeNull('F-52: the channel keeps its authority — the booking must be recorded');
+    expect((string) $row->status)->toBe('confirmed');
+    expect((string) $row->source)->not->toBe('');
+})->with(['suspended', 'cancelled']);
