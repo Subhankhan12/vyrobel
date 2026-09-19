@@ -33,11 +33,11 @@ use Symfony\Component\HttpFoundation\Response;
  * none bypasses it (re-measured from `route:list`, not the routes file) — and there will be a tenth route.
  * Nine separate checks is nine chances to miss one.
  *
- * ⚠️⚠️ `suspended` AND NOTHING ELSE. The column is `enum('trialing','active','suspended','cancelled')`.
- * The founder ruled on ONE of those states, so exactly one is acted on here. ⚠️ `cancelled` is deliberately
- * NOT closed by this guard even though `/stay` closes it — inferring that a cancelled account should behave
- * like a suspended one is a COMMERCIAL policy, and guessing one is the thing this project does not do. The
- * divergence is recorded in docs/AUDIT-SUMMARY.md rather than resolved here.
+ * ⚠️⚠️ `suspended` AND `cancelled`, AND NOTHING ELSE. The column is
+ * `enum('trialing','active','suspended','cancelled')`. FIX 36 closed ONE state because the founder had ruled
+ * on one; **F-51 (2026-09-19) ruled the second**, so `/book/{property}` and `/stay/{organization}` now agree
+ * on all four — the divergence FIX 36 recorded rather than guessed is closed by DECISION, not inference.
+ * ⚠️ `trialing` and `active` remain unruled and untouched.
  *
  * ⚠️⚠️ AND THE GUEST IS NEVER TOLD WHY. A guest is a stranger to the billing relationship between Vyrobel
  * and the operator; publishing its state to the operator's own customers would damage them. The closed page
@@ -53,10 +53,20 @@ class ResolvePublicProperty
     public const ATTRIBUTE = 'booking_property_id';
 
     /**
-     * ⚠️ THE ONE STATE THE FOUNDER RULED ON. Not a list, deliberately: adding a second value here is a
-     * commercial decision, not a refactor.
+     * ⚠️⚠️ THE STATES THE FOUNDER HAS RULED CLOSED. `suspended` (R-SUSPEND, FIX 36) and `cancelled`
+     * (**F-51, ruled 2026-09-19, built FIX 39**). ⚠️ This was a single value on purpose until the second
+     * ruling arrived — adding a state here is a COMMERCIAL decision, never a refactor.
+     *
+     * ⚠️ `trialing` and `active` are NOT here and are NOT ruled: a trialing organisation is mid-trial and
+     * genuinely selling. ⚠️ **Do not infer anything about them from this list.**
+     *
+     * ⚠️ ONE DEFINITION, TWO SURFACES (§N.8f): the booking routes and the public sitemap both read THIS, so
+     * they cannot drift about which organisations are closed. That is why FIX 39 was a one-line change and
+     * the sitemap inherited it — the class was swept, not the instance.
+     *
+     * @var list<string>
      */
-    public const CLOSED_FOR_BOOKING = 'suspended';
+    public const CLOSED_FOR_BOOKING = ['suspended', 'cancelled'];
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -76,7 +86,7 @@ class ResolvePublicProperty
             fn (): ?string => Organization::query()->whereKey($property->organization_id)->value('status'),
         );
 
-        if ($organizationStatus === self::CLOSED_FOR_BOOKING) {
+        if (in_array($organizationStatus, self::CLOSED_FOR_BOOKING, true)) {
             // ⚠️ RETURNED, NOT `abort()`ed. `abort($response)` is re-rendered by the exception handler as
             //    the GENERIC 404 — 🔬 measured: the closed-sign copy was replaced by "We couldn't find that",
             //    which is precisely the "looks broken / hotel has vanished" outcome this page exists to avoid.

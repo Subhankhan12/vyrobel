@@ -86,10 +86,13 @@ class StorefrontSitemapController extends Controller
                 //    advertising the URL. ⚠️ That is exactly the failure the comment above already names —
                 //    "advertising a URL that returns 404 to the crawler that follows it" — so this makes the
                 //    property half do what the organisation half below already does.
-                // ⚠️ `suspended` ONLY: the organisation half uses `whereIn(['trialing','active'])`, which
-                //    also drops `cancelled`. That divergence is deliberate and recorded, not inferred here.
+                // ⚠️⚠️ F-51 (founder, 2026-09-19) CLOSED THE DIVERGENCE FIX 36 RECORDED: `cancelled` is now
+                //    closed alongside `suspended`, so this half and the organisation half below finally agree
+                //    on all four states. ⚠️ It inherits the set from the ONE definition on the middleware —
+                //    this file states no policy of its own, which is why the second ruling needed no edit here
+                //    beyond `where` → `whereIn`.
                 ->whereNotIn('organization_id', Organization::query()
-                    ->where('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)
+                    ->whereIn('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)
                     ->pluck('id'))
                 ->orderBy('slug')
                 ->get();
