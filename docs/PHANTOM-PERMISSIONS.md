@@ -132,6 +132,32 @@ so an unstripped scanner really would have read its own explanation.
 
 All three touched files byte-identical after restore.
 
+## ⚠️⚠️ RULED — R-PHANTOM, 2026-09-19 (recorded FIX 41)
+
+**KEEP the seventeen. DOCUMENT them. PIN THE EXACT REGISTER.** No seeder churn, no role-table churn —
+nothing is granted, wired or removed, and `role_has_permissions` does not move.
+
+⚠️ **The pin asserts the NAMES, not a count** — `PhantomPermissionRegisterIsPinnedTest`, holding the three
+shapes (6 / 8 / 3) separately so a permission cannot drift between categories. 🔬 **A count would not have
+been a pin**: measured under a rename mutation, the census still counts **17** and a count-only assertion
+stays **green** while the name assertion reddens.
+
+⚠️⚠️ **The "read nowhere" half is a NEGATIVE CLAIM PROVEN BY SCANNING SOURCE** — the needle-reads-its-own-list
+trap. It ships only because both halves of the defence were checked in FIX 41:
+
+- **The scan cannot see itself, structurally.** Its roots are `app/`, `routes/`, `resources/views/`, so
+  `tests/` (the register) and `docs/` (this file, which names all seventeen in prose) are never read at all;
+  `config/` is skipped by an explicit branch, because the file that DECLARES a permission must not count as
+  one that READS it. A test asserts this rather than a comment claiming it.
+- **It finds a reader planted on purpose.** 🔬 A real `->can('invoices.view')` added to an operator
+  controller moved that permission out of the unread set and reddened the pin.
+
+⚠️ **Heredocs are now stripped too** (FIX 41). A heredoc is a string and comment-stripping does not touch
+one. 🔬 Proven inert today — the scanned roots contain exactly one heredoc and it names no permission, so
+the census is byte-identical with and without the strip. It is there for the fifty-second permission.
+
+⚠️ **The three questions below are ANSWERED BY THIS RULING, and kept as the record of what was weighed.**
+
 ## ⚠️ What needs a ruling — reported, not decided
 
 1. **`taxes.manage` / `fees.manage`** — wire the route to them (widens who may edit tax settings), or remove
