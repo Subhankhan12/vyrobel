@@ -215,48 +215,12 @@ it('⚠️ still archives when an owner has no portal user to notify', function 
     expect(DB::table('notifications')->count())->toBe(0, 'somebody was notified who should not have been');
 });
 
-// ── 6. ⚠️⚠️ F-57 — RECORDED, NOT FIXED: A BOOKING CAN OUTRUN THE SCHEDULE ───────────────────────────
-/**
- * ⚠️⚠️ THIS TEST PINS A DEFECT, DELIBERATELY — the shape `PayoutReversalIsUnguardedTest` uses for F-53.
- *
- * 🔬 MEASURED, NOT READ. `schedule()` sets `removal_effective_at` to the last checkout among stays that exist
- * AT THAT MOMENT. 🔬 Nothing anywhere else reads `removal_scheduled_at` or `removal_effective_at` — a sweep of
- * `app/`, `routes/` and `resources/` finds only the model's casts and one operator display — so the storefront
- * keeps selling the property, and a booking made AFTER scheduling can check out LATER than the effective date.
- * `processDue()` then archives on that stale date, with a live future stay attached.
- *
- * ⚠️ IT IS NOT FIXED HERE. FIX 43's ruling is "notify the owner; keep it irreversible", and its own brief says
- * that if archiving's behaviour looks wrong while reading it, note it and move on. This is the note, executed
- * so it is a fact rather than an assertion — and it is why the notice says nothing about upcoming stays.
- *
- * ⚠️ WHEN IT IS FIXED, THIS TEST GOES RED, and whoever fixes it should delete it rather than adjust it.
- */
-it('⚠️⚠️ F-57 — a stay booked after scheduling outlives the effective date, and is archived over', function () {
-    $s = seedScenario(1);
-    $property = $s['property'];
-
-    // ⚠️ Scheduled while NO future stay exists → `schedule()`'s own rule makes the effective date TODAY.
-    app(PropertyRemovalService::class)->schedule($property->fresh(), 'ops@example.test');
-    $effective = $property->fresh()->removal_effective_at;
-    expect($effective)->not->toBeNull();
-
-    // ⚠️ A REAL booking made AFTER scheduling, through the certified path, checking out far beyond it.
-    $future = book($s);
-    $future->forceFill([
-        'check_in' => now()->addDays(20)->toDateString(),
-        'check_out' => now()->addDays(23)->toDateString(),
-        'status' => 'confirmed',
-    ])->save();
-
-    expect($future->fresh()->check_out->gt($effective))->toBeTrue('the fixture must outrun the effective date');
-
-    // ⚠️⚠️ THE EFFECTIVE DATE IS NEVER RECOMPUTED, so the pass archives on a stale answer.
-    $archived = app(PropertyRemovalService::class)->processDue(app(ChannelConnectionService::class));
-
-    expect($archived)->toBeGreaterThan(0, 'nothing was archived — this test proved nothing');
-    expect(Property::query()->find($property->getKey()))->toBeNull('the property survived — F-57 may be fixed');
-
-    // ⚠️ AND THE STAY IS STILL CONFIRMED, AT A PROPERTY THAT NO LONGER EXISTS.
-    $row = DB::table('reservations')->where('id', $future->getKey())->first(['status']);
-    expect($row->status)->toBe('confirmed', 'the reservation was handled — F-57 may be fixed');
-});
+// ── 6. ⚠️ F-57's DEFECT-PIN LIVED HERE, AND WAS DELETED BY THE PASS THAT FIXED IT ─────────────────
+//
+// ⚠️⚠️ ITS OWN DOCBLOCK SAID SO: *"When it is fixed, this test goes RED, and whoever fixes it should delete
+//    it rather than adjust it."* FIX 44 made `processDue()` re-derive the removal date at execution, the pin
+//    went red for the right reason — "nothing was archived", because the property is now correctly DEFERRED —
+//    and it was removed rather than inverted. Adjusting a defect-pin into a guarantee hides which of the two
+//    a later reader is looking at.
+//
+// ⚠️ THE BEHAVIOUR IT DESCRIBED IS NOW PINNED THE OTHER WAY UP, in `RemovalDateIsReDerivedTest`.
