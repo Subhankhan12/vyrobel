@@ -124,6 +124,12 @@ function vyPermissionStrip(string $source, bool $blade): string
         '#\{\{--.*?--\}\}#s',
         '#/\*.*?\*/#s',
         '#^[ \t]*//.*$#m',
+        // ⚠️ A HEREDOC IS A STRING, AND COMMENT-STRIPPING DOES NOT TOUCH ONE. Anything call-shaped inside
+        //    one would read as an enforcement site while enforcing nothing — the same class as the prose
+        //    match above, one syntax over. 🔬 ADDED FIX 41 AND PROVEN INERT: the scanned roots contain
+        //    exactly one heredoc (app/Support/Llm/Prompts.php) and it names no permission, so the census
+        //    is byte-identical with and without this line. It is here for the fifty-second permission.
+        '#<<<([\x27"]?)([A-Za-z_][A-Za-z0-9_]*)\1\R.*?\R\s*\2\b#s',
     ] as $pattern) {
         $source = preg_replace_callback($pattern, $blank, $source) ?? $source;
     }
