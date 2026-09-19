@@ -51,6 +51,22 @@
 #                catching — so ⚠️ **CI must run FULL mode.** Invariant mode is a developer convenience, and
 #                it is deliberately loud about being a weaker check.
 #
+# ⚠️⚠️ TWO THINGS A GREEN RUN OF THIS GATE DOES NOT MEAN. Both are on the register; neither is repaired here.
+#
+#   • F-62 — ⚠️⚠️ IT COMPARES COUNTS AND SUMS, SO AN EQUAL-AND-OPPOSITE PAIR OF ERRORS NETS TO ZERO AND
+#     PASSES. A row priced 1,000 too high beside one priced 1,000 too low leaves SUM(price_minor) exact and
+#     this gate silent. It asserts six AGGREGATES — it has never asserted row-level identity, and claiming
+#     "the money is unchanged" from a green run overstates it. The honest claim is
+#     "tenant one's six aggregates are as seeded".
+#
+#   • F-61 — ⚠️⚠️ RUNNING THIS GATE IN FULL MODE PUTS TENANT TWO'S ENTIRE OPERATOR BACK OFFICE BEHIND THE
+#     PAYWALL. Tenant two is seeded with a 14-day trial, so seeding at REFERENCE_DATE expires it on
+#     2026-09-15; at any real present date EnsureSubscriptionActive correctly holds every /app/* route at
+#     /app/billing. ⚠️ THAT IS INVARIANT #41 WORKING — it is not a bug and it must not be "fixed".
+#     ⚠️⚠️ DO NOT EXTEND THE TRIAL, MOVE THE CLOCK, OR RE-SEED AT A LATER DATE TO MAKE A JOURNEY WALKABLE.
+#     That is re-baselining a fixture to make a check pass. Tenant two's OWNER portal is not subscription
+#     gated and stays reachable. See docs/KNOWN-LIMITS.md L8.
+#
 # ⚠️ THE EXPECTATIONS BELOW ARE HAND-MEASURED CONSTANTS, NOT COMPUTED FROM THE SEEDER. A pin derived from
 # the seeder's own logic would verify the seeder against itself and pass through any seeder change — the
 # same source-against-itself failure the `/pricing` comparison guard shipped (§N.31.1 shape 8).
@@ -96,7 +112,8 @@ EXPECTED_INVARIANT="929 / 0 / 16 / 0"
 #   • Scoping is strictly TIGHTER, not looser: it still fails on any change to exactly what it always guarded.
 #
 # ⚠️ THE COST, STATED PLAINLY: this gate no longer sees tenant two's money. That is deliberate — tenant two
-#   exists to make the seventeen money-write routes exercisable WITHOUT risking anything pinned. Its figures
+#   exists to make the money-write routes exercisable WITHOUT risking anything pinned (⚠️ how many there are
+#   is UNKNOWN and enumerated nowhere — F-59; this line used to say "seventeen"). Its figures
 #   are PRINTED below as RECORDED, never asserted, so a reader can see them and never mistake them for a pin.
 #
 # ⚠️ Resolved by SLUG, not by id: organisation ids are ULIDs regenerated on every `migrate:fresh --seed`.
@@ -167,6 +184,7 @@ if [ -n "${OTHERS}" ]; then
   echo "${OTHERS}" | sed 's/^/             📄 RECORDED, NOT ASSERTED — /'
 fi
 echo "             (rate_calendar / SUM(price_minor) / unit_rate_overrides / reservations / payments / rate_seasons)"
+echo "  blind to:  ⚠️ F-62 — COUNTS AND SUMS ONLY: an equal-and-opposite pair of errors nets to zero and passes."
 echo "  actual:    ${ACTUAL}"
 
 # ⚠️⚠️ THE MODE IS DECIDED BY THE APPLICATION'S EFFECTIVE CONFIG, NOT BY THE SHELL VARIABLE.
@@ -191,7 +209,11 @@ if [ "${EFFECTIVE_DATE}" = "${REFERENCE_DATE}" ]; then
 
   if [ "${ACTUAL}" = "${EXPECTED_FULL}" ]; then
     echo "  mode=FULL"
-    echo "✅ MONEY AS SEEDED · FULL — all six figures unchanged."
+    echo "✅ MONEY AS SEEDED · FULL — all six of TENANT ONE'S aggregates unchanged."
+    echo "⚠️  F-61 — AND THIS MODE HAS A COST: seeded at ${REFERENCE_DATE}, tenant two's 14-day trial expired"
+    echo "    2026-09-15, so its ENTIRE /app/* back office is behind the paywall at any real present date."
+    echo "    That is invariant #41 working. ⚠️ Do NOT extend the trial or move the reference date to walk it —"
+    echo "    that is re-baselining a fixture to make a check pass. Its OWNER portal is not gated."
     exit 0
   fi
 else

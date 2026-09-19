@@ -155,6 +155,37 @@ of work and **a founder decision, reported not taken**.
 
 ---
 
+## L8 · ⚠️ AN INTERNAL LIMIT, NOT A CUSTOMER-FACING ONE — the money gate and the writable tenant exclude each other
+
+⚠️⚠️ **NOTHING HERE IS TOLD TO A CUSTOMER, AND NO CUSTOMER-FACING SENTENCE EXISTS FOR IT.** This is a limit on
+what this repository can *verify about itself*, recorded here because it is where a future pass will look —
+and because, before FIX 48, **nothing anywhere warned one**. It is **F-61** in `docs/AUDIT-SUMMARY.md` §2b.
+
+**The collision, 🔬 measured 2026-09-19.** `ops/money-as-seeded.sh` reports `mode=FULL` — the only mode that
+asserts all six pinned figures — **only** when the database was seeded at its reference date
+`VY_SEED_DATE=2026-09-01`. Tenant two (`northgate-demo-city-rooms`) is seeded with a **14-day trial**, which
+therefore expires **2026-09-15**. At any real present date that trial is genuinely lapsed, so
+`EnsureSubscriptionActive` holds **every one of its `/app/*` routes at `/app/billing`**.
+
+⚠️⚠️ **BOTH GATES ARE CORRECT. That is what makes this a limit rather than a defect** — the paywall is
+invariant #41 doing exactly its job, and the reference date is what makes the money pin mean anything. But
+**tenant one may never be written to and tenant two's back office may not be reached**, so the browser tier is
+now structurally narrower than it was: any journey needing a tenant-two OPERATOR surface cannot be walked
+without disabling one of the two instruments.
+
+⚠️⚠️ **WHAT NOT TO DO, AND IT IS THE FIRST THING THAT WILL OCCUR TO A HELPFUL PASS: DO NOT EXTEND THE TRIAL,
+MOVE THE CLOCK, OR RE-SEED AT A LATER REFERENCE DATE.** That is re-baselining a fixture to make a check pass —
+the oldest standing prohibition in this project wearing new clothes — and it would invalidate `mode=FULL` and
+every figure that depends on it.
+
+⚠️ **What IS still reachable:** tenant two's **owner portal**, which is not subscription-gated, and which is
+where its GBP currency behaviour was proven.
+
+**The two options on the record, neither of them a session's to choose:** a **disposable third tenant** whose
+subscription state is set for walking, or **accepting the remainder as establish-only** and saying so in every
+report that touches it.
+
+---
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some
