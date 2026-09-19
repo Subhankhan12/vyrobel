@@ -201,3 +201,44 @@ it('⚠️ still routes every night through the certified writer', function () {
     expect($broad->fresh()->applied_at)->not->toBeNull();
     expect($peak->fresh()->applied_at)->not->toBeNull();
 });
+
+/**
+ * ⚠️⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R-SEASON: NO GUARD ON RE-APPLY. THIS IS THE SHARP ONE.
+ *
+ * ⚠️⚠️ APPLYING A SEASON RE-APPLIES THE WHOLE COVERING SET, WEAKEST-FIRST, EVERY TIME — AND THAT IS THE
+ * DESIGN, NOT A LOOSE EDGE. The calendar is materialised, so the ONLY way a precedence rule can govern the
+ * PRICE is to control WRITE ORDER. Re-applying the covering set is how the strongest season lands last.
+ *
+ * ⚠️⚠️ A FUTURE PASS WILL SEE `apply()` WRITING AGAIN ON AN ALREADY-APPLIED SEASON, READ IT AS A MISSING
+ * IDEMPOTENCY GUARD, AND ADD ONE. THAT WOULD BREAK PRICING — the covering set would stop being re-ordered and
+ * the price would revert to "whichever button was pressed first", which is the exact defect
+ * `SeasonPrecedence` was built to end. **The founder has confirmed the behaviour. Do not guard it.**
+ *
+ * ⚠️ (Its other half is already closed by code: EDITING an applied season is refused, with an explanation,
+ * in `SeasonActionController::update()`. Re-APPLYING is the half that stays open, deliberately.)
+ *
+ * ⚠️ THE MUTATION, AND WHY IT DISCRIMINATES: guard `apply()` on `applied_at !== null` → the re-apply below
+ * is skipped, the corrupted night is never rewritten, and the final assertion reads 111 instead of 7000 → RED.
+ * ⚠️ A weaker test that merely re-applied and checked the price was still right would stay GREEN under that
+ * mutation, because skipping a write leaves a correct value in place. The night is corrupted FIRST precisely
+ * so that "did nothing" and "re-applied" are distinguishable.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (R-SEASON) — a season RE-APPLIES the whole covering set BY DESIGN, and is deliberately unguarded', function () {
+    $w = spWorld();
+    $season = spSeason($w, 'Summer', '2026-07-01', '2026-08-31', 7000);
+
+    app(SeasonalRateService::class)->applyInPrecedenceOrder($season);
+    expect(spPriceOn($w, '2026-07-15'))->toBe(7000);
+    expect($season->fresh()->applied_at)->not->toBeNull();
+
+    // ⚠️ CORRUPT ONE NIGHT so that "skipped" and "re-applied" cannot look alike.
+    DB::table('rate_calendar')
+        ->where('rate_plan_id', $w['s']['ratePlan']->id)->where('date', '2026-07-15')
+        ->update(['price_minor' => 111]);
+
+    // ⚠️ THE SECOND APPLY — permitted, unguarded, and it WRITES AGAIN.
+    app(SeasonalRateService::class)->applyInPrecedenceOrder($season->fresh());
+
+    expect(spPriceOn($w, '2026-07-15'))
+        ->toBe(7000, 'R-SEASON: re-applying rewrites the covering set — a guard here would break precedence');
+});

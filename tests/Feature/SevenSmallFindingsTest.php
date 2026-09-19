@@ -164,3 +164,25 @@ it('⚠️ F-11 — no navigation link is offered whose route the viewer cannot 
     }
     expect($withPerms)->toBeGreaterThan(10, 'the permission scan found nothing — it would pass vacuously');
 });
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R-ADMIN-COPY: THE 403 FALLTHROUGH STAYS.
+ *
+ * ⚠️ A platform admin's 403 body is the OPERATOR sentence, deliberately. The admin realm DOES resolve and DOES
+ * get its own back-link ("Back to the console"); only the body falls through. Closing that would mean editing
+ * a certified assertion, and the founder chose not to. **F-3 therefore remains PARTIAL BY RULING, not by
+ * omission, and F-32 is accepted rather than open.**
+ *
+ * ⚠️ THE MUTATION: give `forbiddenMessage()` its own 'admin' branch → the identity below breaks → RED.
+ */
+it('⚠️ RULED 2026-09-19 (R-ADMIN-COPY) — the admin 403 KEEPS the operator body, and that is deliberate', function () {
+    // ⚠️ THE DECISION: one body, two realms — asserted as an IDENTITY so any new branch reddens it.
+    expect(ErrorRealm::forbiddenMessage('admin'))
+        ->toBe(ErrorRealm::forbiddenMessage('app'));
+
+    // ⚠️ AND WHAT WAS *NOT* RULED AWAY: the admin realm still has its own door. The register once recorded
+    // "ErrorRealm has no admin branch" — it has one, and this pins the half that exists.
+    [$href, $label] = ErrorRealm::home('admin');
+    expect($href)->toBe('/admin');
+    expect($label)->toBe('Back to the console');
+});

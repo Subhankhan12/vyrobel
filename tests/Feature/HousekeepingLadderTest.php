@@ -126,7 +126,7 @@ it('⚠️ the refusal EXPLAINS ITSELF on the board — naming the attempt and t
         ->and($html)->toContain('marked Inspected'); // what was attempted
 });
 
-it('⚠️ AMBIGUOUS-AND-PERMITTED — the moves the founder has not ruled on still work exactly as today', function () {
+it('⚠️ RULED 2026-09-19 (R-HK-11) — the permissive ladder is KEPT: these moves work by decision, not by omission', function () {
     $s = seedScenario(1);
     $actor = operatorUser($s, [], 'Hotel Manager');
 
@@ -140,6 +140,35 @@ it('⚠️ AMBIGUOUS-AND-PERMITTED — the moves the founder has not ruled on st
     $this->actingAs($actor)->post(route('app.housekeeping.status', $b->id), ['status' => 'in_progress']);
     expect((string) $b->fresh()->status)->toBe('in_progress');
 
-    // ⚠️ NOT ENDORSED — asserted so that tightening the map is a DELIBERATE act that breaks a test,
-    // never a silent narrowing. Each is a ruling in docs/HOUSEKEEPING-LADDER.md.
+    // ⚠️⚠️ NOW ENDORSED — RULED BY THE FOUNDER, 2026-09-19 (R-HK-11): the housekeeping ladder STAYS
+    // PERMISSIVE. All fourteen permitted moves are kept. This was previously asserted as "ambiguous and not
+    // yet ruled on"; it is now a recorded decision, and tightening the map is a deliberate act that breaks
+    // this test with that decision attached. ⚠️ H1 (pending → clean) is the one the project's own fail-safe
+    // rule would have pointed the other way on — a room can reach guest-ready with no record it was cleaned,
+    // silently. The founder chose the cleaner's shift over the audit trail. Do not "correct" it.
+});
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — H4: REOPEN-TO-PENDING IS PERMITTED, DELIBERATELY.
+ *
+ * ⚠️⚠️ THIS ONE WAS NEVER CONSIDERED UNTIL FIX 31 SURFACED IT, WHICH MADE IT THE RISKIEST ROW ON THE LADDER:
+ * every OTHER permitted move was left permissive on purpose, but `pending` as a TARGET was simply never
+ * discussed. The UI offers no control for it, so it looked closed from the outside — while
+ * `HousekeepingService::ALLOWED_FROM` permits it from every state, meaning a job, a command or any future
+ * caller may reopen a finished task. **The founder has now ruled it permitted on purpose.**
+ *
+ * ⚠️ THE MUTATION: remove the `pending` key from `ALLOWED_FROM` (or narrow its sources) → the service throws
+ * and the row never moves → RED.
+ */
+it('⚠️ RULED 2026-09-19 (H4) — an inspected task MAY be reopened to pending, and the SERVICE is what permits it', function () {
+    $s = seedScenario(1);
+    $actor = operatorUser($s, [], 'Hotel Manager');
+    $task = hkLadderTask($s, 'inspected');
+
+    // ⚠️ THE SERVICE, NOT THE SCREEN. The UI offers no reopen control — the ruling is about what the GUARD
+    // permits, because that is what a job or a future caller meets.
+    app(HousekeepingService::class)->updateTaskStatus($task, 'pending', $actor);
+
+    expect((string) $task->fresh()->status)
+        ->toBe('pending', 'H4: reopening a finished task is permitted by ruling, not by accident');
 });

@@ -243,3 +243,40 @@ it('⚠️ is computed from the SAME nightly rows as the blast radius, never a s
     expect($preview['agreed_nights'])->toBe(7)
         ->and($preview['changing'])->toBeGreaterThanOrEqual($preview['agreed_nights']);
 });
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R-RATE: A SEASON MAY OVERWRITE AN OWNER-AGREED RATE.
+ *
+ * ⚠️⚠️ AND THE OWNER IS NOT NOTIFIED. The operator-side disclosure above (which names the exact nights) is
+ * the whole of the protection the founder chose. **F-25 is therefore ACCEPTED BY RULING — neither open nor
+ * closed.** The owner cannot discover from the product that their negotiated rate was replaced; that is a
+ * known, accepted consequence, not an oversight to fix.
+ *
+ * ⚠️ A FUTURE PASS WILL READ "the owner is never told their rate changed" AS A DEFECT AND BUILD THE
+ * NOTIFICATION. That would be building past a decision. If the policy changes, this test is where it changes.
+ *
+ * ⚠️ THE MUTATION: make the apply path refuse a night covered by an approved proposal → the overwrite never
+ * lands and the price assertion goes RED.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (R-RATE) — a season overwrites an owner-agreed rate, and the owner is NOT notified', function () {
+    $c = ardScenario();
+    ardAgree($c, 18000, '2026-07-01', '2026-07-31');
+
+    $agreedOn = (int) DB::table('rate_calendar')
+        ->where('rate_plan_id', $c['plan']->id)->where('date', '2026-07-15')->value('price_minor');
+    expect($agreedOn)->toBe(18000, 'the negotiated rate really is on the calendar first');
+
+    $before = DB::table('notifications')->count();
+
+    // ⚠️ THE OVERWRITE — permitted by ruling, through the certified path.
+    app(SeasonalRateService::class)->applyInPrecedenceOrder(ardSeason($c, '2026-07-01', '2026-07-31', 25000));
+
+    expect((int) DB::table('rate_calendar')
+        ->where('rate_plan_id', $c['plan']->id)->where('date', '2026-07-15')->value('price_minor'))
+        ->toBe(25000, 'R-RATE: the season wins over the negotiated rate');
+
+    // ⚠️⚠️ THE ACCEPTED CONSEQUENCE, PINNED — nothing reaches the owner. This assertion is the record of
+    // F-25 being accepted rather than fixed.
+    expect(DB::table('notifications')->count())
+        ->toBe($before, 'F-25 ACCEPTED BY RULING: the owner is deliberately not notified');
+});

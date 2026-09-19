@@ -191,3 +191,34 @@ it('⚠️ an off-sale plan is NOT offerable to a new season — a season must n
     expect($selector)->toContain((string) $active->getKey())
         ->not->toContain((string) $s['ratePlan']->getKey());
 });
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R7: LEAVE THE POINTER.
+ *
+ * ⚠️ Taking a rate plan off sale does NOT clear `room_types.default_rate_plan_id`. The accessor's `is_active`
+ * filter (the whole of F-34's fix, above) is the mechanism that makes this safe — the lookup steps over the
+ * dead plan and falls through. The operator's declared choice is kept, so the default reasserts itself if the
+ * plan goes back on sale.
+ *
+ * ⚠️⚠️ A FUTURE PASS WILL READ THE DANGLING POINTER AS AN ORPHAN AND "TIDY" IT. It is not an orphan; it is a
+ * remembered preference. Clearing it on deactivation would silently discard the operator's choice.
+ *
+ * ⚠️ THE MUTATION: clear `default_rate_plan_id` when a plan is deactivated → the first assertion goes RED.
+ */
+it('⚠️ RULED 2026-09-19 (R7) — deactivating the declared default LEAVES the pointer in place, on purpose', function () {
+    $s = seedScenario(1);
+    $rt = f34RoomType($s);
+    $declared = $s['ratePlan'];
+
+    $declared->forceFill(['is_active' => false])->save();
+
+    $fresh = RoomType::query()->findOrFail($rt->getKey());
+
+    // ⚠️ THE RULING: the pointer is REMEMBERED, not cleared.
+    expect((string) $fresh->default_rate_plan_id)
+        ->toBe((string) $declared->getKey(), 'R7: the declared default is remembered, not discarded');
+
+    // ⚠️ AND THE MECHANISM THAT MAKES THAT SAFE — the accessor steps over the dead plan (F-34).
+    expect((string) $fresh->primaryRatePlan()?->getKey())
+        ->not->toBe((string) $declared->getKey(), 'R7 is only safe because the accessor filters is_active');
+});

@@ -166,3 +166,35 @@ it('THE SECOND ENTRANCE — the raw writer refuses too, and throws rather than r
     expect(Reservation::query()->withoutGlobalScopes()->find($reservation->id)->getAttributes())
         ->toEqual($before);
 });
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R6: THE CHANNEL MANAGER KEEPS THE LAST WORD.
+ *
+ * ⚠️⚠️ THIS PINS A DELIBERATE PERMISSION, NOT A DEFECT. `checked_in` is NOT in `TERMINAL_STATUSES`, so an
+ * inbound OTA modification may rewrite a stay THE GUEST IS PHYSICALLY IN — status, dates, price and unit
+ * lines. That reads like the bug F-29 closed, and it is not: a real OTA can legitimately extend a stay
+ * mid-visit, and refusing would drop a genuine booking change on the floor. **The founder ruled the channel
+ * authoritative.**
+ *
+ * ⚠️ A FUTURE PASS WILL WANT TO ADD `checked_in` TO `TERMINAL_STATUSES`. That is the change this test exists
+ * to make deliberate: it reddens here, with this docblock attached, rather than passing quietly.
+ *
+ * ⚠️ THE MUTATION: add 'checked_in' to `AssignmentService::TERMINAL_STATUSES` → the modify() path no-ops, the
+ * status stays `checked_in` and the price stays put → RED on both assertions.
+ */
+it('⚠️⚠️ RULED 2026-09-19 (R6) — an inbound channel MAY still rewrite a stay the guest is physically in', function () {
+    [$channel, $reservation, $booking] = otaBookingIn('checked_in');
+
+    // A REAL modification: the OTA extends the stay and reprices it, mid-visit.
+    $booking['total_minor'] = 99999;
+    $booking['rooms'][0]['amount_minor'] = 99999;
+
+    $returned = app(BookingImportService::class)->modify($channel, $booking);
+    expect($returned->id)->toBe($reservation->id);
+
+    $after = Reservation::query()->withoutGlobalScopes()->find($reservation->id);
+
+    // ⚠️ THE RULING, IN TWO ROWS: the stay is re-confirmed and the MONEY moves. Both are permitted.
+    expect((string) $after->status)->toBe('confirmed', 'R6: the channel re-confirms a checked-in stay');
+    expect((int) $after->total_minor)->toBe(99999, 'R6: the channel may reprice a stay in progress');
+});

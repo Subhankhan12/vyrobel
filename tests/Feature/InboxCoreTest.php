@@ -2,6 +2,7 @@
 
 use App\Jobs\Sync\ProcessInboundMessageJob;
 use App\Messaging\MessageChannelResolver;
+use App\Models\Membership;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\User;
@@ -192,4 +193,37 @@ it('processes inbound through the backbone job, idempotently', function () {
     (new ProcessInboundMessageJob($org->id, $j1->id))->handle(app(TenantContext::class));
 
     expect(Message::query()->where('external_message_id', 'bb-msg-1')->count())->toBe(1);
+});
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER, 2026-09-19 — R-SUPPORT: THREADS STAY ORGANISATION-WIDE.
+ *
+ * ⚠️ `message_threads.assigned_to` exists and is a HINT — who is looking after this conversation. It is
+ * deliberately NOT an access filter: any back-office colleague in the organisation can open any thread, so a
+ * small operator is never locked out of their own inbox by an assignment.
+ *
+ * ⚠️⚠️ A FUTURE PASS WILL SEE AN `assigned_to` COLUMN THAT NOTHING FILTERS ON AND "TIGHTEN" IT. That would
+ * silently remove cover for every operator with fewer people than shifts. Tenancy is the boundary here
+ * (#28 still applies); assignment is not.
+ *
+ * ⚠️ THE MUTATION: add an `assigned_to` condition to the thread lookup → the non-assignee below stops seeing
+ * the thread → RED.
+ */
+it('⚠️ RULED 2026-09-19 (R-SUPPORT) — assigned_to is a HINT: a colleague who is not the assignee still sees the thread', function () {
+    $org = newDemoOrg();
+    $assignee = User::factory()->create(['name' => 'Ada Assignee']);
+    Membership::create(['organization_id' => $org->id, 'user_id' => $assignee->id, 'status' => 'active']);
+
+    $thread = inbox()->startThread(['channel' => 'manual', 'subject' => 'Late arrival']);
+    $thread->forceFill(['assigned_to' => $assignee->getKey()])->save();
+
+    // ⚠️ A DIFFERENT colleague in the SAME organisation — the actor the ruling is about.
+    $colleague = User::factory()->create(['name' => 'Cal Colleague']);
+    Membership::create(['organization_id' => $org->id, 'user_id' => $colleague->id, 'status' => 'active']);
+
+    $seen = MessageThread::query()->find($thread->getKey());
+
+    expect($seen)->not->toBeNull('R-SUPPORT: a thread is org-wide, not assignee-only');
+    expect((string) $seen->assigned_to)
+        ->toBe((string) $assignee->getKey(), 'the assignment is still RECORDED — it is a hint, not a gate');
 });
