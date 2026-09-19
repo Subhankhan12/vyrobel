@@ -80,6 +80,17 @@ class StorefrontSitemapController extends Controller
                 //    sitemap — advertising a URL that returns 404 to the crawler that follows it.
                 ->withoutGlobalScopes([OrganizationScope::class])
                 ->where('status', 'active')
+                // ⚠️⚠️ R-SUSPEND (founder, 2026-09-19) — AND THE ORGANISATION, NOT JUST THE PROPERTY. This
+                //    query filtered the property alone, so a SUSPENDED organisation's active property stayed
+                //    in the PUBLIC sitemap: the door was closed on `book/{property}` while this file went on
+                //    advertising the URL. ⚠️ That is exactly the failure the comment above already names —
+                //    "advertising a URL that returns 404 to the crawler that follows it" — so this makes the
+                //    property half do what the organisation half below already does.
+                // ⚠️ `suspended` ONLY: the organisation half uses `whereIn(['trialing','active'])`, which
+                //    also drops `cancelled`. That divergence is deliberate and recorded, not inferred here.
+                ->whereNotIn('organization_id', Organization::query()
+                    ->where('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)
+                    ->pluck('id'))
                 ->orderBy('slug')
                 ->get();
 
