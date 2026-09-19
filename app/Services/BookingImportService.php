@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Http\Middleware\ResolvePublicProperty;
 use App\Models\Channel;
 use App\Models\Guest;
 use App\Models\Reservation;
@@ -25,6 +26,26 @@ use InvalidArgumentException;
  *
  * Guest matching is by external ref only (per channel); the blind-index match for encrypted
  * email/phone stays deferred to Phase 3.
+ *
+ * ⚠️⚠️ THIS SERVICE DELIBERATELY DOES NOT READ `organizations.status` — F-52, RULED BY THE FOUNDER
+ * 2026-09-19. IF YOU CAME HERE TO ADD THAT CHECK, STOP AND READ THIS FIRST.
+ *
+ * ⚠️ IT LOOKS LIKE A GAP AND IT IS NOT. A suspended or cancelled organisation has its PUBLIC booking path
+ * closed ({@see ResolvePublicProperty}, F-48/F-51) — so "a suspended tenant is still
+ * taking bookings" reads exactly like the defect that guard was built to fix. The channel path is different
+ * in kind, and the founder ruled it stays open.
+ *
+ * ⚠️⚠️ THE REASONING, BECAUSE IT IS THE WHOLE POINT: refusing this sync DOES NOT PREVENT THE SALE. The OTA
+ * has already sold the room and the guest already holds a real reservation, out in the world, whatever this
+ * service does. Dropping it here does not close a door — it only BLINDS THE PMS to a booking that exists,
+ * which turns a billing dispute into a DOUBLE-BOOKING and a guest arriving at a room given to someone else.
+ * A closed storefront stops new sales; a refused sync loses the record of one that already happened.
+ *
+ * ⚠️ AND A REFUSAL HERE COULD NOT BE A QUIET ONE: this runs on the retrying webhook path, where a throw
+ * becomes `webhook_events` FAILED → retry → dead letter (FIX 14's ruling). The only safe shape would be a
+ * recorded NO-OP — which would still lose the booking.
+ *
+ * ⚠️ Pinned by a test named for the decision, so removing this is a deliberate act rather than a tidy-up.
  */
 class BookingImportService
 {
