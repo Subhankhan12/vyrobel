@@ -11,6 +11,7 @@ use App\Mail\RefundConfirmationMail;
 use App\Mail\ReviewRequestMail;
 use App\Models\DomainEvent;
 use App\Models\Guest;
+use App\Models\GuestReviewInvite;
 use App\Models\Payment;
 use App\Models\Reservation;
 use App\Support\Email\EmailTemplateResolver;
@@ -147,22 +148,65 @@ class SendGuestTransactionalEmails
      * Phase 5 — the Review Request email, fired on a REAL completed stay (post-checkout). The (previously deferred)
      * trigger is now wired: it links the guest to the review page for THIS stay. Mailpit in dev; prod account-gated.
      */
+    /**
+     * ⚠️⚠️ R3 — EVERY PATH THROUGH THIS METHOD NOW LEAVES A ROW, AND THAT IS THE POINT. The row's EXISTENCE
+     * is what separates "no request was sent" from "this stay predates the record". If an early return here
+     * ever stops recording, a stay checked out after the migration would look exactly like one from before
+     * it, and the undo would start guessing again — see {@see GuestReviewInvite}.
+     */
     private function reviewRequest(DomainEvent $domainEvent): void
     {
         $reservation = Reservation::query()->with(['leadGuest', 'property'])->find($domainEvent->subject_id);
         if (! $reservation instanceof Reservation) {
-            return;
+            return;   // no subject — there is no stay to record anything against
         }
         // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
         if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'review-request')) {
+            $this->recordInvite($reservation, GuestReviewInvite::SUPPRESSED_BY_OPERATOR, sent: false);
+
             return;
         }
         // ⚠️ AND THE GUEST'S OWN CHOICE — a SECOND, INDEPENDENT gate (see the payment-reminder command for
         // the same pair). A guest who does not want to be asked how their stay went is not asked.
         if (! GuestEmailPreferences::mayReceive($reservation->leadGuest, 'reviews')) {
+            $this->recordInvite($reservation, GuestReviewInvite::SUPPRESSED_BY_GUEST, sent: false);
+
             return;
         }
-        $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
+
+        // ⚠️ RECORDED ON SUCCESS, NOT ON INTENT.
+        $sent = $this->sendToGuest($reservation->leadGuest, new ReviewRequestMail($reservation, route('guest.review', $reservation->getKey())));
+
+        $this->recordInvite(
+            $reservation,
+            $sent ? GuestReviewInvite::SENT : GuestReviewInvite::NO_CONTACT,
+            sent: $sent,
+        );
+    }
+
+    /**
+     * ⚠️ `sent_at` IS STICKY. A stay can be checked out, reversed and checked out again; if a request ever
+     * left, that stays true forever. The OUTCOME reflects the latest attempt; the TIMESTAMP reflects the
+     * first success, because "was this guest ever invited" is the question the undo asks.
+     */
+    private function recordInvite(Reservation $reservation, string $outcome, bool $sent): void
+    {
+        $existing = GuestReviewInvite::query()->where('reservation_id', $reservation->getKey())->first();
+
+        // ⚠️ STICKY, SPELLED OUT: an earlier success is never overwritten by a later suppression.
+        $sentAt = $existing instanceof GuestReviewInvite && $existing->sent_at !== null
+            ? $existing->sent_at
+            : ($sent ? now() : null);
+
+        GuestReviewInvite::query()->updateOrCreate(
+            ['reservation_id' => (string) $reservation->getKey()],
+            [
+                'organization_id' => (string) $reservation->organization_id,
+                'outcome' => $outcome,
+                'channel' => 'email',
+                'sent_at' => $sentAt,
+            ],
+        );
     }
 
     private function refundConfirmation(DomainEvent $domainEvent): void
@@ -192,11 +236,17 @@ class SendGuestTransactionalEmails
      * would still render before the folio; that is a dev/test-only connection, never prod (see config/queue.php +
      * `.env`). Tests use `Mail::fake` (assertQueued), which captures the deferral regardless of driver.
      */
-    private function sendToGuest(?Guest $guest, Mailable $mail, ?int $delaySeconds = null): void
+    /**
+     * ⚠️ RETURNS WHETHER THE SEND ACTUALLY LEFT. R3's record must state what HAPPENED, not what was intended:
+     * a row written before this returns would claim a send that a thrown exception swallowed.
+     * 🔬 `ReviewRequestMail` does not implement `ShouldQueue` and no caller passes a delay for it, so the
+     * review path is SYNCHRONOUS and a clean return here genuinely means it went.
+     */
+    private function sendToGuest(?Guest $guest, Mailable $mail, ?int $delaySeconds = null): bool
     {
         $email = $guest?->email;
         if (! is_string($email) || $email === '') {
-            return;
+            return false;
         }
 
         try {
@@ -207,6 +257,10 @@ class SendGuestTransactionalEmails
         } catch (Throwable $e) {
             // A side effect must never break the triggering operation. Log the class + reason, never the address.
             Log::warning('Guest transactional email failed to send', ['mailable' => $mail::class, 'error' => LogSafe::message($e)]);
+
+            return false;
         }
+
+        return true;
     }
 }
