@@ -169,8 +169,8 @@ overlapping *applied* seasons, overwriting manual edits in their range) · **no 
 records the new price with `before` literally `null`) · the **live-plan-vs-snapshot read** · the **unalerted sync
 failure** (one log line, no monitor) · **out-of-service units still bill** (deliberate; unratified).
 
-**Reversibility & silence:** archiving a property is **irreversible in-app** · **the owner is told nothing** when one
-carrying their units is archived · no **un-archive** route for owner removal · no **last-owner guard on the ownership
+**Reversibility & silence:** archiving a property is **irreversible in-app** · ⚠️ **the owner IS now told (FIX 43,
+R-ARCHIVE) — this read "the owner is told nothing" until then** · no **un-archive** route for owner removal · no **last-owner guard on the ownership
 axis** · **pause/resume works on a ghost unit** (inert).
 
 **Left with reasons, not oversights:** ⚠️ **search** may legitimately need to find an archived unit, and the
