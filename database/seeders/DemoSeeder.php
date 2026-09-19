@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Actions\Authorization\OrganizationRoleProvisioner;
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Exceptions\Booking\BookingException;
 use App\Exceptions\Booking\UnitUnavailableException;
@@ -602,7 +603,10 @@ class DemoSeeder extends Seeder
         $this->seedCalendarRange($roomRate, 10000, $pastIn->toDateString(), $pastOut->toDateString());
         $availability->recompute($doubleRoom->id, $pastIn->toDateString(), $pastOut->toDateString());
         $pastStay = $this->createDemoStay('direct', $property, $doubleRoom, $roomRate, $roomUnits[1], $guest1, $pastIn->toDateString(), $pastOut->toDateString(), $vat, fullyPaid: true);
-        app(CheckOutReservation::class)->handle($pastStay);
+        // ⚠️ R4 (founder, 2026-09-19): a stay must be CHECKED IN before it can be checked out. The seeder
+        // performed confirmed → checked_out directly until that ruling; it now walks the real ladder.
+        app(CheckInReservation::class)->handle($pastStay);
+        app(CheckOutReservation::class)->handle($pastStay->fresh());
 
         // DEMO TERMINAL STATES (flagged demo, like every row here) — one CANCELLED and one NO-SHOW so both
         // reservation-detail variants are demoable. ⚠️ Each is driven through the SAME certified service the
@@ -697,7 +701,9 @@ class DemoSeeder extends Seeder
         app(CompanyAccountService::class)->bill(app(FolioService::class)->openFolio($walkIn), $demoAccount);
 
         // Check the walk-in out → real departure-clean task via the checkout event → listener.
-        app(CheckOutReservation::class)->handle($walkIn);
+        // ⚠️ R4 — the walk-in is checked in before it is checked out (see the note on the past stay).
+        app(CheckInReservation::class)->handle($walkIn);
+        app(CheckOutReservation::class)->handle($walkIn->fresh());
 
         // Phase 5 — DEMO reviews (through the real ReviewService). guest1's past stay (an operator ROOM) → a
         // PUBLISHED review + the operator's response (storefront double room + operator). guest2's walk-in (an
@@ -1727,6 +1733,7 @@ class DemoSeeder extends Seeder
     {
         $reviews = app(ReviewService::class);
         $checkout = app(CheckOutReservation::class);
+        $checkin = app(CheckInReservation::class);
         $today = CarbonImmutable::today();
 
         // Publish availability for the PAST window so the review-anchor stays (real completed stays) can be booked
@@ -1750,7 +1757,9 @@ class DemoSeeder extends Seeder
             $guest = Guest::create(['first_name' => $first, 'last_name' => $last]);
             // Scans forward for a free window — the statement-history stays share these apartments.
             $stay = $this->bookAptStayNear($today->subDays($checkInDaysAgo), $nights, $property, $apartment, $aptRate, $aptUnits[$unitIdx], $guest, $vat, $source);
-            $checkout->handle($stay);   // → PAST → reviewable
+            // ⚠️ R4 — check in first; this loop runs once per review anchor.
+            $checkin->handle($stay);
+            $checkout->handle($stay->fresh());   // → PAST → reviewable
 
             $review = $reviews->submit($guest, $stay->fresh(), ['rating' => $rating, 'tags' => $tags, 'body' => $body, 'categories' => [
                 'rating_cleanliness' => $cats[0], 'rating_communication' => $cats[1], 'rating_location' => $cats[2], 'rating_value' => $cats[3],
