@@ -28,32 +28,9 @@ uses(RefreshDatabase::class);
 //   • owner isolation holds — cross-owner / operator-owned / non-linked all 404 (fail closed);
 //   • NO guest PII, and none of the design's fictions are rendered.
 
-/**
- * A linked owner-portal user who owns the unit at $index. Reuses the shared ownUnit() helper
- * (tests/Support/owner_helpers.php) for the owner + governing agreement + unit assignment, and only
- * adds the portal user link on top. Named for this file so it cannot collide with another test file's
- * helper — the shared ones live in tests/Support, per that file's own discipline.
- *
- * @param  array<string, mixed>  $unitAttributes  real `units` columns to set before assigning the owner
- * @return array{user: User, owner: Owner, unit: Unit}
- */
-function unitDetailOwner(array $s, int $index, array $unitAttributes = []): array
-{
-    /** @var Unit $unit */
-    $unit = $s['units'][$index];
-
-    if ($unitAttributes !== []) {
-        $unit->update($unitAttributes);
-    }
-
-    $owner = ownUnit($unit);   // shared helper: owner + 15% agreement + unit->owner_id
-
-    $user = User::factory()->create(['name' => 'Amara Okafor']);
-    Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
-    $owner->update(['user_id' => $user->id]);   // link the owner record to a portal user
-
-    return ['user' => $user, 'owner' => $owner, 'unit' => $unit];
-}
+// ⚠️ `unitDetailOwner()` MOVED to tests/Support/owner_helpers.php (FIX 41). Its own docblock said it
+//    was "named for this file so it cannot collide" — but PerUnitRateDisplayTest.php calls it too,
+//    so this file's absence would have fatalled that one. Second instance of the ownerTeamCast class.
 
 /** Book the unit (2026-09-01..03 → 2 nights), post the room charge, and run the certified attribution. */
 function attributedStay(array $s, Unit $unit, int $roomMinor): Reservation

@@ -16,21 +16,8 @@ uses(RefreshDatabase::class);
  *
  * @return array{owner: User, co: User, accountant: User, view: User, scenario: array}
  */
-function ownerTeamCast(): array
-{
-    $s = seedScenario(1);
-    $owner = ownerRoleUser($s, 0);
-    $ownerId = (string) $s['units'][0]->fresh()->owner_id;
-    $s['units'][0]->update(['code' => 'TEAMUNIT']);
-
-    return [
-        'owner' => $owner,                                              // primary owner → co_owner + team
-        'co' => ownerSubUser($s, $ownerId, OwnerTeamRole::CO_OWNER),
-        'accountant' => ownerSubUser($s, $ownerId, OwnerTeamRole::ACCOUNTANT),
-        'view' => ownerSubUser($s, $ownerId, OwnerTeamRole::VIEW_ONLY),
-        'scenario' => $s,
-    ];
-}
+// ⚠️ `ownerTeamCast()` MOVED to tests/Support/owner_helpers.php (FIX 41). It was declared here and
+//    called from OwnerCapabilityMutationBoundaryTest.php too, so that file could not run alone.
 
 // ── 1. 🔒 THE PAYOUT GATE — the encrypted-IBAN account is CO-OWNER ONLY (money-security) ─────────────
 it('refuses the payout account to an accountant and a view-only sub-user, allows the owner', function () {

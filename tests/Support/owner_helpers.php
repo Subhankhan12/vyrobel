@@ -15,6 +15,7 @@ use App\Services\InboxService;
 use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use App\Support\Owner\OwnerCollection;
+use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
 
@@ -255,5 +256,70 @@ if (! function_exists('ownerSubUser')) {
         ]);
 
         return $user;
+    }
+}
+
+if (! function_exists('ownerTeamCast')) {
+    /**
+     * ⚠️⚠️ THE OWNER-TEAM CAST — one primary owner and one sub-user per capability role.
+     *
+     * ⚠️ IT LIVES HERE BECAUSE IT IS SHARED, AND IT WAS NOT. Until FIX 41 this was a plain global function
+     * declared inside `OwnerTeamCapabilityTest.php` while `OwnerCapabilityMutationBoundaryTest.php` also
+     * called it. Pest loads test files independently, so running the SECOND file alone died with
+     * `Call to undefined function ownerTeamCast()` — which reads exactly like a regression, in a project
+     * that runs subsets constantly during mutation work. 🔬 The failure was real and was mistaken for one
+     * during FIX 40's control run.
+     *
+     * ⚠️ THE FILE'S OWN RULE, APPLIED: this Support file is required from `tests/Pest.php`, so helpers here
+     * "can be reused without depending on cross-file function-load order" — the discipline the docblock at
+     * the top of this file already states, and the one that shape broke.
+     *
+     * ⚠️ NOTHING ABOUT WHAT EITHER TEST ASSERTS CHANGED — this is a MOVE, byte-for-byte in its body.
+     */
+    function ownerTeamCast(): array
+    {
+        $s = seedScenario(1);
+        $owner = ownerRoleUser($s, 0);
+        $ownerId = (string) $s['units'][0]->fresh()->owner_id;
+        $s['units'][0]->update(['code' => 'TEAMUNIT']);
+
+        return [
+            'owner' => $owner,                                              // primary owner → co_owner + team
+            'co' => ownerSubUser($s, $ownerId, OwnerTeamRole::CO_OWNER),
+            'accountant' => ownerSubUser($s, $ownerId, OwnerTeamRole::ACCOUNTANT),
+            'view' => ownerSubUser($s, $ownerId, OwnerTeamRole::VIEW_ONLY),
+            'scenario' => $s,
+        ];
+    }
+}
+
+if (! function_exists('unitDetailOwner')) {
+    /**
+     * A linked owner-portal user who owns the unit at $index. Reuses the shared ownUnit() helper
+     * (tests/Support/owner_helpers.php) for the owner + governing agreement + unit assignment, and only
+     * adds the portal user link on top. ⚠️ MOVED HERE IN FIX 41. Its old docblock said it was "named for this file so it cannot
+     * collide with another test file's helper" — but `PerUnitRateDisplayTest.php` already called it, so
+     * running THAT file alone would have fatalled the moment its `->skip()` was lifted. Latent sibling of
+     * the `ownerTeamCast()` defect; both now live where this file's own docblock says shared helpers go.
+     *
+     * @param  array<string, mixed>  $unitAttributes  real `units` columns to set before assigning the owner
+     * @return array{user: User, owner: Owner, unit: Unit}
+     */
+    function unitDetailOwner(array $s, int $index, array $unitAttributes = []): array
+    {
+        /** @var Unit $unit */
+        $unit = $s['units'][$index];
+
+        if ($unitAttributes !== []) {
+            $unit->update($unitAttributes);
+        }
+
+        $owner = ownUnit($unit);   // shared helper: owner + 15% agreement + unit->owner_id
+
+        $user = User::factory()->create(['name' => 'Amara Okafor']);
+        Membership::create(['organization_id' => $s['org']->id, 'user_id' => $user->id, 'status' => 'active']);
+        $owner->update(['user_id' => $user->id]);   // link the owner record to a portal user
+
+        return ['user' => $user, 'owner' => $owner, 'unit' => $unit];
     }
 }
