@@ -115,21 +115,29 @@ it('recovers a revoked role assignment from the audit ledger', function () {
     $admin = operatorUser($s, ['name' => 'Wanda Wildcard'], 'Property Owner');
     $victim = operatorUser($s, ['name' => 'Finn Desk'], 'Front Desk');
 
+    // ⚠️ F-56 (FIX 41): the victim carries a second role, because stripping a member's LAST role is now
+    //    refused. What this test is about — that a revoked ASSIGNMENT is recoverable from the ledger's
+    //    before/after — is unchanged, and recovering one role out of two exercises the same ledger read.
+    $victim->assignRole('Housekeeping');
+
     app(RoleAssignmentService::class)->revoke($admin->fresh(), $victim->fresh(), 'Front Desk');
-    expect($victim->fresh()->getRoleNames()->all())->toBe([]);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    expect($victim->fresh()->getRoleNames()->all())->toBe(['Housekeeping']);
 
     $row = DB::table('audit_events')->where('organization_id', $org)
         ->where('action', 'user.role_revoked')->orderByDesc('created_at')->first(['subject_id', 'before']);
 
     $wasHolding = json_decode((string) $row->before, true)['roles'];
-    expect($wasHolding)->toBe(['Front Desk']);
+    expect($wasHolding)->toBe(['Front Desk', 'Housekeeping']);   // ⚠️ the COMPLETE set, which is the point
 
     foreach ($wasHolding as $roleName) {
         app(RoleAssignmentService::class)->assign($admin->fresh(), $victim->fresh(), $roleName);
     }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-    expect($victim->fresh()->getRoleNames()->all())->toBe($wasHolding);
+    // ⚠️ Sorted on both sides: recovery restores the SET, and the pivot does not promise an order.
+    $restored = $victim->fresh()->getRoleNames()->sort()->values()->all();
+    expect($restored)->toBe($wasHolding);
 });
 
 // ── 4. ⚠️⚠️ WHAT IT CANNOT RECOVER — stated as a test, not a caveat nobody reads ────────────────────

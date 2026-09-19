@@ -95,7 +95,13 @@ it('still allows an ordinary revoke', function () {
     $c = floorOrg();
     $drop = operatorUser($c['s'], ['name' => 'Dropped Admin'], 'Group Admin');
 
-    app(RoleAssignmentService::class)->revoke($c['actor'], $drop, 'Group Admin');
+    // ⚠️ F-56 (FIX 41): a second, non-managing role, so this is an ORDINARY revoke rather than one that
+    //    would empty the member — which is now refused. `Housekeeping` grants no `roles.manage`, so every
+    //    manager count this file measures is unchanged. THE FIXTURE MOVED, THE GUARD DID NOT.
+    app(PermissionRegistrar::class)->setPermissionsTeamId((string) $c['s']['org']->id);
+    $drop->assignRole('Housekeeping');
+
+    app(RoleAssignmentService::class)->revoke($c['actor'], $drop->fresh(), 'Group Admin');
 
     expect($drop->fresh()->hasRole('Group Admin'))->toBeFalse()
         ->and(User::query()->find($c['actor']->id)->hasRole('Group Admin'))->toBeTrue();

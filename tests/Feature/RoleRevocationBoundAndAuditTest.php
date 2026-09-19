@@ -130,14 +130,22 @@ it('records a revocation with the complete role set before and after', function 
     $admin = operatorUser($s, ['name' => 'Wanda Wildcard'], 'Property Owner');
     $target = operatorUser($s, ['name' => 'Finn Desk'], 'Front Desk');
 
+    // ⚠️⚠️ F-56 (FIX 41): this used to revoke a member's ONLY role and assert `after['roles'] === []` —
+    //    "the emptied set, recorded". That state is now REFUSED, so the fixture describes a world that
+    //    ended. A second role makes the revocation legal; what this test is actually about — that the trail
+    //    carries the COMPLETE set before and after, not merely "something changed" — is unchanged and is in
+    //    fact better shown by a set that shrinks to something than by one that empties.
+    app(PermissionRegistrar::class)->setPermissionsTeamId((string) $s['org']->id);
+    $target->assignRole('Housekeeping');
+
     app(RoleAssignmentService::class)->revoke($admin->fresh(), $target->fresh(), 'Front Desk');
 
     $row = AuditEvent::query()->where('action', 'user.role_revoked')->sole();
 
     expect($row->subject_id)->toBe((string) $target->getKey())
         ->and($row->actor_id)->toBe((string) $admin->getKey())
-        ->and($row->before['roles'])->toBe(['Front Desk'])
-        ->and($row->after['roles'])->toBe([])                           // ⚠️ the emptied set, recorded
+        ->and($row->before['roles'])->toBe(['Front Desk', 'Housekeeping'])
+        ->and($row->after['roles'])->toBe(['Housekeeping'])              // ⚠️ the COMPLETE surviving set
         ->and($row->after['role'])->toBe('Front Desk');
 });
 

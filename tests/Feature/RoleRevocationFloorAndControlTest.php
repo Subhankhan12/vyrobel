@@ -40,6 +40,15 @@ function fdTwoManagerOrg(array $s): array
     $a = operatorUser($s, ['name' => 'Ana Admin'], 'Group Admin');
     $b = operatorUser($s, ['name' => 'Ben Admin'], 'Group Admin');
 
+    // ⚠️ F-56 (FIX 41): B carries a SECOND, non-managing role so that revoking their Group Admin is a legal
+    //    operation rather than a refused one. It changes nothing this file measures — `Housekeeping` grants
+    //    no `roles.manage`, so every manager count below is identical — and it makes the fixture describe a
+    //    world the product still permits. ⚠️ THE FIXTURE MOVED, THE GUARD DID NOT.
+    fdTeam($s);
+    $b->assignRole('Housekeeping');
+    $b = $b->fresh();
+    $b->unsetRelation('roles');
+
     app(RolePermissionService::class)->save($owner->fresh(), 'Group Admin', [...fdMap($s)['Group Admin'], 'roles.manage']);
     DB::table('model_has_roles')->where('model_id', $owner->getKey())->delete();   // no wildcard holder left
     fdTeam($s);
@@ -88,7 +97,9 @@ it('lets an administrator revoke a colleague while another manager remains', fun
     app(RoleAssignmentService::class)->revoke($a->fresh(), $b->fresh(), 'Group Admin');
     fdTeam($s);
 
-    expect($b->fresh()->getRoleNames()->all())->toBe([])
+    // ⚠️ F-56: the revoked role is gone and the member is NOT emptied — which is also what the Roles page
+    //    has always promised ("they keep their other roles").
+    expect($b->fresh()->getRoleNames()->all())->toBe(['Housekeeping'])
         ->and(RolePermissions::roleManagersAfter(fdMap($s)))->toBe([(string) $a->getKey()]);
 });
 
@@ -140,6 +151,12 @@ it('renders a revoke control and revoking through it genuinely removes the role'
     $admin->changePasswordTo('secret-Passw0rd!');
     $target = operatorUser($s, ['name' => 'Finn Desk'], 'Front Desk');
 
+    // ⚠️ F-56 (FIX 41): a second role, so revoking Front Desk through the real control is permitted.
+    fdTeam($s);
+    $target->assignRole('Housekeeping');
+    $target = $target->fresh();
+    $target->unsetRelation('roles');
+
     $html = $this->actingAs($admin->fresh())->get('/app/roles')->assertOk()->getContent();
     $form = fdRevokeForm($html, (string) $target->getKey());
 
@@ -161,7 +178,8 @@ it('renders a revoke control and revoking through it genuinely removes the role'
         ])->assertRedirect(route('app.roles'));
 
     fdTeam($s);
-    expect($target->fresh()->getRoleNames()->all())->toBe([]);
+    // ⚠️ F-56: the revoked role is gone, the other survives — the page's own promise, now asserted.
+    expect($target->fresh()->getRoleNames()->all())->toBe(['Housekeeping']);
 });
 
 // ── 6. The page's own promise is now true ───────────────────────────────────────────────────────────
