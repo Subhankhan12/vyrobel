@@ -1,4 +1,9 @@
-# The three status ladders — and the seventeen decisions only the founder can make
+# The three status ladders — and the per-transition decisions only the founder can make
+
+> ⚠️⚠️ **DECIDE FROM `docs/AUDIT-SUMMARY.md` §4, NOT FROM HERE.** §4 carries every transition in ONE table
+> with today's measured default beside it. **This file is the reasoning behind those rows** — why each default
+> was chosen, and what the two passes disagreed about. ⚠️ **Counts in this file are of its date; the rows in
+> §4 are the count.**
 
 **2026-09-13.** Three state machines in this product are now bounded the same way: the guard lives in the
 layer that performs the write, every entrance meets it, and the controller holds no status logic.
@@ -36,11 +41,11 @@ silent; here it speaks.
 
 ---
 
-## 2 · ⚠️⚠️ THE SEVENTEEN OPEN DECISIONS
+## 2 · ⚠️⚠️ THE OPEN DECISIONS — the rows are the count
 
 ### Reservations (FIX 04) — five, each with a commercial consequence
 
-⚠️ **A sixth, R6, was added by FIX 14 and is recorded in §4** — an inbound channel rewriting a stay the
+⚠️ **A sixth, R6, was added by FIX 14 and is now transcribed into `AUDIT-SUMMARY.md` §4** (it was not, until FIX 31) — an inbound channel rewriting a stay the
 guest is physically in. It is a reservation decision but belongs beside the writer it concerns.
 
 | # | the question | move | today | if you say yes |

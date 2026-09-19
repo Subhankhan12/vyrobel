@@ -14,9 +14,9 @@ there proves nothing about tenant two**).
 ⚠️⚠️ **THIS PREAMBLE STATES NO COUNTS, DELIBERATELY.** It once carried a stale pass count, a stale finding
 count and a stale ruling count at the same time — and **two different pass counts in one document**. **Count
 the pass rows in §2's ledger; re-derive the findings from the registers in §2 and §2b; count the rulings in
-§4.** A number written into a preamble has no mechanism to stay true. ⚠️⚠️ **AND THE PASS LEDGER IN §2 IS
-ITSELF INCOMPLETE — it stops at FIX 23.** Later passes are recorded in §2b's "found by" column and in the
-project memory record, not in that table. **Counting its rows gives the ledger's length, not the programme's.**
+§4.** A number written into a preamble has no mechanism to stay true. ⚠️ **The pass ledger in §2 is the count
+of passes; §2 and §2b are the count of findings; §4 is the count of rulings. Each is kept where the rows are,
+so the row IS the number.**
 
 ⚠️⚠️ **ON WHAT IS COMMITTED, `git` IS THE AUTHORITY — NOT THIS SENTENCE.** Durably true: the programme's first
 **twenty-three passes were committed on 2026-09-14 in seven unpushed commits ending at `19c59931`**, which
@@ -74,7 +74,7 @@ adding up their headlines — see the closure ledger.
 not mean the surrounding area was swept. **Five of the twenty closures also produced a NEW finding** in the
 code beside them (§2b) — §N.13.1's shape, holding again.
 
-### The pass ledger — ⚠️ count the rows, and note it ENDS AT FIX 23
+### The pass ledger — ⚠️ the rows are the count; never write a number into this heading
 
 | pass | date | findings | what it changed |
 |---|---|---|---|
@@ -101,6 +101,14 @@ code beside them (§2b) — §N.13.1's shape, holding again.
 | **FIX 21** | 2026-09-14 | §5 — statement finalization | ⚠️ **The third irreversible path, EXECUTED ONCE** in tenant two. 🔬 Withholding **predicted 4,320 and posted 4,320** (round(21,600 × 20%), debit); net 21,600 → **17,280**; all 4 ledger lines claimed; parts equal the whole. **The booked-stay claim — untested for twenty passes — MEASURED and HELD** (27,000 → 27,000). Second finalize throws. Surfaced **F-42**. |
 | **FIX 22** | 2026-09-14 | F-38 + F-42 | ⚠️ **THE COUNT IS THE FINDING: 22 sites hardcoded a currency, not two.** 🔬 The sweep enumerated every money-render surface — 17 PDFs, 22 mailables, 6 money notifications, 12 CSV exports and the owner API are **all clean** (each passes a real currency); the 22 live in views, Livewire components and three shared `App\Support` helpers. ⚠️ **The worst was not F-38**: `StayEstimator` printed `'€'` into the PUBLIC GUEST CHECKOUT breakdown, so a GBP property quoted "€150.00 × 4" under a "£600.00" total at the point of payment. ⚠️ **One concept had FOUR symbol maps** — collapsed to one. ⚠️ **A crude view grep said 101 and the truth was 56**; 51 lived only in comments. ⚠️ **The guard found a 22nd site the human sweep missed.** ⚠️ **And the suite caught the pass's own error**: neutralising a bound message turned `MoneyBoundRefusesTest` RED — that refusal is *required* to name its limit. Now named, in the owner's real currency. |
 | **FIX 23** | 2026-09-14 | F-39 + F-41 | ⚠️⚠️ **THE BRIEF'S CENTRAL PREMISE WAS FALSE.** It said the amount-aware form was ordered correctly and should be copied. 🖥 **MEASURED: it was not.** The warning lived in a 340px aside (`.vy-detail-cols`); at 1280 that column starts higher than the second form, so the warning read 661 vs the button's 829 and **looked** ordered. At 375 the grid collapses and it fell to **2152 — below BOTH buttons (1113, 1472)**. ⚠️ **A COLUMN ARTEFACT, NOT AN ORDER — there was no correct sibling to copy.** Moved into the refund card above the payment list: 375px **978**, ahead of 1247/1606. ⚠️ **Above the button: YES. Seen on arrival at 375px: NO** — the card's own title sits at 904, already below the 812 fold (F-33). ⚠️ **Both paths ALREADY carry a fold-proof `confirm()`** naming irreversibility. ⚠️ F-41 guarded by replay, not registration count. |
+| **FIX 24** | 2026-09-14 | — | ⚠️ **THE PROGRAMME COMMITTED.** Twenty-three passes in seven grouped commits ending `19c59931`, 444 files, **not pushed** — closing the condition that hid F-20. `.mcp.json` deliberately left untracked (machine-local path). Added the `STATE.md` §10 pointer that could not find this audit. |
+| **FIX 25** | 2026-09-14 | §5 — journeys | Three end-to-end journeys walked (guest claim, an operator's day, the admin catalogue). ⚠️ Tenant two has **no Front Desk role**, so the day was split rather than glossed. |
+| **FIX 26** | 2026-09-14 | F-47, F-48 + §5 | The last two journeys and a second claimed guest. ⚠️ **§5 moved a second time**: guest-to-guest isolation MEASURED (identical 404 bodies, no size oracle). Found **F-48** — a suspended tenant can still sell. |
+| **FIX 27** | 2026-09-14 | F-45, F-46 | The folio and payment money-route cluster, exercised in tenant two by hand with every figure predicted first. ⚠️ **The premise "none of the remaining routes is irreversible" DIED here** — no void, no delete, and a refund cannot be proven to reverse. |
+| **FIX 28** | 2026-09-14 | F-49 | The payout and invoice cluster. 🔬 Established by four measured layers that a real Stripe transfer is impossible in this build. Found **F-49** — `reverse()` is a provable inverse that no route reaches. Two payout routes left **establish-only** rather than spend an irreversible action on a fixture. |
+| **FIX 29** | 2026-09-14 | F-45, F-46, F-47 | The three closures, each mutation-proven. ⚠️ **F-44 RE-GRADED 🟡→🟠 with nine further sites** — and one of them (`RatesGrid:537`) had been written **by FIX 22 while closing that very class**. Two certified tests updated to pin BOTH branches. ⚠️ Left its work uncommitted. |
+| **FIX 30** | 2026-09-19 | — | Committed FIX 29's three closures, then corrected this document where it stated what only the tree can answer. ⚠️ **Twelve stale absolutes found where three were reported**, including §8's flat *"this programme committed nothing"*. The preamble now points at `git status` instead of freezing an answer. |
+| **FIX 31** | 2026-09-19 | — | §4 rebuilt as a decision surface: thirteen rulings re-measured from the source, each given today's default and named options; R-SUSPEND, R-REVERSE and R6 transcribed in; the ladder reduced to one table. ⚠️ **R-SEASON's edit half CLOSED BY CODE**; R-RATE and R-ADMIN-COPY both smaller than recorded. |
 
 ### CLOSURE LEDGER — what proved each closure
 
@@ -473,26 +481,70 @@ outside the set it enumerated.
 
 ---
 
-## 4 · OPEN FOUNDER RULINGS — decisions this programme deliberately did not make
+## 4 · OPEN FOUNDER RULINGS — the decision surface
 
-⚠️ **NONE OF THESE IS DECIDED HERE, AND FIX 13 DECIDES NONE OF THEM.** What is new is the third column:
-**what each ruling is holding up.** The fix programme established that these are not paperwork — they are the
-binding constraint on the remaining findings. ⚠️ **How many findings are blocked on a ruling has GROWN: count
-them in §2 and §2b rather than here.** ⚠️ **And this table is not complete — R-SUSPEND (F-48) and R-REVERSE
-(F-49) are recorded in §2b's status column and have never been transcribed into this section.**
+⚠️ **NOTHING HERE IS DECIDED, AND NO PASS MAY DECIDE ONE.** Every entry states what ships **today** by
+default, the named options, what each costs, and what it releases. ⚠️⚠️ **AN UNDECIDED RULING IS NOT NEUTRAL —
+the product is already shipping one of the options.** The "today" column is that option.
 
-| ruling | the question | what it blocks |
-|---|---|---|
-| **R-PHANTOM** | `docs/PHANTOM-PERMISSIONS.md`, three categories: (A) 6 capabilities enforced under a *different* permission (incl. `housekeeping.view`/F-14, `restrictions.manage`, `availability.view`); (B) 8 with no operator surface; (C) 3 enforced by a role allow-list. 🔬 Every phantom found from Phase 9 on was **already in that register** — the discovery phase is over. | **F-14.** Nothing else can be built here: a permission that should not exist and a permission that is merely unenforced need opposite fixes. |
-| **R-RATE** | The agreed-rate policy — 📄 warn / refuse / notify-the-owner, "NONE decided". | **F-21 and F-25**, the two halves of it, both now evidenced. Also gates whether F-25's missing notification is a bug or a design choice. |
-| **R-ARCHIVE** | Property archiving is irreversible in-app, and the owner is told nothing. | **F-24.** The disclosure cannot be written before the policy exists. |
-| **R-GATE** | **`/owner` has no positive "is an owner" gate.** Should a non-owner see an **empty portal** or be **refused**? If refused: **gate-before-scope** (403, simplest) or **gate-after-scope** (preserves 9 anti-enumeration 404s)? | **F-23.** ⚠️ The middleware is **written and mutation-proven** (`EnsureOwnerPortalAccess`) and **deliberately unwired**; 12 tests are skipped with the reason in-file. Wiring it before this ruling would silently change 9 measured 404s into 403s. |
-| **R-F10** | Three permissions reachable by nobody below Property Owner: intended, or an omission? | **F-10.** |
-| **R-SEASON** | Whether a season may overwrite an agreed rate at all, and whether re-apply should be guarded (P11: `apply()` checks `applied_at` nowhere, and `forceFill(['applied_at' => now()])` destroys the original apply time — invariant #29's shape). | Overlaps R-RATE; gates any guard on the season apply path. |
-| **R-HK-11** | ⚠️ **RAISED BY FIX 03.** The housekeeping map refuses 2 of 16 moves and leaves **11 ambiguous ones permitted** — `docs/HOUSEKEEPING-LADDER.md`. Which of the 11 are legitimate operations? | The remaining tightening of F-15's ladder. The ladder is **bounded**, not **final**. |
-| **R-SUPPORT** | Guest-support thread access is organisation-wide, not assignment-scoped (P12). Defensible for a small operator; a decision for a larger one. | Nothing in this programme — recorded so it is not rediscovered. |
-| **R7 · the orphaned default** | ⚠️ **RAISED BY FIX 15.** Taking a rate plan off sale leaves `room_types.default_rate_plan_id` pointing at it. The lookup now steps over it and falls through to the oldest active plan — **so nothing is broken** — but the operator's declared choice is being silently ignored. Three options: (a) leave it, and the default reasserts itself if the plan goes back on sale; (b) clear the column on deactivation, making the operator re-choose; (c) refuse to deactivate the declared default until another is nominated. | Nothing is blocked — F-34 is closed either way. ⚠️ Recorded because (a) is a CHOICE this pass made by deriving from the model's own docblock ("its declared default, else its oldest active plan"), not a fact, and the founder may want (b) or (c). |
-| **R-ADMIN-COPY** | ⚠️ **RAISED BY FIX 09.** Closing F-32 means changing a **certified assertion** that pins the current admin 403 copy. | **F-32, and F-3's remaining half.** |
+🔬 **Re-measured from the source on 2026-09-19 (FIX 31), not copied from the descriptions above.** Where
+today's behaviour differs from what an entry used to record, the entry says so.
+
+**THIRTEEN decisions.** They gate **9 findings** (F-10, F-14, F-21, F-23, F-24, F-25, F-32, F-48, F-49) plus
+the remainder of F-15 and the last quarter of F-29. **Five cost nothing to build** (they ratify or reverse a
+line of config or copy); **eight commit to a build.** ⚠️ **R-PHANTOM moves the most surface** — one answer
+settles 17 permissions; **R-RATE** and **R-ADMIN-COPY** each release two findings.
+
+### The free ones — a decision, not a project
+
+| ruling | at stake | ships today | option A | option B | unblocks · reversible |
+|---|---|---|---|---|---|
+| **R-F10** | `billing.manage`, `settings.manage`, `roles.manage` are held by **Super Admin and Property Owner only** (🔬 measured, tenant one) — nobody below. Intended, or an omission? | **A** — owner-only | **Leave**: these are owner-grade powers | **Grant** one or more to Group Admin / Hotel Manager | **F-10** · fully reversible |
+| **R-SUPPORT** | Guest-support threads are visible **org-wide**, not restricted to the assignee (`message_threads.assigned_to` exists and is not read as an access filter). | **A** — org-wide | **Leave**: a small operator needs cover | **Scope** reads to assignee + managers | nothing · reversible |
+| **R7** | Taking a rate plan off sale leaves `room_types.default_rate_plan_id` pointing at it. 🔬 `primaryRatePlan()` now filters `is_active` (F-34, FIX 15), so the lookup steps over it and **nothing is broken** — the operator's declared choice is silently ignored. | **A** — leave the pointer | **Leave**: the default reasserts if the plan returns | **Clear** the column on deactivation, or **refuse** to deactivate a declared default | nothing · reversible |
+| **R-ADMIN-COPY** | A platform admin's 403 reads with operator wording. ⚠️ **SMALLER THAN RECORDED**: 🔬 `ErrorRealm` **does** have an `admin` branch today — the realm resolves and the back-link is `/admin` "Back to the console". Only the 403 **body** falls through to the operator sentence, deliberately. | **A** — operator wording in the body | **Leave** it | **Write** admin body copy — ⚠️ requires changing a **certified assertion** that pins the current text | **F-32**, and **F-3**'s remaining half · reversible |
+| **R-SEASON (edit half)** | ⚠️ **CLOSED BY CODE, 2026-09-19.** Editing an applied season is **already refused** with a written explanation (`SeasonActionController::update()`). No decision remains on this half. | — | — | — | — |
+
+### The ones that commit to a build
+
+| ruling | at stake | ships today | option A | option B | cost · unblocks · reversible |
+|---|---|---|---|---|---|
+| **R-GATE** | `/owner` has no positive "is an owner" gate. 🔬 `EnsureOwnerPortalAccess` exists and is **registered nowhere** — confirmed unwired. | **A** — no gate; a non-owner sees an empty portal | **Leave** unwired | **Wire it** — and choose **gate-before-scope** (403, simplest) or **gate-after-scope** (preserves 9 measured anti-enumeration 404s) | **already built** · **F-23** + un-skips its tests · reversible (one line) |
+| **R-RATE** | May a season overwrite an **owner-agreed** rate? ⚠️ **SMALLER THAN RECORDED**: the **disclosure half is BUILT** (`docs/AGREED-RATE-DISCLOSURE.md`, 2026-09-05) — a season now names the nights it will overwrite. Only the **policy** remains. | **A** — permitted, now disclosed | **Allow** and keep disclosing | **Refuse** the overwrite where an approved `rate_proposals` row covers the night | medium — `rate_calendar` has **no provenance column**; the check must join `rate_proposals` · **F-21 + F-25** · reversible |
+| **R-RATE (notify half)** | Whether the owner is **notified** when their agreed rate is overwritten. ⚠️ **Two halves of one question with the row above — answering one builds half a feature.** | **A** — no notification | **Stay silent** | **Notify** the owner | small (the notification rail exists) · **F-25** · reversible |
+| **R-ARCHIVE** | Archiving a property is **irreversible in-app** and the owner is told nothing. 🔬 `PropertyRemovalService`'s own docblock: *"Nothing is ever un-archived"* — cancellable only **before** it runs. | **A** — irreversible, silent | **Keep** irreversible; **disclose** it on the confirm screen | **Build an un-archive** path | A: small · B: medium · **F-24** · A reversible, B is schema-touching |
+| **R-PHANTOM** | 17 permissions gate nothing, in three shapes: **6** enforced under a *different* permission, **8** with no operator surface, **3** enforced by a role allow-list. ⚠️ **A permission that should not exist and one that is merely unenforced need OPPOSITE fixes**, which is why no pass could proceed. | **A** — all 17 remain, gating nothing | **Remove** the ones that should not exist; **wire** the rest | **Wire** all 17 to real checks | per-toggle; the classification is done (`docs/PHANTOM-PERMISSIONS.md`) · **F-14** · removals move pinned counts |
+| **R-SUSPEND** | **A suspended tenant can still sell.** 🔬 Confirmed today: `/stay/{organization}` runs `ResolvePublicOrganization`, which 404s a non-`trialing/active` org — but all **nine `/book/{property}` routes**, including `/checkout` and `/book`, run `ResolvePublicProperty`, which checks only `properties.status='active'` and **never looks at the organisation**. | **A** — suspension does not stop bookings | **Leave**: suspension is billing-only, and the admin copy already says *"it does not yet block their access"* | **Close** the booking path on suspension | small (one middleware check) · **F-48** · reversible — ⚠️ **but option B takes a live storefront down; decide what suspension MEANS first** |
+| **R-REVERSE** | **A payout can be made and cannot be un-made through the product.** 🔬 Confirmed today: `OwnerPayoutService::reverse()` exists (a real, provable inverse — appends a `reversed` row, returns the statement to `finalized`, audits a real `before`) and **no controller or route calls it**. | **A** — reversal is back-office only | **Leave** unrouted: a reversal is a deliberate, rare, human act | **Route it** behind a capability + confirmation | small — the service is built and proven · **F-49** · reversible ⚠️ **REAL MONEY: option B puts an irreversible-feeling action in the UI** |
+| **R6** | May an **inbound channel** rewrite a stay **the guest is physically in**? 🔬 Confirmed today: `AssignmentService::reimportBooking()` guards `TERMINAL_STATUSES` = cancelled/no_show/checked_out. **`checked_in` is not terminal, so the rewrite is permitted** — status, dates, price and unit lines. Latent only because Channex is account-gated. | **A** — permitted | **Leave**: a real OTA can legitimately extend a stay mid-visit, and refusing drops a genuine change | **Refuse** it, as the three terminal statuses are refused | small (one status added to a guard) · last quarter of **F-29** · reversible ⚠️ **MOVES MONEY — `total_minor` is rewritten by the same raw update** |
+| **R-HK-11** | Which housekeeping transitions are legitimate? See the ladder below — **one table, one sitting.** | **A** — 14 of 16 permitted | **Ratify** the permissive map | **Tighten** named rows | small per row · remainder of **F-15** · reversible |
+
+### The ladder — 16 housekeeping moves and 5 reservation moves, one table
+
+🔬 **Derived from the constants on 2026-09-19**, not from an earlier description:
+`HousekeepingService::ALLOWED_FROM` (keyed by target) · `CheckInReservation::ALLOWED_FROM = ['confirmed']` ·
+`CheckOutReservation::ALLOWED_FROM = ['checked_in','confirmed']`. **Both ladders are pinned by committed
+tests** (`HousekeepingLadderTest`, `ReservationLadderTest`), so tightening a row later is a deliberate act
+that reddens a test rather than a silent narrowing.
+
+⚠️⚠️ **THE TOP FOUR ROWS CAN MOVE MONEY OR REVIVE A DEAD ROW. They are not ladder trivia.**
+
+| # | transition | today | permissive reading | restrictive reading | state |
+|---|---|---|---|---|---|
+| **R6** | `checked_in → confirmed` *(inbound channel, + dates/price/units)* | ⚠️ **PERMITTED** | an OTA may extend a live stay | an arrived guest cannot be un-arrived by an external system | ⚠️ **never guarded — rewrites `total_minor`** |
+| **R4** | `confirmed → checked_out` | ⚠️ **PERMITTED** | express departure, no arrival record | a stay must be arrived before it departs | ⚠️ **measured, not chosen** — `DemoSeeder` does it twice; a test now asserts it |
+| **R1** | `cancelled → checked_in` | ❌ refused | a guest may change their mind | the room may have been resold | deliberate — reinstating needs an availability re-check, not a status write |
+| **R3** | `checked_out → checked_in` | ❌ refused | wrong guest, same day | departure already created a cleaning task and dirtied the unit | deliberate |
+| **R2** | `no_show → checked_in` | ❌ refused | **the commonest real case** — arrival at 01:00 after the night audit | a no-show is a commercial event already settled | deliberate |
+| **R5** | `enquiry/tentative → checked_in` | ❌ refused | walk-up convenience | a stay would exist with no confirmed sale behind it | deliberate |
+| **H1** | `pending → clean` | ✅ permitted | one cleaner, one step | a room reaches guest-ready with no record it was cleaned — **silently** | ⚠️ deliberately permissive; the canon's own fail-safe rule points the other way |
+| **H2** | 6 backward moves (`in_progress/clean/inspected → pending`, `clean/inspected → in_progress`, `inspected → clean`) | ✅ permitted | correcting a mis-tap | a room walks back from inspected with no trace | deliberately permissive |
+| **H3** | 4 same-status re-submits | ✅ permitted | idempotent re-tap | ⚠️ **RE-STAMPS `completed_at` / `inspected_by`** — invariant #29's "a second termination is a rewrite" in a new place | deliberately permissive |
+| **H4** | 4 moves **to** `pending` | ✅ permitted **at the service** | reopen a task | — | ⚠️ **the UI offers no control, but the guard allows it — a job or future caller is permitted** |
+| **—** | `pending → inspected`, `in_progress → inspected` | ❌ **refused** (the only two) | — | — | the bound FIX 03 shipped |
+
+⚠️ **Everything above was left permissive DELIBERATELY, pending this ruling — except H4's service-level
+permission, which was never considered.** That is the riskier state of the two.
 
 ## 5 · ⚠️ WHAT THIS PROGRAMME COULD NOT TEST
 
