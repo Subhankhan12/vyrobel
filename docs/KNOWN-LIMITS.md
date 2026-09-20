@@ -501,9 +501,17 @@ costs **zero failed requests** on this host and needs **no git remote**.
 > gate, and every migration `Ran` — but that was **verified item by item, which is not the same as knowing
 > what is deployed.**
 >
-> ⚠️ **This is exactly the condition L12k exists to end**, and the first real use of that mechanism should
-> carry the whole current tree rather than another patch. ⚠️ **Not done in this pass: a deploy was not asked
-> for, and doing one unasked at the end of a long pass is how a good state gets disturbed.**
+> ✅ **RESOLVED 2026-09-20 (DEPLOY 09) — PRODUCTION IS NOW A COMMIT HASH.** The tree was diffed against HEAD
+> file by file before anything moved: 🔬 **1,279 identical · 2 differing (`ops/deploy.sh`,
+> `ops/runtime-contract.sh` — the repo was newer) · 0 production-only files · 3 repo-only
+> (`ops/proc-check.sh`, `ops/secret-scan.sh`, `bootstrap/cache/.gitignore`)**. `composer.lock` md5 identical,
+> `public/build` the same 11 content-hashed files.
+>
+> ⚠️⚠️ **THE HARD-STOP QUESTION WAS "IS THERE HAND-PATCHED WORK THAT EXISTS NOWHERE ELSE?" AND THE ANSWER WAS
+> ZERO** — every difference accounted for by name. The five `ops/` files were then placed into a new release
+> and swapped in, so the live tree carries a `.release` marker naming its commit. ⚠️ **"Every load-bearing
+> guard is present" was true, but it is not the same claim as "I know what is running", and only the second
+> one is checkable.**
 
 ### ⚠️⚠️ L12j — THE ASYMMETRY: STRIPE'S PATIENCE IS BOUNDED, A PARK IS NOT. THIS IS THE RISK STATEMENT.
 
@@ -584,6 +592,17 @@ which a process re-resolves the path.
 > worker-cron cycle. 🔬 Proven safe by running it: **0 failures of 60**, against **60/60 HTTP 500** when done
 > immediately. ⚠️ Keep at least the previous release on disk until then.
 
+⚠️⚠️ **AND THE FLOOR SURVIVED A CHALLENGE IT COULD HAVE FAILED.** The edge caches static assets for **7 days**
+(L12m), which would raise the floor to `max(realpath TTL, edge TTL)` — **seven days, not three minutes** — *if*
+a cached HTML page could outlive a release and then request its assets. 🔬 It cannot: **HTML is never cached**
+(`no-cache, private` + `Set-Cookie` → `DYNAMIC`), so a page always comes from the current release and always
+references assets that exist in it. ⚠️ **The floor stays 180 s — but it is 180 s *because* HTML is uncacheable,
+which is a property to protect, not a coincidence to rely on.**
+
+⚠️⚠️ **THE NUMBERS ABOVE ARE ORIGIN NUMBERS.** 🔬 Re-measured at the **edge**, uncache-busted, across a real
+swap on `/login`: **199 of 200** (one connection failure), against **0 of 100** in a no-swap control. ⚠️ Not
+attributed to the swap and not dismissed as ambient — see L12m.
+
 ### ⚠️ THREE THINGS THAT HAD TO BE RIGHT, AND ALL THREE WERE FOUND BY MEASUREMENT, NOT BY READING
 
 1. ⚠️ **`Options +FollowSymLinks` IS REQUIRED.** A symlinked *docroot* is followed; a symlink **inside** the
@@ -606,6 +625,11 @@ which a process re-resolves the path.
 2. Upload changed files into `releases/rel_<new>` (and `public/build`, which must still be built off-host —
    **node and npm are not installed here**, L12h).
 3. Re-point the shared symlinks and rebuild that release's caches **in place** (item 2 above).
+   ⚠️⚠️ **THEN `chmod 600 bootstrap/cache/config.php`.** 🔬 That file is a compiled copy of `.env` and contains
+   the **database password** (13 occurrences); `config:cache` writes it **644** on a shared host. 🔬 Verified
+   2026-09-20 that **600 still serves** — `/up` returns 200 through a full framework boot and `artisan` still
+   runs for the cron — so there is no reason to leave it readable. ⚠️ It is a **per-release** step: a fresh
+   `config:cache` recreates it at 644 every time.
 4. `ln -s ../releases/rel_<new> public_html/current.tmp && mv -T public_html/current.tmp public_html/current`
    — ⚠️ the whole deploy, and the only atomic step.
 5. ⚠️ **Wait ≥180 s, then** prune older releases.
@@ -625,38 +649,97 @@ it is a change to how every future migration is written, and that is a decision,
 
 ### ⚠️⚠️ L12m — THERE IS A CDN IN FRONT OF PRODUCTION, AND NOTHING IN THIS REPOSITORY KNEW
 
-⚠️⚠️ **DISCOVERED 2026-09-20 (DEPLOY 08) BY READING RESPONSE HEADERS, NOT BY LOOKING FOR IT.** Production is
-fronted by Hostinger's CDN: `server: hcdn` · `platform: hostinger` · `x-hcdn-cache-status` ·
-`x-hcdn-request-id: …-dus-edge1`. ⚠️ It appears in no deployment document, no runbook and no configuration
-this project owns.
+⚠️⚠️ **THIS IS THE LAYER NOBODY OWNED.** Production is fronted by Hostinger's CDN — `server: hcdn` ·
+`platform: hostinger` · `x-hcdn-cache-status` · `x-hcdn-request-id: …-dus-edge1`. ⚠️ It appears in **no**
+deployment document, runbook or configuration this project controls, and it was found only because it
+misbehaved.
 
-⚠️ **HOW IT FOUND ITSELF.** A botched layout change made `/` emit a **301** for a few seconds. The CDN cached
-it — 301s are cacheable by definition — and replayed it for **minutes afterwards with `age` climbing**, long
-after the origin was serving correctly again. 🔬 `/` returned 301 on 22 of 24 probes while
-`/?cb=<unique>` returned **503** every time. ⚠️ Killing the PHP workers did nothing; rewriting `.htaccess` did
-nothing; **because the origin was never wrong.**
+⚠️ **HOW IT ANNOUNCED ITSELF.** A botched layout change made `/` emit a **301** for a few seconds. The CDN
+cached it — 301s are cacheable by definition — and **replayed it for over two hours** (🔬 `age: 7004` and still
+climbing at the last reading) while the origin served a correct 503 throughout. 🔬 `/` returned 301 on 22 of 24
+probes; `/?cb=<unique>` returned **503 every time**. ⚠️ Killing the PHP workers did nothing; rewriting
+`.htaccess` did nothing; **because the origin was never wrong.** ⚠️ The origin can no longer emit that 301 —
+the site root now maps straight to the front controller — but the cached entry outlives the fix, which is the
+whole lesson.
 
-🔬 **WHAT IS AND IS NOT CACHED, measured from the headers:**
+### ⚠️⚠️ WHAT THE EDGE DOES AND DOES NOT DO — 🔬 measured, not read from a setting
 
-| | 🔬 |
+| | 🔬 measured |
 |---|---|
-| Laravel dynamic responses (`/up`, `/login`, the 503) | `cache-control: no-cache, private` → **`x-hcdn-cache-status: DYNAMIC`** — never cached |
-| webhook **POST**s | not cached |
-| static assets (`/favicon.ico`, `/robots.txt`, build output) | `cache-control: public, max-age=604800` → **HIT/MISS — cached for 7 days** |
+| Laravel **HTML pages** (`/login`, the 503, the homepage) | `cache-control: no-cache, private` + `Set-Cookie` → **`DYNAMIC`**, `x-hcdn-upstream-rt` present. **Never cached.** |
+| **`POST` of any kind** | **`DYNAMIC`**, always upstream. 🔬 38 probe POSTs and 25 webhook POSTs — **every one reached the origin**. |
+| **static assets** (`/build/assets/*`, `favicon.ico`) | `cache-control: public, max-age=604800` → **HIT/MISS, 7 days.** |
+| **redirects and error codes** (301, 500, 503) | ⚠️ carry **no** `cache-status`, **no** `age`, **no** `upstream-rt` — ⚠️⚠️ **the edge does not annotate non-2xx at all**, so headers alone cannot tell you who answered. A 301 *is* cached; a 503 was not observed to be. |
 
-⚠️⚠️ **THE METHOD CONSEQUENCE, AND IT IS THE IMPORTANT ONE: ANY MEASUREMENT TAKEN THROUGH `https://vyrobel.com`
-IS MEASURING THE CDN UNLESS THE RESPONSE IS `DYNAMIC` OR THE REQUEST IS CACHE-BUSTED.** A pass that probes
-production and banks the result has, without knowing it, measured an edge node.
+⚠️ **THE DISCRIMINATOR, VALIDATED BEFORE IT WAS USED:** `x-hcdn-upstream-rt` appears on responses the edge
+fetched from the origin and is **absent on a cache HIT** — 🔬 confirmed both ways against a known HIT
+(`favicon.ico`, `age` present, no `upstream-rt`) and a known DYNAMIC (`/up`). ⚠️ It is **absent on every
+non-2xx**, which is why the parked 503 needed a different instrument entirely.
 
-✅ **AND THE ONE THAT HAD TO BE RE-CHECKED:** DEPLOY 07's headline *"0 failed requests of 520"* was taken
-against `/up`. 🔬 Re-verified after the discovery: `/up` is `no-cache, private` → **DYNAMIC**, so every one of
-those probes reached the origin. **The number stands.** ⚠️ It was luck, not design — the probe happened to be
-the one route the CDN will not cache.
+### ⚠️⚠️ THE QUESTION THAT DECIDES GATE 3: CAN THE EDGE ANSWER FOR THE WEBHOOK?
 
-⚠️ **THE DEPLOY CONSEQUENCE:** after a release swap, an **unhashed** static asset can be served from the
-previous release for up to **7 days**. ⚠️ Vite build output is content-hashed, so a new release produces new
-filenames and is immune; `favicon.ico` and `robots.txt` are not, and staleness there is harmless. ⚠️ **But
-anything unhashed added to `public/` later inherits this**, and nobody would notice.
+⚠️⚠️ **IT CANNOT — AND THIS IS THE MOST IMPORTANT MEASUREMENT IN THIS FILE.** An edge that cached, blocked,
+rate-limited or challenged `POST /webhooks/stripe` would consume Stripe's retry budget **invisibly**, with
+nothing in any origin log — the exact silent-failure signature this project keeps meeting.
+
+🔬 **MEASURED LIVE (site briefly unparked, 2026-09-20), with a body only the origin can produce:** a POST with
+a junk signature returns **`400 {"error":"invalid_signature"}`**, which is `StripeWebhookController` refusing
+at the origin. **5 individual POSTs → all 400. 20 rapid identical POSTs → all 400. The Connect endpoint →
+400.** ⚠️ **No `age` header on any of them. No rate-limit, no challenge, no cached answer.**
+
+🔬 **AND INDEPENDENTLY, PARKED**, via a standalone origin witness that logged every arrival: **38 requests sent,
+38 recorded by the origin** — 25 in a rapid burst, 4 identical repeats, plus deliberate 200/500/503 responses.
+**Zero dropped, zero cached, zero throttled.**
+
+⚠️ **THE BOUND ON THAT CLAIM:** 25 rapid requests from one IP is not a flood. A DDoS-scale burst may meet
+protections that were not exercised here, and this says nothing about what the panel might enable later.
+⚠️ **L12j's retry-window argument stands on this measurement — if the edge's behaviour on that route ever
+changes, L12j is void and must be re-measured.**
+
+### ⚠️⚠️ WHAT THIS DOES TO EVERY DEPLOYMENT NUMBER THIS PROJECT HAS PUBLISHED
+
+⚠️⚠️ **THE 0/520 AND 0/220 WERE TAKEN THROUGH `/up`, WHICH IS `no-cache, private` — THE ONE ROUTE EXEMPT FROM
+THE LAYER UNDER TEST.** ⚠️ **A probe that is exempt from the thing under test measures nothing about it.**
+Those figures are **true about the origin and silent about the customer**, and the probe was chosen for
+convenience eight passes before anyone knew the layer existed.
+
+🔬 **RE-MEASURED AT THE EDGE, UNCACHE-BUSTED, ON A REAL PAGE (`/login`) ACROSS A REAL RELEASE SWAP:**
+**199 of 200 returned 200; one returned `000` (a connection failure, not an HTTP error).** 🔬 A no-swap control
+on the same path returned **0 of 100** such failures. ⚠️ **One failure in 200 is not attributed to the swap and
+not dismissed as ambient** — the control makes "ambient" unlikely, and the sample is too small to call it
+either way. ⚠️ **The honest statement is: 0/220 at the origin, 199/200 at the edge, and the gap is unexplained.**
+
+### ⚠️ HTML/ASSET SKEW — why it cannot happen here, and the condition that keeps it that way
+
+⚠️ At the origin a release is atomic because everything resolves through one pointer. ⚠️⚠️ **At the edge, HTML
+and hashed assets are separate objects with separate lifetimes** — so in principle the edge could serve a page
+from release N+1 referencing assets it still holds from N, or a cached page from N asking for assets that only
+exist in N+1. **That is the edge equivalent of "partly into two releases", and it is a broken page.**
+
+✅ **IT CANNOT HAPPEN HERE, AND THE REASON IS MEASURABLE: HTML IS NEVER CACHED.** 🔬 Every Laravel response
+carries `no-cache, private` and a `Set-Cookie` (the session middleware), so the edge marks it `DYNAMIC` and
+fetches it fresh. A page therefore always comes from the **current** release and always references assets that
+exist in it. Old hashed assets may linger at the edge for 7 days, but nothing references them — a new release
+produces **new filenames**, which are a MISS and fetched from origin.
+
+⚠️⚠️ **THE CONDITION, AND IT IS FRAGILE: the moment any page is made publicly cacheable** — a marketing page
+with `public, max-age=…`, a full-page cache, an edge rule added in the panel — **skew becomes possible
+immediately.** ⚠️ Treat "HTML is uncacheable" as a load-bearing property, not an accident.
+
+⚠️ **AND THE RETENTION FLOOR IS THEREFORE UNCHANGED AT 180 s (L12k), NOT `max(realpath TTL, edge TTL)`.** The
+7-day asset TTL would raise it only if a cached HTML page could outlive a release and request its assets —
+which requires cacheable HTML. ⚠️ **If that condition ever changes, the prune floor becomes 7 days.**
+
+### ⚠️ WHAT IS NOT KNOWN, AND WHAT THE FOUNDER SHOULD DECIDE
+
+- ⚠️ **The edge TTL for a cached 301 is ≥ 2 hours** — 🔬 observed `age` climbing past 7004 s and never expiring
+  within the pass. The upper bound is **not** known.
+- ⚠️ **There is no origin access log this account can read** (`~/.logs/` holds only cron output, an error log
+  and `mail.log`), which is why the origin witness had to be built rather than consulted.
+- ⛔ **A stale 301 on `/` is still being served from the edge.** It needs an **hPanel CDN purge**, or it expires.
+  ⚠️ This session cannot purge an edge cache.
+- ⚠️ **Whether the CDN can be disabled, and whether its rules can be edited, was not established** — it is a
+  panel setting and the decision is the founder's. ⚠️ **Not disabled unilaterally.**
 
 ### ⚠️ L12i — THE ALARM SHARES THE MAINTENANCE SWITCH WITH THE WORK IT WATCHES — ruled NOISY, on purpose
 

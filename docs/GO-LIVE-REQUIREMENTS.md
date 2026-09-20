@@ -19,12 +19,31 @@
 
 | # | the item | why it is here | what "done" looks like |
 |---|---|---|---|
-| **S1** | ⚠️⚠️ **`OPS_HEARTBEAT_PING_URL`** — create the Healthchecks.io (or Better Stack / Cronitor) check and set the env var | ⚠️⚠️ **THE ALARM HAS NEVER BEEN HEARD TO RING.** The dead-man's switch is fully built and **inert by design** while the URL is unset — no ping is attempted and nothing pretends one was. **An alarm nobody has heard ring is a hypothesis.** | The var is set, **and the founder has watched it fire once** by deliberately stopping the cron. ⚠️ **Set the grace period to ≥ 5 minutes** — 🔬 the deploy window's command half is under 15s, so ≥5 min absorbs a routine deploy while still catching a forgotten park (L12i). |
+| **S1** | ⚠️⚠️ **`OPS_HEARTBEAT_PING_URL`** — create the Healthchecks.io (or Better Stack / Cronitor) check and set the env var | ⚠️⚠️ **THE ALARM HAS NEVER BEEN HEARD TO RING.** The dead-man's switch is fully built and **inert by design** while the URL is unset. **An alarm nobody has heard ring is a hypothesis.** ⚠️⚠️ **AND IT NOW HAS A REAL, CONCRETE CASE INSTEAD OF AN ARGUMENT — see below.** | The var is set, **and the founder has watched it fire once** by deliberately stopping the cron. ⚠️ **Set the grace period to ≥ 5 minutes** — 🔬 the deploy window's command half is under 15s, so ≥5 min absorbs a routine deploy while still catching a forgotten park (L12i). |
 | **S2** | ⚠️⚠️ **`APP_KEY` recorded OFF-SERVER**, in a password manager | ⚠️⚠️ **FIFTH PASS THIS HAS BEEN OWED.** 🔬 The key is present on the server and the `.env` is 600; ✅ no `APP_KEY` value appears in any tracked file. ⚠️ **But it exists in exactly ONE place.** Guest PII is encrypted with it: lose the box and the ciphertext in the backup is **permanently unreadable** — the backup deliberately does not contain the key. | The key is in the founder's password manager, and a second person can reach it. ⚠️ **Verified by the founder, never by a session** — a session that reads it back has copied it somewhere new. |
 | **S3** | ⚠️ **The super-admin password** — set a real one | The seeders create a demo super-admin with the password `password`. ⚠️ Production was **never seeded** (that is the rule), so this is about the account the founder actually signs in with. | A password only the founder knows, typed by them, with 2FA enrolled. |
 
 ⚠️ **Nothing else is added to this sitting.** Three items, one sitting — see `docs/KNOWN-LIMITS.md` L12g/L12i
 for the measurements behind S1.
+
+> ### ⚠️⚠️ S1 STOPPED BEING PROCEDURAL ON 2026-09-20 — HERE IS THE FIRST THING IT WOULD HAVE CAUGHT
+>
+> 🔬 Moving the application into a release directory left the hosting panel's cron pointing at an absolute path
+> that no longer existed. **The scheduler died on every tick**, logging
+> `Could not open input file: …/public_html/artisan` — **for the cron that runs the 14-day GDPR guest erasure
+> and the 30-day ID purge.**
+>
+> ⚠️⚠️ **NOTHING SURFACED IT.** Every page served correctly. The site looked perfectly healthy. It was found
+> because somebody went looking at the cron log for an unrelated reason.
+>
+> ✅ **AN ALARM WOULD HAVE CAUGHT IT INSIDE THE GRACE PERIOD**, with no cleverness required: a dead
+> `schedule:run` is a dead heartbeat, the ping stops, and the external check reports it. That is precisely the
+> failure class the dead-man's switch exists for — **a thing that stops happening, silently, on a system that
+> otherwise looks fine.**
+>
+> ⚠️ **So S1 is no longer "good practice before taking money".** It is the control that would have caught a
+> live GDPR-compliance failure on this deployment, and it remains the only one of the three that is still
+> unproven in practice.
 
 > ### ⚠️ THE MAINTENANCE BYPASS SECRET IS **NOT** A FOURTH ITEM — it is already done
 >
@@ -47,7 +66,7 @@ for the measurements behind S1.
 > | where | mode | what to do after rotating |
 > |---|---|---|
 > | `~/domains/vyrobel.com/public_html/.env` | `600` | update `DB_PASSWORD` |
-> | `~/domains/vyrobel.com/releases/<current>/bootstrap/cache/config.php` | `644` | ⚠️ **regenerate** — `php artisan config:cache`. It is a *compiled copy* of `.env`, so editing `.env` alone leaves the old value live. 🔬 Not web-reachable (`/bootstrap/cache/config.php` → **404**, verified by fetch), but it is `644` on a shared host. |
+> | `~/domains/vyrobel.com/releases/<current>/bootstrap/cache/config.php` | ✅ `600` | ⚠️ **regenerate** — `php artisan config:cache`, **then `chmod 600` again**. It is a *compiled copy* of `.env` (13 occurrences of the password), so editing `.env` alone leaves the old value live. 🔬 Not web-reachable (→ **404**, verified by fetch) and **tightened from 644 to 600 on 2026-09-20** after measuring that 600 still serves. ⚠️ `config:cache` recreates it at **644** every time — it is a per-release step. |
 > | `~/.my.cnf` | `600` | update it, or the `mysql` CLI stops working |
 >
 > ⚠️ **No session should be given the new value, and none has been asked for.** The check that matters

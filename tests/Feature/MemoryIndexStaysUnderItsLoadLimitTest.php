@@ -3,16 +3,19 @@
 declare(strict_types=1);
 
 /**
- * ⚠️⚠️ THE SESSION MEMORY INDEX SILENTLY LOSES ITS TAIL ONCE IT PASSES 200 LINES.
+ * ⚠️⚠️ THE SESSION MEMORY INDEX SILENTLY LOSES ITS TAIL ONCE IT PASSES ITS LOAD CEILING.
  *
  * ⚠️⚠️ **THIS IS A COMPOUNDING FAILURE AND IT FAILS QUIETLY, WHICH IS THE WORST WAY TO FAIL.** `MEMORY.md` is
- * loaded into every session's context. Past a **200-line** ceiling the loader truncates it and reports only a
+ * loaded into every session's context. Past its ceiling the loader truncates it and reports only a
  * warning — so the file keeps *looking* complete while the part that is dropped is the **tail**, which is
  * exactly where the canonical-docs pointers, the tracks and the working-practice links live.
  *
- * 🔬 Measured 2026-09-20: the file had reached **227 lines**, meaning every cold session since had been
+ * 🔬 Measured 2026-09-20: the file had reached **227 lines** against a 200-line limit, so every cold session since had been
  * starting **without the pointers to `docs/PROJECT-STATE.md`, `docs/DECISIONS.md` and the divergence
  * register** — the very map a new session is told to read first. Nothing anywhere went red.
+ * ⚠️⚠️ **AND THE CEILING MOVED DOWN, WHICH IS WHY THIS NUMBER IS NOT A CONSTANT TO TRUST:** the harness now
+ * asks for **under 140**, so the file was condensed again (227 → 171 → 138). ⚠️ The limit belongs to the
+ * loader, not to us — if it moves again, condense again; **do not raise the number to match the file**.
  *
  * ── ⚠️ WHY A TEST, AND WHY HERE ─────────────────────────────────────────────────────────────────────────
  *
@@ -48,7 +51,7 @@ function memoryIndexPath(): ?string
     return is_file($path) ? $path : null;
 }
 
-it('⚠️⚠️ keeps MEMORY.md under the 200-line load ceiling — past it, the TAIL is dropped in silence', function () {
+it('⚠️⚠️ keeps MEMORY.md under the 140-line load ceiling — past it, the TAIL is dropped in silence', function () {
     $path = memoryIndexPath();
 
     if ($path === null) {
@@ -57,14 +60,14 @@ it('⚠️⚠️ keeps MEMORY.md under the 200-line load ceiling — past it, th
 
     $lines = count(file($path, FILE_IGNORE_NEW_LINES));
 
-    expect($lines)->toBeLessThanOrEqual(200,
-        "⚠️⚠️ MEMORY.md IS {$lines} LINES, OVER THE 200-LINE LOAD CEILING — ITS TAIL IS BEING DROPPED.\n"
+    expect($lines)->toBeLessThanOrEqual(140,
+        "⚠️⚠️ MEMORY.md IS {$lines} LINES, OVER THE 140-LINE LOAD CEILING — ITS TAIL IS BEING DROPPED.\n"
         ."⚠️ Nothing fails when this happens. The file still looks complete; the loader just stops early, and\n"
         ."   what it stops before is the END — the canonical-docs pointers, the tracks, the working-practice\n"
         ."   links. Every cold session after that point starts without the map it is told to read first.\n"
         .'⚠️⚠️ FIX IT BY CONDENSING, NOT BY DROPPING: state the rule, not the list. Do NOT raise this number '
         .'— the ceiling belongs to the loader, not to us. And prove the fix by reading the LAST LINE back, '
-        .'not by counting to 200.');
+        .'not by counting lines.');
 });
 
 /**
