@@ -1212,6 +1212,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     Route::post('/reservations/{reservation}/no-show', [ReservationLifecycleController::class, 'markNoShow'])
         ->middleware('can:reservations.cancel')->name('reservations.no-show');
 
+    // ⚠️ R5 (F-60) — a TENTATIVE group hold becomes a real stay. Gated on `reservations.manage`,
+    //    which already gates the guest-request confirm/decline pair and is held by Group Admin,
+    //    Hotel Manager, Front Desk and Reservation Agent. ⚠️ NO permission was minted for this.
+    Route::post('/reservations/{reservation}/confirm', [ReservationLifecycleController::class, 'confirm'])
+        ->middleware('can:reservations.manage')->name('reservations.confirm');
+
     // Phase 4b · SG3 — guest change REQUESTS: the operator confirm/decline side (status only; the real change is
     // applied with the operator's certified tools). A guest can never reach here (web guard, back-office gate).
     Route::get('/guest-requests', [GuestRequestAdminController::class, 'index'])->middleware('can:reservations.view')->name('guest-requests');

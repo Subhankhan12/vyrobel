@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Operator;
 
+use App\Actions\Reservations\ConfirmTentativeReservation;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Livewire\ReservationDetail;
@@ -92,6 +93,36 @@ class ReservationLifecycleController extends Controller
      * @var list<string>
      */
     public const NO_SHOWABLE = ['confirmed'];
+
+    /** ⚠️ An allow-list of exactly ONE — see {@see ConfirmTentativeReservation::ALLOWED_FROM}. */
+    public const CONFIRMABLE = ['tentative'];
+
+    /**
+     * ⚠️ Confirm a TENTATIVE group hold into a real stay — R5 (F-60), FIX 54.
+     *
+     * ⚠️⚠️ THE SOURCE-STATUS BOUND LIVES IN THE ACTION, NOT HERE. This check bounds the HTTP surface so the
+     * operator gets a sentence instead of a 500; {@see ConfirmTentativeReservation} carries the real
+     * allow-list, because services are called by jobs and tests with no user.
+     *
+     * ⚠️ The hold already occupies its nights — confirming CONVERTS it and touches no inventory.
+     */
+    public function confirm(ConfirmTentativeReservation $confirm, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+
+        if (! in_array((string) $model->status, self::CONFIRMABLE, true)) {
+            return $this->back($model->id, 'Only a tentative hold can be confirmed — this booking is '
+                .$model->status.'.');
+        }
+
+        try {
+            $confirm->handle($model, auth()->user());
+        } catch (RuntimeException $e) {
+            return $this->back($model->id, $e->getMessage());
+        }
+
+        return $this->back($model->id, 'Hold confirmed — the booking is now a confirmed stay.');
+    }
 
     /** Cancel a reservation through the single write path, with the operator's optional free-text reason. */
     public function cancel(Request $request, ReservationCancellationService $cancellations, string $reservation): RedirectResponse

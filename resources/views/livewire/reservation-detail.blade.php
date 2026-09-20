@@ -195,9 +195,22 @@
                      AssignmentService (the single inventory write path). Each is offered ONLY when the REAL
                      current status allows it — the gates are the controller's own constants, so the UI can
                      never offer a transition the write path refuses. --}}
-                @if ($can_cancel || $can_no_show)
+                @if ($can_cancel || $can_no_show || $can_confirm_hold)
                     <div class="vy-card">
                         <span class="vy-eyebrow">Lifecycle</span>
+
+                        {{-- ⚠️ R5 (F-60) — a TENTATIVE group hold becomes a real stay. It is offered FIRST
+                             because it is the only forward move from a hold, and a desk facing the guest
+                             needs it before the two closing actions. The nights are ALREADY held, so this
+                             converts the hold and takes no second one. --}}
+                        @if ($can_confirm_hold)
+                            <form method="POST" action="{{ route('app.reservations.confirm', $reservation['id']) }}" style="margin-top: 12px;"
+                                onsubmit="return confirm('Confirm this held booking? The nights are already held — this turns the hold into a confirmed stay.');">
+                                @csrf
+                                <button type="submit" class="vy-act">Confirm hold</button>
+                            </form>
+                            <div class="vy-recon" style="margin-top: 8px;">The nights stay held throughout — confirming changes what the booking means, not what it occupies.</div>
+                        @endif
 
                         @if ($can_no_show)
                             <form method="POST" action="{{ route('app.reservations.no-show', $reservation['id']) }}" style="margin-top: 12px;"

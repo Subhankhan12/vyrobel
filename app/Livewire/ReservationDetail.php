@@ -127,6 +127,13 @@ class ReservationDetail extends Component
         $canCancel = $mayTerminate && in_array($status, ReservationLifecycleController::CANCELLABLE, true);
         $canNoShow = $mayTerminate && in_array($status, ReservationLifecycleController::NO_SHOWABLE, true);
 
+        // ⚠️ R5 (F-60) — CONFIRM a tentative group hold. Gated on BOTH the state and the permission, the
+        //    same rule as the two above: the UI must never invite a 403. ⚠️ `reservations.manage` is a
+        //    DIFFERENT permission from `reservations.cancel`, so this asks its own question rather than
+        //    reusing $mayTerminate — Housekeeping holds neither, but a role could hold one and not the other.
+        $canConfirmHold = (auth()->user()?->can('reservations.manage') ?? false)
+            && in_array($status, ReservationLifecycleController::CONFIRMABLE, true);
+
         // Batch C · GATE 2 — a room MOVE is offered only on a non-terminal reservation (moving a cancelled /
         // no-show / checked-out stay is nonsensical). The write goes through AssignmentService::assignUnit,
         // which re-checks availability under a lock — so the free-unit list here is a UX nicety, never the
@@ -152,6 +159,7 @@ class ReservationDetail extends Component
             'policy' => $canCancel || $status === 'cancelled' ? $this->cancellationPolicy($reservation) : null,
             'can_cancel' => $canCancel,
             'can_no_show' => $canNoShow,
+            'can_confirm_hold' => $canConfirmHold,
             'notes' => $this->notes($reservation),
             'reservation' => [
                 'id' => $reservation->id,
