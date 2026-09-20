@@ -134,12 +134,16 @@ it('⚠️ derives the rulings from §4 first, and never lets the ladder file ov
     // ⚠️ R5 is the one genuinely unruled transition and F-60 depends on it staying visible as such.
     expect($rulings['R5'] ?? null)->toBe('UNDECIDED', 'R5 is still unruled — F-60 closes when it is ruled');
 
-    // ⚠️⚠️ H1–H3 are deliberately ABSENT, not asserted either way: R-HK-11 ruled "keep the housekeeping
-    // ladder permissive — all fourteen permitted moves stay", which arguably answers them without naming
-    // them. That is the F-32 shape and a question for the founder, not for a parser.
-    foreach (['H1', 'H2', 'H3'] as $unclaimed) {
-        expect($rulings)->not->toHaveKey($unclaimed,
-            "{$unclaimed} must not be asserted — R-HK-11 may cover it and this guard does not decide that");
+    // ⚠️⚠️ H1–H3 WERE ABSENT BY DESIGN UNTIL FIX 51, AND THE REASON IS WORTH KEEPING. R-HK-11 ruled "keep the
+    // housekeeping ladder permissive — all fourteen permitted moves stay", which answers them WITHOUT NAMING
+    // THEM — the F-32 shape. This guard refused to assert a state the record did not state, which was right.
+    // ⚠️ 🔬 FIX 51 verified membership from `HousekeepingService::ALLOWED_FROM` (exactly fourteen moves; H1 is
+    //    one of them, H2 six, H3 four) and recorded it in §4, so the record now states what the ruling always
+    //    covered. **"The ruling covers it" and "the record states it" are different facts — only the second
+    //    is enforceable**, and this assertion is the enforcement.
+    foreach (['H1', 'H2', 'H3'] as $covered) {
+        expect($rulings[$covered] ?? null)->toBe('DECIDED',
+            "{$covered} is covered by R-HK-11 and §4 must say so — if this is ABSENT the row was removed");
     }
 });
 
@@ -170,6 +174,45 @@ it('⚠️ classifies a ruling state and ignores prose', function (string $text,
     ['is still unruled', 'UNDECIDED'],
     ['the rate was rebuilt and the room was cleaned', null],  // lower-case prose is not a marker
 ]);
+
+// ── 2d. ⚠️⚠️ F-63's ENFORCEMENT HALF — SAFE WAS NOT THE SAME AS ENFORCED ──────────────────────────
+//
+// ⚠️⚠️ THE NAMESPACE RULE PROTECTED THE PARSER; THIS PROTECTS THE READER. Because a bare `R<n>` is read as a
+// ladder ruling only inside its home files, a document ANYWHERE ELSE saying "R2 is settled" passed in
+// SILENCE — and that sentence is the entire risk F-63 names. A reader who searches rather than reads lands
+// on a yes that answers a different question.
+//
+// ⚠️ THE RULE IS NARROW BECAUSE THE COUNT MADE IT NARROW. 🔬 211 bare cross-file numeric references exist,
+// across SEVEN families including HTML heading levels — a blanket "qualify everything" rule is
+// unimplementable. 🔬 Only THREE of the 211 make a RULING-STATE CLAIM, and a claim is the whole risk.
+//
+// ⚠️⚠️ MUTATION-PROVED BOTH WAYS, which is the only proof that counts: planting the exact sentence above in
+// a file under `docs/` makes this RED, naming file, line, id and claimed state; writing it in the QUALIFIED
+// form ("the reservation-ladder R2 is SATISFIED") passes. **The rule is satisfiable, not a trap** — a guard
+// nobody can comply with is a guard somebody switches off.
+it('⚠️⚠️ F-63 — a cross-file ruling-state claim must name which ladder it means', function () {
+    $offenders = vyUnqualifiedCrossFileRulingClaims();
+
+    $report = array_map(
+        fn (array $o): string => sprintf(
+            "%s:%d — %s is called %s, without saying WHICH %s\n      %s",
+            $o['file'], $o['line'], $o['id'], $o['claimed'], $o['id'], $o['text']
+        ),
+        $offenders
+    );
+
+    // ⚠️⚠️ IT SHIPS WITH NO ALLOW-LIST AT ALL, AND THAT IS DELIBERATE. 🔬 Every cross-file ruling claim in the
+    // record today is already qualified by its own sentence, so there was nothing to excuse. If this ever
+    // needs an exception, read it as a signal first: the record is asserting a ruling state somewhere that
+    // cannot say which ruling it means, and the fix is the sentence, not the list.
+    expect($offenders)->toBe([],
+        "⚠️⚠️ A RULING STATE IS ASSERTED WITHOUT SAYING WHICH LADDER IT BELONGS TO (F-63).\n"
+        ."⚠️ `R<n>` names a DIFFERENT question in `HOUSEKEEPING-LADDER.md` and a third thing in `DECISIONS.md`,\n"
+        ."⚠️ so a reader who searches lands on the answer to something else. Name the ladder — e.g.\n"
+        ."⚠️ \"the reservation-ladder R2\" — rather than deleting the sentence:\n\n  "
+        .implode("\n\n  ", $report)."\n"
+    );
+});
 
 // ── 3. ⚠️ THE ALLOW-LIST, CAPPED ──────────────────────────────────────────────────────────────────
 it('⚠️ the frozen-file list has not grown — an allow-list is how a guard dies quietly', function () {

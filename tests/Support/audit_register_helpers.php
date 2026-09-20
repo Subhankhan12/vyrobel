@@ -596,11 +596,13 @@ function vyAuthoritativeRulings(?string $root = null): array
         }
 
         // ⚠️⚠️ AN ABSENT MARKER MEANS "UNRULED" ONLY WHERE THE RECORD SAYS SO. §2a establishes exactly that
-        // for the RESERVATION ladder, so a bare `R<n>` row there is asserted UNDECIDED. ⚠️ It does NOT hold
-        // for the H-rulings: **R-HK-11 ruled "keep the housekeeping ladder permissive — all fourteen
-        // permitted moves stay", which arguably answers H1–H3 without naming them** — the F-32 shape, and a
-        // question for the founder rather than for a parser. **So they are left OUT of the map entirely
-        // rather than asserted either way.** An id with no authoritative answer is simply not checked.
+        // for the RESERVATION ladder, so a bare `R<n>` row there is asserted UNDECIDED.
+        // ⚠️ It does NOT hold for the H-rulings, and until FIX 51 they were left OUT of the map entirely:
+        // R-HK-11 ruled "all fourteen permitted moves stay", which answers H1–H3 WITHOUT NAMING THEM (the
+        // F-32 shape), and this parser refused to assert a state the record did not state. ⚠️ 🔬 FIX 51
+        // verified membership move-by-move from `HousekeepingService::ALLOWED_FROM` and recorded it in §4,
+        // so they now arrive through the branch above like every other answered ruling. **The record was
+        // corrected; the parser was not taught to guess.**
         if (str_starts_with($m[1], 'R')) {
             $rulings[$m[1]] = 'UNDECIDED';
         }
@@ -689,6 +691,121 @@ function vyRulingContradictions(?string $root = null): array
                     'id' => $id,
                     'claimed' => $claim,
                     'authoritative' => $rulings[$id],
+                    'text' => trim(mb_substr($original, 0, 200)),
+                ];
+            }
+        }
+    }
+
+    return $offenders;
+}
+
+// ═══ F-63's ENFORCEMENT HALF ═════════════════════════════════════════════════════════════════════
+//
+// ⚠️⚠️ THE NAMESPACE RULE MADE THE PARSER **SAFE**; IT DID NOT MAKE THE RECORD **ENFORCED**. Because a bare
+// `R<n>` is only read as a ladder ruling inside its home files, a document ANYWHERE ELSE saying "R2 is
+// settled" passes in silence — and that sentence is the entire risk F-63 names. The namespace rule protects
+// the parser from a false positive; this protects the READER from a true one, and the reader is the point.
+//
+// ⚠️⚠️ WHY THIS IS NARROW, AND THE NUMBER THAT MADE IT NARROW. 🔬 Measured before a line was written:
+// **211** bare cross-file numeric references exist in live text, across SEVEN unrelated families — the two
+// ladders, the 2026-08-07 audit's HIGH findings, documentation-claim row ids, two families of per-audit
+// decision numbers, docs-triage comparison rules, **and HTML heading levels (`H1` = `<h1>`).** A blanket
+// "qualify every cross-file reference" rule would touch all 211 and demand qualification of heading levels:
+// unimplementable, and the exact noise that gets a guard switched off.
+// 🔬 **Of those 211, only THREE make a RULING-STATE CLAIM** — and a claim is the whole risk. So the rule
+// enforces on claims, not on mentions.
+
+/**
+ * ⚠️ THE QUALIFIED FORM, STATED ONCE, HERE. A cross-file numeric ruling reference is qualified when its home
+ * is named near it — the convention §4 already uses when it calls the housekeeping one **H2**. Nothing new
+ * was invented; these are the names the record already uses for the two ladders.
+ */
+function vyRulingQualifiers(): array
+{
+    return [
+        'STATUS-LADDERS', 'HOUSEKEEPING-LADDER', 'AUDIT-SUMMARY', '§4',
+        'reservation ladder', 'reservation-ladder', 'housekeeping ladder', 'housekeeping-ladder',
+        'ladder ruling', 'Ladder ruling',
+    ];
+}
+
+/**
+ * ⚠️⚠️ NUMERIC ONLY. `R-GATE`, `R-SEASON`, `R-ADMIN-COPY`, `R-HK-11` and the rest are globally unique, so
+ * demanding a qualified form of them would be pure noise — and noise is how a guard gets switched off.
+ *
+ * ⚠️ LIVE TEXT ONLY: `docs/**.md`, minus the frozen dated reports. **Commit messages are never scanned** —
+ * they cannot be changed, so scanning them would leave the guard permanently red.
+ *
+ * ⚠️ ITS LIMITS, AND WHICH DIRECTION EACH FAILS IN:
+ *   · line-scoped and {@see VY_CLAIM_WINDOW}-bounded — a claim further from its id is **MISSED** (unsafe);
+ *   · the qualifier must sit within 60 bytes BEFORE the id — a qualifier further back reads as unqualified,
+ *     which is a **FALSE POSITIVE** (safe: it surfaces for triage rather than passing in silence).
+ *
+ * @return array<int, array{file: string, line: int, id: string, claimed: string, text: string}>
+ */
+function vyUnqualifiedCrossFileRulingClaims(?string $root = null): array
+{
+    $root = rtrim($root ?? base_path(), '/');
+    $frozen = vyFrozenFindingSurfaces();
+    $home = array_keys(vyRulingNumberedScope()) + [];
+    $home[] = 'docs/HOUSEKEEPING-LADDER.md';
+    $qualifiers = vyRulingQualifiers();
+    $offenders = [];
+
+    foreach (vyRegisterMarkdownFiles($root) as $path) {
+        $relative = ltrim(str_replace($root, '', $path), '/');
+
+        if (isset($frozen[$relative]) || in_array($relative, $home, true)) {
+            continue;
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES);
+
+        foreach ($lines as $i => $original) {
+            $line = vyRegisterStripQuotedHistory($original);
+
+            if (! preg_match_all(VY_RULING_NUMBERED_TOKEN, $line, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            // ⚠️ THE QUALIFIER MAY SIT ON THE PREVIOUS LINE, because prose wraps. 🔬 Found by running this:
+            //    "Two reservation-ladder rulings — **R2** and\n**R5** — remain unruled" put the qualifier one
+            //    line above its id and produced a FALSE POSITIVE. ⚠️ This is a CORRECTION to a line-scoping
+            //    limit, not a loosening: a wrapped sentence is one sentence. Only ONE line back, so a
+            //    qualifier in a different paragraph still does not count.
+            $carry = $i > 0 ? vyRegisterStripQuotedHistory($lines[$i - 1]) : '';
+
+            $positions = array_map(fn (array $x): int => $x[1], $m[1]);
+
+            foreach ($m[1] as $k => [$id, $at]) {
+                $from = $at + strlen($id);
+                $next = $positions[$k + 1] ?? strlen($line);
+                $claim = vyRulingClaimIn(substr($line, $from, min($next - $from, VY_CLAIM_WINDOW)));
+
+                if ($claim === null) {
+                    continue;   // a bare mention is not the risk — only a CLAIM is
+                }
+
+                $before = $carry.' '.substr($line, max(0, $at - 60), min(60, $at));
+                $qualified = false;
+
+                foreach ($qualifiers as $q) {
+                    if (str_contains($before, $q)) {
+                        $qualified = true;
+                        break;
+                    }
+                }
+
+                if ($qualified) {
+                    continue;
+                }
+
+                $offenders[] = [
+                    'file' => $relative,
+                    'line' => $i + 1,
+                    'id' => $id,
+                    'claimed' => $claim,
                     'text' => trim(mb_substr($original, 0, 200)),
                 ];
             }
