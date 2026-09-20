@@ -186,6 +186,35 @@ subscription state is set for walking, or **accepting the remainder as establish
 report that touches it.
 
 ---
+## L9 · ⚠️ AN INTERNAL LIMIT — the third tenant is DISPOSABLE, and no pinned figure may reference it
+
+⚠️⚠️ **NOT CUSTOMER-FACING. NO SENTENCE IS WRITTEN FOR A CUSTOMER HERE.** Like **L8**, this is a limit on how
+this repository verifies itself, recorded where a future pass will look. It is **F-61** in `AUDIT-SUMMARY.md`.
+
+**Why it exists.** 🔬 Tenant one is the untouchable money baseline — browsable, never writable. Tenant two is
+correctly paywalled (L8). Between them, **no human could drive a write through the back office in any
+organisation**, which is the core of the product. `harbourpoint-demo-walkthrough` exists so that is possible
+again.
+
+⚠️ **THE TWO ARE NOT REDUNDANT, AND NEITHER REPLACES THE OTHER:**
+- **Tenant two exists to PROVE THE BILLING REFUSAL and must stay paywalled.**
+- **Tenant three exists to BE WALKED and must stay entitled.**
+
+⚠️⚠️ **THE RULE: NO PINNED FIGURE, ANYWHERE, MAY REFERENCE TENANT THREE.** The moment a test asserts one of
+its counts it stops being disposable and becomes a fixture somebody has to preserve — and it was built to be
+**destroyed by every `migrate:fresh --seed`**. Walk it, write to it, break it, and let the next reseed take it
+away. ⚠️ Wanting to pin one of its numbers is the signal that it is being used as a baseline: use tenant one,
+or measure by hand. The same sentence is in the seeder's docblock and the F-61 row, because a rule written in
+one place goes stale in the other two.
+
+⚠️ **It is entitled by `subscriptions.status = 'active'`, and that is measured, not chosen by habit.** 🔬
+`hasFullAccess()` is `onTrial() || active()`; `onTrial()` is date-dependent and is the exact fuse that
+paywalled tenant two, while `active()` **checks no date at all** and `current_period_end` gates nothing
+anywhere in `app/`. So this tenant is structurally incapable of expiring, where any trial length would just
+be a later fuse. ⚠️ **Zero Stripe** — `stripe_subscription_id` and `stripe_customer_id` are NULL, the same
+shape `vyrobel-demo` already carries.
+
+---
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some

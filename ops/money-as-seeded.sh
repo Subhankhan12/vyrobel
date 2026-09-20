@@ -179,12 +179,14 @@ fi
 ACTUAL_INVARIANT="$(echo "${ACTUAL}" | awk -F ' / ' '{print $1" / "$3" / "$5" / "$6}')"
 
 OTHERS="$(php artisan tinker --execute="${MEASURE_OTHERS}" 2>/dev/null | tr -d '\r' | grep -E '^OTHER ' || true)"
-echo "  scope:     ⚠️ TENANT ONE (vyrobel-demo) ONLY — see the note in this file."
+echo "  scope:     ⚠️ TENANT ONE (vyrobel-demo) ONLY — 1 of 3 organisations. See the note in this file."
 if [ -n "${OTHERS}" ]; then
   echo "${OTHERS}" | sed 's/^/             📄 RECORDED, NOT ASSERTED — /'
 fi
 echo "             (rate_calendar / SUM(price_minor) / unit_rate_overrides / reservations / payments / rate_seasons)"
-echo "  blind to:  ⚠️ F-62 — COUNTS AND SUMS ONLY: an equal-and-opposite pair of errors nets to zero and passes."
+echo "  blind to:  ⚠️ (1) EVERY OTHER TENANT — northgate-demo-city-rooms AND harbourpoint-demo-walkthrough."
+echo "             ⚠️ (2) F-62 — COUNTS AND SUMS ONLY: an equal-and-opposite pair of errors nets to zero."
+echo "             ⚠️ (3) F-61 — harbourpoint IS THE WRITABLE ONE and is EXPECTED to move. Never pin it."
 echo "  actual:    ${ACTUAL}"
 
 # ⚠️⚠️ THE MODE IS DECIDED BY THE APPLICATION'S EFFECTIVE CONFIG, NOT BY THE SHELL VARIABLE.
