@@ -161,6 +161,23 @@ concluded.** The cheap question is: *does R1 extend to `no_show`?*
 
 #### R5 · `enquiry`/`tentative` → `checked_in` — the walk-up
 
+⚠️⚠️ **THE ANSWER PUT TO THIS IN FIX 51 — *"refuse, and name the confirm-then-check-in route"* — RESTS ON A
+PREMISE THAT IS FALSE, AND IT WAS DRIVEN BEFORE ANY COPY WAS WRITTEN.** 🔬 **There is no confirm route.**
+Sixteen operator POST routes touch a reservation and none promotes it to `confirmed`; nothing in the whole
+application matching confirm/promote/accept/activate acts on a reservation; and no service method does it
+either — `confirmed` is written only at CREATION.
+
+⚠️⚠️ **AND THE TWO STATUSES SHARING THIS ARM ARE NOT ALIKE — the shape that hid the earlier problem.**
+🔬 `tentative` has exactly one producer (a group booking held tentatively) and **holds inventory**: the line
+stays `active` and `availability.sold` is **2** over the stay, so — unlike a no-show — **nothing has been
+released**, and the objection really is commercial rather than operational. 🔬 **`enquiry` is written by
+NOTHING**: it exists in the status enum and in display labels, and no code path creates it.
+
+⚠️ **So this stays unruled and the generic message stays**, because naming a route that does not exist is
+worse than naming none — and because half the question concerns a state the product cannot currently reach.
+**The ruling needs re-putting with those two facts in it.**
+
+
 🔬 **TODAY, DRIVEN (this transition is exercised by NO test in the repository — FIX 48 drove it to find out):**
 both are refused with `RuntimeException`, and **the row does not move** (`status` unchanged,
 `guest_checked_in_at` still null).
