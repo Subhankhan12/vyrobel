@@ -72,6 +72,12 @@ class DatabaseSeeder extends Seeder
             //    can be DRIVEN rather than read. It carries its own DemoDataSafetyGuard call (a --class= run
             //    never reaches this file) and touches nothing belonging to `vyrobel-demo`.
             SecondTenantSeeder::class,
+            // ⚠️ FIX 50 — the THIRD organisation (F-61), and it is SEEDED LAST DELIBERATELY: ordering
+            //    changes are how a new fixture quietly shifts an old one. It exists to be WRITTEN TO —
+            //    tenant one is the untouchable baseline and tenant two is correctly paywalled, so
+            //    without it no human can drive a write through the back office in any organisation.
+            //    ⚠️⚠️ NO PINNED FIGURE MAY EVER REFERENCE IT — see the seeder's docblock.
+            ThirdTenantSeeder::class,
         ]);
 
         // Dev convenience only: a global platform user (not tenant data).
