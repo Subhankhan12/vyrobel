@@ -3,8 +3,49 @@
 ⚠️ **Why this file exists.** These were recorded across a dozen passes and lived only inside reports.
 **A requirement nobody can find is a requirement nobody meets.** This is the one place to look.
 
-⚠️ **Nothing here has been done.** No credentials, no server, no domain, no live keys, no dashboard
-actions — those are the founder's and cannot be performed from this repository.
+> ### ⚠️ CORRECTION (DEPLOY 06, 2026-09-20) — "NOTHING HERE HAS BEEN DONE" IS NO LONGER TRUE
+>
+> ⚠️ This file used to open *"Nothing here has been done. No credentials, no server, no domain…"*. **The
+> deployment passes did much of B.** 🔬 The product is installed at `~/domains/vyrobel.com/public_html` on
+> `de-fra-web2026.main-hosting.eu`, on **139 tables** matching local, with TLS live, `APP_KEY` set, `.env` at
+> **600**, both panel crons **proven running by a live toggle**, and the site **deliberately parked in
+> maintenance**. ⚠️ What remains is the **live-money tail** (B6–B11) and the three items below.
+> ⚠️ **The rest of the list still stands — read it, do not assume the deployment closed it.**
+
+## ⛔⛔ THE NEXT SITTING — EXACTLY THREE ITEMS, AND THEY FIT IN ONE
+
+⚠️ **Batched deliberately.** Each needs the founder present and none can be done from this repository.
+⚠️⚠️ **Every secret is TYPED BY THE FOUNDER, never pasted into a session and never read back by one.**
+
+| # | the item | why it is here | what "done" looks like |
+|---|---|---|---|
+| **S1** | ⚠️⚠️ **`OPS_HEARTBEAT_PING_URL`** — create the Healthchecks.io (or Better Stack / Cronitor) check and set the env var | ⚠️⚠️ **THE ALARM HAS NEVER BEEN HEARD TO RING.** The dead-man's switch is fully built and **inert by design** while the URL is unset — no ping is attempted and nothing pretends one was. **An alarm nobody has heard ring is a hypothesis.** | The var is set, **and the founder has watched it fire once** by deliberately stopping the cron. ⚠️ **Set the grace period to ≥ 5 minutes** — 🔬 the deploy window's command half is under 15s, so ≥5 min absorbs a routine deploy while still catching a forgotten park (L12i). |
+| **S2** | ⚠️⚠️ **`APP_KEY` recorded OFF-SERVER**, in a password manager | ⚠️⚠️ **FIFTH PASS THIS HAS BEEN OWED.** 🔬 The key is present on the server and the `.env` is 600; ✅ no `APP_KEY` value appears in any tracked file. ⚠️ **But it exists in exactly ONE place.** Guest PII is encrypted with it: lose the box and the ciphertext in the backup is **permanently unreadable** — the backup deliberately does not contain the key. | The key is in the founder's password manager, and a second person can reach it. ⚠️ **Verified by the founder, never by a session** — a session that reads it back has copied it somewhere new. |
+| **S3** | ⚠️ **The super-admin password** — set a real one | The seeders create a demo super-admin with the password `password`. ⚠️ Production was **never seeded** (that is the rule), so this is about the account the founder actually signs in with. | A password only the founder knows, typed by them, with 2FA enrolled. |
+
+⚠️ **Nothing else is added to this sitting.** Three items, one sitting — see `docs/KNOWN-LIMITS.md` L12g/L12i
+for the measurements behind S1.
+
+### ⚠️⚠️ AND THE REASON S1 GATES THE PAYMENT CUTOVER — with one premise CORRECTED
+
+⚠️ The live-payments gate was held on two conditions. **One is satisfied and one is not:**
+
+- ✅ **The payment-engine verification came back clean.** Unchanged, and nothing since has disturbed it.
+- ⛔ **The incident channel is still switched off.** 🔬 `OPS_HEARTBEAT_PING_URL` measured **empty on
+  production** 2026-09-20. The dead-man's switch is built and mutation-proved in both directions, but
+  **it has never been heard to ring**, so nothing external is watching. **This is S1.**
+
+⚠️⚠️ **THE PREMISE THAT WAS WRONG, AND IT CUTS BOTH WAYS.** The gate's reasoning ran: *"payments fulfil on the
+webhook, **the webhook queues work**, and a failed job here is invisible."* 🔬 **The middle clause is false** —
+the Stripe webhook queues nothing; it applies synchronously in the request (L12g). So a `failed_jobs` alarm
+would **never have seen** the payment path's real failure at all.
+
+⚠️ **What the alarm DOES cover — and it is the thing that matters — is the park.** Because the heartbeats are
+maintenance-gated by ruling (L12i), a site left in maintenance makes them stop, and **that is the only
+automated signal anyone gets that `/webhooks/stripe` is answering 503 to every delivery Stripe sends.**
+⚠️⚠️ **So S1 is not merely advisable before the payment cutover — with the park unbounded and Stripe's
+sandbox retry window only a few hours, it is the single control standing between a forgotten maintenance
+flag and silently lost payment events.**
 
 ## ⛔ BLOCKING — the product cannot correctly serve a paying customer without these
 
@@ -14,7 +55,7 @@ actions — those are the founder's and cannot be performed from this repository
 | B2 | **`APP_KEY`** generated and kept | founder | ⚠️ **Encrypted guest PII is unreadable without it.** Deploy exits 2 if empty. Losing it later is unrecoverable. |
 | B3 | **`BACKUP_PASSPHRASE`** set | founder | Deploy exits 2. A migration with no restorable snapshot has no way back. |
 | B4 | **Redis running** (Horizon) | founder | ⚠️ **The deploy only warns.** First symptom is queued work silently never running. |
-| B5 | **The `schedule:run` cron** | deploy installs it | ⚠️ Skippable via `DEPLOY_NO_CRON_INSTALL=1`, which **warns and completes**. Without it the **14-day guest deletion and 30-day ID purge never run — silently.** A GDPR obligation. |
+| B5 | **The `schedule:run` cron** | ✅ **DONE — founder, via the Hostinger panel** | ⚠️⚠️ **CORRECTED 2026-09-20 (DEPLOY 06): "deploy installs it" IS FALSE ON THIS HOST.** 🔬 `crontab` is **`command not found` (rc=127)** here, so `ops/deploy.sh` step 10/12 cannot install anything — and the `DEPLOY_NO_CRON_INSTALL` escape hatch is moot. ✅ **The crons exist anyway and are correct**, panel-managed, 🔬 **proven by a live down→up toggle** that moved both frozen heartbeats inside 160 seconds. ⚠️ Without them the **14-day guest deletion and 30-day ID purge never run — silently.** A GDPR obligation. ⚠️ **They must invoke `/opt/alt/php84/usr/bin/php`, not bare `php`** — 🔬 the host's default CLI PHP is **8.3.33** and the app requires `^8.4.1`, so a cron using `php` would fail on every tick with no alarm. |
 | B6 | **Postmark token + sending domain DNS** | founder | No transactional email at all: no booking confirmations, no invites, no password resets. |
 | B7 | **Stripe live keys** (`STRIPE_KEY`, `STRIPE_SECRET`) | founder | No card can be taken. ⚠️ `StripeSafetyGuard` refuses a live key outside `production` — see R1 below. |
 | B8 | **Both webhook signing secrets** — `STRIPE_WEBHOOK_SECRET` **and** `STRIPE_CONNECT_WEBHOOK_SECRET` | founder | ⚠️ **Two separate endpoints with separate secrets.** A wrong or missing secret means events are rejected — **payment taken, booking unpaid.** |

@@ -371,13 +371,137 @@ per-minute cron starts `queue:work --stop-when-empty --max-time=55`, which **boo
 at 09:52:02 → 09:53:02).
 
 ⚠️⚠️ **SO A JOB DISPATCHED JUST AFTER THE WORKER EXITS WAITS FOR THE NEXT TICK — WORST CASE ≈ 60 SECONDS.**
-That is the latency a **payment webhook** could experience between Stripe's callback and the booking actually
-completing. ⚠️ Acceptable for a hotel booking; it must be a deliberate acceptance, not a surprise.
+⚠️ Acceptable for a hotel booking; it must be a deliberate acceptance, not a surprise.
 
-⚠️⚠️ **AND THE EXCEPTION THAT MATTERS: WHILE MAINTENANCE MODE IS ON, IT IS UNBOUNDED.** 🔬 Laravel pauses
-`queue:work` when the app is down, and the cron runs it **without `--force`** — so nothing is processed at
-all. ⚠️ A payment taken during a maintenance window would never complete. **Lift maintenance before enabling
-payments, or add `--force` deliberately and understand what that means during a deploy.**
+⚠️⚠️ **AND WHILE MAINTENANCE MODE IS ON, THAT LATENCY IS UNBOUNDED.** 🔬 Re-measured 2026-09-20 by running
+the *same* worker command either side of the switch: **DOWN → the worker boots, runs 3s and exits having
+processed nothing** (`jobs` stays 1, the heartbeat stays NULL); **UP → the same command logs
+`QueueHeartbeatJob … DONE`, `jobs` goes to 0 and the heartbeat stamps.** ⚠️ The job is **not lost** — the
+`database` driver holds the row and it drains on the lift. It is only *deferred*, for as long as the park
+lasts.
+
+> ### ⚠️⚠️ CORRECTION (DEPLOY 06) — THIS ROW NAMED THE WRONG VICTIM, AND THE ERROR MATTERED
+>
+> ⚠️⚠️ This row used to say the 60 seconds was *"the latency a **payment webhook** could experience between
+> Stripe's callback and the booking actually completing"*, and told the operator to consider **adding
+> `--force`** to the worker cron. 🔬 **Both are wrong, and the second is dangerous.**
+>
+> 🔬 **THE STRIPE WEBHOOK NEVER QUEUES ANYTHING.** `StripeWebhookController` persists the `webhook_events`
+> row and then calls `$apply()` **synchronously, inside the request** (`WebhookEventClaim::once()`). No job is
+> created, so no amount of queue latency — and no `--force` — touches the payment path. The only receiver
+> that queues is `ChannexWebhookController`, and Channex is account-gated and not live.
+> ⚠️ `--force` would instead make the worker run jobs **against a half-migrated schema mid-deploy**, which is
+> the failure the maintenance switch exists to prevent. **Do not add it.**
+>
+> ⚠️ The 60-second figure is still correct **for the queue**. It was simply never the payment path's number.
+> The payment path's real exposure is L12g.
+
+### ⚠️⚠️ L12g — THE MAINTENANCE HOLE: a Stripe event that arrives while the site is parked LEAVES NO TRACE
+
+⚠️⚠️ **THIS IS THE ROW TO READ BEFORE TURNING PAYMENTS ON.** Measured end to end 2026-09-20 (DEPLOY 06) as
+four links, because the answer at link 1 changes what the other three mean.
+
+| # | the link | 🔬 what was measured |
+|---|---|---|
+| **a** | does the handler **persist before it queues**? | **It persists and never queues.** `WebhookEventClaim::once()` writes the `webhook_events` row (`createOrFirst`, `status=processing`) and then runs `$apply()` **inline, in the request**. The Stripe path has no job at all. Only `ChannexWebhookController` queues — and Channex is account-gated. |
+| **b** | what does the route return **under maintenance**? | 🖥 **503, on the live host.** `PreventRequestsDuringMaintenance` sits in the framework's **global** stack and nothing excludes the webhooks. Fetched against production while parked: `POST /webhooks/stripe` → **503**, `POST /webhooks/stripe/connect` → **503**, `/` → 503, `/up` → 200 (the health route is auto-excepted). |
+| **c** | does a job queued during maintenance **survive and drain**? | **Yes** — but it never applies to Stripe. See L12f's re-measurement. |
+| **d** | how long is `ops/deploy.sh`'s window? | **There is no scripted window — the script cannot run on this host.** See L12h. |
+
+⚠️⚠️ **THE CONSEQUENCE, AND IT IS NOT THE ONE THE 60-SECOND ROW IMPLIED.** The 503 is produced **before the
+controller**, so there is **no `webhook_events` row, no job, no log line — nothing inside the product records
+that an event was ever attempted.** After a park, **the product cannot enumerate what it missed**; only the
+Stripe Dashboard can. That is the same blind spot `WebhookEventClaim` already names — *"nothing in this
+product reconciles against Stripe"* — reached from the other direction.
+
+📄 **STRIPE'S OWN RETRY HORIZON** (read from `docs.stripe.com/webhooks` 2026-09-20 — 📄 RECORDED, not 🔬: the
+vendor's documentation, never exercised against a live endpoint by this project):
+
+- *"Stripe attempts to deliver events to your destination for **up to three days** with an exponential back
+  off in **live mode**."*
+- *"We retry event deliveries created in a **sandbox** three times over the course of **a few hours**."*
+  ⚠️ **This deployment is in exactly that mode today** (`STRIPE_FAKE=true`, `PAYMENTS_GATEWAY=manual`).
+- A `5xx` is a delivery **failure**, so a 503 **is** retried.
+- Manual recovery: Dashboard **Resend ≤ 15 days**, `stripe events resend` **≤ 30 days**.
+
+⚠️⚠️ **SO THE REVISED WORST CASE, WITH THE TWO DURATIONS KEPT APART — THEY ARE NOT THE SAME RISK:**
+
+- **THE DEPLOY WINDOW — small, and not the problem.** 🔬 The command half of a real deploy, timed on the live
+  host **with every exit code captured** (the first timing run sent output to `/dev/null` and reported `git
+  fetch` and `composer install` as "0s" when they were **rc=128** and **rc=2** — a 0-second step must prove it
+  *succeeded*): `composer install` **5,630ms** · `view:cache` **1,059ms** · `route:cache` **394ms** ·
+  `migrate --force` **317ms** · `config:cache` **305ms** · `queue:restart` **294ms** · `event:cache`
+  **289ms** — **all rc=0, total 8.29 s.** Wall-clock is dominated by file upload, not by commands. Stripe's
+  backoff absorbs this completely. **Nothing needs fixing here.**
+- **THE STANDING PARK — unbounded, and the whole risk.** 🔬 Production has sat in maintenance since
+  **09:53 UTC** on 2026-09-20; measured at 15:22 that is **5h29m and still counting**. Nothing in the product
+  ends a park, warns about one, or bounds one.
+- **⚠️⚠️ THE NUMBER: a park is safe for ~3 days in live mode and only ~a few hours in the mode this
+  deployment is actually in.** Past that, an event is gone from automatic delivery and recoverable **only by
+  hand, from the Dashboard, within 15 days** — by someone who first has to work out that it happened.
+
+⚠️ **WHAT WAS DELIBERATELY *NOT* DONE.** Excluding the webhook route from maintenance was considered and
+**refused**: it would let the handler run and write to the folio **against whatever schema the half-finished
+deploy had left**, which is strictly worse than a 503 Stripe will retry. The maintenance switch is doing its
+job; the gap is that **nobody is told the park is still on**.
+
+### ⚠️⚠️ L12h — `ops/deploy.sh` CANNOT RUN ON THE HOST THIS PRODUCT IS DEPLOYED TO, AND ITS RECOVERY TRAP IS INERT
+
+⚠️⚠️ 🔬 Measured on the live host 2026-09-20, step by step. The script is 12 steps; **four of them cannot
+execute here**, and the first failure is at step 4:
+
+| step | command | 🔬 result on this host |
+|---|---|---|
+| **4/12** | `git fetch --all --tags --prune` | **rc=128** — *"fatal: not a git repository"*. ⚠️ **There is no `.git` on production at all** — the app was placed by **file upload**, never by git. `git pull` / `--rollback-to` / `PREV_SHA` all rest on this. |
+| **5/12** | `composer install --no-dev …` | **rc=2** under the default `php` — *"Root composer.json requires php ^8.4.1 but your php version (8.3.33) does not satisfy that requirement."* ⚠️ The host's default CLI PHP is **8.3.33**; the app needs **`/opt/alt/php84/usr/bin/php` (8.4.19)**, under which the same command is **rc=0 in 5.63s**. |
+| **6/12** | `npm ci` · `npm run build` | ⚠️ **`node` and `npm` are NOT INSTALLED.** `node_modules` is absent; `public/build` is present because assets are **built elsewhere and uploaded**. |
+| **10/12** | `(crontab -l …) \| crontab -` | ⚠️ **`crontab: command not found` (rc=127).** The two crons are **Hostinger-panel-managed**, and they are real and correct — 🔬 proven by a live toggle (see L12i). |
+
+⚠️⚠️ **AND THE TRAP THAT PROMISES TO CLEAN UP HAS NEVER RUN AND CANNOT.** Line 127 installs
+`trap '… php artisan up …' ERR` under the comment *"From here on, any failure must still bring the app back
+up."* 🔬 The script sets `set -euo pipefail` — **without `-E`** — and every command is wrapped in the `run()`
+**function**. Bash does not inherit an `ERR` trap into functions unless `errtrace` is set, so **a failure
+inside `run()` aborts the script and the trap never fires.** 🔬 Mutation-proved: an exact replica of the
+script's control flow exits **127 with no trap output**; changing the single character `set -euo` → `set -Eeuo`
+makes the same replica print the trap's lines.
+
+⚠️ **THE FAILURE MODE THIS PRODUCES IS THE SAFE ONE, WHICH IS WHY NOBODY NOTICED:** a failed deploy leaves the
+app **DOWN** rather than publishing a half-migrated site. ⚠️⚠️ **But the file documents a recovery behaviour
+it does not have** — the same shape as the generated-column index and the stray `_e` table: *a guarantee that
+reads as installed and is not.* The rollback hint the operator is meant to see is never printed either.
+
+⚠️ **NOT FIXED IN THIS PASS — DELIBERATELY.** Whether `ops/deploy.sh` should be made to work here (a git
+checkout on production? a prebuilt-asset step? the 8.4 binary pinned?) or retired in favour of the documented
+manual procedure is a **founder decision about how this product is released**, not a bug to patch mid-audit.
+⚠️⚠️ **Until it is taken, `ops/deploy.sh` must not be run against this host.**
+
+### ⚠️ L12i — THE ALARM SHARES THE MAINTENANCE SWITCH WITH THE WORK IT WATCHES — ruled NOISY, on purpose
+
+🔬 **MEASURED BY A REAL down→up→down TOGGLE ON PRODUCTION (2026-09-20), which is a positive artefact and not
+an absent beat.** Before the lift both heartbeats were frozen — scheduler `09:53:02`, queue `14:12:35`.
+Maintenance was lifted at **15:20:04**; **160 seconds later scheduler read `15:22:01` and queue `15:21:03`**,
+then maintenance was restored byte-for-byte. ⚠️ That single artefact establishes three things at once: the
+panel crons **are** alive and correctly configured, the silence **was** caused by maintenance, and a worker
+drains within ~60s of a lift.
+
+⚠️ The mechanism: `ScheduleRunCommand` skips every event for which `runsInMaintenanceMode()` is false, and
+**nothing in this application declares `evenInMaintenanceMode()`** — so under maintenance the scheduler
+heartbeat never beats, and the queue heartbeat is never even *dispatched* (it is a `Schedule::job`).
+
+⚠️⚠️ **THE RULING — WE LIVE WITH *NOISY*, NEVER WITH *LYING*.** Making the heartbeats beat under maintenance
+would silence the alarm during a park — but the scheduler is skipping **every** daily task while parked: the
+**14-day GDPR erasure**, the **30-day ID purge**, `billing:reconcile`, `payouts:run`, the reminder emails. An
+alarm reporting "healthy" through that asserts the opposite of the truth, **and it errs toward inaction**.
+⚠️ Maintenance is also **not a silent failure** — it is the loudest state the product has, since every visitor
+gets a 503; the alarm is the only signal that still reaches someone **not looking at the site**, which is
+exactly the person who forgets a park. ⚠️ **So the heartbeats stay maintenance-gated, and a deploy or a park
+WILL page. That cost is accepted, not overlooked** — pinned by `HeartbeatIsMaintenanceGatedTest` so it is
+never "fixed" into a lie.
+
+⚠️ **THE ONE THING THAT MAKES NOISY LIVABLE:** Healthchecks' **grace period must exceed the real deploy
+window**. 🔬 That window's command half is under 15 seconds (L12g), so **any grace ≥ 5 minutes absorbs a
+routine deploy while still catching a forgotten park.** ⚠️ Set it when the ping URL is set — see the founder's
+sitting in `GO-LIVE-REQUIREMENTS.md`.
 
 ### ✅ L12c — a failed job WAS invisible — ⚠️ now raises the alarm (2026-09-20)
 

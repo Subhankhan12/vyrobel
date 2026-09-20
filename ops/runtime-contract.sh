@@ -116,6 +116,53 @@ else
   fail "phpunit.xml no longer pins STRIPE_FAKE=true — the suite could reach real Stripe (#45)"
 fi
 
+# ── ⚠️⚠️ THE `mariadb` DRIVER IS FORBIDDEN — and this is about the DRIVER, not the SERVER ───────────
+#
+# ⚠️⚠️ DO NOT "TIDY" THIS INTO THE MariaDB SERVER CHECK BELOW. They are different things and only one of
+# them is a choice this repository makes:
+#
+#   · the SERVER is whatever the host runs (production runs MariaDB; CI runs genuine MySQL 8);
+#   · the DRIVER is `DB_CONNECTION` in .env — Laravel's `mariadb` driver selects a DIFFERENT SCHEMA GRAMMAR.
+#
+# ⚠️ 🔬 MEASURED 2026-09-20 by running the whole suite once under each driver against the SAME server:
+#      DB_CONNECTION=mysql    → 3,648 pass
+#      DB_CONNECTION=mariadb  → 3,641 pass + 2 ERRORS
+#        SQLSTATE[22007] 1292 Incorrect uuid value: '01M2ZK50D8XW4E674H9XH7SZDY'
+#
+# ⚠️⚠️ WHY: the `mariadb` grammar emits `notifications.id` as a **native UUID column**, and this application
+# writes **ULIDs** into it. The column type and the value type disagree, and every notification insert fails.
+# ⚠️ It fails LOUDLY in the suite, which is the only reason this was caught — but it would fail on the first
+# real notification in production, i.e. on the first invite, booking confirmation or password reset.
+#
+# ⚠️ THE QUESTION IS CLOSED (docs/KNOWN-LIMITS.md L12e): the app talks to MariaDB through the `mysql` driver,
+# and the engine differences that actually needed handling are handled elsewhere — the isolation level is
+# pinned in config/database.php (L12b) and the one-live-payout rule is a pair of triggers (L12a).
+# ⚠️ **Switching the driver to "match the server" is the intuitive move and it is the wrong one.**
+DB_CONNECTION_VALUE="$(grep -E '^DB_CONNECTION=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'"'' | tr -d '[:space:]')"
+if [ -z "${DB_CONNECTION_VALUE}" ]; then
+  note "no .env DB_CONNECTION to read — skipping the driver pin (run this from the application root)"
+elif [ "${DB_CONNECTION_VALUE}" = "mariadb" ]; then
+  fail "DB_CONNECTION=mariadb — the mariadb DRIVER makes notifications.id a native UUID while the app writes ULIDs (1292). Use DB_CONNECTION=mysql even when the SERVER is MariaDB (L12e)"
+elif [ "${DB_CONNECTION_VALUE}" = "mysql" ]; then
+  pass "DB_CONNECTION=mysql — the correct driver, whichever server is behind it (L12e)"
+else
+  fail "DB_CONNECTION=${DB_CONNECTION_VALUE} — this product is built and tested against the mysql driver only"
+fi
+
+# ── ⚠️ AND THE ISOLATION LEVEL MUST STILL BE PINNED BY THE APPLICATION, NOT BY THE HOST ─────────────
+#
+# ⚠️ 🔬 On MariaDB 11.6+ (`innodb_snapshot_isolation=ON`) a competing `SELECT … FOR UPDATE` at REPEATABLE
+# READ aborts with **error 1020** instead of blocking and rejecting — so a legitimate concurrent booking is
+# LOST rather than refused. READ COMMITTED is the only level correct on BOTH engines (L12b). The setting is
+# applied at PDO CONNECT time so it reaches web, artisan, the queue worker and the scheduler alike.
+# ⚠️ `DatabaseIsolationLevelTest` asserts the EFFECTIVE level at runtime; this asserts the CONFIG that
+# produces it, so a deleted config line is caught even on a machine where the host default happens to agree.
+if grep -q 'ATTR_INIT_COMMAND' config/database.php 2>/dev/null; then
+  pass "config/database.php pins the transaction isolation level at connect time (L12b)"
+else
+  fail "config/database.php no longer sets ATTR_INIT_COMMAND — the no-double-booking guarantee would fall back to the HOST's default isolation level (L12b)"
+fi
+
 # ── CI-ONLY additions (NOT part of the production contract — see §7.6) ──────────────────────────────
 if [ "${CI_IMAGE:-0}" = "1" ]; then
   echo "── CI-ONLY (deliberately beyond §7.5 — see §7.6.4) ──────────────"
