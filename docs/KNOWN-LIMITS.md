@@ -508,52 +508,135 @@ currently apply.
 **is not this** — see the scope note there. ⚠️ **Every figure carries its scope; a corrected figure teaches
 more than a vanished one, which is why L12f was re-scoped rather than deleted.**
 
-### ✅ L12k — HOW CODE CAN REACH PRODUCTION WITH A ZERO-SECOND WINDOW — 🔬 MEASURED, three runs
+### ✅ L12k — THE RELEASE LAYOUT — ⚠️⚠️ **ADOPTED 2026-09-20, AND LIVE ON PRODUCTION NOW**
 
-⚠️⚠️ **THIS IS THE ANSWER TO F-67, AND THE TARGET WAS NEVER "A DEPLOY SCRIPT".** It is a number: **how long is
-`/webhooks/stripe` unreachable during an ordinary code change?** Because the handler runs inline, that window
-*is* the Stripe risk. ⚠️ **For a code-only change with no migration, the correct answer is zero — and only
-atomicity buys it.**
+⚠️⚠️ **THE TARGET WAS NEVER "A DEPLOY SCRIPT". IT IS A NUMBER: how long is `/webhooks/stripe` unreachable
+during an ordinary code change?** Because the Stripe handler runs **inline** (L12g), that window *is* the
+Stripe risk. ⚠️ For a code-only change the correct answer is zero, and only atomicity buys it.
 
-🔬 **MEASURED ON THE LIVE HOST 2026-09-20 (DEPLOY 07), site parked throughout** (`/up` is served while parked,
-so the swap could be measured without ever exposing the site):
+⚠️ **THE FOUNDER'S RULING SHAPED IT:** `public_html` **stays a real directory the hosting panel owns**. The
+swap happens one level below, on a symlink the panel knows nothing about.
 
-| what | 🔬 measured |
+```
+~/domains/vyrobel.com/
+  public_html/          ← REAL directory, panel-owned. Holds only four things:
+      .htaccess           rewrites EVERYTHING through current/public
+      .env                (600) — one copy, never per-release
+      storage/            one copy — so the maintenance flag and logs survive a swap
+      artisan             ⚠️ a SHIM (see below), not the application's
+      current  ─────────→ ../releases/rel_<id>      ⚠️ THE ONE POINTER
+  releases/rel_<id>/    ← a whole app: app/ bootstrap/ config/ public/ vendor/ …
+      .env    → ../../public_html/.env
+      storage → ../../public_html/storage
+```
+
+🔬 **MEASURED ON THE LIVE HOST, SITE PARKED THROUGHOUT, EVERY PROBE CACHE-BUSTED (there is a CDN — L12m):**
+
+| | 🔬 |
 |---|---|
-| does LiteSpeed follow a **symlinked docroot**? | **YES** — `GET /up` → 200 through `public_html → releases/rel_A`. |
-| one-time migration, real dir → symlink | **4 ms** |
-| building the next release (`cp -al`, 12,402 files, hardlinks) | **1,165 ms** |
-| the swap itself (`ln -s` + `mv -T`) | **3–4 ms** |
-| ⚠️⚠️ **requests failed across the swap** | **ZERO — 0 non-200 out of 520 probes over three runs** |
-| new code actually serving | within **48 ms – 3,441 ms** |
-| ⚠️⚠️ **deleting the PREVIOUS release immediately** | **60/60 probes → HTTP 500**, still 4/40 ten seconds later |
+| build the next release (`cp -al`, hardlinks) | **861 ms** |
+| ⚠️⚠️ **the swap — ONE `mv -T` of one symlink** | **3 ms** |
+| ⚠️⚠️ **requests failed across the swap** | **0 non-200 of 220** |
+| new release first served | **t+32 ms** |
+| prune the previous release **immediately** | ⚠️⚠️ **60/60 → HTTP 500** |
+| prune the previous release **at +180 s** | ✅ **0/60 failures** |
 
-⚠️⚠️ **SO THE OPERATIONAL RULE, AND IT IS THE ONE THAT WOULD HAVE BEEN GOT WRONG: THE SWAP IS FREE; PRUNING IS
-WHAT BREAKS THE SITE.** Worker processes stay bound to the release they resolved, so removing it pulls the
-files out from under them. **Keep old releases and prune them minutes later**, well past
-`realpath_cache_ttl=120`.
+⚠️⚠️ **ATOMICITY MEANS ONE SWAP, NOT TWO — AND THAT IS WHY THE ASSETS RULE MATTERS.** The `.htaccess` rewrites
+the front controller **and every build asset** through `current/public`. If assets sat *beside* the pointer
+they would need a second move, and the gap between two moves is the original hazard wearing a better name.
 
-⚠️ **THE OPCACHE ANSWER, because an atomic swap that isn't is the same hazard with a better name.** 🔬 Web SAPI
-`litespeed`, PHP **8.4.19**, `opcache.enable=1`, **`opcache.validate_timestamps=1`**, `revalidate_freq=2`,
-**`opcache.revalidate_path=0`**, `realpath_cache_ttl=120`. ⚠️ On paper `revalidate_path=0` + a 120-second
-realpath cache is the classic stale-symlink trap. 🔬 In practice the old release kept serving for at most
-**3.4 s** and **never failed** — so the caches cost a short *staleness* window, not an outage.
+⚠️⚠️ **WHOLLY INTO ONE RELEASE, NEVER PARTLY INTO TWO.** Each release is a separate directory tree, so a
+request resolves entirely into one of them: the marker read coherently `REL_A` or `REL_B` and never anything
+between. ⚠️ **A late deploy, not a mixed one** — which is exactly the property a file-by-file upload over a
+live app cannot offer, since there a single request really can read half-old, half-new code on the money path.
+⚠️ Stated precisely: this is a structural argument (one realpath tree per release) plus a consistent
+measurement — **a single marker file evidences per-request coherence rather than proving it exhaustively.**
 
-⚠️⚠️ **AND THE PART THAT MATTERS FOR MONEY: each release is its own directory tree, so a request resolves
-wholly into one release or the other.** That is the difference from a file-by-file upload over a live app,
-where a single request can read **half-old, half-new** code on the money path. 🔬 The marker read coherently
-`REL_A` or `REL_B` and never anything in between — ⚠️ though a single marker file evidences per-request
-coherence rather than proving it exhaustively.
+### ⚠️⚠️ THE RETENTION FLOOR IS A MEASURED NUMBER, NOT A COUNT OF RELEASES
 
-⚠️ **NO GIT REMOTE IS REQUIRED.** The release directory is populated by the same file upload used today
-(`cp -al` the current release, overlay the changed files, swap). ⚠️ `vendor/` can be built **on the server**
-— 🔬 `composer install` is rc=0 in **5.63 s** under `/opt/alt/php84/usr/bin/php` — but `public/build` must
-still be built locally and shipped, because **node and npm are not installed** (L12h).
+⚠️⚠️ **THE SWAP IS FREE; PRUNING IS WHAT BREAKS THE SITE.** Workers stay bound to the release they resolved,
+so deleting it pulls the files out from under them. ⚠️ The binding constraint is **not** process lifetime —
+🔬 the oldest `lsphp` aged 180 s → 360 s across the experiment **without ever being recycled**, so waiting for
+processes to die would wait forever. What actually expires is the **`realpath_cache_ttl` of 120 s**, after
+which a process re-resolves the path.
 
-⚠️⚠️ **NOT ADOPTED IN THIS PASS — DELIBERATELY.** Converting `public_html` from a directory to a symlink is a
-change to how this product is released and to a path the hosting panel owns; whether the panel preserves a
-symlinked docroot across its own operations is **not something this session can measure**. ⚠️ The mechanism is
-proven; the decision to adopt it is the founder's.
+> ⚠️ **PRUNE NO SOONER THAN 180 SECONDS AFTER A SWAP** — above the 120 s realpath TTL and above the 60 s
+> worker-cron cycle. 🔬 Proven safe by running it: **0 failures of 60**, against **60/60 HTTP 500** when done
+> immediately. ⚠️ Keep at least the previous release on disk until then.
+
+### ⚠️ THREE THINGS THAT HAD TO BE RIGHT, AND ALL THREE WERE FOUND BY MEASUREMENT, NOT BY READING
+
+1. ⚠️ **`Options +FollowSymLinks` IS REQUIRED.** A symlinked *docroot* is followed; a symlink **inside** the
+   served tree is not, without it. 🔬 Attempt 1 returned **404 for every application route**.
+2. ⚠️⚠️ **LARAVEL'S COMPILED CACHES BAKE ABSOLUTE PATHS.** 🔬 `bootstrap/cache/config.php` named the old root
+   **21 times**; with the app moved, the framework **500'd** while `/login` still correctly served its 503
+   (because maintenance short-circuits before the framework boots — so the failure hid behind a page that
+   looked right). ⚠️ **Every release must have its caches rebuilt in place after it is positioned.**
+3. ⚠️⚠️ **THE PANEL CRON IS HARDCODED TO `public_html/artisan`, AND THE MIGRATION KILLED IT SILENTLY.**
+   🔬 The scheduler logged `Could not open input file: …/public_html/artisan` every minute while the website
+   looked perfectly healthy — and that cron drives the **14-day GDPR erasure** and the **30-day ID purge**.
+   ⚠️ The panel owns those entries and a session cannot read or edit them, which is why the fix is a **shim**
+   at `public_html/artisan` that does `require __DIR__.'/current/artisan';` — resolving through the *same*
+   pointer, so a deploy stays one operation. 🔬 Proven by the log turning back into
+   `INFO No scheduled commands are ready to run.` — a positive artefact, not an absent error.
+
+### ⚠️ HOW TO DEPLOY INTO THIS LAYOUT
+
+1. `cp -al releases/<current> releases/rel_<new>` — hardlinks, ~0.9 s.
+2. Upload changed files into `releases/rel_<new>` (and `public/build`, which must still be built off-host —
+   **node and npm are not installed here**, L12h).
+3. Re-point the shared symlinks and rebuild that release's caches **in place** (item 2 above).
+4. `ln -s ../releases/rel_<new> public_html/current.tmp && mv -T public_html/current.tmp public_html/current`
+   — ⚠️ the whole deploy, and the only atomic step.
+5. ⚠️ **Wait ≥180 s, then** prune older releases.
+6. ⚠️ **A MIGRATION IS NOT THIS.** See the scope note below.
+
+⚠️ **TO REVERT THE LAYOUT ENTIRELY:** move the release's contents back into `public_html`, delete `current`
+and the `artisan` shim, restore the previous `.htaccess`, and rebuild the caches in place.
+
+### ⚠️⚠️ SCOPE IT HONESTLY — THIS IS NARROWER THAN IT SOUNDS
+
+⚠️⚠️ **L12k MAKES A CODE-ONLY DEPLOY ZERO SECONDS. A SCHEMA CHANGE STILL PARKS THE SITE — AND THAT IS NOW
+WHERE THE STRIPE EXPOSURE LIVES.** L12j does not go away; it **narrows to migration deploys**.
+
+⚠️ The direction that would close it is **expand-then-contract migrations** — every step backward-compatible,
+so each deploy is code-only and the schema change never needs a park. ⚠️ **Named here, deliberately NOT built:
+it is a change to how every future migration is written, and that is a decision, not a task.**
+
+### ⚠️⚠️ L12m — THERE IS A CDN IN FRONT OF PRODUCTION, AND NOTHING IN THIS REPOSITORY KNEW
+
+⚠️⚠️ **DISCOVERED 2026-09-20 (DEPLOY 08) BY READING RESPONSE HEADERS, NOT BY LOOKING FOR IT.** Production is
+fronted by Hostinger's CDN: `server: hcdn` · `platform: hostinger` · `x-hcdn-cache-status` ·
+`x-hcdn-request-id: …-dus-edge1`. ⚠️ It appears in no deployment document, no runbook and no configuration
+this project owns.
+
+⚠️ **HOW IT FOUND ITSELF.** A botched layout change made `/` emit a **301** for a few seconds. The CDN cached
+it — 301s are cacheable by definition — and replayed it for **minutes afterwards with `age` climbing**, long
+after the origin was serving correctly again. 🔬 `/` returned 301 on 22 of 24 probes while
+`/?cb=<unique>` returned **503** every time. ⚠️ Killing the PHP workers did nothing; rewriting `.htaccess` did
+nothing; **because the origin was never wrong.**
+
+🔬 **WHAT IS AND IS NOT CACHED, measured from the headers:**
+
+| | 🔬 |
+|---|---|
+| Laravel dynamic responses (`/up`, `/login`, the 503) | `cache-control: no-cache, private` → **`x-hcdn-cache-status: DYNAMIC`** — never cached |
+| webhook **POST**s | not cached |
+| static assets (`/favicon.ico`, `/robots.txt`, build output) | `cache-control: public, max-age=604800` → **HIT/MISS — cached for 7 days** |
+
+⚠️⚠️ **THE METHOD CONSEQUENCE, AND IT IS THE IMPORTANT ONE: ANY MEASUREMENT TAKEN THROUGH `https://vyrobel.com`
+IS MEASURING THE CDN UNLESS THE RESPONSE IS `DYNAMIC` OR THE REQUEST IS CACHE-BUSTED.** A pass that probes
+production and banks the result has, without knowing it, measured an edge node.
+
+✅ **AND THE ONE THAT HAD TO BE RE-CHECKED:** DEPLOY 07's headline *"0 failed requests of 520"* was taken
+against `/up`. 🔬 Re-verified after the discovery: `/up` is `no-cache, private` → **DYNAMIC**, so every one of
+those probes reached the origin. **The number stands.** ⚠️ It was luck, not design — the probe happened to be
+the one route the CDN will not cache.
+
+⚠️ **THE DEPLOY CONSEQUENCE:** after a release swap, an **unhashed** static asset can be served from the
+previous release for up to **7 days**. ⚠️ Vite build output is content-hashed, so a new release produces new
+filenames and is immune; `favicon.ico` and `robots.txt` are not, and staleness there is harmless. ⚠️ **But
+anything unhashed added to `public/` later inherits this**, and nobody would notice.
 
 ### ⚠️ L12i — THE ALARM SHARES THE MAINTENANCE SWITCH WITH THE WORK IT WATCHES — ruled NOISY, on purpose
 

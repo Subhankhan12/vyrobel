@@ -38,6 +38,21 @@ for the measurements behind S1.
 > the site while it is parked: `https://vyrobel.com/<the-contents-of-that-file>` sets the bypass cookie.
 > ⚠️ Nobody needs to hand it to anyone, and no session should ever be given it.
 
+> ### ⚠️ THE DATABASE PASSWORD — a panel action, and NOT a fourth sitting item
+>
+> ⚠️ The database password reached a working transcript, so it should be rotated in hPanel when convenient.
+> ⚠️⚠️ **ROTATING IT IN THE PANEL IS NOT SUFFICIENT ON ITS OWN — 🔬 two other files on the host hold the
+> current value**, and a rotation that misses them leaves the app broken or still carrying the old secret:
+>
+> | where | mode | what to do after rotating |
+> |---|---|---|
+> | `~/domains/vyrobel.com/public_html/.env` | `600` | update `DB_PASSWORD` |
+> | `~/domains/vyrobel.com/releases/<current>/bootstrap/cache/config.php` | `644` | ⚠️ **regenerate** — `php artisan config:cache`. It is a *compiled copy* of `.env`, so editing `.env` alone leaves the old value live. 🔬 Not web-reachable (`/bootstrap/cache/config.php` → **404**, verified by fetch), but it is `644` on a shared host. |
+> | `~/.my.cnf` | `600` | update it, or the `mysql` CLI stops working |
+>
+> ⚠️ **No session should be given the new value, and none has been asked for.** The check that matters
+> afterwards is simply that the app still connects — 🔬 `DB reachable: YES, tables=139` today.
+
 ### ⚠️⚠️ AND THE REASON S1 GATES THE PAYMENT CUTOVER — with one premise CORRECTED
 
 ⚠️ The live-payments gate was held on two conditions. **One is satisfied and one is not:**
