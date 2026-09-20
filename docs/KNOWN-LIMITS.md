@@ -270,6 +270,72 @@ with the row they wrote recorded — is **five individually named** plus **two c
 
 ⚠️ **A percentage would be a number nobody could reconstruct, which is worse than no number at all.**
 
+## L12 · ⚠️⚠️ THE PRODUCTION HOST IS NOT THE VERIFIED ARCHITECTURE — three substitutions, measured
+
+⚠️⚠️ **`vyrobel.com` runs on Hostinger SHARED hosting. Three things differ from the stack every one of this
+programme's 3,652 tests was certified against, and each is recorded here because none of them can be fixed by
+configuration.** 🔬 Measured 2026-09-20 (DEPLOY 02).
+
+| verified architecture | what production actually runs |
+|---|---|
+| MySQL 8 (InnoDB) | **MariaDB 11.8.9** |
+| Redis + Horizon, supervised worker | **database queue**, `queue:work --stop-when-empty` from a per-minute cron |
+| Redis cache + sessions | **file** cache + **file** sessions |
+
+⚠️ **THE SUITE WAS RE-RUN AGAINST MariaDB 11.8.9 AND LARGELY HOLDS** — 🔬 **3,648 of 3,652 passed** at
+production's isolation level, against the MySQL 8 control's 3,651. Every difference is accounted for below.
+
+### ⚠️⚠️ L12a — the one-live-payout DATABASE constraint CANNOT EXIST on MariaDB
+
+🔬 `CREATE UNIQUE INDEX payouts_one_live_per_statement` fails with **MariaDB error 1901**: the
+`CASE WHEN status IN (…) THEN owner_statement_id ELSE NULL END` generated column cannot be indexed. Tested as
+`VIRTUAL`, as `PERSISTENT`, and rewritten as `IF()` — **MariaDB refuses all three.**
+
+⚠️ **The migration's column IS created and its index is NOT**, and the migration's own `hasColumn` guard makes
+a re-run **skip silently and report "Ran"** — so the guard looks installed and is not.
+
+⚠️ **What still protects the payout path:** `OwnerPayoutService::pay()`/`retry()`/`createFromStatement()` row-lock
+and re-check inside the lock, and the Stripe rail's deterministic idempotency key. **Two layers of three.** The
+missing one is the layer that catches a caller bypassing the service — and ⚠️ **the product cannot un-pay an
+owner** (`reverse()` is quarantined by ruling).
+
+### ⚠️⚠️ L12b — the no-double-booking guarantee depends on a HOST SETTING NOBODY PINNED
+
+🔬 **On MariaDB at REPEATABLE READ the concurrency tests FAIL** — `SELECT … FOR UPDATE` raises
+**error 1020 "Record has changed since last read"** instead of blocking and cleanly rejecting, because
+MariaDB 11.6+ ships `innodb_snapshot_isolation=ON`. 🔬 **At READ COMMITTED all 17 concurrency tests PASS.**
+
+⚠️⚠️ **Production is READ COMMITTED — and that is a Hostinger GLOBAL server default. The application sets it
+nowhere.** MySQL 8's default (the certified configuration) is REPEATABLE READ. ⚠️ **If that host default ever
+changes, or the app moves to another MariaDB box, the booking path starts throwing raw database errors where it
+used to refuse gracefully** — and one case (`DeadlockAvoidanceTest`) turns a legitimate booking into a failure.
+⚠️ **Nothing in the repository pins this.**
+
+### ⚠️ L12c — a failed job is invisible
+
+🔬 Failed jobs land in `failed_jobs` (so they are not lost), but **Horizon cannot run** (`horizon:status` →
+*Connection refused*, no Redis), **no route surfaces them**, and 🔬 `OPS_HEARTBEAT_PING_URL` is **unset**, so
+there is no external dead-man's switch either. ⚠️ **A failed payment webhook would sit in a table nobody looks
+at.** The in-app heartbeats exist (queue stale after 900s) but nothing watches them from outside.
+
+### ⚠️ L12d — the reboot test is UNPROVABLE on this host
+
+⚠️ Not passed, not skipped — **impossible**. Shared hosting, no root, no systemd. Whether the app returns
+cleanly after an unplanned restart **cannot be exercised here** and stays unknown.
+
+### ⚠️ Other measured host constraints
+
+🔬 The database user **cannot `CREATE DATABASE`** (error 1044) — it can DROP/CREATE its own tables, so
+`migrate:fresh` works inside the one database, but a second scratch database needs hPanel. 🔬
+`max_user_connections 75` · `MAX_STATEMENT_TIME 120s` · ⚠️ **`wait_timeout 20s`**. 🔬 `ext-sodium` had to be
+enabled by hand before `composer install` would run at all.
+
+⚠️ **What did NOT differ, and was measured rather than assumed:** the collation (🔬 `config/database.php` pins
+`utf8mb4_unicode_ci`, which both engines implement identically — same sort order, same case/accent equality) ·
+`sql_mode` (🔬 Laravel sets `STRICT_TRANS_TABLES` per connection, so a bad amount is **rejected, not
+truncated**) · JSON (🔬 43 CHECK constraints enforce validity; every JSON path test passed) · and the money
+gate's digest (🔬 it sorts in **PHP**, not SQL, so collation cannot move it).
+
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some
