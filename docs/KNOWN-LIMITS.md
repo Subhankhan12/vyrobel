@@ -470,10 +470,90 @@ app **DOWN** rather than publishing a half-migrated site. ⚠️⚠️ **But the
 it does not have** — the same shape as the generated-column index and the stray `_e` table: *a guarantee that
 reads as installed and is not.* The rollback hint the operator is meant to see is never printed either.
 
-⚠️ **NOT FIXED IN THIS PASS — DELIBERATELY.** Whether `ops/deploy.sh` should be made to work here (a git
-checkout on production? a prebuilt-asset step? the 8.4 binary pinned?) or retired in favour of the documented
-manual procedure is a **founder decision about how this product is released**, not a bug to patch mid-audit.
-⚠️⚠️ **Until it is taken, `ops/deploy.sh` must not be run against this host.**
+⚠️ **NOT FIXED — DELIBERATELY, TWICE.** Whether `ops/deploy.sh` should be made to work here or retired in
+favour of a release-directory procedure is a **founder decision about how this product is released**, not a
+bug to patch mid-audit. ⚠️⚠️ **Until it is taken, `ops/deploy.sh` must not be run against this host** — which
+is why the script now **refuses to run** rather than being quietly "fixed" into something that looks runnable.
+⚠️ **A script documenting a recovery it does not have is worse than no script**, and that is precisely what
+F-67 is.
+
+⚠️⚠️ **AND DO NOT "FIX" THE TRAP BY ADDING `-E` ALONE — IT MAKES THINGS WORSE.** 🔬 Without `errtrace` the
+trap never fires and a failed deploy leaves the app **down**, which is the safe outcome. Adding `-E` would
+make the trap fire and do exactly what its comment promises: `php artisan up`, **publishing a site whose code
+is new and whose schema and caches are not.** ⚠️ The comment is the thing that is wrong, not the flag.
+
+⚠️ **THE "HOW" IS ANSWERED SEPARATELY AND IT IS MEASURED — see L12k.** A release directory plus a symlink swap
+costs **zero failed requests** on this host and needs **no git remote**.
+
+### ⚠️⚠️ L12j — THE ASYMMETRY: STRIPE'S PATIENCE IS BOUNDED, A PARK IS NOT. THIS IS THE RISK STATEMENT.
+
+⚠️⚠️ **IF ONE ROW FROM THIS FILE EVER REACHES A FOUNDER, MAKE IT THIS ONE.**
+
+> 📖 **Stripe's automatic retry is BOUNDED — *"up to three days"* in live mode, and only *"three times over
+> the course of a few hours"* in a sandbox. A maintenance park is UNBOUNDED: nothing in this product ends one,
+> warns about one, or caps one. ⚠️⚠️ A park that outlasts the retry window loses those events PERMANENTLY from
+> automatic delivery — recoverable only by MANUAL resend, within 15 days from the Dashboard or 30 days from
+> the CLI, by someone who first has to work out that it happened at all.**
+
+⚠️ **📖 NOT 🔬 — deliberately.** Those durations are Stripe's own documentation (`docs.stripe.com/webhooks`,
+read 2026-09-20). Nothing in this project has ever watched a real delivery exhaust its retries. ⚠️ Treat the
+three days as a *documented intention of a third party*, not as a measurement this project owns.
+
+⚠️⚠️ **AND THE MODE MATTERS MORE THAN THE NUMBER:** `STRIPE_FAKE=true` and `PAYMENTS_GATEWAY=manual` — this
+deployment is in **exactly the mode with the SHORT window**. The reassuring figure is the one that does not
+currently apply.
+
+⚠️ **WHY IT BITES HERE SPECIFICALLY:** the handler is **inline** (L12g), so a parked site loses the event
+*before any record exists*. The queue's ≈60-second worst case (L12f) is a real figure about a real thing and
+**is not this** — see the scope note there. ⚠️ **Every figure carries its scope; a corrected figure teaches
+more than a vanished one, which is why L12f was re-scoped rather than deleted.**
+
+### ✅ L12k — HOW CODE CAN REACH PRODUCTION WITH A ZERO-SECOND WINDOW — 🔬 MEASURED, three runs
+
+⚠️⚠️ **THIS IS THE ANSWER TO F-67, AND THE TARGET WAS NEVER "A DEPLOY SCRIPT".** It is a number: **how long is
+`/webhooks/stripe` unreachable during an ordinary code change?** Because the handler runs inline, that window
+*is* the Stripe risk. ⚠️ **For a code-only change with no migration, the correct answer is zero — and only
+atomicity buys it.**
+
+🔬 **MEASURED ON THE LIVE HOST 2026-09-20 (DEPLOY 07), site parked throughout** (`/up` is served while parked,
+so the swap could be measured without ever exposing the site):
+
+| what | 🔬 measured |
+|---|---|
+| does LiteSpeed follow a **symlinked docroot**? | **YES** — `GET /up` → 200 through `public_html → releases/rel_A`. |
+| one-time migration, real dir → symlink | **4 ms** |
+| building the next release (`cp -al`, 12,402 files, hardlinks) | **1,165 ms** |
+| the swap itself (`ln -s` + `mv -T`) | **3–4 ms** |
+| ⚠️⚠️ **requests failed across the swap** | **ZERO — 0 non-200 out of 520 probes over three runs** |
+| new code actually serving | within **48 ms – 3,441 ms** |
+| ⚠️⚠️ **deleting the PREVIOUS release immediately** | **60/60 probes → HTTP 500**, still 4/40 ten seconds later |
+
+⚠️⚠️ **SO THE OPERATIONAL RULE, AND IT IS THE ONE THAT WOULD HAVE BEEN GOT WRONG: THE SWAP IS FREE; PRUNING IS
+WHAT BREAKS THE SITE.** Worker processes stay bound to the release they resolved, so removing it pulls the
+files out from under them. **Keep old releases and prune them minutes later**, well past
+`realpath_cache_ttl=120`.
+
+⚠️ **THE OPCACHE ANSWER, because an atomic swap that isn't is the same hazard with a better name.** 🔬 Web SAPI
+`litespeed`, PHP **8.4.19**, `opcache.enable=1`, **`opcache.validate_timestamps=1`**, `revalidate_freq=2`,
+**`opcache.revalidate_path=0`**, `realpath_cache_ttl=120`. ⚠️ On paper `revalidate_path=0` + a 120-second
+realpath cache is the classic stale-symlink trap. 🔬 In practice the old release kept serving for at most
+**3.4 s** and **never failed** — so the caches cost a short *staleness* window, not an outage.
+
+⚠️⚠️ **AND THE PART THAT MATTERS FOR MONEY: each release is its own directory tree, so a request resolves
+wholly into one release or the other.** That is the difference from a file-by-file upload over a live app,
+where a single request can read **half-old, half-new** code on the money path. 🔬 The marker read coherently
+`REL_A` or `REL_B` and never anything in between — ⚠️ though a single marker file evidences per-request
+coherence rather than proving it exhaustively.
+
+⚠️ **NO GIT REMOTE IS REQUIRED.** The release directory is populated by the same file upload used today
+(`cp -al` the current release, overlay the changed files, swap). ⚠️ `vendor/` can be built **on the server**
+— 🔬 `composer install` is rc=0 in **5.63 s** under `/opt/alt/php84/usr/bin/php` — but `public/build` must
+still be built locally and shipped, because **node and npm are not installed** (L12h).
+
+⚠️⚠️ **NOT ADOPTED IN THIS PASS — DELIBERATELY.** Converting `public_html` from a directory to a symlink is a
+change to how this product is released and to a path the hosting panel owns; whether the panel preserves a
+symlinked docroot across its own operations is **not something this session can measure**. ⚠️ The mechanism is
+proven; the decision to adopt it is the founder's.
 
 ### ⚠️ L12i — THE ALARM SHARES THE MAINTENANCE SWITCH WITH THE WORK IT WATCHES — ruled NOISY, on purpose
 

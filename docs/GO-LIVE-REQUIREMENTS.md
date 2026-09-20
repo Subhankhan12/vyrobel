@@ -26,6 +26,18 @@
 ⚠️ **Nothing else is added to this sitting.** Three items, one sitting — see `docs/KNOWN-LIMITS.md` L12g/L12i
 for the measurements behind S1.
 
+> ### ⚠️ THE MAINTENANCE BYPASS SECRET IS **NOT** A FOURTH ITEM — it is already done
+>
+> ⚠️ The old secret had been printed into a working transcript, so it was **rotated on 2026-09-20**. The new
+> one was generated on the server, **never echoed and never passed as a shell argument** (it would have landed
+> in shell history and the process list — the same mistake in a new place). 🔬 Verified with a positive
+> control: the **old** secret as a path now returns **503**, the **new** one returns **302**, and a random
+> path returns 503.
+>
+> ⚠️ **It is in `~/vyrobel-bypass-secret.txt` on the server, mode `600`.** Read it there when you need to reach
+> the site while it is parked: `https://vyrobel.com/<the-contents-of-that-file>` sets the bypass cookie.
+> ⚠️ Nobody needs to hand it to anyone, and no session should ever be given it.
+
 ### ⚠️⚠️ AND THE REASON S1 GATES THE PAYMENT CUTOVER — with one premise CORRECTED
 
 ⚠️ The live-payments gate was held on two conditions. **One is satisfied and one is not:**

@@ -56,6 +56,52 @@ run()   { if [ "${DRY_RUN}" = "1" ]; then printf '  [dry-run] %s\n' "$*"; else e
 # Read config from .env rather than duplicating it — the same helper ops/backup.sh uses.
 env_get() { grep -E "^${1}=" "${APP_DIR}/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'"'' ; }
 
+# ── ⚠️⚠️ F-67 PREFLIGHT — THIS SCRIPT REFUSES RATHER THAN HALF-DEPLOYING ────────────────────────────
+#
+# ⚠️⚠️ **A SCRIPT THAT DOCUMENTS A RECOVERY IT DOES NOT HAVE IS WORSE THAN NO SCRIPT.** That is F-67, and it
+# was not hypothetical: 🔬 on the host this product is actually deployed to (2026-09-20), FOUR of the twelve
+# steps below cannot execute —
+#
+#   step 4/12  `git fetch`                     → rc=128, "not a git repository". ⚠️ Production has NO `.git`;
+#                                                 the code was placed by FILE UPLOAD. `git pull`, `PREV_SHA`
+#                                                 and `--rollback-to` all rest on something that isn't there.
+#   step 5/12  `composer install`              → rc=2 under the host's default `php` (8.3.33 vs `^8.4.1`).
+#   step 6/12  `npm ci` / `npm run build`      → ⚠️ node and npm are NOT INSTALLED.
+#   step 10/12 `(crontab -l …) | crontab -`    → `crontab: command not found`; the crons are panel-managed.
+#
+# ⚠️⚠️ AND THE `trap … ERR` INSTALLED BELOW HAS NEVER FIRED AND CANNOT: `set -euo pipefail` omits `-E`, and
+# bash does not inherit an ERR trap into the `run()` function. 🔬 Mutation-proved. ⚠️ **Do NOT "fix" that by
+# adding `-E`** — without it a failure leaves the app DOWN, which is the safe outcome; with it the trap would
+# do what its comment promises and bring a HALF-MIGRATED site back UP. The comment is wrong, not the flag.
+#
+# ⚠️ The measured alternative that DOES work on this host — a release directory plus a symlink swap, zero
+# failed requests, no git remote required — is `docs/KNOWN-LIMITS.md` **L12k**. Adopting it is the founder's
+# decision, so this script does not pretend to implement it.
+#
+# ⚠️ The override exists for the machine this script WAS written for (a git checkout with node and composer
+# on a matching PHP). It is deliberately awkward: you must assert, in an env var, that you checked.
+if [ "${DEPLOY_I_HAVE_VERIFIED_THIS_HOST:-0}" != "1" ]; then
+  MISSING=""
+  [ -d "${APP_DIR}/.git" ]                        || MISSING="${MISSING}\n    · no .git — this deployment is not a git checkout (step 4/12 cannot run)"
+  command -v npm  >/dev/null 2>&1                 || MISSING="${MISSING}\n    · no npm — assets cannot be built here (step 6/12 cannot run)"
+  command -v crontab >/dev/null 2>&1              || MISSING="${MISSING}\n    · no crontab — the scheduler cron cannot be installed (step 10/12 cannot run)"
+  php -r 'exit(version_compare(PHP_VERSION, "8.4.1", ">=") ? 0 : 1);' 2>/dev/null \
+                                                  || MISSING="${MISSING}\n    · \`php\` on PATH is $(php -r 'echo PHP_VERSION;' 2>/dev/null || echo unknown), below the ^8.4.1 floor (step 5/12 cannot run)"
+
+  if [ -n "${MISSING}" ]; then
+    printf '\n\033[31m✖ ops/deploy.sh REFUSES TO RUN ON THIS HOST (F-67).\033[0m\n' >&2
+    printf '\n  This script would go DOWN, place new code, and then die partway — leaving production\n' >&2
+    printf '  in maintenance with new code, an un-migrated schema and stale compiled caches.\n' >&2
+    printf '  Refusing is the honest outcome; half-deploying is not.\n' >&2
+    printf '\n  What is missing here:%b\n' "${MISSING}" >&2
+    printf '\n  ⚠️ The measured working alternative on this host is docs/KNOWN-LIMITS.md L12k\n' >&2
+    printf '     (release directory + symlink swap — zero failed requests, no git remote needed).\n' >&2
+    printf '  ⚠️ If you are on a host this script WAS designed for, re-run with\n' >&2
+    printf '     DEPLOY_I_HAVE_VERIFIED_THIS_HOST=1 — and read F-67 before you do.\n\n' >&2
+    exit 4
+  fi
+fi
+
 # ── ROLLBACK MODE ────────────────────────────────────────────────────────────────────────────────
 if [ -n "${ROLLBACK_TO}" ]; then
   step "ROLLBACK — reverting code to ${ROLLBACK_TO}"
