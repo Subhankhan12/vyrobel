@@ -342,7 +342,64 @@ checking MySQL at that level would have been the same mistake that created this,
 🔬 It is the only level correct on both engines. ⚠️ Pinned by `DatabaseIsolationLevelTest`, mutation-proved,
 and recorded as **F-65**. ⚠️ `DB_TRANSACTION_ISOLATION` can override it, but the pin will go red if it does.
 
-### ⚠️ L12c — a failed job is invisible
+### ✅ L12e — the `mariadb` DRIVER IS THE WRONG ANSWER — ⚠️ QUESTION CLOSED, DO NOT SWITCH
+
+⚠️ Production runs `DB_CONNECTION=mysql` (`MySqlGrammar`) against MariaDB, and it looked like using Laravel's
+dedicated `mariadb` driver would be more correct. 🔬 **Measured 2026-09-20 — it is not.** Full suite on
+MariaDB 11.8.9 at READ COMMITTED, both drivers, same commit and seed:
+
+| driver | result |
+|---|---|
+| `mysql` (what production uses) | **3,648 pass** (3 failures, separately explained) |
+| `mariadb` | **3,641 pass + 2 NEW ERRORS** |
+
+⚠️⚠️ **The two new errors are real and would break production.** The `mariadb` grammar creates
+`notifications.id` as MariaDB's **native `UUID` column type**, and this application writes **ULIDs**:
+
+```
+1292 Incorrect uuid value: '01M2ZK50D8XW4E674H9XH7SZDY' for column notifications.id
+```
+
+⚠️ **Switching the driver would stop notifications from being written at all.** The question is closed, not
+carried: **stay on `mysql`.**
+
+### ✅ L12f — the queue's worst-case latency is ~60 SECONDS — ⚠️ and UNBOUNDED while maintenance is on
+
+⚠️ There is no supervisor and no Horizon. 🔬 The lifecycle, measured rather than read from the crontab: a
+per-minute cron starts `queue:work --stop-when-empty --max-time=55`, which **boots, drains and exits in
+~3.3 seconds** (3 runs: 3325 / 3286 / 3297 ms). 🔬 The cron interval is **exactly 60s** (heartbeats observed
+at 09:52:02 → 09:53:02).
+
+⚠️⚠️ **SO A JOB DISPATCHED JUST AFTER THE WORKER EXITS WAITS FOR THE NEXT TICK — WORST CASE ≈ 60 SECONDS.**
+That is the latency a **payment webhook** could experience between Stripe's callback and the booking actually
+completing. ⚠️ Acceptable for a hotel booking; it must be a deliberate acceptance, not a surprise.
+
+⚠️⚠️ **AND THE EXCEPTION THAT MATTERS: WHILE MAINTENANCE MODE IS ON, IT IS UNBOUNDED.** 🔬 Laravel pauses
+`queue:work` when the app is down, and the cron runs it **without `--force`** — so nothing is processed at
+all. ⚠️ A payment taken during a maintenance window would never complete. **Lift maintenance before enabling
+payments, or add `--force` deliberately and understand what that means during a deploy.**
+
+### ✅ L12c — a failed job WAS invisible — ⚠️ now raises the alarm (2026-09-20)
+
+⚠️ **Fixed by routing it through the channel that already rings, rather than a screen nobody opens.** The
+per-minute scheduler heartbeat now **throws when `failed_jobs` is non-empty**, which suppresses the
+success-ping, which lets the external check's grace period lapse, which sends the alert.
+
+⚠️ **THRESHOLD: ANY failed job.** With zero customers every failure is worth waking for; raising it later is a
+decision with a number, not a default.
+
+🔬 **Proven both directions in one run:** empty → heartbeat beats · one failed row → **beat suppressed AND the
+exception logged** (proven by a new log entry, not merely by an absent beat) · cleared → beats again.
+
+⚠️⚠️ **THE ALERT TRAVELS THROUGH THE EXTERNAL CHECK'S OWN MAIL, NOT POSTMARK — AND THAT IS THE POINT, NOT AN
+OVERSIGHT.** An alarm delivered through the product's own mail would go silent exactly when the mail went
+silent, which is when it is needed most. ⚠️ **AN ALARM THAT SHARES A FAILURE MODE WITH THE THING IT WATCHES IS
+NOT AN ALARM. Do not "tidy" this onto Postmark.**
+
+⛔ **STILL INERT: `OPS_HEARTBEAT_PING_URL` is unset**, so no ping is attempted and nothing pretends one was.
+⚠️ **The alarm has never been heard to ring.** Until it has, this is a configuration setting, not a safeguard.
+
+### ⚠️ L12c-old — the original finding, for the record
 
 🔬 Failed jobs land in `failed_jobs` (so they are not lost), but **Horizon cannot run** (`horizon:status` →
 *Connection refused*, no Redis), **no route surfaces them**, and 🔬 `OPS_HEARTBEAT_PING_URL` is **unset**, so

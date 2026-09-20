@@ -4,6 +4,7 @@ use App\Jobs\Ops\QueueHeartbeatJob;
 use App\Support\Ops\Heartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -79,7 +80,31 @@ Schedule::command('retention:prune')->dailyAt('04:00');
 // ⛔ CLOSING THAT IS A FOUNDER DECISION, deliberately not taken here: an `->onFailure()` hook on each of
 // the nine (pinging the same dead-man's-switch on a /fail endpoint), or log-based alerting.
 // ─────────────────────────────────────────────────────────────────────────────────────────────────
-Schedule::call(fn () => Heartbeat::beat(Heartbeat::SCHEDULER))
+Schedule::call(function (): void {
+    // ⚠️⚠️ A FAILED JOB RAISES THE ALARM — THROUGH THE CHANNEL THAT ALREADY RINGS, NOT A NEW SCREEN.
+    //
+    // ⚠️ With no Redis there is no Horizon, so a failed job lands in `failed_jobs` and NOTHING surfaces it.
+    // 🔬 Measured: `horizon:status` returns "Connection refused" and no route lists failed jobs. ⚠️ Payments
+    // fulfil on a webhook that queues work — so a failed payment webhook would sit in a table nobody opens.
+    //
+    // ⚠️⚠️ A DASHBOARD COUNT ONLY WORKS IF SOMEBODY OPENS THE DASHBOARD. Throwing here means the success-ping
+    // below does NOT fire, the external check's grace period lapses, and the alert arrives by itself. One
+    // mechanism, already proven to ring, and nobody has to remember to look.
+    //
+    // ⚠️ THRESHOLD: ANY failed job. With zero customers every failure is worth waking up for. ⚠️ If that ever
+    // becomes noisy, raising it is a decision WITH A NUMBER, not a default — and the number belongs here.
+    $failed = DB::table('failed_jobs')->count();
+
+    if ($failed > 0) {
+        throw new RuntimeException(
+            "{$failed} job(s) in failed_jobs — the queue is dropping work. Inspect with `php artisan "
+            .'queue:failed`, fix the cause, then `queue:retry all` (or `queue:flush` once understood). '
+            .'This deliberately suppresses the heartbeat ping so the external check alerts.'
+        );
+    }
+
+    Heartbeat::beat(Heartbeat::SCHEDULER);
+})
     ->everyMinute()
     ->name('ops-scheduler-heartbeat')
     ->withoutOverlapping()
