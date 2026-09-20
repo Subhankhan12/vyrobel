@@ -485,6 +485,26 @@ is new and whose schema and caches are not.** ⚠️ The comment is the thing th
 ⚠️ **THE "HOW" IS ANSWERED SEPARATELY AND IT IS MEASURED — see L12k.** A release directory plus a symlink swap
 costs **zero failed requests** on this host and needs **no git remote**.
 
+> ### ⚠️⚠️ AND THE PART THAT IS STILL TRUE ON THE SERVER: THE REFUSAL IS IN THE REPOSITORY, NOT ON PRODUCTION
+>
+> 🔬 Measured 2026-09-20 (DEPLOY 08): production's `ops/deploy.sh` is **dated 2026-08-30, 14,418 bytes, and
+> contains the F-67 refusal ZERO times** — the repository's is 18,164 bytes and contains it. `ops/proc-check.sh`
+> and `ops/secret-scan.sh` **are not on the server at all**. ⚠️ **So a person who SSHes in and runs
+> `ops/deploy.sh` there still gets the original, dangerous script**, which goes down, places code and dies
+> partway.
+>
+> ⚠️⚠️ **THE WIDER FACT, AND IT IS THE ONE WORTH CARRYING: PRODUCTION IS NOT A KNOWN VERSION OF THIS
+> REPOSITORY.** It is a **hand-patched tree** — files edited directly during the deployment passes are current
+> (🔬 `routes/console.php` 09-20 14:13, `config/database.php` 09-20 12:56) while everything untouched still
+> dates from the last upload (🔬 `ops/deploy.sh` 08-30 23:12). ✅ Every load-bearing guard IS present —
+> the F-65 isolation pin (×2), the `failed_jobs` alarm, `pingOnSuccessIf`, the trigger migration, F-64's hold
+> gate, and every migration `Ran` — but that was **verified item by item, which is not the same as knowing
+> what is deployed.**
+>
+> ⚠️ **This is exactly the condition L12k exists to end**, and the first real use of that mechanism should
+> carry the whole current tree rather than another patch. ⚠️ **Not done in this pass: a deploy was not asked
+> for, and doing one unasked at the end of a long pass is how a good state gets disturbed.**
+
 ### ⚠️⚠️ L12j — THE ASYMMETRY: STRIPE'S PATIENCE IS BOUNDED, A PARK IS NOT. THIS IS THE RISK STATEMENT.
 
 ⚠️⚠️ **IF ONE ROW FROM THIS FILE EVER REACHES A FOUNDER, MAKE IT THIS ONE.**
