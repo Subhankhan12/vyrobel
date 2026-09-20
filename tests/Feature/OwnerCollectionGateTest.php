@@ -251,17 +251,38 @@ it('⚠️ still allows many NON-live payouts per statement — the retry histor
 })->group('payout-gate');
 
 it('⚠️ keeps the DB constraint and Payout::LIVE_STATUSES in agreement', function () {
-    // ⚠️ The generated column spells LIVE_STATUSES as a SQL literal because it cannot call PHP — a second
+    // ⚠️ The database rule spells LIVE_STATUSES as a SQL literal because it cannot call PHP — a second
     // expression of one rule (§N.8f). If the PHP constant changes without the migration, this reds.
-    $sql = (string) DB::selectOne('SHOW CREATE TABLE payouts')->{'Create Table'};
+    //
+    // ⚠️⚠️ THE MECHANISM MOVED, THE PROPERTY DID NOT. This used to read `SHOW CREATE TABLE payouts`, because
+    // the rule was a generated column plus a unique index. 🔬 MariaDB refuses BOTH — a generated column in any
+    // CASE form (error 1901) and a functional index (error 1064) — so on the engine this product actually runs
+    // on, that mechanism cannot exist at all. It is now a pair of TRIGGERS created in a migration.
+    // ⚠️ This assertion therefore follows the rule to where it lives. It is not weaker: it checks BOTH
+    // triggers where it previously checked one object, and it still reds if the PHP constant drifts.
+    $triggers = DB::select(
+        'SELECT trigger_name, action_statement FROM information_schema.triggers
+         WHERE trigger_schema = DATABASE() AND event_object_table = ?',
+        ['payouts'],
+    );
 
-    foreach (Payout::LIVE_STATUSES as $status) {
-        Assert::assertStringContainsString("'".$status."'", $sql,
-            "[{$status}] is a LIVE status in PHP but is not in the payouts generated-column constraint");
+    $byName = [];
+    foreach ($triggers as $t) {
+        $byName[strtolower((string) ($t->trigger_name ?? $t->TRIGGER_NAME))] =
+            (string) ($t->action_statement ?? $t->ACTION_STATEMENT);
     }
 
-    Assert::assertStringContainsString('payouts_one_live_per_statement', $sql,
-        'the one-live-payout unique index is missing from the payouts table');
+    // ⚠️⚠️ BOTH HALVES. A payout can be UPDATED into a live status without ever being inserted as one, so an
+    //    insert-only guard would read as covered while leaving the quiet half open.
+    foreach (['payouts_one_live_bi', 'payouts_one_live_bu'] as $name) {
+        Assert::assertArrayHasKey($name, $byName,
+            "the [{$name}] trigger is missing — the one-live-payout rule is not enforced by the database");
+
+        foreach (Payout::LIVE_STATUSES as $status) {
+            Assert::assertStringContainsString("'".$status."'", $byName[$name],
+                "[{$status}] is a LIVE status in PHP but does not appear in the [{$name}] trigger");
+        }
+    }
 });
 
 // ══ ⚠️ D · FINALISATION HAS A REAL CALLER ══════════════════════════════════════════════════════════════

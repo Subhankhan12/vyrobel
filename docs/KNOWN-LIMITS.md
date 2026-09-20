@@ -285,7 +285,7 @@ configuration.** 🔬 Measured 2026-09-20 (DEPLOY 02).
 ⚠️ **THE SUITE WAS RE-RUN AGAINST MariaDB 11.8.9 AND LARGELY HOLDS** — 🔬 **3,648 of 3,652 passed** at
 production's isolation level, against the MySQL 8 control's 3,651. Every difference is accounted for below.
 
-### ⚠️⚠️ L12a — the one-live-payout DATABASE constraint CANNOT EXIST on MariaDB
+### ✅ L12a — the one-live-payout DATABASE constraint could not exist on MariaDB — ⚠️ RESTORED 2026-09-20 by triggers
 
 🔬 `CREATE UNIQUE INDEX payouts_one_live_per_statement` fails with **MariaDB error 1901**: the
 `CASE WHEN status IN (…) THEN owner_statement_id ELSE NULL END` generated column cannot be indexed. Tested as
@@ -294,10 +294,31 @@ production's isolation level, against the MySQL 8 control's 3,651. Every differe
 ⚠️ **The migration's column IS created and its index is NOT**, and the migration's own `hasColumn` guard makes
 a re-run **skip silently and report "Ran"** — so the guard looks installed and is not.
 
-⚠️ **What still protects the payout path:** `OwnerPayoutService::pay()`/`retry()`/`createFromStatement()` row-lock
-and re-check inside the lock, and the Stripe rail's deterministic idempotency key. **Two layers of three.** The
-missing one is the layer that catches a caller bypassing the service — and ⚠️ **the product cannot un-pay an
-owner** (`reverse()` is quarantined by ruling).
+✅ **RESTORED (DEPLOY 04) — BY A PAIR OF TRIGGERS, ON BOTH ENGINES.** 🔬 Measured first: MariaDB refuses a
+generated column in *any* `CASE` form (1901, tested VIRTUAL, PERSISTENT and `IF()`) **and** a functional index
+(1064). A real column with a plain unique index works on both — but a raw INSERT that omits it lands NULL and
+collides with nothing, which is the exact bypass the rule exists to stop. ⚠️ **A trigger is the only mechanism
+left**, and the objection to triggers (added by hand in a GUI, invisible, untested) does not apply to one
+created in a migration with a test proving it refuses.
+
+🔬 **`CREATE TRIGGER` was ATTEMPTED on the live host before anything was built** — not read from grants — and
+succeeded, refusing with `SQLSTATE 45000 / 1644` and cleaning up. ⚠️ **This host therefore permits
+`CREATE TRIGGER` but NOT `CREATE DATABASE` (1044)** — record both together; that is the shape of what it allows.
+
+⚠️ **Fires on INSERT *and* UPDATE.** A payout can be *moved into* a live status without ever being inserted as
+one; 🔬 an insert-only guard would leave that path open while reading as covered. ⚠️ It **refuses**, it never
+silently corrects. 🔬 Proven on both engines by `OwnerCollectionGateTest` writing raw SQL around the service,
+and 🔬 proven to survive both `migrate:fresh --seed` **and a backup restore** — the dump carries the triggers
+and the restored trigger still refuses.
+
+⚠️ 🔬 **A defect caught in the trigger itself:** `SIGNAL … MESSAGE_TEXT` is capped at **128 characters**, and a
+longer message does not truncate — the engine raises **1648 "Data too long for condition item"** instead, so
+the row is still refused but the operator sees an internal error. Found by driving a real duplicate, not by
+reading the manual.
+
+⚠️ **The other layers are unchanged and still load-bearing:** the service's row-lock and re-check, and the
+Stripe rail's idempotency key. ⚠️ **And the product still cannot un-pay an owner** — `reverse()` is quarantined
+by ruling.
 
 ### ✅ L12b — the no-double-booking guarantee DEPENDED on a host setting nobody pinned — ⚠️ FIXED 2026-09-20
 

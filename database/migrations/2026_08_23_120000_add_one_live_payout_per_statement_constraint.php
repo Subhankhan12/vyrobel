@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * ⚠️⚠️ ONE LIVE PAYOUT PER STATEMENT — AT THE DATABASE, NOT ONLY IN THE APPLICATION.
@@ -35,32 +33,37 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    /**
+     * ⚠️⚠️ RETIRED 2026-09-20 — THIS MIGRATION IS NOW A DELIBERATE NO-OP. DO NOT "RESTORE" IT.
+     *
+     * ⚠️ The rule it created is NOT gone; it MOVED. 🔬 The VIRTUAL generated column plus unique index below
+     * works on MySQL 8 and **cannot be created on MariaDB at all**: any `CASE` form, VIRTUAL or PERSISTENT,
+     * is refused with **error 1901**, and the functional-index alternative with **error 1064**. Production
+     * runs MariaDB 11.8.9, where this migration threw and left the COLUMN created with NO INDEX — and its own
+     * `hasColumn` guard then made a re-run skip silently and report "Ran", so the guarantee read as installed
+     * and was not.
+     *
+     * ⚠️ The one-live-payout rule is now enforced by TRIGGERS on INSERT **and** UPDATE, created in
+     * `2026_09_20_120000_replace_live_payout_index_with_triggers`, which also drops the stale column where it
+     * exists. One mechanism, both engines, proven by `OwnerCollectionGateTest` writing raw SQL around the
+     * service.
+     *
+     * ⚠️ The body is kept below, commented, as the record of what was tried and why it could not stay.
+     */
     public function up(): void
     {
-        if (Schema::hasColumn('payouts', 'live_statement_key')) {
-            return;
-        }
-
-        DB::statement(<<<'SQL'
-            ALTER TABLE payouts
-            ADD COLUMN live_statement_key CHAR(26) AS (
-                CASE WHEN status IN ('pending','processing','held','paid')
-                     THEN owner_statement_id
-                     ELSE NULL
-                END
-            ) VIRTUAL
-        SQL);
-
-        DB::statement('CREATE UNIQUE INDEX payouts_one_live_per_statement ON payouts (live_statement_key)');
+        // ⚠️ Intentionally empty. See the note above — superseded by the trigger migration.
+        //
+        // The retired body was:
+        //   ALTER TABLE payouts ADD COLUMN live_statement_key CHAR(26) AS (
+        //       CASE WHEN status IN ('pending','processing','held','paid')
+        //            THEN owner_statement_id ELSE NULL END
+        //   ) VIRTUAL
+        //   CREATE UNIQUE INDEX payouts_one_live_per_statement ON payouts (live_statement_key)
     }
 
     public function down(): void
     {
-        if (! Schema::hasColumn('payouts', 'live_statement_key')) {
-            return;
-        }
-
-        DB::statement('DROP INDEX payouts_one_live_per_statement ON payouts');
-        DB::statement('ALTER TABLE payouts DROP COLUMN live_statement_key');
+        // ⚠️ Nothing to reverse — `up()` no longer creates anything.
     }
 };

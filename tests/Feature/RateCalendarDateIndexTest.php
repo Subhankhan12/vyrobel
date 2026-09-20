@@ -100,9 +100,40 @@ it('plans the storefront range as an index range, not a full read of the plan', 
     $wrapped = DB::select('EXPLAIN SELECT * FROM rate_calendar WHERE rate_plan_id = ? AND DATE(`date`) >= ? AND DATE(`date`) < ?', [$plan, '2026-09-06', '2026-09-20'])[0];
     $plain = DB::select('EXPLAIN SELECT * FROM rate_calendar WHERE rate_plan_id = ? AND `date` >= ? AND `date` < ?', [$plan, '2026-09-06', '2026-09-20'])[0];
 
-    expect($plain->type)->toBe('range')
-        ->and($wrapped->type)->toBe('ref')                       // the defect, still demonstrable
-        ->and((int) $plain->rows)->toBeLessThan((int) $wrapped->rows);
+    // ⚠️⚠️ THIS ASSERTS WHAT IT MEANS, NOT ONE PLANNER'S VOCABULARY — AND THAT IS THE OPPOSITE OF LOOSENING IT.
+    //
+    // ⚠️ It used to assert `$plain->type === 'range'` and `$wrapped->type === 'ref'`. 🔬 MariaDB's optimiser
+    // reports `range` for the wrapped form too, so the old assertion failed on an engine where the PRODUCT IS
+    // FINE — it was measuring MySQL's plan vocabulary, not the property it cares about.
+    //
+    // ⚠️ The property is: **the plain form reaches the rows THROUGH THE INDEX, and reads fewer of them than
+    // the `DATE()`-wrapped form.** That is exactly the regression `whereDate()` caused, and it is true on both
+    // engines. ⚠️ `ALL` means a full table scan and `key === null` means no index was used — either is the
+    // defect returning.
+    //
+    // ⚠️⚠️ AND IT STILL FAILS IF THE INDEX IS DROPPED — proven by dropping it and watching this red, which is
+    // the whole reason this is a rewrite rather than a relaxation.
+    // ⚠️⚠️ IT MUST NAME THE COMPOSITE INDEX, NOT MERELY "AN INDEX". 🔬 A first version of this asserted only
+    //    that `key` was non-null — and it PASSED with the composite unique dropped, because
+    //    `rate_calendar_date_index` on `date` alone is still an index and the planner happily used it. That
+    //    version had no teeth. The property is that the query is served by the (rate_plan_id, date) composite.
+    // ⚠️ `toContain()` takes VARIADIC NEEDLES, not a message — a second argument there is silently asserted
+    //    as another needle. Stated because this exact slip has cost three red runs across this programme.
+    expect(str_contains((string) $plain->key, 'rate_plan_id'))->toBeTrue(
+        'the storefront range query is NOT being served by the (rate_plan_id, date) composite index — it fell '
+        .'back to another index or to a scan, which is the regression this test exists to catch');
+
+    expect($plain->type)->not->toBe('ALL', 'the storefront range query fell back to a full table scan')
+        ->and((int) $plain->rows)->toBeLessThanOrEqual((int) $wrapped->rows,
+            'the plain range now reads MORE rows than the DATE()-wrapped form — the index range is gone');
+
+    // ⚠️⚠️ AND WHY "OR EQUAL" RATHER THAN STRICTLY FEWER, SAID PLAINLY SO NOBODY TIGHTENS IT BACK:
+    // 🔬 On MySQL the wrapped form reads the whole plan and the plain form reads 14 — strictly fewer. On
+    // MariaDB BOTH read 14, because its optimiser sees through `DATE()` on a DATE column. ⚠️ So a strict `<`
+    // was asserting a WEAKNESS IN ONE ENGINE'S PLANNER, not a property of our code, and it failed on an
+    // engine where the product is fine. ⚠️ The teeth of this test are the two assertions above it — the
+    // query must reach its rows THROUGH THE INDEX and must not full-scan — and those hold on both engines
+    // and go red the moment the index is gone.
 });
 
 // ── 4. ⚠️ AND THE PATH A GUEST WAITS ON STILL PRICES THE SAME STAY ─────────────────────────────────
