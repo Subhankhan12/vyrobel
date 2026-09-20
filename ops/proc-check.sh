@@ -23,9 +23,21 @@
 # because at that moment "nothing is running" and "I cannot see anything" are indistinguishable, and only one
 # of them is safe to act on.
 #
+# ── ⚠️⚠️ AND THE SECOND VERB, ADDED AFTER THE SAME TRAP FIRED ON IT ─────────────────────────────────────
+#
+# ⚠️⚠️ **A MECHANISM SCOPED TO ONE VERB DOES NOT COVER THE OTHER.** This script guarded *checking* while
+# `pkill -f "sleep 720"` was still being typed by hand — and 🔬 it matched its own shell's command line (which
+# contained the pattern) and killed the session mid-command, printing nothing. ⚠️ The same self-match family,
+# one verb over, and the existing guard could not help because nobody had extended it there.
+#
+# ⚠️ `--kill` therefore refuses a pattern that matches **this script or its ancestors**, kills by **PID**
+# rather than by pattern, and **confirms death** rather than trusting the signal.
+#
 # Usage:
-#   ops/proc-check.sh 'pestphp/pest'        # exit 0 = matches found (printed) · 1 = a TRUSTED zero · 3 = blind
-#   ops/proc-check.sh -q 'pestphp/pest'     # quiet: exit status only
+#   ops/proc-check.sh 'pestphp/pest'          # exit 0 = matches found (printed) · 1 = a TRUSTED zero · 3 = blind
+#   ops/proc-check.sh -q 'pestphp/pest'       # quiet: exit status only
+#   ops/proc-check.sh --kill 'pestphp/pest'   # exit 0 = all killed and confirmed dead · 1 = nothing matched
+#                                             #      · 3 = blind · 4 = REFUSED (the pattern matches us)
 #
 # ⚠️ The pattern is made self-match-proof automatically (first character is bracketed), so the grep cannot
 # match its own command line — the other half of this same family of false positives.
@@ -36,10 +48,17 @@ set -uo pipefail
 PS_CMD=${VY_PS_CMD:-"ps -eo pid,command"}
 
 QUIET=0
-if [ "${1:-}" = "-q" ]; then QUIET=1; shift; fi
+KILL=0
+while [ $# -gt 0 ]; do
+  case "${1:-}" in
+    -q)     QUIET=1; shift ;;
+    --kill) KILL=1; shift ;;
+    *)      break ;;
+  esac
+done
 
 if [ $# -lt 1 ]; then
-  echo "usage: ops/proc-check.sh [-q] <extended-regex>" >&2
+  echo "usage: ops/proc-check.sh [-q] [--kill] <extended-regex>" >&2
   exit 2
 fi
 PATTERN="$1"
@@ -111,11 +130,82 @@ MATCHES="$(${PS_CMD} 2>/dev/null \
   || true)"
 COUNT="$(printf '%s' "${MATCHES}" | grep -c . || true)"
 
-if [ "${COUNT}" -gt 0 ]; then
-  say "  ⚠️ ${COUNT} process(es) match /${PATTERN}/:"
-  say "${MATCHES}" | sed 's/^/     /'
-  exit 0
+if [ "${KILL}" -eq 0 ]; then
+  if [ "${COUNT}" -gt 0 ]; then
+    say "  ⚠️ ${COUNT} process(es) match /${PATTERN}/:"
+    say "${MATCHES}" | sed 's/^/     /'
+    exit 0
+  fi
+
+  say "  ✅ 0 processes match /${PATTERN}/ — and this zero was proven visible, not assumed"
+  exit 1
 fi
 
-say "  ✅ 0 processes match /${PATTERN}/ — and this zero was proven visible, not assumed"
-exit 1
+# ── 3. ⚠️⚠️ THE KILL PATH ───────────────────────────────────────────────────────────────────────────────
+#
+# ⚠️⚠️ THE RULE IS "NEVER KILL AN ANCESTOR", NOT "NEVER KILL WHEN AN ANCESTOR MATCHES".
+#    🔬 The first version of this path refused *every* legitimate kill, because the shell you type the
+#    pattern into necessarily has the pattern in its own command line and is necessarily an ancestor. Safe,
+#    and useless — the same shape as the control that refused every time. ⚠️ So ancestors are **excluded from
+#    the kill set** (they are the act of asking, not a target), and the refusal fires only when there is
+#    nothing left once they are removed.
+ANCESTORS=" $$ "
+_pid="${PPID:-0}"
+for _ in 1 2 3 4 5 6 7 8; do
+  [ -z "${_pid}" ] || [ "${_pid}" = "0" ] || [ "${_pid}" = "1" ] && break
+  ANCESTORS="${ANCESTORS}${_pid} "
+  _pid="$(ps -p "${_pid}" -o ppid= 2>/dev/null | tr -d ' ' || true)"
+done
+
+TARGETS=""
+ANCESTOR_HITS=0
+for pid in $(printf '%s\n' "${MATCHES}" | awk 'NF {print $1}'); do
+  case "${ANCESTORS}" in
+    *" ${pid} "*) ANCESTOR_HITS=$((ANCESTOR_HITS + 1)) ;;
+    *)            TARGETS="${TARGETS} ${pid}" ;;
+  esac
+done
+
+if [ "${ANCESTOR_HITS}" -gt 0 ]; then
+  say "  ⚠️ ${ANCESTOR_HITS} matching process(es) are THIS script or its ancestors — excluded, never killed."
+fi
+
+N="$(printf '%s' "${TARGETS}" | wc -w | tr -d ' ')"
+
+if [ "${N}" -eq 0 ]; then
+  if [ "${ANCESTOR_HITS}" -gt 0 ]; then
+    echo "⚠️⚠️ KILL REFUSED — /${PATTERN}/ matched NOTHING BUT this script and its ancestors." >&2
+    echo "   Acting on it would have terminated the session running the command, mid-command and" >&2
+    echo "   silently — which is exactly what a hand-typed \`pkill -f\` did to this project." >&2
+    echo "   ⚠️ Narrow the pattern, or kill by PID." >&2
+    exit 4
+  fi
+  say "  ✅ nothing matches /${PATTERN}/ — nothing to kill, and the zero was proven visible"
+  exit 1
+fi
+
+say "  ⚠️ killing ${N} process(es) matching /${PATTERN}/ BY PID:"
+for pid in ${TARGETS}; do
+  kill "${pid}" 2>/dev/null && say "     signalled ${pid}" || say "     ${pid} already gone"
+done
+
+# ⚠️ CONFIRM DEATH. A signal that was delivered is not a process that exited — wait, escalate, then VERIFY.
+#    "kill returned 0" is not evidence, in the same way "the command ran" is not "the command worked".
+sleep 1
+for pid in ${TARGETS}; do
+  ps -p "${pid}" -o pid= >/dev/null 2>&1 && kill -9 "${pid}" 2>/dev/null
+done
+sleep 1
+
+REMAIN=""
+for pid in ${TARGETS}; do
+  ps -p "${pid}" -o pid= >/dev/null 2>&1 && REMAIN="${REMAIN} ${pid}"
+done
+
+if [ -n "${REMAIN}" ]; then
+  echo "⚠️⚠️ NOT ALL DEAD — still running:${REMAIN}" >&2
+  exit 3
+fi
+
+say "  ✅ all ${N} confirmed dead — verified by re-querying each PID, not by the kill's exit code"
+exit 0

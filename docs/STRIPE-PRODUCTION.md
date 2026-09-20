@@ -98,3 +98,87 @@ owner is HELD, never paid; the engine never fabricates a date/fee.
 Stripe is now lit (test-mode). Still deferred honestly: **Channex** live channel sync · **WhatsApp / OTA** inbox
 channels · **SMS** · **guest ID verification (KYC)**. Production **email** is already live (Postmark — see
 `docs/EMAIL-PRODUCTION.md`).
+
+---
+
+# ⚠️⚠️ GATE 3 — THE ONE SITTING (written 2026-09-20, DEPLOY 10)
+
+⚠️ **Everything below was established by READING the integration and MEASURING the host. No Stripe API call
+was made, no key was handled, no dashboard was opened, and `STRIPE_FAKE` was not flipped.** The point is that
+this is a short session, not a discovery exercise.
+
+## A. WHAT THE CODE ALREADY DOES — 🔬 so you know what you are switching on
+
+| question | 🔬 answer |
+|---|---|
+| **An event type we don't handle?** | **`202 {"status":"ignored"}` — never a 500.** Every branch of both receivers ends in 202; `applyPayment`'s `match` has `default => null`; the Connect receiver's `match` has `default => 202 ignored`. ⚠️ **So Stripe sending types nobody asked for cannot cause a retry storm.** |
+| **A bad signature?** | `400 {"error":"invalid_signature"}` — no retry storm either (4xx is a permanent failure to Stripe). |
+| **A handler that genuinely fails?** | The error is recorded on the `webhook_events` row and **rethrown → 500**, so Stripe retries. That is deliberate: the retry is *admitted* rather than swallowed. |
+| **Idempotency key** | `unique(source, external_event_id)` — Stripe's own globally-unique event id. |
+| **Two duplicate deliveries at the same instant?** | ✅ Safe. `createOrFirst` turns the losing INSERT into a fetch rather than a 500, and `reclaim()` is a **compare-and-swap**: the eligibility test and the claim are the *same* UPDATE, so **the loser's update affects zero rows** and `$apply()` runs once. A `SELECT`-then-`UPDATE` would have let both through; it was written this way on purpose. |
+| **Signature tolerance** | **300 seconds** — Stripe's SDK default (`Webhook::DEFAULT_TOLERANCE`), not overridden. |
+| **Server clock drift** | 🔬 **0 s** against an external HTTPS `Date` header (±1 s granularity), measured 2026-09-20. ⚠️ A drifted clock rejects every genuine webhook while logging what looks like an attack — this one is fine. |
+| **Webhook reachable through the CDN?** | ✅ 🔬 Yes — POSTs are pure pass-through, never cached, no rate-limit observed at 25 rapid requests (L12m). |
+
+## B. WHAT THE THREE SWITCHES ACTUALLY DO — ⚠️ they are not one switch
+
+⚠️⚠️ **`STRIPE_FAKE=false` ALONE DOES NOT TAKE A SINGLE PAYMENT.** There are three, and they are independent:
+
+| env | default | what it controls |
+|---|---|---|
+| `STRIPE_FAKE` | `true` | **Which client is bound.** `true` → `FakeStripeClient` ("never touches the network"). `false` → the real SDK — ⚠️ **but only if `APP_ENV=production`**: `StripeSafetyGuard` forces the fake whenever a **live** key appears outside production. |
+| `PAYMENTS_GATEWAY` | `manual` | ⚠️⚠️ **THE REAL MONEY SWITCH.** `manual` → card payments stay on the offline rail; **`stripe` → cards actually charge.** Set this **last**. |
+| `PAYOUTS_RAIL` + `PAYOUT_ENGINE_ENABLED` | `manual` / `false` | The owner **payout** side (Connect transfers). Independent of the two above; leave alone until Connect KYC is done. |
+
+🔬 Production today: `APP_ENV=production` · `STRIPE_FAKE=true` · `PAYMENTS_GATEWAY=manual` · `PAYOUTS_RAIL=manual`.
+
+## C. ⚠️ THE NUMBERED DASHBOARD LIST — work top to bottom
+
+⚠️ **Do this in Stripe's dashboard in LIVE mode. Nobody but you ever sees these values; do not paste them into
+a chat, a session, or a file in this repository.**
+
+1. **Create the two products and four prices** (Products → Add product), live mode:
+   Essential — monthly and yearly · Pro — monthly and yearly.
+   ⚠️ **The amounts are yours to decide.** The code currently ships **placeholders** (`config/billing.php`:
+   Essential €49/mo · €490/yr, Pro €99/mo · €990/yr, each marked `PLACEHOLDER`).
+   Copy each **price id** (`price_…`) — you need all four.
+2. **Put those four ids in `.env`** on the server:
+   `STRIPE_PRICE_ESSENTIAL_MONTHLY=` · `STRIPE_PRICE_ESSENTIAL_YEARLY=` ·
+   `STRIPE_PRICE_PRO_MONTHLY=` · `STRIPE_PRICE_PRO_YEARLY=`
+3. **Set the real display amounts** in `config/billing.php` (`prices_minor`, integer minor units) so the
+   marketing pages stop showing placeholders. ⚠️ These must agree with step 1 — nothing checks that they do.
+4. **Copy the API keys** (Developers → API keys, live mode) into `.env`:
+   `STRIPE_KEY=pk_live_…` · `STRIPE_SECRET=sk_live_…`
+5. **Create webhook endpoint #1 — the account endpoint** (Developers → Webhooks → Add endpoint):
+   URL: **`https://vyrobel.com/webhooks/stripe`**
+   Events: `checkout.session.completed` · `customer.subscription.created` · `customer.subscription.updated` ·
+   `customer.subscription.deleted` · `invoice.paid` · `invoice.payment_failed` ·
+   `payment_intent.succeeded` · `payment_intent.payment_failed` · `payment_intent.canceled` ·
+   `refund.updated` · `refund.failed`
+   Copy its signing secret → `.env` as `STRIPE_WEBHOOK_SECRET=whsec_…`
+6. **Create webhook endpoint #2 — the CONNECT endpoint**, scoped to *Connected accounts*:
+   URL: **`https://vyrobel.com/webhooks/stripe/connect`**
+   Events: `account.updated` · `transfer.created` · `transfer.updated` ·
+   `payment_intent.succeeded` · `payment_intent.payment_failed` · `payment_intent.canceled` ·
+   `refund.updated` · `refund.failed`
+   Copy **its own** signing secret → `.env` as `STRIPE_CONNECT_WEBHOOK_SECRET=whsec_…`
+   ⚠️⚠️ **These are two different secrets. Swapping them makes every signature fail.**
+7. **Flip the client:** `STRIPE_FAKE=false` in `.env`. (`APP_ENV` is already `production`, so the safety guard
+   will allow the live key.)
+8. **Rebuild the config cache and re-close it:**
+   `/opt/alt/php84/usr/bin/php artisan config:cache && chmod 600 bootstrap/cache/config.php`
+   ⚠️ `config:cache` writes that file **0644** and it contains your database password — see L12k.
+9. **Send a test event** from the dashboard (Webhooks → your endpoint → Send test webhook) and confirm a
+   **2xx**. Then check the row landed:
+   `select event_type, status, received_at from webhook_events order by id desc limit 5;`
+10. ⚠️⚠️ **LAST, AND ONLY WHEN 1–9 ARE DONE: `PAYMENTS_GATEWAY=stripe`.** This is the switch that lets a real
+    card be charged. Nothing before it moves money.
+
+⚠️ **The owner payout rail (`PAYOUTS_RAIL`, `PAYOUT_ENGINE_ENABLED`) is a separate cutover** and needs Connect
+KYC first — §3b above. Leave both alone during this sitting.
+
+## D. ⚠️ WHAT IS NOT IN THIS LIST, BECAUSE IT IS NOT STRIPE
+
+⚠️ The alarm (`OPS_HEARTBEAT_PING_URL`), the `APP_KEY` copy, and the super-admin password are the **other**
+sitting (`GO-LIVE-REQUIREMENTS.md`). ⚠️ **Do the alarm before step 10** — it is Gate 3 condition (1), and
+without it a forgotten maintenance park loses webhook events silently (L12n).

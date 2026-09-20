@@ -599,9 +599,29 @@ a cached HTML page could outlive a release and then request its assets. 🔬 It 
 references assets that exist in it. ⚠️ **The floor stays 180 s — but it is 180 s *because* HTML is uncacheable,
 which is a property to protect, not a coincidence to rely on.**
 
-⚠️⚠️ **THE NUMBERS ABOVE ARE ORIGIN NUMBERS.** 🔬 Re-measured at the **edge**, uncache-busted, across a real
-swap on `/login`: **199 of 200** (one connection failure), against **0 of 100** in a no-swap control. ⚠️ Not
-attributed to the swap and not dismissed as ambient — see L12m.
+### ✅ THE EDGE FIGURE, CLOSED BY SAMPLE SIZE (DEPLOY 10) — ⚠️ and the framing corrected
+
+⚠️ DEPLOY 09 measured **199/200** at the edge across one swap and refused to call the single failure either
+way. ⚠️ **200 requests cannot distinguish 0.5% from 0%**, so the sample was raised on **both** arms:
+
+| arm | probes | connection failures (`000`) | rate |
+|---|---|---|---|
+| control — **no swap** | 600 | **0** | 0% |
+| **3 real swaps** | 600 | **1** | 0.17% |
+| *combined with DEPLOY 09* | swap 800 / control 700 | swap **2**, control **0** | 0.25% / 0% |
+
+⚠️⚠️ **VERDICT: NOT DISTINGUISHABLE, AND CLOSED ON THAT BASIS.** Two events against zero, with 95% intervals
+that overlap (≈0.07–0.91% versus 0–0.43%); a Fisher exact test on 2/800 vs 0/700 is nowhere near significant.
+⚠️ **Any swap-induced excess is bounded under ~1% and the data are equally consistent with zero.**
+
+⚠️ **AND THE APPLICATION LAYER SHOWED NO VARIATION AT ALL:** every non-`000` probe in both arms was a clean
+503 — **600/600 and 599/600**. A `000` is a **connection** failure, not an HTTP one, so it points at the
+network between the client and the edge, **not at the swap and not at the application**.
+
+⚠️⚠️ **AND THE FRAMING THAT PRODUCED THE "GAP" WAS ITSELF WRONG — MINE INCLUDED.** The 0/220 was **`/up`,
+cache-busted, at the ORIGIN**; the 199/200 was **`/login`, uncache-busted, at the EDGE**. ⚠️ **Two different
+paths through two different layers is not a gap, it is two measurements** — and *"every figure carries its
+scope"* applies to the figures this project writes about itself.
 
 ### ⚠️ THREE THINGS THAT HAD TO BE RIGHT, AND ALL THREE WERE FOUND BY MEASUREMENT, NOT BY READING
 
@@ -741,6 +761,78 @@ which requires cacheable HTML. ⚠️ **If that condition ever changes, the prun
 - ⚠️ **Whether the CDN can be disabled, and whether its rules can be edited, was not established** — it is a
   panel setting and the decision is the founder's. ⚠️ **Not disabled unilaterally.**
 
+### ✅ L12n — DOES THE ALARM BOUND THE PARK? — ⚠️ THE ARGUMENT WAS TESTED, AND IT HOLDS
+
+⚠️⚠️ **THE CLAIM UNDER TEST:** a schema change still parks the site, and a park is "unbounded" only because
+nothing bounds it — but the heartbeat is maintenance-gated **by ruling** (L12i), so a park stops the beat, the
+grace lapses, and the alarm rings. ⚠️ **If that holds, the alarm converts an unbounded park into one bounded
+by grace plus human response — and expand-then-contract migrations are NOT a prerequisite for card payments.**
+
+⚠️ It was treated as an argument to **break**, not to adopt. The chain, link by link:
+
+| link | verdict |
+|---|---|
+| a park stops the **ping** | ✅ 🔬 **VERIFIED FROM SOURCE.** `ScheduleRunCommand:263-265` does `continue` **before** `runEvent()`, and `pingOnSuccessIf` attaches the ping as an **`onSuccess`** callback — a skipped event has no success, so it cannot ping. Nothing anywhere declares `evenInMaintenanceMode` (pinned: `HeartbeatIsMaintenanceGatedTest`). Corroborated live: DEPLOY 06's toggle froze both heartbeats through a park and moved them within 160 s of the lift. |
+| no ping → the check alerts | 📖 **Healthchecks' documented behaviour.** ⚠️ **Not measurable here** — `OPS_HEARTBEAT_PING_URL` is 🔬 measured **unset on production**, so nothing external is watching yet. |
+| alert → human → lift | ⚠️ **Not measurable.** It depends on a person, and no amount of code changes that. |
+
+### ⚠️ THE THREE ATTEMPTS TO BREAK IT
+
+1. ⚠️⚠️ **"THE ALARM WILL HAVE RUNG FOR EVERY ROUTINE DEPLOY, SO IT WILL BE IGNORED." — 🔬 THIS PREMISE IS NOW
+   FALSE, AND ITS FALSENESS STRENGTHENS THE ARGUMENT.** L12k made a code-only deploy **parkless**; a deploy
+   that never parks cannot stop the beat, so it cannot ring. **Only a schema park longer than the grace
+   rings** — rare, and exactly when someone should look. The fatigue objection largely dissolves.
+2. ⚠️ **"A PARK SHORTER THAN THE GRACE NEVER RINGS."** ✅ True, and **not a hole**. Detection is bounded by
+   the cron period (60 s) plus the grace G; at the recommended G = 5 min that is **≤ 6 minutes**. A park
+   shorter than that is invisible — and a 6-minute park is **four orders of magnitude inside** Stripe's live
+   retry window. ⚠️ **The un-rung parks are precisely the harmless ones.**
+3. ⚠️ **"THE ALARM CONFLATES CAUSES."** ✅ True, and it is by design: the same silence means *parked*, *cron
+   dead*, *host dead*, or *`failed_jobs` non-empty* (that task **deliberately throws**, suppressing the ping —
+   L12c). ⚠️ **So the alarm says "something is wrong", never "what".** The responder must look; that is what a
+   dead-man's switch is.
+
+### ⚠️⚠️ THE NUMBER, AND THE CORRECTION THAT MATTERS MORE THAN THE VERDICT
+
+> **Detection ≤ 60 s + grace.** At G = 5 min → **≤ 6 minutes**. The park itself is bounded by detection plus
+> human response. Against Stripe's **3-day** live retry window (4,320 minutes) that is a margin of roughly
+> **720×**; against the sandbox window (~hours) it is still comfortable.
+
+⚠️⚠️ **BUT THE ALARM IS NOT WHAT MAKES A PARK SAFE — STRIPE'S RETRY WINDOW IS.** Any park shorter than three
+days loses **nothing** in live mode, alarm or no alarm. ⚠️ The alarm's real job is narrower and still worth
+having: **it stops a park from silently EXCEEDING that window.** There are two independent protections, and
+the weaker case — no alarm at all — is already covered for any park a human would plausibly cause.
+
+✅ **VERDICT: EXPAND-THEN-CONTRACT IS NOT A GATE 3 PREREQUISITE.** It would become one only if a migration
+park could plausibly outlast Stripe's retry horizon, which would mean a three-day migration. ⚠️ **The last
+substantial code item before card payments is therefore removed — and nothing was built to remove it.**
+
+### ⚠️⚠️ AND A SECOND DETECTION PATH NOBODY HAD COUNTED — FOUND BY READING, STRONGER THAN THE FIRST
+
+🔬 `routes/web.php:1746` registers **`/up/liveness`**, which returns `Heartbeat::report()` as JSON and
+**answers 503 when either heartbeat is stale**. ⚠️ Its own comment already says the quiet part: *"⛔ FOUNDER
+STEP: point an external monitor at this URL. Unpolled, it is evidence nobody is reading."*
+
+🔬 **Measured on production, parked: `/up/liveness` returns 503** (the maintenance page — it is **not** in the
+`down` file's `except` list; only Laravel's own `/up` is auto-excepted).
+
+⚠️⚠️ **THAT MAKES IT THE BETTER PARK DETECTOR OF THE TWO:**
+
+| | push — the Healthchecks ping | pull — a monitor on `/up/liveness` |
+|---|---|---|
+| detects a park | after **period + grace** (≤ ~6 min at G = 5 min) | **on the very next poll** — a park 503s immediately |
+| depends on the scheduler running | ⚠️ **yes** — it rides the scheduled task | ✅ **no** — it is an HTTP request |
+| also catches | cron dead · host dead · `failed_jobs` non-empty | cron dead (stale heartbeat) · host dead · park |
+
+⚠️ **They are complementary, not redundant**: the pull check cannot see a `failed_jobs` backlog on a healthy
+site the way the push check can (the scheduler throws and withholds the ping), and the push check cannot
+detect a park faster than its grace. ⚠️ **Configure both — it is the same sitting and the same monitor, two
+URLs.**
+
+⚠️⚠️ **THE RESIDUAL RISK, STATED PLAINLY: TODAY NEITHER IS CONFIGURED.** 🔬 `OPS_HEARTBEAT_PING_URL` is unset
+on production, and nothing polls `/up/liveness`. So the only live protection is Stripe's retry window — and
+this deployment sits in the mode where that window is **hours, not days** (L12j). ⚠️ **A forgotten park today
+does lose events, within hours, with nothing announcing it.** That is Gate 3 condition (1), and it is one
+founder sitting away.
 ### ⚠️ L12i — THE ALARM SHARES THE MAINTENANCE SWITCH WITH THE WORK IT WATCHES — ruled NOISY, on purpose
 
 🔬 **MEASURED BY A REAL down→up→down TOGGLE ON PRODUCTION (2026-09-20), which is a positive artefact and not
@@ -768,6 +860,17 @@ never "fixed" into a lie.
 window**. 🔬 That window's command half is under 15 seconds (L12g), so **any grace ≥ 5 minutes absorbs a
 routine deploy while still catching a forgotten park.** ⚠️ Set it when the ping URL is set — see the founder's
 sitting in `GO-LIVE-REQUIREMENTS.md`.
+
+> ### ✅ CORRECTION (DEPLOY 10) — "A DEPLOY WILL PAGE" IS NO LONGER TRUE, AND THE NOISE OBJECTION LARGELY GOES
+>
+> ⚠️ The ruling above was written when **every** deploy parked the site. 🔬 **L12k removed that**: a code-only
+> deploy is one 3 ms symlink swap with **no park at all** — and a deploy that never parks cannot stop the
+> heartbeat, so it **cannot ring**.
+>
+> ⚠️⚠️ **SO THE ALARM IS LOW-NOISE, NOT HIGH-NOISE.** Only a **schema** deploy parks, and only one that
+> outlasts the grace period rings. ⚠️ That matters beyond tidiness: the standing objection to a noisy alarm is
+> that it trains people to ignore it, and **that objection is now much weaker than when the ruling was made.**
+> ⚠️ The ruling itself is unchanged and still correct — noisy over lying — it is simply cheaper than it was.
 
 ### ✅ L12c — a failed job WAS invisible — ⚠️ now raises the alarm (2026-09-20)
 

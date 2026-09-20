@@ -12,6 +12,22 @@
 > maintenance**. ⚠️ What remains is the **live-money tail** (B6–B11) and the three items below.
 > ⚠️ **The rest of the list still stands — read it, do not assume the deployment closed it.**
 
+> ## ✅ GATE 3 IS NOW **PREPARED** — the Stripe session is a checklist, not a discovery exercise
+>
+> ⚠️ **`docs/STRIPE-PRODUCTION.md` now ends with a numbered dashboard list** (written 2026-09-20) that can be
+> worked through top to bottom without asking a question: the two products and four prices, both webhook
+> endpoints with their **exact** event lists and **two different** signing secrets, every env key by name, and
+> the order — with `PAYMENTS_GATEWAY=stripe` deliberately **last**, because it is the only switch that lets a
+> real card be charged.
+>
+> ⚠️ It also records what the code already does, measured rather than assumed: an **unhandled event type
+> returns 202, never 500** (so no retry storm) · two concurrent duplicate deliveries are safe because
+> `reclaim()` is a **compare-and-swap** · the signature tolerance is **300 s** and the server's clock drift is
+> 🔬 **0 s** · and `STRIPE_FAKE` is **one of three independent switches**, not the money switch.
+>
+> ⚠️⚠️ **DO THE ALARM (S1 below) BEFORE THE LAST STEP.** Without it a forgotten maintenance park loses webhook
+> events silently, and in the mode this deployment is in that window is **hours, not days** (L12n / L12j).
+
 ## ⛔⛔ THE NEXT SITTING — EXACTLY THREE ITEMS, AND THEY FIT IN ONE
 
 ⚠️ **Batched deliberately.** Each needs the founder present and none can be done from this repository.
@@ -19,7 +35,7 @@
 
 | # | the item | why it is here | what "done" looks like |
 |---|---|---|---|
-| **S1** | ⚠️⚠️ **`OPS_HEARTBEAT_PING_URL`** — create the Healthchecks.io (or Better Stack / Cronitor) check and set the env var | ⚠️⚠️ **THE ALARM HAS NEVER BEEN HEARD TO RING.** The dead-man's switch is fully built and **inert by design** while the URL is unset. **An alarm nobody has heard ring is a hypothesis.** ⚠️⚠️ **AND IT NOW HAS A REAL, CONCRETE CASE INSTEAD OF AN ARGUMENT — see below.** | The var is set, **and the founder has watched it fire once** by deliberately stopping the cron. ⚠️ **Set the grace period to ≥ 5 minutes** — 🔬 the deploy window's command half is under 15s, so ≥5 min absorbs a routine deploy while still catching a forgotten park (L12i). |
+| **S1** | ⚠️⚠️ **`OPS_HEARTBEAT_PING_URL`** — create the Healthchecks.io (or Better Stack / Cronitor) check and set the env var | ⚠️⚠️ **THE ALARM HAS NEVER BEEN HEARD TO RING.** The dead-man's switch is fully built and **inert by design** while the URL is unset. **An alarm nobody has heard ring is a hypothesis.** ⚠️⚠️ **AND IT NOW HAS A REAL, CONCRETE CASE INSTEAD OF AN ARGUMENT — see below.** | ⚠️⚠️ **TWO URLs, ONE SITTING — configure BOTH, they catch different things (L12n):** ⚠️ **(a) PUSH** — create the check, set `OPS_HEARTBEAT_PING_URL`, **grace ≥ 5 minutes** (🔬 a routine deploy no longer parks at all, so this only fires on a schema park or a dead cron). ⚠️ **(b) PULL** — point the same monitor at **`https://vyrobel.com/up/liveness`**, which already returns **503 whenever either heartbeat is stale** *and* 🔬 immediately during a maintenance park. **It detects a park on the next poll rather than after the grace, and does not depend on the scheduler running.** ⚠️ Done when the founder has **watched one fire**, by stopping the cron. |
 | **S2** | ⚠️⚠️ **`APP_KEY` recorded OFF-SERVER**, in a password manager | ⚠️⚠️ **FIFTH PASS THIS HAS BEEN OWED.** 🔬 The key is present on the server and the `.env` is 600; ✅ no `APP_KEY` value appears in any tracked file. ⚠️ **But it exists in exactly ONE place.** Guest PII is encrypted with it: lose the box and the ciphertext in the backup is **permanently unreadable** — the backup deliberately does not contain the key. | The key is in the founder's password manager, and a second person can reach it. ⚠️ **Verified by the founder, never by a session** — a session that reads it back has copied it somewhere new. |
 | **S3** | ⚠️ **The super-admin password** — set a real one | The seeders create a demo super-admin with the password `password`. ⚠️ Production was **never seeded** (that is the rule), so this is about the account the founder actually signs in with. | A password only the founder knows, typed by them, with 2FA enrolled. |
 

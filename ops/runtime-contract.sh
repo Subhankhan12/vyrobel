@@ -163,6 +163,26 @@ else
   fail "config/database.php no longer sets ATTR_INIT_COMMAND — the no-double-booking guarantee would fall back to the HOST's default isolation level (L12b)"
 fi
 
+# ── ⚠️⚠️ THE COMPILED CONFIG HOLDS THE DATABASE PASSWORD — AND `config:cache` WRITES IT 644 ─────────
+#
+# ⚠️⚠️ **A FIX THAT A ROUTINE COMMAND UNDOES NEEDS A CHECK, NOT ONLY A STEP.** 🔬 `bootstrap/cache/config.php`
+# is a compiled copy of `.env` and contains `DB_PASSWORD` **13 times**. `php artisan config:cache` creates it
+# at **0644** every single time it runs — so tightening it once is not a fix, it is a fix with a half-life.
+#
+# ⚠️ 🔬 Measured 2026-09-20 on the live host: **0600 still serves** — `/up` returns 200 through a full
+# framework boot and `artisan` still runs for the panel cron — so there is no cost to keeping it closed.
+# ⚠️ L12k makes the `chmod` a per-release step; this makes the *result* checkable, because a step in a
+# procedure is a line somebody can delete and nobody would notice until the file was read by another tenant.
+if [ -f bootstrap/cache/config.php ]; then
+  CONFIG_MODE="$(stat -c %a bootstrap/cache/config.php 2>/dev/null || stat -f %Lp bootstrap/cache/config.php 2>/dev/null)"
+  case "${CONFIG_MODE}" in
+    600) pass "bootstrap/cache/config.php is 0600 (it holds DB_PASSWORD; config:cache writes 0644)" ;;
+    *)   fail "bootstrap/cache/config.php is 0${CONFIG_MODE}, not 0600 — it contains the database password in clear, and \`config:cache\` recreates it 0644 every run. chmod 600 it (L12k step 3)." ;;
+  esac
+else
+  note "bootstrap/cache/config.php absent — nothing to check (run after config:cache)"
+fi
+
 # ── CI-ONLY additions (NOT part of the production contract — see §7.6) ──────────────────────────────
 if [ "${CI_IMAGE:-0}" = "1" ]; then
   echo "── CI-ONLY (deliberately beyond §7.5 — see §7.6.4) ──────────────"
