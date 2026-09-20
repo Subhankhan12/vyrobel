@@ -359,7 +359,7 @@ register in the opposite direction.**
 | **V-1** | a contradiction inside the record | ✅ **FIXED** in `AUDIT-SUMMARY.md` §8 item 7 — **and a second surface of the same claim** (F-21 as `BUILD QUEUED` in §2's pass ledger) that no V-row had named |
 | **V-2** | a contradiction inside the record | ✅ **FIXED** in §4 — **both** surfaces: the table row and the prose sentence above it |
 | **V-3** | a defect someone must act on | ➡️ **F-59** (⛔ OPEN) |
-| **V-4** | half record contradiction, half live undecided default | ✅ headline **FIXED**; the undecided default is ➡️ **F-60** (⛔ OPEN, a founder ruling) |
+| **V-4** | half record contradiction, half live undecided default | ✅ headline **FIXED**; the undecided default became ➡️ **F-60**, ✅ **CLOSED (FIX 54)** once both ladder transitions were ruled and the confirm route was built |
 | **V-5** | a defect someone must act on | ➡️ **F-61** — FIX 48 disclosed it (the gate prints it; `KNOWN-LIMITS.md` **L8**) and repaired nothing. ⚠️ **FIX 50 then ✅ CLOSED it** on the founder ruling: a disposable third tenant, proven by a driven write. |
 | **V-6** | ⚠️⚠️ **an INSTRUMENT fault, not a product defect** | ➡️ `docs/INSTRUMENT-ERRORS.md` class **14**. **It earns no finding number**, and it is the most valuable of the six: a probe that 404s for every id *including its own control's* looks exactly like perfect isolation. |
 

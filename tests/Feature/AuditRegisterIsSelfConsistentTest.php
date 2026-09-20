@@ -131,8 +131,15 @@ it('⚠️ derives the rulings from §4 first, and never lets the ladder file ov
     expect($rulings['H4'] ?? null)->toBe('DECIDED', 'H4 is SATISFIED in §4');
     expect($rulings['R-SEASON'] ?? null)->toBe('DECIDED', 'the named rulings must parse at all');
 
-    // ⚠️ R5 is the one genuinely unruled transition and F-60 depends on it staying visible as such.
-    expect($rulings['R5'] ?? null)->toBe('UNDECIDED', 'R5 is still unruled — F-60 closes when it is ruled');
+    // ⚠️⚠️ THIS ASSERTION WAS FLIPPED BY A RULING, NOT BY A FAILURE (FIX 54) — and the red that flipped it
+    //    was the pin doing its job, exactly as `ReservationLadderTest`'s R4 case was. It read UNDECIDED
+    //    while R5 genuinely was, and the founder answered it on 2026-09-20: refuse, and BUILD the confirm
+    //    route the refusal points at. **This edit is the record of that decision, not a quiet fix to a
+    //    failing test.** ⚠️ If it ever reads UNDECIDED again, a ruling has been undone — stop and ask.
+    expect($rulings['R5'] ?? null)->toBe('DECIDED', 'R5 was ruled 2026-09-20 and built by FIX 54');
+
+    // ⚠️ And the transition that ruling produced is itself a ruling now, so the map must carry it.
+    expect($rulings['R8'] ?? null)->toBe('DECIDED', 'R8 (tentative → confirmed) was built by FIX 54');
 
     // ⚠️⚠️ H1–H3 WERE ABSENT BY DESIGN UNTIL FIX 51, AND THE REASON IS WORTH KEEPING. R-HK-11 ruled "keep the
     // housekeeping ladder permissive — all fourteen permitted moves stay", which answers them WITHOUT NAMING
