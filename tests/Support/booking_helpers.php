@@ -10,6 +10,7 @@ use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
+use App\Services\GroupBookingService;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -134,5 +135,59 @@ if (! function_exists('flushQueue')) {
     {
         DB::table('jobs')->delete();
         DB::table('failed_jobs')->delete();
+    }
+}
+
+if (! function_exists('tentativeHold')) {
+    /**
+     * ⚠️ A TENTATIVE GROUP HOLD, FROM THE REAL PRODUCER — never from writing a status onto a row.
+     *
+     * 🔬 Measured: `GroupBookingService::create()` gives every member a `lead_guest_id`
+     * (`$member['lead_guest_id'] ?? $input['organiser_guest_id']`), so a held member ALWAYS has a lead guest.
+     * That matters to more than the fixture: it is the reason F-64's defect was always reachable — the only
+     * guest-side gate the confirmation listener had was `leadGuest !== null`, and a hold always satisfies it.
+     *
+     * Shared by {@see tests/Feature/ConfirmTentativeHoldTest.php} (the conversion) and
+     * {@see tests/Feature/HoldDoesNotEmailTheGuestTest.php} (the send), so the two cannot drift apart.
+     *
+     * @param  array{property: Property, roomType: RoomType, units: list<Unit>, ratePlan: RatePlan, guest: Guest}  $scenario
+     */
+    function tentativeHold(array $scenario): Reservation
+    {
+        $group = app(GroupBookingService::class)->create([
+            'property_id' => $scenario['property']->id,
+            'name' => 'Held party',
+            'occasion' => null,
+            'billing_mode' => 'individual',
+            'status' => 'tentative',
+            'check_in' => '2026-09-01',
+            'check_out' => '2026-09-03',
+            'currency' => 'EUR',
+            'adults' => 2,
+            'children' => 0,
+            'organiser_guest_id' => $scenario['guest']->id,
+            'pickup_deadline' => '2026-09-01',
+            'members' => [[
+                'room_type_id' => $scenario['roomType']->id,
+                'unit_id' => $scenario['units'][0]->id,
+                'rate_plan_id' => $scenario['ratePlan']->id,
+                'price_minor' => 10000,
+            ]],
+        ]);
+
+        return Reservation::query()->where('group_id', $group->getKey())->firstOrFail();
+    }
+}
+
+if (! function_exists('soldOver')) {
+    /** Σ `availability.sold` across a reservation's own room type and stay dates — the inventory spine. */
+    function soldOver(Reservation $reservation): int
+    {
+        $line = $reservation->reservationUnits()->first();
+
+        return (int) DB::table('availability')
+            ->where('room_type_id', $line->room_type_id)
+            ->whereBetween('date', [$reservation->check_in, $reservation->check_out])
+            ->sum('sold');
     }
 }

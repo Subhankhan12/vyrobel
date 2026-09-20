@@ -215,6 +215,27 @@ be a later fuse. ⚠️ **Zero Stripe** — `stripe_subscription_id` and `stripe
 shape `vyrobel-demo` already carries.
 
 ---
+## L10 · ⚠️ A GUEST ON A TENTATIVE HOLD IS TOLD NOTHING AT ALL
+
+⚠️⚠️ **CUSTOMER-FACING, AND IT IS THE DELIBERATE RESIDUE OF FIXING F-64.** Until 2026-09-20 a guest whose room
+was held on a tentative group hold received a *"booking confirmed"* email — a false statement, since a hold
+carries a pickup deadline and promises nothing. That send now happens at CONFIRM instead, which is the first
+moment the sentence is true.
+
+⚠️ **The honest consequence: between the hold being taken and somebody confirming it, the guest receives no
+message from the product whatsoever.** For a direct booking this window does not exist; for a group hold it
+can be days.
+
+⚠️⚠️ **WHAT WAS DELIBERATELY NOT BUILT, AND WHY IT IS NOT A BUG TO BE QUIETLY PATCHED:** a *hold*
+notification — *"we are holding a room for you until Friday"* — is a **new guest-facing message**. It needs
+its own copy, its own per-org template toggle (#86), its own guest-preference question, and a decision about
+whether an expiring hold chases the guest again. That is a product decision with a founder in it, not a
+repair, and inventing one inside a defect fix is how a fix silently becomes a feature nobody ruled.
+
+⚠️ **The operator is NOT in the dark** — 🔬 `DispatchNotificationsForDomainEvent` still fires the new-booking
+notification at hold time, and the ARI push still tells the channels the room is gone. Only the guest-facing
+sentence was withheld, and only because it was untrue.
+
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some

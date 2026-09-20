@@ -90,6 +90,62 @@ it('⚠️ F-18 — refuses check-in from every TERMINAL state, proven by row st
     }
 })->with(['cancelled', 'no_show', 'checked_out']);
 
+// ── ⚠️⚠️ R5 — THE `tentative` ARM, THE `no_show` ARM'S SIBLING (FIX 55) ───────────────────────────
+//
+// ⚠️⚠️ R5 RULED: REFUSE, AND NAME THE CONFIRM-THEN-CHECK-IN ROUTE. ⚠️ It could not be written when it was
+// first ruled, and the reason is the whole lesson: 🔬 THERE WAS NO CONFIRM ROUTE. Sixteen operator POST
+// routes touched a reservation and not one promoted it to `confirmed`. Copy naming it would have sent a
+// receptionist to a control that did not exist — the exact dead end the `no_show` measurement caught a pass
+// earlier. FIX 54 BUILT and DROVE the route; only now is the sentence true, so only now is it written.
+//
+// ⚠️⚠️ AND THE TWO ARMS ARE NOT THE SAME SHAPE, which is why R5 gets its own copy rather than R1's:
+// 🔬 a no-show's nights were RELEASED, so the way out is a NEW booking that re-checks availability and may
+// find the room gone. 🔬 A tentative hold still OCCUPIES its nights (`availability.sold` 0 → 2 at create,
+// unchanged at confirm), so confirming converts what is already held and cannot fail for availability.
+// Copy that blurred the two would send a receptionist down the wrong path in one of the two cases.
+it('⚠️⚠️ R5 — the tentative refusal names the SHIPPED confirm control, and the two cannot drift', function () {
+    $s = seedScenario(2);
+    $reservation = tentativeHold($s);   // ⚠️ THE REAL PRODUCER — not a status written onto a row
+    $before = rlRow($reservation);
+
+    expect((string) $reservation->status)->toBe('tentative');
+
+    $message = null;
+    try {
+        app(CheckInReservation::class)->handle($reservation);
+    } catch (RuntimeException $e) {
+        $message = $e->getMessage();
+    }
+
+    expect($message)->not->toBeNull('a tentative booking was CHECKED IN — R5 rules that it must be refused');
+
+    // ⚠️ The generic fallthrough is precisely what this replaced: a closed door with no way out.
+    expect($message)->not->toBe('Cannot check in a tentative reservation.',
+        'R5 still falls through to the generic message — the refusal must name the route');
+
+    expect($message)
+        ->toContain('held but not confirmed')        // 🔬 WHY: the room is taken, the promise is not made
+        ->toContain('cannot fail for availability'); // 🔬 the hold already occupies the nights
+
+    // ⚠️⚠️ THE CONTROL IS NAMED BY READING THE SURFACE, NEVER BY TYPING THE LABEL TWICE. Two `match`es for one
+    // concept drift; so do a button and the sentence that points at it. If the button is renamed, the copy
+    // becomes a lie about the product's own UI — and this fails, naming both halves.
+    $blade = file_get_contents(resource_path('views/livewire/reservation-detail.blade.php'));
+    preg_match('/app\\.reservations\\.confirm.*?<button[^>]*>([^<]+)<\\/button>/s', (string) $blade, $m);
+    $shippedLabel = trim($m[1] ?? '');
+
+    expect($shippedLabel)->toBe('Confirm hold',
+        'the confirm control was renamed — R5\'s refusal copy names the OLD label and now misdirects');
+    // ⚠️ `toContain()` takes VARIADIC NEEDLES, not a message — a second argument there is silently asserted
+    //    as another needle. Stated explicitly because this exact slip cost two red runs in the pass that
+    //    wrote this file.
+    expect(str_contains((string) $message, $shippedLabel))->toBeTrue(
+        'R5\'s refusal does not name the control a receptionist must actually press');
+
+    // ⚠️ AND A REFUSAL MOVES NOTHING. The row is the evidence, never the exception type.
+    expect(rlRow($reservation))->toBe($before, 'a refused check-in must not move the reservation row');
+});
+
 it('⚠️ F-18 — refuses check-out from a booking that was never checked in, proven by row state', function (string $from) {
     $s = seedScenario(1);
     $r = rlAt($s, $from);

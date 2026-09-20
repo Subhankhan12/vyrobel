@@ -126,6 +126,31 @@ class CheckInReservation
                 .'on it stay on the guest record.',
             'checked_out' => 'Cannot check in a checked-out reservation: the departure has already been '
                 .'recorded and acted on. Reversing a checkout is not available.',
+
+            // ⚠️⚠️ R5 (F-60) — REFUSE, AND NAME THE WAY OUT, exactly as R1's arms do. ⚠️ THE ROUTE WAS BUILT
+            // AND DRIVEN BEFORE THIS SENTENCE NAMED IT (FIX 54): when the ruling was first put, the proposed
+            // copy pointed at a confirm route that 🔬 DID NOT EXIST — sixteen operator POST routes touched a
+            // reservation and not one promoted it. Naming it then would have shipped a dead end.
+            //
+            // ⚠️ "Confirm hold" is the SHIPPED LABEL — read out of the reservation-detail view, not a
+            // description of the control invented here. If that button is ever renamed, this sentence
+            // becomes a lie about the product's own UI; ReservationLadderTest reads the label from the
+            // blade and pins the two together, so that cannot happen silently.
+            //
+            // ⚠️⚠️ AND THE COPY STATES WHY IT CANNOT FAIL, which is the part a receptionist needs: 🔬 the hold
+            // already occupies the nights (`availability.sold` 0 → 2 at create, unchanged at confirm), so
+            // confirming converts what is held and takes nothing further. Unlike the `no_show` arm — where the
+            // nights were RELEASED and a new booking must re-check availability — there is nothing here that
+            // can be lost to another guest in between.
+            'tentative' => 'Cannot check in a tentative booking: the room is held but not confirmed, so '
+                .'nobody has promised this guest the stay yet. Press Confirm hold on this reservation first, '
+                .'then check them in. The nights are already held by this booking, so confirming takes '
+                .'nothing further and cannot fail for availability.',
+
+            // ⚠️ `enquiry` DELIBERATELY GETS NO ARM AND NO COPY. 🔬 Nothing in this application writes that
+            // status — it exists in the enum and in display labels and no code path produces it — so a
+            // sentence naming a route out of it would describe a journey no guest can be on. Recorded as a
+            // ruling in docs/STATUS-LADDERS.md: do not "fix" the missing enquiry flow.
             default => "Cannot check in a {$from} reservation.",
         });
     }

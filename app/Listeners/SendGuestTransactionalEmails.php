@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Actions\Reservations\ConfirmTentativeReservation;
 use App\Events\DomainEventRecorded;
 use App\Jobs\SendBookingConfirmationEmail;
 use App\Mail\CancellationMail;
@@ -39,7 +40,16 @@ use Throwable;
 class SendGuestTransactionalEmails
 {
     /** @var array<int, string> */
-    private const HANDLED = ['reservation.confirmed', 'reservation.cancelled', 'payment.refunded', 'reservation.checked_out'];
+    /**
+     * ⚠️⚠️ `reservation.hold_confirmed` IS HERE BECAUSE OF F-64, AND IT IS THE SECOND HALF OF THAT FIX.
+     * {@see ConfirmTentativeReservation} records it when an operator turns a
+     * tentative hold into a real stay. That is the FIRST MOMENT the sentence "your booking is confirmed"
+     * becomes true for a held booking, so that is when the guest is told it.
+     *
+     * ⚠️ Every entry here needs a `match` arm below or PHP throws `UnhandledMatchError` — the two move together,
+     * deliberately, so a type cannot be added and silently do nothing.
+     */
+    private const HANDLED = ['reservation.confirmed', 'reservation.hold_confirmed', 'reservation.cancelled', 'payment.refunded', 'reservation.checked_out'];
 
     /** Delay (seconds) on the booking-confirmation send so it renders after the folio is posted (≫ request time). */
     private const CONFIRMATION_DELAY_SECONDS = 60;
@@ -70,7 +80,8 @@ class SendGuestTransactionalEmails
 
         $this->tenant->forOrganization($orgId, function () use ($domainEvent): void {
             match ($domainEvent->event_type) {
-                'reservation.confirmed' => $this->bookingConfirmation($domainEvent),
+                'reservation.confirmed',
+                'reservation.hold_confirmed' => $this->bookingConfirmation($domainEvent),
                 'reservation.cancelled' => $this->cancellation($domainEvent),
                 'payment.refunded' => $this->refundConfirmation($domainEvent),
                 'reservation.checked_out' => $this->reviewRequest($domainEvent),
@@ -84,6 +95,33 @@ class SendGuestTransactionalEmails
         if (! $reservation instanceof Reservation) {
             return;
         }
+
+        // ⚠️⚠️ F-64 — THE GUEST IS TOLD A BOOKING IS CONFIRMED ONLY WHEN IT IS.
+        //
+        // 🔬 `AssignmentService::createGroupBooking()` records `reservation.confirmed` for EVERY persisted
+        // member including TENTATIVE ones — correctly, because a hold occupies inventory and the channels must
+        // learn the room is gone. This listener used to take that event at its name and email the guest
+        // "booking confirmed" for a hold that carried a pickup deadline and promised them nothing. That is the
+        // product stating a falsehood to a member of the public, in writing.
+        //
+        // ⚠️⚠️ AND THIS GATE IS HERE — AT DISPATCH — RATHER THAN INSIDE THE JOB, WHICH IS THE WHOLE FIX.
+        // 🔬 The dispatch below carries a SIXTY-SECOND delay. A status check inside the job would be RACY:
+        // hold at T+0 queues a job for T+60; an operator who confirms at T+10 makes the job re-read
+        // `confirmed` at T+60 and send — on top of the send the confirm itself triggered. Two emails, from a
+        // check written to prevent one.
+        //
+        // ⚠️⚠️ DECIDED HERE, THE FIX IS IMMUNE TO ORDERING: the status is read synchronously at the moment the
+        // event is recorded — the value the very same committed transaction just wrote — so a held booking
+        // never puts a job on the queue at all, and there is no pending send for a later confirm to race with.
+        // tests/Feature/HoldDoesNotEmailTheGuestTest.php asserts the queue is EMPTY after a hold.
+        //
+        // ⚠️ THE EVENT IS DELIBERATELY NOT SUPPRESSED UPSTREAM. Two other listeners consume it at hold time and
+        // both are correct: the ARI push (removing it oversells the room) and the OPERATOR new-booking notice
+        // (the front desk must learn the hold arrived). The email was the only wrong consumer.
+        if ((string) $reservation->status !== 'confirmed') {
+            return;
+        }
+
         // #86 — the operator can disable this email per-org; OFF genuinely stops the send.
         if (! EmailTemplateResolver::enabled((string) $reservation->organization_id, 'booking-confirmation')) {
             return;

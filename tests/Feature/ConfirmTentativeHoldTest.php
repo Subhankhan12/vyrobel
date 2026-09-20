@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\ConfirmTentativeReservation;
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Models\Reservation;
-use App\Services\GroupBookingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -22,42 +22,11 @@ uses(RefreshDatabase::class);
  * So the inventory is read at FOUR points, not two, and each step says what it means.
  */
 
-/** ⚠️ THE FIXTURE COMES FROM THE REAL PRODUCER — never from writing a status. */
-function tentativeHold(array $scenario): Reservation
-{
-    $group = app(GroupBookingService::class)->create([
-        'property_id' => $scenario['property']->id,
-        'name' => 'Held party',
-        'occasion' => null,
-        'billing_mode' => 'individual',
-        'status' => 'tentative',
-        'check_in' => '2026-09-01',
-        'check_out' => '2026-09-03',
-        'currency' => 'EUR',
-        'adults' => 2,
-        'children' => 0,
-        'organiser_guest_id' => $scenario['guest']->id,
-        'pickup_deadline' => '2026-09-01',
-        'members' => [[
-            'room_type_id' => $scenario['roomType']->id,
-            'unit_id' => $scenario['units'][0]->id,
-            'rate_plan_id' => $scenario['ratePlan']->id,
-            'price_minor' => 10000,
-        ]],
-    ]);
-
-    return Reservation::query()->where('group_id', $group->getKey())->firstOrFail();
-}
-
-function soldOver(Reservation $reservation): int
-{
-    $line = $reservation->reservationUnits()->first();
-
-    return (int) DB::table('availability')
-        ->where('room_type_id', $line->room_type_id)
-        ->whereBetween('date', [$reservation->check_in, $reservation->check_out])
-        ->sum('sold');
-}
+/**
+ * ⚠️ THE FIXTURES `tentativeHold()` AND `soldOver()` LIVE IN `tests/Support/booking_helpers.php`.
+ * They are shared with {@see tests/Feature/HoldDoesNotEmailTheGuestTest.php} — the hold's CONVERSION and the
+ * hold's SEND are two readings of one fixture, and two copies of it would drift.
+ */
 
 // ── 1. ⚠️⚠️ THE FOUR INVENTORY READINGS ───────────────────────────────────────────────────────────
 it('⚠️⚠️ confirming CONVERTS the hold — it never takes a second one', function () {
@@ -97,15 +66,26 @@ it('⚠️⚠️ confirming CONVERTS the hold — it never takes a second one', 
 //
 // ⚠️⚠️ 🔬 `createGroupBooking` ALREADY records `reservation.confirmed` for a tentative member — deliberately,
 // because the hold occupies inventory and must sync to channels. That event drives the ARI push, the operator
-// notification AND the guest booking-confirmation email, whose job does not gate on status. Recording it
-// again at confirm would send a SECOND "booking confirmed" email for a booking whose inventory did not move.
-// So confirming records `reservation.hold_confirmed`, and this asserts the distinction holds.
+// notification AND the guest booking-confirmation email. Recording it AGAIN at confirm would re-fire the ARI
+// push and re-notify the operator for a booking whose inventory did not move. So confirming records
+// `reservation.hold_confirmed`, and this asserts the distinction holds.
+//
+// ⚠️⚠️ UPDATED BY FIX 55 (F-64), AND THE CHANGE IS DELIBERATE — READ THIS BEFORE "RESTORING" THE OLD ASSERTION.
+// This test used to assert that confirming queued NO job at all. That was true only while the guest
+// confirmation email was being sent at the WRONG time: 🔬 the hold fired it, so by the time an operator
+// confirmed, the guest had already been told — falsely — that their booking was confirmed (F-64).
+// ⚠️ Now the email fires HERE, which is the first moment the sentence is true. So confirming queues EXACTLY
+// ONE job and it is the confirmation email. The assertion below is stricter than the one it replaced: it
+// names the job class rather than counting anonymous jobs, so a DIFFERENT listener waking up still fails.
 it('⚠️ confirming records its own event and does NOT re-fire the booking-confirmation side effects', function () {
     Queue::fake();
     $s = seedScenario(2);
     $reservation = tentativeHold($s);
 
-    $jobsAfterCreate = count(Queue::pushedJobs());
+    // ⚠️ F-64: a HOLD must queue no confirmation email — the guest has been promised nothing yet.
+    expect(Queue::pushed(SendBookingConfirmationEmail::class)->count())->toBe(0,
+        'a tentative hold queued a guest booking-confirmation email — that is F-64');
+    $otherJobsAfterCreate = count(Queue::pushedJobs());
 
     app(ConfirmTentativeReservation::class)->handle($reservation);
 
@@ -118,8 +98,14 @@ it('⚠️ confirming records its own event and does NOT re-fire the booking-con
     expect(count(array_filter($events, fn (string $e): bool => $e === 'reservation.confirmed')))->toBe(1,
         'confirming must not record a second reservation.confirmed — that would re-send the guest email');
 
-    expect(count(Queue::pushedJobs()))->toBe($jobsAfterCreate,
-        'confirming queued a job — no listener should fire, since inventory did not move');
+    // ⚠️⚠️ EXACTLY ONE, AND IT IS NAMED. The confirmation email is the ONLY side effect confirming may have:
+    //    inventory did not move, so nothing else has anything to react to.
+    expect(Queue::pushed(SendBookingConfirmationEmail::class)->count())->toBe(1,
+        'confirming must queue exactly one guest booking-confirmation email — the first true one (F-64)');
+
+    expect(count(Queue::pushedJobs()))->toBe($otherJobsAfterCreate + 1,
+        '⚠️ confirming woke a listener other than the guest confirmation email. Inventory did not move, so '
+        .'nothing else should have anything to react to — find out what fired before relaxing this.');
 
     // The audit trail and the status history both record it.
     expect(DB::table('audit_events')->where('subject_id', $reservation->getKey())

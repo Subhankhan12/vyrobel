@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Reservations;
 
+use App\Jobs\SendBookingConfirmationEmail;
+use App\Listeners\SendGuestTransactionalEmails;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\User;
@@ -41,16 +43,32 @@ use RuntimeException;
  * 🔬 MEASURED, NOT ASSUMED: `createGroupBooking` ALREADY records `reservation.confirmed` for tentative
  * members — deliberately, because the hold occupies inventory and must sync to channels. That event drives
  * three listeners: the ARI push, the OPERATOR new-booking notification, and **the guest booking-confirmation
- * email**, whose job 🔬 does not gate on status and sends unconditionally.
+ * email** — the third of which was firing for a HOLD, which is F-64, fixed in FIX 55 and described below.
+ * ⚠️ Precisely: {@see SendBookingConfirmationEmail} still re-reads the reservation and sends
+ * unconditionally; it is the LISTENER that now refuses to dispatch it for anything but a `confirmed` booking.
+ * That placement is not incidental — see the ordering argument below.
  *
- * ⚠️⚠️ SO RECORDING `reservation.confirmed` HERE WOULD SEND THE GUEST A **SECOND** "BOOKING CONFIRMED"
- * EMAIL AND RE-NOTIFY THE OPERATOR, for a booking whose inventory did not move. This records
- * `reservation.hold_confirmed` instead: it satisfies the invariant that every meaningful state change writes
- * BOTH an audit row and a domain-events row, and 🔬 every listener in `app/Listeners` is gated by event type
- * with no catch-all, so a new type triggers nothing.
+ * ⚠️⚠️ SO RECORDING `reservation.confirmed` HERE WOULD RE-FIRE THE ARI PUSH AND RE-NOTIFY THE OPERATOR, for a
+ * booking whose inventory did not move. This records `reservation.hold_confirmed` instead: it satisfies the
+ * invariant that every meaningful state change writes BOTH an audit row and a domain-events row, and 🔬 every
+ * listener in `app/Listeners` is gated by event type with no catch-all, so a new type triggers only what is
+ * deliberately taught to listen for it.
  *
- * ⚠️ **THAT A TENTATIVE HOLD EMAILS THE GUEST "BOOKING CONFIRMED" AT ALL IS A PRE-EXISTING DEFECT, REPORTED
- * SEPARATELY AND NOT FIXED HERE.** This action neither causes it nor compounds it.
+ * ── ⚠️⚠️ F-64 — WHAT THIS EVENT NOW ALSO DOES, AND WHY THAT IS THE POINT ─────────────────────────────────
+ *
+ * ⚠️⚠️ **WHEN FIX 54 BUILT THIS ACTION IT REPORTED, AND DID NOT FIX, A PRE-EXISTING DEFECT: the tentative hold
+ * itself emailed the guest "booking confirmed".** 🔬 `createGroupBooking` records `reservation.confirmed` for
+ * tentative members, and {@see SendGuestTransactionalEmails} did not gate that send on status
+ * — so a guest holding a room on a pickup deadline was told, in writing, that it was confirmed. **FIX 55 fixed
+ * it as F-64**, and this event is where the repaired send now originates.
+ *
+ * ⚠️ So `reservation.hold_confirmed` is no longer inert: the email listener handles it, because **this is the
+ * first moment at which "your booking is confirmed" is a true statement** about a held booking.
+ *
+ * ⚠️⚠️ THE GATE IS AT DISPATCH, NOT INSIDE THE JOB, AND THAT IS WHAT MAKES IT SAFE TO CONFIRM QUICKLY: 🔬 the
+ * confirmation send carries a sixty-second delay, so a status check *inside* the job would let a hold-time job
+ * and a confirm-time job both send when an operator confirms inside that window. Deciding at dispatch means a
+ * hold never queues one at all. **Confirming a hold one second after taking it sends exactly one email.**
  *
  * ── ⚠️ NO INVERSE ───────────────────────────────────────────────────────────────────────────────────────
  *
