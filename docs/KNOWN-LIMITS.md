@@ -299,17 +299,27 @@ and re-check inside the lock, and the Stripe rail's deterministic idempotency ke
 missing one is the layer that catches a caller bypassing the service — and ⚠️ **the product cannot un-pay an
 owner** (`reverse()` is quarantined by ruling).
 
-### ⚠️⚠️ L12b — the no-double-booking guarantee depends on a HOST SETTING NOBODY PINNED
+### ✅ L12b — the no-double-booking guarantee DEPENDED on a host setting nobody pinned — ⚠️ FIXED 2026-09-20
 
 🔬 **On MariaDB at REPEATABLE READ the concurrency tests FAIL** — `SELECT … FOR UPDATE` raises
 **error 1020 "Record has changed since last read"** instead of blocking and cleanly rejecting, because
 MariaDB 11.6+ ships `innodb_snapshot_isolation=ON`. 🔬 **At READ COMMITTED all 17 concurrency tests PASS.**
 
-⚠️⚠️ **Production is READ COMMITTED — and that is a Hostinger GLOBAL server default. The application sets it
-nowhere.** MySQL 8's default (the certified configuration) is REPEATABLE READ. ⚠️ **If that host default ever
-changes, or the app moves to another MariaDB box, the booking path starts throwing raw database errors where it
-used to refuse gracefully** — and one case (`DeadlockAvoidanceTest`) turns a legitimate booking into a failure.
-⚠️ **Nothing in the repository pins this.**
+⚠️ **This WAS true until 2026-09-20: production was READ COMMITTED only because Hostinger's GLOBAL default
+happened to be, and the application set it nowhere.** A provider could have changed it in a maintenance window
+with no deploy, no commit and no alarm.
+
+✅ **FIXED (DEPLOY 03).** The application now states its own isolation level explicitly, via
+`Mysql::ATTR_INIT_COMMAND` in `config/database.php` on both connections. ⚠️ PDO applies it at **connect** time,
+so it reaches a web request, an `artisan` command, a **queued job** and a **scheduled task** alike — and
+re-applies on reconnect, which matters because 🔬 this host drops idle connections after 20 seconds. ⚠️ A
+middleware would have left the queue worker, where webhooks fulfil and payouts are written, on the host default.
+
+⚠️⚠️ **READ COMMITTED was chosen only after running the cell nobody had: 🔬 MySQL 8.4.10 @ READ COMMITTED →
+3,651 pass, identical to the REPEATABLE READ control.** Choosing the level that makes MariaDB pass without
+checking MySQL at that level would have been the same mistake that created this, pointed the other way.
+🔬 It is the only level correct on both engines. ⚠️ Pinned by `DatabaseIsolationLevelTest`, mutation-proved,
+and recorded as **F-65**. ⚠️ `DB_TRANSACTION_ISOLATION` can override it, but the pin will go red if it does.
 
 ### ⚠️ L12c — a failed job is invisible
 

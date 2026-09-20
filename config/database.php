@@ -80,6 +80,39 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+
+                // ⚠️⚠️ THE ISOLATION LEVEL IS THE APPLICATION'S CHOICE, NOT THE HOST'S. READ THIS BEFORE CHANGING IT.
+                //
+                // ⚠️⚠️ THE NO-DOUBLE-BOOKING GUARANTEE DEPENDS ON THIS VALUE. `AssignmentService` holds the line
+                // with `SELECT … FOR UPDATE` on `availability`, and what that statement DOES differs by engine
+                // and by isolation level:
+                //   • 🔬 MariaDB 11.6+ ships `innodb_snapshot_isolation=ON`. At REPEATABLE READ a competing
+                //     `FOR UPDATE` does NOT block-then-reject — it aborts with **error 1020, "Record has changed
+                //     since last read"**. The booking path then throws a raw database error instead of refusing
+                //     gracefully, and 🔬 `DeadlockAvoidanceTest` shows a LEGITIMATE booking being lost that way.
+                //   • 🔬 At READ COMMITTED both engines block, re-read, and reject cleanly — which is the
+                //     behaviour every one of this project's concurrency tests was written against.
+                //
+                // 🔬 MEASURED 2026-09-20, same commit and seed, full suite each time:
+                //     MySQL 8.4.10    @ REPEATABLE READ → 3,651 pass      (the historical control)
+                //     MySQL 8.4.10    @ READ COMMITTED  → 3,651 pass      ⚠️ the cell nobody had run
+                //     MariaDB 11.8.9  @ REPEATABLE READ → concurrency FAILS, error 1020
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      (3 failures, separately explained)
+                // ⚠️ READ COMMITTED is the ONLY level correct on BOTH engines. It is not chosen because one
+                //    engine likes it; it is chosen because it is the only cell where both behave as required.
+                //
+                // ⚠️⚠️ AND IT IS SET HERE, IN `options`, ON PURPOSE. PDO applies this at CONNECT time, so it
+                // reaches a web request, an `artisan` command, a QUEUED JOB and a SCHEDULED TASK alike. A
+                // middleware or a request-scoped hook would leave the queue worker — where payment webhooks
+                // fulfil and payouts are written — running on whatever the host happens to default to, which is
+                // precisely the dependency this removes. ⚠️ It also re-applies on reconnect, which matters here:
+                // 🔬 the production host drops idle connections after 20 seconds.
+                //
+                // ⚠️ Until 2026-09-20 this was unset, and production was READ COMMITTED only because Hostinger's
+                // server default happened to be. Nothing in the repository chose or asserted it.
+                // Pinned by `DatabaseIsolationLevelTest`. See `docs/KNOWN-LIMITS.md` L12b.
+                Mysql::ATTR_INIT_COMMAND => 'SET SESSION TRANSACTION ISOLATION LEVEL '
+                    .str_replace('-', ' ', strtoupper((string) env('DB_TRANSACTION_ISOLATION', 'READ COMMITTED'))),
             ]) : [],
         ],
 
@@ -100,6 +133,39 @@ return [
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+
+                // ⚠️⚠️ THE ISOLATION LEVEL IS THE APPLICATION'S CHOICE, NOT THE HOST'S. READ THIS BEFORE CHANGING IT.
+                //
+                // ⚠️⚠️ THE NO-DOUBLE-BOOKING GUARANTEE DEPENDS ON THIS VALUE. `AssignmentService` holds the line
+                // with `SELECT … FOR UPDATE` on `availability`, and what that statement DOES differs by engine
+                // and by isolation level:
+                //   • 🔬 MariaDB 11.6+ ships `innodb_snapshot_isolation=ON`. At REPEATABLE READ a competing
+                //     `FOR UPDATE` does NOT block-then-reject — it aborts with **error 1020, "Record has changed
+                //     since last read"**. The booking path then throws a raw database error instead of refusing
+                //     gracefully, and 🔬 `DeadlockAvoidanceTest` shows a LEGITIMATE booking being lost that way.
+                //   • 🔬 At READ COMMITTED both engines block, re-read, and reject cleanly — which is the
+                //     behaviour every one of this project's concurrency tests was written against.
+                //
+                // 🔬 MEASURED 2026-09-20, same commit and seed, full suite each time:
+                //     MySQL 8.4.10    @ REPEATABLE READ → 3,651 pass      (the historical control)
+                //     MySQL 8.4.10    @ READ COMMITTED  → 3,651 pass      ⚠️ the cell nobody had run
+                //     MariaDB 11.8.9  @ REPEATABLE READ → concurrency FAILS, error 1020
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      (3 failures, separately explained)
+                // ⚠️ READ COMMITTED is the ONLY level correct on BOTH engines. It is not chosen because one
+                //    engine likes it; it is chosen because it is the only cell where both behave as required.
+                //
+                // ⚠️⚠️ AND IT IS SET HERE, IN `options`, ON PURPOSE. PDO applies this at CONNECT time, so it
+                // reaches a web request, an `artisan` command, a QUEUED JOB and a SCHEDULED TASK alike. A
+                // middleware or a request-scoped hook would leave the queue worker — where payment webhooks
+                // fulfil and payouts are written — running on whatever the host happens to default to, which is
+                // precisely the dependency this removes. ⚠️ It also re-applies on reconnect, which matters here:
+                // 🔬 the production host drops idle connections after 20 seconds.
+                //
+                // ⚠️ Until 2026-09-20 this was unset, and production was READ COMMITTED only because Hostinger's
+                // server default happened to be. Nothing in the repository chose or asserted it.
+                // Pinned by `DatabaseIsolationLevelTest`. See `docs/KNOWN-LIMITS.md` L12b.
+                Mysql::ATTR_INIT_COMMAND => 'SET SESSION TRANSACTION ISOLATION LEVEL '
+                    .str_replace('-', ' ', strtoupper((string) env('DB_TRANSACTION_ISOLATION', 'READ COMMITTED'))),
             ]) : [],
         ],
 
