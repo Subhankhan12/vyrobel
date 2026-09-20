@@ -236,6 +236,40 @@ repair, and inventing one inside a defect fix is how a fix silently becomes a fe
 notification at hold time, and the ARI push still tells the channels the room is gone. Only the guest-facing
 sentence was withheld, and only because it was untrue.
 
+## L11 · ⚠️⚠️ THIS PROJECT CANNOT STATE A COVERAGE PERCENTAGE FOR MONEY-WRITE ROUTES
+
+⚠️⚠️ **IF YOU ARE ANSWERING A CUSTOMER'S SECURITY QUESTIONNAIRE, AN INSURER, OR A DUE-DILIGENCE REQUEST, THIS
+IS THE ROW YOU NEED — AND THE ANSWER IS THAT THERE IS NO HONEST NUMBER TO GIVE. DO NOT INVENT ONE.**
+
+The question *"what proportion of your money-write routes have been exercised?"* has no derivable answer here,
+and that is a measured conclusion rather than a gap in the work.
+
+⚠️ **THE MEMBERSHIP RULE IS WRITABLE:** *a money-write route is one whose handler can, on a successful
+request, cause an insert or update to a row carrying a `*_minor` column.* **Applying it is not.**
+
+🔬 **MEASURED 2026-09-20 (F-59):** 513 route entries · 296 POST/PUT/PATCH/DELETE · 14 unresolvable to a
+controller method. ⚠️⚠️ **Deciding membership means following the call graph, and the same rule yields
+3 / 47 / 163 / 190 at traversal depths 0–3 — a 63× swing on an arbitrary parameter.** Three candidate rules
+(writes a money table · writes a `*_minor` figure · reaches a payment processor) **stop distinguishing each
+other at depth ≥ 2**, because the closure saturates. Depth 0 misses every controller that delegates to a
+service — which is this product's entire architecture — and depth 3 pulls in most of the application.
+
+⚠️ **"Mechanical with a list of exceptions" is not an escape**: at depth 2 that list runs to ~160 entries,
+which is a human judgement rule wearing a script's clothes.
+
+⚠️⚠️ **AND BOTH HALVES ARE UNENUMERABLE, NOT ONLY THE DENOMINATOR.** The numerator — routes actually driven
+with the row they wrote recorded — is **five individually named** plus **two clusters of unstated size**.
+
+### ⚠️ What CAN be said honestly
+
+- **Which specific money routes have been driven, and by which pass** — that list exists and is exact
+  (`docs/AUDIT-SUMMARY.md` §5).
+- **That every money write goes through one guarded service path**, with the bounds that enforces
+  (invariants #17, #20, #27, #29, #30, #45).
+- ⚠️ **What has NOT been executed is named rather than counted** — §5 states the rule, not a fraction.
+
+⚠️ **A percentage would be a number nobody could reconstruct, which is worse than no number at all.**
+
 ## L6 · ⚠️ NOT A LIMIT — the role toggles that gate nothing
 
 ⚠️⚠️ **This does not belong on this page and no customer-facing sentence is written for it.** *"Some

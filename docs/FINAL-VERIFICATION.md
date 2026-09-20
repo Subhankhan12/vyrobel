@@ -358,7 +358,7 @@ register in the opposite direction.**
 |---|---|---|
 | **V-1** | a contradiction inside the record | ✅ **FIXED** in `AUDIT-SUMMARY.md` §8 item 7 — **and a second surface of the same claim** (F-21 as `BUILD QUEUED` in §2's pass ledger) that no V-row had named |
 | **V-2** | a contradiction inside the record | ✅ **FIXED** in §4 — **both** surfaces: the table row and the prose sentence above it |
-| **V-3** | a defect someone must act on | ➡️ **F-59** (⛔ OPEN) |
+| **V-3** | a defect someone must act on | ➡️ **F-59** — ✅ **ACCEPTED BY RULING (FIX 57).** 🔬 The denominator is not mechanically derivable: the same membership rule measured **3 / 47 / 163 / 190** at four call-graph depths, so no guard is possible and no honest percentage exists. ⚠️ The **54** quoted in §7 below is itself one arbitrary point on that curve — it is left there as this document's dated record of what it measured, and is retired in the live register and in `KNOWN-LIMITS.md` **L11**. |
 | **V-4** | half record contradiction, half live undecided default | ✅ headline **FIXED**; the undecided default became ➡️ **F-60**, ✅ **CLOSED (FIX 54)** once both ladder transitions were ruled and the confirm route was built |
 | **V-5** | a defect someone must act on | ➡️ **F-61** — FIX 48 disclosed it (the gate prints it; `KNOWN-LIMITS.md` **L8**) and repaired nothing. ⚠️ **FIX 50 then ✅ CLOSED it** on the founder ruling: a disposable third tenant, proven by a driven write. |
 | **V-6** | ⚠️⚠️ **an INSTRUMENT fault, not a product defect** | ➡️ `docs/INSTRUMENT-ERRORS.md` class **14**. **It earns no finding number**, and it is the most valuable of the six: a probe that 404s for every id *including its own control's* looks exactly like perfect isolation. |
@@ -368,8 +368,10 @@ found that `R2` names a DIFFERENT, already-ruled question in `HOUSEKEEPING-LADDE
 whether the reservation R2 was answered elsewhere could read *its* ✅ and conclude wrongly.
 
 ⚠️ **A fourth row came from §5's guard table rather than §7:** the money gate compares **counts and sums**, so
-an equal-and-opposite pair of errors nets to zero and passes — now ➡️ **F-62** (⛔ OPEN, disclosed on the gate
-itself).
+an equal-and-opposite pair of errors nets to zero and passes — now ➡️ **F-62**, ✅ **CLOSED (FIX 57)**: FULL
+mode additionally asserts a ROW DIGEST over `rate_calendar`, `reservations`, `payments` and `owner_ledger`.
+🔬 Proven by failure — the old gate printed `mode=FULL` exit 0 on a credit moved between two owners; the new
+one exits 1 naming the class. ⚠️ Five money tables are still read by no instrument at all.
 
 ⚠️⚠️ **SO THE ZERO IN §1 IS HISTORICAL FROM 2026-09-19.** 🔬 Re-derive at `AUDIT-SUMMARY.md` §2/§2b, which is
 now guarded by `AuditRegisterIsSelfConsistentTest`. **This document's §1 table was true when taken and this
