@@ -1,0 +1,64 @@
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════
+# ⚠️⚠️ THIS IS A **RECORD**, NOT AN ENFORCEMENT. NOTHING DEPLOYS THIS FILE.
+# ═══════════════════════════════════════════════════════════════════════════════════════════════════
+#
+# ⚠️ WHAT THIS IS. A verbatim copy of the LIVE `public_html/.htaccess` on the production host
+# (Hostinger shared, `~/domains/vyrobel.com/public_html/.htaccess`), recorded here on 2026-09-21.
+#
+# ⚠️⚠️ WHY IT EXISTS. That file is the only thing standing between the public internet and `.env`,
+# `artisan` and `storage/` — because the document root IS the application root (see KNOWN-LIMITS L12p).
+# Until this copy was made it existed in exactly ONE place, with its only backup
+# (`~/htaccess-backups/`) sitting **on the same disk as the file it protects**. ⚠️ That is not a backup,
+# it is a second copy of the same risk — the identical mistake this project already made with the git
+# bundle before the push. This repository is pushed, so this is the first copy of this file that has
+# ever existed OFF the host.
+#
+# ⚠️⚠️ IT IS NOT LIVE AND EDITING IT CHANGES NOTHING. `public_html` is a real directory the hosting
+# panel owns; `ops/deploy.sh` never writes there, and a deploy moves only the `current` symlink. So:
+#   · Editing this file does NOT change production.
+#   · Deploying does NOT restore production from this file.
+#   · Restoring is a MANUAL step: copy everything below the BEGIN marker to
+#     `~/domains/vyrobel.com/public_html/.htaccess`, then re-run `ops/exposure-battery.sh`.
+# ⚠️ A file in a repository that LOOKS deployed and is not is worse than no file at all, because the
+# next person assumes it is live. It is not. This block is why you know that.
+#
+# ⚠️ TWO LEVELS OF DEFENCE, AND THEY CATCH DIFFERENT THINGS:
+#   · `ops/htaccess-drift-check.sh` catches a CHANGE  — the rules stopped being present.
+#   · `ops/exposure-battery.sh`     catches an EFFECT — something became reachable.
+# ⚠️ A rule can be edited without anything becoming reachable, and something can become reachable
+# without this file changing (a panel change, a server that stops honouring AllowOverride). Neither
+# check subsumes the other — the same reason the alarm carries two independent detectors.
+#
+# 🔬 Recorded sha256 of the canonical content below: 4e671aa5d398046379da15b71595d0b019e41badc4dee3ce329da3e6311b370e
+#
+# ───────── BEGIN CANONICAL CONTENT — restore from the NEXT line down ─────────
+# ── Vyrobel — serve the CURRENT release through ONE pointer ────────────────────
+# ⚠️ `public_html` stays a real directory the hosting panel owns. A deploy moves only the
+#    `current` symlink below it: ONE atomic rename, with nothing beside it that must also move.
+# ⚠️⚠️ FollowSymLinks is REQUIRED — a symlink INSIDE the served tree is not traversed without
+#    it, which is why the first attempt 404'd every application route.
+Options +FollowSymLinks -Indexes
+
+RewriteEngine On
+
+RewriteCond %{THE_REQUEST} \s/current/public/(\S*)\sHTTP
+RewriteRule ^ /%1 [R=301,L]
+
+# ⚠️⚠️ The front controller AND every build asset resolve THROUGH `current`, so a release
+#    swap is one operation and assets can never lag a release behind the code.
+# ⚠️ The site root goes STRAIGHT to the front controller. Rewriting it to a DIRECTORY lets
+#    Laravel's own "redirect trailing slashes" rule fire on /current/public/ and emit a 301 — which a
+#    CDN then caches. 🔬 Measured 2026-09-20: that 301 was replayed for ~30 minutes after the origin was
+#    correct again. One explicit rule removes the interaction entirely.
+RewriteRule ^$ /current/public/index.php [L]
+
+RewriteCond %{REQUEST_URI} !^/current/public
+RewriteRule ^(.*)$ /current/public/$1 [L]
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/(bootstrap|config|database|resources|routes|storage|vendor|ops)(/|$)
+RedirectMatch 404 ^/current/(app|bootstrap|config|database|resources|routes|storage|vendor|ops)(/|$)
+RedirectMatch 404 ^/current/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
+RedirectMatch 404 ^/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
