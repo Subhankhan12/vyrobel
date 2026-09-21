@@ -32,13 +32,17 @@
 #
 set -uo pipefail
 
-MODE="${1:-tree}"
+MODE="tree"
+SHOW_ALL=0
+for _arg in "$@"; do
+  case "${_arg}" in
+    tree|history) MODE="${_arg}" ;;
+    --all)        SHOW_ALL=1 ;;
+    *) echo "usage: ops/secret-scan.sh [tree|history] [--all]" >&2; exit 2 ;;
+  esac
+done
+export VY_SCAN_SHOW_ALL="${SHOW_ALL}"
 cd "$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not inside a git repository" >&2; exit 2; }
-
-case "${MODE}" in
-  tree|history) ;;
-  *) echo "usage: ops/secret-scan.sh [tree|history]" >&2; exit 2 ;;
-esac
 
 # ⚠️ Rules are NAME|REGEX. High-signal credential SHAPES first, then the broad assignment rule that is
 #    expected to be noisy — noise is triaged by a human; a miss is not triaged by anyone.
@@ -147,6 +151,8 @@ if total == 0:
 
 for name, found in sorted(hits.items(), key=lambda kv: -len(kv[1])):
     print(f"  ⚠️ {name}: {len(found)} hit(s)")
+    # ⚠️ The cap exists so one noisy rule cannot bury the others. --all lifts it.
+    CAP = 10**9 if os.environ.get("VY_SCAN_SHOW_ALL") == "1" else 12
     seen = set()
     shown = 0
     for where, lineno, red in found:
@@ -154,12 +160,16 @@ for name, found in sorted(hits.items(), key=lambda kv: -len(kv[1])):
         if key in seen:
             continue
         seen.add(key)
-        if shown < 12:
+        if shown < CAP:
             print(f"       {where}:{lineno}  {red}")
             shown += 1
     if len(seen) > shown:
-        # ⚠️ NO SILENT CAPS — say exactly what was not printed.
-        print(f"       … {len(seen) - shown} further DISTINCT location(s) not printed (rerun for the full list)")
+        # ⚠️⚠️ NO SILENT CAPS, AND NO PROMISE THE TOOL CANNOT KEEP. 🔬 This line used to say "rerun for
+        # the full list" while the cap was hardcoded at 12 and NO mode lifted it — so a reader triaging a
+        # security scan was told 12 of 34 and pointed at a route that did not exist. ⚠️ A tool that
+        # under-reports AND misdirects is worse than one that plainly says 12.
+        print(f"       … {len(seen) - shown} of {len(seen)} DISTINCT location(s) not printed "
+              f"— rerun with --all to see every one")
     print()
 
 print("  ⚠️⚠️ TRIAGE EVERY ONE. Do not add an allow-list — say in the report which are known and accepted.")

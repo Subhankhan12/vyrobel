@@ -121,7 +121,23 @@ say "  ✅ control: the listing can see a known-present process — a zero below
 #    being asked. 🔬 Observed on this machine: a `/bin/zsh -c … proc-check.sh 'pestphp/pest' …` line matched
 #    a search for `pestphp/pest`. So lines naming this script, and this script's own process tree, are
 #    excluded — a false POSITIVE here is as damaging as the false negative the control guards against.
-SAFE="[${PATTERN:0:1}]${PATTERN:1}"
+# ⚠️⚠️ AND A THIRD FORM, MEASURED 2026-09-21: BRACKETING THE FIRST CHARACTER OF THE *PATTERN* PROTECTS ONLY
+#    THE FIRST ALTERNATIVE. 🔬 `proc-check.sh 'phpunit|pest|artisan test'` became `[p]hpunit|pest|artisan
+#    test` — and the grep's own command line contains the literal `pest`, so it matched ITSELF and reported
+#    a test run in flight when there was none. ⚠️ A false POSITIVE on a pre-flight is not harmless: it blocks
+#    a legitimate run, and the human fix is to stop believing the tool. ⚠️ So every `|`-separated alternative
+#    is bracketed, not just the first. Already-bracketed alternatives are left alone (idempotent).
+SAFE=""
+_ifs_saved="$IFS"; IFS='|'
+for _alt in ${PATTERN}; do
+  case "${_alt}" in
+    "")      _safe_alt="" ;;                      # an empty alternative: leave it (a degenerate pattern)
+    \[*)     _safe_alt="${_alt}" ;;               # already bracketed by the caller — do not double-wrap
+    *)       _safe_alt="[${_alt:0:1}]${_alt:1}" ;;
+  esac
+  SAFE="${SAFE:+${SAFE}|}${_safe_alt}"
+done
+IFS="$_ifs_saved"
 MATCHES="$(${PS_CMD} 2>/dev/null \
   | grep -E "${SAFE}" \
   | grep -v "${MARKER}" \
