@@ -183,6 +183,36 @@ else
   note "bootstrap/cache/config.php absent — nothing to check (run after config:cache)"
 fi
 
+# ── ⚠️⚠️ `LOG_LEVEL=debug` IN PRODUCTION IS A PII LEAK, AND IT IS A TEMPTING ONE ─────────────────────
+#
+# ⚠️⚠️ WHY THIS EXISTS, STATED PLAINLY SO IT IS NEVER MISTAKEN FOR A BACK DOOR LATER. 🔬 Measured
+# 2026-09-21: production runs `MAIL_MAILER=log` with `LOG_LEVEL=warning`, and Laravel's log mailer writes at
+# **debug** — so every email is not merely undelivered, it is **discarded without a trace**. That makes
+# invites and password resets untestable, because the token is sha256 in the database and the plaintext
+# exists only inside the Mailable.
+#
+# ⚠️ The one workaround is `LOG_LEVEL=debug`, which drops the full MIME body — **including the recipient's
+# address and the single-use token** — into `storage/logs`. That is acceptable on a parked site with one
+# test account and **unacceptable the day a real guest exists**, and the difference between those two days
+# is invisible from inside the expedient. ⚠️ So the expedient is legitimate ONLY while something is
+# watching for it to be left on. This is that something.
+#
+# ⚠️ IT IS A DIAGNOSTIC, TIME-BOXED AND REVERTED — never a standing configuration.
+LOG_LEVEL_VALUE="$(grep -E '^LOG_LEVEL=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'"'' | tr -d '[:space:]')"
+APP_ENV_VALUE="$(grep -E '^APP_ENV=' .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d '"'"'"'' | tr -d '[:space:]')"
+if [ "${APP_ENV_VALUE}" = "production" ]; then
+  case "${LOG_LEVEL_VALUE}" in
+    debug)
+      fail "LOG_LEVEL=debug with APP_ENV=production — the log mailer writes at debug, so every outbound email body (recipient address + single-use invite/reset token) is being written to storage/logs. Revert it to warning and purge the captured lines." ;;
+    "")
+      note "LOG_LEVEL unset in .env — the daily channel defaults to 'warning' under APP_ENV=production" ;;
+    *)
+      pass "LOG_LEVEL=${LOG_LEVEL_VALUE} in production (not debug — mail bodies and their tokens stay out of the log)" ;;
+  esac
+else
+  note "APP_ENV=${APP_ENV_VALUE:-<unset>} — the LOG_LEVEL=debug prohibition is production-only"
+fi
+
 # ── CI-ONLY additions (NOT part of the production contract — see §7.6) ──────────────────────────────
 if [ "${CI_IMAGE:-0}" = "1" ]; then
   echo "── CI-ONLY (deliberately beyond §7.5 — see §7.6.4) ──────────────"

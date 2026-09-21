@@ -953,3 +953,66 @@ per permission over every `.php` file in `app/`, `routes/` and `resources/` — 
 ⚠️ **The surrounding code favours (1) for the seven with no action at all** — a permission for a capability
 the product does not expose is not granularity, it is a phantom — **and (2) for the three with a coarser
 gate**, where the finer permission is the one an administrator reasonably expects to bind.
+
+---
+
+### ⚠️⚠️ L12p — THE DOCUMENT ROOT **IS** THE APPLICATION ROOT, SO `.env` IS PROTECTED BY REWRITE RULES AND NOTHING ELSE
+
+🔬 Measured 2026-09-21 (ACCESS 02) on the live host.
+
+⚠️⚠️ **THE SHAPE OF IT.** `~/domains/vyrobel.com/public_html` is simultaneously the Apache document root and
+the directory holding `.env` (0600), the `artisan` shim, `storage/` (logs **and** `storage/framework/down`,
+which carries the maintenance bypass secret) and the `current` pointer. There is no `public/`-only docroot.
+⚠️ **Every secret this system owns therefore sits inside the served tree**, including `APP_KEY` — 📄 the only
+copy of which exists here and in `.env` alone, and without which every encrypted guest record is permanently
+unreadable.
+
+⚠️⚠️ **WHAT ACTUALLY PROTECTS THEM — AND IT IS NOT WHAT THE FILE LOOKS LIKE IT IS.** The load-bearing line is
+the rewrite, not the deny-list:
+
+```apache
+RewriteCond %{REQUEST_URI} !^/current/public
+RewriteRule ^(.*)$ /current/public/$1 [L]
+```
+
+Every request is re-rooted under `current/public/`, where none of those files live, so `/​.env` resolves to
+`current/public/.env` — which does not exist — and falls through to Laravel. ⚠️ The four `RedirectMatch`
+lines are **defence in depth on top of that**, not the wall itself.
+
+⚠️⚠️ **AND ONE RULE IN THAT FILE IS INERT, WHICH NOBODY WOULD GUESS BY READING IT.** `<FilesMatch "^\.">
+Require all denied` does **nothing**: mod_rewrite (fixup) re-maps the request to `index.php` before the
+file-level section is evaluated against a filename. 🔬 Proven by differential — `/current/.gitignore` and
+`/current/.gitattributes` return **503 from Laravel**, not 403. ⚠️ A reader would reasonably believe dotfiles
+are denied by this site's own configuration. They are not.
+
+⚠️ **`.env` AND `.git` ARE REFUSED BY A *HOST-LEVEL* RULE THIS PROJECT DOES NOT OWN.** 🔬 `/.env`,
+`/current/.env`, `/.git/config` all return **403 with a generic edge error page** (787 bytes), distinct from
+both Laravel's 503 and the site's own 404. That refusal is Hostinger's, configured outside the repository,
+and it can change without anything here going red.
+
+⚠️⚠️ **TWO NAMESPACE COLLISIONS CAME OUT OF THE SAME LINE.** `RedirectMatch 404 ^/(app|…|storage|…)` was
+written to block Laravel's *source directories*, but two of those names are also the product's own *URL*
+namespaces:
+- **`/app`** — the entire operator back office. 🔬 It hard-404'd all 55+ routes at Apache, before PHP.
+  ✅ **FIXED 2026-09-21**: `app|` removed from the top-level rule only. `public_html/app` does not exist, and
+  the release's real `app/` stays blocked by the `^/current/(app|…)` rule below it. 🔬 Battery unchanged in
+  51 of 53 cells; the two that moved went from *Apache refuses* to *Laravel refuses*.
+- **`/storage`** — the public disk's URL (`config/filesystems.php` → `APP_URL.'/storage'`), so **all public
+  media 404s**. ⚠️ **STILL OPEN, AND DELIBERATELY NOT FIXED**: `public_html/storage` is a real directory
+  holding the logs and the bypass secret, so the path cannot simply be unblocked. ⚠️ **It will fail
+  SILENTLY** — the first uploaded property photo will just not appear. No media exists yet, which is the only
+  reason nobody has met it.
+
+⛔ **FOUNDER STEP, AND IT IS THE REAL FIX:** establish whether hPanel can point this domain's document root at
+a **subdirectory** (`public_html/current/public`). ⚠️ **This could not be determined from the server** — the
+vhost is not readable and all eight domains on the account follow the fixed `domains/<d>/public_html`
+convention. If it can be moved, the whole class disappears: both collisions, the inert `FilesMatch`, and the
+dependence on a host rule, all at once. If it cannot, **this limit is permanent** and everyone who touches
+this host must know it.
+
+✅ **THE STANDING DETECTOR IS `ops/exposure-battery.sh`** — 53 probes across every URL shape that could reach
+a release's source, judged on **status AND body content**, exit 1 on exposure and **exit 2 on a probe it
+could not measure**. ⚠️ 🔬 That third state was bought the same day: a transient `curl` failure made an
+earlier version report an exposure while the wall was intact, and *a battery that cries wolf on a blip gets
+re-run until it goes green* — the exact habit it exists to prevent. ⚠️ Prove it still fires with
+`--prove-red` before trusting a green.
