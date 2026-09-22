@@ -7,6 +7,7 @@ namespace App\Livewire;
 use App\Http\Controllers\FrontDeskActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\CompanyAccount;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\UnitRateOverride;
@@ -89,6 +90,24 @@ class FrontDesk extends Component
                 'today' => CarbonImmutable::today()->toDateString(),
                 'is_today' => $date === CarbonImmutable::today()->toDateString(),
             ],
+            // ⚠️⚠️ THE ACCOUNTS THE PICKER CAN OFFER — org-scoped by the global scope, ACTIVE only (the service
+            //    refuses a closed one, so offering it would invite a refusal the UI could have prevented).
+            // ⚠️ 🔬 AND AN HONEST EMPTY STATE IS NOT OPTIONAL HERE: the ONLY place a CompanyAccount is ever
+            //    created is DemoSeeder:697 — there is NO operator UI to add one. A real tenant therefore has
+            //    ZERO accounts, and a picker with an empty dropdown would be the same dead end one level down.
+            //    The view says so plainly instead of rendering a control that cannot work (#39).
+            // ⚠️⚠️ GATED SERVER-SIDE, NOT ONLY IN ALPINE — and the first draft got this wrong. The modal wraps
+            //    the control in `<template x-if="row.can_bill_to_account">`, which hides it at RUNTIME but
+            //    leaves the markup — and the ACCOUNT NAMES — in the HTML for anyone who can load the board.
+            //    🔬 Caught by this pass's own Housekeeping test: a role with no `folios.manage` was shipped the
+            //    list of a tenant's company accounts in the page source. Not a cross-tenant leak (same org),
+            //    but a client-side gate over server-side data is a gate in appearance only.
+            'companyAccounts' => auth()->user()?->can('folios.manage')
+                ? CompanyAccount::query()->where('is_active', true)
+                    ->orderBy('name')->get(['id', 'name'])
+                    ->map(fn (CompanyAccount $a): array => ['id' => (string) $a->getKey(), 'name' => (string) $a->name])
+                    ->values()->all()
+                : [],
             'arrivals' => $arrivals,
             'departures' => $departures,
             'inHouse' => $inHouse,
@@ -284,10 +303,17 @@ class FrontDesk extends Component
         // #30 — gate the on-desk Collect CONTROL on the SAME permission the payment route enforces, so a role
         // that can view the desk but not take money never sees a Collect that would 403.
         $canCollect = (bool) auth()->user()?->can('payments.record');
+        // ⚠️⚠️ #30, AND THE REASON THIS CONTROL EXISTS AT ALL. `OutstandingBalanceException` refuses the
+        //    check-out and names three ways forward — "take the payment, BILL IT TO A COMPANY ACCOUNT if they
+        //    settle later, or post an adjustment". 🔬 Until 2026-09-22 only the FIRST had a control: the
+        //    bill-to-account route had no view, no component and no URI anywhere, so a clerk read a remedy and
+        //    had nowhere to click. Gated on `folios.manage` — the SAME permission the route enforces — and
+        //    🔬 Front Desk holds it, which is the point: the role that meets the block can clear it.
+        $canBillToAccount = (bool) auth()->user()?->can('folios.manage');
         // #30 — the in-place move/assign CONTROL gates on reservations.assign (the move route's permission).
         $canMove = (bool) auth()->user()?->can('reservations.assign');
 
-        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut, $canCollect, $canMove): array {
+        return $rows->map(function (Reservation $reservation) use ($canCheckIn, $canCheckOut, $canCollect, $canMove, $canBillToAccount): array {
             $guest = $reservation->leadGuest;
             $name = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
@@ -354,6 +380,8 @@ class FrontDesk extends Component
                 'can_check_in' => $status === 'confirmed' && $canCheckIn,
                 'can_check_out' => $status === 'checked_in' && $canCheckOut,
                 'can_collect' => $balanceMinor > 0 && $canCollect,
+                // ⚠️ Offered only where it is MEANINGFUL: a balance to bill, and the permission to do it.
+                'can_bill_to_account' => $balanceMinor > 0 && $canBillToAccount,
                 // In-place move/assign: the active line + its free same-type candidates (null when not allowed).
                 'move' => $move,
                 'can_move' => $move !== null && $move['candidates'] !== [],

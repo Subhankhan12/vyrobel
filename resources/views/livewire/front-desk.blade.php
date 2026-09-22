@@ -166,6 +166,14 @@
                                     'check_in_label' => $row['check_in_label'], 'check_out_label' => $row['check_out_label'],
                                     'balance' => $row['balance'], 'balance_minor' => $row['balance_minor'],
                                     'has_balance' => $row['has_balance'], 'can_collect' => $row['can_collect'],
+                                    // ⚠️⚠️ THE MODAL READS THIS OFF THE PAYLOAD, NOT OFF THE PAGE. A flag the row
+                                    // mapper computes but this array omits arrives in Alpine as `undefined`, which
+                                    // is falsy — so the control renders in the HTML (it always does, it lives in a
+                                    // <template>) and NEVER APPEARS TO A HUMAN. That is how it shipped for one run
+                                    // of this pass, and why dropping the permission from the mapper did not redden
+                                    // a single test: nothing read the flag. Pinned now by the payload assertions in
+                                    // BillToAccountReachableTest.
+                                    'can_bill_to_account' => $row['can_bill_to_account'],
                                     'is_vip' => $row['is_vip'], 'status_label' => $row['status_label'], 'tone' => $row['tone'],
                                     'can_move' => $row['can_move'], 'move' => $row['move'], 'unassigned' => $row['unassigned'],
                                 ];
@@ -324,6 +332,47 @@
                                         <div>
                                             <div class="vy-fdm-label">Settle now</div>
                                             @include('livewire.partials.fd-collect-form')
+                                        </div>
+                                    </template>
+
+                                    {{-- ⚠️⚠️ THE SECOND REMEDY, AND UNTIL 2026-09-22 IT HAD NOWHERE TO CLICK.
+                                         The check-out refusal (OutstandingBalanceException) names three ways
+                                         forward — take the payment, BILL IT TO A COMPANY ACCOUNT if they settle
+                                         later, or post an adjustment — and 🔬 only the first had a control. The
+                                         bill-to-account route had no view, no component and no URI anywhere.
+                                         ⚠️ IT BELONGS HERE, NOT ON A TIDIER SCREEN: this modal is where the
+                                         balance is read and where the refusal lands (backToBoard → desk_notice).
+                                         A remedy two screens from the problem is the dead end with extra steps. --}}
+                                    <template x-if="row.can_bill_to_account">
+                                        <div style="margin-top:14px">
+                                            <div class="vy-fdm-label">Or bill it to a company account</div>
+                                            @if ($companyAccounts === [])
+                                                {{-- ⚠️ This branch is reached in TWO ways — no accounts exist, or
+                                                     the viewer may not bill. The control itself is already
+                                                     Alpine-gated on `can_bill_to_account`, so a role without the
+                                                     permission never sees this text at all; what renders here is
+                                                     only ever the genuine "none are set up" case. --}}
+                                                {{-- ⚠️ HONEST EMPTY STATE, NOT AN EMPTY DROPDOWN (#39). 🔬 The only
+                                                     place a company account is created is the demo seeder — there is
+                                                     no operator UI — so a real tenant has none and a picker here
+                                                     would be a second dead end. Say that, rather than offer it. --}}
+                                                <div class="vy-fdm-settled" style="margin-top:6px">
+                                                    No company accounts are set up, so there is nothing to bill to yet.
+                                                    Take the payment or post an adjustment instead.
+                                                </div>
+                                            @else
+                                                <form method="POST" x-bind:action="'/app/reservations/' + row.id + '/bill-to-account'" style="margin-top:6px">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                    <select class="vy-input" name="company_account_id" required aria-label="Company account">
+                                                        <option value="">Choose an account…</option>
+                                                        @foreach ($companyAccounts as $acct)
+                                                            <option value="{{ $acct['id'] }}">{{ $acct['name'] }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <button type="submit" class="vy-act" style="margin-top:8px">Bill to account</button>
+                                                </form>
+                                                <div class="vy-fdm-sub" style="margin-top:6px">The balance stays owed — this records who settles it, it does not take a payment.</div>
+                                            @endif
                                         </div>
                                     </template>
                                 </div>

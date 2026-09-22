@@ -9,6 +9,7 @@ use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AuditEvent;
+use App\Models\CompanyAccount;
 use App\Models\Folio;
 use App\Models\Guest;
 use App\Models\InventoryBlock;
@@ -114,6 +115,18 @@ class ReservationDetail extends Component
 
         $folio = $folioModel !== null ? $this->buildFolio($folioModel, $currency) : null;
 
+        // ⚠️⚠️ THE UNDO FOR BILL-TO-ACCOUNT, AND IT BELONGS HERE RATHER THAN ON THE BOARD. The board is where
+        //    the check-out REFUSAL is read, so that is where "bill it" goes; this screen is where the folio's
+        //    STATE lives, so this is where "it is billed, and here is how to take it back" goes.
+        // ⚠️ 🔬 `unbill-from-account` was not merely buttonless — it had no test either. **A billing action
+        //    with no undo is a one-way door on a money path**, which is the exact lesson R7/R9 cost two passes.
+        // ⚠️ #30 — gated on `folios.manage`, the SAME permission the route enforces.
+        $billedToId = $folioModel?->billed_to_account_id;
+        $billedTo = $billedToId !== null
+            ? (string) (CompanyAccount::query()->whereKey($billedToId)->value('name') ?? 'a company account')
+            : null;
+        $canManageFolio = (bool) auth()->user()?->can('folios.manage');
+
         // The transition allow-lists are the WRITE PATH's own (public constants on the controller that
         // performs the mutation), never a second copy: a button this screen offers is exactly a transition
         // ReservationLifecycleController will accept, and it cannot drift out of step with it.
@@ -181,6 +194,8 @@ class ReservationDetail extends Component
             'can_cancel' => $canCancel,
             'can_no_show' => $canNoShow,
             'can_confirm_hold' => $canConfirmHold,
+            'billed_to' => $billedTo,
+            'can_unbill_from_account' => $billedTo !== null && $canManageFolio,
             'can_reverse_check_in' => $canReverseCheckIn,
             'can_reverse_check_out' => $canReverseCheckOut,
             'notes' => $this->notes($reservation),

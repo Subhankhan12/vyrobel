@@ -116,6 +116,27 @@
 
                 <div class="vy-card">
                     <h2 class="vy-card-title" style="margin-bottom: 6px;">Folio</h2>
+
+                    {{-- ⚠️⚠️ THE BILLED STATE, AND ITS UNDO. Billing a folio to a company account is recorded on
+                         the folio (`billed_to_account_id`), so this is where it is read — and until 2026-09-22
+                         there was no way to read it and no way to take it back: `unbill-from-account` had no
+                         view, no component, no URI and **no test**.
+                         ⚠️ A BILLING ACTION WITH NO UNDO IS A ONE-WAY DOOR ON A MONEY PATH — the same lesson
+                         R7 and R9 cost two passes to learn about check-in.
+                         ⚠️ It says plainly what billing did and did NOT do: the money is still owed. --}}
+                    @if ($billed_to !== null)
+                        <div class="vy-recon" style="margin-bottom:10px">
+                            Billed to <strong>{{ $billed_to }}</strong> — the balance is still owed, by them rather than the guest.
+                        </div>
+                        @if ($can_unbill_from_account)
+                            <form method="POST" action="{{ route('app.reservations.unbill-from-account', $reservation['id']) }}" style="margin-bottom:12px"
+                                onsubmit="return confirm('Return this folio to the guest? The balance goes back to them — nothing is refunded or charged.');">
+                                @csrf
+                                <button type="submit" class="vy-act vy-act--ghost">Return to the guest’s folio</button>
+                            </form>
+                        @endif
+                    @endif
+
                     @if ($folio === null)
                         <div class="vy-empty">No folio opened yet — record a payment or post a charge to open one.</div>
                     @else
