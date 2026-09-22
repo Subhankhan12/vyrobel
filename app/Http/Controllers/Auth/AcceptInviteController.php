@@ -62,7 +62,20 @@ class AcceptInviteController extends Controller
 
         // Capture the role home BEFORE accept() (the invite is spent in the transaction): an owner invite
         // → the owner portal; a staff invite (no owner) → the operator app.
-        $home = $invite->owner_id !== null ? route('owner.dashboard') : route('app.dashboard');
+        //
+        // ⚠️⚠️ AN OWNER INVITE LANDS ON `/owner/welcome`, NOT THE DASHBOARD — and that is the whole reason
+        // that page exists. 🔬 Measured 2026-09-22: `owner.welcome` was built (Wave B · GATE 6), is real,
+        // honest and covered by three tests, and NOTHING anywhere linked to it — not the nav, not a mail,
+        // not this controller, which is the one place a brand-new owner is created. An onboarding page
+        // nobody is ever sent to is not onboarding; it is four links to pages already in the owner's own
+        // navigation. This line is the journey it was written for, and the page's own terminal CTA is
+        // already "Go to your dashboard", so it hands off rather than trapping anyone.
+        //
+        // ⚠️ THE OWNER-TEAM invite is deliberately NOT changed ({@see AcceptOwnerTeamInviteController}):
+        // a sub-user has no payout account to add and no units of their own, so the payout hand-off that
+        // is this page's centrepiece would be a false instruction to them — the exact defect the page's
+        // own `hasPayout` comment records having already fixed once.
+        $home = $invite->owner_id !== null ? route('owner.welcome') : route('app.dashboard');
 
         $user = $this->invites->accept($invite, (string) $request->string('password'));
 

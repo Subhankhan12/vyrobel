@@ -211,7 +211,6 @@ use App\Livewire\Owner\OwnerWelcome;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
-use App\Models\MessageThread;
 use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
@@ -1366,14 +1365,18 @@ Route::middleware(['auth', EnsureOwnerPortalAccess::class, SetOwnerScopeForPorta
     // The reply is a REAL message via InboxService::postOwnerMessage() (inbound = into the org), never a
     // fake send. {thread} is a plain string resolved in the component/controller (never RMB).
     Route::get('/messages', OwnerMessages::class)->name('messages');
-    // The thread is now a pane IN the unified 3-pane Messages page (exact-match) — a deep-link redirects to it.
-    // Resolve OWNER-SCOPED first (findOrFail under OwnerScope) so a cross-owner/guest thread 404s BEFORE the
-    // redirect — the two-inbox isolation contract is preserved, not weakened into an unconditional 302.
-    Route::get('/messages/{thread}', function (string $thread) {
-        $model = MessageThread::query()->findOrFail($thread);
-
-        return redirect()->route('owner.messages', ['c' => $model->getKey()]);
-    })->name('messages.show');
+    // ⚠️⚠️ `owner.messages.show` (`GET /owner/messages/{thread}`) WAS REMOVED 2026-09-22, deliberately.
+    // It was a back-compat redirect to this page's `?c={thread}` pane, left behind when the thread page
+    // became a pane in the 3-pane rebuild. Its own comment claimed "a deep-link redirects to it" — and
+    // 🔬 that claim was false in every direction it could be checked: no view, component, Mailable,
+    // notification, test or JS anywhere named it; `OwnerMessageReceivedNotification` — the one thing that
+    // would naturally deep-link a thread — points at THIS list route instead; and 710 persisted
+    // `notifications` rows carried not one `/owner/messages/<id>` URL. The canonical, shareable,
+    // bookmarkable spelling the UI actually produces is `?c={id}` (the conversation list links there), so
+    // the removed route served a URL shape this product no longer emits anywhere.
+    // ⚠️ An unreferenced route is indistinguishable from an oversight to the next reader — which is the
+    // cost this sentence exists to pay off. If a thread deep-link is ever wanted again, add it WITH the
+    // surface that emits it, in the same change.
     Route::post('/messages', [OwnerMessageActionController::class, 'start'])->name('messages.start');
     Route::post('/messages/{thread}', [OwnerMessageActionController::class, 'reply'])->name('messages.reply');
     // GATE 2 — rich message actions, all OWNER-scoped (the {thread} findOrFail 404s a cross-owner/guest thread)

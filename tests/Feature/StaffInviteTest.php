@@ -187,8 +187,11 @@ it('leaves the owner path unchanged: owner record + agreement + units, /owner, n
     $token = capturedInviteToken();
     $this->post('/logout');
 
+    // owner → the OWNER PORTAL (the realm is what this test is about — never /app). ⚠️ The exact landing
+    // became `/owner/welcome` on 2026-09-22 (APPLY 04 · item 2): the invite is the one place a new owner is
+    // created, and it is the door the onboarding page never had. Still the owner realm; still not /app.
     $this->post("/invite/{$token}", ['password' => 'Owner-strong-pass1!', 'password_confirmation' => 'Owner-strong-pass1!'])
-        ->assertRedirect('/owner');   // owner → the portal
+        ->assertRedirect('/owner/welcome');
 
     $user = User::query()->where('email', 'olivia@example.test')->firstOrFail();
     app(TenantContext::class)->set($s['org']->id);

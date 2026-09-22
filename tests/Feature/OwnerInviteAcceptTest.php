@@ -32,8 +32,15 @@ it('activates the owner and logs them in on a valid token', function () {
 
     test()->get("/invite/{$token}")->assertOk()->assertSee('Set your password');
 
+    // ⚠️⚠️ `/owner/welcome`, NOT `/owner` — CHANGED 2026-09-22 (APPLY 04 · item 2). This is the invite path,
+    //    the ONE place a brand-new owner is created, and it is the door `owner.welcome` never had: 🔬 that
+    //    page was built, tested and honest, and nothing anywhere linked to it. Its own terminal CTA is
+    //    already "Go to your dashboard", so it is a pre-dashboard step by design and hands off immediately.
+    //    ⚠️ The ORDINARY LOGIN below still lands on `/owner` — a returning owner is not re-onboarded.
+    //    ⚠️ No ruling or pin named this landing (checked before changing it); the subject of this test is
+    //    activation + auto-login + owner scoping, all unchanged and all still asserted below.
     test()->post("/invite/{$token}", ['password' => 'Sup3r-secret-pw!', 'password_confirmation' => 'Sup3r-secret-pw!'])
-        ->assertRedirect('/owner');
+        ->assertRedirect('/owner/welcome');
 
     // Login + owner activated; token spent; unit assigned; agreement created.
     $user = User::query()->where('email', 'nova@example.test')->firstOrFail();
@@ -71,7 +78,7 @@ it('rejects a reused token with a generic page and no re-activation', function (
     $s = seedScenario(1);
     ['invite' => $inv, 'token' => $token] = invited($s, 'once@example.test');
 
-    test()->post("/invite/{$token}", ['password' => 'First-password-x1!', 'password_confirmation' => 'First-password-x1!'])->assertRedirect('/owner');
+    test()->post("/invite/{$token}", ['password' => 'First-password-x1!', 'password_confirmation' => 'First-password-x1!'])->assertRedirect('/owner/welcome');
     test()->post('/logout');
 
     // Reuse the now-spent token → generic invalid page, no second activation.

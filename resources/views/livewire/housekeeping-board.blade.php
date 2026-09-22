@@ -11,6 +11,12 @@
         assignUrl(id) { return '{{ route('app.housekeeping.assign', '__ID__') }}'.replace('__ID__', id); },
         statusUrl(id) { return '{{ route('app.housekeeping.status', '__ID__') }}'.replace('__ID__', id); },
         photoUrl(id) { return '{{ route('app.housekeeping.photos.store', '__ID__') }}'.replace('__ID__', id); },
+        {{-- ⚠️ THE UNDO FOR THE LINE ABOVE. 🔬 Measured 2026-09-22: three photo families exist in this
+             app (housekeeping · maintenance · room-types) and TWO of the three already offer a delete
+             control on the thumbnail. Housekeeping was the exception: a clean could be photographed
+             and the photo shown, and no operator could ever remove one — a wrong or accidental shot
+             was permanent. The route existed, fully written and gated, and had no way in. --}}
+        photoDeleteUrl(taskId, mediaId) { return '{{ route('app.housekeeping.photos.destroy', ['__TASK__', '__MEDIA__']) }}'.replace('__TASK__', taskId).replace('__MEDIA__', mediaId); },
         {{-- GATE 8.1 — drag-lane-move. FORWARD-ONLY through the real status enum (a backward drop is a no-op:
              the enum is a forward workflow, and updateStatus only accepts in_progress/clean/inspected). The
              drop POSTs the SAME certified, gated status route the buttons use — no new backend, no date math. --}}
@@ -421,7 +427,20 @@
                         <h3 style="font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px;">Photos</h3>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
                             <template x-for="photo in detail.photos" :key="photo.id">
-                                <img :src="photo.url" alt="Proof photo" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline);">
+                                <div style="position: relative;">
+                                    <img :src="photo.url" alt="Proof photo" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline);">
+                                    @if ($canManage ?? $canAssign)
+                                        {{-- ⚠️ The SAME permission that gates the upload beneath and the route itself
+                                             (`housekeeping.manage`) — #30: the control and the route agree, so the UI
+                                             never invites a 403. Same × affordance and confirm as the maintenance
+                                             ticket's photo grid, so the two surfaces read identically. --}}
+                                        <form method="POST" :action="photoDeleteUrl(detail.id, photo.id)" style="margin:0;position:absolute;top:4px;right:4px;"
+                                              onsubmit="return confirm('Remove this photo? The image file is deleted — this cannot be undone.');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" title="Remove photo" aria-label="Remove photo" style="width:20px;height:20px;border-radius:50%;border:none;background:rgba(43,35,32,.6);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center;">&times;</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </template>
                             <template x-if="detail.photos.length === 0">
                                 <span class="vy-muted" style="font-size: 12px;">Attach proof of the clean, or flag an issue.</span>
