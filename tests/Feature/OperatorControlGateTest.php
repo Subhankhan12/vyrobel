@@ -3,6 +3,7 @@
 use App\Models\EmailTemplate;
 use App\Models\MaintenanceTicket;
 use App\Models\Owner;
+use App\Models\Reservation;
 use App\Models\UnitRequest;
 use App\Services\MaintenanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,4 +192,104 @@ it('offers unit-request Approve and Decline only to a role holding units.manage'
     //    exactly as it returns a live one, so a status check alone passed with the row removed (planted).
     $after = UnitRequest::withoutGlobalScopes()->withTrashed()->find($request->id);
     expect($after->status)->toBe('pending')->and($after->trashed())->toBeFalse();
+});
+
+// ── ⚠️⚠️ APPLY 03 · R3 / R9 — INVARIANT #30 READ BACKWARDS: A PERMISSION WITH NO BUTTON ─────────────────
+//
+// ⚠️⚠️ #30 WARNS AGAINST A CONTROL WITH NO PERMISSION — a button that invites a 403. This is the mirror:
+// `ReverseCheckOut` (R3) shipped 2026-09-19 and 🔬 NO VIEW EVER LINKED ITS ROUTE, so for three days a built,
+// tested and PINNED capability could not be invoked by any operator. `ReverseCheckIn` (R9) shipped in the same
+// state, which is worse — R9 exists to undo a mis-clicked check-in, so the person in the trap could not reach
+// the way out.
+//
+// ⚠️⚠️ AND NOTHING IN THE SUITE COULD HAVE NOTICED, WHICH IS THE PART WORTH KEEPING. Every R3/R9 test drives
+// the ROUTE directly — `$this->post(route(...))` — which is exactly the thing an operator cannot do. A test
+// that reaches a capability by a door the user does not have proves the capability, never the access.
+// **These two tests are the ones that would have noticed.**
+
+it('⚠️⚠️ R9 — offers Reverse check-in on a checked-in stay, to a role that may check in, and routes THROUGH the confirmation', function () {
+    $s = seedScenario(1);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    Reservation::query()->whereKey($reservation->getKey())->update(['status' => 'checked_in']);
+
+    // ⚠️ POSITIVE FIRST — Front Desk holds `reservations.checkin`. A vacuous "sees nothing" cannot pass here.
+    $desk = operatorUser($s, [], 'Front Desk');
+    $deskHtml = $this->actingAs($desk)
+        ->get(route('app.reservations.show', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($deskHtml)->toContain((string) $reservation->reference)          // the page really rendered
+        ->and($deskHtml)->toContain(route('app.front-desk.reverse-checkin', $reservation->getKey()))
+        ->and($deskHtml)->toContain('Reverse check-in');
+
+    // ⚠️⚠️ IT IS A LINK TO THE CONFIRMATION, NOT A POST TO THE WRITER. A one-click reverse that skipped the
+    //    disclosure would be a regression dressed as a convenience.
+    //
+    // ⚠️ ASSERTED ON THE MARKUP, NOT ON THE ROUTE NAME — and the first version of this test got that wrong.
+    //    `reverse-checkin` (GET, the confirmation) and `reverse-checkin.store` (POST, the writer) are the SAME
+    //    PATH on two verbs, so `route()` returns an IDENTICAL string for both and "the store route is absent"
+    //    is unprovable by URL. 🔬 It failed for exactly that reason. The real discriminator is the ELEMENT:
+    //    an `<a href>` reaches the disclosure; a `<form method="POST">` would skip it.
+    $reverseUrl = route('app.front-desk.reverse-checkin', $reservation->getKey());
+    expect($deskHtml)->toContain('<a href="'.$reverseUrl.'"');
+    expect(preg_match('/<form[^>]*action="'.preg_quote($reverseUrl, '/').'"/', $deskHtml))
+        ->toBe(0, 'the control POSTs straight to the writer, skipping the disclosure page');
+
+    // ⚠️ NEGATIVE — Housekeeping holds neither checkin nor checkout (🔬 4 permissions total).
+    $hk = operatorUser($s, [], 'Housekeeping');
+    $hkResponse = $this->actingAs($hk)->get(route('app.reservations.show', $reservation->getKey()));
+
+    // ⚠️ If Housekeeping cannot reach the detail page at all, the control question is moot but the ROUTE gate
+    //    must still refuse — assert whichever applies rather than assuming reachability.
+    if ($hkResponse->status() === 200) {
+        expect($hkResponse->getContent())
+            ->not->toContain(route('app.front-desk.reverse-checkin', $reservation->getKey()));
+    }
+
+    // ⚠️ AND THE ROUTE REFUSES INDEPENDENTLY — the control being hidden is the UI half, never the gate.
+    $this->actingAs($hk)->get(route('app.front-desk.reverse-checkin', $reservation->getKey()))->assertForbidden();
+});
+
+it('⚠️⚠️ R3 — offers Reverse check-out on a checked-out stay, and hides it from a role that may not', function () {
+    $s = seedScenario(1);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
+    Reservation::query()->whereKey($reservation->getKey())->update(['status' => 'checked_out']);
+
+    $desk = operatorUser($s, [], 'Front Desk');
+    $deskHtml = $this->actingAs($desk)
+        ->get(route('app.reservations.show', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($deskHtml)->toContain((string) $reservation->reference)
+        ->and($deskHtml)->toContain(route('app.front-desk.reverse-checkout', $reservation->getKey()))
+        ->and($deskHtml)->toContain('Reverse check-out');
+
+    // ⚠️ Same discriminator as R9's — element, not URL. R3's disclosure is the one that really matters: a
+    //    checkout fans out (departure clean, dirty unit, notifications, a review email that cannot be
+    //    recalled) and that page is where an operator learns which of those stand.
+    $reverseOutUrl = route('app.front-desk.reverse-checkout', $reservation->getKey());
+    expect($deskHtml)->toContain('<a href="'.$reverseOutUrl.'"');
+    expect(preg_match('/<form[^>]*action="'.preg_quote($reverseOutUrl, '/').'"/', $deskHtml))
+        ->toBe(0, 'the control POSTs straight to the writer, skipping the disclosure page');
+
+    $hk = operatorUser($s, [], 'Housekeeping');
+    $hkResponse = $this->actingAs($hk)->get(route('app.reservations.show', $reservation->getKey()));
+    if ($hkResponse->status() === 200) {
+        expect($hkResponse->getContent())
+            ->not->toContain(route('app.front-desk.reverse-checkout', $reservation->getKey()));
+    }
+    $this->actingAs($hk)->get(route('app.front-desk.reverse-checkout', $reservation->getKey()))->assertForbidden();
+});
+
+it('⚠️ neither reversal is offered on a status where its action would refuse', function () {
+    // ⚠️ THE STATE HALF OF THE GATE, SEPARATELY. A control shown on the wrong status invites a refusal from
+    //    the action rather than a 403 from the route — a different failure with the same cost to the clerk.
+    $s = seedScenario(1);
+    $reservation = book($s, ['unit_id' => $s['units'][0]->id]);   // `confirmed`
+    $desk = operatorUser($s, [], 'Front Desk');
+
+    $html = $this->actingAs($desk)
+        ->get(route('app.reservations.show', $reservation->getKey()))->assertOk()->getContent();
+
+    expect($html)->toContain((string) $reservation->reference)   // the page rendered — not an empty false pass
+        ->and($html)->not->toContain(route('app.front-desk.reverse-checkin', $reservation->getKey()))
+        ->and($html)->not->toContain(route('app.front-desk.reverse-checkout', $reservation->getKey()));
 });

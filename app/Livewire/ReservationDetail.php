@@ -134,6 +134,27 @@ class ReservationDetail extends Component
         $canConfirmHold = (auth()->user()?->can('reservations.manage') ?? false)
             && in_array($status, ReservationLifecycleController::CONFIRMABLE, true);
 
+        // ⚠️⚠️ R3 / R9 — THE TWO REVERSALS, AND THE REASON THEY ARE HERE AT ALL (2026-09-22).
+        //
+        // ⚠️⚠️ BOTH CAPABILITIES EXISTED AND NEITHER COULD BE REACHED. `ReverseCheckOut` (R3) shipped
+        // 2026-09-19, built, tested and pinned — and 🔬 no view has EVER linked its route, so for three days
+        // no operator could invoke it. `ReverseCheckIn` (R9) shipped a pass later in the same state, which is
+        // worse: R9 exists precisely to undo a mis-clicked check-in, so **the person in the trap could not
+        // reach the way out**.
+        //
+        // ⚠️⚠️ THAT IS INVARIANT #30 READ BACKWARDS. #30 warns against a CONTROL with no permission — a button
+        // that invites a 403. This was a PERMISSION WITH NO BUTTON, and nothing in the suite could notice:
+        // every test drove the route directly, which is exactly what an operator cannot do.
+        //
+        // ⚠️ GATED ON PERMISSION ∧ STATUS, the same rule as every sibling above, and on the SAME permission as
+        // each route (`reservations.checkin` / `reservations.checkout`) so the UI can never invite a 403.
+        // 🔬 Measured rather than assumed: Housekeeping holds neither (4 permissions total), Front Desk holds
+        // both. ⚠️ These are two DIFFERENT permissions and are asked separately — a role could hold one only.
+        $canReverseCheckIn = (auth()->user()?->can('reservations.checkin') ?? false)
+            && $status === 'checked_in';
+        $canReverseCheckOut = (auth()->user()?->can('reservations.checkout') ?? false)
+            && $status === 'checked_out';
+
         // Batch C · GATE 2 — a room MOVE is offered only on a non-terminal reservation (moving a cancelled /
         // no-show / checked-out stay is nonsensical). The write goes through AssignmentService::assignUnit,
         // which re-checks availability under a lock — so the free-unit list here is a UX nicety, never the
@@ -160,6 +181,8 @@ class ReservationDetail extends Component
             'can_cancel' => $canCancel,
             'can_no_show' => $canNoShow,
             'can_confirm_hold' => $canConfirmHold,
+            'can_reverse_check_in' => $canReverseCheckIn,
+            'can_reverse_check_out' => $canReverseCheckOut,
             'notes' => $this->notes($reservation),
             'reservation' => [
                 'id' => $reservation->id,

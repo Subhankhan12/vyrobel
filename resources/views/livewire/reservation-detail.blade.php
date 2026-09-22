@@ -195,7 +195,7 @@
                      AssignmentService (the single inventory write path). Each is offered ONLY when the REAL
                      current status allows it — the gates are the controller's own constants, so the UI can
                      never offer a transition the write path refuses. --}}
-                @if ($can_cancel || $can_no_show || $can_confirm_hold)
+                @if ($can_cancel || $can_no_show || $can_confirm_hold || $can_reverse_check_in || $can_reverse_check_out)
                     <div class="vy-card">
                         <span class="vy-eyebrow">Lifecycle</span>
 
@@ -232,6 +232,27 @@
                                 </div>
                             </form>
                             <div class="vy-recon" style="margin-top: 8px;">Cancelling is final — there is no reinstate, and the freed nights can be resold immediately.</div>
+                        @endif
+
+                        {{-- ⚠️⚠️ R9 / R3 — THE TWO REVERSALS. ⚠️ THESE ARE LINKS (GET), NOT SUBMIT BUTTONS, AND THAT
+                             IS THE DESIGN RATHER THAN A SHORTCUT: each one leads to the action's own confirmation
+                             page, which renders that action's preview() — what will be reversed and, more
+                             importantly, WHAT WILL NOT. ⚠️ **A one-click reverse that skipped the disclosure would
+                             be a regression dressed as a convenience**, and for R3 it would be a real one: a
+                             checkout fans out (departure clean, dirty unit, notifications, a review email that
+                             cannot be recalled) and the page is where an operator learns which of those stand.
+                             ⚠️ Gated on the SAME permission as the route it leads to, so the UI never invites a
+                             403 — and on the status, so it never offers a transition the action would refuse. --}}
+                        @if ($can_reverse_check_in)
+                            <a href="{{ route('app.front-desk.reverse-checkin', $reservation['id']) }}"
+                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">Reverse check-in</a>
+                            <div class="vy-recon" style="margin-top: 8px;">Checked in by mistake? This puts the stay back to confirmed, where it can be cancelled. You will see what it does not undo before it happens.</div>
+                        @endif
+
+                        @if ($can_reverse_check_out)
+                            <a href="{{ route('app.front-desk.reverse-checkout', $reservation['id']) }}"
+                               class="vy-act vy-act--ghost" style="margin-top: 14px; display:block; text-align:center; text-decoration:none;">Reverse check-out</a>
+                            <div class="vy-recon" style="margin-top: 8px;">Checked out by mistake? This puts the stay back to checked in. Some things cannot be undone — the next page lists them.</div>
                         @endif
                     </div>
                 @endif
