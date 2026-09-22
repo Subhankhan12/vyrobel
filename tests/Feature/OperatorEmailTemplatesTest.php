@@ -185,10 +185,12 @@ it('links the Settings breadcrumb only for a viewer the Settings route would adm
         ->assertSee(route('app.settings'), false);
     $this->actingAs($admin)->get(route('app.settings'))->assertOk();
 
-    // ⚠️ Front Desk can VIEW this page (it carries no permission gate) but cannot open Settings.
+    // ⚠️⚠️ CHANGED BY A FOUNDER RULING 2026-09-22: Front Desk is now refused the email-templates PAGE
+    //    itself (`can:email_templates.manage`), not merely its write controls. Outbound guest communication
+    //    is a fraud surface. This assertion used to read "can VIEW but cannot open Settings"; it is updated
+    //    as the RECORD OF A DECISION, not to make a result come out.
     $desk = operatorUser($s, [], 'Front Desk');
-    $this->actingAs($desk)->get(route('app.email-templates'))->assertOk()
-        ->assertDontSee(route('app.settings'), false);
+    $this->actingAs($desk)->get(route('app.email-templates'))->assertForbidden();
     $this->actingAs($desk)->get(route('app.settings'))->assertForbidden();
 });
 
@@ -203,11 +205,10 @@ it('keeps the status toggle a real gated POST with an accessible switch, not a r
         ->and($html)->toContain('aria-checked="true"')
         ->and($html)->toContain('aria-label="Booking confirmation — turn off"');
 
-    // ⚠️ Front Desk sees NO toggle and NO edit — the UI never offers a write the route would 403 (#30).
-    $deskHtml = $this->actingAs(operatorUser($s, [], 'Front Desk'))
-        ->get(route('app.email-templates'))->assertOk()->getContent();
-    expect($deskHtml)->not->toContain(route('app.email-templates.toggle', 'booking-confirmation'))
-        ->and($deskHtml)->not->toContain('role="switch"');
+    // ⚠️⚠️ FOUNDER RULING 2026-09-22 — Front Desk no longer reaches this page at all, so the stronger
+    //    property now holds: there is no rendered toggle because there is no rendered page.
+    $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get(route('app.email-templates'))->assertForbidden();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════

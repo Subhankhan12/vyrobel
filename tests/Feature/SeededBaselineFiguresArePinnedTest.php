@@ -82,20 +82,28 @@ it('⚠️ pins tenant one\'s sold inventory — availability.sold sums to 105',
 });
 
 // ── 3. ⚠️⚠️ THE RBAC CENSUS — the class of figure that moved 469 → 678 unnoticed ──────────────────
-it('⚠️⚠️ pins tenant one\'s RBAC census — 260 / 51 / 14 / 14', function () {
+it('⚠️⚠️ pins tenant one\'s RBAC census — 264 / 52 / 14 / 14', function () {
     baselineRead(function (): void {
         $organization = DB::table('organizations')->where('slug', 'vyrobel-demo')->value('id');
 
-        // ⚠️ TENANT-ONE-SCOPED MEANS "this organisation's roles PLUS the global one". 🔬 209 + 51 = 260 and
+        // ⚠️⚠️ MOVED 2026-09-22 BY A FOUNDER RULING, NOT BY DRIFT — and that distinction is the whole reason
+        //    this pin exists. `email_templates.manage` was added to the catalogue so the email templates could
+        //    be restricted to owner + manager (outbound guest communication is a fraud surface). 🔬 The census
+        //    went 260 → 264 / 51 → 52: +1 permission, and +4 role links (Super Admin and Property Owner pick
+        //    it up through their `['*']` wildcard, Group Admin and Hotel Manager explicitly).
+        // ⚠️ A RED PIN ON A RULED BEHAVIOUR IS THE SYSTEM WORKING. It is flipped here as the RECORD OF A
+        //    DECISION — never to make a result come out. The money digests were re-run across the change and
+        //    all four are unchanged.
+        // ⚠️ TENANT-ONE-SCOPED MEANS "this organisation's roles PLUS the global one". 🔬 212 + 52 = 264 and
         //    13 + 1 = 14 — a pass that compares an unscoped total against these will invent a discrepancy.
         $roles = DB::table('roles')
             ->where(fn ($q) => $q->where('organization_id', $organization)->orWhereNull('organization_id'))
             ->pluck('id');
 
-        expect((int) DB::table('role_has_permissions')->whereIn('role_id', $roles)->count())->toBe(260,
+        expect((int) DB::table('role_has_permissions')->whereIn('role_id', $roles)->count())->toBe(264,
             'role_has_permissions for tenant one moved — a role gained or lost permissions');
 
-        expect((int) DB::table('permissions')->count())->toBe(51,
+        expect((int) DB::table('permissions')->count())->toBe(52,
             '⚠️⚠️ THE PERMISSION CATALOGUE MOVED. Permissions are GLOBAL definitions, not per-tenant: this '
             .'figure held through the addition of an entire organisation. A move here means one was MINTED '
             .'or REMOVED, which changes access in every tenant at once — a founder decision, never a build step');

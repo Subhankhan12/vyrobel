@@ -978,11 +978,20 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     // what the real Mailables render at send (mutation-proven). Reads behind #26; every WRITE carries
     // `can:properties.manage` (#30) → EmailTemplateActionController → EmailTemplateService (audited). Sub-gate 4 ·
     // Email Previews render each email with real sample data (no send).
-    Route::get('/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates');
-    Route::get('/email-templates/{key}/edit', OperatorEmailEditor::class)->name('email-templates.edit');
-    Route::post('/email-templates/{key}', [EmailTemplateActionController::class, 'save'])->middleware('can:properties.manage')->name('email-templates.save');
-    Route::post('/email-templates/{key}/toggle', [EmailTemplateActionController::class, 'toggle'])->middleware('can:properties.manage')->name('email-templates.toggle');
-    Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:properties.manage')->name('email-templates.test');
+    // ⚠️⚠️ FOUNDER RULING 2026-09-22 — the email templates are OWNER/ORG-ADMIN only, and the reason is not
+    //    tidiness: outbound guest communication is a FRAUD SURFACE. Whoever can edit the confirmation email
+    //    can change the bank details a guest is asked to pay into.
+    // ⚠️ Gated with `properties.manage` — the SAME permission already on the save/toggle/test writes below,
+    //    so the read and the write now agree. 🔬 Holders: Super Admin, Property Owner, Group Admin.
+    // ⚠️⚠️ WHY A NEW PERMISSION RATHER THAN `properties.manage`: that one EXCLUDES `Hotel Manager`, and the
+    //    ruling is "owner AND manager". 🔬 The product's own suite asserted a Hotel Manager could open this
+    //    screen, so reusing `properties.manage` would have shipped a gate that contradicts both the ruling
+    //    and the built behaviour. 🔬 Holders: Super Admin, Property Owner, Group Admin, Hotel Manager.
+    Route::get('/email-templates', [EmailTemplateController::class, 'index'])->middleware('can:email_templates.manage')->name('email-templates');
+    Route::get('/email-templates/{key}/edit', OperatorEmailEditor::class)->middleware('can:email_templates.manage')->name('email-templates.edit');
+    Route::post('/email-templates/{key}', [EmailTemplateActionController::class, 'save'])->middleware('can:email_templates.manage')->name('email-templates.save');
+    Route::post('/email-templates/{key}/toggle', [EmailTemplateActionController::class, 'toggle'])->middleware('can:email_templates.manage')->name('email-templates.toggle');
+    Route::post('/email-templates/{key}/test', [EmailTemplateActionController::class, 'testSend'])->middleware('can:email_templates.manage')->name('email-templates.test');
     // ⚠️ OP-FIX-2b (audit Finding 1) — gated on `folios.view`, the SAME permission `folio.pdf` carries.
     // The previews render REAL booking money (run 36: €540.00 · €124.20 · €664.20), but that money is the
     // POINT of the surface, not a leak: PaymentReminderBrandTest exists to prove an operator previewing a

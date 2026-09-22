@@ -161,7 +161,7 @@ it('⚠️ lets every seeded role through the back-office gate, and shows them n
 
 // ══ #4 · ⚠️⚠️ FRONT DESK — USED, NOT MERELY SEEDED ═══════════════════════════════════════════════════
 
-it('⚠️⚠️ re-measures the 19 ungated screens AS FRONT DESK — reads open, writes gated', function () {
+it('⚠️⚠️ re-measures the ungated screens AS FRONT DESK — reads open, writes gated', function () {
     $s = seedScenario(1);
     $user = demoRoleActor($s, 'Front Desk');
     $this->actingAs($user);
@@ -196,7 +196,12 @@ it('⚠️⚠️ re-measures the 19 ungated screens AS FRONT DESK — reads open
     //    these routes carry no permission at all, so there is nothing for a wider role to unlock and
     //    nothing for a narrower one to lose. Measuring the census as Housekeeping was not the limitation
     //    it looked like.
-    expect($ungated)->toHaveCount(15)
+    // ⚠️⚠️ 15 → 14 BY A FOUNDER RULING 2026-09-22, not by drift: `app/email-templates` was gated
+    //    `email_templates.manage` because outbound guest communication is a fraud surface. The other
+    //    eighteen stay open BY DECISION (docs/GO-LIVE-REQUIREMENTS.md) — reads are deliberately open to all
+    //    back-office roles. ⚠️ The count is derived from the route table, so it self-corrects; only the pin
+    //    moved, and it moved as the record of a decision.
+    expect($ungated)->toHaveCount(14)
         ->and($open)->toHaveCount($ungated->count());
 
     // ⚠️ AND THE WRITES ARE STILL GATED, which is what makes this a privacy question and not an integrity

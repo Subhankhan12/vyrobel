@@ -94,19 +94,13 @@ it('offers the email editor write controls only to a role holding properties.man
         ->and($adminHtml)->toContain('Send me a test')
         ->and($adminHtml)->toContain(route('app.email-templates.save', 'booking-confirmation'));
 
-    // ⚠️ Housekeeping (4 permissions) reaches this page — it carries no ROUTE gate, which is a separate
-    // finding — but it must be offered no write.
+    // ⚠️⚠️ FOUNDER RULING 2026-09-22 — this used to be a CONTROL gate on an open page, and the comment here
+    //    called that "a separate finding". The founder settled it: the page itself is now gated
+    //    `email_templates.manage`, so Housekeeping is refused outright. The control-gate assertions below
+    //    are replaced by the stronger one — no page, therefore no write affordance to hide.
     $housekeeper = operatorUser($s, [], 'Housekeeping');
-    $hkHtml = $this->actingAs($housekeeper)
-        ->get(route('app.email-templates.edit', 'booking-confirmation'))->assertOk()->getContent();
-    expect($hkHtml)->not->toContain('Save template')
-        ->and($hkHtml)->not->toContain('Send me a test')
-        // ⚠️ the editable FORM is gone too, not just its buttons — an input submits its form on Enter, so a
-        // rendered form with hidden buttons would still have invited the 403.
-        ->and($hkHtml)->not->toContain(route('app.email-templates.save', 'booking-confirmation'))
-        ->and($hkHtml)->not->toContain(route('app.email-templates.test', 'booking-confirmation'))
-        // …while the page itself still renders for them (a control gate, not a page gate)
-        ->and($hkHtml)->toContain('Booking confirmation');
+    $this->actingAs($housekeeper)
+        ->get(route('app.email-templates.edit', 'booking-confirmation'))->assertForbidden();
 
     // …and the save it used to offer is genuinely refused, writing no row.
     $this->actingAs($housekeeper)

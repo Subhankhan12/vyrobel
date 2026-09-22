@@ -11,6 +11,35 @@
  * The `RoleCatalogSeeder` installs the permissions + the global Super Admin role.
  * The `OrganizationRoleProvisioner` installs the 13 tenant roles for a given organization
  * (called at org-creation time and by the demo seeder in Step 8).
+ *
+ * ⚠️⚠️ READ THIS BEFORE INFERRING ANYTHING ABOUT *READ* ACCESS FROM A `.view` PERMISSION — INCLUDING IF YOU
+ * ARE ANSWERING A CUSTOMER'S SECURITY QUESTIONNAIRE. A `.view` permission in this catalogue does **NOT** mean
+ * the corresponding screen is gated. 🔬 Measured 2026-09-22:
+ *
+ *   · `reservations.view` gates **only** `app/guest-requests` and `app/search`. It does NOT gate
+ *     `app/reservations`, `app/reservations/{id}`, `app/calendar`, `app/rack` or `app/front-desk` —
+ *     **every back-office role can open all five.**
+ *   · `units.view` gates **only** `app/unit-requests`. It does NOT gate `app/units`.
+ *   · `folios.view` gates the folio PDF and the email previews, not the folio shown in a reservation.
+ *
+ * ⚠️⚠️ THAT IS A FOUNDER RULING, NOT AN OVERSIGHT (2026-09-22, `docs/GO-LIVE-REQUIREMENTS.md`): 19 of 55
+ * `GET /app` routes are deliberately open to all eleven back-office roles, because in the target market a
+ * small property's staff already see everything. ⚠️ **This note exists because the matrix was implying a
+ * restriction that does not exist, and a permission list that lies is worse than no permission list.**
+ *
+ * ⚠️ WHAT IS ACTUALLY TRUE, AND IS SAFE TO STATE: *all back-office roles can read guest names, stay dates and
+ * reservation amounts; no role outside the Guests CRM (`guests.view`) can read guest contact details.*
+ * 🔬 Measured by differential against a chrome baseline: zero guest emails and zero phone numbers render on
+ * any of the 19 open routes.
+ *
+ * ⚠️ THE WRITE GATES ARE A DIFFERENT AND STRICTER STORY, and they ARE enforced — 🔬 verified 2026-09-22
+ * across five roles and six money/access routes, matching this catalogue cell for cell (e.g. Front Desk may
+ * `payments.record` but is refused `payments.refund`).
+ *
+ * ⚠️ THE ONE READ THAT IS GATED, AND WHY IT IS THE EXCEPTION: `email_templates.manage` closes the email
+ * templates screens to everyone but owner + manager. Outbound guest communication is a fraud surface —
+ * whoever edits the confirmation email can change the bank details a guest is asked to pay into. That is a
+ * different kind of risk from "can this person see a booking", which is why it is the only read gated.
  */
 
 return [
@@ -76,6 +105,12 @@ return [
         // Properties & inventory
         'properties.view',
         'properties.manage',
+
+        // ⚠️⚠️ FOUNDER RULING 2026-09-22 — outbound guest communication is a FRAUD SURFACE: whoever edits
+        //    the confirmation email can change the bank details a guest is asked to pay into. It needed its
+        //    OWN permission because the ruling is "owner AND manager", and no existing permission has those
+        //    holders: `properties.manage` excludes Hotel Manager, `settings.manage` is Owner-only.
+        'email_templates.manage',
         'units.view',
         'units.manage',
         'amenities.manage',
@@ -164,6 +199,7 @@ return [
 
         'Group Admin' => [
             'users.manage',
+            'email_templates.manage',
             'properties.view', 'properties.manage',
             'units.view', 'units.manage', 'amenities.manage',
             'rates.view', 'rates.manage', 'availability.view', 'availability.manage', 'restrictions.manage',
@@ -182,6 +218,7 @@ return [
         ],
 
         'Hotel Manager' => [
+            'email_templates.manage',
             'properties.view',
             'units.view', 'units.manage', 'amenities.manage',
             'rates.view', 'rates.manage', 'availability.view', 'availability.manage', 'restrictions.manage',

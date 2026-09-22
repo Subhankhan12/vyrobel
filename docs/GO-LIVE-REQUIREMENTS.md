@@ -188,7 +188,53 @@ the certificate covers the canonical host.
 
 ---
 
-## ⛔ A DECISION, NOT A TASK — THE 19 UNGATED `/app` READ ROUTES (measured 2026-09-22, TEST 02)
+## ✅ RULED 2026-09-22 — THE 19 UNGATED `/app` READ ROUTES (measured TEST 02, decided TEST 03)
+
+⚠️⚠️ **THE FOUNDER'S RULING, AND IT IS A PRODUCT DECISION RATHER THAN AN OVERSIGHT — WRITE THAT DOWN OR THE
+NEXT AUDIT REDISCOVERS "19 UNGATED ROUTES" AS A FINDING AND COSTS SOMEBODY A DAY.**
+
+**(1) READS STAY OPEN.** All eleven back-office roles keep reservation names, stay dates and amounts.
+⚠️ The reasoning: in the target market a twelve-room property's staff already see everything, and a
+housekeeper who cannot see which rooms have an arrival cannot do the job. **Eighteen of the nineteen routes
+below are therefore open BY DECISION.**
+
+**(2) `app/email-templates` IS RESTRICTED** — ⚠️ outbound guest communication is a **fraud surface**, not a
+tidiness question: whoever edits the confirmation email can change the bank details a guest is asked to pay
+into. ✅ **APPLIED 2026-09-22** — a NEW permission, `email_templates.manage`, on all five routes (index, editor,
+save, toggle, test-send) **and** on the sidebar link. 🔬 Holders: Super Admin, Property Owner, Group Admin,
+**Hotel Manager** — i.e. exactly "owner and manager".
+
+⚠️⚠️ **THE FIRST ATTEMPT USED `properties.manage` AND WAS WRONG — RECORDED BECAUSE THE REASONING MATTERS.**
+That permission excludes `Hotel Manager`, so the gate contradicted the ruling's own acceptance criterion
+("manager 200"). 🔬 **The suite caught it**: `EmailScreensAccessTest` acts as a Hotel Manager and asserts that
+screen opens — the product had been built assuming a manager has access. A new permission was the only
+faithful option, because no existing one has both the right holders and the right meaning.
+
+🔬 **PROVEN, READ AND WRITE, BOTH DIRECTIONS:** Housekeeping **403** on index, editor **and** save, with the
+template row confirmed **not created** (state read back, not inferred from the status); Property Owner **200**
+and the write **landing**, read back from the database; the sidebar link **absent** for Housekeeping and
+present for the owner — a gated route whose control is still offered just invites a 403.
+
+⚠️ **THE PINNED RBAC CENSUS MOVED, AND THAT IS THE SYSTEM WORKING:** tenant one went **260 / 51 → 264 / 52**
+(+1 permission; +4 role links — two wildcard roles pick it up, Group Admin and Hotel Manager explicitly). The
+pin was flipped **as the record of a decision**, never to make a result pass. 🔬 All four money digests
+unchanged across the change and the reseed.
+
+### ⚖️ THE SENTENCE FOR THE ARTICLE 28 CONVERSATION — true, measured, and safe to hand to a lawyer
+
+> **All back-office roles can read guest names, stay dates and reservation amounts. No role outside the
+> Guests CRM can read guest contact details.**
+
+🔬 The evidence behind it, measured 2026-09-22 by **differential against a chrome baseline** (a page that by
+construction carries no guest data, subtracted from every other page): **zero guest email addresses and zero
+phone numbers render on any of the nineteen routes** — the only address present is the acting user's own, in
+the account menu. The Guests CRM itself is gated `guests.view`, where Housekeeping is refused **403**.
+⚠️ The figure is a technical measure, not a policy claim: it says what the software does, not what staff are
+permitted to do with what they see.
+
+---
+
+### The original measurement (TEST 02) — retained as the basis of the ruling above
 
 ⚠️⚠️ **WHAT WAS MEASURED, AND IT IS NOT WHAT A ROUTE NAME SUGGESTS.** 🔬 19 of 55 `GET /app` routes carry no
 `can:` gate, so **every one of the 11 back-office roles reaches them** — gated only by `EnsureBackOfficeAccess`.
