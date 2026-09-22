@@ -24,7 +24,13 @@ use Illuminate\Support\Facades\DB;
  *     MySQL 8.4.10    @ REPEATABLE READ → 3,651 pass          (the historical control)
  *     MySQL 8.4.10    @ READ COMMITTED  → 3,651 pass          ⚠️ the cell nobody had ever run
  *     MariaDB 11.8.9  @ REPEATABLE READ → concurrency FAILS, error 1020
- *     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass          (3 failures, separately explained)
+ *     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass          ⚠️ STALE as of 2026-09-20
+ *     MariaDB 11.8.9  @ READ COMMITTED  → 🔬 RE-MEASURED 2026-09-22: **3,673 pass, ZERO failures**
+ *
+ * ⚠️⚠️ The older line is kept rather than deleted: it was true when written, and the three failures were
+ * fixed by later passes without anyone re-running that cell. **A fixed problem whose record still shows
+ * it broken sends the next reader chasing it.** ⚠️ Nothing re-runs this matrix — it is a record of one
+ * run, not a live figure. Re-measure before quoting it.
  *
  * ⚠️⚠️ **READ COMMITTED IS THE ONLY LEVEL CORRECT ON BOTH ENGINES.** It was NOT chosen because it makes
  * MariaDB pass — that would be the same mistake that created this situation, pointed the other way. It was

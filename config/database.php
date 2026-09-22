@@ -97,7 +97,17 @@ return [
                 //     MySQL 8.4.10    @ REPEATABLE READ → 3,651 pass      (the historical control)
                 //     MySQL 8.4.10    @ READ COMMITTED  → 3,651 pass      ⚠️ the cell nobody had run
                 //     MariaDB 11.8.9  @ REPEATABLE READ → concurrency FAILS, error 1020
-                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      (3 failures, separately explained)
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      ⚠️ STALE — see below
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 🔬 **RE-MEASURED 2026-09-22: 3,673 pass, ZERO failures**
+                //
+                // ⚠️⚠️ THE "3 FAILURES" LINE ABOVE IS KEPT, STRUCK, RATHER THAN DELETED. It was true on
+                // 2026-09-20 and is false now — the three were fixed by later passes without anyone
+                // re-running the MariaDB cell, so the record kept describing a solved problem. ⚠️ **A fixed
+                // problem whose record still shows it broken sends the next reader chasing it**, and that
+                // reader would have found nothing and doubted the instrument instead of the note.
+                // ⚠️ WHAT MADE IT STALE: the matrix is written by hand from a run, and nothing re-runs it.
+                // The suite is the instrument; this comment is a RECORD OF ONE RUN and ages like any dated
+                // document. Re-measure before quoting it.
                 // ⚠️ READ COMMITTED is the ONLY level correct on BOTH engines. It is not chosen because one
                 //    engine likes it; it is chosen because it is the only cell where both behave as required.
                 //
@@ -150,7 +160,17 @@ return [
                 //     MySQL 8.4.10    @ REPEATABLE READ → 3,651 pass      (the historical control)
                 //     MySQL 8.4.10    @ READ COMMITTED  → 3,651 pass      ⚠️ the cell nobody had run
                 //     MariaDB 11.8.9  @ REPEATABLE READ → concurrency FAILS, error 1020
-                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      (3 failures, separately explained)
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 3,648 pass      ⚠️ STALE — see below
+                //     MariaDB 11.8.9  @ READ COMMITTED  → 🔬 **RE-MEASURED 2026-09-22: 3,673 pass, ZERO failures**
+                //
+                // ⚠️⚠️ THE "3 FAILURES" LINE ABOVE IS KEPT, STRUCK, RATHER THAN DELETED. It was true on
+                // 2026-09-20 and is false now — the three were fixed by later passes without anyone
+                // re-running the MariaDB cell, so the record kept describing a solved problem. ⚠️ **A fixed
+                // problem whose record still shows it broken sends the next reader chasing it**, and that
+                // reader would have found nothing and doubted the instrument instead of the note.
+                // ⚠️ WHAT MADE IT STALE: the matrix is written by hand from a run, and nothing re-runs it.
+                // The suite is the instrument; this comment is a RECORD OF ONE RUN and ages like any dated
+                // document. Re-measure before quoting it.
                 // ⚠️ READ COMMITTED is the ONLY level correct on BOTH engines. It is not chosen because one
                 //    engine likes it; it is chosen because it is the only cell where both behave as required.
                 //

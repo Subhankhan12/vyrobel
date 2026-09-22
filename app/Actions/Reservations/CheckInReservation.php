@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Reservations;
 
+use App\Http\Middleware\EnsureOwnerPortalAccess;
 use App\Models\Reservation;
 use App\Models\ReservationStatusHistory;
 use App\Models\User;
@@ -147,8 +148,20 @@ class CheckInReservation
      * changed no behaviour. What it changed is the MESSAGE: a front desk facing a guest who is standing there
      * needs to be told what to do, not only what they may not do.
      *
-     * ⚠️ `checked_out` → `checked_in` is R3 and is NOT built: the undo cannot honestly reverse the review
-     * email the checkout already sent. See docs/STATUS-LADDERS.md.
+     * ⚠️⚠️ CORRECTED 2026-09-22 — THIS SAID R3 "is NOT built" FOR EIGHT DAYS AFTER IT WAS BUILT. R3
+     * (`checked_out → checked_in`) shipped in FIX 34 as {@see ReverseCheckOut}, routed at
+     * `front-desk/{reservation}/reverse-checkout`. The stated obstacle — that the undo cannot honestly
+     * reverse the review email the checkout already sent — was real and was *answered*: the founder ruled
+     * RECORD THE SEND, THEN REVERSE AND DISCLOSE, and `guest_review_invites` now records every outcome.
+     *
+     * ⚠️ **A DOCBLOCK THAT SAYS SOMETHING IS UNBUILT AFTER IT SHIPS SENDS THE NEXT READER TO BUILD IT AGAIN**
+     * — and this one sat directly above the guard a reader consults before touching the ladder. Swept when
+     * its sibling R9 was built; 🔬 the sweep found exactly one other "never built" claim in `app/`
+     * ({@see EnsureOwnerPortalAccess}), which is correct historical prose about the
+     * gap that middleware closed. ⚠️ Not a family — measured, not assumed.
+     *
+     * ⚠️ A plain check-in still may NOT reverse a checkout: that is {@see ReverseCheckOut}'s own named
+     * operation, with its own disclosure. See docs/STATUS-LADDERS.md.
      */
     private function assertTransition(Reservation $reservation): void
     {
