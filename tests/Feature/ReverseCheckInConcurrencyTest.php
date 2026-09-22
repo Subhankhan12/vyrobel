@@ -81,9 +81,38 @@ it('⚠️⚠️ R9(d) — two CONCURRENT reversals: one state change, one event
     // ⚠️ `toContain()` TAKES VARIADIC NEEDLES, NOT A MESSAGE — a second argument becomes a second needle and
     //    the assertion silently demands both. 🔬 Fourth recorded occurrence in this project; it bit here too,
     //    in the very test written to enforce failing-for-the-right-reason. Use str_contains + a plain bool.
+    //
+    // ⚠️⚠️ RULED 2026-09-23 (`R9-MSG`) — AND THIS IS A MIS-SPECIFIED ASSERTION BEING CORRECTED, **NOT A GUARD
+    //    BEING LOOSENED**. Read the next four lines before changing anything here.
+    //    🔬 THE RACE HAS TWO LEGITIMATE WAYS TO LOSE, because {@see ReverseCheckIn::handle()} calls
+    //    `assertReversible()` OUTSIDE the transaction and only then takes `lockForUpdate`. A loser that
+    //    reaches that line BEFORE the winner commits passes it, blocks on the lock, and is refused by the
+    //    lock path — *"already reversed a moment ago — the stay is back to confirmed"*. A loser that reaches
+    //    it AFTER is refused by the transition guard — *"Only a checked-in stay can have its check-in
+    //    reversed; this one is confirmed"*. **BOTH ARE CORRECT REFUSALS AND BOTH LEAVE EXACTLY ONE STATE
+    //    CHANGE.** This test previously pinned the first string, so it went red on MariaDB under full-suite
+    //    load for a timing reason and nothing else — 🔬 it passed 4/4 in isolation on the same engine.
+    //    ⚠️⚠️ WHAT R9 ACTUALLY REQUIRED IS THAT **THE REFUSAL NAMES ITS REMEDY** — the same rule the ladder's
+    //    other arms follow, and `assertReversible()`'s own comment states it: *"NAME THE REAL STATUS.
+    //    'Cannot reverse' tells a front desk nothing; 'this one is cancelled' tells them which screen to go
+    //    to next."* ⚠️ **THAT is the property pinned below, and BOTH correct paths have it.** What is no
+    //    longer pinned is WHICH of two correct paths a non-deterministic race happens to take — which was
+    //    never a ruled behaviour, only an artefact of how the first run happened to be timed.
     $loser = collect($results)->firstWhere('status', 'refused');
-    expect(str_contains((string) ($loser['message'] ?? ''), 'already reversed'))
-        ->toBeTrue('the loser failed for the wrong reason: '.json_encode($loser));
+    $message = (string) ($loser['message'] ?? '');
+
+    // 1️⃣ THE REMEDY — the loser is told WHERE THE RESERVATION NOW IS, not merely that it may not proceed.
+    //    A clerk whose press did nothing needs to know the stay is already back to `confirmed`.
+    expect(str_contains($message, 'confirmed'))
+        ->toBeTrue('the refusal must name the resulting status — R9 requires the remedy, not just a "no": '.json_encode($loser));
+
+    // 2️⃣ AND IT MUST BE A REFUSAL, NOT A CASUALTY — the teeth the original comment was written to keep.
+    //    ⚠️ Without this the assertion above would accept a worker that died on its fixture and happened to
+    //    mention the word, which is exactly the false green this test exists to refuse.
+    foreach (['No query results', 'SQLSTATE', 'Undefined', 'Call to a member function'] as $infrastructureFailure) {
+        expect(str_contains($message, $infrastructureFailure))
+            ->toBeFalse("the loser died on infrastructure, it did not lose the race: {$message}");
+    }
 
     // ⚠️ THE ROW IS THE EVIDENCE, never the workers' own reports — a process can claim anything.
     expect((string) $r->fresh()->status)->toBe('confirmed')

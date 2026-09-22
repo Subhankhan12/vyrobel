@@ -1,5 +1,16 @@
 # THE CLOSING RECORD — 2026-09-22
 
+> ⚠️⚠️ **SUPERSEDED ON ITS HEADLINE — AND ONLY ITS HEADLINE — BY `docs/THE-REAL-INVENTORY-2026-09-23.md`.**
+> This document is dated, so it is **pointed at rather than edited**: every measurement below stands exactly as
+> it was taken. What changed the next day is the framing. §0 here was right to refuse *"what remains is
+> decisions, not repairs"*, but it stopped at a refusal; the replacement is **two sentences** — *the audit and
+> sweep programme is complete* **and** *the system is not ready* — with a triaged inventory behind the second.
+> ⚠️ **Two things below are now known to be wrong, both in this document's favour being overstated:**
+> 🔬 §3.4's *"this session has no shell on that host"* was true of that session and **false of the deployment** —
+> the access material existed and was merely undocumented, and all four verifications it marked 📄 RECORDED are
+> 🔬 MEASURED again in the successor. 🔬 And §3.1b's `R9-MSG` has since been **ruled and applied**.
+
+
 > ⚠️⚠️ **THIS IS A DATED DOCUMENT.** It is true as of the date in its title and is **never edited, only
 > pointed at**. The live surfaces — the register, `KNOWN-LIMITS.md`, `CLAUDE.md`, `GO-LIVE-REQUIREMENTS.md` —
 > must be true *now* and are swept when they stop being. This one is a photograph.

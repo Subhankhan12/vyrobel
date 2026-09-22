@@ -11,6 +11,36 @@
 
 ---
 
+## ⚠️⚠️ HOW TO REACH THE PRODUCTION HOST — added 2026-09-23, because it was nowhere and that cost four measurements
+
+```
+ssh -i ~/.ssh/vyrobel_deploy -p 65002 u545270279@82.25.102.188
+app root:  ~/domains/vyrobel.com/public_html/current   (the `current` symlink — L12k)
+php:       /opt/alt/php84/usr/bin/php                  ⚠️ the host default `php` is 8.3 and artisan exits 255
+```
+
+⚠️⚠️ **WHY THIS BLOCK EXISTS.** On 2026-09-22 a pass marked four production verifications **RECORDED rather
+than MEASURED** because it could find no documented way onto the host. 🔬 The access material was on the
+machine the whole time — the key above, the host and port in `~/.ssh/known_hosts`, the username in a
+`.remember` scratch file — but **none of it was in any document a session is told to read**, and there is no
+`~/.ssh/config`. ⚠️ **The tier system worked** (nothing false was carried forward) **and it still cost four
+real measurements**, one of them `ops/htaccess-drift-check.sh` — which reads the only wall between the public
+internet and `.env`, `artisan` and `storage/` on a host where the document root **is** the application root
+(**L12p**). ⚠️ **A guard that cannot be run is a note again.**
+
+⚠️ **The drift check expects to run ON the host** (`FILE="$HOME/domains/…/.htaccess"`). To run it read-only
+from a workstation, fetch the file into a mirrored path and override `HOME` — never copy the script up, which
+would be a production write:
+
+```
+D=/tmp/prodhome/domains/vyrobel.com/public_html; mkdir -p "$D"
+ssh -i ~/.ssh/vyrobel_deploy -p 65002 u545270279@82.25.102.188 \
+  'cat ~/domains/vyrobel.com/public_html/.htaccess' > "$D/.htaccess"
+HOME=/tmp/prodhome ops/htaccess-drift-check.sh
+```
+
+⚠️ **READS ONLY.** Production writes are forbidden outside an explicitly authorised, bounded exception.
+
 ## 0. RUNTIME REQUIREMENTS (check these BEFORE provisioning)
 
 > ⚠️ **Added 2026-08-16 by the deployment-scoping pass, which found the repository's own declared floor was
