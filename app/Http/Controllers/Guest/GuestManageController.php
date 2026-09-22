@@ -9,6 +9,7 @@ use App\Http\Controllers\Guest\Concerns\ResolvesGuest;
 use App\Models\AddOn;
 use App\Models\GuestChangeRequest;
 use App\Models\Reservation;
+use App\Services\AssignmentService;
 use App\Services\GuestChangeRequestService;
 use App\Support\Reservations\CancellationPolicy;
 use Carbon\CarbonImmutable;
@@ -60,12 +61,44 @@ class GuestManageController extends Controller
             'pending' => $this->pendingFor($model),
             // Real free-cancellation deadline (null when none / it has passed) — never a "convert to credit" fabrication.
             'freeUntil' => $freeUntil !== null && $freeUntil->greaterThan($today) ? $freeUntil->format('D, j M Y') : null,
+            'canRequestChanges' => self::changesAllowed($model),
         ]);
+    }
+
+    /**
+     * ⚠️⚠️ THE ACTIONS ARE GATED, THE PAGE IS NOT — AND THE SPLIT IS THE POINT.
+     *
+     * ⚠️ A guest has an entirely legitimate reason to open a stay that has ENDED: their dates, their folio,
+     * their receipt. Gating the page would take that away to solve a different problem. ⚠️ What makes no
+     * sense on a finished stay is ASKING TO CHANGE IT — and 🔬 measured before this guard existed, all three
+     * requests went straight through on a `cancelled`, `checked_out` or `no_show` booking:
+     * `GuestChangeRequestService` has no status check, so the guest got "we'll be in touch" and an operator
+     * got a pending request they could not action.
+     *
+     * ⚠️ `TERMINAL_STATUSES` is the SHARED definition (#29), never a second list. ⚠️ `checked_in` is
+     * deliberately NOT here: a guest in the room may still add extras, ask to extend, or ask to cancel —
+     * and since R9 that last one is something an operator can actually carry out, in two deliberate steps.
+     */
+    private static function changesAllowed(Reservation $reservation): bool
+    {
+        return ! in_array((string) $reservation->status, AssignmentService::TERMINAL_STATUSES, true);
+    }
+
+    /** ⚠️ The refusal itself — the same sentence wherever it is needed, never re-typed per action. */
+    private function refuseFinishedStay(Reservation $model): RedirectResponse
+    {
+        return $this->backWith($model, 'That booking has already closed, so there is nothing left to change. Its dates and folio are still here to look at.');
     }
 
     public function requestDateChange(Request $request, string $reservation): RedirectResponse
     {
         $model = $this->owned($reservation);
+
+        // ⚠️ THE ROUTE HALF OF THE GATE. Hiding the form is the UI half; a direct POST must be refused too —
+        //    the same #30 rule that says gate the CONTROL as well as the route, read in both directions.
+        if (! self::changesAllowed($model)) {
+            return $this->refuseFinishedStay($model);
+        }
         $data = $request->validate([
             'new_check_in' => ['required', 'date', 'after_or_equal:today'],
             'new_check_out' => ['required', 'date', 'after:new_check_in'],
@@ -79,6 +112,12 @@ class GuestManageController extends Controller
     public function requestAddOns(Request $request, string $reservation): RedirectResponse
     {
         $model = $this->owned($reservation);
+
+        // ⚠️ THE ROUTE HALF OF THE GATE. Hiding the form is the UI half; a direct POST must be refused too —
+        //    the same #30 rule that says gate the CONTROL as well as the route, read in both directions.
+        if (! self::changesAllowed($model)) {
+            return $this->refuseFinishedStay($model);
+        }
         // Server-authoritative: the chosen extras must be REAL active AddOns of THIS property (never a name a
         // guest could invent). Shared by the manage section and the dedicated /guest/extras page (back() returns
         // to whichever posted). The operator's confirm posts them to the folio (reconciling #17).
@@ -95,6 +134,12 @@ class GuestManageController extends Controller
     public function requestCancellation(Request $request, string $reservation): RedirectResponse
     {
         $model = $this->owned($reservation);
+
+        // ⚠️ THE ROUTE HALF OF THE GATE. Hiding the form is the UI half; a direct POST must be refused too —
+        //    the same #30 rule that says gate the CONTROL as well as the route, read in both directions.
+        if (! self::changesAllowed($model)) {
+            return $this->refuseFinishedStay($model);
+        }
         $data = $request->validate([
             'reason' => ['required', Rule::in(self::CANCEL_REASONS)],
         ]);

@@ -40,6 +40,14 @@
     @endif
 
     {{-- Date change --}}
+@if ($canRequestChanges)
+    {{-- ⚠️⚠️ THE ACTIONS ARE GATED, THE PAGE IS NOT — AND THE SPLIT IS DELIBERATE. A guest has every reason to
+         open a stay that has ENDED: their dates, their folio, their receipt are all above this line and stay
+         visible. What makes no sense on a finished booking is ASKING TO CHANGE IT.
+         ⚠️ 🔬 Measured before this gate existed: all three requests went straight through on a cancelled,
+         checked-out or no-show stay — the guest was told "we'll be in touch" and an operator received a
+         pending request they could not action. ⚠️ The server refuses them too; hiding a form is the UI half
+         of a gate, never the gate (#30, read in both directions). --}}
     <section class="vy-card" style="margin-bottom:14px;animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
         <div class="vy-eyebrow" style="margin-bottom:8px">Pick new dates</div>
         <p style="font-size:12.5px;color:var(--vy-muted);margin:0 0 12px">Currently {{ $checkIn }} → {{ $checkOut }}. Pick new dates to see the price difference, then request the change.</p>
@@ -118,4 +126,15 @@
             <button type="submit" class="vy-btn" style="background:none;color:var(--vy-amber-text);border:1px solid rgba(178,106,8,.45);box-shadow:none">Request cancellation</button>
         </form>
     </section>
+@else
+    {{-- ⚠️ AN HONEST CLOSE, NOT A BLANK SPACE. A page that simply stops offering things reads as broken; this
+         says why, and points at what IS still here. --}}
+    <section class="vy-card" style="animation:vyFadeUp .45s cubic-bezier(.22,.61,.36,1) .14s both">
+        <div class="vy-eyebrow" style="margin-bottom:8px">This booking has closed</div>
+        <p style="font-size:12.5px;color:var(--vy-muted);margin:0">
+            There is nothing left to change on it — but your dates, your stay details and anything you paid
+            are still here whenever you need them.
+        </p>
+    </section>
+@endif
 </x-guest.shell>
