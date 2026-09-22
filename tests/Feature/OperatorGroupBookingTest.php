@@ -297,3 +297,66 @@ it('redacts the block organiser name from groups.contact on anonymize', function
     Guest::query()->findOrFail($group->organiser_guest_id)->anonymize();
     expect(data_get($group->fresh()->contact, 'name'))->toBeNull();
 });
+
+// ── ⚠️ APPLY 01 #4 (2026-09-22) — THE WIZARD LOSES NOTHING, AND NAMES WHAT IT WANTS ──────────────────
+//
+// ⚠️⚠️ WHAT THESE CAN AND CANNOT PROVE, SAID PLAINLY. The draft restore and the "what's missing" lines are
+// ALPINE behaviour; a feature test renders markup and runs no JavaScript, so what is asserted below is that
+// the MECHANISM IS PRESENT AND WIRED — the save call sits on the navigation, the hints exist with the right
+// conditions, and the Continue button is no longer inert. The behaviour itself was browser-verified. Stating
+// the boundary is the point: "the suite is green" must not be read as "the wizard was driven".
+
+it('⚠️ #4 — saves the draft ON the availability navigation, so the block name survives the page load', function () {
+    $s = groupScenario(2);
+    $html = $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get('/app/group-booking?check_in=2026-09-01&check_out=2026-09-03')->assertOk()->getContent();
+
+    // ⚠️ THE DEFECT, IN ONE LINE: applyDates() is a real `window.location` navigation (invariant #20 — the
+    // availability read must ride a GET through the tenant middleware), and everything typed in step 1 died
+    // with the page. The fix is the saveDraft() that now precedes it, not a change to how dates travel.
+    expect($html)->toContain('this.saveDraft(); window.location')
+        ->and($html)->toContain("draftKey: 'vyrobel:group-booking:draft'");
+
+    // ⚠️ sessionStorage, NOT localStorage and NOT the query string — the group-name placeholder is a real
+    // surname ("Okafor–Bello Wedding"). The query string would write it to browser history and the server
+    // ACCESS LOG, which no GDPR erase reaches (#28); localStorage would leave it for the next person on a
+    // shared front-desk machine. The sibling new-reservation draft keeps guest names out too — it stores
+    // ids and amounts only — so this matches that discipline rather than departing from it.
+    expect($html)->toContain('sessionStorage.setItem')
+        ->and($html)->not->toContain("localStorage.setItem('vyrobel:group-booking");
+});
+
+it('⚠️ #4 — names what is missing beside the missing thing, and Continue is no longer merely inert', function () {
+    $s = groupScenario(2);
+    $html = $this->actingAs(operatorUser($s, [], 'Front Desk'))
+        ->get('/app/group-booking?check_in=2026-09-01&check_out=2026-09-03')->assertOk()->getContent();
+
+    // ⚠️ THE BUTTON IS PRESSABLE. A disabled Continue withholds the action AND the reason; the guard is
+    // unchanged (canLeave still decides) but a failed press now explains itself.
+    expect($html)->toContain('x-on:click="next()"')
+        ->and($html)->not->toContain('x-bind:disabled="! canLeave(step)"');
+
+    // ⚠️ ONE HINT PER REQUIREMENT, each rendered beside its own field rather than pooled in a banner.
+    expect($html)->toContain('Give the block a name')
+        ->and($html)->toContain('Tick at least one unit');
+
+    // ⚠️⚠️ THE SUBTLE ONE — AND THE ONE THAT ACTUALLY STRANDED PEOPLE. `ci`/`co` are what the operator typed;
+    // `checkIn`/`checkOut` are what the server loaded. Picking dates and never pressing "Check availability"
+    // leaves Continue refusing while both date boxes look filled in. That state now says so by name.
+    expect($html)->toContain('Press “Check availability” to load rooms for these dates.');
+});
+
+it('⚠️ #4 — a created block does not become the next block’s default', function () {
+    $s = groupScenario(2);
+    $frontDesk = operatorUser($s, [], 'Front Desk');
+
+    $this->actingAs($frontDesk)->post('/app/group-booking', groupPayload($s))->assertRedirect();
+    $group = Group::query()->latest('created_at')->first();
+
+    // ⚠️ The done screen clears the draft. Without it "Create another block" reopens the wizard pre-filled
+    // with the group just created, and the second block silently inherits the first one's name.
+    $html = $this->actingAs($frontDesk)
+        ->get('/app/group-booking?created='.$group->getKey())->assertOk()->getContent();
+
+    expect($html)->toContain("sessionStorage.removeItem('vyrobel:group-booking:draft')");
+});

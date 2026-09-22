@@ -32,6 +32,10 @@
                 <a href="{{ $done['rack_url'] }}" class="vy-gb-btn vy-gb-btn--accent">View on the rack</a>
                 <a href="{{ $done['new_url'] }}" class="vy-gb-btn">Create another block</a>
             </div>
+            {{-- ⚠️ THE DRAFT DIES WITH THE BLOCK IT BECAME. Without this, "Create another block" would open the
+                 wizard pre-filled with the group that was just created — and the second block would inherit the
+                 first one's name silently. A draft is a recovery aid, never a default. --}}
+            <script>try { sessionStorage.removeItem('vyrobel:group-booking:draft'); } catch (e) {}</script>
         </div>
         <style>
             /* done-screen chrome, self-contained (the wizard style block renders only in the wizard branch) */
@@ -139,6 +143,10 @@
 
                     <div class="vy-gb-field"><label class="vy-gb-label">Group name</label>
                         <input id="vy-lbl-group-booking-e-g-okafor-bello-wedding" type="text" class="vy-gb-input" x-model="name" placeholder="e.g. Okafor–Bello Wedding" autocomplete="off">
+                        {{-- ⚠️ THE MISSING THING IS NAMED BESIDE ITSELF. Continue used to be merely DISABLED, which
+                             tells an operator that something is wrong and never which thing — on a five-step wizard
+                             whose first step has three requirements, two of them further down the page. --}}
+                        <p class="vy-gb-miss" x-show="attempted &amp;&amp; ! name.trim()" x-cloak>Give the block a name — it is how this group is found later.</p>
                     </div>
                     <div class="vy-gb-field"><label class="vy-gb-label">Occasion</label>
                         <div class="vy-gb-chips">
@@ -162,6 +170,13 @@
                                 <button type="button" class="vy-gb-datesbtn" x-on:click="applyDates()" x-bind:disabled="! ci || ! co || co <= ci">Check availability</button>
                             </div>
                             <div class="vy-gb-hint" x-text="datesLabel"></div>
+                            {{-- ⚠️⚠️ THE SUBTLE HALF, AND THE ONE THAT ACTUALLY STRANDED PEOPLE. `ci`/`co` are what
+                                 the operator typed; `checkIn`/`checkOut` are what the SERVER has loaded availability
+                                 for. Continue needs the applied pair, so picking dates and never pressing "Check
+                                 availability" leaves the wizard refusing to advance with both date boxes visibly
+                                 filled in. That is unexplainable from the screen, so it is explained here. --}}
+                            <p class="vy-gb-miss" x-show="attempted &amp;&amp; (! checkIn || ! checkOut)" x-cloak
+                               x-text="(ci &amp;&amp; co &amp;&amp; co &gt; ci) ? 'Press “Check availability” to load rooms for these dates.' : 'Pick the block dates — check-out must be after check-in.'"></p>
                         </div>
                         <div class="vy-gb-field"><label class="vy-gb-label">Approx. headcount</label>
                             <div class="vy-gb-counter">
@@ -186,6 +201,11 @@
                         </div>
                         <div class="vy-gb-cap-bar"><div class="vy-gb-cap-fill" x-bind:class="capOk ? 'is-ok' : ''" x-bind:style="'width:' + capPct + '%'"></div></div>
                     </div>
+
+                    {{-- ⚠️ Step 2's own requirement, named where the operator is looking. The capacity meter above
+                         reports beds-vs-heads and says nothing about the real blocker, which is that no unit is
+                         ticked at all. --}}
+                    <p class="vy-gb-miss" x-show="attempted &amp;&amp; count === 0" x-cloak>Tick at least one unit to hold for this block.</p>
 
                     @if ($roomTypes === [])
                         <div class="vy-gb-empty">No free, priced units for these dates. Change the dates in step 1.</div>
@@ -315,7 +335,7 @@
                 <div class="vy-gb-nav">
                     <button type="button" class="vy-gb-btn vy-gb-btn--ghost" x-show="step > 1" x-on:click="prev()">Back</button>
                     <span style="flex:1"></span>
-                    <button type="button" class="vy-gb-btn vy-gb-btn--accent" x-show="step < 5" x-on:click="next()" x-bind:disabled="! canLeave(step)">Continue</button>
+                    <button type="button" class="vy-gb-btn vy-gb-btn--accent" x-show="step < 5" x-on:click="next()">Continue</button>
                     @unless ($__gbReadOnly)
                         <button type="submit" class="vy-gb-btn vy-gb-btn--accent" x-show="step === 5" x-bind:disabled="count === 0 || ! name.trim() || ! agree">Confirm block</button>
                     @endunless
@@ -356,7 +376,42 @@
                     rooming: {},
                     holdType: 'confirmed', billingMode: 'individual', pickupDeadline: checkIn,
                     discountPct: 0, depositPct: 0, depositMethod: 'cash', agree: false,
-                    init() {},
+                    attempted: false,
+                    // ⚠️⚠️ THE DRAFT SURVIVES THE "CHECK AVAILABILITY" NAVIGATION. applyDates() is a real page
+                    // load (invariant #20 — the availability read is scope-dependent, so the dates MUST ride a
+                    // GET through the tenant middleware rather than a Livewire action). That is correct and
+                    // stays; what was wrong is that everything the operator had typed died with the page —
+                    // step 1 asks for the block name and occasion FIRST, then the very next control reloads.
+                    //
+                    // ⚠️ sessionStorage, NOT the query string, and the reason is PII. The placeholder for this
+                    // field is "e.g. Okafor–Bello Wedding" — a real person's surname. Putting it in the URL
+                    // writes it into browser history and the web server's ACCESS LOGS, which no GDPR erase
+                    // touches (#28). The dates are safe there; a guest's name is not.
+                    // ⚠️ sessionStorage, not localStorage, so a draft cannot outlive the browser session or
+                    // surface for the next person on a shared front-desk machine.
+                    // ⚠️ try/catch on BOTH sides: a browser set to block site data throws on access, and a
+                    // wizard that crashes because it could not remember a draft is worse than one that forgets.
+                    // ⚠️ THE KEY IS SPELLED TWICE IN THIS FILE, AND IT CANNOT BE SPELLED ONCE. The done screen
+                    // is a SEPARATE render branch with no Alpine root (see the top of the file), so it clears
+                    // the draft with its own one-line script and its own literal. Recorded here rather than
+                    // left for someone to discover: if this key ever changes, BOTH places change.
+                    draftKey: 'vyrobel:group-booking:draft',
+                    init() {
+                        try {
+                            const raw = sessionStorage.getItem(this.draftKey);
+                            if (raw) {
+                                const d = JSON.parse(raw);
+                                if (typeof d.name === 'string') this.name = d.name;
+                                if (typeof d.occasion === 'string') this.occasion = d.occasion;
+                                if (typeof d.headcount === 'number') this.headcount = d.headcount;
+                            }
+                        } catch (e) { /* storage unavailable — the wizard still works, it just forgets */ }
+                    },
+                    saveDraft() {
+                        try {
+                            sessionStorage.setItem(this.draftKey, JSON.stringify({ name: this.name, occasion: this.occasion, headcount: this.headcount }));
+                        } catch (e) { /* see init() */ }
+                    },
                     // The discount is computed PER UNIT (floor(price × pct / 100)) and summed — the EXACT same
                     // rule the server posts per member — so the rail figure and the real folio agree to the cent
                     // (no two-paths-compute-independently drift). Each member is one unit, so member-room = unit price.
@@ -364,7 +419,7 @@
                     get afterDiscMinor() { return this.blockSubMinor - this.discountMinor; },
                     // dates change → GET nav (re-reads availability server-side, invariant #20). LOCAL date strings
                     // straight from the inputs — never toISOString (which shifts the day for +UTC users).
-                    applyDates() { if (this.ci && this.co && this.co > this.ci) { window.location = '?check_in=' + this.ci + '&check_out=' + this.co; } },
+                    applyDates() { if (this.ci && this.co && this.co > this.ci) { this.saveDraft(); window.location = '?check_in=' + this.ci + '&check_out=' + this.co; } },
                     get nights() { if (! this.checkIn || ! this.checkOut) return 0; return Math.round((new Date(this.checkOut + 'T00:00:00') - new Date(this.checkIn + 'T00:00:00')) / 86400000); },
                     get datesShort() { return this.checkIn && this.checkOut ? this.fmtDate(this.checkIn) + '–' + this.fmtDate(this.checkOut) : '—'; },
                     get datesLabel() { return this.checkIn && this.checkOut ? this.datesShort + ' · ' + this.nights + (this.nights === 1 ? ' night' : ' nights') : 'Pick the block dates'; },
@@ -384,7 +439,16 @@
                     get blockSubMinor() { return this.selected.reduce((s, u) => s + u.priceMinor, 0); },
                     fmt(minor) { const sym = this.currency === 'EUR' ? '€' : (this.currency === 'USD' ? '$' : this.currency + ' '); return sym + (minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
                     goto(n) { this.step = n; },
-                    next() { if (this.step < 5 && this.canLeave(this.step)) this.step++; },
+                    // ⚠️ Continue is now always PRESSABLE, and a failed press EXPLAINS itself. A disabled button
+                    // is the cheapest thing to build and the least useful thing to receive: it withholds both
+                    // the action and the reason. The guard is unchanged — canLeave() still decides — but the
+                    // refusal now has a voice.
+                    next() {
+                        if (this.step >= 5) return;
+                        if (! this.canLeave(this.step)) { this.attempted = true; return; }
+                        this.attempted = false;
+                        this.step++;
+                    },
                     prev() { if (this.step > 1) this.step--; },
                     canLeave(n) {
                         if (n === 1) return this.name.trim() !== '' && !! this.checkIn && !! this.checkOut;
@@ -426,6 +490,9 @@
             .vy-gb-dates-arrow { color: var(--vy-faint); }
             .vy-gb-datesbtn { padding: 10px 14px; border-radius: 11px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); color: var(--vy-ink); font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
             .vy-gb-hint { font-size: 12px; color: var(--vy-faint); margin-top: 8px; }
+            /* ⚠️ The "what's missing" line. Warm-red like every other refusal in the operator app (the cancel
+               warning, the capacity shortfall) so it reads as the same kind of message, not a new dialect. */
+            .vy-gb-miss { font-size: 12px; color: #8F3110; margin: 8px 0 0; font-weight: 600; }
             .vy-gb-counter { display: inline-flex; align-items: center; gap: 14px; padding: 8px 14px; border-radius: 11px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.5); font-size: 13.5px; font-weight: 600; }
             .vy-gb-counter button { width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.7); color: var(--vy-ink); font-size: 16px; line-height: 1; cursor: pointer; }
             /* capacity */
