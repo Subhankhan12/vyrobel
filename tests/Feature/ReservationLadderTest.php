@@ -3,6 +3,7 @@
 use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\CheckOutReservation;
 use App\Mail\ReviewRequestMail;
+use App\Models\AuditEvent;
 use App\Models\HousekeepingTask;
 use App\Models\Reservation;
 use App\Services\FrontDeskService;
@@ -271,4 +272,131 @@ it('⚠️ THE HTTP SURFACE WAS ALWAYS GREEN — this test passes with the actio
     // ⚠️ THIS IS THE CONTROL FOR THE WRONG-FIX MUTATION. The controller's own pre-check refuses here and
     // always did — so this assertion cannot distinguish a guarded action from an unguarded one. Only the
     // service-level probes above can. Kept deliberately: it documents the blind spot rather than closing it.
+});
+
+// ── ⚠️ APPLY 01 #2 (founder, 2026-09-22) — THE EARLY CHECK-IN CONFIRMATION ────────────────────────────
+//
+// ⚠️⚠️ IT IS A WARNING, NOT A CONTROL, AND THESE TESTS ARE WRITTEN TO PIN THAT DISTINCTION RATHER THAN THE
+// INTERRUPTION. The interesting assertions are the ones proving it REFUSES NOTHING: a second press always
+// completes, no permission is attached, and the same actor who saw the warning passes it. A future pass that
+// "hardens" this into a gate — a permission, a signed token, a role check — is changing a ruling.
+//
+// ⚠️ THE ROW IS THE EVIDENCE, not the status code. A 200 that rendered the confirmation and a 200 that
+// silently checked the guest in are indistinguishable from the response alone.
+
+it('⚠️ RULED 2026-09-22 — warns on a 13-day-early check-in, and writes NOTHING until it is confirmed', function () {
+    $this->travelTo('2026-08-19');           // 13 days before the fixture's 2026-09-01 arrival
+    $s = seedScenario(1);
+    $r = rlAt($s, 'confirmed');
+    $actor = operatorUser($s, [], 'Front Desk');
+
+    // The shared definition, asserted directly — the screen and the audit row both read this number.
+    expect(CheckInReservation::daysEarly($r))->toBe(13);
+
+    $response = $this->actingAs($actor)->post(route('app.front-desk.check-in', $r->id));
+
+    $response->assertOk()                    // the confirmation renders; it is NOT the PRG redirect
+        ->assertSee('13 days away')
+        ->assertSee('Check in anyway');
+
+    // ⚠️ AND NOTHING MOVED. A warning that had already written would be worse than no warning at all.
+    expect((string) $r->fresh()->status)->toBe('confirmed')
+        ->and($r->fresh()->guest_checked_in_at)->toBeNull();
+});
+
+it('⚠️ completes on the second press — the SAME actor, no extra permission, nothing to earn', function () {
+    $this->travelTo('2026-08-19');
+    $s = seedScenario(1);
+    $r = rlAt($s, 'confirmed');
+    $actor = operatorUser($s, [], 'Front Desk');   // the LOWEST back-office role, deliberately
+
+    $this->actingAs($actor)->post(route('app.front-desk.check-in', $r->id))->assertOk();   // warned…
+
+    $this->actingAs($actor)
+        ->post(route('app.front-desk.check-in', $r->id), ['confirm_early' => 1, 'date' => '2026-08-19'])
+        ->assertRedirect();
+
+    // ⚠️ THE RULING, IN ONE ROW: it warns and then gets out of the way.
+    expect((string) $r->fresh()->status)->toBe('checked_in');
+
+    // ⚠️⚠️ AND THE EARLINESS IS RECORDED ON THE PATH THAT WENT THROUGH THE WARNING — not only on the direct
+    // service call. This is the half that makes the feature survive being ignored: a UI confirmation is
+    // bypassed by a direct POST, a double-submit, or anyone who clicks straight through, so the audit row is
+    // what makes the mistake findable afterwards. Asserting it on the HTTP path is the point; asserting it
+    // only on handle() would prove the recorder works and say nothing about the route people actually use.
+    $row = AuditEvent::query()->withoutGlobalScopes()
+        ->where('action', 'reservation.checked_in')
+        ->where('subject_id', $r->id)->latest('created_at')->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->after['days_early'])->toBe(13);
+});
+
+it('⚠️ says nothing at all on the arrival day — the common case is uninterrupted', function () {
+    $this->travelTo('2026-09-01');           // the arrival date itself
+    $s = seedScenario(1);
+    $r = rlAt($s, 'confirmed');
+    $actor = operatorUser($s, [], 'Front Desk');
+
+    expect(CheckInReservation::daysEarly($r))->toBe(0);
+
+    // ⚠️ A REDIRECT, NOT A 200 — no confirmation was rendered, and the check-in happened on the first press.
+    $this->actingAs($actor)
+        ->post(route('app.front-desk.check-in', $r->id), ['date' => '2026-09-01'])
+        ->assertRedirect();
+
+    expect((string) $r->fresh()->status)->toBe('checked_in');
+});
+
+it('⚠️ records the earliness on the audit row — on the early one AND on the zero', function () {
+    // ⚠️ THE ZERO MATTERS AS MUCH AS THE THIRTEEN. A field written only on the unusual case cannot be read
+    // as "this one was on time": its absence would be ambiguous between that and "written before the field
+    // existed". Both halves are asserted so a later optimisation cannot drop the boring one.
+    $this->travelTo('2026-08-19');
+    $s = seedScenario(1);
+    $early = rlAt($s, 'confirmed');
+
+    app(CheckInReservation::class)->handle($early);
+
+    $row = AuditEvent::query()->withoutGlobalScopes()
+        ->where('action', 'reservation.checked_in')
+        ->where('subject_id', $early->id)->latest('created_at')->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->after['days_early'])->toBe(13)
+        ->and($row->after['status'])->toBe('checked_in');
+
+    $this->travelTo('2026-09-01');
+    $s2 = seedScenario(1);
+    $onTime = rlAt($s2, 'confirmed');
+
+    app(CheckInReservation::class)->handle($onTime);
+
+    $row2 = AuditEvent::query()->withoutGlobalScopes()
+        ->where('action', 'reservation.checked_in')
+        ->where('subject_id', $onTime->id)->latest('created_at')->first();
+
+    expect($row2->after)->toHaveKey('days_early')
+        ->and($row2->after['days_early'])->toBe(0);
+});
+
+it('⚠️ the threshold is CONFIG, and the warning follows it', function () {
+    // ⚠️ PROVES THE NUMBER IS NOT HARD-CODED — the ruling put it in config precisely so it is one knob and
+    // not a literal scattered across a controller, a view and an action. Raising it past the earliness
+    // silences the warning; the check-in then completes on the FIRST press.
+    $this->travelTo('2026-08-19');
+    $s = seedScenario(1);
+    $r = rlAt($s, 'confirmed');
+    $actor = operatorUser($s, [], 'Front Desk');
+
+    expect(CheckInReservation::isUnusuallyEarly($r))->toBeTrue();
+
+    config(['reservations.early_check_in_warning_days' => 30]);
+    expect(CheckInReservation::isUnusuallyEarly($r))->toBeFalse();
+
+    $this->actingAs($actor)
+        ->post(route('app.front-desk.check-in', $r->id), ['date' => '2026-08-19'])
+        ->assertRedirect();
+
+    expect((string) $r->fresh()->status)->toBe('checked_in');
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Reservations\CheckInReservation;
 use App\Actions\Reservations\ReverseCheckOut;
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
@@ -34,7 +35,7 @@ use InvalidArgumentException;
  */
 class FrontDeskActionController extends Controller
 {
-    public function checkIn(Request $request, FrontDeskService $desk, string $reservation): RedirectResponse
+    public function checkIn(Request $request, FrontDeskService $desk, string $reservation): View|RedirectResponse
     {
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
 
@@ -42,6 +43,29 @@ class FrontDeskActionController extends Controller
         // (e.g. re-opening a checked-out stay) without weakening the underlying idempotent action.
         if ($model->status !== 'confirmed') {
             return $this->backToBoard($request, "{$model->reference} can’t be checked in from “{$model->status}”.", refused: true);
+        }
+
+        // ⚠️⚠️ THE EARLY CHECK-IN CONFIRMATION (APPLY 01 #2, 2026-09-22) — A WARNING, NOT A CONTROL.
+        //
+        // ⚠️ IT REFUSES NOTHING. There is no permission attached, no role that can pass it and no role that
+        // cannot, and `confirm_early` is an ordinary form field rather than a signed token — an operator who
+        // means it always gets through on the second press. That is the ruling: a front desk meets real
+        // situations this product cannot enumerate (an early arrival, a corrected date, a walk-up against a
+        // future booking), and a rule that BLOCKED them would be wrong more often than the mis-click it
+        // prevents. ⚠️ Anyone tempted to "tighten" this into a gate is changing a ruling, not hardening code.
+        //
+        // ⚠️ WHY IT EARNS ITS INTERRUPTION ANYWAY: `checked_in` is the one status a check-out can follow, and
+        // since R7 (2026-09-22) it can no longer be cancelled — with no reverse-check-in built, a mis-click
+        // on the wrong row is currently NOT UNDOABLE. The cheapest place to catch that is before the press.
+        //
+        // ⚠️ The threshold is config, never per-organisation (see config/reservations.php), and the earliness
+        // shown here is the action's OWN `daysEarly()` — the same number it writes to the audit row, so the
+        // screen can never warn about a figure the record does not contain.
+        if (CheckInReservation::isUnusuallyEarly($model) && ! $request->boolean('confirm_early')) {
+            return view('operator.early-check-in', [
+                'reservation' => $model,
+                'daysEarly' => CheckInReservation::daysEarly($model),
+            ]);
         }
 
         $desk->checkIn($model);

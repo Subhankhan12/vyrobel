@@ -81,8 +81,20 @@ it('checks a reservation in through the real action and persists it', function (
     $res = book($s, ['unit_id' => $s['units'][0]->id]);   // confirmed
     $user = deskMember($s);
 
+    // ⚠️⚠️ `confirm_early` WAS ADDED 2026-09-22, AND THE REASON IS THE POINT — the assertion below is
+    // unchanged and still means what it always meant. The founder ruled an early check-in must raise a
+    // confirmation, and 🔬 THIS FIXTURE IS 31 DAYS EARLY: the suite's clock is frozen at `VY_TEST_CLOCK`
+    // (2026-08-01, tests/Pest.php) while `book()` arrives 2026-09-01. So this POST began returning the
+    // confirmation screen — a 200 where the test asserts a redirect — which is the NEW behaviour working,
+    // not a regression.
+    //
+    // ⚠️ THIS TEST IS NOT ABOUT THE WARNING. Its subject is "check-in PERSISTS through the real staff action
+    // (PRG)", and that subject is untouched. Passing the confirmation is how this fixture now reaches the
+    // action at all; it is the equivalent of the clerk pressing "Check in anyway". ⚠️ Deliberately NOT
+    // re-dated to dodge the confirmation — moving the fixture would quietly change which day the front-desk
+    // board is testing, and three other tests in this file depend on that date.
     $this->actingAs($user)
-        ->post(route('app.front-desk.check-in', $res->id), ['date' => '2026-09-01'])
+        ->post(route('app.front-desk.check-in', $res->id), ['date' => '2026-09-01', 'confirm_early' => 1])
         ->assertRedirect();
 
     // The mutation genuinely persisted (not a faked UI state).

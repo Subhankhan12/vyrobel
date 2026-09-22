@@ -12,6 +12,9 @@ use App\Services\HousekeepingService;
 use App\Services\MaintenanceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
+use App\Support\Reservations\ReservationStage;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -40,6 +43,12 @@ class CheckInReservation
 
         $fromStatus = (string) $reservation->status;
 
+        // ⚠️ MEASURED HERE, IN THE WRITER, SO EVERY CALLER RECORDS IT — not in the controller that happens to
+        // warn today. The warning is one surface's affordance and can be skipped, bypassed or reached by a
+        // caller that never renders a screen; the RECORD of how early the stay was started must not depend on
+        // which door was used. ⚠️ It is recorded, never refused: see the config note — warning, not control.
+        $daysEarly = self::daysEarly($reservation);
+
         DB::transaction(function () use ($reservation, $fromStatus, $by): void {
             $reservation->update(['status' => 'checked_in']);
 
@@ -55,9 +64,44 @@ class CheckInReservation
         $this->domainEvents->record('reservation.checked_in', $reservation, [
             'property_id' => $reservation->property_id,
         ]);
-        $this->audit->record('reservation.checked_in', $reservation, ['status' => $fromStatus], ['status' => 'checked_in']);
+        // ⚠️ `days_early` IS ON EVERY ROW, INCLUDING THE ZEROES — deliberately. A field that appears only on
+        // the unusual case cannot be read as "this one was on time": its absence would be ambiguous between
+        // "arrived on the day" and "written before this field existed". PII-safe (#28): an integer.
+        $this->audit->record('reservation.checked_in', $reservation,
+            ['status' => $fromStatus],
+            ['status' => 'checked_in', 'days_early' => $daysEarly],
+        );
 
         return $reservation->refresh();
+    }
+
+    /**
+     * Whole days between today and the reservation's arrival date — 0 on the day itself or any day after it.
+     *
+     * ⚠️⚠️ THE ONE definition of "early", read by BOTH the confirmation screen and the audit row. Two copies
+     * of this arithmetic would let the screen warn about a number the record does not contain, which is the
+     * drift this codebase removes wherever it finds it.
+     *
+     * ⚠️ IT USES THE SAME SERVER-TIME "TODAY" AS THE FRONT DESK AND {@see ReservationStage}, ON PURPOSE AND
+     * NOT BY OVERSIGHT. The honest "today" for a guest-facing day boundary is the PROPERTY's timezone, and
+     * nothing in the app yet honours that — `ReservationStage::today()` documents the gap and says the
+     * surfaces must be fixed together. Introducing a third, divergent "today" here would make this warning
+     * disagree with the board the operator is looking at while they read it, which is worse than sharing a
+     * known-imperfect definition. ⚠️ The consequence is bounded because this is a WARNING: at worst a
+     * property whose local day has rolled sees a confirmation one day early or late, and passes it.
+     */
+    public static function daysEarly(Reservation $reservation, ?CarbonInterface $today = null): int
+    {
+        $arrival = CarbonImmutable::parse((string) $reservation->check_in)->startOfDay();
+        $now = CarbonImmutable::parse($today ?? CarbonImmutable::today())->startOfDay();
+
+        return (int) max(0, $now->diffInDays($arrival, false));
+    }
+
+    /** Does this check-in warrant the confirmation step? {@see config('reservations.early_check_in_warning_days')}. */
+    public static function isUnusuallyEarly(Reservation $reservation, ?CarbonInterface $today = null): bool
+    {
+        return self::daysEarly($reservation, $today) > (int) config('reservations.early_check_in_warning_days', 1);
     }
 
     /**
