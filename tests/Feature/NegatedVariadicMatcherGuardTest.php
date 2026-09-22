@@ -64,17 +64,37 @@ function variadicMatcherCalls(): array
 
             $depth = 0;
             $commas = 0;
+            $sentenceAfterFirst = null;   // a message-shaped literal in ANY argument after the first
             for ($k = $j; $k < $count; $k++) {
                 $c = $tokens[$k];
-                if ($c === '(' || $c === '[') {
+                // ⚠️⚠️ BRACES COUNT TOO, AND THE FIRST VERSION OF THIS WALKER FORGOT THEM. 🔬 It tracked only
+                //    `(` and `[`, so `toContain(match ($x) { 'a' => '…', 'b' => '…' })` — ONE argument — had
+                //    its match-arm commas counted as TOP-LEVEL and was reported as a 4-argument call. It
+                //    fired on `ReservationLadderTest:73`, a correct assertion, the moment the new rule ran.
+                //    ⚠️ The miscount was latent in the NEGATED ban above from the day it was written; no
+                //    negated `match` call happened to exist, so nothing revealed it. **An instrument that
+                //    does not understand the syntax it parses is the recurring shape in this project.**
+                if ($c === '(' || $c === '[' || $c === '{') {
                     $depth++;
-                } elseif ($c === ')' || $c === ']') {
+                } elseif ($c === ')' || $c === ']' || $c === '}') {
                     $depth--;
-                    if ($depth === 0) {
-                        break;
+                    if ($depth === 0 && $c === ')') {
+                        break;   // ⚠️ the CALL's own closing paren, never a stray `}` at the same depth
                     }
                 } elseif ($c === ',' && $depth === 1) {
                     $commas++;
+                } elseif ($commas >= 1 && is_array($c) && $c[0] === T_CONSTANT_ENCAPSED_STRING) {
+                    // ⚠️ WHAT COUNTS AS A MESSAGE RATHER THAN A NEEDLE, AND WHY THIS SHAPE. A needle is short
+                    //    and usually a token: 'no_show', 'closed_to_arrival', even 'Aaron Busy'. A human
+                    //    message is a SENTENCE. 🔬 Calibrated against every positive multi-arg site in this
+                    //    suite — the longest legitimate needle is 23 characters with no spaces — so
+                    //    "≥30 characters AND ≥3 spaces" separates them with room to spare, and is checked
+                    //    per-argument so a concatenated message ('…: '.json_encode($x)) is caught by its
+                    //    leading literal.
+                    $lit = trim($c[1], "'\"");
+                    if (strlen($lit) >= 30 && substr_count($lit, ' ') >= 3) {
+                        $sentenceAfterFirst ??= $lit;
+                    }
                 }
             }
 
@@ -83,6 +103,7 @@ function variadicMatcherCalls(): array
                 'line' => (int) $token[2],
                 'args' => $commas + 1,
                 'negated' => $negated,
+                'sentence' => $sentenceAfterFirst,
             ];
         }
     }
@@ -123,4 +144,49 @@ it('leaves the positive multi-argument form alone', function () {
     );
 
     expect(count($positiveMulti))->toBeGreaterThan(0);   // real, in use, and correct
+});
+
+// ── 4. ⚠️⚠️ THE POSITIVE FORM WITH A MESSAGE — FOURTH OCCURRENCE, AND THE ONE THIS FILE LET THROUGH ──
+//
+// ⚠️⚠️ THIS FILE'S ORIGINAL SCOPE WAS DELIBERATELY NARROW — "only the NEGATED multi-argument form is banned"
+// — and that was right for what it knew. ⚠️ It could not catch the POSITIVE form, and on 2026-09-22 the
+// positive form bit: `expect($msg)->toContain('already reversed', "the loser failed for the wrong reason: ".json_encode($loser))`.
+//
+// ⚠️⚠️ THE TWO FORMS FAIL IN OPPOSITE DIRECTIONS, WHICH IS WHY BOTH NEED BANNING AND WHY ONLY ONE WAS:
+//   · NEGATED + message → the assertion is UNCONDITIONALLY TRUE. Silent. Proves nothing. (Banned above.)
+//   · POSITIVE + message → UNCONDITIONALLY FALSE. Loud — but it fails while pointing at the SUBJECT, so the
+//     reader concludes the subject is wrong when the ASSERTION is malformed.
+//
+// ⚠️ AND WHERE IT BIT IS THE part worth keeping: inside the test written to enforce failing-for-the-right-
+// reason. **The guard against wrong-reason failures failed for the wrong reason.** A fourth occurrence, by
+// this project's own counting rule, is what turns a note into a mechanism.
+it('⚠️⚠️ bans a toContain whose extra argument is a human message rather than a needle', function () {
+    $offenders = array_values(array_filter(
+        variadicMatcherCalls(),
+        fn (array $c): bool => $c['args'] > 1 && $c['sentence'] !== null,
+    ));
+
+    $detail = implode("\n      ", array_map(
+        fn (array $c): string => "{$c['file']}:{$c['line']} — extra arg begins \"".substr($c['sentence'], 0, 60).'…"',
+        $offenders
+    ));
+
+    expect($offenders)->toBe([],
+        "⚠️⚠️ A `toContain`/`toContainEqual` CALL IS PASSING A MESSAGE AS A NEEDLE.\n"
+        ."⚠️ The matcher is VARIADIC and takes NO \$message — the sentence becomes a second thing the subject\n"
+        ."   must contain, so the assertion can never pass and fails while blaming the subject.\n"
+        ."⚠️ Use: expect(str_contains(\$subject, \$needle))->toBeTrue(\$message)\n\n      ".$detail."\n");
+});
+
+// ── 5. ⚠️ THE NEW RULE IS NOT VACUOUS, AND DOES NOT BAN A REAL NEEDLE ───────────────────────────────
+it('⚠️ still permits a legitimate multi-needle call, including needles that contain a space', function () {
+    // ⚠️ THE CALIBRATION, ASSERTED RATHER THAN CLAIMED. `toContain('Aaron Busy', 'Zoe Free')` is a real,
+    //    correct call in this suite: two needles, one space each. A rule that banned it would be worse than
+    //    the bug — it would push people away from a correct pattern.
+    $calls = variadicMatcherCalls();
+    $multi = array_filter($calls, fn (array $c): bool => $c['args'] > 1);
+
+    expect(count($multi))->toBeGreaterThan(0)                                  // the scan really sees them
+        ->and(count(array_filter($multi, fn (array $c): bool => $c['sentence'] === null)))
+        ->toBeGreaterThan(0, 'every multi-arg call was flagged — the sentence heuristic is too broad');
 });

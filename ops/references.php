@@ -38,6 +38,7 @@ use Illuminate\Contracts\Console\Kernel;
  *
  * USAGE:
  *   ops/references.php 'availability.view'
+ *   ops/references.php --routes              # ⚠️ every NAMED ROUTE no VIEW links — see the mode's own note
  *   ops/references.php 'a.view,b.view'        # several at once; exit 0 if ANY is referenced
  *   ops/references.php --all 'x'              # list every site, not just the first few
  */
@@ -48,9 +49,58 @@ $args = array_slice($argv, 1);
 $all = in_array('--all', $args, true);
 $args = array_values(array_filter($args, static fn (string $a): bool => $a !== '--all'));
 
-if ($args === []) {
-    fwrite(STDERR, "usage: ops/references.php [--all] '<literal>[,<literal>…]'\n");
+if ($args === [] && ! in_array('--routes', $argv, true)) {
+    fwrite(STDERR, "usage: ops/references.php [--all] '<literal>[,<literal>…]'  |  ops/references.php --routes\n");
     exit(2);
+}
+
+// ── ⚠️ --routes: WHICH NAMED ROUTES DOES NO VIEW LINK? ──────────────────────────────────────────────
+//
+// ⚠️⚠️ THE QUESTION THIS ANSWERS IS NARROW ON PURPOSE: "no Blade template names this route". ⚠️ THAT IS NOT
+// "unreachable" and must never be read as it. A route is legitimately unlinked when it is an API endpoint, a
+// webhook, a redirect target, a POST target whose form action is built in JavaScript, or a signed/emailed URL.
+// 🔬 Measured here: the front-desk board builds its check-in URL as `'/app/front-desk/' + row.id + '/check-in'`
+// in Alpine, so `route()` never appears and the tokeniser cannot see it — a real capability with a real
+// control, invisible to this mode. ⚠️ **The finding worth acting on is narrower still: an OPERATOR capability
+// with no operator path.** Read the list, do not act on its length.
+if (in_array('--routes', $args, true)) {
+    $app = require $root.'/bootstrap/app.php';
+    $app->make(Kernel::class)->bootstrap();
+
+    $named = [];
+    foreach (app('router')->getRoutes() as $route) {
+        $name = $route->getName();
+        if (is_string($name) && $name !== '') {
+            $named[$name] = $route->methods()[0].' '.$route->uri();
+        }
+    }
+
+    // Every string literal that appears in a COMPILED Blade template — comments invisible by construction.
+    $inViews = [];
+    $blade = app('blade.compiler');
+    $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/resources/views', FilesystemIterator::SKIP_DOTS));
+    foreach ($it as $f) {
+        if (! str_ends_with($f->getPathname(), '.blade.php')) {
+            continue;
+        }
+        foreach (token_get_all($blade->compileString((string) file_get_contents($f->getPathname()))) as $t) {
+            if (is_array($t) && $t[0] === T_CONSTANT_ENCAPSED_STRING) {
+                $inViews[trim($t[1], "'\"")] = true;
+            }
+        }
+    }
+
+    $unlinked = array_diff_key($named, $inViews);
+    ksort($unlinked);
+
+    printf("  %d of %d named routes are linked by no Blade view.\n\n", count($unlinked), count($named));
+    foreach ($unlinked as $name => $sig) {
+        printf("  %-52s %s\n", $name, $sig);
+    }
+    echo "\n  ⚠️ Legitimately unlinked: api/* · webhooks · redirect targets · JS-built form actions · signed URLs.\n";
+    echo "  ⚠️⚠️ The finding is an OPERATOR CAPABILITY WITH NO OPERATOR PATH — not the length of this list.\n";
+
+    exit($unlinked === [] ? 1 : 0);
 }
 
 $needles = array_values(array_filter(array_map('trim', explode(',', $args[0])), static fn ($n) => $n !== ''));
