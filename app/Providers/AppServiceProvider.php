@@ -96,6 +96,7 @@ use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
 use App\Support\Property\PropertyContext;
+use App\Support\Safety\BaselineTenantWriteGuard;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
@@ -252,6 +253,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ⚠️⚠️ FIRST, BEFORE ANYTHING ELSE CAN WRITE. Disarmed unless `security.baseline_tenant_guard` names
+        //    an organisation — so the seeder is unaffected and only a probe harness turns it on. It exists
+        //    because "do not touch tenant one" was in every brief for weeks and a probe wrote there anyway:
+        //    a rule that is written down and still fires is a note, not a rule.
+        BaselineTenantWriteGuard::armFromConfig();
+
         // HTTPS SCHEME FORCING (audit 2026-08-07 · F6-10). Every generated URL — form actions, redirects,
         // password-reset and email-verification signed links, the assets in a transactional email — is built
         // from the request scheme. Behind a TLS-terminating proxy that scheme reads `http`, so links would be

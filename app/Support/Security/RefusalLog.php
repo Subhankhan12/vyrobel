@@ -6,6 +6,7 @@ namespace App\Support\Security;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Scopes\OrganizationScope;
+use App\Models\Scopes\OwnerScope;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
@@ -64,6 +65,17 @@ final class RefusalLog
     public const LAYER_POLICY = 'policy';
 
     /**
+     * ⚠️⚠️ A FIFTH MECHANISM, FOUND 2026-09-22 — and it was hiding INSIDE this class's own probe.
+     * 🔬 The owner portal's statement/payout/unit refusals logged NOTHING, and the assumed cause (Livewire
+     * `render()`-time `findOrFail`) was wrong. The handler fired correctly every time; its EXISTENCE PROBE
+     * was defeated. {@see OwnerScope} applies `whereRaw('1 = 0')` for a non-matching owner, so stripping
+     * only {@see OrganizationScope} still could not see the row — and the probe concluded "genuinely
+     * absent" and stayed quiet, which is exactly what it is designed to do when a row does not exist.
+     * ⚠️ **An instrument that is working perfectly can still answer the wrong question.**
+     */
+    public const LAYER_OWNER_SCOPE = 'owner-scope';
+
+    /**
      * ⚠️ A DELIBERATE `abort()` INSIDE A CONTROLLER OR MIDDLEWARE — a third refusing layer, added 2026-09-22.
      * 🔬 25 `abort(404)` and 19 `abort(403)` sites throw `HttpException` with NO `$previous`, so the first
      * version of this log could not see them at all — which is why the owner-portal statement, payout and
@@ -116,21 +128,36 @@ final class RefusalLog
         try {
             /** @var Model $probe */
             $probe = new $class;
-            $existsElsewhere = $probe->newQuery()
+
+            // ⚠️ Strip BOTH tenant-ish scopes: a row can be hidden by the organisation scope, by the owner
+            //    scope, or by both. Stripping only the first is what made every owner-portal refusal silent.
+            //    ⚠️ Still NEVER `withoutGlobalScopes()` — that would strip soft-deletes too, and a
+            //    soft-deleted row of one's own is "gone", not "someone else's".
+            $row = $probe->newQuery()
                 ->withoutGlobalScope(OrganizationScope::class)
+                ->withoutGlobalScope(OwnerScope::class)
                 ->whereKey($ids)
-                ->exists();
+                ->first();
         } catch (Throwable) {
             // ⚠️ The instrument must never become the outage. If the probe cannot run, write nothing —
             //    a missing entry reads as "absent", which is the safe direction for a log nobody is paged by.
             return;
         }
 
-        if (! $existsElsewhere) {
+        if ($row === null) {
             return; // genuinely absent — silent, by design
         }
 
-        self::write(self::LAYER_SCOPE, $request, [
+        // ⚠️ NAME THE RIGHT LAYER. A row in ANOTHER organisation was refused by the tenant boundary; a row
+        //    in THIS organisation that the caller still cannot see was refused by the owner boundary. Both
+        //    are real refusals of a real row, and calling the second one "tenant-scope" would be a lie.
+        $rowOrg = $row->getAttribute('organization_id');
+        $currentTenant = self::tenantId();
+        $layer = (is_string($rowOrg) && $currentTenant !== null && $rowOrg === $currentTenant)
+            ? self::LAYER_OWNER_SCOPE
+            : self::LAYER_SCOPE;
+
+        self::write($layer, $request, [
             'model' => $class,
             'requested_ids' => $ids,
         ]);

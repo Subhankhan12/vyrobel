@@ -283,3 +283,37 @@ open `app/email-templates` and edit the wording of the confirmation emails your 
 processor agreement. Data minimisation is a term of that agreement, not a preference — but so is a
 housekeeper being able to see which rooms have an arrival today. **Both readings are defensible; only one can
 be shipped.**
+
+---
+
+## ⚠️ A PROPOSAL, NOT A CHANGE — THE `.view` PERMISSION FAMILY (measured 2026-09-22, TEST 04)
+
+⚠️⚠️ **IT IS NOT THREE MISLEADING NAMES. IT IS SYSTEMIC.** 🔬 Census of all 15 `.view` permissions against
+what each actually gates on a route:
+
+| behaves as named (5) | gates something unrelated (4) | **gates NOTHING (6)** |
+|---|---|---|
+| `guests.view` (12 routes) | `units.view` → only `app/unit-requests` | `availability.view` |
+| `rates.view` | `reservations.view` → only `app/guest-requests`, `app/search` | `payments.view` |
+| `reviews.view` | `folios.view` → email previews + the folio PDF | `invoices.view` |
+| `schedule.view` | `properties.view` → only `app/portfolio` | `housekeeping.view` |
+| `reports.view` (7 routes) | | `owner_portal.view` · `guest_portal.view` |
+
+🔬 **The six have ZERO code references outside `config/authorization.php`** — nothing reads them. They are
+strings in a catalogue, rendered into a permission matrix that a customer's security reviewer may read.
+
+⚠️ **WHY THIS IS NOW A SMALLER PROBLEM THAN IT LOOKS, AND STILL WORTH FIXING.** The founder has ruled that
+reads stay open, so a `.view` permission gating nothing is no longer a *security* gap — it is an **honesty**
+gap. The matrix implies a read model the routing does not implement. The catalogue header now says so in
+words; the names still say otherwise.
+
+⚠️ **PROPOSED, NOT DONE** — renaming touches `config/authorization.php`, the seeders, the tests and the pinned
+RBAC census (264/52), so it is a deliberate change, not a tidy-up:
+1. **Remove the six that gate nothing and are read by nothing** — truthful immediately, and cheapest.
+2. **Rename the four that gate something unrelated** to what they actually gate (e.g. `unit_requests.view`).
+3. **Leave the five that are honest.**
+
+⛔ **THE TIMING POINT, WHICH SHOULD DRIVE THE DECISION:** **zero customers is the cheapest this will ever be.**
+Today a rename is a config edit plus a pin update. The day someone signs up it becomes a migration against
+live role assignments, in a product that will have signed an Article 28 agreement describing its access
+controls. ⚠️ That fact stops being true the moment the first tenant is real.

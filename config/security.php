@@ -60,4 +60,15 @@ return [
 
     'trusted_proxies' => (string) env('TRUSTED_PROXIES', ''),
 
+    /*
+     * ⚠️⚠️ THE BASELINE-TENANT WRITE GUARD — OFF unless this names an organisation id.
+     *
+     * ⚠️ Set it (env `VY_GUARD_BASELINE_ORG`) on a dev server that a PROBE HARNESS is about to drive, and any
+     * Eloquent write aimed at that tenant is refused with a loud exception instead of silently landing.
+     * ⚠️ The SEEDER must run WITHOUT it — it legitimately builds that tenant, so an always-on guard would
+     * fight the thing that creates the baseline.
+     * ⚠️ See App\Support\Safety\BaselineTenantWriteGuard for the list of what it cannot catch.
+     */
+    'baseline_tenant_guard' => env('VY_GUARD_BASELINE_ORG', ''),
+
 ];
