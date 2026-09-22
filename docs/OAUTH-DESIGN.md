@@ -90,7 +90,23 @@ third-party app ──(1) redirect owner to───►  GET /oauth/authorize?cl
 ```
 
 - **PKCE** for public clients (SPAs/mobile — no client secret); confidential clients (server apps) use a hashed secret (`Passport::hashClientSecrets()`). Passport supports both on the same authorize/token endpoints.
-- The consent screen is a **published, branded blade** (warm-glass, the owner design language) replacing Passport's default Vue view — it lists the app name + **exactly** the requested scopes (no over-grant surprise), and the owner must actively **Authorize**.
+- The consent screen is a **published, branded blade** (warm-glass, the owner design language) replacing Passport's default Vue view — it lists the app name + **exactly** the requested scopes (no over-grant surprise), and on a FIRST authorization the owner must actively **Authorize**.
+- ⚠️⚠️ **CORRECTED 2026-09-22 — THE CONSENT SCREEN IS SKIPPED ON RE-AUTHORIZATION, AND THIS DOCUMENT SAID
+  OTHERWISE.** The sentence above used to read *"the owner must actively Authorize"* without qualification.
+  🔬 Measured in the installed Passport (`AuthorizationController`, lines 83–86): the request is auto-approved
+  and **no screen is shown** when the request does not carry `prompt=consent` **and** either
+  `$client->skipsAuthorization($user, $scopes)` (a first-party client) **or** `hasGrantedScopes(...)` — the
+  owner already holds an **active, unrevoked, unexpired** token for that client whose scopes are a **superset**
+  of the newly requested ones. Requesting a scope not already granted falls through to the screen;
+  `prompt=none` throws `consentRequired` instead of approving.
+  ⚠️ **The BEHAVIOUR is unchanged and was not touched** — this is standard OAuth 2.0 and is what every major
+  provider does. What was wrong was the DOCUMENT, which described a consent the owner does not in fact see on
+  every authorization. ⚠️ **The security consequence is real and bounded:** an app that has been authorized
+  once can silently re-obtain a token for the SAME OR NARROWER scopes for as long as any of its tokens remain
+  live — so **revoke is the owner's only actual control after the first grant**, which is why revoke being
+  immediate is mutation-proven (§6) and why the Connected-apps list must stay accurate.
+  ⚠️ A document that overstates a security control is worse than one that omits it: it tells a reader a
+  consent prompt will catch something it will not.
 - **Consent-time cap filter:** the authorize screen only offers scopes the logged-in owner's role can back (a `read:bookings` request from an accountant-only owner is shown as unavailable) — belt to the API's suspenders (§6).
 - **Audited (#20):** an approved authorization records `owner.connected_app_authorized` (app, scopes); a denial records nothing sensitive. Token lifetimes: short access token + a refresh token (configurable via `Passport::tokensExpireIn` / `refreshTokensExpireIn`).
 
@@ -168,3 +184,62 @@ Remove `'Connected apps'` from the Security "Coming soon" grid (`owner-security.
 ## 11. Standing guarantees held throughout
 
 SECURITY-grade rigor: Laravel Passport (authorization-code + **PKCE**), **least-privilege READ-first** scopes, **owner-consented** via a real consent screen showing exactly the requested scopes, **revocable** (immediate), **audited** (#20). ⚠️ The API is **double-gated** — the token's SCOPE **and** the owner's TENANT+OWNER scope — and **both isolations are mutation-proven to fail closed** (wrong-scope rejected; cross-tenant/cross-owner rejected); a token can NEVER over-grant (more than the owner's role) or cross tenants; revoke is immediate (mutation-proven). Owner/tenant-scoped (#28); guest data name-only, no arrival secrets. **Additive — DISTURB NOTHING** (the green suite is the proof). Reuse the certified `OwnerScope`/`OrganizationScope`/`OwnerTeamRole` (never a new isolation mechanism). Client registration is platform-admin-managed (least surface); write scopes + client-credentials + self-serve registration are designed-but-deferred (no real use case yet), never faked.
+
+---
+
+## 12. ⚠️⚠️ FOUR THINGS TEST 05 MEASURED THAT NOBODY HAD DECIDED (recorded 2026-09-22)
+
+> ⚠️⚠️ **THESE ARE RECORDED, NOT DECIDED.** A session must not rule on them. Each row states what was
+> MEASURED (🔬), what it means, and a RECOMMENDATION that is a suggestion to the founder and nothing more.
+> Two of the four are in the ruling register as **OPEN** (`R-TOKEN-LIFE`, `R-TOKEN-SURVIVES`).
+> ⚠️ **None of these is a defect in the sense of something behaving other than as written** — they are places
+> where the product shipped a default that no one chose, which is a different and quieter problem.
+
+### (a) A token can be ISSUED to a non-owner — and can reach nothing
+
+🔬 **Measured:** `/oauth/authorize` authenticates any `web` user; **nothing at issuance checks that the user
+is an owner**, so a staff member or a bare `Membership` holder can complete the flow and receive a real token
+carrying real scopes. 🔬 **And it reaches no data:** `ResolveApiOwnerContext` resolves the token user's linked
+owners and **403s when there are none** — *"a non-owner token can reach NO owner data; the OwnerScope would
+fail closed anyway"* — so every one of the three API routes refuses it. Two layers, both measured.
+
+⚠️ **Why it is worth recording anyway:** the failure is at USE, not at GRANT, so the owner-facing consent
+screen will happily tell a non-owner that an app may read "your bookings", the audit row
+`owner.connected_app_authorized` is written, and the app's Connected-apps list shows a live grant — all for a
+token that can never return a row. It is honest at the boundary and misleading at the surface.
+
+**RECOMMENDATION (not a decision):** refuse at the authorize screen, with the copy saying why. It is the same
+check `ResolveApiOwnerContext` already performs, moved one step earlier, and it removes a class of support
+ticket ("I connected the app and it returns nothing") without changing a single security property.
+
+### (b) 15-day access tokens — `R-TOKEN-LIFE`, OPEN
+
+🔬 **Measured** in `AppServiceProvider:422-424`: access **15 days**, refresh **30 days**, personal-access
+**6 months**. These are the app's own explicit values — not Passport defaults (`config/passport.php` leaves
+all three expiry keys unset). See the register row for the full reasoning and the recommendation (shorten the
+access token to ~1 hour, keep the 30-day refresh).
+
+⚠️ The access and refresh lifetimes are pinned by `OAuthRecordedFactsArePinnedTest`, so this paragraph cannot
+go stale silently. ⚠️ **The personal-access lifetime is deliberately NOT pinned** — it is built from
+`addMonths(6)` and so varies with the boot date, and 🔬 no personal-access client exists in this application
+at all (creating one was refused twice; all access is owner-consented authorization-code), so the value
+configures a grant nothing can use. Pinning it would redden on a calendar roll for no behavioural reason.
+
+### (c) A token survives a lapsed subscription — `R-TOKEN-SURVIVES`, OPEN
+
+🔬 **Measured:** `routes/api.php` gates on `['auth:api', ResolveApiOwnerContext]` plus a per-route scope check
+and contains **zero** occurrences of `EnsureSubscriptionActive`, which the entire `/app/*` back office carries.
+So when a tenant lapses, its **operator is held at the paywall and its third-party integration keeps reading**.
+
+### (d) A token survives a soft-deleted organisation — `R-TOKEN-SURVIVES`, OPEN
+
+🔬 **Measured:** `organizations` has a `deleted_at` column, and **none of the three classes on the api path**
+(`ResolveApiOwnerContext`, `EnsureOwnerApiScope`, `OwnerApiController`) consults the `organizations` row at
+all — the middleware reads `owner.organization_id` and never loads the org. So a soft delete has **no effect
+on the API**, in either direction, by omission rather than by decision.
+
+⚠️⚠️ **THE COMMON SHAPE OF (c) AND (d), AND THE REASON THEY ARE ONE RULING:** the API did not decide to ignore
+organisation state — **it inherited the absence of a gate the web side happens to have**. An additive feature
+that reuses the certified scopes correctly can still miss a gate that was never part of a scope, because the
+scopes answer *"whose rows?"* and these two ask *"should this tenant be served at all?"* — a question no
+isolation mechanism was ever going to answer.
