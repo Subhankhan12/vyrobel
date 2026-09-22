@@ -1319,6 +1319,12 @@ Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::cl
     //    Gated on `reservations.checkout` — the same desk that made the mistake corrects it.
     Route::get('/front-desk/{reservation}/reverse-checkout', [FrontDeskActionController::class, 'reverseCheckoutConfirm'])->middleware('can:reservations.checkout')->name('front-desk.reverse-checkout');
     Route::post('/front-desk/{reservation}/reverse-checkout', [FrontDeskActionController::class, 'reverseCheckout'])->middleware('can:reservations.checkout')->name('front-desk.reverse-checkout.store');
+    // ⚠️ R8 (2026-09-22) — the mirror of the two lines above. ⚠️ Gated on `reservations.checkin`, NOT on a new
+    // permission: 🔬 measured, the holders of checkin and checkout are the SAME five roles, so reversing an
+    // arrival is bounded by the same authority that created it. A new permission would ship a role catalogue
+    // change nobody ruled on (#30), and inventing one to look careful is how catalogues rot.
+    Route::get('/front-desk/{reservation}/reverse-checkin', [FrontDeskActionController::class, 'reverseCheckinConfirm'])->middleware('can:reservations.checkin')->name('front-desk.reverse-checkin');
+    Route::post('/front-desk/{reservation}/reverse-checkin', [FrontDeskActionController::class, 'reverseCheckin'])->middleware('can:reservations.checkin')->name('front-desk.reverse-checkin.store');
 });
 
 /*

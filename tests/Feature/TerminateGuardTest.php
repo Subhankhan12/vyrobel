@@ -283,11 +283,19 @@ it('refuses at the CONTROLLER layer with a flash that names a way forward, never
 
     // ⚠️ THE WORDING IS PART OF THE RULING, NOT DECORATION. The generic branch would have said the booking
     // was "already closed" while the guest stood at the desk — false, and it names nothing to do next. The
-    // refusal must say the stay is in progress AND name the exit that exists.
+    // refusal must say the stay is in progress AND name what to do about it.
+    //
+    // ⚠️⚠️ THIS ASSERTION CHANGED ON 2026-09-22 WHEN R9 SHIPPED, AND THE REASON IS THE RULING, NOT A FAILURE.
+    // It used to require the phrase "Check the guest out", because when R7 was built 🔬 the product had no
+    // reverse-check-in and check-out was the only exit that existed — naming a control that does not exist is
+    // the same defect as a fabricated figure (#39). R9 built the real remedy, so the message now names the
+    // REVERSAL, and this test moved with it. ⚠️ Pinning the old phrase would have held the copy at a
+    // truthful-but-stale answer, which is how a refusal starts sending people to the wrong screen.
     $notice = (string) session('folio_notice');
     expect($notice)->toContain('checked in')
-        ->and($notice)->toContain('Check the guest out')
-        ->and($notice)->not->toContain('already closed');
+        ->and($notice)->toContain('Reverse the check-in first')
+        ->and($notice)->not->toContain('already closed')
+        ->and($notice)->not->toContain('not built yet');
 
     expect((string) $reservation->fresh()->status)->toBe('checked_in');
 });

@@ -602,11 +602,58 @@ are the record of **what was not chosen**, which is worth as much as what was. �
 | **R-GATE** | **WIRE IT — GATE BEFORE SCOPE.** | ✅ **BUILT (FIX 35)** — and the ordering is PROVEN, not assumed: a test discriminates the two orderings. | `IdentitySurfacesTest` |
 | **R6** | **LEAVE THE OTA AUTHORITATIVE — FOR `modify()`.** The channel keeps the last word over a checked-in stay, including its price. `checked_in` stays out of `TERMINAL_STATUSES`. ⚠️ **NARROWED 2026-09-22 by R7: this is the MODIFY verb only.** The ruling itself is unchanged and still satisfied; what changed is that "authoritative over a checked-in stay" is no longer a single question. | **SATISFIED** | `OtaTerminalModificationTest` |
 | **R7** | ⚠️⚠️ **REFUSE A TERMINATION OF A STAY IN PROGRESS, ON EVERY PATH** (2026-09-22). `checked_in → cancelled` / `→ no_show` is refused by a SECOND constant, `IN_PROGRESS_STATUSES`, in the same `terminate()` — **not** by adding `checked_in` to `TERMINAL_STATUSES`, which would silently move four unrelated readers including R6's own modify permission. Controller flashes + hides the button; the OTA path no-ops with an audit row (poison-message rule). ⚠️ **Cost: `checked_in` now has one exit (`checked_out`) and there is NO reverse-check-in — measured three ways — so a mis-clicked check-in can no longer be undone. Open as `R8`.** | ✅ **BUILT** — mutation-proven (emptying the constant reddens 5 tests across 4 layers) | `TerminateGuardTest` · `OtaTerminalModificationTest` · `GuestAccountTest` |
+| **R9** | ⚠️⚠️ **BUILD REVERSE-CHECK-IN** (2026-09-22). `checked_in → confirmed` via {@see App\Actions\Reservations\ReverseCheckIn} — the mirror of R3, following its disclose-what-cannot-be-undone shape. ⚠️ **It exists because R7 closed the only door out:** blocking cancel left `checked_in` with one exit, and check-out refuses while a balance is owed. 🔬 What a check-in writes was MEASURED by diffing every table — status + three append-only rows and **nothing else, no folio item** — which is why reversing cannot leave a charge behind. Gated `can:reservations.checkin` (🔬 identical holders to `checkout`; no new permission invented). ⚠️ Neither R3 nor R9 has a UI entry point — reported, not fixed. | ✅ **BUILT** — four proofs incl. **reverse → cancel → ALLOWED, unit released** (the step R7 could not run) and a real two-process race; mutation-proven 3/3 (drop the lock → both processes win) | `ReverseCheckInTest` · `ReverseCheckInConcurrencyTest` |
 | **R-SUSPEND** | **SUSPENSION CLOSES THE BOOKING PATH.** A suspended organisation stops taking bookings. | ✅ **BUILT (FIX 36)** — ⚠️ **and WIDENED by FIX 39: `suspended` AND `cancelled` (F-51). This row said `suspended` only until FIX 41.** Originally `suspended` only; the guest is never told why; existing stays untouched. | `SuspendedOrgClosesBookingTest` |
 | **R-REVERSE** | **ROUTE IT FOR OPERATORS** → ⚠️⚠️ **SUPERSEDED 2026-09-19 AFTER FIX 37's STOP: QUARANTINE IT.** Leave it unrouted and make it refuse to run. | ⛔ **NOT BUILT — QUARANTINED (FIX 38).** ⚠️⚠️ **THE PRECONDITION FOR EVER BUILDING IT: the source payout must reach a TERMINAL status on reversal.** That ONE change does both jobs — it releases the unique `live_statement_key` so `createFromStatement()` can make a fresh payout instead of handing back the paid one (**F-54**), and it makes the existing `status !== 'paid'` check able to refuse a second press (**F-53**). Until then the method throws. | `PayoutReversalIsUnguardedTest` |
 | **R-ARCHIVE** | **NOTIFY THE OWNER; KEEP IT IRREVERSIBLE.** No un-archive is built. | ✅ **BUILT (FIX 43)** — the notice fires from `PropertyRemovalService::archive()`, the WRITER, so the scheduled pass inherits it; every owner holding a unit is told SEPARATELY (owners attach per-unit, so one property can have several and a joint message would leak). ⚠️ **No undo, restore or grace period was added.** ⚠️ **It carries NO money figure, deliberately** — 🔬 archiving touches no money at all (`owner_statements` and `payouts` have no property column; `owner_ledger`'s units survive a soft delete), and a figure would go stale the moment it was sent | `ArchivedPropertyTellsItsOwnerTest` |
 | **R-RATE** | **SEASONS MAY OVERWRITE AN AGREED RATE**; the operator-side disclosure covers it. ⚠️⚠️ **THE OWNER IS NOT NOTIFIED — F-25 is ACCEPTED BY RULING, not closed.** | **SATISFIED** | `AgreedRateDisclosureTest` |
-| **R-PHANTOM** | **KEEP THE SEVENTEEN, DOCUMENT THEM, PIN THE EXACT REGISTER WITH A TEST.** No seeder or role-table churn. | ✅ **BUILT (FIX 41)** — ⚠️ **this cell said QUEUED until FIX 42: FIX 41 built the pin and closed F-14 and left its own answer row unswept, the very class it had just corrected in five other places.** ⚠️ FIX 42 then collapsed the second and third censuses into that one source | `PhantomPermissionRegisterIsPinnedTest` · `PermissionEnforcementContractTest` |
+| **R-PHANTOM** | **KEEP THE SEVENTEEN, DOCUMENT THEM, PIN THE EXACT REGISTER WITH A TEST.** No seeder or role-table churn. ⚠️⚠️ **RE-AFFIRMED 2026-09-22 AFTER A DELETE WAS PROPOSED AND WITHDRAWN — SEE THE NOTE BELOW THIS TABLE. THE RULING NEVER CHANGED.** | ✅ **BUILT (FIX 41)** — ⚠️ **this cell said QUEUED until FIX 42: FIX 41 built the pin and closed F-14 and left its own answer row unswept, the very class it had just corrected in five other places.** ⚠️ FIX 42 then collapsed the second and third censuses into that one source | `PhantomPermissionRegisterIsPinnedTest` · `PermissionEnforcementContractTest` |
+
+> ### ⚠️⚠️ 2026-09-22 — A DELETE OF SIX OF THE SEVENTEEN WAS PROPOSED AND **WITHDRAWN**
+>
+> ⚠️⚠️ **THIS IS RECORDED AS A WITHDRAWAL, NOT A REVERSAL, AND THE DIFFERENCE IS THE WHOLE POINT OF THE
+> ENTRY.** A reversal is a founder changing his mind on new evidence. A withdrawal is a question that should
+> never have been put to him. ⚠️ **Only the second happened**, and without saying so this register would show
+> him ruling KEEP on 2026-09-19 and DELETE on 2026-09-22 — a three-day self-contradiction that did not occur.
+>
+> **What happened.** APPLY 01 #3 instructed: *"delete the six dead `.view` permissions"* — `availability.view`
+> · `payments.view` · `invoices.view` · `housekeeping.view` · `owner_portal.view` · `guest_portal.view` —
+> after proving nothing referenced them by two independent methods. 🔬 **Both methods agreed nothing READS
+> them** (a literal search, and a tokenising census that walks the booted router's middleware plus
+> `token_get_all()` over every PHP file and every compiled Blade template, so a permission named in a comment
+> is invisible by construction). ⚠️ The literal search alone would have misled in BOTH directions: it returned
+> **9 hits across `app/`, `routes/` and `resources/`, every single one a comment or docblock.**
+>
+> ⚠️⚠️ **BUT THE SIX ARE EXACTLY THE SIX `.view` MEMBERS OF R-PHANTOM'S SEVENTEEN** — 2 from Shape A, 1 from
+> Shape B, 3 from Shape C. Not an overlap: an identity. And R-PHANTOM had already ruled them KEPT three days
+> earlier, with the explicit clause **"no seeder or role-table churn"**, ✅ BUILT and pinned by
+> `PhantomPermissionRegisterIsPinnedTest`, **green at the moment the delete was proposed.**
+>
+> ⚠️ **AND THREE OF THE SIX ARE NOT "DEAD" IN THE SENSE THE WORD IMPLIES.** Shape C is *"enforced by a ROLE
+> allow-list rather than by a permission"*. 🔬 Measured: `External Owner` holds **exactly one** permission,
+> `owner_portal.view`; `Guest` holds **exactly one**, `guest_portal.view`. Deleting them empties both roles,
+> in all three tenants. A permission whose enforcement is structural is not an unused permission.
+>
+> 🔬 **The cost, measured so the decision was made with numbers rather than in the abstract:** permissions
+> **52 → 46**, tenant-one census **264 → 231** (33 rows), two roles to zero.
+>
+> ⚠️ **THE OUTCOME: NOTHING WAS DELETED.** The six stay, all seventeen stay, no seeder or role-table churn,
+> the pinned census unchanged at **264 / 52 / 14**. The documentation half of the instruction already existed
+> in `docs/PHANTOM-PERMISSIONS.md` (FIX 41), which states what each one actually gates.
+>
+> ### ⚠️⚠️ THE PROCESS RULE THIS EARNED — IT WILL RECUR
+>
+> ⚠️⚠️ **A BRIEF PROPOSING A CHANGE IS NOT AUTHORITY TO MAKE IT IF THE REGISTER ALREADY RULES ON IT.**
+> ⚠️ **Check the register BEFORE doing the work, not after.** The pass that hit this checked afterwards, and
+> it cost a pass; **checking first would have cost a paragraph.** ⚠️ The check is cheap and specific: before
+> acting on an instruction that deletes, renames or re-decides anything, grep §4 and `STATUS-LADDERS.md` for
+> the objects it names.
+>
+> ⚠️ **AND THE HALF THAT BELONGS TO WHOEVER WRITES THE BRIEF, recorded because a rule pointing only at the
+> executor would be a false lesson: ask what is already ruled in an area BEFORE putting a question to the
+> founder.** The error here was upstream of the pass that caught it — the question reached him already
+> answered, and he answered it again in the opposite direction because nobody had told him he had.
+
 | **R-F10** | **NO ROLE BELOW PROPERTY OWNER SHIPS HOLDING THE THREE** (`billing.manage` · `settings.manage` · `roles.manage`). The seeded default stays tight; grantability through the matrix is how an operator opts in. | ✅ **BUILT (FIX 41)** — ⚠️ **this cell said PREMISE FAILED until FIX 42, the same unswept-consequence class: FIX 41 recorded the ruling, closed F-10 and did not update this row.** ⚠️ Pinned in BOTH directions, because "not seeded" alone is satisfied by deleting them from the catalogue | `SeededDefaultKeepsTheThreeTest` |
 | **R-SUPPORT** | **KEEP THREADS ORGANISATION-WIDE.** `assigned_to` stays a hint, never an access filter. | **SATISFIED** | `InboxCoreTest` |
 | **R7** | **LEAVE THE POINTER.** `default_rate_plan_id` is not cleared on deactivation; the accessor's `is_active` filter is the mechanism. | **SATISFIED** | `PrimaryRatePlanActiveTest` |

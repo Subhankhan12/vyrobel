@@ -17144,7 +17144,7 @@ allowed"* **could not be run**, and that is stated in the test file rather than 
 ⚠️ The refusal therefore names **check-out**, the exit that exists, and says plainly that reversing a
 check-in is not built. Naming a control that does not exist is the same defect as a fabricated figure (#39).
 
-**Open as `R8` (founder's, not a session's): build `checked_in → confirmed` on R3's
+**Open as `R9` (founder's, not a session's): build `checked_in → confirmed` on R3's
 disclose-what-cannot-be-undone pattern?** R3 already ruled the mirror case permit-and-reverse.
 
 ### Tests amended, each with its reason
@@ -17162,3 +17162,94 @@ disclose-what-cannot-be-undone pattern?** R3 already ruled the mirror case permi
 
 ⚠️ Emptying `IN_PROGRESS_STATUSES` reddens **five** tests across **four** layers (service cancel · service
 no-show · controller flash · OTA no-op · the partition). No new test passes vacuously.
+
+---
+
+## 2026-09-22 · APPLY 02 #2 — THE `.view` DELETE IS **WITHDRAWN** (R-PHANTOM STANDS)
+
+⚠️⚠️ **A WITHDRAWAL, NOT A REVERSAL.** APPLY 01 #3 instructed a delete of six `.view` permissions that
+**R-PHANTOM had already ruled KEPT three days earlier**, with the explicit clause "no seeder or role-table
+churn", ✅ BUILT and pinned green. The six are *exactly* the six `.view` members of R-PHANTOM's seventeen —
+an identity, not an overlap.
+
+⚠️ **The distinction is load-bearing for anyone reading this in a year.** A reversal is a founder changing his
+mind on new evidence; a withdrawal is a question that should never have been put to him. Only the second
+happened. Recorded so the register does not show a three-day self-contradiction that did not occur.
+
+**Nothing was deleted.** All seventeen stay; the pinned census is unchanged at **264 / 52 / 14**; the
+documentation half already existed in `docs/PHANTOM-PERMISSIONS.md`.
+
+🔬 **What the measurement actually found** — both methods agreed nothing *reads* the six, and that was still
+the wrong question. Three of them are Shape C, *"enforced by a ROLE allow-list rather than by a permission"*:
+`External Owner` holds exactly one permission (`owner_portal.view`) and `Guest` exactly one
+(`guest_portal.view`). Deleting them empties both roles in all three tenants. **A permission whose
+enforcement is structural is not an unused permission.** Cost had it proceeded: 52 → 46, 264 → 231.
+
+### ⚠️⚠️ THE PROCESS RULE
+
+**A brief proposing a change is not authority to make it if the register already rules on it. Check the
+register BEFORE doing the work, not after** — checking afterwards cost a pass; checking first would have cost
+a paragraph.
+
+⚠️ **And the upstream half, recorded because a rule aimed only at the executor would be a false lesson: ask
+what is already ruled in an area before putting a question to the founder.** The question reached him already
+answered, and he answered it again the other way because nobody had told him he had.
+
+See `docs/AUDIT-SUMMARY.md` §4 (the R-PHANTOM row and the note beneath it) for the full measurement.
+
+---
+
+## 2026-09-22 · APPLY 02 #3 — R9: REVERSE-CHECK-IN (`checked_in → confirmed`)
+
+⚠️ **Numbered R9, not R8.** The brief and APPLY 01 both called it R8; 🔬 R8 was already `tentative →
+confirmed` (ruled 2026-09-20, built FIX 54, pinned by a test). Renumbered before anything shipped. **The same
+process rule the `.view` withdrawal earned, firing again the same day — check the register for the NAME too.**
+
+**Why it exists:** R7 blocked `checked_in → cancelled` and left `checked_in` with one exit, `checked_out`,
+which refuses while a balance is owed. A clerk who checked in the wrong row faced a waiver and a recorded
+stay that never happened. R9 is the door R7 needed — the two are one decision, recorded so neither is
+"simplified" without the other.
+
+### 🔬 What a check-in actually writes — MEASURED, not read
+
+Diffed every table across a real call: `reservations.status` (**the only column that moves**) plus one row
+each in `reservation_status_history`, `domain_events` and `audit_events`. **Nothing else — no folio item, no
+availability row, no housekeeping task, no email.**
+
+⚠️⚠️ **That zero is the safety argument.** The feared defect — *a reverse that undoes the status but leaves a
+charge behind is a money bug wearing a fix's clothes* — cannot occur, because a check-in posts no charge.
+The same diff proves **no listener acted** on `reservation.checked_in`: one that did would have written a row.
+
+### What reversing does to each
+
+Status → `confirmed`. The history row is **appended to, never deleted** (#7) — the stay really was checked
+in. A `reservation.checkin_reversed` event is appended to both streams. **Inventory is untouched and must
+be**: the nights were occupied at BOOKING time, so `confirmed` holds the same lines; reaching into the single
+inventory write path from a status operation is the F-18 shape.
+
+⚠️ **Disclosed rather than undone** (R3's precedent): charges posted since check-in — with **real figures or
+no line at all** (#39) — and the guest's own completed online check-in.
+
+**Permission:** `can:reservations.checkin`. 🔬 Measured rather than assumed symmetric — its holders are
+identical to `reservations.checkout` (Super Admin · Property Owner · Group Admin · Hotel Manager · Front
+Desk). No new permission invented; that would ship a role-catalogue change nobody ruled on (#30).
+
+### Proven four ways
+
+(a) the reversal with every side effect read back · **(b) ⚠️ reverse → cancel → ALLOWED, unit released — the
+step that could not run when R7 shipped, with a control proving cancel is still refused *before* the
+reversal** · (c) refused from all five other statuses, row unmoved · (d) **two OS processes racing**: exactly
+one wins, the loser is told, and the loser's *reason* is asserted (an assertion that something failed is not
+an assertion that it failed correctly).
+
+🔬 **Mutation-proven 3/3:** removing `lockForUpdate` makes BOTH processes reverse.
+
+⚠️ The concurrency test lives in its own file **without `RefreshDatabase`** — 🔬 measured: that trait's
+uncommitted transaction hides the fixture from other processes, and both workers died with "No query
+results" while the race proved nothing and looked like a guard failure.
+
+### Reported, not fixed
+
+**Neither R3 nor R9 has a UI entry point.** 🔬 The only reference to `app.front-desk.reverse-checkout` in
+`resources/views` is inside its own confirmation page. Both are URL-only. R9 matches R3 rather than diverging
+from it; closing the gap is a build nobody ruled on.

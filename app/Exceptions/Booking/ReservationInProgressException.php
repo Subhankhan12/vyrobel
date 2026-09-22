@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Exceptions\Booking;
 
-use App\Actions\Reservations\ReverseCheckOut;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
 use App\Livewire\Owner\OwnerBookingDetail;
 use App\Services\AssignmentService;
@@ -37,14 +36,18 @@ use App\Services\GuestDeletionService;
  * The exception message would also be a lie: "already checked_in and cannot be marked cancelled" reads as
  * though the stay were finished. One concept, one constant — these are two concepts.
  *
- * ⚠️⚠️ THE REMEDY THIS NAMES IS DELIBERATELY *CHECK-OUT*, NOT "REVERSE THE CHECK-IN". Measured by three
- * independent methods 2026-09-22 (the `app/Actions/Reservations/` inventory · every write of
- * `status => 'confirmed'` · every lifecycle route): **the product has no reverse-check-in.** There is a
- * {@see ReverseCheckOut} (R3, `checked_out → checked_in`) and nothing that walks
- * `checked_in` back to `confirmed`. Naming a control that does not exist is the same defect as a fabricated
- * figure (#39) — it sends a front desk hunting for a button. So this names the exit that IS built and says
- * plainly that the other one is not. ⚠️ **Building `checked_in → confirmed` is a new ladder transition and
- * therefore a FOUNDER RULING** (the R-series), reported, not decided, by the pass that wrote this.
+ * ⚠️⚠️ THE REMEDY THIS NAMES CHANGED ON 2026-09-22 WHEN R9 WAS BUILT, AND THE HISTORY IS THE LESSON. When
+ * this exception was first written the message named **check-out**, because 🔬 three independent methods had
+ * measured that **the product had no reverse-check-in** — and naming a control that does not exist is the
+ * same defect as a fabricated figure (#39): it sends a front desk hunting for a button. ⚠️ That was the right
+ * message for a product missing a door, and the wrong door to leave missing: R7 had reduced `checked_in` to a
+ * single exit, and check-out refuses while a balance is owed.
+ *
+ * ⚠️ **{@see ReverseCheckIn} (R9) now exists, so the message names it.** The order matters — reverse, THEN
+ * terminate — and it holds for BOTH terminations: `checked_in → confirmed → cancelled`, and
+ * `checked_in → confirmed → no_show` (`NO_SHOWABLE` is `confirmed` alone, so the reversal is what makes a
+ * late no-show reachable at all). ⚠️ A test pins this wording so it cannot drift back to naming an exit that
+ * is merely *an* exit rather than *the* remedy.
  */
 class ReservationInProgressException extends BookingException
 {
@@ -68,6 +71,6 @@ class ReservationInProgressException extends BookingException
     public static function messageFor(string $toStatus): string
     {
         return "This stay is checked in — the guest is in the room, so it cannot be marked {$toStatus}. "
-            .'Check the guest out to end the stay; reversing a check-in recorded in error is not built yet.';
+            ."Reverse the check-in first, then mark it {$toStatus} — or check the guest out if the stay really happened.";
     }
 }

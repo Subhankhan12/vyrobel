@@ -349,16 +349,74 @@ exception's docblock carries the full measurement.
 detail screen never renders the button · `BookingImportService::cancel()` **no-ops with an audit trail**,
 because it runs on the retrying webhook path where a throw becomes a poison message.
 
-⚠️⚠️ **WHAT THE RULING COSTS, RECORDED BECAUSE IT DOES NOT FOLLOW FROM THE RULE.** `checked_in` now has
-exactly **one** operator exit: `checked_out`. 🔬 Measured three ways on 2026-09-22 — the
-`app/Actions/Reservations/` inventory, every write of `status => 'confirmed'`, and every lifecycle route —
-**the product has no reverse-check-in.** There is a `ReverseCheckOut` (R3, `checked_out → checked_in`) and
-nothing that walks `checked_in` back to `confirmed`. So **a check-in recorded in error can no longer be
-undone**: before this ruling an operator cancelled it, and now nothing does. ⚠️ The refusal message therefore
-names **check-out**, the exit that exists, and says plainly that reversing a check-in is not built —
-pointing a front desk at a control that does not exist is the same defect as a fabricated figure (#39).
+⚠️⚠️ **WHAT THE RULING COST, AND HOW IT WAS PAID — ✅ CLOSED BY R9 ON THE SAME DAY.** R7 left `checked_in`
+with exactly **one** operator exit, `checked_out`, and check-out refuses while a balance is owed — so a clerk
+who checked in the wrong row faced a waiver and a recorded stay that never happened. 🔬 Measured three ways
+on 2026-09-22 (the `app/Actions/Reservations/` inventory · every write of `status => 'confirmed'` · every
+lifecycle route), **the product then had no reverse-check-in**, so the refusal honestly named check-out and
+said so. ⚠️ **That was the right message for a product missing a door, and the wrong door to leave missing.**
 
-⚠️ **THE OPEN QUESTION THIS LEAVES — `R8`, FOR THE FOUNDER, NOT FOR A SESSION:** should `checked_in →
-confirmed` be built as a real reverse-check-in, on R3's disclose-what-cannot-be-undone pattern? R3 already
-ruled the mirror case (a mis-clicked *check-out*) permit-and-reverse, so the precedent exists. **It is a new
-ladder transition, so it is a ruling, and it was reported rather than decided by the pass that built R7.**
+⚠️ **The founder ruled R9 the same day and it is BUILT — see below. The refusal message now names the
+reversal**, and a test pins that wording so it cannot drift back to naming a merely-available exit instead of
+the actual remedy.
+
+
+#### R9 · reversing a mis-clicked check-in — ✅ **RULED 2026-09-22: BUILD IT; BUILT THE SAME DAY**
+
+⚠️⚠️ **IT IS `R9`, NOT `R8`, AND THE MISTAKE IS RECORDED BECAUSE IT IS THE SAME ONE THIS PASS WROTE A RULE
+ABOUT.** APPLY 01 proposed this transition as "R8" and the APPLY 02 brief carried that name forward — but
+🔬 **R8 was already taken**: `tentative → confirmed`, ruled PERMIT 2026-09-20, built by FIX 54, and pinned by
+`AuditRegisterIsSelfConsistentTest`. ⚠️ Nobody checked the register before choosing the identifier, which is
+**precisely the failure the `.view` withdrawal earned a process rule about, firing again inside the pass that
+wrote the rule.** ⚠️ Renumbered to R9 before anything shipped; the real R8 row above is untouched. **The
+register caught it — that is what it is for.**
+
+| # | question | the move | today |
+|---|---|---|---|
+| **R9** | May a **check-in recorded in error** be walked back? | `checked_in → confirmed` | ✅ **PERMITTED** — {@see App\Actions\Reservations\ReverseCheckIn}, gated `can:reservations.checkin` |
+
+⚠️⚠️ **R9 EXISTS BECAUSE R7 CLOSED THE ONLY DOOR OUT.** It is not an independent feature: blocking
+`checked_in → cancelled` created the need for it in the same pass. Recorded that way so a later reader does
+not treat the two as unrelated and "simplify" one of them.
+
+⚠️⚠️ **WHAT A CHECK-IN ACTUALLY WRITES — 🔬 MEASURED BY DIFFING EVERY TABLE ACROSS A REAL CALL**, because
+this is the question that decided whether reversing is safe, and reading the code is not measuring it:
+
+| write | reversing it |
+|---|---|
+| `reservations.status` → `checked_in` — **the only column that moves** | returned to `confirmed` |
+| `reservation_status_history` +1 | **appended to, never deleted** (#7) — the stay really was checked in |
+| `domain_events` +1 | a `reservation.checkin_reversed` event is appended |
+| `audit_events` +1 | appended |
+| **nothing else** — no folio item, no availability row, no housekeeping task, no email | — |
+
+⚠️⚠️ **THAT ZERO IS THE SAFETY ARGUMENT.** The feared defect — *a reverse that undoes the status but leaves a
+charge behind is a money bug wearing a fix's clothes* — **cannot occur here, because a check-in posts no
+charge at all.** The same diff also proves **no listener acted** on `reservation.checked_in`: a listener that
+did anything would have written a row, and exactly three tables moved.
+
+⚠️ **IT IS THE MIRROR OF R3 AND DELIBERATELY NOT ITS TWIN.** A check-OUT fans out (departure clean, dirty
+unit, notifications, a review email), which is why R3 needed a long disclosure. A check-IN fans out to
+nothing, so R9's disclosure is **short but not absent** — it discloses what happened *during* the stay and is
+not the check-in's to undo: **charges posted since check-in** (real figures or no line at all, #39) and the
+guest's own completed **online check-in**.
+
+⚠️ **IT NEVER TOUCHES INVENTORY, and must not.** The nights were occupied at BOOKING time and `checked_in`
+never changed them, so `confirmed` holds the same lines. A status operation reaching into the single
+inventory write path is the F-18 shape.
+
+⚠️ **PERMISSION — MEASURED, NOT ASSUMED SYMMETRIC.** Gated `can:reservations.checkin`, whose holders are
+🔬 *identical* to `reservations.checkout`: **Super Admin · Property Owner · Group Admin · Hotel Manager ·
+Front Desk**. No new permission was invented: that would ship a role-catalogue change nobody ruled on (#30).
+
+⚠️ **PROVEN FOUR WAYS** (`ReverseCheckInTest`, `ReverseCheckInConcurrencyTest`): the reversal with every side
+effect read back · ⚠️⚠️ **reverse → cancel → ALLOWED, unit released — the step that could not run when R7
+shipped, and the one that closes the loop** · refused from all five other statuses with the row unmoved ·
+and **two OS processes racing**, where exactly one wins and the loser is told. 🔬 **Mutation-proven 3/3:**
+removing `lockForUpdate` makes BOTH processes reverse.
+
+⚠️ **KNOWN, REPORTED, NOT FIXED: neither R3 nor R9 has a UI entry point.** 🔬 The only reference to
+`app.front-desk.reverse-checkout` anywhere in `resources/views` is inside its own confirmation page; the
+front-desk board offers no link to either. Both are reachable by URL only. R9 matches R3 rather than
+diverging from it, and the gap is recorded here instead of being closed by a pass that was told not to build
+beyond the transition.

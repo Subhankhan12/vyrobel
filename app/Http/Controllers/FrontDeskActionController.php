@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\Reservations\CheckInReservation;
+use App\Actions\Reservations\ReverseCheckIn;
 use App\Actions\Reservations\ReverseCheckOut;
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\UnitUnavailableException;
@@ -19,6 +20,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Front-desk check-in / check-out — the REAL staff actions, driven from the styled Front Desk
@@ -146,6 +148,50 @@ class FrontDeskActionController extends Controller
         $disclosure = $reverse->handle($model, $request->user());
 
         return $this->backToBoard($request, "{$model->reference} is checked in again. ".$disclosure['review_email']['message']);
+    }
+
+    /**
+     * ⚠️ R9 — the confirmation surface for reversing a mis-clicked check-in. It WRITES NOTHING.
+     *
+     * ⚠️ SAME SHAPE AS {@see reverseCheckoutConfirm()} ON PURPOSE — a front desk should not have to learn two
+     * dialects for the same idea. The disclosure comes from the action's own preview(), so the screen cannot
+     * describe consequences the action does not actually produce.
+     */
+    public function reverseCheckinConfirm(Request $request, ReverseCheckIn $reverse, string $reservation): View|RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+
+        if ($model->status !== 'checked_in') {
+            return $this->backToBoard($request, "{$model->reference} is not checked in, so there is no check-in to reverse.", refused: true);
+        }
+
+        return view('operator.reverse-checkin', [
+            'reservation' => $model,
+            'disclosure' => $reverse->preview($model),
+        ]);
+    }
+
+    /** ⚠️ R9 — perform it, carrying the disclosure back to the board so what was NOT undone survives the redirect. */
+    public function reverseCheckin(Request $request, ReverseCheckIn $reverse, string $reservation): RedirectResponse
+    {
+        $model = Reservation::query()->findOrFail($reservation);
+
+        if ($model->status !== 'checked_in') {
+            return $this->backToBoard($request, "{$model->reference} is not checked in, so there is no check-in to reverse.", refused: true);
+        }
+
+        try {
+            $disclosure = $reverse->handle($model, $request->user());
+        } catch (RuntimeException $e) {
+            // ⚠️ The lost-race branch lands here — a clean sentence, never a 500.
+            return $this->backToBoard($request, $e->getMessage(), refused: true);
+        }
+
+        $tail = count($disclosure['not_reversed']) > 1
+            ? ' '.$disclosure['not_reversed'][1]   // the money line when there is one — never invented
+            : '';
+
+        return $this->backToBoard($request, "{$model->reference} is back to confirmed.".$tail);
     }
 
     public function move(Request $request, AssignmentService $assignment, string $reservation): RedirectResponse

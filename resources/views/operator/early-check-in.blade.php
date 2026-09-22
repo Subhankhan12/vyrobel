@@ -19,14 +19,17 @@
         </p>
     </div>
 
-    {{-- ⚠️ THE CONSEQUENCE IS STATED BECAUSE IT IS CURRENTLY TRUE, not to discourage the action. When a
-         reverse-check-in is built (STATUS-LADDERS R8) this paragraph must be corrected in the same change —
-         a warning that outlives the limit it describes is how a screen starts lying. --}}
+    {{-- ⚠️⚠️ CORRECTED 2026-09-22 IN THE SAME CHANGE THAT BUILT R9 — the previous version of this card said
+         "there is no way to reverse a check-in in the product today", which was true when it was written and
+         became false the moment ReverseCheckIn shipped. ⚠️ The comment above it had said exactly this must
+         happen in the same change; it did. **A warning that outlives the limit it describes is how a screen
+         starts lying**, and this card existed to tell the truth about a cost, not to discourage the action. --}}
     <div class="vy-card">
-        <h2 class="vy-card-title">What you cannot undo yet</h2>
+        <h2 class="vy-card-title">If this is the wrong booking</h2>
         <p>
-            A checked-in stay cannot be cancelled, and there is no way to reverse a check-in in the product
-            today. The only way out of <strong>checked in</strong> is to check the guest out.
+            A checked-in stay cannot be cancelled directly. If you check in the wrong row you can
+            <strong>reverse the check-in</strong> to put it back to confirmed, and cancel from there —
+            two deliberate steps rather than one silent one.
         </p>
     </div>
 
