@@ -5,10 +5,14 @@ use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
 use App\Support\Auth\TrustedDeviceService;
+use App\Support\Security\RefusalLog;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -134,6 +138,35 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // ⚠️⚠️ THE REFUSAL LOG — see {@see \App\Support\Security\RefusalLog} for the full argument.
+        //
+        // ⚠️⚠️ THESE CALLBACKS RETURN `null` ON PURPOSE. A render callback that returns null falls through to
+        // the framework's normal rendering, so the response stays **byte-identical** — which is the entire
+        // design. 🔬 Verified by measurement, not by reading: the 404 body is 5,653 bytes before and after.
+        // ⚠️ Making "not yours" look different from "not found" would hand an attacker an existence oracle;
+        // the attribution belongs in a channel the public cannot see, and this is that channel.
+        //
+        // ⚠️ `render` rather than `report` is deliberate: Laravel's internal don't-report list already
+        // contains both of these, so a `report()` callback would never fire without `stopIgnoring()`, and
+        // that would drag full stack traces into the log for every ordinary 404. This hook logs one line.
+        // ⚠️⚠️ TYPED ON THE *HTTP* EXCEPTION, NOT THE ORIGINAL — AND THAT COST A MEASUREMENT TO LEARN.
+        // 🔬 The first version hooked `ModelNotFoundException` and `AuthorizationException` directly and
+        // logged NOTHING: `Handler::render()` calls `prepareException()` BEFORE `renderViaCallbacks()`, so by
+        // the time a callback runs the exception has already been mapped to `NotFoundHttpException` /
+        // `AccessDeniedHttpException`. ⚠️ The original survives only as `$previous` — which is what this
+        // unwraps. An empty log is not a result; it was read as one for about a minute.
+        $exceptions->render(function (HttpExceptionInterface $e, Request $request) {
+            $original = $e->getPrevious();
+
+            if ($original instanceof ModelNotFoundException) {
+                RefusalLog::modelNotFound($original, $request);
+            } elseif ($original instanceof AuthorizationException) {
+                RefusalLog::authorizationDenied($original, $request);
+            }
+
+            return null; // fall through to the framework's own page — response byte-identical
+        });
 
         // ⚠️ NEVER FLASH A SECRET INTO THE SESSION (audit 2026-08-07 · F6-3).
         //
