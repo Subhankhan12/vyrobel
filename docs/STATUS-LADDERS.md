@@ -222,8 +222,14 @@ recorded here rather than quietly corrected.
 and a test now asserts it, so tightening it later is a deliberate act that breaks a test rather than a silent
 narrowing. ⚠️ If you rule it illegal, the seeder must check in first — a seeder change, not a guard change.
 
-⚠️ **Already answered by the existing code, listed so it is not re-opened by accident:** a **checked-in stay
-MAY be cancelled** (`CANCELLABLE` includes `checked_in`) and that is unchanged.
+⚠️⚠️ **SUPERSEDED 2026-09-22 — R7. THIS PARAGRAPH USED TO READ:** *"Already answered by the existing code,
+listed so it is not re-opened by accident: a **checked-in stay MAY be cancelled** (`CANCELLABLE` includes
+`checked_in`) and that is unchanged."* ⚠️ **It is kept, struck, rather than deleted, because it is the record
+of a thing this document twice declared closed that was not.** "Already answered by the existing code" is a
+statement about the code, not about the rule — and the two are the same sentence only until somebody rules.
+
+**The founder ruled it 2026-09-22: a stay the guest is physically in may NOT be terminated at all** — see
+**R7** below.
 
 ### Housekeeping (FIX 03) — eleven, all currently permitted
 
@@ -316,3 +322,43 @@ and it is the one case the fix does **not** close. It is listed here rather than
 argument runs both ways**, which is why it is a ruling: a real OTA can legitimately extend a stay mid-visit,
 and refusing that would drop a genuine booking change on the floor; but an unguarded rewrite un-arrives a
 guest who is standing in the room.
+
+⚠️⚠️ **R6 IS ABOUT `modify()`, AND AFTER R7 THAT SCOPE IS LOAD-BEARING RATHER THAN INCIDENTAL.** As of
+2026-09-22 the channel's authority over a stay in progress is **verb-dependent**: it may still MODIFY one
+(extend it, reprice it — R6, unchanged, still pinned by `OtaTerminalModificationTest`) and it may no longer
+CANCEL one (R7). Read either ruling as "the OTA is/is not authoritative over a checked-in stay" and you will
+get the other one wrong.
+
+#### R7 · terminating a stay in progress — ✅ **RULED 2026-09-22: REFUSE, ON EVERY PATH; BUILT**
+
+| # | question | the move | today |
+|---|---|---|---|
+| **R7** | May a stay **the guest is physically in** be cancelled or marked a no-show? | `checked_in → cancelled` / `checked_in → no_show` | ❌ **REFUSED** — `AssignmentService::IN_PROGRESS_STATUSES`, guarded in the shared `terminate()` |
+
+⚠️⚠️ **IT IS A SEPARATE CONSTANT FROM `TERMINAL_STATUSES`, AND THAT IS THE DESIGN, NOT AN OVERSIGHT.** The
+obvious implementation — add `checked_in` to `TERMINAL_STATUSES` — is the one `OtaTerminalModificationTest`
+was written to catch, and it is wrong for a measured reason: four unrelated readers of that constant would
+change behaviour silently (the GDPR active-stay query, the owner "upcoming check-in" flag, **R6's own modify
+permission**, and the `CANCELLABLE` partition). #29 bounds a **second** termination of a **finished** stay;
+R7 refuses a **first** termination of an **unfinished** one. Two rules, two reasons, two constants. The
+exception's docblock carries the full measurement.
+
+⚠️ **WHERE IT IS ENFORCED — three layers, none redundant:** the private `terminate()` **throws**
+(authoritative; covers `cancelReservation()`, `markNoShow()` and every caller of both) · the controller's
+`CANCELLABLE` refuses first so the operator gets a **flash naming a way forward**, not an exception, and the
+detail screen never renders the button · `BookingImportService::cancel()` **no-ops with an audit trail**,
+because it runs on the retrying webhook path where a throw becomes a poison message.
+
+⚠️⚠️ **WHAT THE RULING COSTS, RECORDED BECAUSE IT DOES NOT FOLLOW FROM THE RULE.** `checked_in` now has
+exactly **one** operator exit: `checked_out`. 🔬 Measured three ways on 2026-09-22 — the
+`app/Actions/Reservations/` inventory, every write of `status => 'confirmed'`, and every lifecycle route —
+**the product has no reverse-check-in.** There is a `ReverseCheckOut` (R3, `checked_out → checked_in`) and
+nothing that walks `checked_in` back to `confirmed`. So **a check-in recorded in error can no longer be
+undone**: before this ruling an operator cancelled it, and now nothing does. ⚠️ The refusal message therefore
+names **check-out**, the exit that exists, and says plainly that reversing a check-in is not built —
+pointing a front desk at a control that does not exist is the same defect as a fabricated figure (#39).
+
+⚠️ **THE OPEN QUESTION THIS LEAVES — `R8`, FOR THE FOUNDER, NOT FOR A SESSION:** should `checked_in →
+confirmed` be built as a real reverse-check-in, on R3's disclose-what-cannot-be-undone pattern? R3 already
+ruled the mirror case (a mis-clicked *check-out*) permit-and-reverse, so the precedent exists. **It is a new
+ladder transition, so it is a ruling, and it was reported rather than decided by the pass that built R7.**

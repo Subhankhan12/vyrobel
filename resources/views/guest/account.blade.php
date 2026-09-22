@@ -89,7 +89,7 @@
                     <div style="display:flex;align-items:flex-start;gap:11px;padding:12px 14px;border-radius:12px;background:rgba(217,102,46,.08);border:1px solid rgba(232,112,58,.25);margin-bottom:12px">
                         <span style="font-size:12.5px;color:#6B615A;line-height:1.55">Your account is scheduled for deletion on <strong style="color:var(--vy-ink)">{{ $deletion['on'] }}</strong>.
                             @if ($vyStays > 0)
-                                When it runs we will also <strong style="color:var(--vy-ink)">cancel {{ $vyStays }} booking{{ $vyStays === 1 ? '' : 's' }}</strong> you still have with us, including a stay already under way. Whether any money comes back follows each booking's cancellation policy, so some or all of it may not be refunded.
+                                When it runs we will also <strong style="color:var(--vy-ink)">cancel {{ $vyStays }} booking{{ $vyStays === 1 ? '' : 's' }}</strong> you still have with us. A stay you are already checked into is not cancelled — it goes ahead as booked. Whether any money comes back follows each booking's cancellation policy, so some or all of it may not be refunded.
                             @endif
                             You have until then to change your mind — nothing is removed until it runs.</span>
                     </div>
@@ -99,14 +99,19 @@
                     </form>
                 @else
                     {{-- ⚠️ THE CONSEQUENCE LEADS, AND IT RENDERS. The erase cancels every booking that is not
-                         already cancelled / no-show / checked-out, so a stay IN PROGRESS goes too, and a refund
-                         only happens inside a booking's free-cancellation window. Both limits are stated in the
-                         markup below, never only here — a warning a reader never sees is not a warning. The count
-                         comes from GuestDeletionService::reservationsToCancel(), the same set the erase uses. --}}
+                         already cancelled / no-show / checked-out, and a refund only happens inside a booking's
+                         free-cancellation window. Both limits are stated in the markup below, never only here —
+                         a warning a reader never sees is not a warning. The count comes from
+                         GuestDeletionService::reservationsToCancel(), the same set the erase uses.
+                         ⚠️⚠️ THIS COPY CHANGED 2026-09-22 WITH THE RULING and both sentences above and below
+                         used to read "including a stay already under way". That became FALSE the moment
+                         terminate() began refusing `checked_in`: the erase would have skipped the live stay
+                         (eraseNow() swallows the refusal) while this paragraph went on promising it. Deleting an
+                         account does not evict a guest from a room — say so, rather than quietly stopping. --}}
                     <p style="font-size:12.5px;line-height:1.5;color:var(--vy-muted);margin:0 0 12px">
                         @if ($vyStays > 0)
                             <strong style="color:#8F3110">This also cancels {{ $vyStays }} booking{{ $vyStays === 1 ? '' : 's' }}.</strong>
-                            In <strong>14 days</strong> we permanently remove your profile, saved details and preferences, and cancel every booking you still have with us — including a stay already under way. Whether any money comes back follows each booking's cancellation policy, so some or all of it may not be refunded.
+                            In <strong>14 days</strong> we permanently remove your profile, saved details and preferences, and cancel every booking you still have with us. A stay you are already checked into is not cancelled — it goes ahead as booked. Whether any money comes back follows each booking's cancellation policy, so some or all of it may not be refunded.
                         @else
                             In <strong>14 days</strong> we permanently remove your profile, saved details and preferences. You have no bookings with us right now, so none will be cancelled.
                         @endif

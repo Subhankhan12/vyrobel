@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\Booking\InsufficientAvailabilityException;
 use App\Exceptions\Booking\ReservationAlreadyTerminalException;
+use App\Exceptions\Booking\ReservationInProgressException;
 use App\Exceptions\Booking\ReservationTerminalModificationException;
 use App\Exceptions\Booking\RestrictionOverrideForbiddenException;
 use App\Exceptions\Booking\RestrictionsViolationException;
@@ -61,8 +62,11 @@ class AssignmentService
      * FROM, because it already has been (invariant #29). Read by {@see terminate()} (which throws),
      * by {@see BookingImportService::cancel()} (which no-ops before ever asking, so a retrying
      * OTA webhook can never become a poison message), and asserted against
-     * {@see ReservationLifecycleController::CANCELLABLE} — which is its exact
-     * complement over the real 7-value enum, so the operator UI can never offer what this will refuse.
+     * {@see ReservationLifecycleController::CANCELLABLE}, which the operator UI can never let offer what
+     * this will refuse. ⚠️ **CANCELLABLE is no longer the complement of THIS constant alone** — as of the
+     * 2026-09-22 ruling it is the complement of `TERMINAL_STATUSES` ∪ {@see IN_PROGRESS_STATUSES}, because
+     * `checked_in` is now refused without being terminal. The partition assertion in `TerminateGuardTest`
+     * was updated in the same change and states that reason.
      *
      * `checked_out` is HERE deliberately: the guest demonstrably stayed. "Cancelling" a completed stay is not
      * a cancellation, it is the destruction of a record — and it was reachable via the OTA path until
@@ -72,6 +76,29 @@ class AssignmentService
      * @var list<string>
      */
     public const TERMINAL_STATUSES = ['cancelled', 'no_show', 'checked_out'];
+
+    /**
+     * ⚠️⚠️ RULED BY THE FOUNDER 2026-09-22 — THE ONE definition of "a stay the guest is physically IN", which
+     * may not be terminated at all. Read by {@see terminate()} (which throws
+     * {@see ReservationInProgressException}), by {@see BookingImportService::cancel()} (which no-ops, for the
+     * poison-message reason below) and by {@see ReservationLifecycleController::CANCELLABLE}.
+     *
+     * ⚠️⚠️ IT IS SEPARATE FROM {@see TERMINAL_STATUSES} ON PURPOSE — SEE THE EXCEPTION'S DOCBLOCK FOR THE
+     * MEASUREMENT. Merging them reads like tidying one concept into one constant; it is the opposite. These
+     * are two rules with two reasons: #29 refuses a SECOND termination of a finished stay (a rewrite);
+     * this refuses a FIRST termination of an unfinished one (un-arriving a guest who is in the room). Four
+     * unrelated behaviours — the GDPR active-stay query, the owner "upcoming check-in" flag, the **R6**
+     * permission for an OTA to modify a stay in progress, and the CANCELLABLE partition — read
+     * `TERMINAL_STATUSES` and would all move silently if `checked_in` were added to it.
+     *
+     * ⚠️ WHAT THIS RULING COSTS, WRITTEN DOWN BECAUSE IT IS NOT OBVIOUS FROM THE RULE: `checked_in` now has
+     * exactly ONE operator exit, `checked_out`. The product has no reverse-check-in (measured three ways,
+     * 2026-09-22), so a check-in recorded in ERROR can no longer be undone by cancelling. That consequence
+     * is reported to the founder as a companion ruling, not decided here.
+     *
+     * @var list<string>
+     */
+    public const IN_PROGRESS_STATUSES = ['checked_in'];
 
     public function __construct(
         private DomainEventRecorder $domainEvents,
@@ -1051,6 +1078,7 @@ class AssignmentService
      * as #27 bounding the SUM of refunds where #7 only bounded their edits.
      *
      * @throws ReservationAlreadyTerminalException when already terminal
+     * @throws ReservationInProgressException when the guest is checked in (ruled 2026-09-22)
      */
     private function terminate(Reservation $reservation, string $status, ?string $reason): Reservation
     {
@@ -1059,6 +1087,15 @@ class AssignmentService
         // BEFORE the transaction: nothing to roll back, and no inventory is touched on a rejected call.
         if (in_array($fromStatus, self::TERMINAL_STATUSES, true)) {
             throw new ReservationAlreadyTerminalException($fromStatus, $status);
+        }
+
+        // ⚠️⚠️ RULED 2026-09-22 — A STAY IN PROGRESS IS NOT TERMINABLE. Same position as the bound above, for
+        // the same two reasons: before the transaction (so availability is provably untouched on a refusal)
+        // and on the shared private writer (so it covers cancelReservation() AND markNoShow(), and every
+        // caller of both, rather than the one entrance that happens to exist today — a guard on one entrance
+        // is precisely how F-18 and F-29 each hid). ⚠️ The exception is NOT the #29 one: see its docblock.
+        if (in_array($fromStatus, self::IN_PROGRESS_STATUSES, true)) {
+            throw new ReservationInProgressException($fromStatus, $status);
         }
 
         DB::transaction(function () use ($reservation, $status, $reason, $fromStatus): void {

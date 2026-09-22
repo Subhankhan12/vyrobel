@@ -148,7 +148,7 @@ class BookingImportService
     }
 
     /**
-     * Apply an OTA cancellation. Unknown or already-terminal booking → safe no-op.
+     * Apply an OTA cancellation. Unknown, already-terminal, or in-progress booking → safe no-op.
      *
      * @param  array<string, mixed>  $booking
      */
@@ -170,6 +170,36 @@ class BookingImportService
         // duplicate delivery into a poison message. Idempotent here; authoritative there.
         if (in_array($reservation->status, AssignmentService::TERMINAL_STATUSES, true)) {
             return $reservation; // already terminal → idempotent no-op
+        }
+
+        // ⚠️⚠️ RULED 2026-09-22 — AND THIS PATH IS WHY THE RULING NEEDED FINDING, NOT JUST APPLYING. The
+        // operator route is the obvious canceller; it is not the only one. An inbound OTA cancellation of a
+        // stay the guest is physically in reaches the same service, and before this line it would have
+        // un-arrived them with no human in the loop at all.
+        //
+        // ⚠️ A NO-OP, NOT A THROW — the same poison-message reasoning as the terminal branch above, which is
+        // now load-bearing in a way it was not: `terminate()` THROWS on `checked_in` as of this ruling, so
+        // without this branch an ordinary retrying delivery would fail the job, fail the webhook_event, and
+        // back off into dead_letter on a booking that is behaving perfectly normally.
+        //
+        // ⚠️ NOT A CONTRADICTION OF R6. R6 rules that a channel may MODIFY a stay in progress (extend it,
+        // reprice it) — `modify()` is unchanged and still permits exactly that. This is CANCEL: ending the
+        // stay outright, which the founder has now ruled out from `checked_in` on every path.
+        if (in_array($reservation->status, AssignmentService::IN_PROGRESS_STATUSES, true)) {
+            // ⚠️ THIS ONE LEAVES A TRAIL where the terminal branch above stays silent, and deliberately: a
+            // terminal no-op is a duplicate delivery (boring), whereas an OTA reporting a cancellation for a
+            // guest who is IN THE ROOM is a real-world conflict somebody has to resolve — the guest may be
+            // leaving, or may not know. PII-safe (identifiers and states only, never payload values, #28);
+            // actor_type `system` because a sync has no user. ⚠️ It surfaces on no screen today — the same
+            // open gap the sibling branch records, unchanged by this pass.
+            $this->audit->record('reservation.ota_cancellation_refused', $reservation, null, [
+                'status' => (string) $reservation->status,
+                'reason' => 'in_progress',
+                'channel_id' => (string) $channel->getKey(),
+                'ota_reservation_id' => $this->otaReservationId($booking),
+            ], actorType: 'system');
+
+            return $reservation; // guest is in the room → idempotent no-op, ruled 2026-09-22
         }
 
         return $this->assignment->cancelReservation($reservation, 'OTA cancellation');

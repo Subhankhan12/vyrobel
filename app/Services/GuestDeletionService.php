@@ -106,18 +106,33 @@ class GuestDeletionService
 
     /**
      * The reservations a scheduled erase WOULD cancel — anything not already cancelled / no-show / checked-out,
-     * so a stay IN PROGRESS is included.
+     * and (since 2026-09-22) not a stay the guest is physically IN.
      *
      * ⚠️ THE ONE DEFINITION, on purpose. {@see eraseNow()} cancels exactly this set, and the account screen quotes
      * its count to warn the guest BEFORE they confirm. A second copy of this predicate would let the warning and
      * the erase disagree — the drift this codebase removes wherever it finds it.
+     *
+     * ⚠️⚠️ `IN_PROGRESS_STATUSES` WAS ADDED HERE BY THE PASS THAT RULED IT, AS PART OF SWEEPING ITS OWN DIFF —
+     * this docblock previously read "so a stay IN PROGRESS is included". The moment `terminate()` began
+     * refusing `checked_in`, that stopped being true in the only way that matters: `eraseNow()` wraps each
+     * cancellation in `catch (Throwable)`, so the refusal would have been swallowed and the stay skipped —
+     * while this method went on counting it and the screen went on promising the guest it would be cancelled.
+     * **The erase would not have broken; the WARNING would have started lying**, silently, on a cron path
+     * nobody watches. That is the exact failure this docblock was written to prevent, so the predicate moves
+     * with the rule rather than being left to drift.
+     *
+     * ⚠️ AND THE UNDERLYING BEHAVIOUR IS THE RULING WORKING, NOT A GAP: deleting an account must not evict a
+     * guest who is standing in the room. The erase still runs and still anonymizes; the live stay survives it.
      *
      * @return EloquentCollection<int, Reservation>
      */
     public function reservationsToCancel(Guest $guest): EloquentCollection
     {
         return $guest->reservations()
-            ->whereNotIn('status', AssignmentService::TERMINAL_STATUSES)
+            ->whereNotIn('status', array_merge(
+                AssignmentService::TERMINAL_STATUSES,
+                AssignmentService::IN_PROGRESS_STATUSES,
+            ))
             ->get();
     }
 

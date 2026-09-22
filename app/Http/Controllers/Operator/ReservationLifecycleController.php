@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Actions\Reservations\ConfirmTentativeReservation;
+use App\Exceptions\Booking\ReservationInProgressException;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ReservationFolioActionController;
 use App\Livewire\ReservationDetail;
@@ -63,13 +64,25 @@ class ReservationLifecycleController extends Controller
 {
     /**
      * The real `reservations.status` values a booking may be CANCELLED from — i.e. everything that is not
-     * already finished. `checked_out` is excluded (the stay happened; cancelling it would be a fiction) and
-     * so are the two terminal states. Cancelling a `checked_in` stay IS allowed: a mid-stay cancellation is
-     * a real, if unusual, operation and `terminate()` correctly frees the remaining held nights.
+     * already finished and not currently happening. `checked_out` is excluded (the stay happened; cancelling
+     * it would be a fiction) and so are the two terminal states.
+     *
+     * ⚠️⚠️ `checked_in` WAS HERE UNTIL 2026-09-22 AND WAS REMOVED BY FOUNDER RULING. The old docblock read
+     * *"Cancelling a `checked_in` stay IS allowed: a mid-stay cancellation is a real, if unusual, operation
+     * and `terminate()` correctly frees the remaining held nights"* — accurate about the mechanics and
+     * wrong about the rule. Freeing the nights is precisely the problem: it un-arrives a guest who is
+     * standing in the room and returns an OCCUPIED room to the calendar for resale.
+     *
+     * ⚠️ This is the UI half of a two-layer refusal (#26's defence-in-depth shape). The authoritative half is
+     * {@see AssignmentService::IN_PROGRESS_STATUSES}, checked inside the shared `terminate()` so every
+     * caller is covered; this list exists so the screen never offers a control the write path will refuse.
+     * Neither layer is redundant: delete this one and the operator gets an exception where a flash belongs;
+     * delete that one and every non-controller caller (the OTA sync, a job, a console command) walks
+     * straight through.
      *
      * @var list<string>
      */
-    public const CANCELLABLE = ['enquiry', 'tentative', 'confirmed', 'checked_in'];
+    public const CANCELLABLE = ['enquiry', 'tentative', 'confirmed'];
 
     /**
      * The statuses a booking may be marked NO-SHOW from — `confirmed` ONLY.
@@ -128,6 +141,14 @@ class ReservationLifecycleController extends Controller
     public function cancel(Request $request, ReservationCancellationService $cancellations, string $reservation): RedirectResponse
     {
         $model = Reservation::query()->findOrFail($reservation);   // tenant-scoped → cross-org 404
+
+        // ⚠️ RULED 2026-09-22 — a stay in progress is refused with its OWN sentence. Falling through to the
+        // generic line below would tell the operator the booking is "already closed" while the guest is
+        // standing at the desk: false, and it names no way forward. The wording is the service exception's
+        // single definition, never a second hand-typed copy.
+        if (in_array((string) $model->status, AssignmentService::IN_PROGRESS_STATUSES, true)) {
+            return $this->back($model->id, ReservationInProgressException::messageFor('cancelled'));
+        }
 
         if (! in_array((string) $model->status, self::CANCELLABLE, true)) {
             return $this->back($model->id, 'That reservation can’t be cancelled — it’s already closed.');

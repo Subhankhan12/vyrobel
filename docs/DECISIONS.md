@@ -17087,3 +17087,78 @@ override **does not change the restriction**, and states the override follows a 
 
 ⚠️⚠️ **Remove Front Desk's grant → RED (the acceptance test)** · gate bypassed → RED · seen-vs-waived skipped
 → RED. All through the fixed harness; no anchor misses.
+
+---
+
+## 2026-09-22 · APPLY 01 #1 — R7: A STAY THE GUEST IS PHYSICALLY IN MAY NOT BE TERMINATED
+
+**Founder ruling.** `checked_in → cancelled` and `checked_in → no_show` are refused on every path. This is
+the first pass in the audit programme that changes behaviour rather than measuring it.
+
+### The implementation decision, and why the obvious one is wrong
+
+⚠️⚠️ **`checked_in` was NOT added to `TERMINAL_STATUSES`.** That is the one-line version of this ruling and it
+is a defect. Measured before choosing: four unrelated readers of that constant would have changed behaviour
+silently — `GuestDeletionService`'s active-stay query (GDPR), `OwnerBookingDetail`'s upcoming-check-in flag,
+`BookingImportService::modify()`'s **R6 permission** (which the founder ruled the other way and which must
+stay), and the `CANCELLABLE` partition assertion. The exception's message would also have lied: *"already
+`checked_in` and cannot be marked cancelled"* reads as though the stay were over.
+
+**So: a second constant, `AssignmentService::IN_PROGRESS_STATUSES`, and a second exception,
+`ReservationInProgressException`.** #29 bounds a **second** termination of a **finished** stay; R7 refuses a
+**first** termination of an **unfinished** one. `TerminateGuardTest` now asserts the two sets stay **disjoint**
+— because the union-based partition assertion alone would pass if somebody merged them.
+
+### Three layers, none redundant
+
+| layer | behaviour | why it cannot be the only one |
+|---|---|---|
+| `AssignmentService::terminate()` | **throws**, before the transaction | authoritative; covers `cancelReservation()`, `markNoShow()` and every caller of both |
+| `ReservationLifecycleController::CANCELLABLE` | **flash**, and the detail screen hides the button | without it the operator gets an exception where a sentence belongs |
+| `BookingImportService::cancel()` | **no-op + audit row** | it runs on the retrying webhook path; a throw there is a poison message |
+
+⚠️ The controller reads the exception's `messageFor()` rather than hand-typing the sentence — two copies of
+one refusal is exactly how the controller and the service came to disagree about `checked_out` in the first
+place.
+
+### ⚠️⚠️ THE FOURTH CALLER, FOUND BY SWEEPING THE DIFF RATHER THAN THE BRIEF
+
+`GuestDeletionService::eraseNow()` cancels a guest's live bookings on a **cron**, wrapping each call in
+`catch (Throwable)`. The new refusal would have been **swallowed**, the live stay skipped — and
+`reservationsToCancel()` would have gone on counting it for the account screen, the scheduled-deletion email
+and the confirmation copy. **The erase would have kept working while the warning started lying**, silently,
+on a path nobody watches. The predicate now excludes `IN_PROGRESS_STATUSES` and the guest-facing copy was
+corrected: it used to promise the erase cancels *"a stay already under way"*, and now states that a stay you
+are checked into is **not** cancelled. Deleting an account does not evict a guest from a room.
+
+### ⚠️⚠️ WHAT THE RULING COSTS — REPORTED, NOT DECIDED
+
+🔬 Measured three independent ways (the `app/Actions/Reservations/` inventory · every write of
+`status => 'confirmed'` · every lifecycle route): **the product has no reverse-check-in.** There is a
+`ReverseCheckOut` (R3, `checked_out → checked_in`) and nothing that walks `checked_in` back.
+
+So `checked_in` now has **exactly one operator exit, `checked_out`**, and **a check-in recorded in error can
+no longer be undone** — previously an operator cancelled it. The brief's proof step *"reverse → cancel →
+allowed"* **could not be run**, and that is stated in the test file rather than quietly omitted.
+
+⚠️ The refusal therefore names **check-out**, the exit that exists, and says plainly that reversing a
+check-in is not built. Naming a control that does not exist is the same defect as a fabricated figure (#39).
+
+**Open as `R8` (founder's, not a session's): build `checked_in → confirmed` on R3's
+disclose-what-cannot-be-undone pattern?** R3 already ruled the mirror case permit-and-reverse.
+
+### Tests amended, each with its reason
+
+1. `TerminateGuardTest` — `checked_in` removed from the "first cancellation from every non-terminal status"
+   dataset. It asserted, by name, the behaviour the ruling removes. **Not deleted:** the same transition is
+   now asserted in the opposite direction, with its inventory consequence.
+2. `TerminateGuardTest` — the partition assertion widened from `enum − TERMINAL` to `enum − (TERMINAL ∪
+   IN_PROGRESS)`. The old dichotomy ("every status is either terminable or terminal") was true until the
+   ruling created a third state. **Widened, not deleted** — the property it defends is unchanged.
+3. `GuestAccountTest` — `expect($text)->toMatch('/already under way/i')` **inverted** to assert the opposite
+   sentence, so a revert of the copy goes red rather than shipping a warning that over-states the erase.
+
+### Mutation
+
+⚠️ Emptying `IN_PROGRESS_STATUSES` reddens **five** tests across **four** layers (service cancel · service
+no-show · controller flash · OTA no-op · the partition). No new test passes vacuously.

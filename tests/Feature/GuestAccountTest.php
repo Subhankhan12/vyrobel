@@ -259,8 +259,17 @@ it('warns on the account screen that deleting cancels bookings, quantified from 
     // 2 — the refund is stated as POLICY-DEPENDENT, never promised (a wrong reassurance is worse than silence)
     expect($text)->toMatch('/cancellation policy/i');
     expect($text)->toMatch('/may not be refunded/i');
-    // 3 — the LIMIT renders: a stay already under way goes too (F-21 — a limit in a comment reaches nobody)
-    expect($text)->toMatch('/already under way/i');
+    // 3 — the LIMIT renders (F-21 — a limit in a comment reaches nobody).
+    //
+    // ⚠️⚠️ THIS ASSERTION WAS INVERTED ON 2026-09-22, AND THE REASON IS THE POINT — it is not relaxed to get
+    // green. It used to read `expect($text)->toMatch('/already under way/i')`, pinning the screen's promise
+    // that the erase cancels "a stay already under way". The founder's ruling made that promise false:
+    // `terminate()` now refuses `checked_in`, and `eraseNow()` wraps each cancellation in `catch (Throwable)`,
+    // so the live stay would have been skipped in silence while this sentence kept promising it. The pin
+    // stays a pin — it now asserts the OPPOSITE sentence, so a revert of the copy goes red here rather than
+    // shipping a warning that over-states what the erase does.
+    expect($text)->toMatch('/not cancelled/i');
+    expect($text)->not->toMatch('/already under way/i');
     // 4 — the undo is offered, because it exists
     expect($text)->toMatch('/undo/i');
 });
@@ -306,4 +315,37 @@ it('carries the same consequence into the scheduled-deletion email, from the sam
             && preg_match('/cancel the 1 booking/i', $intro) === 1
             && preg_match('/cancellation policy/i', $intro) === 1;
     });
+});
+
+/**
+ * ⚠️⚠️ RULED 2026-09-22 — DELETING AN ACCOUNT DOES NOT EVICT A GUEST FROM A ROOM.
+ *
+ * ⚠️⚠️ THIS IS A DIFF-SWEEP TEST, NOT A FEATURE TEST, AND THAT IS WHY IT EXISTS. The ruling was about the
+ * cancel path; this is the fourth caller of it, three files away, on a CRON nobody watches. `eraseNow()`
+ * wraps every cancellation in `catch (Throwable)`, so the new refusal would NOT have broken the erase — it
+ * would have been swallowed, the live stay skipped, and `reservationsToCancel()` would have gone on counting
+ * it for the screen, the scheduled-deletion email and the confirmation copy. **The erase would have kept
+ * working while the warning started lying**, which is the failure mode that leaves no trace at all.
+ *
+ * ⚠️ THE MUTATION: drop `IN_PROGRESS_STATUSES` from the `whereNotIn` in `reservationsToCancel()` → the count
+ * returns to 1 → RED here, before any guest is ever told the wrong number.
+ */
+it('⚠️ RULED 2026-09-22 — a stay the guest is checked into is NOT counted for deletion, and survives the erase', function () {
+    $s = seedScenario(1);
+    $a = acct('inroom@example.test');
+    $reservation = vyDelBook($s, $a);
+
+    // The control: while merely confirmed, it IS counted — so a zero below means the status, not the fixture.
+    expect(app(GuestDeletionService::class)->reservationsToCancel($a->fresh())->count())->toBe(1);
+
+    Reservation::query()->whereKey($reservation->getKey())->update(['status' => 'checked_in']);
+
+    expect(app(GuestDeletionService::class)->reservationsToCancel($a->fresh())->count())
+        ->toBe(0, 'a guest standing in the room is not a booking the erase may cancel');
+
+    // …and the SCREEN follows the same set, because it reads the same method — the warning cannot drift
+    // from the erase without this going red too.
+    $text = vyVisibleText($this->actingAs($a->fresh(), 'guest')->get('/guest/account')->assertOk()->getContent());
+    expect($text)->toMatch('/no bookings with us right now/i')
+        ->and($text)->not->toMatch('/cancels?\s+1\s+booking/i');
 });

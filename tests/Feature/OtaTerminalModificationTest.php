@@ -239,3 +239,55 @@ it('⚠️⚠️ RULED 2026-09-19 (F-52) — an OTA booking STILL LANDS for a SU
     expect((string) $row->status)->toBe('confirmed');
     expect((string) $row->source)->not->toBe('');
 })->with(['suspended', 'cancelled']);
+
+/**
+ * ⚠️⚠️ RULED BY THE FOUNDER 2026-09-22 — AN INBOUND CHANNEL MAY NO LONGER CANCEL A STAY IN PROGRESS.
+ *
+ * ⚠️⚠️ THIS IS THE PATH THE RULING HAD TO BE *FOUND* ON, NOT MERELY APPLIED TO. The operator route is the
+ * obvious canceller; it is not the only one. An OTA cancellation of a checked-in stay reaches the very same
+ * `terminate()`, with no human anywhere in the loop, and before this change it un-arrived the guest and put
+ * the occupied room back on sale.
+ *
+ * ⚠️⚠️ IT DOES NOT CONTRADICT R6, AND THE DISTINCTION IS THE WHOLE POINT. R6 (above) rules that a channel
+ * may MODIFY a stay the guest is in — extend it, reprice it — and that test still passes unchanged. This is
+ * CANCEL: ending the stay outright. Modify keeps the channel authoritative; cancel no longer does.
+ *
+ * ⚠️ AND IT MUST NO-OP, NOT THROW. `terminate()` now throws on `checked_in`, so without the no-op branch an
+ * ordinary retrying delivery would fail the job, fail the webhook_event and back off into dead_letter on a
+ * booking behaving perfectly normally. "Idempotent here; authoritative there" — unchanged, now load-bearing
+ * for a second status.
+ *
+ * ⚠️ THE MUTATION: delete the IN_PROGRESS_STATUSES branch in `BookingImportService::cancel()` → the call
+ * throws instead of returning, and the row goes to `cancelled` → RED on the no-throw assertion AND on the
+ * status assertion, from two independent directions.
+ */
+it('⚠️⚠️ RULED 2026-09-22 — an OTA cancellation of a stay in progress is refused, and no-ops rather than throwing', function () {
+    [$channel, $reservation, $booking] = otaBookingIn('checked_in');
+
+    $soldBefore = DB::table('availability')->sum('sold');
+
+    // ⚠️ NOT wrapped in an exception expectation: the assertion IS that it returns. A throw here would be a
+    // poison message on the retry backbone, which is a different defect from the one being fixed.
+    $returned = app(BookingImportService::class)->cancel($channel, $booking);
+    expect($returned?->id)->toBe($reservation->id);
+
+    // THE ROW, re-read — a no-op and a silent write look identical from the return value.
+    $after = Reservation::query()->withoutGlobalScopes()->find($reservation->id);
+    expect((string) $after->status)->toBe('checked_in', 'the guest is still in the room')
+        ->and($after->cancelled_at)->toBeNull()
+        ->and(DB::table('availability')->sum('sold'))->toBe($soldBefore, 'the occupied night stays sold');
+
+    // ⚠️ THE REFUSAL LEAVES A TRAIL, unlike the terminal no-op beside it. A duplicate delivery is boring; an
+    // OTA reporting a cancellation for a guest who is IN THE ROOM is a real conflict somebody must resolve.
+    // PII-safe: identifiers and states only, never a value from the payload (#28).
+    $audit = AuditEvent::query()->withoutGlobalScopes()
+        ->where('action', 'reservation.ota_cancellation_refused')
+        ->where('subject_id', $reservation->id)->latest('created_at')->first();
+
+    expect($audit)->not->toBeNull('an unwatched path that refuses silently is unrecoverable after the fact');
+    expect($audit->subject_type)->toBe('reservation')              // the morph alias resolves — no throw
+        ->and($audit->actor_type)->toBe('system')                  // a sync has no user
+        ->and($audit->after['reason'])->toBe('in_progress')
+        ->and($audit->after['status'])->toBe('checked_in')
+        ->and($audit->after['channel_id'])->toBe((string) $channel->id);
+});
