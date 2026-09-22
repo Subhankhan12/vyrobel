@@ -34,10 +34,18 @@
 # rather than by pattern, and **confirms death** rather than trusting the signal.
 #
 # Usage:
-#   ops/proc-check.sh 'pestphp/pest'          # exit 0 = matches found (printed) · 1 = a TRUSTED zero · 3 = blind
+#   ⚠️⚠️ THE COMPOSITION IS THE POINT — write it exactly like this and it is correct:
+#
+#       ops/proc-check.sh -q '[p]hpunit|[p]est|artisan [t]est' && php artisan test
+#
+#   ops/proc-check.sh 'pestphp/pest'          # exit 0 = SAFE (a TRUSTED zero) · 1 = matches found (printed) · 3 = blind
 #   ops/proc-check.sh -q 'pestphp/pest'       # quiet: exit status only
 #   ops/proc-check.sh --kill 'pestphp/pest'   # exit 0 = all killed and confirmed dead · 1 = nothing matched
 #                                             #      · 3 = blind · 4 = REFUSED (the pattern matches us)
+#
+# ⚠️ EVERY NON-ZERO STOPS THE `&&`, including 3 (blind). The fail-safe direction is deliberate: refusing to
+#   start is cheap, and starting a second run corrupts the shared test database in a way that looks like real
+#   failures. ⚠️ **These codes were INVERTED on 2026-09-22** — see the long note at the exit branch.
 #
 # ⚠️ The pattern is made self-match-proof automatically (first character is bracketed), so the grep cannot
 # match its own command line — the other half of this same family of false positives.
@@ -147,14 +155,32 @@ MATCHES="$(${PS_CMD} 2>/dev/null \
 COUNT="$(printf '%s' "${MATCHES}" | grep -c . || true)"
 
 if [ "${KILL}" -eq 0 ]; then
+  # ⚠️⚠️ THE EXIT CODES WERE INVERTED ON 2026-09-22, AND THE REASON IS THE WHOLE POINT OF THIS SCRIPT.
+  #
+  # ⚠️ They used to be grep-shaped: 0 = matches FOUND, 1 = a trusted zero. That reads sensibly in isolation
+  #    and is a trap in composition, because the obvious thing anyone writes is:
+  #
+  #        ops/proc-check.sh 'pest' && php artisan test        # ← SILENTLY NEVER RAN THE TESTS
+  #
+  #    …which ran the suite only when a suite was ALREADY RUNNING, and skipped it in exactly the case it was
+  #    meant to permit. ⚠️⚠️ **A GUARD WHOSE NATURAL USAGE DOES NOTHING MANUFACTURES CONFIDENCE** — worse than
+  #    no pre-flight, because the operator believes one happened. That is the same family of defect this
+  #    script exists to prevent, sitting inside the script itself.
+  #
+  # ⚠️ NOW: **0 means SAFE TO PROCEED** (a trusted zero) and every other code stops the `&&`. ⚠️ Note which
+  #    way that fails: a BLIND check (exit 3) and a FOUND process (exit 1) both halt the composition, so the
+  #    dangerous direction is the one that requires an explicit choice. The old codes let "found" through.
+  #
+  # ⚠️ `--kill` KEEPS its own contract (0 = killed and confirmed dead) — that composition was never broken,
+  #    and changing it would be a silent break of the kind being fixed here.
   if [ "${COUNT}" -gt 0 ]; then
-    say "  ⚠️ ${COUNT} process(es) match /${PATTERN}/:"
+    say "  ⚠️ ${COUNT} process(es) match /${PATTERN}/ — NOT safe to start another:"
     say "${MATCHES}" | sed 's/^/     /'
-    exit 0
+    exit 1
   fi
 
-  say "  ✅ 0 processes match /${PATTERN}/ — and this zero was proven visible, not assumed"
-  exit 1
+  say "  ✅ 0 processes match /${PATTERN}/ — and this zero was proven visible, not assumed. Safe to proceed."
+  exit 0
 fi
 
 # ── 3. ⚠️⚠️ THE KILL PATH ───────────────────────────────────────────────────────────────────────────────
