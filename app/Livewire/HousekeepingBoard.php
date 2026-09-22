@@ -145,7 +145,13 @@ class HousekeepingBoard extends Component
             'detail' => $detail,
             'unassignedCount' => count(array_filter($allCards, fn (array $c): bool => $c['assigned_to'] === null && in_array($c['status'], ['pending', 'in_progress'], true))),
             'housekeepers' => app(StaffRoster::class)->housekeepers(),
-            'canAssign' => auth()->user()?->can('housekeeping.manage') ?? false,
+            // ⚠️ NAMED FOR THE PERMISSION IT CARRIES, renamed from `canAssign` 2026-09-23. It gates the
+            //    status advance, the assign, the photo upload AND the photo delete — every one of them
+            //    `housekeeping.manage` — so "canAssign" understated it by three controls. ⚠️ The view
+            //    used to read `$canManage ?? $canAssign`, where `$canManage` was NEVER PROVIDED: the
+            //    fallback was permanent, and the expression read as though two permissions were in play
+            //    when there has only ever been one.
+            'canManage' => auth()->user()?->can('housekeeping.manage') ?? false,
         ]);
     }
 

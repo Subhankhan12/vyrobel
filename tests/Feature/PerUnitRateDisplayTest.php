@@ -89,4 +89,13 @@ it('renders the overridden unit its own nightly rate, and its sibling the type r
     // unitDetailOwner attaches units[0] — the overridden one.
     expect($html)->toContain('€255.00')
         ->and($html)->not->toContain('€180.00');
-})->skip('unitDetailOwner fixture shape verified separately — RevenueOnHold covers the resolver seam');
+    // ⚠️⚠️ UNSKIPPED 2026-09-23 (REPAIR 01) — AND THE SKIP'S REASON WAS THE PROBLEM, NOT THE FIXTURE.
+    //    It read *"unitDetailOwner fixture shape verified separately — RevenueOnHold covers the resolver
+    //    seam"*. 🔬 The fixture works: unskipped, this passes first time. ⚠️ And the reason was substituting a
+    //    RESOLVER test for a RENDERED one — the two tests above call `RevenueOnHold` directly and never open
+    //    the page, while THIS is the only assertion that the owner's Unit Detail screen quotes the unit's own
+    //    nightly rate instead of the room type's. **A resolver is not a page** — this codebase's own rule is
+    //    that static checks cannot see a rendered page, and a skip that leans on one to excuse the other is
+    //    the same substitution in test form.
+    //    🔬 Proved non-vacuous before being kept: changing the expected figure to €999.99 reddens it.
+});

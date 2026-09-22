@@ -65,7 +65,7 @@
 
              The register is the product's own ("… isn't in your plan"; the owner portal naming who can
              grant): say what you cannot do, and name who can fix it. --}}
-        @unless ($canManage ?? $canAssign)
+        @unless ($canManage)
             <div class="vy-flash" role="status" style="margin-bottom:14px;background:rgba(224,146,30,.10);border:1px solid rgba(224,146,30,.32);border-left:3px solid var(--vy-amber);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:500;color:var(--vy-ink);">
                 You can see today’s cleaning, but not update it. Changing a room’s cleaning status needs housekeeping access — a Property Owner or Group Admin can grant it.
             </div>
@@ -115,7 +115,7 @@
                 </form>
             </div>
             <div class="vy-right">
-                @if ($canManage ?? $canAssign)
+                @if ($canManage)
                     @if ($unassignedCount > 0)
                         <button type="button" class="vy-btn vy-btn--accent" @click="assignAllOpen = true">Assign all · {{ $unassignedCount }}</button>
                     @else
@@ -271,7 +271,7 @@
                                     <td>
                                         @if ($card['assignee'])
                                             <span style="display: inline-flex; align-items: center; gap: 6px;"><span class="vy-avatar" style="width: 24px; height: 24px; font-size: 10px;">{{ $card['assignee_initials'] }}</span>{{ $card['assignee'] }}</span>
-                                        @elseif ($canManage ?? $canAssign)
+                                        @elseif ($canManage)
                                             <button type="button" class="vy-btn vy-btn--ghost" style="padding: 4px 12px; font-size: 12px;" @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">Assign</button>
                                         @else
                                             <span class="vy-muted">Unassigned</span>
@@ -297,7 +297,7 @@
                                         @endif
                                     </td>
                                     <td style="text-align: right;">
-                                        @if (($canManage ?? $canAssign) && $card['next'] !== [])
+                                        @if (($canManage) && $card['next'] !== [])
                                             <form method="POST" action="{{ route('app.housekeeping.status', $card['id']) }}" style="display: inline;">
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ $card['next'][0]['to'] }}">
@@ -417,7 +417,7 @@
 
                         {{-- Reassign-from-detail (GATE 8.2) — opens the shared, gated assign modal for THIS task
                              (reuses the certified HousekeepingService::assign route; real-housekeeper-only). --}}
-                        @if ($canManage ?? $canAssign)
+                        @if ($canManage)
                             <button type="button" class="vy-btn vy-btn--ghost" style="width: 100%; margin-bottom: 14px;"
                                     @click="assign = { id: detail.id, unit: detail.unit, type: detail.type }; detail = null"
                                     x-text="detail && detail.assignee ? 'Reassign housekeeper' : 'Assign housekeeper'"></button>
@@ -429,7 +429,7 @@
                             <template x-for="photo in detail.photos" :key="photo.id">
                                 <div style="position: relative;">
                                     <img :src="photo.url" alt="Proof photo" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline);">
-                                    @if ($canManage ?? $canAssign)
+                                    @if ($canManage)
                                         {{-- ⚠️ The SAME permission that gates the upload beneath and the route itself
                                              (`housekeeping.manage`) — #30: the control and the route agree, so the UI
                                              never invites a 403. Same × affordance and confirm as the maintenance
@@ -446,7 +446,7 @@
                                 <span class="vy-muted" style="font-size: 12px;">Attach proof of the clean, or flag an issue.</span>
                             </template>
                         </div>
-                        @if ($canManage ?? $canAssign)
+                        @if ($canManage)
                             <form method="POST" :action="detail ? photoUrl(detail.id) : ''" enctype="multipart/form-data">
                                 @csrf
                                 <label class="vy-btn vy-btn--ghost" style="cursor: pointer; display: inline-flex;">

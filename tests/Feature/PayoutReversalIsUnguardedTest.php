@@ -2,13 +2,10 @@
 
 use App\Exceptions\Owner\PayoutReversalQuarantinedException;
 use App\Models\AuditEvent;
-use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
-use App\Services\OwnerAttributionService;
 use App\Services\OwnerPayoutService;
-use App\Services\OwnerStatementService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 
@@ -37,29 +34,7 @@ uses(RefreshDatabase::class);
  * on reversal, which is the single change that both releases the unique live key (F-54) and makes the
  * existing status check able to refuse a second press (F-53).
  */
-function purWorld(): array
-{
-    $s = seedScenario(1);
-    $owner = Owner::factory()->create(['name' => 'Reversal Probe', 'payout_currency' => 'EUR', 'status' => 'active']);
-    $unit = $s['units'][0];
-    $unit->update(['owner_id' => $owner->id]);
-    ManagementAgreement::factory()->create([
-        'owner_id' => $owner->id, 'unit_id' => null, 'commission_pct' => 15.00, 'effective_from' => '2026-01-01',
-    ]);
-
-    $reservation = book($s, ['unit_id' => $unit->id]);
-    postRoom($reservation, 20000);
-    app(OwnerAttributionService::class)->attributeReservation($reservation);
-    collectFolio($reservation);
-
-    $statements = app(OwnerStatementService::class);
-    $statement = $statements->finalize($statements->generateDraft($owner->id, '2026-09-01', '2026-09-30'));
-
-    $payouts = app(OwnerPayoutService::class);
-    $paid = $payouts->pay($payouts->createFromStatement($statement));
-
-    return ['statement' => $statement, 'paid' => $paid, 'payouts' => $payouts];
-}
+// ⚠️ `purWorld()` now lives in tests/Support/payout_reversal_helpers.php — two suites need it.
 
 /** Every row the reversal would have touched, read together so "nothing moved" is one comparison. */
 function purState(array $c): array

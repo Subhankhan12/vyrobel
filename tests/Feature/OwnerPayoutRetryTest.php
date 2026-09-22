@@ -341,6 +341,12 @@ it('pins the live-payout status set that both payout writers guard against', fun
         ->and(Payout::LIVE_STATUSES)->not->toContain('reversed');
 
     // Both guards read the constant rather than their own copy of the list.
+    // ⚠️⚠️ THIS COUNTS RAW SOURCE TEXT, SO PROSE INFLATES IT — and it did. 🔬 2026-09-23: a docblock added by
+    //    REPAIR 01 referenced `{@see Payout::LIVE_STATUSES}` twice and the count went 2 → 4, reddening a pin
+    //    about CODE because of a COMMENT. ⚠️ Same family as *"a source-scanning guard reads its own needle"*,
+    //    which this project has recorded as still firing. The comments were rephrased rather than the pin
+    //    relaxed, so the count still means what it says — but ⚠️ **the durable fix is to tokenise and skip
+    //    comments**, as `ops/references.php` already does, and that is recorded rather than done here.
     $source = file_get_contents(app_path('Services/OwnerPayoutService.php'));
     expect(substr_count($source, 'Payout::LIVE_STATUSES'))->toBe(2)
         ->and($source)->not->toContain("['pending', 'processing', 'held', 'paid']");

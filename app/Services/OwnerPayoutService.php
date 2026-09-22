@@ -284,47 +284,92 @@ class OwnerPayoutService
 
     /**
      * Reverse a paid payout — a NEW `reversed` record superseding the paid one; the source statement
-     * returns to finalized (unpaid). The paid row is never edited away.
+     * returns to finalized (unpaid), and ⚠️ the source payout LEAVES the live-status set.
+     *
+     * ⚠️⚠️ THE QUARANTINE STAYS. Lifting it is **R-REVERSE**, an OPEN founder ruling, and a session does not
+     * decide it. What changed on 2026-09-23 is that the two defects behind the throw are **REPAIRED rather
+     * than merely unreachable** — see {@see self::performReversal()}. ⚠️ **Containment is a bet that nobody
+     * opens the door**, and this project shipped two other reverse operations in three days.
      */
     public function reverse(Payout $paid, string $reason): Payout
     {
         // ⚠️⚠️⚠️ QUARANTINED — R-REVERSE (founder, 2026-09-19), AFTER FIX 37's STOP. THIS REFUSES BEFORE ANY
-        //    WRITE, AND THAT POSITION IS THE POINT: a guard placed lower would append the reversal, strand the
-        //    statement, and only then complain. Nothing below this line may execute.
+        //    WRITE: no append, no statement move, no audit row. Nothing below this line may execute.
         //
         // ⚠️⚠️ A COMMENT IS NOT A QUARANTINE. This project has already been misled by documentation that
-        //    described a guard which did not exist, so the refusal is CODE and it is pinned by a test
-        //    ({@see \Tests\Feature\PayoutReversalIsUnguardedTest}).
+        //    described a guard nobody had run, so the refusal is CODE and it is pinned by a test.
         //
         // ⚠️⚠️ THE THROW IS DELIBERATE AND THE NO-THROW RULE DOES NOT APPLY HERE. FIX 14 forbade throwing
         //    inside an EXTERNAL SYNC, where a throw becomes retry → dead letter → an undiagnosable outage.
-        //    This method has 🔬 ZERO callers and ZERO routes, so reaching it is a PROGRAMMER ERROR and must be
-        //    loud. ⚠️ DO NOT soften this to a log, a null return or a no-op.
-        //
-        // ⚠️ THE BODY BELOW IS KEPT ON PURPOSE. Quarantine means UNREACHABLE, not deleted: this is the record
-        //    of how the inverse was designed and the starting point for whoever fixes F-53 and F-54 properly.
-        //    ⚠️ It has never been run in production — FIX 37 was the first pass that ever EXECUTED it, and
-        //    executing it is how both defects were found.
+        //    This is an operator-initiated action with no caller at all; a throw is the loudest safe answer.
         throw PayoutReversalQuarantinedException::make((string) $paid->getKey());
-        // @phpstan-ignore-next-line deadCode.unreachable (deliberate — see the quarantine note above)
-        if ($paid->status !== 'paid') {
-            throw new RuntimeException("Only a paid payout can be reversed (status: {$paid->status}).");
-        }
 
+        // ⚠️ DELIBERATELY UNREACHABLE, and kept so on purpose — the same shape (and the same ignore) this
+        //    method carried before the repair. It states in code what the quarantine is holding back: a
+        //    reversal that is now CORRECT, not merely blocked. If R-REVERSE is ever lifted, deleting the
+        //    throw above is the whole change, and the two defects will not come back with it.
+        // @phpstan-ignore-next-line deadCode.unreachable (deliberate — see the quarantine note above)
+        return $this->performReversal($paid, $reason);
+    }
+
+    /**
+     * ⚠️⚠️ THE REPAIRED REVERSAL — F-53 AND F-54 FIXED AT THE CAUSE, 2026-09-23.
+     *
+     * ⚠️ **PROTECTED, NOT PUBLIC, AND THAT IS THE WHOLE POINT.** Nothing in the application reaches it —
+     * {@see self::reverse()} refuses first, and `PayoutReversalIsUnguardedTest` pins that there is no caller
+     * anywhere. A **public** method here would be exactly the door the quarantine exists to keep shut. The
+     * repair tests reach it through a test-only subclass, so they drive the REAL code past the throw:
+     * ⚠️⚠️ **a test that only proves the throw proves the containment a second time, not the repair.**
+     *
+     * ⚠️⚠️ WHAT WAS WRONG, AND WHY ONE CHANGE ANSWERS BOTH:
+     *
+     * 🔬 **F-53** — the old `$paid->status !== 'paid'` check could never refuse a second press, because
+     * `reverse()` **never changed the source row's status**. Two calls both passed it and appended two
+     * `reversed` rows superseding one payout. ⚠️ The check was not weak; it was reading a value nothing wrote.
+     *
+     * 🔬 **F-54** — the statement returned to `finalized` while the source payout stayed **`paid`**, which is
+     * in the live-status set. So {@see self::createFromStatement()} — which looks for a live payout
+     * on the statement — handed back **the same already-paid row**, and the statement was finalized but
+     * unpayable: the owner was owed money the system believed it had sent.
+     *
+     * ⚠️ **ONE CHANGE CLOSES BOTH: the source payout moves to `reversed`,** which the model's own docblock
+     * defines as claiming nothing (*"`failed` and `reversed` are deliberately absent — they claim nothing,
+     * which is what makes them retryable"*). That releases the statement for a fresh payout (F-54) **and**
+     * gives the re-check something real to read (F-53).
+     *
+     * ⚠️ **AND THE CHECK MOVED INSIDE A ROW LOCK**, copying {@see self::retry()} exactly — *"never trust the
+     * passed-in (or displayed) status"*. Without the lock two concurrent presses could both read `paid`
+     * before either wrote, which is the same shape as every other double-press defect in this codebase.
+     */
+    protected function performReversal(Payout $paid, string $reason): Payout
+    {
         $reversal = DB::transaction(function () use ($paid, $reason): Payout {
+            // 🔒 Row-lock THIS payout; a concurrent reversal waits here until we commit.
+            $locked = Payout::query()->lockForUpdate()->findOrFail($paid->getKey());
+
+            // ⚠️ Re-check INSIDE the lock — this is what makes the SECOND press refuse (F-53).
+            if ($locked->status !== 'paid') {
+                throw new RuntimeException("Only a paid payout can be reversed (status: {$locked->status}).");
+            }
+
+            // The reversal is APPENDED (#7) — the paid row's history is never edited away, only its status
+            // advances, exactly as every other payout lifecycle transition does.
             $reversal = Payout::create([
-                'organization_id' => $paid->organization_id,
-                'owner_id' => $paid->owner_id,
-                'owner_statement_id' => $paid->owner_statement_id,
-                'amount_minor' => $paid->amount_minor,
-                'currency' => $paid->currency,
-                'rail' => $paid->rail,
+                'organization_id' => $locked->organization_id,
+                'owner_id' => $locked->owner_id,
+                'owner_statement_id' => $locked->owner_statement_id,
+                'amount_minor' => $locked->amount_minor,
+                'currency' => $locked->currency,
+                'rail' => $locked->rail,
                 'status' => 'reversed',
-                'supersedes_id' => $paid->getKey(),
+                'supersedes_id' => $locked->getKey(),
                 'failure_reason' => $reason,
             ]);
 
-            OwnerStatement::query()->whereKey($paid->owner_statement_id)->update(['status' => 'finalized']);
+            // ⚠️⚠️ THE FIX. The source leaves LIVE_STATUSES, releasing the statement and arming the re-check.
+            $locked->update(['status' => 'reversed']);
+
+            OwnerStatement::query()->whereKey($locked->owner_statement_id)->update(['status' => 'finalized']);
 
             return $reversal;
         });
