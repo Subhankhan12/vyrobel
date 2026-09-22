@@ -185,3 +185,55 @@ unless that isolation is certain. See **B16** for the vhost half of the same req
 ⚠️ **Cannot be proven without the server, and therefore not claimed:** that the proxy sends the forwarded
 headers at all; that TLS terminates where expected; that the CSP header survives the proxy unmodified; that
 the certificate covers the canonical host.
+
+---
+
+## ⛔ A DECISION, NOT A TASK — THE 19 UNGATED `/app` READ ROUTES (measured 2026-09-22, TEST 02)
+
+⚠️⚠️ **WHAT WAS MEASURED, AND IT IS NOT WHAT A ROUTE NAME SUGGESTS.** 🔬 19 of 55 `GET /app` routes carry no
+`can:` gate, so **every one of the 11 back-office roles reaches them** — gated only by `EnsureBackOfficeAccess`.
+🔬 The narrowest role, **Housekeeping** (`units.view · housekeeping.view · housekeeping.manage · schedule.view`),
+reaches **17 of the 19**.
+
+⚠️ **THE PII QUESTION IS ALREADY ANSWERED, AND FAVOURABLY.** 🔬 Measured against a *chrome baseline* (a page
+that by construction carries no guest data, subtracted from every other page): **ZERO guest email addresses
+and ZERO phone numbers render on any of the 19.** The only address on those pages is the **acting user's own**,
+in the account menu. Invariant #28 holds — contact PII lives on the gated Guests CRM, where Housekeeping is
+correctly refused **403**.
+
+⚠️ **SO THE DECISION IS NARROWER THAN "19 ROUTES": IT IS ABOUT GUEST *NAMES*, DATES AND MONEY.**
+
+| # | route | renders guest NAME | money | proposed gate | why |
+|---|---|---|---|---|---|
+| **GUEST-BEARING — this is the actual question** |
+| 1 | `app/reservations` | ✅ | ✅ 9 amounts | `reservations.view` | the full booking list: names, stays, rates |
+| 2 | `app/reservations/{id}` | — (this row) | ✅ €300.00 | `reservations.view` | booking detail; names appear on other rows |
+| 3 | `app/calendar` | ✅ | — | `reservations.view` | occupancy grid with guest names in cells |
+| 4 | `app/rack` | ✅ | — | ⚠️ **probably leave open** | the room rack IS the housekeeping instrument |
+| 5 | `app/inbox/{thread}` | ✅ | — | `inbox.view` | guest correspondence |
+| 6 | `app/front-desk` | — | — | `reservations.view` | arrivals/departures board |
+| **OPERATIONAL — a housekeeper plainly needs these; recommend leaving open** |
+| 7 | `app/housekeeping` | — | — | leave open | the role's own surface |
+| 8 | `app/units` | — | — | leave open | which rooms exist |
+| 9 | `app/maintenance` | — | ✅ €100.00 | leave open (cost column?) | raising a fault is everyone's job |
+| 10 | `app/maintenance/{id}` | — | — | leave open | ditto |
+| 11 | `app/dashboard` | — | ✅ €0/€100 | leave open | landing page; figures are aggregates |
+| 12 | `app/calendar` → see 3 | | | | |
+| **SELF-SCOPED — no decision needed, verified self-only** |
+| 13 | `app/profile` | — | — | none | own profile |
+| 14 | `app/security` | — | — | none | own security settings |
+| 15 | `app/security/export` | — | — | none | 🔬 verified **self-only**: `exported_for` is the acting user |
+| 16 | `app/notifications` | — | ✅ | none | own notification feed |
+| 17 | `app/notification-preferences` | — | — | none | own preferences |
+| **OTHER** |
+| 18 | `app/email-templates` (+`/{key}/edit`) | — | — | ⚠️ `settings.manage`? | org-wide transactional email CONTENT, editable |
+| 19 | `app/channels` | — | — | n/a | 🔬 already **403** — Pro-only feature gate, not a permission |
+
+⚠️⚠️ **NOT ONE GATE WAS APPLIED.** A permission shipped and then withdrawn annoys real customers; this is a
+decision that should be made once. ⚠️ **The sharpest single question:** should a Housekeeping login be able to
+open `app/email-templates` and edit the wording of the confirmation emails your guests receive?
+
+⚠️ **AND THE CONTEXT THAT MAKES IT A REAL DECISION RATHER THAN TIDYING:** this product will sign an Article 28
+processor agreement. Data minimisation is a term of that agreement, not a preference — but so is a
+housekeeper being able to see which rooms have an arrival today. **Both readings are defensible; only one can
+be shipped.**
