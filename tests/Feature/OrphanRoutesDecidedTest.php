@@ -30,9 +30,13 @@ uses(RefreshDatabase::class);
  *        SEQUENCING — which is worth nothing unless a new owner is routed through it. Now the owner-invite
  *        branch lands there; the owner-TEAM invite deliberately does not (a sub-user has no payout account).
  *
- *   `owner.messages.show` → **REMOVED.** ⚠️ See the note at its old site in routes/web.php: a back-compat
- *        redirect for a URL shape this product no longer emits anywhere, whose own comment asserted a
- *        deep-linker that did not exist. Pinned below as an absence.
+ *   `owner.messages.show` → ⚠️⚠️ **REMOVED, THEN RESTORED THE SAME DAY — THE DECISION WAS WRONG.** Every
+ *        measurement behind the removal was true (no view, component, Mailable, notification, test or JS
+ *        NAMED it; 710 notification rows carrying no such URL) and the conclusion was still false: 🔬 three
+ *        `OwnerInboxIsolationTest` cases reach it **by URL**, which a name-search cannot see. ⚠️ And what
+ *        they pin is an ISOLATION BOUNDARY, not a deep link — with the GET gone the same URL answered
+ *        **405** from the POST reply route on the identical URI, replacing an owner-scoped 404 with an
+ *        unscoped refusal. ⚠️ **SWEEP THE ROUTE, NOT THE TEXT.**
  */
 
 // ── 1. ⚠️⚠️ THE HOUSEKEEPING PHOTO CAN NOW BE REMOVED — and only by someone who may ──────────────────
@@ -111,14 +115,32 @@ it('⚠️ #30 — hides the delete from a role without housekeeping.manage, and
         ->and(Storage::disk('public')->exists((string) $media->path))->toBeTrue();
 });
 
-// ── 2. ⚠️ THE ORPHAN THAT WAS REMOVED — pinned as an ABSENCE ────────────────────────────────────────
-it('⚠️ no longer routes the owner thread deep-link, and the canonical ?c= spelling still works', function () {
+// ── 2. ⚠️⚠️ THE ORPHAN THAT WAS NOT ONE — removed, and restored the same day ────────────────────────
+it('⚠️⚠️ keeps the owner thread GET, because it is the owner-scoped half of a LIVE uri', function () {
+    // ⚠️⚠️ THIS TEST EXISTS BECAUSE THIS PASS GOT THE DECISION WRONG AND THE SUITE CAUGHT IT.
+    //    `owner.messages.show` was removed as an unreferenced orphan on a census that was TRUE and a
+    //    conclusion that was FALSE: no view, component, Mailable, notification or JS named it, and 710
+    //    persisted notification rows carried no such URL — but 🔬 three tests in `OwnerInboxIsolationTest`
+    //    reach it BY URL (`->get('/owner/messages/'.$id)`), which a search for the route NAME cannot see.
+    //    ⚠️ SWEEP THE ROUTE, NOT THE TEXT.
+    // ⚠️⚠️ AND THE COST OF THE REMOVAL WAS NOT A DEAD LINK, IT WAS AN ISOLATION BOUNDARY: 🔬 with the GET
+    //    gone, the same URL returned **405**, because the POST reply route occupies the identical URI. The
+    //    two-inbox contract says a cross-owner thread is "genuinely a 404 through the portal … not a 403
+    //    that leaks its existence" — and an unscoped 405 is neither.
     expect(Route::has('owner.messages.show'))
-        ->toBeFalse('owner.messages.show was removed deliberately — see routes/web.php');
+        ->toBeTrue('removing this replaces an owner-scoped 404 with an unscoped 405 — see routes/web.php')
+        ->and(Route::has('owner.messages'))->toBeTrue();
 
-    // ⚠️ THE POSITIVE CONTROL. Removing a route is only safe if the surface it redirected TO is intact;
-    //    without this, the assertion above is equally green on a broken Messages page.
-    expect(Route::has('owner.messages'))->toBeTrue();
+    // ⚠️ AND THE MECHANISM, NOT JUST THE ROUTE: the GET and the POST share a URI, so the GET must be the one
+    //    that answers a browser. If the router ever stops matching it, this is what tells you.
+    $get = collect(Route::getRoutes()->getRoutes())
+        ->first(fn ($r): bool => $r->getName() === 'owner.messages.show');
+    $post = collect(Route::getRoutes()->getRoutes())
+        ->first(fn ($r): bool => $r->getName() === 'owner.messages.reply');
+
+    expect($get?->uri())->toBe($post?->uri(), 'the two halves must stay on the same URI — that is the point')
+        ->and($get?->methods())->toContain('GET')
+        ->and($post?->methods())->toContain('POST');
 });
 
 // ── 3. ⚠️⚠️ THE ONBOARDING PAGE NOW HAS ITS DOOR — and it is the right one ───────────────────────────

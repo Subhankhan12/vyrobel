@@ -211,6 +211,7 @@ use App\Livewire\Owner\OwnerWelcome;
 use App\Livewire\ReservationDetail;
 use App\Livewire\ReservationRack;
 use App\Livewire\UnitsList;
+use App\Models\MessageThread;
 use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
 use Illuminate\Support\Facades\Route;
@@ -1365,18 +1366,33 @@ Route::middleware(['auth', EnsureOwnerPortalAccess::class, SetOwnerScopeForPorta
     // The reply is a REAL message via InboxService::postOwnerMessage() (inbound = into the org), never a
     // fake send. {thread} is a plain string resolved in the component/controller (never RMB).
     Route::get('/messages', OwnerMessages::class)->name('messages');
-    // ⚠️⚠️ `owner.messages.show` (`GET /owner/messages/{thread}`) WAS REMOVED 2026-09-22, deliberately.
-    // It was a back-compat redirect to this page's `?c={thread}` pane, left behind when the thread page
-    // became a pane in the 3-pane rebuild. Its own comment claimed "a deep-link redirects to it" — and
-    // 🔬 that claim was false in every direction it could be checked: no view, component, Mailable,
-    // notification, test or JS anywhere named it; `OwnerMessageReceivedNotification` — the one thing that
-    // would naturally deep-link a thread — points at THIS list route instead; and 710 persisted
-    // `notifications` rows carried not one `/owner/messages/<id>` URL. The canonical, shareable,
-    // bookmarkable spelling the UI actually produces is `?c={id}` (the conversation list links there), so
-    // the removed route served a URL shape this product no longer emits anywhere.
-    // ⚠️ An unreferenced route is indistinguishable from an oversight to the next reader — which is the
-    // cost this sentence exists to pay off. If a thread deep-link is ever wanted again, add it WITH the
-    // surface that emits it, in the same change.
+    // ⚠️⚠️ THIS ROUTE WAS REMOVED ON 2026-09-22 AND RESTORED THE SAME DAY. THE REMOVAL WAS WRONG AND THE
+    // REASON IT LOOKED RIGHT IS WORTH MORE THAN THE ROUTE.
+    //
+    // It was removed as an unreferenced orphan on a census that found no view, component, Mailable,
+    // notification, test or JS naming `owner.messages.show`, and 710 persisted notification rows carrying no
+    // `/owner/messages/<id>` URL. ⚠️⚠️ **EVERY ONE OF THOSE MEASUREMENTS WAS TRUE, AND THE CONCLUSION WAS
+    // STILL FALSE: three tests in `OwnerInboxIsolationTest` reach this route BY URL, never by name** —
+    // `->get('/owner/messages/'.$thread->id)` — so a search for the route NAME could not see them. ⚠️ SWEEP
+    // THE ROUTE, NOT THE TEXT: a name-search is blind to the callers that build the path themselves, which is
+    // the same blind spot that hides a JS-built URI.
+    //
+    // ⚠️⚠️ AND WHAT THOSE TESTS PIN IS NOT A DEEP LINK — IT IS AN ISOLATION BOUNDARY. They assert a
+    // cross-owner or guest thread is *"genuinely a 404 through the portal, not merely absent from a list"*
+    // and *"not a 403 that leaks its existence"*. The owner-scoped `findOrFail` below is the mechanism that
+    // produces that 404. 🔬 With the route gone the same URL returned **405**, because the POST reply route
+    // occupies the identical URI — so removing it did not delete a dead end, it replaced an owner-scoped
+    // refusal with an unscoped one, on the two-inbox boundary.
+    //
+    // ⚠️ So the GET half exists for the same reason the POST half does, and the redirect to `?c=` is the
+    // convenience, not the purpose. The comment that was here before — "a deep-link redirects to it" — was
+    // the part that was genuinely wrong: nothing emits such a link, and that is fine, because this route's
+    // job is to refuse correctly when someone types or guesses one.
+    Route::get('/messages/{thread}', function (string $thread) {
+        $model = MessageThread::query()->findOrFail($thread);
+
+        return redirect()->route('owner.messages', ['c' => $model->getKey()]);
+    })->name('messages.show');
     Route::post('/messages', [OwnerMessageActionController::class, 'start'])->name('messages.start');
     Route::post('/messages/{thread}', [OwnerMessageActionController::class, 'reply'])->name('messages.reply');
     // GATE 2 — rich message actions, all OWNER-scoped (the {thread} findOrFail 404s a cross-owner/guest thread)

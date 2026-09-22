@@ -95,8 +95,11 @@ it('runs the full Phase B chain end-to-end: operator invite → email link → a
     $this->get("/invite/{$token}")->assertOk()->assertSee('Set your password')->assertSee('Nadia Owner');
 
     // ── 4. Sets a valid password → activation + auto-login → redirect to the owner portal ───────────
+    // ⚠️ `/owner/welcome` since 2026-09-22 (APPLY 04 · item 2) — the invite is the one place a brand-new
+    //    owner is created, and it is the door the onboarding page never had. Still the OWNER REALM, which is
+    //    what this end-to-end chain is about; §6 below still proves the owner's own scoped data renders.
     $this->post("/invite/{$token}", ['password' => $password, 'password_confirmation' => $password])
-        ->assertRedirect('/owner');
+        ->assertRedirect('/owner/welcome');
 
     $ownerUser = User::query()->where('email', $email)->firstOrFail();
     $this->assertAuthenticatedAs($ownerUser);            // auto-login established the session on activation
