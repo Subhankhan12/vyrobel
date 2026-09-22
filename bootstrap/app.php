@@ -163,6 +163,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 RefusalLog::modelNotFound($original, $request);
             } elseif ($original instanceof AuthorizationException) {
                 RefusalLog::authorizationDenied($original, $request);
+            } elseif ($original === null && in_array($e->getStatusCode(), [403, 404], true)) {
+                // ⚠️ A deliberate abort(403|404): HttpException with NO $previous. 🔬 44 such sites exist and
+                //    the first version of this log was blind to all of them. RefusalLog itself requires a
+                //    MATCHED route, so an unrouted 404 still writes nothing.
+                RefusalLog::deliberateAbort($e->getStatusCode(), $request);
             }
 
             return null; // fall through to the framework's own page — response byte-identical

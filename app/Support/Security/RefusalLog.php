@@ -7,10 +7,12 @@ namespace App\Support\Security;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Scopes\OrganizationScope;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -35,6 +37,7 @@ use Throwable;
  * refusing layer actually refused something that exists:
  *   · SCOPE  — the row EXISTS, and the tenant scope hid it. Logged.
  *   · POLICY — a permission check said no. Logged.
+ *   · ABORT  — a deliberate `abort(403|404)` inside a MATCHED route. Logged (added 2026-09-22).
  *   · ABSENT — no such row, or no such route. **SILENT, deliberately.**
  * ⚠️ So a genuinely missing route stays out of the log, and is distinguished **by its absence from it**.
  * ⚠️ That absence is the signal — the inverse of the witness method, which is fitting.
@@ -45,19 +48,36 @@ use Throwable;
  * level filter silently swallowing the thing that was meant to be recorded — every outbound email.
  *
  * ⚠️ NO PII. Identifiers only — ULIDs for the actor, the tenant and the requested row; the route, the model
- * class, the method. Never a name, an email, or a request body. ⚠️ **The IP is deliberately NOT recorded**:
- * it is personal data, and the brief that commissioned this named the fields without it. ⚠️ That weakens the
- * intrusion signal (a logged-out prober has no user id to pin) — a trade worth restating to the founder
- * rather than quietly reversing here.
+ * class, the method. Never a name, an email, or a request body.
+ *
+ * ⚠️⚠️ THE IP IS NEVER STORED — but a rotating HASH of it is, so the intrusion half can still see "the same
+ * source, forty times in a minute" without ever holding an address. Founder ruling 2026-09-22; the full
+ * design, and precisely what the signal CANNOT see, is on {@see ipCorrelator()}.
  */
 final class RefusalLog
 {
     public const CHANNEL_MESSAGE = 'security.refusal';
 
-    /** The refusing layer, and the only three values this log ever carries. */
+    /** The refusing layer. */
     public const LAYER_SCOPE = 'tenant-scope';
 
     public const LAYER_POLICY = 'policy';
+
+    /**
+     * ⚠️ A DELIBERATE `abort()` INSIDE A CONTROLLER OR MIDDLEWARE — a third refusing layer, added 2026-09-22.
+     * 🔬 25 `abort(404)` and 19 `abort(403)` sites throw `HttpException` with NO `$previous`, so the first
+     * version of this log could not see them at all — which is why the owner-portal statement, payout and
+     * unit refusals were unattributable, on the one surface where an owner sees money.
+     * ⚠️⚠️ THE DISCRIMINATOR IS `$request->route()`: a deliberate abort happens INSIDE a matched route, while
+     * an unrouted 404 never matched one. So a genuinely missing path still stays silent, and is still
+     * distinguished by its absence from this log.
+     */
+    public const LAYER_ABORT = 'abort';
+
+    /**
+     * ⚠️⚠️ THE SALT ROTATES DAILY, AND THAT IS THE WHOLE PRIVACY DESIGN. See {@see ipCorrelator()}.
+     */
+    private const IP_SALT_CACHE_PREFIX = 'security.refusal.ip-salt.';
 
     /**
      * A route-model binding (or an explicit findOrFail) came up empty.
@@ -75,7 +95,10 @@ final class RefusalLog
     {
         $class = $e->getModel();
 
-        if (! is_string($class) || $class === '' || ! class_exists($class)) {
+        // ⚠️ `class_exists()` alone is the right guard: the exception types this `class-string<Model>`, so a
+        //    `is_string()`/`=== ''` pair is redundant to PHPStan — and an empty string fails `class_exists`
+        //    anyway, so the runtime behaviour is identical for an exception built without `setModel()`.
+        if (! class_exists($class)) {
             return;
         }
 
@@ -113,6 +136,19 @@ final class RefusalLog
         ]);
     }
 
+    /**
+     * A deliberate `abort(403|404)` from inside a matched route. Logged because it IS a refusal decision;
+     * an unrouted 404 has no matched route and never reaches here.
+     */
+    public static function deliberateAbort(int $status, Request $request): void
+    {
+        if ($request->route() === null) {
+            return; // no matched route → this is an absence, not a refusal. Silent, by design.
+        }
+
+        self::write(self::LAYER_ABORT, $request, ['status' => $status]);
+    }
+
     /** A permission / policy check refused. Always attributable — no existence probe needed. */
     public static function authorizationDenied(Throwable $e, Request $request): void
     {
@@ -137,9 +173,49 @@ final class RefusalLog
             'actor_id' => $user?->getAuthIdentifier() !== null ? (string) $user->getAuthIdentifier() : null,
             'actor_guard' => self::activeGuard(),
             'tenant_id' => self::tenantId(),
+            // ⚠️ NOT the address — see ipCorrelator(). Correlation without identification.
+            'ip_correlator' => self::ipCorrelator($request),
         ];
 
         Log::warning(self::CHANNEL_MESSAGE, $context + array_filter($extra, static fn ($v) => $v !== null));
+    }
+
+    /**
+     * ⚠️⚠️ A CORRELATOR, NOT AN ADDRESS — founder ruling 2026-09-22.
+     *
+     * ⚠️ THE PROBLEM: without something per-source, the intrusion half of this log cannot see "the same
+     * prober, forty times in a minute" — and a logged-out prober has no user id to pin. ⚠️ THE COST of the
+     * obvious answer: an IP is personal data under GDPR, and this product will sign an Article 28 agreement.
+     *
+     * ⚠️ THE RULING: hash it with a **rotating salt**. HMAC-SHA256 truncated to 16 hex characters, keyed by a
+     * random salt that lives in the CACHE under a DATE-KEYED name, so it rotates **daily** with no scheduler
+     * and no migration — the old key simply stops being read and ages out of the store.
+     *
+     * ⚠️⚠️ WHAT THE SIGNAL CAN SEE: a burst of refusals sharing one correlator **inside a single day**.
+     * ⚠️⚠️ WHAT IT CANNOT: identify anybody · reverse to an address · or link the same source **across a
+     * rotation** — yesterday's correlator and today's are unrelated by construction, so a slow prober
+     * spread over days is invisible to it. ⚠️ Both halves are written down deliberately: a security control
+     * whose limits are unrecorded gets over-trusted.
+     */
+    private static function ipCorrelator(Request $request): ?string
+    {
+        $ip = (string) $request->ip();
+
+        if ($ip === '') {
+            return null;
+        }
+
+        try {
+            $salt = Cache::remember(
+                self::IP_SALT_CACHE_PREFIX.CarbonImmutable::now()->toDateString(),
+                CarbonImmutable::now()->addDays(2),
+                static fn (): string => bin2hex(random_bytes(32)),
+            );
+        } catch (Throwable) {
+            return null; // ⚠️ no salt, no correlator — never fall back to the raw address
+        }
+
+        return substr(hash_hmac('sha256', $ip, (string) $salt), 0, 16);
     }
 
     private static function activeGuard(): ?string
