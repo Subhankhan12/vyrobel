@@ -112,6 +112,7 @@ pad() { printf '%-52s' "$1"; }
 
 exposed=0
 refused=0
+locked=0
 unmeasurable=0
 unmeasured=0
 printf '  %-52s %-6s %-8s %s\n' "PATH" "HTTP" "BYTES" "VERDICT"
@@ -170,7 +171,16 @@ probe() {
             #    router rather than file contents. Until then the honest figure is **46/53 proven**.
             # ⚠️⚠️ 503 IS A THIRD VERDICT — "COULD NOT MEASURE" — NOT A PASS. Fixed 2026-09-23 (MAIL 01).
             #    An instrument needs three answers and this one had two, so it used the wrong one.
-            401|403|404) verdict="refused"; refused=$((refused+1)) ;;
+            # ⚠️⚠️ 401 IS A FOURTH VERDICT, AND IT ARRIVED THE DAY THE LOCK DID (LIVE 01, 2026-09-23).
+            #    🔬 Measured: applying the private-preview lock moved EXACTLY the seven paths listed above
+            #    from 503 to 401 — the same seven, because they are the ones that reach Laravel instead of
+            #    being refused by the wall. ⚠️ Classing 401 as "refused" turned an honest **46 proven, 7
+            #    unmeasurable** into a false **53 refused**, and the figure went UP the moment the site got
+            #    SAFER, which is the tell. ⚠️⚠️ A 401 IS THE LOCK ANSWERING. IT IS NO EVIDENCE AT ALL ABOUT
+            #    THE WALL — the same mistake as the 503, in a new costume, eleven hours later.
+            401) verdict="UNMEASURABLE — the LOCK answered first, so what the wall does here is
+                      unknown; re-run WITH credentials"; locked=$((locked+1)) ;;
+            403|404) verdict="refused"; refused=$((refused+1)) ;;
             503) verdict="UNMEASURABLE — the maintenance page answered, so the app was reached but the
                       real behaviour is hidden; re-run unparked"; unmeasurable=$((unmeasurable+1)) ;;
             301|302) verdict="refused (redirect)"; refused=$((refused+1)) ;;
@@ -191,7 +201,7 @@ if [ "$PROVE_RED" = "1" ]; then
 fi
 
 printf '  %s\n' "------------------------------------------------------------------------------------"
-printf '  base=%s  refused=%d  exposed=%d  UNMEASURABLE(503)=%d  unmeasured=%d\n' "$BASE" "$refused" "$exposed" "$unmeasurable" "$unmeasured"
+printf '  base=%s  refused=%d  exposed=%d  UNMEASURABLE(503)=%d  UNMEASURABLE(401 lock)=%d  unmeasured=%d\n' "$BASE" "$refused" "$exposed" "$unmeasurable" "$locked" "$unmeasured"
 
 # ⚠️ Order matters: a real exposure outranks an instrument fault, so it is reported even if some other
 #    probe could not be measured. Only a clean sweep with nothing unmeasured earns exit 0.
@@ -209,6 +219,13 @@ if [ "$unmeasurable" -gt 0 ]; then
   printf '  ⚠️ The %d unmeasurable probes reached Laravel rather than Apache — which for /current/.release is\n' "$unmeasurable"
   printf '     the SAFE outcome (the file was NOT served directly); do not "fix" it by breaking it.\n'
   printf '  ⚠️ They cannot be answered until the site is unparked. Re-run then.\n'
+elif [ "$locked" -gt 0 ]; then
+  printf '  RESULT: %d refused by the wall · %d UNMEASURABLE behind the private-preview LOCK.\n' "$refused" "$locked"
+  printf '  ⚠️⚠️ A BATTERY THAT RAN BEHIND THE LOCK PROVED THE LOCK, NOT THE WALL.\n'
+  printf '  ⚠️ Those %d probes are the ones that reach Laravel rather than Apache. The lock refusing them is\n' "$locked"
+  printf '     the SAFE outcome and must not be "fixed" — but it is not the same claim as the wall refusing\n'
+  printf '     them. Re-run WITH credentials (curl -u) to measure the wall underneath.\n'
+  printf '  ⚠️ Honest figure: %d of %d proven.\n' "$refused" "$((refused + locked))"
 else
   printf '  RESULT: all %d probes refused.\n' "$refused"
 fi
