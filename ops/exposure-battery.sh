@@ -342,29 +342,4 @@ if [ "$layer_answered" -gt 0 ]; then
 fi
 printf '  ⚠️ This says what is REACHABLE. It does not say the rules did not CHANGE —\n'
 printf '     that is ops/htaccess-drift-check.sh, and it is a separate question.\n'
-exit 0.
-if [ "$exposed" -gt 0 ]; then
-    printf '  RESULT: ⚠️⚠️ %d EXPOSURE(S) — the wall is not holding.\n' "$exposed"
-    exit 1
-fi
-if [ "$unmeasured" -gt 0 ]; then
-    printf '  RESULT: ⚠️ %d probe(s) UNMEASURED — this is an instrument fault, NOT a clean bill of health.\n' "$unmeasured"
-    exit 2
-fi
-if [ "$unmeasurable" -gt 0 ]; then
-  printf '  RESULT: %d refused · %d UNMEASURABLE behind the maintenance page.\n' "$refused" "$unmeasurable"
-  printf '  ⚠️⚠️ A BATTERY THAT RAN BEHIND MAINTENANCE PROVED THE MAINTENANCE, NOT THE EXPOSURE.\n'
-  printf '  ⚠️ The %d unmeasurable probes reached Laravel rather than Apache — which for /current/.release is\n' "$unmeasurable"
-  printf '     the SAFE outcome (the file was NOT served directly); do not "fix" it by breaking it.\n'
-  printf '  ⚠️ They cannot be answered until the site is unparked. Re-run then.\n'
-elif [ "$locked" -gt 0 ]; then
-  printf '  RESULT: %d refused by the wall · %d UNMEASURABLE behind the private-preview LOCK.\n' "$refused" "$locked"
-  printf '  ⚠️⚠️ A BATTERY THAT RAN BEHIND THE LOCK PROVED THE LOCK, NOT THE WALL.\n'
-  printf '  ⚠️ Those %d probes are the ones that reach Laravel rather than Apache. The lock refusing them is\n' "$locked"
-  printf '     the SAFE outcome and must not be "fixed" — but it is not the same claim as the wall refusing\n'
-  printf '     them. Re-run WITH credentials (curl -u) to measure the wall underneath.\n'
-  printf '  ⚠️ Honest figure: %d of %d proven.\n' "$refused" "$((refused + locked))"
-else
-  printf '  RESULT: all %d probes refused.\n' "$refused"
-fi
 exit 0

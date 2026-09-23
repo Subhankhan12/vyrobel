@@ -30,14 +30,29 @@
 # check subsumes the other — the same reason the alarm carries two independent detectors.
 #
 #
-# ⚠️⚠️ UPDATED 2026-09-23 (LIVE 01) — THE CANONICAL CONTENT NOW CARRIES THE PRIVATE-PREVIEW LOCK.
-# The body below is no longer the 2026-09-21 file: it gained a Basic Auth block with three anchored
-# exemptions. ⚠️ THE LOCK IS USELESS WITHOUT `~/domains/vyrobel.com/.htpasswd`, WHICH IS NOT IN THIS
-# REPOSITORY AND MUST NOT BE — it is the founder's own password, typed on the server. ⚠️ Restoring this
-# file onto a host with no `.htpasswd` makes Apache return **500 on every non-exempt path**, which is a
-# louder failure than a leak but is still an outage: create the password file FIRST, then restore.
+# ⚠️⚠️ UPDATED 2026-09-23 (PUBLIC 01) — THE SITE IS PUBLIC AND THE LOCK IS OFF.
+# Both privacy layers came off in one pass: maintenance first, the lock second. ⚠️ That order is not a
+# preference — lock-first would have made the site public while it was still serving a maintenance page.
 #
-# 🔬 Recorded sha256 of the canonical content below: 55f21c444cb3ff4976a9da4384e76025821c20d777867839454bf05745e154c0
+# ───────── THE LOCK, KEPT VERBATIM AND COMMENTED SO IT GOES BACK ON IN ONE EDIT ─────────
+# ⚠️⚠️ BEFORE RE-ADDING THIS, PUT A USER IN `~/domains/vyrobel.com/.htpasswd` — it still exists and is
+#    still EMPTY, so pasting these lines back locks the site against EVERYONE including the founder.
+#    `~/domains/vyrobel.com/vyrobel-lock.php` prompts for a password and proves the result from outside.
+# ⚠️ Every exemption is $-anchored on purpose: a bare `^/up` would also exempt /upgrade and /uptime.
+#
+#   SetEnvIf Request_URI "^(/current/public)?/webhooks/stripe(/connect)?/?$" VY_PUBLIC=1
+#   SetEnvIf Request_URI "^(/current/public)?/webhooks/channex/[A-Za-z0-9._-]+/?$" VY_PUBLIC=1
+#   SetEnvIf Request_URI "^(/current/public)?/up(/liveness)?/?$" VY_PUBLIC=1
+#   AuthType Basic
+#   AuthName "Vyrobel - private preview"
+#   AuthUserFile /home/u545270279/domains/vyrobel.com/.htpasswd
+#   <RequireAny>
+#       Require env VY_PUBLIC
+#       Require env REDIRECT_VY_PUBLIC
+#       Require valid-user
+#   </RequireAny>
+#
+# 🔬 Recorded sha256 of the canonical content below: d5b4b6ee92d9efa503a45f51c76a098113fb1fa61c9062d8de9478ce13484d39
 #
 # ───────── BEGIN CANONICAL CONTENT — restore from the NEXT line down ─────────
 # ── Vyrobel — serve the CURRENT release through ONE pointer ────────────────────
@@ -71,58 +86,17 @@ RedirectMatch 404 ^/current/(app|bootstrap|config|database|resources|routes|stor
 RedirectMatch 404 ^/current/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
 RedirectMatch 404 ^/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
 
-# ── ⚠️⚠️ THE PRIVATE-PREVIEW LOCK — added 2026-09-23 (LIVE 01) ──────────────────────────────────────
-# ⚠️⚠️ THIS REPLACES MAINTENANCE MODE AS THE WAY THE SITE STAYS PRIVATE, AND THE REASON IS THE QUEUE.
-#    🔬 `queue:work` PAUSES while the app is down (measured DEPLOY 06, re-measured REPAIR 01: a heartbeat
-#    sat 55 hours and drained within 60 s of an unpark). Under maintenance every booking would queue a job
-#    that never runs, so nothing anyone tested would behave like production.
-#    ⚠️ THE GOAL IS A LOCK ON THE DOOR, NOT A CLOSED SIGN.
+# ── ⚠️ THE PRIVATE-PREVIEW LOCK WAS REMOVED HERE ON 2026-09-23 (PUBLIC 01) ──────────────────────────
+# ⚠️⚠️ FOUNDER'S RULING: `vyrobel.com` IS PUBLIC. Both privacy layers came off in one pass, maintenance
+#    first and the lock second — ⚠️ that order is not a preference: taking the lock off first would have
+#    made the site public **while it was still serving a maintenance page**, which is the worst of both.
 #
-# ⚠️ WHY BASIC AUTH AND NOT AN IP ALLOWLIST: a CDN terminates the connection (`server: hcdn`, measured
-#    DEPLOY 09), so Apache may see the EDGE's address and not the visitor's — and whether this host
-#    restores the real client IP could not be measured without serving a probe file on a live public path.
-#    ⚠️ A lock whose correctness rests on an unmeasured variable is the wrong lock. Basic Auth also
-#    survives his network changing, which an IP rule does not.
+# ⚠️ THE RULES ARE NOT LOST. They are kept verbatim, commented, in `ops/reference/public_html.htaccess`,
+#    so the lock goes back on in one edit. ⚠️ `~/domains/vyrobel.com/.htpasswd` still exists and is still
+#    EMPTY — ⚠️⚠️ re-adding `AuthType Basic` without first putting a user in it locks the site against
+#    EVERYONE, including the founder. Put the user in first: `vyrobel-lock.php` beside it does that.
 #
-# ⚠️⚠️ NO PASSWORD IS IN THIS FILE AND NONE EVER WAS. `.htpasswd` is written by the founder, on the
-#    server, with a password no session has chosen, generated, logged or transmitted.
-# ⚠️ AuthUserFile SITS OUTSIDE THE DOCUMENT ROOT ON PURPOSE — `public_html` IS the application root here
-#    (KNOWN-LIMITS L12p), so a password file inside it would be one `.htaccess` mistake from being served.
-#
-# ── THE EXEMPTIONS ──────────────────────────────────────────────────────────────────────────────────
-# ⚠️⚠️ SetEnvIf RUNS AT HEADER-PARSE, BEFORE mod_rewrite — so `Request_URI` is the path the CALLER asked
-#    for, not the rewritten `/current/public/...`. ⚠️ BUT an internal redirect re-runs authorization on
-#    the NEW uri and renames every env var with a `REDIRECT_` prefix, so BOTH spellings are matched and
-#    BOTH names are accepted below. 🔬 Proven from outside, not reasoned about: see LIVE 01's measurements.
-#
-# ⚠️⚠️ EVERY PATTERN IS ANCHORED (`$`). A bare `^/webhooks/` prefix would exempt `/webhooks/../anything`,
-#    and ON A MONEY PATH AN OVER-PERMISSIVE CHECK *IS* THE BUG. These five are the whole exempt list, and
-#    each one is a route that `route:list` really serves — measured, not assumed.
-#    ⚠️ Request_URI excludes the query string, so `?cb=…` cache-busting cannot widen these.
-#
-#   · POST /webhooks/stripe · POST /webhooks/stripe/connect
-#       ⚠️⚠️ A MACHINE CANNOT TYPE A PASSWORD. And because Stripe is wired but not yet calling, a blocked
-#       webhook would be SILENT FOR WEEKS and would surface as a reconciliation mystery — the quietest
-#       possible failure, which is exactly why it is exempted before anybody needs it.
-#   · POST /webhooks/channex/{channel} — same reason; the channel manager is a machine too.
-#   · GET /up · GET /up/liveness
-#       ⚠️ The external dead-man's-switch polls these. Locking them makes the alarm fail for the wrong
-#       reason, which is worse than no alarm because it teaches people to ignore it.
-#   · ⚠️ NO POSTMARK INBOUND OR BOUNCE ROUTE EXISTS — 🔬 measured against `route:list`, not assumed.
-#       Nothing to exempt today. If one is ever added it belongs on this list in the same change.
-#
-# ⚠️ STATIC ASSETS ARE DELIBERATELY *INSIDE* THE LOCK. One origin means the browser replays credentials
-#    for CSS/JS automatically, so the app renders normally; the cost is that the CDN caches nothing while
-#    the preview is private. That is the right trade for a site with one intended visitor.
-SetEnvIf Request_URI "^(/current/public)?/webhooks/stripe(/connect)?/?$" VY_PUBLIC=1
-SetEnvIf Request_URI "^(/current/public)?/webhooks/channex/[A-Za-z0-9._-]+/?$" VY_PUBLIC=1
-SetEnvIf Request_URI "^(/current/public)?/up(/liveness)?/?$" VY_PUBLIC=1
-
-AuthType Basic
-AuthName "Vyrobel - private preview"
-AuthUserFile /home/u545270279/domains/vyrobel.com/.htpasswd
-<RequireAny>
-    Require env VY_PUBLIC
-    Require env REDIRECT_VY_PUBLIC
-    Require valid-user
-</RequireAny>
+# ⚠️ `ops/htaccess-drift-check.sh` no longer REQUIRES the lock, but it still knows about it: if AuthType
+#    Basic ever reappears, the check demands AuthUserFile and Require valid-user alongside it, and still
+#    refuses an unanchored exemption. ⚠️ **A half-built lock is worse than none** — it either 500s every
+#    request or lets everything through, and both look like a working rule from the outside.

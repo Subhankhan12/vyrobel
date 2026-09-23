@@ -84,38 +84,33 @@ add_rule "sensitive files denied through /current/" \
     'RedirectMatch[[:space:]]+404[[:space:]]+\^/current/\(composer\\\.\(json\|lock\)\|package\\\.json\|artisan\|vite\\\.config\\\.js\)\$' \
     "the same files are reachable a second way through the release pointer"
 
-# ── ⚠️⚠️ THE PRIVATE-PREVIEW LOCK (LIVE 01, 2026-09-23) ─────────────────────────────────────────────
-# ⚠️⚠️ THESE RULES EXIST BECAUSE A CHECK THAT STILL SAYS "11/11" OVER A FILE IT NO LONGER UNDERSTANDS IS
-# WORSE THAN NO CHECK. The file grew a SECOND job — keeping the public out — and a drift check that knew
-# only the first would go green while the lock was deleted. ⚠️ A green must mean the WHOLE file.
-add_rule "the lock: Basic auth declared" \
+# ── ⚠️⚠️ THE LOCK IS GONE, AND ITS RULES ARE NOT REQUIRED ANY MORE (PUBLIC 01, 2026-09-23) ──────────
+# ⚠️ The founder ruled the site public, so `AuthType Basic` was removed from the live file. Demanding it
+#    here would redden for the CORRECT state, and ⚠️⚠️ **A GUARD THAT CRIES WOLF GETS MUTED** — which on
+#    the only wall this deployment has is a worse outcome than not having written it.
+#
+# ⚠️⚠️ BUT THE KNOWLEDGE IS NOT DISCARDED, IT IS MADE CONDITIONAL. If the lock ever comes back, a
+#    HALF-BUILT one is worse than none: `AuthType Basic` with no `AuthUserFile` makes the server return
+#    **500 on every request**, and with no `Require valid-user` it challenges nobody while looking exactly
+#    like a working rule from the outside. ⚠️ Both failure modes are invisible until someone tries the
+#    door. So: the lock is optional, and INCOMPLETE is the failure.
+COND_LABEL=(); COND_TRIGGER=(); COND_REQUIRE=(); COND_WHY=()
+add_cond() { COND_LABEL+=("$1"); COND_TRIGGER+=("$2"); COND_REQUIRE+=("$3"); COND_WHY+=("$4"); }
+
+add_cond "if the lock is present it must name a password file" \
     '^[[:space:]]*AuthType[[:space:]]+Basic' \
-    "⚠️⚠️ without it the site is PUBLIC the moment maintenance lifts, and nothing else here would notice"
-
-add_rule "the lock: a real user is required" \
-    'Require[[:space:]]+valid-user' \
-    "AuthType alone challenges nobody. This is the line that actually refuses an anonymous request"
-
-add_rule "the lock: the password file is named absolutely" \
     '^[[:space:]]*AuthUserFile[[:space:]]+/' \
-    "⚠️ a missing or relative AuthUserFile makes Apache return 500 on every non-exempt path"
+    "⚠️⚠️ AuthType Basic with no AuthUserFile makes the server return 500 on EVERY request — a total outage that looks like a hardening rule"
 
-add_rule "exempt: Stripe webhooks" \
-    'SetEnvIf[[:space:]]+Request_URI[^#]*webhooks/stripe[^#]*VY_PUBLIC' \
-    "⚠️⚠️ A MACHINE CANNOT TYPE A PASSWORD. Stripe is wired but not yet calling, so a blocked webhook would be SILENT FOR WEEKS and would surface as a reconciliation mystery"
+add_cond "if the lock is present it must actually require a user" \
+    '^[[:space:]]*AuthType[[:space:]]+Basic' \
+    'Require[[:space:]]+valid-user' \
+    "⚠️ AuthType alone challenges nobody. Without this the lock is decorative and the site is public while appearing locked"
 
-add_rule "exempt: Channex webhooks" \
-    'SetEnvIf[[:space:]]+Request_URI[^#]*webhooks/channex[^#]*VY_PUBLIC' \
-    "the channel manager is a machine too, and the same silence applies to it"
-
-add_rule "exempt: /up and /up/liveness" \
-    'SetEnvIf[[:space:]]+Request_URI[^#]*/up\(/liveness\)\?[^#]*VY_PUBLIC' \
-    "the external dead-man's-switch polls these. An alarm that fails for the wrong reason teaches people to ignore it"
-
-add_rule "exempt: the REDIRECT_ spelling is accepted too" \
+add_cond "if an exemption is present the REDIRECT_ spelling must be too" \
+    '^[[:space:]]*SetEnvIf[[:space:]]+Request_URI[^#]*VY_PUBLIC' \
     'Require[[:space:]]+env[[:space:]]+REDIRECT_VY_PUBLIC' \
-    "⚠️⚠️ mod_rewrite's internal redirect re-runs authorization on the NEW uri and renames every env var with a REDIRECT_ prefix. Without this line an exemption is set on the original request and then vanishes"
-
+    "mod_rewrite's internal redirect renames env vars with a REDIRECT_ prefix; without this an exemption is set on the original request and then vanishes"
 
 # ── ⚠️⚠️ THE ANTI-RULES: things whose PRESENCE is the failure ───────────────────────────────────────
 # ⚠️ Each is a function returning 0 when VIOLATED. They are functions rather than regexes because two of
@@ -165,6 +160,19 @@ assert_file() {
             [ "$verbose" = "1" ] && { printf '  \033[31m✗\033[0m %s — MISSING\n' "${RULE_LABEL[$i]}"; printf '      why it matters: %s\n' "${RULE_WHY[$i]}"; }
         fi
     done
+    # ⚠️ Conditional rules: silent when the trigger is absent, loud when it is present but incomplete.
+    for i in "${!COND_LABEL[@]}"; do
+        if grep -qE "${COND_TRIGGER[$i]}" "$f" 2>/dev/null; then
+            if grep -qE "${COND_REQUIRE[$i]}" "$f" 2>/dev/null; then
+                [ "$verbose" = "1" ] && printf '  \033[32m✓\033[0m conditional: %s\n' "${COND_LABEL[$i]}"
+            else
+                fails=$((fails + 1))
+                [ "$verbose" = "1" ] && { printf '  \033[31m✗\033[0m CONDITIONAL FAILED — %s\n' "${COND_LABEL[$i]}"; printf '      why it matters: %s\n' "${COND_WHY[$i]}"; }
+            fi
+        else
+            [ "$verbose" = "1" ] && printf '  \033[2m·\033[0m conditional not triggered: %s\n' "${COND_LABEL[$i]}"
+        fi
+    done
     for i in "${!ANTI_LABEL[@]}"; do
         if "${ANTI_FN[$i]}" "$f"; then
             fails=$((fails + 1))
@@ -193,9 +201,9 @@ if [ "$SELF_TEST" = "1" ]; then
     assert_file "$TMP" 0
     SELF=$?
     if [ "$SELF" -gt "$FAILS" ]; then
-        printf '  \033[32m✓\033[0m SELF-TEST 1/2: removing the catch-all re-root takes failures %d → %d. The check fires.\n' "$FAILS" "$SELF"
+        printf '  \033[32m✓\033[0m SELF-TEST 1/3: removing the catch-all re-root takes failures %d → %d. The check fires.\n' "$FAILS" "$SELF"
     else
-        printf '  \033[31m✗\033[0m SELF-TEST 1/2 FAILED: deleting the wall did not change the verdict (%d → %d).\n' "$FAILS" "$SELF"
+        printf '  \033[31m✗\033[0m SELF-TEST 1/3 FAILED: deleting the wall did not change the verdict (%d → %d).\n' "$FAILS" "$SELF"
         printf '      ⚠️ A guard never seen to fire is not a guard. Fix the check before trusting a green.\n'
         exit 1
     fi
@@ -209,10 +217,27 @@ if [ "$SELF_TEST" = "1" ]; then
     assert_file "$TMP2" 0
     SELF2=$?
     if [ "$SELF2" -gt "$FAILS" ]; then
-        printf '  \033[32m✓\033[0m SELF-TEST 2/2: adding an UNANCHORED exemption takes failures %d → %d. The anti-rule fires.\n' "$FAILS" "$SELF2"
+        printf '  \033[32m✓\033[0m SELF-TEST 2/3: adding an UNANCHORED exemption takes failures %d → %d. The anti-rule fires.\n' "$FAILS" "$SELF2"
     else
-        printf '  \033[31m✗\033[0m SELF-TEST 2/2 FAILED: a prefix exemption `^/webhooks/` was accepted (%d → %d).\n' "$FAILS" "$SELF2"
+        printf '  \033[31m✗\033[0m SELF-TEST 2/3 FAILED: a prefix exemption `^/webhooks/` was accepted (%d → %d).\n' "$FAILS" "$SELF2"
         printf '      ⚠️⚠️ That is the hole the anchor rule exists to refuse. Do not trust a green from this check.\n'
+        exit 1
+    fi
+
+    # ⚠️⚠️ SELF-TEST 3 — THE CONDITIONAL. 🔬 The lock's rules stopped being REQUIRED on 2026-09-23, and a
+    # conditional that never fires is indistinguishable from one that is broken. This adds a HALF-BUILT
+    # lock — AuthType Basic with no password file and no valid-user — which is the exact shape that
+    # 500s every request while reading like a hardening rule.
+    TMP3="$(mktemp)"; trap 'rm -f "$TMP" "$TMP2" "$TMP3"' EXIT
+    cp "$FILE" "$TMP3"
+    printf 'AuthType Basic\n' >> "$TMP3"
+    assert_file "$TMP3" 0
+    SELF3=$?
+    if [ "$SELF3" -gt "$FAILS" ]; then
+        printf '  \033[32m✓\033[0m SELF-TEST 3/3: a HALF-BUILT lock takes failures %d → %d. The conditional fires.\n' "$FAILS" "$SELF3"
+    else
+        printf '  \033[31m✗\033[0m SELF-TEST 3/3 FAILED: `AuthType Basic` alone was accepted (%d → %d).\n' "$FAILS" "$SELF3"
+        printf '      ⚠️⚠️ That shape returns 500 on every request. Fix the check before trusting a green.\n'
         exit 1
     fi
 fi
