@@ -149,7 +149,7 @@
                     @if ($social ?? null)
                         {{-- Readonly because the server ignores a posted value here anyway and uses what Google
                              asserted — an editable field would look accepted and silently not be. --}}
-                        <p style="font-size:11.5px;color:var(--vy-muted);margin-top:6px;">From your Google account.</p>
+                        <p style="font-size:11.5px;color:var(--vy-muted);margin-top:6px;">From your {{ \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google') }} account.</p>
                     @endif
                 </div>
                 @if ($social ?? null)
@@ -157,7 +157,7 @@
                          the very moment the person chose not to use one is the thing that makes "sign up with
                          Google" read as broken. One is asked for later — once, when a sensitive action first
                          needs confirming (docs/PASSWORDLESS-GATE.md). --}}
-                    <p class="vy-strength" style="margin-top:2px;"><span>You’ll sign in with Google. No password needed.</span></p>
+                    <p class="vy-strength" style="margin-top:2px;"><span>You’ll sign in with {{ \App\Support\Auth\SocialProviders::label($social['provider'] ?? 'google') }}. No password needed.</span></p>
                 @else
                 <div class="vy-two">
                     <div class="vy-field">

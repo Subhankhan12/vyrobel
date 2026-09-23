@@ -133,13 +133,49 @@ it('⚠️⚠️ X CAN NOW BE LINKED from an authenticated session — the 2026-
         ->toBe(SocialLinkOutcome::Link);
 });
 
-it('⚠️⚠️ AND THE RULE DID NOT VANISH — an unverified address still may not CREATE an account', function () {
-    // ⚠️ THE OTHER HALF OF THE SAME RULING, AND THE REASON IT IS SAFE. If this ever goes green for the
-    //    wrong reason, an unverified provider address could mint an account — and since users.email is
-    //    globally unique, a squatted address would permanently lock out its real owner.
+it('⚠️⚠️ X MAY NOW CREATE AN ACCOUNT — the 2026-09-24 signup ruling, named and pinned', function () {
+    // ⚠️ X still reports emailVerified=false, honestly. What permits creation is an explicit ruled list,
+    //    not a forged flag — so the data never claims X verified something it did not.
     $result = SocialLinking::forSignIn(xIdentity('x-'.Str::random(12), uniqueEmail('x-create')));
 
-    expect($result['outcome'])->toBe(SocialLinkOutcome::RefuseUnverified)
+    expect($result['outcome'])->toBe(SocialLinkOutcome::SignUp)
+        ->and($result['user'])->toBeNull('a signup decision names no user yet');
+});
+
+it('⚠️⚠️ AND GOOGLE IS UNTOUCHED — an unverified Google address still may NOT create', function () {
+    // ⚠️⚠️ THE HALF THAT MUST NEVER MOVE. Google asserts verification itself, so it is deliberately absent
+    //    from the trusted list and its guard is exactly as strict as before the X ruling existed.
+    $result = SocialLinking::forSignIn(
+        new SocialIdentity('google', 'g-'.Str::random(12), uniqueEmail('g-unverified'), false, 'Ada')
+    );
+
+    expect($result['outcome'])->toBe(SocialLinkOutcome::RefuseUnverified);
+});
+
+it('⚠️⚠️ PINS THE TRUSTED-FOR-SIGNUP LIST — it may not grow without a ruling', function () {
+    // ⚠️ A list that can grow silently is not a ruling, it is a habit. Every provider is checked, so
+    //    adding one to the registry without deciding this question makes THIS test red, not production.
+    $trusted = array_values(array_filter(
+        SocialProviders::keys(),
+        fn (string $k) => SocialProviders::trustsAddressForSignup($k)
+    ));
+
+    expect($trusted)->toBe(['twitter'],
+        'exactly one provider is trusted to create accounts from an unasserted address, by the '
+        .'2026-09-24 ruling. If this is red, a provider was added without that decision being made.');
+});
+
+it('⚠️ RefuseEmailTaken still refuses X when the address already belongs to an account', function () {
+    $scenario = seedScenario(1);
+    $email = uniqueEmail('x-taken');
+    operatorUser($scenario, ['email' => $email]);
+
+    // ⚠️⚠️ THE TAKEOVER CASE, AND THE SIGNUP RULING DOES NOT REOPEN IT. Creating is permitted; ATTACHING
+    //    to an account that already exists at that address is still refused, which is what keeps the live
+    //    risk to squatting an unclaimed address rather than stealing a claimed one.
+    $result = SocialLinking::forSignIn(xIdentity('x-'.Str::random(12), $email));
+
+    expect($result['outcome'])->toBe(SocialLinkOutcome::RefuseEmailTaken)
         ->and($result['user'])->toBeNull();
 });
 
@@ -246,8 +282,11 @@ it('⚠️⚠️ the X provider asserts emailVerified FALSE — X supplies no ve
     expect($identity->emailVerified)->toBeFalse()
         ->and(TwitterIdentityProvider::SCOPES)->toContain('users.email');
 
-    // ⚠️ And the consequence, stated as a test rather than a comment: an unverified address may never
-    //    create an account, which is precisely why X signup does not exist.
+    // ⚠️⚠️ AND THE CONSEQUENCE, WHICH CHANGED ON 2026-09-24 AND IS THE POINT OF THE WHOLE DESIGN: the
+    //    provider still asserts nothing — emailVerified stays FALSE above — and creation is permitted
+    //    anyway, by an explicit ruled list rather than by forging the flag. The data never claims X
+    //    verified an address it did not. ⚠️ If someone ever "fixes" this by setting emailVerified true in
+    //    the provider, the assertion above goes red first, which is exactly the order that should happen.
     $result = SocialLinking::forSignIn(xIdentity('x-unlinked-'.Str::random(8), uniqueEmail('x-new')));
-    expect($result['outcome'])->toBe(SocialLinkOutcome::RefuseUnverified);
+    expect($result['outcome'])->toBe(SocialLinkOutcome::SignUp);
 });

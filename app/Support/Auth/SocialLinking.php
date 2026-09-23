@@ -52,7 +52,7 @@ final class SocialLinking
         // ⚠️ IT NO LONGER REFUSES TO *LINK* — that half moved to forLink() on 2026-09-24 by a founder
         //    ruling, where the note explains why an authenticated session makes the flag redundant. This
         //    half is the one that must never move again, and a mutation removing it reddens three tests.
-        if (! $identity->emailVerified) {
+        if (! $identity->emailVerified && ! SocialProviders::trustsAddressForSignup($identity->provider)) {
             return ['outcome' => SocialLinkOutcome::RefuseUnverified, 'user' => null];
         }
 
