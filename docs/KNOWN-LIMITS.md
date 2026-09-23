@@ -1016,3 +1016,45 @@ could not measure**. ⚠️ 🔬 That third state was bought the same day: a tra
 earlier version report an exposure while the wall was intact, and *a battery that cries wolf on a blip gets
 re-run until it goes green* — the exact habit it exists to prevent. ⚠️ Prove it still fires with
 `--prove-red` before trusting a green.
+
+---
+
+## L13 — ⚠️ EVERY `/api/owner/*` REQUEST RETURNS 500, BECAUSE A KEY FILE IS MODE 775
+
+🔬 Measured 2026-09-23 (PUBLIC 01), the first time these routes were reachable from the public internet:
+
+```
+GET https://vyrobel.com/api/owner/bookings   -> 500  {"message":"Server Error"}
+GET https://vyrobel.com/api/owner/statements -> 500
+GET https://vyrobel.com/api/owner/units      -> 500
+```
+
+**The cause, from `storage/logs/laravel-2026-09-23.log`:**
+
+```
+production.ERROR: Key file ".../releases/rel_F/storage/oauth-public.key" permissions are not
+correct, recommend changing to 600 or 660 instead of 775
+```
+
+League's `CryptKey` refuses a key file that is group- or world-writable, and `PassportServiceProvider::makeGuard()`
+throws before the `auth:api` guard can even reject the caller.
+
+⚠️ **IT FAILS CLOSED AND LEAKS NOTHING.** The body is the generic `{"message":"Server Error"}` — `APP_DEBUG`
+is false, no path, no stack. No token is issued, no data is returned, and the OAuth surface has no registered
+third-party clients yet, so nothing that works today is broken by it.
+
+**THE FIX IS ONE COMMAND**, and it has NOT been run — a permission change to a cryptographic key on live
+production was outside the pass that found it:
+
+```
+chmod 600 ~/domains/vyrobel.com/public_html/current/storage/oauth-private.key
+chmod 600 ~/domains/vyrobel.com/public_html/current/storage/oauth-public.key
+```
+
+⚠️ `oauth-private.key` is already `600` and safe. It is the **public** key at `775` that trips the check —
+🔬 note the irony: a public key being world-readable is harmless, and the guard is refusing it anyway.
+
+⚠️⚠️ **AND THE REAL LESSON IS WHERE THIS WAS FOUND.** These routes existed for weeks behind maintenance and
+then a lock, and **every instrument reported them healthy** because a layer in front answered first. It took
+removing both layers to see a 500 that had presumably been there since the keys were generated on 2026-07-29.
+⚠️ A route nothing can reach is a route nothing has tested.
