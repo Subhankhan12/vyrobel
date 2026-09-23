@@ -87,7 +87,11 @@ $buckets = ['SILENT' => [], 'LOUD' => [], 'INERT' => [], 'UNCLASSIFIED' => []];
 
 foreach ($leaves as $path => $value) {
     $isEmpty = $value === null || $value === '' || $value === [];
-    if (! $isEmpty) { $set++; continue; }
+    if (! $isEmpty) {
+        $set++;
+
+        continue;
+    }
     $empty++;
     [$class, $why] = $CLASSIFY[$path] ?? ['UNCLASSIFIED', 'nobody has decided what this emptiness costs'];
     $buckets[$class][] = [$path, $why];
@@ -101,17 +105,27 @@ $strayEnv = [];
 $roots = ['app', 'routes', 'database', 'resources'];
 foreach ($roots as $root) {
     $dir = base_path($root);
-    if (! is_dir($dir)) { continue; }
+    if (! is_dir($dir)) {
+        continue;
+    }
     $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
     foreach ($it as $file) {
-        if (! $file->isFile() || $file->getExtension() !== 'php') { continue; }
+        if (! $file->isFile() || $file->getExtension() !== 'php') {
+            continue;
+        }
         $tokens = @token_get_all((string) file_get_contents($file->getPathname()));
-        if ($tokens === false) { continue; }
+        if ($tokens === false) {
+            continue;
+        }
         foreach ($tokens as $i => $t) {
-            if (! is_array($t) || $t[0] !== T_STRING || $t[1] !== 'env') { continue; }
+            if (! is_array($t) || $t[0] !== T_STRING || $t[1] !== 'env') {
+                continue;
+            }
             $prev = $tokens[$i - 1] ?? null;
             // `->env(` and `Foo::env(` are different functions entirely.
-            if (is_array($prev) && in_array($prev[0], [T_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION], true)) { continue; }
+            if (is_array($prev) && in_array($prev[0], [T_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION], true)) {
+                continue;
+            }
             $strayEnv[] = str_replace(base_path().'/', '', $file->getPathname()).':'.$t[2];
         }
     }
@@ -119,7 +133,7 @@ foreach ($roots as $root) {
 
 // ── REPORT. ⚠️ NO VALUES, EVER. ──────────────────────────────────────────────────────────────────────
 $line = str_repeat('-', 86);
-echo "\n  CONFIG INVENTORY — ".date('Y-m-d H:i')."  env=".config('app.env')."\n  $line\n";
+echo "\n  CONFIG INVENTORY — ".date('Y-m-d H:i').'  env='.config('app.env')."\n  $line\n";
 printf("  leaves resolved: %d   SET: %d   EMPTY: %d\n", count($leaves), $set, $empty);
 echo "  ⚠️ no value is printed by this file, only whether one is present.\n  $line\n";
 
@@ -127,7 +141,11 @@ foreach (['SILENT', 'UNCLASSIFIED', 'LOUD', 'INERT'] as $class) {
     $rows = $buckets[$class];
     $mark = $class === 'SILENT' ? '⚠️⚠️' : ($class === 'UNCLASSIFIED' ? '⚠️ ' : '   ');
     printf("\n  %s EMPTY · %s  (%d)\n", $mark, $class, count($rows));
-    if ($rows === []) { echo "      none\n"; continue; }
+    if ($rows === []) {
+        echo "      none\n";
+
+        continue;
+    }
     foreach ($rows as [$path, $why]) {
         printf("      %-44s %s\n", $path, $class === 'SILENT' || $class === 'UNCLASSIFIED' ? $why : '');
     }
@@ -142,15 +160,19 @@ if ($cached) {
     echo "         no matter what .env says, and ⚠️⚠️ SETTING THE VARIABLE WILL NOT CHANGE THAT.\n";
 }
 printf("\n  ⚠️ env() called OUTSIDE config/ : %d site(s)%s\n", count($strayEnv), $cached ? '  ← each one reads NULL here' : '');
-foreach (array_slice($strayEnv, 0, 12) as $s) { echo "      $s\n"; }
-if (count($strayEnv) > 12) { printf("      … and %d more\n", count($strayEnv) - 12); }
+foreach (array_slice($strayEnv, 0, 12) as $s) {
+    echo "      $s\n";
+}
+if (count($strayEnv) > 12) {
+    printf("      … and %d more\n", count($strayEnv) - 12);
+}
 if ($strayEnv !== [] && $cached) {
     echo "      ⚠️⚠️ THE FIX IS APPLICATION CODE, NOT A SETTING: move the key into a config/ file and read it\n";
     echo "         through config(). Reported, deliberately not done — this pass fixes only configuration.\n";
 }
 
 // ── ⚠️⚠️ CALIBRATION. A DETECTOR IS NOT TRUSTED UNTIL IT IS SEEN TO BE RIGHT ABOUT KNOWN ANSWERS. ───
-echo "\n  $line\n  CALIBRATION — three known points, checked before any result above is believed\n";
+echo "\n  $line\n  CALIBRATION — four known points, checked before any result above is believed\n";
 $cal = [
     ['app.key must be SET', ! in_array('app.key', array_column(array_merge(...array_values($buckets)), 0), true)],
     ['services.postmark.token must be EMPTY+SILENT', in_array('services.postmark.token', array_column($buckets['SILENT'], 0), true)],
@@ -164,13 +186,15 @@ $cal = [
 $calFails = 0;
 foreach ($cal as [$label, $ok]) {
     printf("      %s %s\n", $ok ? '✓' : '✗', $label);
-    if (! $ok) { $calFails++; }
+    if (! $ok) {
+        $calFails++;
+    }
 }
 if ($calFails > 0) {
     echo "\n  ⚠️⚠️ CALIBRATION FAILED — this inventory is not to be trusted. Fix it before reading the result.\n";
     exit(2);
 }
-echo "      ⚠️ calibration passed: the instrument is right about the three answers already known.\n";
+echo "      ⚠️ calibration passed: the instrument is right about the four answers already known.\n";
 
 $silent = count($buckets['SILENT']);
 printf("\n  RESULT: %d EMPTY+SILENT — the class that keeps working while quietly doing less.\n", $silent);
