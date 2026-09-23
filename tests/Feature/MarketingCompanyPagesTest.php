@@ -47,7 +47,13 @@ it('⚠️ keeps the four refused company pages unpublished', function () {
     //   changelog — three entries predate the first commit and two are dated in the future
     //   privacy   — a legal document; drafting it is not a build step
     //   terms     — the same
-    foreach (['careers', 'changelog', 'privacy', 'terms'] as $key) {
+    // ⚠️ `privacy` and `terms` LEFT THIS LIST on 2026-09-23. Their refusal ("a legal document; drafting
+    //    it is not a build step") was overridden by the founder, twice and knowingly, because Google
+    //    will not publish an External OAuth consent screen without a privacy-policy URL. The refusal's
+    //    REASONING is answered rather than discarded: the pages assert only what docs/legal/
+    //    DATA-INVENTORY.md verified against the code, and carry a pending-legal-review banner.
+    // ⚠️ `careers` and `changelog` STAY — their refusals are about fabricated content, untouched by this.
+    foreach (['careers', 'changelog'] as $key) {
         Assert::assertTrue(
             MarketingUrls::pending($key),
             "[{$key}] became a published page. Gate 7 refused it — docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-"

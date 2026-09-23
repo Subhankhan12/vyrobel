@@ -117,6 +117,20 @@ class MarketingController extends Controller
         return view('marketing.security');
     }
 
+    /**
+     * ⚠️ LEGAL PAGES, ADDED 2026-09-23 OVER A RECORDED REFUSAL — see the note in routes/web.php.
+     * Both render from `docs/legal/`'s audited inventory and are bannered as pending legal review.
+     */
+    public function privacy(): View
+    {
+        return view('marketing.privacy');
+    }
+
+    public function terms(): View
+    {
+        return view('marketing.terms');
+    }
+
     public function about(): View
     {
         return view('marketing.about');

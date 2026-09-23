@@ -653,9 +653,22 @@ Route::controller(MarketingController::class)->name('marketing.page.')->group(fu
     //    first commit (2026-07-02) and TWO are dated in the FUTURE — the newest, presented as most recently
     //    shipped, is 45 days ahead of today. No labelling cures a date that cannot have happened.
     //  • `demo-confirmed` — the post-submit state of the demo booker, refused with D5.
-    //  • `privacy` / `terms` — LEGAL DOCUMENTS. Their structure and a cited data inventory are prepared for
-    //    counsel in docs/legal/; the text is not this pass's to draft, and a plausible-looking privacy policy
-    //    is worse than none because the founder and their customers' auditors would rely on it.
+    //
+    // ⚠️⚠️ `privacy` / `terms` WERE REFUSED HERE, AND THE REFUSAL IS KEPT ON THE RECORD RATHER THAN DELETED.
+    //    It read: "LEGAL DOCUMENTS. Their structure and a cited data inventory are prepared for counsel in
+    //    docs/legal/; the text is not this pass's to draft, and a plausible-looking privacy policy is worse
+    //    than none because the founder and their customers' auditors would rely on it."
+    // ⚠️ OVERRIDDEN BY THE FOUNDER on 2026-09-23, twice and knowingly, because Google will not publish an
+    //    External OAuth consent screen without a privacy-policy URL — so the real choice was not "policy or
+    //    no policy", it was "policy or no Google sign-in at all".
+    // ⚠️⚠️ THE ORIGINAL OBJECTION IS ANSWERED BY CONSTRUCTION, NOT IGNORED. The pages state only what
+    //    docs/legal/DATA-INVENTORY.md verified against the code; they PRINT every limitation rather than
+    //    smoothing it (no residency promise, no "encrypted at rest", no sub-processor list that does not
+    //    exist, no retention period the software does not enforce); the cookie table renders from the LIVE
+    //    CookieConsent catalogue so it cannot drift; and both carry a pending-legal-review banner.
+    //    ⚠️ They are a floor, not a finished policy. Counsel replaces the text; it does not merely bless it.
+    Route::get('/privacy', 'privacy')->name('privacy');
+    Route::get('/terms', 'terms')->name('terms');
     Route::get('/integrations', 'integrations')->name('integrations');
     Route::get('/security', 'security')->name('security');
     Route::get('/about', 'about')->name('about');

@@ -105,7 +105,9 @@ it('uses the slugs from the design’s own sitemap, not filename guesses', funct
     // ⚠️ Gate 7 built `contact` and `about` (plus `security` and `integrations`), so they leave this list —
     // and `careers` STAYS, because its refusal is a ruling, not a backlog item: the page's subject is a
     // company with staff, offices and a hiring history that do not exist.
-    foreach (['docs', 'careers', 'changelog', 'privacy', 'terms'] as $unbuilt) {
+    // ⚠️ `privacy` and `terms` left this list on 2026-09-23 — see MarketingCompanyPagesTest for the
+    //    ruling that moved them. The pin moves with a ruling, never silently.
+    foreach (['docs', 'careers', 'changelog'] as $unbuilt) {
         Assert::assertTrue(MarketingUrls::pending($unbuilt), "[{$unbuilt}] must remain pending until its gate builds it");
     }
 });

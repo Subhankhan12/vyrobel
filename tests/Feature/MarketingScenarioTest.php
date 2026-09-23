@@ -30,11 +30,12 @@ function mkAllMarketingViews(): array
     // ⚠️ COUNT-PINNED: a page added without extending these sweeps is a page nothing checks.
     // ⚠️ 15 since Gate 4 added the try-booking sandbox. A page added without extending these sweeps is a
     // page nothing checks, so the count moves only when a gate says so.
+    // ⚠️ 21 since 2026-09-23: + privacy, terms. ⚠️ THE GATE-7 REFUSAL OF BOTH WAS OVERRIDDEN BY THE FOUNDER, twice and knowingly — Google will not publish an External OAuth consent screen without a privacy-policy URL, so the choice was "policy or no Google sign-in". The pages are drafted from docs/legal/'s audited inventory, print every limitation rather than smoothing it, and are bannered pending legal review. ⚠️ This pin moved with a ruling, never silently.
     // ⚠️ 19 since Gate 7: + about, security, integrations, contact. The other six company pages are
     // REFUSED, not pending — careers and changelog because their subjects (a company with staff, a release
     // history) do not exist; demo-confirmed with D5; privacy and terms because drafting legal text is not a
     // build step. See docs/audits/FRONT-GATE7-DOC-TRUTH-AUDIT-2026-08-22.md. The pin moves with a ruling.
-    Assert::assertCount(19, $views, 'the marketing page set changed: '.implode(', ', $views));
+    Assert::assertCount(21, $views, 'the marketing page set changed: '.implode(', ', $views));
 
     return $views;
 }

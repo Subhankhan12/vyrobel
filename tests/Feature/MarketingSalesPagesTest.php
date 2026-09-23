@@ -32,11 +32,12 @@ it('serves the four claim-free Sales pages', function () {
     // ⚠️ 14 since Gate 3b: the six Core + four Sales + the four ILLUSTRATIVE SCENARIOS, which ruling (A)
     // reframed and routed under /example-scenarios. The pin moves with a ruling; it never moves silently.
     // ⚠️ 15 since Gate 4: the six Core + four Sales + four scenarios + the try-booking SANDBOX.
+    // ⚠️ 21 since 2026-09-23: + privacy, terms. ⚠️ THE GATE-7 REFUSAL OF BOTH WAS OVERRIDDEN BY THE FOUNDER, twice and knowingly — Google will not publish an External OAuth consent screen without a privacy-policy URL, so the choice was "policy or no Google sign-in". The pages are drafted from docs/legal/'s audited inventory, print every limitation rather than smoothing it, and are bannered pending legal review. ⚠️ This pin moved with a ruling, never silently.
     // ⚠️ 19 since Gate 7: + about, security, integrations and contact. ⚠️ `marketing.contact.store` — the
     // form's POST — is deliberately NOT in this count: it sits outside the `marketing.page.*` group because
     // that prefix is the contract MarketingUrls::pending() reads to decide whether a PAGE exists, and a
     // write is not a page. That separation is what this pin caught a name collision over in Gate 2.
-    Assert::assertSame(19, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
+    Assert::assertSame(21, $named->count(), 'the marketing route set changed: '.$named->implode(', '));
 });
 
 it('⚠️ leaves the audited pages UNROUTED — an empty or unsourced page must not be publicly reachable', function () {
