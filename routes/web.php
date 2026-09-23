@@ -259,8 +259,10 @@ Route::post('/logout', [LoginController::class, 'destroy'])->middleware('auth')-
  * A returning user is matched on (provider, provider_user_id) and NEVER on their email address.
  */
 Route::get('/auth/google/redirect', [SocialAuthController::class, 'redirectToProvider'])
+    ->defaults('provider', 'google')
     ->middleware('throttle:10,1')->name('social.google.redirect');
 Route::get('/auth/google/callback', [SocialAuthController::class, 'callback'])
+    ->defaults('provider', 'google')
     ->middleware('throttle:10,1')->name('social.google.callback');
 
 /*
@@ -1074,6 +1076,7 @@ Route::middleware(['auth', 'verified', EnsureBackOfficeAccess::class, EnforceIpA
     //    being signed in is the proof that a matching email address can never be. The unlink floor (a user
     //    must always keep one usable credential) is enforced in the controller, not in the screen.
     Route::post('/security/connections/google', [SocialAuthController::class, 'redirectToLink'])
+        ->defaults('provider', 'google')
         ->middleware('throttle:10,1')->name('security.connections.link');
     Route::post('/security/connections/{identity}/unlink', [SocialAuthController::class, 'unlink'])
         ->middleware('throttle:10,1')->name('security.connections.unlink');

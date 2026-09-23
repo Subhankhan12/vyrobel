@@ -9,10 +9,12 @@ use App\Http\Controllers\Auth\Concerns\CompletesSignIn;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Services\Auth\GoogleIdentityProvider;
 use App\Support\Auth\SignInCredentials;
 use App\Support\Auth\SocialIdentity;
 use App\Support\Auth\SocialLinking;
 use App\Support\Auth\SocialLinkOutcome;
+use App\Support\Auth\SocialProviders;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -58,7 +60,7 @@ final class SocialAuthController extends Controller
 
     private function begin(Request $request, string $intent): RedirectResponse
     {
-        $provider = $this->provider();
+        $provider = $this->provider($request);
 
         // ⚠️ Generated per attempt, never reused. This is the CSRF defence of the whole flow: without it, an
         //    attacker can complete an authorization they started and have the victim's browser deliver it.
@@ -76,7 +78,7 @@ final class SocialAuthController extends Controller
     /** The provider sends the browser back here. Everything that follows is a refusal until proven otherwise. */
     public function callback(Request $request): RedirectResponse
     {
-        $provider = $this->provider();
+        $provider = $this->provider($request);
 
         // ⚠️⚠️ STATE FIRST, AND CONSUMED WHATEVER HAPPENS NEXT. Pulling it before any other work makes the
         //    value SINGLE-USE by construction: a replayed callback finds nothing in the session and is
@@ -250,11 +252,17 @@ final class SocialAuthController extends Controller
      *    every entry point, rather than only when registering routes, so that a route cached while the
      *    credentials were present cannot outlive them.
      */
-    private function provider(): SocialIdentityProvider
+    private function provider(Request $request): SocialIdentityProvider
     {
-        $provider = app(SocialIdentityProvider::class);
+        // ⚠️⚠️ THE KEY COMES FROM THE ROUTE'S OWN DEFAULT, NOT FROM A URL SEGMENT. Each route hardcodes the
+        //    provider it serves (`->defaults('provider', 'google')`), so there is no wildcard for a caller to
+        //    put anything into — the tightest possible allow-list, and nothing to validate at runtime.
+        // ⚠️ The Google fallback keeps a route-cache built before this change working, rather than 500-ing.
+        $key = (string) ($request->route('provider') ?? GoogleIdentityProvider::KEY);
 
-        if (! $provider->enabled()) {
+        $provider = SocialProviders::resolve($key);
+
+        if ($provider === null || ! $provider->enabled()) {
             throw new NotFoundHttpException;
         }
 
