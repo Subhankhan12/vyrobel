@@ -112,6 +112,7 @@ pad() { printf '%-52s' "$1"; }
 
 exposed=0
 refused=0
+unmeasurable=0
 unmeasured=0
 printf '  %-52s %-6s %-8s %s\n' "PATH" "HTTP" "BYTES" "VERDICT"
 printf '  %s\n' "------------------------------------------------------------------------------------"
@@ -167,7 +168,11 @@ probe() {
             #    ⚠️⚠️ **A BATTERY THAT RAN BEHIND MAINTENANCE PROVED THE MAINTENANCE, NOT THE EXPOSURE** —
             #    re-run unparked before trusting a 53/53, and expect those 7 to become 404s from Laravel's
             #    router rather than file contents. Until then the honest figure is **46/53 proven**.
-            401|403|404|503) verdict="refused"; refused=$((refused+1)) ;;
+            # ⚠️⚠️ 503 IS A THIRD VERDICT — "COULD NOT MEASURE" — NOT A PASS. Fixed 2026-09-23 (MAIL 01).
+            #    An instrument needs three answers and this one had two, so it used the wrong one.
+            401|403|404) verdict="refused"; refused=$((refused+1)) ;;
+            503) verdict="UNMEASURABLE — the maintenance page answered, so the app was reached but the
+                      real behaviour is hidden; re-run unparked"; unmeasurable=$((unmeasurable+1)) ;;
             301|302) verdict="refused (redirect)"; refused=$((refused+1)) ;;
             ERR) verdict="UNMEASURED — no response after a retry"; unmeasured=$((unmeasured+1)) ;;
             *) verdict="UNMEASURED — unexpected status"; unmeasured=$((unmeasured+1)) ;;
@@ -186,7 +191,7 @@ if [ "$PROVE_RED" = "1" ]; then
 fi
 
 printf '  %s\n' "------------------------------------------------------------------------------------"
-printf '  base=%s  refused=%d  exposed=%d  unmeasured=%d\n' "$BASE" "$refused" "$exposed" "$unmeasured"
+printf '  base=%s  refused=%d  exposed=%d  UNMEASURABLE(503)=%d  unmeasured=%d\n' "$BASE" "$refused" "$exposed" "$unmeasurable" "$unmeasured"
 
 # ⚠️ Order matters: a real exposure outranks an instrument fault, so it is reported even if some other
 #    probe could not be measured. Only a clean sweep with nothing unmeasured earns exit 0.
@@ -198,5 +203,13 @@ if [ "$unmeasured" -gt 0 ]; then
     printf '  RESULT: ⚠️ %d probe(s) UNMEASURED — this is an instrument fault, NOT a clean bill of health.\n' "$unmeasured"
     exit 2
 fi
-printf '  RESULT: all %d probes refused.\n' "$refused"
+if [ "$unmeasurable" -gt 0 ]; then
+  printf '  RESULT: %d refused · %d UNMEASURABLE behind the maintenance page.\n' "$refused" "$unmeasurable"
+  printf '  ⚠️⚠️ A BATTERY THAT RAN BEHIND MAINTENANCE PROVED THE MAINTENANCE, NOT THE EXPOSURE.\n'
+  printf '  ⚠️ The %d unmeasurable probes reached Laravel rather than Apache — which for /current/.release is\n' "$unmeasurable"
+  printf '     the SAFE outcome (the file was NOT served directly); do not "fix" it by breaking it.\n'
+  printf '  ⚠️ They cannot be answered until the site is unparked. Re-run then.\n'
+else
+  printf '  RESULT: all %d probes refused.\n' "$refused"
+fi
 exit 0

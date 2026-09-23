@@ -23,12 +23,23 @@ COUNT_ONLY=0
 PATTERN="${1:-}"
 [ -z "$PATTERN" ] && { echo "usage: ops/ps-check.sh [-c] '<extended-regex>'" >&2; exit 2; }
 
-# Bracket-split every alternative so the pattern cannot match a command line containing it verbatim.
+# ⚠️ TWO transformations, and BOTH were bought by a real false result:
+#   1. BRACKET-SPLIT the first character (`queue` → `[q]ueue`) so the pattern cannot match a command line
+#      that contains it verbatim — i.e. this tool's own invocation. 🔬 Bought by `ps | grep "queue:work"`
+#      reporting 36/36 sightings of a worker that was not running.
+#   2. ⚠️⚠️ WORD-ANCHOR each alternative, so a needle cannot match INSIDE a longer name. 🔬 Bought
+#      2026-09-23 by the needle `rsync` matching macOS's **`postersyncd`** ("poste-rsync-d"). That one was
+#      caught by eye — and ⚠️ **the danger is not the false positive, it is habituation: a check that cries
+#      wolf gets skimmed, and the run it matters on is the one somebody skims.**
+#   ⚠️ `[[:alnum:]_]` rather than `\b`, because `\b` is a GNU extension and this must also run on BSD grep.
 SPLIT=$(printf '%s' "$PATTERN" | awk -F'|' '{
   out=""
   for (i = 1; i <= NF; i++) {
     a = $i
-    if (length(a) > 0) { a = "[" substr(a,1,1) "]" substr(a,2) }
+    if (length(a) > 0) {
+      a = "[" substr(a,1,1) "]" substr(a,2)
+      a = "(^|[^[:alnum:]_])" a "([^[:alnum:]_]|$)"
+    }
     out = (i == 1 ? a : out "|" a)
   }
   print out
