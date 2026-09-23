@@ -58,6 +58,16 @@ Each was decided once, against a concrete case. **They are the most reusable thi
 - **A guard that discovers beats one that lists.** Read the models for soft-deletion; do not keep a list.
 - ⚠️ **Prove both directions.** A gate proven only in the deny direction may be denying everyone.
 
+### ⚠️⚠️ THE HEURISTIC THAT WOULD HAVE CAUGHT THE LAST THREE ON SIGHT
+
+> ⚠️⚠️ **WHEN A METRIC IMPROVES WITHOUT THE THING IT MEASURES IMPROVING, THE METRIC MOVED, NOT THE WORLD.**
+
+🔬 The exposure battery's score went **46 → 53 of 53** at the instant a lock was added in front of the
+application. Nothing about the wall changed. ⚠️ **A number that gets better for free is measuring the wrong
+thing** — and the corollary is just as useful: **green must not be reachable without measuring.** That
+battery now exits 2 when the application refused *nothing*, because every run in its life before
+2026-09-23 was answered by a 503 or a 401 and every one of them reported a confident score.
+
 ### ⚠️⚠️ And the rule that governs all of them
 
 **THE BRIEF IS WRONG ROUGHLY HALF THE TIME.** 📄 Tally over the recent sequence: a correction was found in
@@ -88,6 +98,10 @@ The ones that recur most, with their faces:
 | **`RefreshDatabase` is deliberately OFF** | The test DB persists. Fixed ids accumulate and break *neighbouring* files on the second run, not the first. |
 | **`not->toContain($needle, $msg)`** | Variadic — the message becomes a second needle, and the assertion is unconditionally true. |
 | **A vacuity floor satisfiable by deleted rows** | "Plans exist" passed with every plan trashed. |
+| ⚠️⚠️ **A LAYER IN FRONT ANSWERS FOR THE THING YOU ARE MEASURING** — 3× in 11h | The maintenance page (503), then the private-preview lock (401), each scored as "the wall refused". 🔬 The lock took `ops/exposure-battery.sh` from **46 → 53/53 the moment the site got safer**. ⚠️ **Both fixes were "add a verdict for that status code", and the third layer would have fired it again.** ⚠️ Score by **who answered**, not by what number came back — a PHP marker in the response headers, with a premise control that refuses to score if the marker is unreadable. |
+| ⚠️⚠️ **A SAMPLE SHORTER-LIVED THAN ITS TARGET** | 🔬 `ps` every **10 s for 150 s** saw a once-a-minute worker **zero times**; every **1 s** found it on the first tick (it lives ~2 s). ⚠️ **Absence in a sparse sample is not absence.** |
+| ⚠️ **The verifier reports on the wrong thing** — 2× in one hour | `cmd \| sed` then `echo $?` reads **sed's** status, not the command's — printed a clean `exit=0` over a check that had matched. And `grep … \| head -1 && break` breaks on the **first** iteration regardless, because `head` exits 0 on empty input. ⚠️ Both produced confident, wrong "nothing here" reports. |
+| ⚠️⚠️ **A correctly-identified process that belongs to somebody else** | `hrmzy.com` shares the hosting account and runs its **own** `queue:work`. `ops/ps-check.sh` stops `ps \| grep` matching its own command line — ⚠️ it cannot tell you **whose** app it found. Pin the binary (`php84` vs `php83`) or the `CRONJOBID:`. |
 
 ---
 

@@ -1058,3 +1058,90 @@ infrastructure and the founder's own cutovers, not engineering work — see the 
 ⚠️ **Not on this list, because they are the founder's calls, not engineering gaps:** the Stripe live-key flip
 and Connect KYC, the payout-engine go-live flip, `passport:keys` per environment, `tax:set-rate` per
 jurisdiction, and the VAT-validation fork (send-as-is vs VIES-first). See §3 and the linked production docs.
+
+---
+
+### 7.8 THE HOST ITSELF — ⚠️⚠️ FOUR FACTS EVERY EARLIER SECTION GOT WRONG OR NEVER KNEW (2026-09-23)
+
+#### 7.8.1 ⚠️⚠️ IT IS **LiteSpeed**, NOT APACHE
+
+🔬 Measured: the origin answers `server: LiteSpeed`. It reads `.htaccess` in **compatibility mode** — which
+is why every rule in `ops/reference/public_html.htaccess` works — but it is **not Apache**, and its edge
+cases are its own. ⚠️ **Every section above this one was written assuming Apache.** If you are debugging a
+rewrite, an auth directive or a redirect and the Apache manual says it should work, that is not evidence.
+
+🔬 Two behaviours already observed that Apache documentation would not have predicted:
+- A trailing-slash path is **301'd before authentication runs** (`/webhooks/` → `/current/public/webhooks`),
+  so a lock cannot refuse it — ⚠️ but the redirect **target** is refused, which is what actually matters.
+- `WWW-Authenticate` is emitted on **200** responses, not only on 401s. ⚠️ See 7.8.4.
+
+#### 7.8.2 ⚠️⚠️ TWO PRODUCTS SHARE THIS HOSTING ACCOUNT — **`ps` IS AMBIGUOUS EVIDENCE FOREVER**
+
+`hrmzy.com` is a second Laravel application on the same account, with its own scheduler and **its own
+`queue:work`**. 🔬 A session on 2026-09-23 found it, mistook it for Vyrobel's, and nearly overturned a
+correct record.
+
+**THE DISCRIMINATOR IS THE PHP BINARY, AND IT IS RELIABLE:**
+
+| | Vyrobel | hrmzy |
+|---|---|---|
+| binary | `/opt/alt/php84/usr/bin/php` | `/opt/alt/php83/usr/bin/php` |
+| command | `queue:work --stop-when-empty --max-time=55` | `queue:work database --tries=3 --stop-when-empty` |
+| composer floor | `^8.4.1` — 🔬 **artisan exits 255 under 8.3** | `^8.1` — runs happily on 8.3 |
+| cron log | `~/.logs/cronjob_r11hhxmHpy` | `~/.logs/cronjob_3RZtQmADsE` |
+
+⚠️ **NEVER grep `ps` for a bare `queue:work` on this host.** Always pin `php84`, or read the
+`CRONJOBID:` comment that the panel leaves on the command line. ⚠️ `ops/ps-check.sh` exists so `ps | grep`
+cannot match its **own** command line — it cannot tell you **whose** application a correctly-identified
+process belongs to. **A correctly-identified process on a shared account is still somebody else's.**
+
+⚠️ **AND THE PANEL CRONS ARE READABLE AFTER ALL** — not via `crontab` (which exits 127 here), but off the
+process's own `ps` line during its execution window. The full Vyrobel worker entry is:
+
+```
+/bin/sh -c /usr/bin/flock -w 1 /tmp/cron_lock_r11hhxmHpy timeout -s 9 1800 \
+  /opt/alt/php84/usr/bin/php ~/domains/vyrobel.com/public_html/artisan \
+  queue:work --stop-when-empty --max-time=55 > ~/.logs/cronjob_r11hhxmHpy 2>&1   # CRONJOBID:r11hhxmHpy
+```
+
+🔬 `flock -w 1` **is** real mutual exclusion — proven by holding the lock and watching a second run refuse
+after exactly 1 s. **Two workers cannot land on the same money job.** ⚠️ **But a skipped tick is SILENT**:
+`-w 1` gives up without running and without saying so, and `timeout -s 9 1800` only SIGKILLs a wedged worker
+after **thirty minutes** — so the worst case is ~30 minutes of silently-skipped ticks. ⚠️ An empty
+`~/.logs/cronjob_r11hhxmHpy` is **not** a cron that never ran; a parked worker exits quietly.
+
+#### 7.8.3 ⚠️⚠️ A SAMPLE INTERVAL LONGER THAN A PROCESS'S LIFETIME CANNOT SEE IT
+
+🔬 Sampling `ps` every **10 s for 150 s** found the php84 worker **zero times**, and the flat conclusion
+drawn from that was wrong. Sampling every **1 s** found it on the first tick: while the site is parked the
+worker lives about **two seconds**.
+
+⚠️⚠️ **ABSENCE IN A SPARSE SAMPLE IS NOT ABSENCE.** Match the interval to the lifetime of the thing you are
+hunting, or you are measuring your own patience. ⚠️ And beware the loop that lies: `grep … | head -1 && break`
+breaks on the **first** iteration whether or not anything matched, because `head` exits 0 on empty input.
+
+#### 7.8.4 ⚠️⚠️ THE TWO PRIVACY LAYERS, AND THE ORDER THEY COME OFF ON LAUNCH DAY
+
+The site currently carries **two independent layers**, added in this order:
+
+1. **Maintenance** (`artisan down`) — Laravel, answers **503**, and ⚠️ **pauses the queue**.
+2. **The private-preview lock** (Basic Auth in `public_html/.htaccess`) — the web server, answers **401**,
+   **before PHP runs**. Five machine-only routes are exempt (see `docs/THE-LOCK-2026-09-23.md`).
+
+⚠️⚠️ **THEY COME OFF IN THE REVERSE ORDER THEY WENT ON: MAINTENANCE FIRST, THE LOCK SECOND.**
+
+🔬 Taking the **lock** off first would make the site **public while it is still serving a maintenance
+page** — the worst of both: strangers can see it, and what they see is broken. Taking **maintenance** off
+first leaves the lock as the only layer, which is exactly the intended private-preview state.
+
+⚠️ **AND THE DISCRIMINATOR BETWEEN THEM IS THE STATUS CODE, NOT THE HEADER.** 🔬 `WWW-Authenticate` rides
+along on **200** and **503** responses too, so its presence proves nothing:
+
+- **401** = the lock refused, **before PHP**.
+- **503** = the request reached PHP and the maintenance page answered.
+- **200** = served.
+
+⚠️ Re-parking must **restore the backed-up `storage/framework/down` file**, never re-run `artisan down` —
+a fresh run mints a **new bypass secret** and silently invalidates the one the founder is holding.
+⚠️⚠️ **That file IS the secret. Verify a backup of it by comparing digests. Never print it, never `head` it,
+never print a prefix of it.**
