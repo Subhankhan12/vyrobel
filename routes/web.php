@@ -265,6 +265,15 @@ Route::get('/auth/google/callback', [SocialAuthController::class, 'callback'])
     ->defaults('provider', 'google')
     ->middleware('throttle:10,1')->name('social.google.callback');
 
+// ⚠️ X / Twitter — the same shape, its own hardcoded provider default. No wildcard segment anywhere, so
+//    there is no provider name for a caller to supply and nothing to validate at runtime.
+Route::get('/auth/twitter/redirect', [SocialAuthController::class, 'redirectToProvider'])
+    ->defaults('provider', 'twitter')
+    ->middleware('throttle:10,1')->name('social.twitter.redirect');
+Route::get('/auth/twitter/callback', [SocialAuthController::class, 'callback'])
+    ->defaults('provider', 'twitter')
+    ->middleware('throttle:10,1')->name('social.twitter.callback');
+
 /*
  * Notification mark-read writes (Phase 3) — shared by the operator + owner feeds. Behind `auth` only (both
  * portals). SELF-ONLY by construction: the controller writes through $request->user()->notifications, so a
@@ -1078,6 +1087,9 @@ Route::middleware(['auth', 'verified', EnsureBackOfficeAccess::class, EnforceIpA
     Route::post('/security/connections/google', [SocialAuthController::class, 'redirectToLink'])
         ->defaults('provider', 'google')
         ->middleware('throttle:10,1')->name('security.connections.link');
+    Route::post('/security/connections/twitter', [SocialAuthController::class, 'redirectToLink'])
+        ->defaults('provider', 'twitter')
+        ->middleware('throttle:10,1')->name('security.connections.twitter');
     Route::post('/security/connections/{identity}/unlink', [SocialAuthController::class, 'unlink'])
         ->middleware('throttle:10,1')->name('security.connections.unlink');
     Route::get('/security/export', [OperatorSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');

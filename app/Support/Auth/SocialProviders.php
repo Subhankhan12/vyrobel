@@ -6,6 +6,7 @@ namespace App\Support\Auth;
 
 use App\Contracts\Auth\SocialIdentityProvider;
 use App\Services\Auth\GoogleIdentityProvider;
+use App\Services\Auth\TwitterIdentityProvider;
 
 /**
  * ⚠️⚠️ THE ONE PLACE A PROVIDER KEY BECOMES A PROVIDER. Before this class the container held exactly one
@@ -28,6 +29,7 @@ final class SocialProviders
     /** @var array<string, class-string<SocialIdentityProvider>> */
     private const REGISTRY = [
         GoogleIdentityProvider::KEY => GoogleIdentityProvider::class,
+        TwitterIdentityProvider::KEY => TwitterIdentityProvider::class,
     ];
 
     /** Every provider key this application knows about, configured or not. */

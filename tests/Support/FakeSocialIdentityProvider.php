@@ -28,11 +28,15 @@ final class FakeSocialIdentityProvider implements SocialIdentityProvider
 
     public bool $failExchange = false;
 
-    public function __construct(public bool $enabled = true) {}
+    /**
+     * ⚠️ `$providerKey` DEFAULTS TO google SO EVERY EXISTING CALL IS UNCHANGED. The 30 Google tests
+     *    construct this with one argument and must keep proving exactly what they proved before.
+     */
+    public function __construct(public bool $enabled = true, public string $providerKey = 'google') {}
 
     public function key(): string
     {
-        return 'google';
+        return $this->providerKey;
     }
 
     public function enabled(): bool

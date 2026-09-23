@@ -205,6 +205,17 @@
                     <button type="submit" class="vy-btn" style="background:transparent;border:1px solid var(--vy-glass-border);color:var(--vy-ink);">Connect Google</button>
                 </form>
             @endif
+
+            {{-- ⚠️ CONNECT X — shown only when X is configured AND this account holds no X identity yet.
+                 ⚠️ Linking needs no verified address: being signed in IS the proof of ownership that a
+                 verified email would otherwise supply. That is exactly why X can be linked here and still
+                 cannot create an account at /signup. --}}
+            @if (($vyX = \App\Support\Auth\SocialProviders::resolve('twitter')) && $vyX->enabled() && collect($connections)->where('provider', 'twitter')->isEmpty())
+                <form method="POST" action="{{ route('app.security.connections.twitter') }}" style="margin-top:10px;">
+                    @csrf
+                    <button type="submit" class="vy-btn" style="background:transparent;border:1px solid var(--vy-glass-border);color:var(--vy-ink);">Connect X</button>
+                </form>
+            @endif
         </section>
 
         <div id="sec-sessions" class="vy-card vy-fade" style="margin-bottom:16px;max-width:560px;">

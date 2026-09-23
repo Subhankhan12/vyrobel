@@ -144,6 +144,18 @@
             </a>
         @endif
 
+        {{-- ⚠️ CONTINUE WITH X — same rule as Google above: rendered only when credentials exist, because
+             with none the route 404s and a button here would be a link to an error page.
+             ⚠️ SIGN-IN AND LINKING ONLY. X hands over an address but asserts nothing about the mailbox, so
+             it cannot create an account — that is a founder ruling, not a build step. There is deliberately
+             no X button on /signup. --}}
+        @if (($vyX = \App\Support\Auth\SocialProviders::resolve('twitter')) && $vyX->enabled())
+            <a href="{{ route('social.twitter.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Continue with X
+            </a>
+        @endif
+
         {{-- Passkey sign-in (Wave B · GATE 4) — passwordless WebAuthn; only shown where the browser supports it --}}
         <button type="button" id="vy-passkey-btn" class="vy-btn" style="display:none;margin-top:10px;background:transparent;color:var(--vy-accent);border:1px solid var(--vy-accent);">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

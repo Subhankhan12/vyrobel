@@ -151,7 +151,7 @@ it('⚠️ matches on the provider id even after the provider EMAIL changes', fu
         ->toBe($fake->next->email);   // updated as a display value only
 });
 
-it('⚠️⚠️ REFUSES an unverified address — both to link AND to create', function () {
+it('⚠️⚠️ REFUSES an unverified address to CREATE — and, since the 2026-09-24 ruling, permits it to LINK', function () {
     $fake = fakeGoogle();
     $email = uniqueEmail('unverified');
     $fake->next = googleIdentity('sub-'.Str::random(10), $email, verified: false);
@@ -165,10 +165,21 @@ it('⚠️⚠️ REFUSES an unverified address — both to link AND to create', 
         ->and(session()->has('social.signup'))->toBeFalse()
         ->and(Auth::guard('web')->check())->toBeFalse();
 
-    // Refused to LINK: the authenticated path says no as well.
+    // ⚠️⚠️ THE LINK HALF CHANGED ON 2026-09-24, BY A FOUNDER RULING, AND THIS LINE MOVED WITH IT.
+    //    It formerly asserted RefuseUnverified here too. The emailVerified check was MOVED out of
+    //    forLink() and left unweakened above, where it decides whether an address may CREATE an account.
+    // ⚠️ WHY LINKING IS CORRECT WITHOUT IT: the actor is already authenticated (proving the Vyrobel
+    //    account) and completed the provider flow (proving the provider account). The address resolves
+    //    nothing on that path — it is stored for display only.
+    // 🔬 WHAT IT WAS BLOCKING: X asserts nothing about the mailbox, so every X identity is honestly
+    //    unverified. With the check in forLink(), X could not be linked, could not create, and could only
+    //    sign in if already linked — which nothing could make it. An entire provider was switched off by
+    //    a rule written for a different question.
+    // ⚠️⚠️ THE CREATE HALF ABOVE IS UNTOUCHED AND MUST STAY THAT WAY: users.email is globally unique, so
+    //    an unverified address minting an account would permanently lock out its real owner.
     $scenario = seedScenario(1);
     $actor = operatorUser($scenario, ['email' => uniqueEmail('actor')]);
-    expect(SocialLinking::forLink($actor, $fake->next))->toBe(SocialLinkOutcome::RefuseUnverified);
+    expect(SocialLinking::forLink($actor, $fake->next))->toBe(SocialLinkOutcome::Link);
 });
 
 it('⚠️ allows TWO providers for ONE person — two rows, one user', function () {

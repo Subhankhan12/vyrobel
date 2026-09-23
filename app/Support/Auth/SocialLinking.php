@@ -46,8 +46,12 @@ final class SocialLinking
             return ['outcome' => SocialLinkOutcome::SignIn, 'user' => $link->user];
         }
 
-        // ② ⚠️ UNVERIFIED → refuse to link AND refuse to create. An unverified address from any provider is
-        //    worthless, and creating an account on one would let someone claim an address they never held.
+        // ② ⚠️⚠️ UNVERIFIED → REFUSE TO CREATE. An unverified address from any provider is worthless for
+        //    minting an account: users.email is globally unique, so someone claiming an address they never
+        //    held would lock its real owner out permanently.
+        // ⚠️ IT NO LONGER REFUSES TO *LINK* — that half moved to forLink() on 2026-09-24 by a founder
+        //    ruling, where the note explains why an authenticated session makes the flag redundant. This
+        //    half is the one that must never move again, and a mutation removing it reddens three tests.
         if (! $identity->emailVerified) {
             return ['outcome' => SocialLinkOutcome::RefuseUnverified, 'user' => null];
         }
@@ -74,10 +78,22 @@ final class SocialLinking
      */
     public static function forLink(User $actor, SocialIdentity $identity): SocialLinkOutcome
     {
-        if (! $identity->emailVerified) {
-            return SocialLinkOutcome::RefuseUnverified;
-        }
-
+        // The emailVerified check was MOVED out of this method on 2026-09-24 by a founder ruling, not
+        // deleted: it still stands unweakened in forSignIn(), which is the only place it has a job —
+        // deciding whether an address may CREATE an account.
+        //
+        // Why it had no job here: the flag answers "does this person own this mailbox?", and on this path
+        // that is already answered without the provider. The actor arrived inside an authenticated
+        // session (proving they own the Vyrobel account) and completed the provider flow (proving they
+        // own the provider account). The address resolves nothing here; it is stored for display only.
+        //
+        // What it was actually blocking: X returns an address but asserts nothing about it, so every X
+        // identity is honestly emailVerified=false. With the check here X could not be linked, could not
+        // create, and could only sign in if already linked - which nothing could make it. A rule written
+        // for account creation was silently switching off an entire provider.
+        //
+        // What is NOT relaxed: an identity already attached to another user is still refused below, and
+        // RefuseEmailTaken in forSignIn() still refuses a provider address matching an existing account.
         $link = self::find($identity);
 
         if ($link !== null) {

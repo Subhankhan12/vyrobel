@@ -72,6 +72,14 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', ''),
     ],
 
+    // ⚠️ X (Twitter) sign-in. Same rule as Google: the credentials ARE the on/off switch — with both empty
+    //    the provider reports disabled, no button renders and both routes 404.
+    'twitter' => [
+        'client_id' => env('TWITTER_CLIENT_ID', ''),
+        'client_secret' => env('TWITTER_CLIENT_SECRET', ''),
+        'redirect' => env('TWITTER_REDIRECT_URI', ''),
+    ],
+
     'channex' => [
         'base_url' => env('CHANNEX_BASE_URL', 'https://staging.channex.io/api/v1'),
         'api_key' => env('CHANNEX_API_KEY'),
