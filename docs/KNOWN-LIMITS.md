@@ -1019,7 +1019,7 @@ re-run until it goes green* — the exact habit it exists to prevent. ⚠️ Pro
 
 ---
 
-## L13 — ⚠️ EVERY `/api/owner/*` REQUEST RETURNS 500, BECAUSE A KEY FILE IS MODE 775
+## L13 — ✅ CLOSED 2026-09-23 · every `/api/owner/*` returned 500 on a mode-775 key file
 
 🔬 Measured 2026-09-23 (PUBLIC 01), the first time these routes were reachable from the public internet:
 
@@ -1043,7 +1043,27 @@ throws before the `auth:api` guard can even reject the caller.
 is false, no path, no stack. No token is issued, no data is returned, and the OAuth surface has no registered
 third-party clients yet, so nothing that works today is broken by it.
 
-**THE FIX IS ONE COMMAND**, and it has NOT been run — a permission change to a cryptographic key on live
+### ✅ CLOSED — the fix ran, and was proven by the RESULT
+
+🔬 2026-09-23, SHADOW 01. `chmod 600 storage/oauth-public.key`. **Proven by 500 → 401
+`{"message":"Unauthenticated."}` on all three routes** — `auth:api` now runs and refuses. The key's
+content digest was unchanged, so nothing but the mode moved.
+
+⚠️ **The prerequisite was measured FIRST, and it mattered:** the web process runs as `u545270279`
+(proven from the ownership of session, log and cache files written by live requests), so `600` is
+readable by the app. ⚠️⚠️ **Had it run as anything else, 600 would have produced the IDENTICAL 500 —
+a "fix" into the same failure, indistinguishable from the bug.**
+
+⚠️ **A DEPLOY CANNOT UNDO IT.** 🔬 `storage/` is a SYMLINK to `public_html/storage`, shared by all five
+releases — one copy, not one per release. No pipeline change is needed.
+
+⚠️ Neither key is tracked in git, has ever been in history, or is missed by `.gitignore` — measured.
+
+---
+
+**(the original entry follows, kept as written)**
+
+**THE FIX WAS ONE COMMAND**, and at the time of writing it had NOT been run — a permission change to a cryptographic key on live
 production was outside the pass that found it:
 
 ```
@@ -1058,3 +1078,59 @@ chmod 600 ~/domains/vyrobel.com/public_html/current/storage/oauth-public.key
 then a lock, and **every instrument reported them healthy** because a layer in front answered first. It took
 removing both layers to see a 500 that had presumably been there since the keys were generated on 2026-07-29.
 ⚠️ A route nothing can reach is a route nothing has tested.
+
+
+---
+
+## ⚠️⚠️ L14 — SETTING `OPS_HEARTBEAT_PING_URL` IN `.env` WILL NOT ARM THE ALARM
+
+🔬 Measured 2026-09-23 (SHADOW 01), by the new `ops/config-inventory.php`, whose calibration **failed
+first and was right to** — it asserted the heartbeat URL was a config key, and it is not.
+
+`routes/console.php:116` reads the value with a raw `env()`:
+
+```php
+->pingOnSuccessIf((bool) env('OPS_HEARTBEAT_PING_URL'), (string) env('OPS_HEARTBEAT_PING_URL', ''));
+```
+
+⚠️⚠️ **PRODUCTION CACHES ITS CONFIG, AND LARAVEL DOES NOT LOAD `.env` WHEN THE CONFIG IS CACHED.**
+🔬 Proven on the host: `configurationIsCached() = YES`, and `env('APP_NAME')` resolves to **NULL** even
+though `APP_NAME` is a line in `.env`.
+
+**So the ping is never armed, whatever the founder puts in `.env`.** The dead-man's-switch that exists to
+notice silence stays silent, and nothing anywhere indicates it.
+
+⚠️ **An earlier measurement of mine appeared to disprove this and was wrong:** it set the variable in the
+*shell* environment, where `getenv()` sees it regardless of whether `.env` was ever read. The cron has no
+such shell variable. ⚠️ **A test that supplies the value by a route the real caller does not use proves
+nothing about the real caller.**
+
+**BLAST RADIUS IS EXACTLY ONE FEATURE.** 🔬 The tokenised scan finds **2 stray `env()` sites, both on that
+single line**. Every other key is read through `config()` and is unaffected.
+
+⚠️ **THE FIX IS APPLICATION CODE** — move the key into a `config/` file and read `config(...)` — so it was
+reported and deliberately not done: SHADOW 01 was scoped to configuration and permissions only.
+
+---
+
+## ⚠️ L15 — `.env` IS MODE 777 IN EVERY RELEASE (contained, not exposed)
+
+🔬 Measured 2026-09-23: all five `releases/*/.env` are **777** — world-readable *and* world-writable.
+(`public_html/.env` is correctly 600.)
+
+⚠️ **AND THE ALARM IS SMALLER THAN IT LOOKS, BECAUSE THE TRAVERSAL CHAIN CONTAINS IT.**
+🔬 `/home/u545270279` is mode **710**, owner `u545270279:apache`. The world has **no execute bit**, so no
+other account on this shared host can traverse into the home directory at all. The group is `apache`,
+which is how PHP reaches it.
+
+**So this is sloppiness, not exposure** — but it is one panel action or support change away from being
+exposure, and it costs one command to remove:
+
+```
+chmod 600 ~/domains/vyrobel.com/releases/*/.env
+```
+
+⚠️ **NOT DONE.** It is not *proven broken* by measurement — the app works — and SHADOW 01's rule was to fix
+only what measurement proved broken and measurement could prove fixed. It is the founder's call.
+
+⚠️ Also 775 under `storage/`: several `.gitignore` files and one old log. Harmless, same containment.
