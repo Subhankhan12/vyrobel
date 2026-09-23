@@ -157,6 +157,16 @@ probe() {
     else
         case "$status" in
             200|206) verdict="⚠️ EXPOSED — served ${bytes}B"; exposed=$((exposed+1)) ;;
+            # ⚠️⚠️ 503 COUNTS AS REFUSED, AND THAT IS WHY A PARKED RUN PROVES LESS THAN IT LOOKS.
+            #    🔬 Measured 2026-09-23 (DEPLOY 11) against the parked site: of 53 probes, **32 returned 404
+            #    and 14 returned 403 — those are Apache/.htaccess refusals and hold with or without the park —
+            #    while 7 returned 503**, meaning the request WAS rewritten into Laravel and answered by the
+            #    maintenance page. ⚠️ Those 7 (`/app/Models/User.php`, `/app/Http/Middleware/…`,
+            #    `/current/.release`, `/current/.gitignore`, `/current/.gitattributes`, and two
+            #    `rel_*/app/Models/User.php`) prove NOTHING about exposure while the site is parked.
+            #    ⚠️⚠️ **A BATTERY THAT RAN BEHIND MAINTENANCE PROVED THE MAINTENANCE, NOT THE EXPOSURE** —
+            #    re-run unparked before trusting a 53/53, and expect those 7 to become 404s from Laravel's
+            #    router rather than file contents. Until then the honest figure is **46/53 proven**.
             401|403|404|503) verdict="refused"; refused=$((refused+1)) ;;
             301|302) verdict="refused (redirect)"; refused=$((refused+1)) ;;
             ERR) verdict="UNMEASURED — no response after a retry"; unmeasured=$((unmeasured+1)) ;;
