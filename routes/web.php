@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginApprovalController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\OnboardingController;
@@ -687,7 +688,31 @@ Route::post('/contact', [MarketingContactController::class, 'store'])
  * See docs/DECISIONS.md 2026-07-16. The gate is on the GROUP, so it covers every route below —
  * including any added later.
  */
-Route::middleware(['auth', EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| EMAIL VERIFICATION (operator realm) — GATE 01, 2026-09-23
+|--------------------------------------------------------------------------
+|
+| ⚠️⚠️ FOUNDER RULING: VERIFY BEFORE `/app`. Signup stays fully open and public; an unverified account
+| simply does nothing until the link is clicked.
+|
+| ⚠️⚠️ THESE THREE ROUTES SIT **OUTSIDE** THE GATE THEY LIFT, AND THAT IS NOT AN OVERSIGHT. Gating the page
+| that lifts the gate is the classic self-inflicted wound — `verified` redirects to `verification.notice`,
+| so if that route were itself gated the user would be redirected to it forever. They carry `auth` only.
+|
+| ⚠️ `verification.verify` additionally carries `signed` (the HMAC link) and a throttle; the `{id}`/`{hash}`
+| are validated against the AUTHENTICATED user by the framework's own `EmailVerificationRequest`, so one
+| user's link can never verify another's account.
+*/
+Route::middleware('auth')->group(function (): void {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1')->name('verification.send');
+});
+
+Route::middleware(['auth', 'verified', EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     // D1-1 — tick/un-tick one of the dashboard's DERIVED task rows. ⚠️ A PERSONAL note, not a completion:

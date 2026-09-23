@@ -53,6 +53,13 @@ function freshSignupTenant(string $suffix = 'a'): array
         property: ['name' => "Reachability Property {$suffix}", 'type' => 'hotel', 'location' => 'Faro'],
     );
 
+    // ⚠️⚠️ THE FOUNDER CLICKS THE LINK — added 2026-09-23 (GATE 01). `provision()` deliberately leaves the
+    //    founder UNVERIFIED (self-signup must verify), and `/app` is now behind the `verified` gate, so a
+    //    provisioned founder cannot operate until the emailed link is followed. These tests are about what a
+    //    tenant can DO once it exists, not about the gate — so they simulate the click rather than bypass it.
+    //    ⚠️ The gate itself is proven in `VerifiedEmailGateTest`, both ways and under mutation.
+    $result['user']->forceFill(['email_verified_at' => now()])->save();
+
     return [
         'user' => $result['user'],
         'property' => $result['property'],

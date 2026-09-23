@@ -119,8 +119,14 @@ it('shows a real email-verification badge, not a hardcoded one', function () {
     $this->actingAs($verified)->get('/app/notification-preferences')
         ->assertOk()->assertSee('Verified')->assertDontSee('Unverified');
 
-    // An operator whose email was never verified → the HONEST "Unverified", never a fake "Verified".
+    // ⚠️⚠️ THE "UNVERIFIED" BRANCH IS NOW UNREACHABLE IN THE PRODUCT — 2026-09-23 (GATE 01), and this is a
+    //    CONSEQUENCE OF THE RULING, not a defect. `/app` is behind `verified`, so an operator whose email is
+    //    not verified never reaches this page at all: the badge can only ever render "Verified".
+    // ⚠️ The badge is NOT removed. It is real, it is honest, and it becomes meaningful again the moment any
+    //    surface outside the gate renders it (the owner portal is ungated, for instance). Deleting a correct
+    //    feature because a gate currently hides it is how a product loses things quietly.
+    // ⚠️ What is asserted instead is the new truth: the unverified operator is TURNED AWAY from the page.
     $unverified = operatorUser($s, ['name' => 'Unverified Uma', 'email_verified_at' => null]);
     $this->actingAs($unverified)->get('/app/notification-preferences')
-        ->assertOk()->assertSee('Unverified');
+        ->assertRedirect(route('verification.notice'));
 });

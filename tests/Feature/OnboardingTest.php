@@ -38,6 +38,19 @@ it('provisions a new org, logs the founder in, and lets them operate it', functi
     expect((string) $org->status)->toBe('active')
         ->and(User::query()->where('email', 'ada@newco.test')->exists())->toBeTrue();
 
+    // ⚠️⚠️ THE FOUNDER MUST VERIFY FIRST — 2026-09-23 (GATE 01), by founder ruling: **verify before `/app`.**
+    //    🔬 A self-signup lands UNVERIFIED, which is the point: signup stays fully open and public and the
+    //    account does nothing until the emailed link is clicked.
+    // ⚠️ The click is simulated HERE, before the first `/app` request, deliberately: this test is about
+    //    ONBOARDING, and the first-run "Welcome to Vyrobel" banner is a session flash that a redirected
+    //    request would consume. The GATE itself is proven separately and far better — both directions and
+    //    under mutation — in `VerifiedEmailGateTest`, including that a fresh signup is turned away.
+    // ⚠️ `auth()->setUser()` refreshes the guard IN PLACE; `actingAs()` would regenerate the session and
+    //    drop the flash this test asserts on.
+    $founder = User::query()->findOrFail(auth()->id());
+    $founder->forceFill(['email_verified_at' => now()])->save();
+    auth()->setUser($founder->fresh());
+
     // The founder can actually operate the org — the #26 back-office gate + their provisioned Property Owner
     // role let them into /app, and the Portfolio honestly shows the 1 property "Finish setup to go live".
     $this->get('/app/portfolio')

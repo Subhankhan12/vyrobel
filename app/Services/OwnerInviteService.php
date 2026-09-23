@@ -192,7 +192,19 @@ class OwnerInviteService
                 $user = $this->userForInvite($invite);
 
                 // 'hashed' cast hashes the plaintext once. Activate the login + verify the email.
-                $user->update(['password' => $password, 'status' => 'active', 'email_verified_at' => now()]);
+                //
+                // ⚠️⚠️ `email_verified_at` IS SET OUTSIDE THE MASS ASSIGNMENT, AND THAT IS A BUG FIX, NOT A
+                //    STYLE CHOICE. 🔬 Measured 2026-09-23 (GATE 01): the column is **not in `User::$fillable`**,
+                //    so passing it to `update()` made Eloquent **silently drop it** — this line claimed to
+                //    "verify the email" and never did. Nothing noticed for as long as nothing READ the column
+                //    for a `User`; the moment `verified` went on `/app`, every invited user would have been
+                //    locked out of the product on their first login.
+                // ⚠️ Clicking a mailed invite link IS proof of email ownership, so verifying here is correct —
+                //    it was the mechanism that was broken, never the intent.
+                // ⚠️ `forceFill` rather than widening `$fillable`: a verification timestamp should not become
+                //    mass-assignable just to make one call site shorter.
+                $user->update(['password' => $password, 'status' => 'active']);
+                $user->forceFill(['email_verified_at' => now()])->save();
 
                 if ($invite->owner_id !== null) {
                     $this->activateOwner($invite);

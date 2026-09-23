@@ -11,6 +11,33 @@
 
 ---
 
+## ⚠️⚠️ HOW TO VERIFY AN ACCOUNT WHEN MAIL IS DOWN — added 2026-09-23 (GATE 01)
+
+⚠️⚠️ **THE CAPABILITY THAT, UNWRITTEN, THE NEXT SESSION DOES NOT HAVE.** With `verified` on the `/app` group,
+an unverified account cannot reach the back office — and the "resend" link is **mail**, so while Postmark is
+dark there is no self-service way back in. 🔬 On 2026-09-23 production held **exactly one** account
+(`founder.test@vyrobel.com`) and it was **unverified**: shipping the gate without this step would have locked
+the only human out of his own system.
+
+```php
+// On the host:  cd ~/domains/vyrobel.com/public_html/current
+//               /opt/alt/php84/usr/bin/php artisan tinker
+$email = 'someone@example.com';
+
+// ⚠️ GUARD FIRST. A blanket UPDATE on `users` is exactly the shape that goes wrong quietly.
+$n = DB::table('users')->where('email', $email)->count();
+if ($n !== 1) { throw new RuntimeException("expected exactly 1 row, found {$n}"); }
+
+DB::table('users')->where('email', $email)->whereNull('email_verified_at')
+    ->update(['email_verified_at' => now()]);   // ⚠️ must report affected = 1
+```
+
+⚠️ **Read the before and after, and confirm the affected count is 1** — not "it seemed to work".
+⚠️ It is exactly what clicking the signed link does; it forges no token and bypasses no other gate.
+⚠️ **Reversible:** set the column back to `NULL` to put the account behind the door again.
+⚠️ **This is a break-glass step for an operator you can identify out-of-band, not a routine one.** The
+supported path is the emailed signed link; this exists because mail can be down precisely when you need in.
+
 ## ⚠️⚠️ HOW TO REACH THE PRODUCTION HOST — added 2026-09-23, because it was nowhere and that cost four measurements
 
 ```

@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Http\Controllers\Auth\ChangePasswordController;
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Mail\PasswordResetMail;
+use App\Services\OwnerInviteService;
+use App\Services\OwnerTeamInviteService;
 use App\Support\Auth\SignInCredentials;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Security\ActiveSessions;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -41,7 +44,24 @@ use Spatie\Permission\Traits\HasRoles;
  */
 #[Fillable(['name', 'preferred_name', 'email', 'phone', 'password', 'locale', 'timezone', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at', 'compact_density', 'onboarding_tips', 'reduce_motion', 'date_format'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
-class User extends Authenticatable implements OAuthenticatable
+/**
+ * ⚠️⚠️ `MustVerifyEmail` — ENABLED 2026-09-23 (GATE 01), BY FOUNDER RULING: **verify before `/app`.**
+ *
+ * ⚠️ It was deliberately OFF, and the reason was recorded honestly in {@see OnboardingController}:
+ * *"NO email verification GATE — `User` is not `MustVerifyEmail`, so the founder matches every existing
+ * operator (they are logged in immediately, like accept-invite)"*, with the accept-and-verify variant
+ * **deferred because it needs production email**. ⚠️ That deferral has now been answered: the Postmark
+ * transport is installed and the founder has ruled the other way.
+ *
+ * ⚠️⚠️ WHY THIS DOES NOT LOCK OUT INVITED STAFF — MEASURED, NOT ASSUMED. 🔬 Both invite services
+ * ({@see OwnerInviteService::accept()} and {@see OwnerTeamInviteService})
+ * already set `email_verified_at = now()` on acceptance, because **clicking a mailed invite link IS proof of
+ * email ownership**. So an invited user passes the gate the moment they set their password. ⚠️ Only the
+ * SELF-SIGNUP path lands unverified — which is exactly the door this ruling closes.
+ *
+ * ⚠️ `Guest` has implemented this contract all along; this is the existing pattern, not a new mechanism.
+ */
+class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
 {
     /**
      * ⚠️ THE ONE DEFINITION OF "THIS ACCOUNT CAN SIGN IN".
