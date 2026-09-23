@@ -29,7 +29,15 @@
 # without this file changing (a panel change, a server that stops honouring AllowOverride). Neither
 # check subsumes the other — the same reason the alarm carries two independent detectors.
 #
-# 🔬 Recorded sha256 of the canonical content below: 4e671aa5d398046379da15b71595d0b019e41badc4dee3ce329da3e6311b370e
+#
+# ⚠️⚠️ UPDATED 2026-09-23 (LIVE 01) — THE CANONICAL CONTENT NOW CARRIES THE PRIVATE-PREVIEW LOCK.
+# The body below is no longer the 2026-09-21 file: it gained a Basic Auth block with three anchored
+# exemptions. ⚠️ THE LOCK IS USELESS WITHOUT `~/domains/vyrobel.com/.htpasswd`, WHICH IS NOT IN THIS
+# REPOSITORY AND MUST NOT BE — it is the founder's own password, typed on the server. ⚠️ Restoring this
+# file onto a host with no `.htpasswd` makes Apache return **500 on every non-exempt path**, which is a
+# louder failure than a leak but is still an outage: create the password file FIRST, then restore.
+#
+# 🔬 Recorded sha256 of the canonical content below: 55f21c444cb3ff4976a9da4384e76025821c20d777867839454bf05745e154c0
 #
 # ───────── BEGIN CANONICAL CONTENT — restore from the NEXT line down ─────────
 # ── Vyrobel — serve the CURRENT release through ONE pointer ────────────────────
@@ -62,3 +70,59 @@ RedirectMatch 404 ^/(bootstrap|config|database|resources|routes|storage|vendor|o
 RedirectMatch 404 ^/current/(app|bootstrap|config|database|resources|routes|storage|vendor|ops)(/|$)
 RedirectMatch 404 ^/current/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
 RedirectMatch 404 ^/(composer\.(json|lock)|package\.json|artisan|vite\.config\.js)$
+
+# ── ⚠️⚠️ THE PRIVATE-PREVIEW LOCK — added 2026-09-23 (LIVE 01) ──────────────────────────────────────
+# ⚠️⚠️ THIS REPLACES MAINTENANCE MODE AS THE WAY THE SITE STAYS PRIVATE, AND THE REASON IS THE QUEUE.
+#    🔬 `queue:work` PAUSES while the app is down (measured DEPLOY 06, re-measured REPAIR 01: a heartbeat
+#    sat 55 hours and drained within 60 s of an unpark). Under maintenance every booking would queue a job
+#    that never runs, so nothing anyone tested would behave like production.
+#    ⚠️ THE GOAL IS A LOCK ON THE DOOR, NOT A CLOSED SIGN.
+#
+# ⚠️ WHY BASIC AUTH AND NOT AN IP ALLOWLIST: a CDN terminates the connection (`server: hcdn`, measured
+#    DEPLOY 09), so Apache may see the EDGE's address and not the visitor's — and whether this host
+#    restores the real client IP could not be measured without serving a probe file on a live public path.
+#    ⚠️ A lock whose correctness rests on an unmeasured variable is the wrong lock. Basic Auth also
+#    survives his network changing, which an IP rule does not.
+#
+# ⚠️⚠️ NO PASSWORD IS IN THIS FILE AND NONE EVER WAS. `.htpasswd` is written by the founder, on the
+#    server, with a password no session has chosen, generated, logged or transmitted.
+# ⚠️ AuthUserFile SITS OUTSIDE THE DOCUMENT ROOT ON PURPOSE — `public_html` IS the application root here
+#    (KNOWN-LIMITS L12p), so a password file inside it would be one `.htaccess` mistake from being served.
+#
+# ── THE EXEMPTIONS ──────────────────────────────────────────────────────────────────────────────────
+# ⚠️⚠️ SetEnvIf RUNS AT HEADER-PARSE, BEFORE mod_rewrite — so `Request_URI` is the path the CALLER asked
+#    for, not the rewritten `/current/public/...`. ⚠️ BUT an internal redirect re-runs authorization on
+#    the NEW uri and renames every env var with a `REDIRECT_` prefix, so BOTH spellings are matched and
+#    BOTH names are accepted below. 🔬 Proven from outside, not reasoned about: see LIVE 01's measurements.
+#
+# ⚠️⚠️ EVERY PATTERN IS ANCHORED (`$`). A bare `^/webhooks/` prefix would exempt `/webhooks/../anything`,
+#    and ON A MONEY PATH AN OVER-PERMISSIVE CHECK *IS* THE BUG. These five are the whole exempt list, and
+#    each one is a route that `route:list` really serves — measured, not assumed.
+#    ⚠️ Request_URI excludes the query string, so `?cb=…` cache-busting cannot widen these.
+#
+#   · POST /webhooks/stripe · POST /webhooks/stripe/connect
+#       ⚠️⚠️ A MACHINE CANNOT TYPE A PASSWORD. And because Stripe is wired but not yet calling, a blocked
+#       webhook would be SILENT FOR WEEKS and would surface as a reconciliation mystery — the quietest
+#       possible failure, which is exactly why it is exempted before anybody needs it.
+#   · POST /webhooks/channex/{channel} — same reason; the channel manager is a machine too.
+#   · GET /up · GET /up/liveness
+#       ⚠️ The external dead-man's-switch polls these. Locking them makes the alarm fail for the wrong
+#       reason, which is worse than no alarm because it teaches people to ignore it.
+#   · ⚠️ NO POSTMARK INBOUND OR BOUNCE ROUTE EXISTS — 🔬 measured against `route:list`, not assumed.
+#       Nothing to exempt today. If one is ever added it belongs on this list in the same change.
+#
+# ⚠️ STATIC ASSETS ARE DELIBERATELY *INSIDE* THE LOCK. One origin means the browser replays credentials
+#    for CSS/JS automatically, so the app renders normally; the cost is that the CDN caches nothing while
+#    the preview is private. That is the right trade for a site with one intended visitor.
+SetEnvIf Request_URI "^(/current/public)?/webhooks/stripe(/connect)?/?$" VY_PUBLIC=1
+SetEnvIf Request_URI "^(/current/public)?/webhooks/channex/[A-Za-z0-9._-]+/?$" VY_PUBLIC=1
+SetEnvIf Request_URI "^(/current/public)?/up(/liveness)?/?$" VY_PUBLIC=1
+
+AuthType Basic
+AuthName "Vyrobel - private preview"
+AuthUserFile /home/u545270279/domains/vyrobel.com/.htpasswd
+<RequireAny>
+    Require env VY_PUBLIC
+    Require env REDIRECT_VY_PUBLIC
+    Require valid-user
+</RequireAny>

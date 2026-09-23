@@ -84,13 +84,75 @@ add_rule "sensitive files denied through /current/" \
     'RedirectMatch[[:space:]]+404[[:space:]]+\^/current/\(composer\\\.\(json\|lock\)\|package\\\.json\|artisan\|vite\\\.config\\\.js\)\$' \
     "the same files are reachable a second way through the release pointer"
 
-# ⚠️⚠️ THE ANTI-RULE. `/app` is the operator back office's own URL prefix, NOT a filesystem path in the
-# document root. 🔬 Measured 2026-09-21: including `app` in the TOP-LEVEL deny hard-404'd all 55+ operator
-# routes at Apache, before PHP ever ran — and it looked exactly like a hardening rule doing its job.
-# ⚠️ A refusal from the wrong layer is a bug wearing a guard's clothes. If someone "restores hardening" by
-# putting 'app' back, the product breaks and the 404 will look correct. This is here so it goes red instead.
-ANTI_REGEX='RedirectMatch[[:space:]]+404[[:space:]]+\^/\([^)]*\bapp\b'
-ANTI_WHY="'app' must NOT appear in the TOP-LEVEL deny — it is the operator back office's URL prefix, not a directory in the document root. It belongs ONLY in the ^/current/ rule"
+# ── ⚠️⚠️ THE PRIVATE-PREVIEW LOCK (LIVE 01, 2026-09-23) ─────────────────────────────────────────────
+# ⚠️⚠️ THESE RULES EXIST BECAUSE A CHECK THAT STILL SAYS "11/11" OVER A FILE IT NO LONGER UNDERSTANDS IS
+# WORSE THAN NO CHECK. The file grew a SECOND job — keeping the public out — and a drift check that knew
+# only the first would go green while the lock was deleted. ⚠️ A green must mean the WHOLE file.
+add_rule "the lock: Basic auth declared" \
+    '^[[:space:]]*AuthType[[:space:]]+Basic' \
+    "⚠️⚠️ without it the site is PUBLIC the moment maintenance lifts, and nothing else here would notice"
+
+add_rule "the lock: a real user is required" \
+    'Require[[:space:]]+valid-user' \
+    "AuthType alone challenges nobody. This is the line that actually refuses an anonymous request"
+
+add_rule "the lock: the password file is named absolutely" \
+    '^[[:space:]]*AuthUserFile[[:space:]]+/' \
+    "⚠️ a missing or relative AuthUserFile makes Apache return 500 on every non-exempt path"
+
+add_rule "exempt: Stripe webhooks" \
+    'SetEnvIf[[:space:]]+Request_URI[^#]*webhooks/stripe[^#]*VY_PUBLIC' \
+    "⚠️⚠️ A MACHINE CANNOT TYPE A PASSWORD. Stripe is wired but not yet calling, so a blocked webhook would be SILENT FOR WEEKS and would surface as a reconciliation mystery"
+
+add_rule "exempt: Channex webhooks" \
+    'SetEnvIf[[:space:]]+Request_URI[^#]*webhooks/channex[^#]*VY_PUBLIC' \
+    "the channel manager is a machine too, and the same silence applies to it"
+
+add_rule "exempt: /up and /up/liveness" \
+    'SetEnvIf[[:space:]]+Request_URI[^#]*/up\(/liveness\)\?[^#]*VY_PUBLIC' \
+    "the external dead-man's-switch polls these. An alarm that fails for the wrong reason teaches people to ignore it"
+
+add_rule "exempt: the REDIRECT_ spelling is accepted too" \
+    'Require[[:space:]]+env[[:space:]]+REDIRECT_VY_PUBLIC' \
+    "⚠️⚠️ mod_rewrite's internal redirect re-runs authorization on the NEW uri and renames every env var with a REDIRECT_ prefix. Without this line an exemption is set on the original request and then vanishes"
+
+
+# ── ⚠️⚠️ THE ANTI-RULES: things whose PRESENCE is the failure ───────────────────────────────────────
+# ⚠️ Each is a function returning 0 when VIOLATED. They are functions rather than regexes because two of
+# the three must judge a line's SHAPE, not merely its text — and a regex list would have quietly grown an
+# entry it could not express.
+ANTI_LABEL=(); ANTI_FN=(); ANTI_WHY=()
+add_anti() { ANTI_LABEL+=("$1"); ANTI_FN+=("$2"); ANTI_WHY+=("$3"); }
+
+# 🔬 Measured 2026-09-21: including `app` in the TOP-LEVEL deny hard-404'd all 55+ operator routes at
+# Apache, before PHP ever ran — and it looked exactly like a hardening rule doing its job.
+# ⚠️ A refusal from the wrong layer is a bug wearing a guard's clothes.
+anti_app_in_toplevel_deny() {
+    grep -vE 'RedirectMatch[[:space:]]+404[[:space:]]+\^/current/' "$1" 2>/dev/null \
+        | grep -qE 'RedirectMatch[[:space:]]+404[[:space:]]+\^/\([^)]*\bapp\b'
+}
+add_anti "app absent from the top-level deny" anti_app_in_toplevel_deny \
+    "'app' must NOT appear in the TOP-LEVEL deny — it is the operator back office's URL prefix, not a directory in the document root. It belongs ONLY in the ^/current/ rule"
+
+# ⚠️⚠️ AN UNANCHORED EXEMPTION IS A HOLE, NOT A CONVENIENCE. `^/webhooks/` with no closing `$` exempts
+# `/webhooks/anything-at-all`. ON A MONEY PATH AN OVER-PERMISSIVE CHECK *IS* THE BUG (§N.18.2).
+# ⚠️ Directive lines ONLY — a comment that quotes the pattern must not trip this. That trap has fired in
+# this project before: a source-scanning guard reading its own needle.
+anti_unanchored_exemption() {
+    grep -E '^[[:space:]]*SetEnvIf[[:space:]]+Request_URI[[:space:]]+"[^"]*"[[:space:]]+VY_PUBLIC' "$1" 2>/dev/null \
+        | grep -qvE '[$]"[[:space:]]+VY_PUBLIC'
+}
+add_anti "every exemption is anchored" anti_unanchored_exemption \
+    "⚠️⚠️ an exemption pattern with no closing dollar-anchor is a PREFIX, and a prefix exemption lets every path beneath it past the lock"
+
+# ⚠️ `public_html` IS the application root here (KNOWN-LIMITS L12p). A password file inside it is one
+# .htaccess mistake from being served — and a served hash is an offline-crackable one.
+anti_htpasswd_in_docroot() {
+    grep -E '^[[:space:]]*AuthUserFile' "$1" 2>/dev/null | grep -q 'public_html'
+}
+add_anti "the password file sits outside the document root" anti_htpasswd_in_docroot \
+    "AuthUserFile must not point inside public_html — on this host the document root IS the application root"
+
 
 assert_file() {
     # Echoes one line per rule; returns the number of failures. $2=1 prints, $2=0 stays quiet.
@@ -103,13 +165,15 @@ assert_file() {
             [ "$verbose" = "1" ] && { printf '  \033[31m✗\033[0m %s — MISSING\n' "${RULE_LABEL[$i]}"; printf '      why it matters: %s\n' "${RULE_WHY[$i]}"; }
         fi
     done
-    # The anti-rule: presence is the failure. Strip the /current/ line first — it is allowed to name `app`.
-    if grep -vE 'RedirectMatch[[:space:]]+404[[:space:]]+\^/current/' "$f" 2>/dev/null | grep -qE "$ANTI_REGEX"; then
-        fails=$((fails + 1))
-        [ "$verbose" = "1" ] && { printf "  \033[31m✗\033[0m ANTI-RULE VIOLATED — app is back in the top-level deny\n"; printf '      why it matters: %s\n' "$ANTI_WHY"; }
-    else
-        [ "$verbose" = "1" ] && printf "  \033[32m✓\033[0m anti-rule: app absent from the top-level deny (the operator app stays reachable)\n"
-    fi
+    for i in "${!ANTI_LABEL[@]}"; do
+        if "${ANTI_FN[$i]}" "$f"; then
+            fails=$((fails + 1))
+            [ "$verbose" = "1" ] && { printf '  \033[31m✗\033[0m ANTI-RULE VIOLATED — %s\n' "${ANTI_LABEL[$i]}"; printf '      why it matters: %s\n' "${ANTI_WHY[$i]}"; }
+        else
+            [ "$verbose" = "1" ] && printf '  \033[32m✓\033[0m anti-rule: %s\n' "${ANTI_LABEL[$i]}"
+        fi
+    done
+
     return "$fails"
 }
 
@@ -129,10 +193,26 @@ if [ "$SELF_TEST" = "1" ]; then
     assert_file "$TMP" 0
     SELF=$?
     if [ "$SELF" -gt "$FAILS" ]; then
-        printf '  \033[32m✓\033[0m SELF-TEST: removing the catch-all re-root takes failures %d → %d. The check fires.\n' "$FAILS" "$SELF"
+        printf '  \033[32m✓\033[0m SELF-TEST 1/2: removing the catch-all re-root takes failures %d → %d. The check fires.\n' "$FAILS" "$SELF"
     else
-        printf '  \033[31m✗\033[0m SELF-TEST FAILED: deleting the wall did not change the verdict (%d → %d).\n' "$FAILS" "$SELF"
+        printf '  \033[31m✗\033[0m SELF-TEST 1/2 FAILED: deleting the wall did not change the verdict (%d → %d).\n' "$FAILS" "$SELF"
         printf '      ⚠️ A guard never seen to fire is not a guard. Fix the check before trusting a green.\n'
+        exit 1
+    fi
+
+    # ⚠️⚠️ SELF-TEST 2 — THE ANTI-RULE THE FIRST SELF-TEST CANNOT REACH. Deleting a rule proves the
+    # PRESENCE checks fire; it says nothing about a detector whose failure mode is something being ADDED.
+    # 🔬 Those are different claims, and the lock's exemptions are guarded only by the second kind.
+    TMP2="$(mktemp)"; trap 'rm -f "$TMP" "$TMP2"' EXIT
+    cp "$FILE" "$TMP2"
+    printf 'SetEnvIf Request_URI "^/webhooks/" VY_PUBLIC=1\n' >> "$TMP2"
+    assert_file "$TMP2" 0
+    SELF2=$?
+    if [ "$SELF2" -gt "$FAILS" ]; then
+        printf '  \033[32m✓\033[0m SELF-TEST 2/2: adding an UNANCHORED exemption takes failures %d → %d. The anti-rule fires.\n' "$FAILS" "$SELF2"
+    else
+        printf '  \033[31m✗\033[0m SELF-TEST 2/2 FAILED: a prefix exemption `^/webhooks/` was accepted (%d → %d).\n' "$FAILS" "$SELF2"
+        printf '      ⚠️⚠️ That is the hole the anchor rule exists to refuse. Do not trust a green from this check.\n'
         exit 1
     fi
 fi
