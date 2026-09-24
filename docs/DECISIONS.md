@@ -17631,3 +17631,51 @@ battery SERVED=0). Probe `ADMIN-P4 PROBE (not a customer)` accepted, read back (
 internal. Customers: **0** → revenue reads "No live billing yet", the funnel "No customers yet". `Hash::check` of the
 known default still TRUE → break-glass stays dormant. **Waiting for the walkthrough:** the three pages signed in, and
 one register entry recorded and moved to a status on a probe account, its ledger rows read back.
+
+---
+
+## 2026-09-24 — ADMIN 01 · PHASE 5 — hotel statistics · adoption · cohorts · announcements · Channex · the public status page
+
+**Scope, as briefed** (ADMIN 01 §Phase 5). One additive migration: THREE NEW TABLES — `platform_announcements`,
+`announcement_dismissals`, `status_incidents`.
+
+**HOTEL STATISTICS — AGGREGATES ONLY, customers only unless asked:** rooms and units under management (active, in
+live properties) · bookings created per day, last 30 days · occupancy distribution (per property, nights sold ÷
+nights sellable from the availability spine, last 30 nights, bucketed — a property with nothing to sell is counted
+APART, never as 0%) · money processed through folios per currency (succeeded / captured; a failed payment is proved
+NOT to count; refunds apart; labelled "the hotels' money, not Vyrobel's revenue") · average booking value per currency.
+A test gives a guest a distinctive name and asserts it never reaches the page.
+**MODULE ADOPTION** from REAL usage events — `domain_events`, the product's own record of every business state change:
+front desk (check-in / check-out) · reservations · housekeeping · folios & payments · channel manager; organisations
+with an event in the last 30 days (a 45-day-old event is proved not to count).
+**COHORTS** by sign-up month, active at months 1 / 3 / 6 / 12 (= a business event in that month after joining). ⚠️ A
+month that has not ended for EVERY member reads **"not yet"** — never a zero (the first version keyed that on the
+cohort's first day, which would have judged a hotel that joined on the 31st before its month was over; fixed before
+it shipped). A table, not a chart — and under 10 organisations the page says **"these numbers describe individual
+hotels, not a trend"**; with no customers, **"No customers yet"**.
+
+**ANNOUNCEMENTS** to every tenant or chosen organisations, with a start and an optional end, shown at the top of
+/app and /owner, **plain text rendered escaped** (a `<script>` title is proved inert), dismissible PER PERSON through a
+self-only route that 404s for a notice not aimed at your organisation; publishing and withdrawing need a reason and
+are audited. Nothing is emailed — mail is dark; the announcement is the channel.
+
+**CHANNEX** — a health-board card: **"Not connected"**, "the cutover (F-36/A10) is deferred on its trigger — this console
+does not build, start or simulate it". Read from config only (never a key — a planted value is proved absent; never a
+tenant's channel rows outside the one door). A new card state, `off` ("not a problem, not unmeasured"), so it is not
+miscounted as "could not measure".
+
+**THE PUBLIC STATUS PAGE (`/status`) — MANUAL INCIDENTS ONLY.** It shows what an admin POSTED (open, and resolved in the
+last 14 days) and nothing else — no release, queue, config, heartbeat or uptime; a test plants the environment name and
+proves it cannot leak. With nothing posted it says **"No incidents have been posted"** — never "all systems
+operational", a claim about internals it does not measure. Self-contained (no external request), so it renders when
+the asset pipeline is what broke. Posting and updating need a reason and are audited; the form says everything there is
+PUBLIC. `ops/public-checks.sh` now checks it on every deploy and FAILs if it ever claims "operational".
+
+Owner + Support speak for Vyrobel (announcements, incidents); Billing and Analyst are proved refused.
+
+**PROOF.** 15 mutations, 15 caught — each by the test aimed at it. ⚠️ One (S4) was first written as "delete the route",
+which only proves a route exists — the same broken-mutation shape as Phase 4's P9 — and was rewritten to loosen the
+group's capability, which the role test then caught. A fixture gap (no failed payment) was closed before the run.
+Pint clean · PHPStan L5 0 · full suite
+3899/3899 on this run (2026-09-24 — dated, not a pin; the first run was 3898/3899: the layout guard caught a bare `1fr`
+grid track this phase added — fixed to `minmax(0, 1fr)`) · money gate FULL: six figures + four digests unchanged.

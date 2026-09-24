@@ -7,7 +7,9 @@ use App\Http\Middleware\EnsurePlatformCapability;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\PlatformAdmin;
+use App\Models\PlatformAnnouncement;
 use App\Models\PrivacyRequest;
+use App\Models\StatusIncident;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\Platform\PlatformAdminRole;
@@ -62,8 +64,10 @@ function consoleFixtureIds(): array
     $identity = UserIdentity::create(['user_id' => $user->id, 'provider' => 'google', 'provider_user_id' => Str::random(12), 'provider_email' => $user->email]);
 
     $privacy = PrivacyRequest::create(['kind' => 'export', 'subject_kind' => 'relayed_guest', 'related_organization_id' => $org->id, 'channel' => 'hotel', 'status' => 'received', 'received_at' => now(), 'due_at' => now()->addMonth(), 'recorded_by' => $other->id]);
+    $announcement = PlatformAnnouncement::create(['title' => 'Gate', 'body' => 'Gate', 'level' => 'info', 'audience' => 'chosen', 'organization_ids' => [], 'starts_at' => now()->addYear(), 'created_by' => $other->id]);
+    $incident = StatusIncident::create(['title' => 'Gate', 'impact' => 'minor', 'status' => 'investigating', 'message' => 'Gate', 'started_at' => now(), 'created_by' => $other->id]);
 
-    return ['organization' => $org->id, 'plan' => $plan->id, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $other->id, 'user' => $user->id, 'identity' => $identity->id, 'privacyRequest' => $privacy->id];
+    return ['organization' => $org->id, 'plan' => $plan->id, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $other->id, 'user' => $user->id, 'identity' => $identity->id, 'privacyRequest' => $privacy->id, 'announcement' => $announcement->id, 'incident' => $incident->id];
 }
 
 // ══ 1 · STRUCTURE — no console route without a gate, no gate naming a capability that does not exist ══════════

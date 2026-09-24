@@ -65,7 +65,8 @@ else verdict FAIL "/signup renders the form (sign-ups ON)" "HTTP $st$(grep -q 'N
 ADMIN_GET=(/admin /admin/overview /admin/customers /admin/customers/01ANONYMOUSPROBE0000000000 /admin/plans /admin/plans/create
            /admin/plans/01ANONYMOUSPROBE0000000000/edit /admin/activity /admin/audit /admin/switches /admin/account
            /admin/admins /admin/integrations /admin/integrations/channex /admin/two-factor/setup /admin/two-factor
-           /admin/triage /admin/support /admin/break-glass /admin/revenue /admin/funnel /admin/privacy)
+           /admin/triage /admin/support /admin/break-glass /admin/revenue /admin/funnel /admin/privacy
+           /admin/hotels /admin/announcements /admin/status)
 bad=""; n=0
 for pth in "${ADMIN_GET[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch GET "$pth")"; n=$((n+1))
@@ -84,13 +85,19 @@ IFS='|' read -r st loc body <<<"$(fetch GET /admin/invite/$RANDTOK)"
 ADMIN_POST=(/admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/customers/01ANONYMOUSPROBE0000000000/archive
             /admin/customers/01ANONYMOUSPROBE0000000000/restore /admin/switches/signup.enabled /admin/admins /admin/plans
             /admin/break-glass /admin/break-glass/end /admin/support/users/01ANONYMOUSPROBE0000000000/verify-email
-            /admin/privacy/requests)
+            /admin/privacy/requests /admin/announcements /admin/status)
 bad=""
 for pth in "${ADMIN_POST[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch POST "$pth")"
     case "$st" in 200|5??|000) bad="$bad $pth($st)";; esac
 done
 [ -z "$bad" ] && verdict PASS "anonymous /admin POSTs refused (never 200/5xx)" "${#ADMIN_POST[@]} routes" || verdict FAIL "anonymous /admin POSTs refused" "$bad"
+
+# 4b · ADMIN 01 · Phase 5 — the PUBLIC status page renders, and never claims more than was posted
+IFS='|' read -r st loc body <<<"$(fetch GET /status)"
+if [ "$st" = 403 ] && is_cdn_challenge "$body"; then verdict CNM "/status renders (manual incidents only)" "CDN browser challenge"
+elif [ "$st" = 200 ] && grep -q "Vyrobel status" "$body" && ! grep -qi "operational" "$body"; then verdict PASS "/status renders (manual incidents only)" ""
+else verdict FAIL "/status renders (manual incidents only)" "HTTP $st$(grep -qi operational "$body" && echo ' — CLAIMS OPERATIONAL')"; fi
 
 # 5 · the 5xx sweep — every parameter-free public GET route, anonymously
 ROUTES="$(cd "$REPO" && php artisan route:list --method=GET --json 2>/dev/null | python3 -c '

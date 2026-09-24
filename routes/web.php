@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AnnouncementController as AdminAnnouncementController;
 use App\Http\Controllers\Admin\AuditController as AdminAuditController;
 use App\Http\Controllers\Admin\Auth\AdminInviteController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
@@ -12,13 +13,16 @@ use App\Http\Controllers\Admin\BreakGlassController as AdminBreakGlassController
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\FunnelController as AdminFunnelController;
+use App\Http\Controllers\Admin\HotelStatsController as AdminHotelStatsController;
 use App\Http\Controllers\Admin\IntegrationController as AdminIntegrationController;
 use App\Http\Controllers\Admin\OverviewController as AdminOverviewController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
 use App\Http\Controllers\Admin\PrivacyController as AdminPrivacyController;
 use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
+use App\Http\Controllers\Admin\StatusIncidentController as AdminStatusIncidentController;
 use App\Http\Controllers\Admin\SupportController as AdminSupportController;
 use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
+use App\Http\Controllers\AnnouncementDismissController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -137,6 +141,7 @@ use App\Http\Controllers\Owner\OwnerUnitRequestController;
 use App\Http\Controllers\Owner\OwnerUnitsExportController;
 use App\Http\Controllers\Owner\OwnerUnitStatusController;
 use App\Http\Controllers\ReservationFolioActionController;
+use App\Http\Controllers\StatusPageController;
 use App\Http\Controllers\StorefrontLandingController;
 use App\Http\Controllers\StorefrontSitemapController;
 use App\Http\Controllers\StripeConnectWebhookController;
@@ -1803,6 +1808,10 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 // ⚠️ ADMIN 01 · PHASE 4 — the signup funnel (recorded facts only) and the privacy desk (read side).
                 Route::get('funnel', [AdminFunnelController::class, 'index'])->name('funnel');
                 Route::get('privacy', [AdminPrivacyController::class, 'index'])->name('privacy.index');
+                // ⚠️ ADMIN 01 · PHASE 5 — hotel statistics (aggregates), announcements and the status page (read side).
+                Route::get('hotels', [AdminHotelStatsController::class, 'index'])->name('hotels');
+                Route::get('announcements', [AdminAnnouncementController::class, 'index'])->name('announcements.index');
+                Route::get('status', [AdminStatusIncidentController::class, 'index'])->name('status.index');
                 Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
                 Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
                 Route::get('audit', [AdminAuditController::class, 'index'])->name('audit.index');
@@ -1825,6 +1834,11 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->name('customers.reactivate');
                 Route::post('customers/{organization}/archive', [AdminCustomerController::class, 'archive'])->name('customers.archive');
                 Route::post('customers/{organization}/restore', [AdminCustomerController::class, 'restore'])->name('customers.restore');
+                // ⚠️ ADMIN 01 · PHASE 5 — speaking to tenants and to the public: announcements and status incidents.
+                Route::post('announcements', [AdminAnnouncementController::class, 'store'])->name('announcements.store');
+                Route::post('announcements/{announcement}/withdraw', [AdminAnnouncementController::class, 'withdraw'])->name('announcements.withdraw');
+                Route::post('status', [AdminStatusIncidentController::class, 'store'])->name('status.store');
+                Route::post('status/{incident}', [AdminStatusIncidentController::class, 'update'])->name('status.update');
                 Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
             });
 
@@ -1919,3 +1933,10 @@ Route::get('/up/liveness', function () {
 
     return response()->json($report, $report['healthy'] ? 200 : 503);
 })->name('ops.liveness');
+
+// ⚠️⚠️ ADMIN 01 · PHASE 5 — THE PUBLIC STATUS PAGE: manual incidents only, never an internal. Throttled like any public page.
+Route::get('/status', StatusPageController::class)->middleware('throttle:60,1')->name('status');
+
+// ADMIN 01 · PHASE 5 — a signed-in tenant user dismisses a Vyrobel announcement for themselves (self-only; 404 for a
+// notice that does not reach their organisation). Outside /app and /owner so both realms share one route.
+Route::post('/announcements/{announcement}/dismiss', AnnouncementDismissController::class)->middleware(['auth', 'throttle:30,1'])->name('announcements.dismiss');

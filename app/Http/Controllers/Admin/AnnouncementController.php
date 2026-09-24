@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Organization;
+use App\Models\PlatformAnnouncement;
+use App\Support\Platform\AdminReason;
+use App\Support\Platform\PlatformQuery;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+/**
+ * ⚠️ ADMIN 01 · PHASE 5 — IN-APP ANNOUNCEMENTS to every tenant or chosen ones, with a start and an optional end,
+ * dismissible by each person. Publishing and withdrawing are audited with a reason. ⚠️ Plain text only — the tenant
+ * page escapes it. Nothing is emailed (mail is dark); the announcement IS the channel.
+ */
+class AnnouncementController extends Controller
+{
+    public function __construct(private readonly PlatformQuery $platform) {}
+
+    public function index(): View
+    {
+        [$announcements, $organizations] = $this->platform->read('platform.announcements.view', fn (): array => [
+            PlatformAnnouncement::query()->latest('starts_at')->limit(50)->get(),
+            Organization::query()->orderBy('name')->pluck('name', 'id')->all(),
+        ], []);
+
+        return view('admin.announcements', ['announcements' => $announcements, 'organizations' => $organizations]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:120'],
+            'body' => ['required', 'string', 'max:1000'],
+            'level' => ['required', Rule::in(array_keys(PlatformAnnouncement::LEVELS))],
+            'audience' => ['required', Rule::in(['all', 'chosen'])],
+            'organization_ids' => ['required_if:audience,chosen', 'array'],
+            'organization_ids.*' => ['string', 'exists:organizations,id'],
+            'starts_at' => ['required', 'date'],
+            'ends_at' => ['nullable', 'date', 'after:starts_at'],
+        ]);
+        $reason = AdminReason::from($request);
+
+        $announcement = $this->platform->mutate('platform.announcement.publish', $reason, fn () => PlatformAnnouncement::create([
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'level' => $data['level'],
+            'audience' => $data['audience'],
+            'organization_ids' => $data['audience'] === 'chosen' ? array_values($data['organization_ids'] ?? []) : null,
+            'starts_at' => $data['starts_at'],
+            'ends_at' => $data['ends_at'] ?? null,
+            'created_by' => (string) auth('admin')->id(),
+        ]), ['audience' => $data['audience'], 'organizations' => count($data['organization_ids'] ?? [])], 'announcement', null);
+
+        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Announcement published'.($announcement->isLive() ? ' — showing now.' : ' — it will show from its start time.'));
+    }
+
+    public function withdraw(Request $request, string $announcement): RedirectResponse
+    {
+        $reason = AdminReason::from($request);
+        $row = PlatformAnnouncement::query()->findOrFail($announcement);
+        if ($row->withdrawn_at !== null) {
+            return redirect()->route('admin.announcements.index')->withErrors(['announcement' => 'Already withdrawn.']);
+        }
+
+        $this->platform->mutate('platform.announcement.withdraw', $reason, fn () => $row->forceFill(['withdrawn_at' => now()])->save(), [], 'announcement', (string) $row->id);
+
+        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Withdrawn — it no longer shows to anyone.');
+    }
+}

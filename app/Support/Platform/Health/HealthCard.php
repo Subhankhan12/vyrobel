@@ -23,6 +23,9 @@ final class HealthCard
 
     public const GREY = 'grey';
 
+    /** ⚠️ ADMIN 01 · PHASE 5 — OFF BY DESIGN: not a problem, not unmeasured (e.g. an integration not connected yet). */
+    public const OFF = 'off';
+
     /**
      * @param  list<string>  $lines  supporting facts — ⚠️ never a secret or config VALUE
      */
@@ -33,6 +36,7 @@ final class HealthCard
         public readonly string $headline,
         public readonly array $lines = [],
         public readonly ?string $note = null,
+        public readonly ?string $label = null,
     ) {}
 
     /** A card whose measurement itself failed — grey, with the reason, never green. */
@@ -48,7 +52,8 @@ final class HealthCard
 
     public function statusLabel(): string
     {
-        return match ($this->status) {
+        return $this->label ?? match ($this->status) {
+            self::OFF => 'Off',
             self::GREEN => 'OK',
             self::AMBER => 'Attention',
             self::RED => 'Problem',

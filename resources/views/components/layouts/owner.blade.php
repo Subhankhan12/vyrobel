@@ -1019,6 +1019,8 @@
     <x-vy-scrollbar />
 </head>
 <body class="vy-body">
+{{-- ADMIN 01 · PHASE 5 — Vyrobel announcements to this organisation (live, aimed here, not dismissed). --}}
+<x-platform-announcements />
     <div class="vy-amb" aria-hidden="true">
         <div class="vy-amb-streak1"></div>
         <div class="vy-amb-streak2"></div>

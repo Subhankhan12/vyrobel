@@ -44,6 +44,7 @@ final class HealthBoard
             $this->guard('release', 'Live release', fn () => $this->release()),
             $this->guard('config', 'Silent configuration', fn () => $this->config()),
             $this->guard('switches', 'Kill switches', fn () => $this->switches()),
+            $this->guard('channex', 'Channel manager (Channex)', fn () => $this->channex()),
             $this->exposure(),
         ];
     }
@@ -80,6 +81,27 @@ final class HealthBoard
         return new HealthCard('mail', 'Mail delivery', HealthCard::GREEN, 'A delivering mailer is configured', array_merge($lines, [
             'Sent / bounced / failed: not measured yet — the provider\'s delivery events are not recorded here.',
         ]));
+    }
+
+    /**
+     * ⚠️ ADMIN 01 · PHASE 5 — CHANNEX. ⚠️⚠️ NOT LIVE, and its cutover (F-36/A10) is DEFERRED ON ITS TRIGGER: this card
+     * says so and this console does not build, start or simulate the cutover. Read from config (SET / fake only —
+     * never a value) and from nothing else: a tenant's channel rows are not read outside the one door.
+     */
+    private function channex(): HealthCard
+    {
+        $configured = ! (bool) config('services.channex.fake', true) && filled(config('services.channex.api_key'));
+
+        if (! $configured) {
+            return new HealthCard('channex', 'Channel manager (Channex)', HealthCard::OFF, 'Not connected', [
+                'No live Channex connection: '.((bool) config('services.channex.fake', true) ? 'a fake client is bound.' : 'no API key is SET.'),
+                'The cutover (F-36/A10) is deferred on its trigger — this console does not build, start or simulate it.',
+            ], label: 'Not connected');
+        }
+
+        return new HealthCard('channex', 'Channel manager (Channex)', HealthCard::AMBER, 'A key is SET — sync health is not measured here', [
+            'This card does not call Channex. Whether rates, availability and bookings are flowing is not measured from the console.',
+        ]);
     }
 
     private function queue(): HealthCard

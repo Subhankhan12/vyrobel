@@ -1788,6 +1788,8 @@
 </head>
 @php $vyPrefs = auth()->user(); @endphp
 <body class="vy-body" @if ($vyPrefs && $vyPrefs->reduce_motion) data-reduce-motion="1" @endif @if ($vyPrefs && $vyPrefs->compact_density) data-density="compact" @endif>
+{{-- ADMIN 01 · PHASE 5 — Vyrobel announcements to this organisation (live, aimed here, not dismissed). --}}
+<x-platform-announcements />
     <div class="vy-amb" aria-hidden="true">
         <div class="vy-amb-streak1"></div>
         <div class="vy-amb-streak2"></div>

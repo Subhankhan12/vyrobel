@@ -32,6 +32,9 @@
         ['revenue', 'Revenue', route('admin.revenue'), true, 'M3 17l6-6 4 4 8-8M14 7h7v7', 'billing.view'],
         ['funnel', 'Signup funnel', route('admin.funnel'), true, 'M3 4h18l-7 8v6l-4 2v-8z', 'console.view'],
         ['privacy', 'Privacy desk', route('admin.privacy.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9.5 12l2 2 3.5-4', 'console.view'],
+        ['hotels', 'Hotels', route('admin.hotels'), true, 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', 'console.view'],
+        ['announcements', 'Announcements', route('admin.announcements.index'), true, 'M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8', 'console.view'],
+        ['status', 'Status page', route('admin.status.index'), true, 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', 'console.view'],
         ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
         ['switches', 'Kill switches', route('admin.switches.index'), true, 'M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7zM16 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'console.view'],
         ['audit', 'Audit log', route('admin.audit.index'), true, 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01', 'console.view'],
@@ -290,7 +293,7 @@
         .ad-health { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
         .ad-hcard { position: relative; background: var(--ad-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--ad-border); border-radius: var(--ad-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px 18px 24px; overflow: hidden; }
         .ad-hcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
-        .ad-hcard--green::before { background: rgb(52, 140, 90); } .ad-hcard--amber::before { background: var(--vy-amber-2); } .ad-hcard--red::before { background: var(--ad-danger); } .ad-hcard--grey::before { background: rgb(150, 142, 136); }
+        .ad-hcard--green::before { background: rgb(52, 140, 90); } .ad-hcard--amber::before { background: var(--vy-amber-2); } .ad-hcard--red::before { background: var(--ad-danger); } .ad-hcard--grey::before { background: rgb(150, 142, 136); } .ad-hcard--off::before { background: rgb(150, 142, 136); }
         .ad-hcard-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .ad-hcard-title { font-family: var(--ad-display); font-weight: 600; font-size: 14.5px; margin: 0; }
         .ad-hcard-headline { font-family: var(--ad-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; margin: 10px 0 8px; }
@@ -304,6 +307,7 @@
         .ad-hpill--amber { background: rgba(224, 146, 30, .16); color: var(--vy-amber-text); }
         .ad-hpill--red { background: rgba(143, 49, 16, .12); color: var(--ad-danger); }
         .ad-hpill--grey { background: rgba(150, 142, 136, .18); color: var(--ad-muted); }
+        .ad-hpill--off { background: rgba(150, 142, 136, .18); color: var(--ad-muted); }
         /* The reason field every write carries — one look everywhere. */
         .ad-reason { display: block; width: 100%; margin: 8px 0; }
         .ad-reason-hint { font-size: 11px; color: var(--ad-faint); margin: -2px 0 8px; }
