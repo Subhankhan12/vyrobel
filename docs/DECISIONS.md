@@ -17316,3 +17316,25 @@ it is quoted here with its own mode, as the script demands.
 the viewport the page background stops at the fold and leaves a white band. 🔬 A **control run proved the
 operator's own `/login` does exactly the same** at a short viewport, so it is product-wide and pre-existing, not
 introduced by this change. Fixing it means touching ~10 unrelated auth pages, which is a separate decision.
+
+**Addendum, same day — the dropdowns.** The founder followed up: *"drop down in text boxes are not that cool.
+It should be also cool enough like the other panels."* ⚠️ **The premise was not quite right, and saying so
+mattered: the other panels use NATIVE selects too**, so "matching" them would have meant leaving these plain.
+What was wanted was *better*, so the admin's four selects were given a real treatment — `appearance: none`
+(the line that actually surrenders the OS widget; everything else is decoration the browser paints over), the
+same frosted field as `.ad-input`, the operator account-menu's own `M6 9l6 6 6-6` chevron, a hover that lifts
+the fill, and a focus state that recolours the chevron to the accent. 🔬 Measured 36px — byte-for-byte the
+height of the input beside it. 🔬 Behaviour proven intact, not assumed: the pricing-shape select still drives
+its JS (per-unit swaps the field to "Rate per unit").
+
+⚠️ **TWO THINGS DELIBERATELY NOT CLAIMED.** (1) A `data:` URI cannot read a custom property, so the chevron
+colour is a **literal** — `#5F5853` / `#932A07`, verified equal to `--vy-muted` / `--vy-accent-text` but which
+will **not** follow a future re-measure of either. Named in the file; it is the one drift the token layer
+cannot prevent. (2) The **open** dropdown list is still the OS popup. `option` styling is honoured on
+Windows/Linux and ignored by macOS; a genuinely themed popup needs a JS listbox, and that accessibility debt
+is not worth it for four dropdowns.
+
+⚠️⚠️ **CONSEQUENCE, RECORDED SO IT IS NOT READ AS DRIFT: the admin is now AHEAD of the tenant shells on this
+one control.** 66 selects across 35 non-admin files are still native. Levelling them up is a real pass, not a
+copy-paste — the property and workspace switchers are deliberately borderless selects inside a frosted pill
+and MUST be exempted from any blanket `select` rule. Offered to the founder; not done unasked.
