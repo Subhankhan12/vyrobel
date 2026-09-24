@@ -17679,3 +17679,14 @@ group's capability, which the role test then caught. A fixture gap (no failed pa
 Pint clean · PHPStan L5 0 · full suite
 3899/3899 on this run (2026-09-24 — dated, not a pin; the first run was 3898/3899: the layout guard caught a bare `1fr`
 grid track this phase added — fixed to `minmax(0, 1fr)`) · money gate FULL: six figures + four digests unchanged.
+
+**DEPLOYED 2026-09-24 — `rel_R @ 489c67d0`** (L12k; one additive migration — three new tables — run from rel_R while
+rel_Q served, the four front pages 200 throughout; swap 6 ms; rollback = `ops/release.sh rollback rel_Q`). Boot check ON
+THE HOST: `/status` 200, "No incidents have been posted.", never "operational"; the Channex card "Not connected";
+break-glass still off. **Public checks: PASS 12 · FAIL 0 · COULD NOT MEASURE 0** — a twelfth check added this phase
+(`/status` renders and never claims "operational"); 25 anonymous admin GETs, 12 POSTs, 161 routes free of 5xx, battery
+SERVED=0. Probe `ADMIN-P5 PROBE (not a customer)` accepted, read back (`signup_source = email`), marked internal.
+Customers: **0**. `Hash::check` of the known default still TRUE → **break-glass stays dormant.**
+**Waiting for the walkthrough:** the hotels page; one announcement to the probe org only, seen and dismissed from the
+probe's side, then withdrawn; one status incident posted, seen on /status from outside, resolved — every ledger row
+read back. ⚠️ An incident posted on production is PUBLIC the moment it is saved.
