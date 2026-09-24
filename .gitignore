@@ -79,3 +79,6 @@ gate*.png
 # The marketing converter's DERIVED input — regenerate with tools/marketing/decode.js from
 # docs/design/front/*.dc.html. Not committed: it would be a second copy of the masters (§N.8f).
 /tools/marketing/core/
+
+# Local MCP server config — machine-specific paths; must never carry a secret into git.
+.mcp.json
