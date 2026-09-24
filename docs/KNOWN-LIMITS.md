@@ -644,7 +644,31 @@ scope"* applies to the figures this project writes about itself.
 1. `cp -al releases/<current> releases/rel_<new>` — hardlinks, ~0.9 s.
 2. Upload changed files into `releases/rel_<new>` (and `public/build`, which must still be built off-host —
    **node and npm are not installed here**, L12h).
+   ⚠️⚠️ **NEVER `scp` STRAIGHT ONTO A FILE IN THE NEW RELEASE.** After `cp -al` every unchanged file is a
+   **hardlink shared with the live release**, and `scp` opens the destination and writes into it — through
+   the shared inode — so the edit lands in the release currently serving traffic, mid-upload. That is the
+   F-67 half-old-code hazard, re-created by the very layout that fixed it. ⚠️ Upload to a **staging
+   directory** instead, then `rm -f <target> && cp <staged> <target>` — the `rm` drops the directory entry
+   without touching the other release's inode. 🔬 Prove it landed that way: the two releases' inodes for a
+   changed file must DIFFER, and the live release must still contain its OLD content.
 3. Re-point the shared symlinks and rebuild that release's caches **in place** (item 2 above).
+   ⚠️⚠️ **`config:cache` AND `route:cache` ARE MANDATORY ON EVERY DEPLOY, INCLUDING ONE WHERE NO CONFIG
+   VALUE CHANGED — AND SKIPPING THEM FAILS *SILENTLY*, SERVING THE PREVIOUS RELEASE.** 🔬 Measured
+   2026-09-24 on a views-only deploy (rel_K → rel_L). `cp -al` hardlinks the previous release's
+   `bootstrap/cache/config.php`, and that file is not just *values* — it is **20 baked ABSOLUTE PATHS**,
+   `view.paths` among them. So rel_L booted, ran rel_L's PHP, and rendered **rel_K's Blade files**. The
+   symlink swap succeeded in 3 ms, `/admin/login` returned **200**, and the response was **byte-identical
+   to before the deploy** — 11,351 bytes both times. Nothing was red. ⚠️ The reasoning that caused it is
+   the trap worth remembering: *"no config value changed, so the config cache is still valid."* True of the
+   values, false of the paths. `routes-v7.php` carries 3 such paths too; `packages.php` and `services.php`
+   carry none. ⚠️⚠️ **THE LESSON GENERALISES PAST THIS FILE: A CACHE KEYED ON ABSOLUTE PATHS CANNOT BE
+   CARRIED ACROSS A RELEASE DIRECTORY, EVER.** ⚠️ It also explains why the shared `storage/framework/views`
+   is NOT a hazard: compiled views are keyed by the *source* path, so each release gets its own entries
+   (🔬 all 277 cached entries referenced `rel_K` alone) — the config cache was the only path carrier.
+   ⚠️ **AND THE ONLY INSTRUMENT THAT CATCHES IT IS A CONTENT ASSERTION, NOT A STATUS CODE.** A 200, a
+   green availability sweep and a correct `readlink` were all true while the deploy had not landed. Diff a
+   marker that only the new code emits — ⚠️ and take the BEFORE reading *before* the swap, or you cannot
+   tell "landed" from "was already there".
    ⚠️⚠️ **THEN `chmod 600 bootstrap/cache/config.php`.** 🔬 That file is a compiled copy of `.env` and contains
    the **database password** (13 occurrences); `config:cache` writes it **644** on a shared host. 🔬 Verified
    2026-09-20 that **600 still serves** — `/up` returns 200 through a full framework boot and `artisan` still

@@ -17253,3 +17253,66 @@ results" while the race proved nothing and looked like a guard failure.
 **Neither R3 nor R9 has a UI entry point.** 🔬 The only reference to `app.front-desk.reverse-checkout` in
 `resources/views` is inside its own confirmation page. Both are URL-only. R9 matches R3 rather than diverging
 from it; closing the gap is a build nobody ruled on.
+
+---
+
+## 2026-09-24 — ⚠️ RULING REVERSED: the platform console now wears the product's own design system
+
+**THE PRIOR DECISION, AND WHY IT IS NOT A BUG.** The super-admin realm shipped with *"a cohesive 'control-room'
+admin design system — deep-slate + indigo, deliberately DISTINCT from the warm tenant glass but as polished"*
+(recorded above, and again in `<x-admin.shell>`'s own docblock). The argument was real: the highest-privilege
+realm in the product should never *look* like a tenant portal, because looking like one is how somebody forgets
+which realm they are in. ⚠️ **It was a deliberate, recorded design decision, not drift — and a future reader
+finding the two palettes diverged should NOT "fix" it back.**
+
+**THE FOUNDER RULED THE OTHER WAY**, in these words: *"this separate admin panel … color is not matching to the
+theme, it also have the same color as the other roles, similar color similar icons similar cool animation similar
+stuff similar button — every single thing in terms of design wise should be the same."* The concern was flagged in
+one paragraph and the ruling was reaffirmed, so the panel was rebuilt. **The distinct-realm argument is retired,
+not forgotten:** if it is ever wanted back, the rollback is one commit, and the substance of the case is the
+paragraph above.
+
+**HOW IT WAS DONE — one indirection layer, no per-view churn.** `<x-design.tokens />` now loads FIRST in both
+admin layouts, and the `--ad-*` token **names are kept** while their **values are remapped** onto the canonical
+`--vy-*` palette. So ~90 `.ad-*` rules and all nine admin views kept working while the whole realm recoloured.
+The product's own recipes were copied, not re-invented: `--vy-bg` + the three drifting orbs and the shimmer
+streak, frosted glass (blur 22 / saturate 1.15), `--vy-grad` pill buttons, the operator's 24×24 stroked nav
+icons, its account chip, and the canonical **flat-peach avatar plate** (DO-RESTORE-5) rather than white-on-gradient
+initials — a gradient has two worst cases at opposite ends and no single text colour clears both.
+
+**⚠️ THREE DEFECTS THE REMAP EXPOSED — none of them cosmetic, none found by looking:**
+
+1. ⚠️⚠️ **`--ad-danger` WAS NEVER DECLARED**, while `.ad-pill--suspended` and `.ad-btn--danger` both read it. An
+   undefined custom property makes the declaration invalid at computed-value time and CSS drops it silently — so
+   a suspended customer's status chip had been rendering as ordinary body ink, in a console whose whole job is
+   to show account state at a glance.
+2. ⚠️ **`--vy-glass-border` / `--vy-shadow` / `--vy-shadow-accent` are PER-SHELL OVERRIDES, not shared tokens.**
+   `tokens.blade.php` deliberately carries only what is identical everywhere. The first pass referenced all three
+   without declaring them — cards with no border and no shadow, silently.
+3. ⚠️ **`.ad-field-label` is used in `customers/show` and defined nowhere**, so the re-auth label rendered at body
+   size. Same family as the `.vy-sr-only` note already in the shell: *defined, not assumed.*
+
+⚠️⚠️ **THE INSTRUMENT IS THE POINT.** All three were found by a **token/class resolution check** — extract every
+`var(--x)` and every `class="ad-…"`, subtract what is actually declared, report the remainder — not by reading the
+CSS and not by looking at the page. ⚠️ **An undefined CSS custom property or class name has no error surface at
+all**: no console line, no 500, no failing test, and a page that renders "fine" to a glance. It is the CSS analogue
+of the dead-code sweep, and it should be run on any shell that declares its own tokens.
+
+**STRUCTURE — the double heading.** Every admin page repeated the shell's topbar title as its own in-content `h1`.
+Invisible while the topbar title was 15px; a blatant double-heading at the product's 28px. All ten views adopted
+the operator's convention: the topbar carries the title, an optional breadcrumb and a subline; pages start at
+their content. ⚠️ `PlatformAdminGate0Test` (security group) asserts `"Platform console"` to prove the console shell
+rendered — that string moved onto the sidebar's section label, **so the assertion stayed true rather than being
+weakened to match a redesign.**
+
+**HONESTY.** Presentation only — no controller, route, model, policy, migration or test was touched. Suite
+**3745/3745 (26675 assertions)**, PHPStan L5 **0**, Pint clean. All ten admin pages browser-verified at 200 with
+exactly one `<h1>` each and no raw Blade. Live at `rel_L @ fedfcd8e`; exposure battery unchanged
+(**REFUSED=7 · LAYER-ANSWERED=46 · SERVED=0**); `.htaccess` drift check green. ⚠️ The money gate ran in
+**INVARIANT mode (4 of 6 figures)** — the local seed date is unset, and *that run is not the money-as-seeded gate*;
+it is quoted here with its own mode, as the script demands.
+
+**⚠️ ONE DEFECT FOUND AND DELIBERATELY NOT FIXED — it is not ours and it is not new.** On an auth page taller than
+the viewport the page background stops at the fold and leaves a white band. 🔬 A **control run proved the
+operator's own `/login` does exactly the same** at a short viewport, so it is product-wide and pre-existing, not
+introduced by this change. Fixing it means touching ~10 unrelated auth pages, which is a separate decision.
