@@ -75,6 +75,8 @@
             @endforeach
         </div>
 
+        @include('admin.partials.reason', ['placeholder' => 'Why is this plan changing?'])
+
         <div style="display: flex; gap: 10px; margin-top: 18px;">
             <button type="submit" class="ad-btn">Save plan</button>
             <a href="{{ route('admin.plans.index') }}" class="ad-btn ad-btn--ghost">Cancel</a>

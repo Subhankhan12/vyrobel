@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AdminLoginRequest;
 use App\Models\PlatformAdmin;
+use App\Support\Platform\PlatformAdminSessions;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -69,6 +70,7 @@ class AdminLoginController extends Controller
 
         Auth::guard('admin')->login($admin);
         $request->session()->regenerate();
+        app(PlatformAdminSessions::class)->start($request, $admin);
         $admin->forceFill(['last_login_at' => now()])->saveQuietly();
         $this->audit->record('platform.login', ['two_factor' => 'enrollment_required'], actor: $admin);
 
@@ -78,6 +80,7 @@ class AdminLoginController extends Controller
     /** Log out of the admin realm ONLY — invalidate + regenerate the session and token. */
     public function destroy(Request $request): RedirectResponse
     {
+        app(PlatformAdminSessions::class)->endCurrent($request, 'signed_out');
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

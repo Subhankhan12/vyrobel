@@ -32,6 +32,13 @@ class OwnerScope implements Scope
     {
         $context = app(OwnerContext::class);
 
+        // ⚠️ ADMIN 01 · PHASE 1 — inside the platform console's door, and ONLY there, no owner boundary applies:
+        //    the console reads across every owner by definition. See OwnerContext::liftForPlatformConsole() for
+        //    why this is a separate, admin-guard-gated lift rather than the tenant super-admin flag.
+        if ($context->liftedForPlatformConsole()) {
+            return;
+        }
+
         if (! $context->active()) {
             // ⚠️ AUDIT E-1 (2026-08-29) — THIS BRANCH USED TO `return` UNCONDITIONALLY, AND THAT WAS THE HOLE.
             // "Inactive" is the legitimate resting state for operator requests, CLI and queue work, so it

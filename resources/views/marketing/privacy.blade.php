@@ -19,8 +19,10 @@
          cannot drift from what the app actually sets. A copy would have drifted within a month.
 
      ⚠️ IT IS BANNERED AS A PENDING-REVIEW DRAFT, TOP AND BOTTOM. That is not decoration: three things still
-     block a final policy — no Article 28 DPA, no sub-processor agreements, and no retention rule for 96 of
-     142 data categories. Counsel replaces this text; it does not merely bless it. --}}
+     block a final policy — no Article 28 DPA, no sub-processor agreements, and no retention rule for many of
+     the data categories in docs/legal/DATA-INVENTORY.md. ⚠️ No count is written here on purpose: the figure
+     that used to sit here was typed once, by hand, and was already stale (see that file's gap section).
+     Counsel replaces this text; it does not merely bless it. --}}
 <x-marketing.shell
     title="Privacy at Vyrobel — what we collect, and what is not settled yet"
     description="What Vyrobel collects, why, where it lives and for how long — written from an audited data inventory, and plain about the parts that are still pending legal review."

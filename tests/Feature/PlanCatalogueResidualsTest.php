@@ -185,7 +185,7 @@ it('⚠️ an admin can still CREATE, EDIT and TOGGLE a plan through the real ro
     $code = 'studio_'.Str::lower(Str::random(6)).'_monthly';
 
     // CREATE — a genuinely new tier passes every rule including the new one.
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => $code, 'name' => 'Studio', 'pricing_type' => Plan::PRICING_FLAT,
         'interval' => 'monthly', 'currency' => 'EUR', 'price' => '19.00',
         'stripe_price_id' => 'price_fake_'.Str::lower(Str::random(6)),
@@ -195,7 +195,7 @@ it('⚠️ an admin can still CREATE, EDIT and TOGGLE a plan through the real ro
     expect($plan->is_active)->toBeFalse();   // created as a draft, as `store()` intends
 
     // EDIT — the same row must not be refused by its own tier key.
-    $this->actingAs($admin, 'admin')->put("/admin/plans/{$plan->getKey()}", [
+    $this->actingAs($admin, 'admin')->put("/admin/plans/{$plan->getKey()}", ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => $code, 'name' => 'Studio renamed', 'pricing_type' => Plan::PRICING_FLAT,
         'interval' => 'monthly', 'currency' => 'EUR', 'price' => '21.00',
         'stripe_price_id' => (string) $plan->stripe_price_id,
@@ -204,10 +204,10 @@ it('⚠️ an admin can still CREATE, EDIT and TOGGLE a plan through the real ro
     expect($plan->fresh()->name)->toBe('Studio renamed');
 
     // TOGGLE — activation still works for a sellable plan, and deactivation still works after.
-    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->getKey()}/toggle")->assertRedirect();
+    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->getKey()}/toggle", ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect();
     expect($plan->fresh()->is_active)->toBeTrue();
 
-    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->getKey()}/toggle")->assertRedirect();
+    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->getKey()}/toggle", ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect();
     expect($plan->fresh()->is_active)->toBeFalse();
 });
 
@@ -215,7 +215,7 @@ it('⚠️ the new rule BITES through the real create route, not only in isolati
     $admin = platformAdmin();
     app(BillingService::class)->ensurePlans();
 
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => 'essential', 'name' => 'Collider', 'pricing_type' => Plan::PRICING_FLAT,
         'interval' => 'monthly', 'currency' => 'EUR', 'price' => '12.34',
     ])->assertSessionHasErrors('code');

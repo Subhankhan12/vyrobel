@@ -11,6 +11,7 @@ use App\Models\Owner;
 use App\Models\OwnerUser;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
+use App\Support\Platform\PlatformQuery;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,12 @@ use Illuminate\Support\Facades\Auth;
 class OwnerContext
 {
     private bool $active = false;
+
+    /**
+     * ⚠️ ADMIN 01 · PHASE 1 — depth of platform-console lifts (see {@see liftForPlatformConsole()}). While > 0,
+     * {@see OwnerScope} applies no owner boundary at all.
+     */
+    private int $platformConsoleLift = 0;
 
     /**
      * Memoised answer to "is the acting user linked to any owner?" — resolved at most ONCE per actor.
@@ -219,6 +226,45 @@ class OwnerContext
     public function active(): bool
     {
         return $this->active;
+    }
+
+    /**
+     * ⚠️⚠️ ADMIN 01 · PHASE 1 — THE PLATFORM CONSOLE'S OWNER-SCOPE LIFT. Used by ONE caller: the console's
+     * read/mutate door ({@see PlatformQuery}).
+     *
+     * WHY IT IS NEEDED: `OwnerScope` does not read the tenant super-admin flag — it asks who else is signed in.
+     * In a console request the DEFAULT guard is `web`, so a founder who is ALSO signed into an owner account in
+     * the same browser made every owner-scoped console read (Unit, statements, payouts…) silently resolve to
+     * THAT owner's rows: platform statistics undercounted, with no error anywhere.
+     *
+     * WHY NOT SIMPLY HONOUR `runAsSuperAdmin()`: ~30 callers use it, several on owner-portal paths
+     * (ResolveApiOwnerContext, the owner invite services). Teaching OwnerScope to stand down for all of them
+     * would change their behaviour silently. This lift is narrower: it refuses to run unless a platform admin is
+     * authenticated on the `admin` guard, and it restores itself in a `finally`.
+     *
+     * @template TReturn
+     *
+     * @param  Closure():TReturn  $callback
+     * @return TReturn
+     */
+    public function liftForPlatformConsole(Closure $callback): mixed
+    {
+        if (! Auth::guard('admin')->check()) {
+            throw new \RuntimeException('The owner-scope lift is available only to an authenticated platform admin.');
+        }
+
+        $this->platformConsoleLift++;
+
+        try {
+            return $callback();
+        } finally {
+            $this->platformConsoleLift--;
+        }
+    }
+
+    public function liftedForPlatformConsole(): bool
+    {
+        return $this->platformConsoleLift > 0;
     }
 
     /**

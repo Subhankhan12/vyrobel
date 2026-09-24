@@ -29,7 +29,10 @@ it('⚠️⚠️ leaves no form control without an accessible name, beyond the r
     //    amount field, whose minted id was REMOVED when a mis-wire was undone — a label reading
     //    "What to do" had been pointed at a price input. Re-deriving confirmed the delta before this
     //    ceiling moved; a number raised to green a gate is the thing this project refuses.
-    Assert::assertLessThanOrEqual(42, count($unnamed),
+    //    ⚠️ LOWERED to 37 on 2026-09-24 (ADMIN 01 · Phase 1) — MEASURED, not chosen: the console's new controls
+    //    were given names, and so were the existing unnamed admin selects beside them. A ceiling that falls is
+    //    tightened at once, or the room it leaves gets spent without anyone noticing.
+    Assert::assertLessThanOrEqual(37, count($unnamed),
         'the number of unnamed form controls grew. Every new control needs a name by one of the four valid '
         .'means — and the name must be authored text, never a format hint: a label reading "0.00" is worse '
         .'than none. Unnamed now: '.count($unnamed));

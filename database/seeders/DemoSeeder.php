@@ -275,6 +275,10 @@ class DemoSeeder extends Seeder
 
         app(OrganizationRoleProvisioner::class)->provision($org);
 
+        // ⚠️ ADMIN 01 · Phase 1 — a DEMO organisation is Vyrobel's own, never a customer: excluded from every
+        //    platform statistic. Set here, where it is created, so a fresh seed can never count it.
+        $org->forceFill(['is_internal' => true])->save();
+
         $tenant->forOrganization($org->id, fn () => $this->buildDemo($org));
     }
 

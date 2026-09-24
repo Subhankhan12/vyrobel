@@ -333,8 +333,19 @@ WHAT A LAWYER STILL NEEDS THAT THE CODE DOES NOT ANSWER — ranked.
 
 # ⚠️⚠️ THE GAPS — READ THIS SECTION FIRST
 
-**96 of the 142 entries above have no retention rule, no deletion path, or both.** A privacy policy drafted
+**Most of the entries above have no retention rule, no deletion path, or both.** A privacy policy drafted
 without knowing that would promise things the software does not do. These are grouped by what they cost.
+
+> ⚠️⚠️ **CORRECTED 2026-09-24 (ADMIN 01 · Phase 1) — THERE IS DELIBERATELY NO NUMBER ON THE LINE ABOVE.** It used to
+> read "**96 of the 142 entries**". That was a HAND COUNT, made once, and it was quoted onward — into the privacy
+> page's source, into PRIVACY-STRUCTURE.md, and into four briefs — as if it were measured. 🔬 Checked on
+> 2026-09-24: this file now holds **160** data rows, not 142, and the 96 counted a BROADER thing than it was later
+> quoted as ("no retention rule, no deletion path, *or both*" — quoted as "no retention rule"). This file has also
+> drifted from the code: `RetentionPolicy::WINDOWS` now enforces windows for `webhook_events` and `failed_jobs`,
+> which the rows below still describe as having none.
+> ⚠️ **The coverage figure will be COMPUTED, from code, by the platform console's privacy desk** — and only after
+> the founder (with counsel) rules on what counts as "has a retention rule". Until then, no count is written
+> anywhere, because a wrong number that survives in the repo gets quoted again.
 
 ## 🔴 The five that are GDPR-material today
 

@@ -137,7 +137,10 @@
         {{-- ⚠️ CONTINUE WITH GOOGLE — rendered ONLY when the founder has configured the console credentials.
              There is no disabled state and no "coming soon": with nothing configured the route 404s, so a
              button here would be a link to an error page. Absent is the honest presentation of absent. --}}
-        @if (app(\App\Contracts\Auth\SocialIdentityProvider::class)->enabled())
+        {{-- ⚠️ ADMIN 01 · PHASE 1 — also hidden when the platform has paused BOTH sign-in and sign-up with Google;
+             with only one paused the button stays, and the paused path refuses with a plain message. --}}
+        @if (app(\App\Contracts\Auth\SocialIdentityProvider::class)->enabled()
+            && (\App\Support\Platform\PlatformSwitches::signinAllowed('google') || \App\Support\Platform\PlatformSwitches::signupAllowed('google')))
             <a href="{{ route('social.google.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
                 <svg width="16" height="16" viewBox="0 0 48 48" style="vertical-align:-3px;margin-right:6px" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-7.1-5.5c-2 1.3-4.5 2.1-7.4 2.1-5.7 0-10.5-3.8-12.2-9H4.5v5.7C8.1 41.3 15.5 46 24 46z"/><path fill="#FBBC05" d="M11.8 28.3c-.4-1.3-.7-2.7-.7-4.3s.3-3 .7-4.3v-5.7H4.5C2.9 17.2 2 20.5 2 24s.9 6.8 2.5 10l7.3-5.7z"/><path fill="#EA4335" d="M24 10.7c3.2 0 6.1 1.1 8.4 3.3l6.3-6.3C34.9 4.1 29.9 2 24 2 15.5 2 8.1 6.7 4.5 13.7l7.3 5.7c1.7-5.2 6.5-9 12.2-9z"/></svg>
                 Continue with Google
@@ -146,10 +149,13 @@
 
         {{-- ⚠️ CONTINUE WITH X — same rule as Google above: rendered only when credentials exist, because
              with none the route 404s and a button here would be a link to an error page.
-             ⚠️ SIGN-IN AND LINKING ONLY. X hands over an address but asserts nothing about the mailbox, so
-             it cannot create an account — that is a founder ruling, not a build step. There is deliberately
-             no X button on /signup. --}}
-        @if (($vyX = \App\Support\Auth\SocialProviders::resolve('twitter')) && $vyX->enabled())
+             ⚠️ CORRECTED (ADMIN 01 · Phase 1): this comment used to say X "cannot create an account". That
+             stopped being true when X sign-up was built (SocialProviders::TRUSTED_FOR_SIGNUP — the founder's
+             ruling): a new person continuing with X completes the /signup form like a Google sign-up does.
+             There is still no separate X button ON /signup; this one serves both paths.
+             ⚠️ Hidden when the platform has paused BOTH sign-in and sign-up with X. --}}
+        @if (($vyX = \App\Support\Auth\SocialProviders::resolve('twitter')) && $vyX->enabled()
+            && (\App\Support\Platform\PlatformSwitches::signinAllowed('twitter') || \App\Support\Platform\PlatformSwitches::signupAllowed('twitter')))
             <a href="{{ route('social.twitter.redirect') }}" class="vy-btn" style="display:block;margin-top:10px;background:transparent;color:var(--vy-fg);border:1px solid var(--vy-line);text-align:center;text-decoration:none;">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 Continue with X

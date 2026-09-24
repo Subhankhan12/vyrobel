@@ -176,23 +176,25 @@ it('there is NO public route to create a platform admin', function () {
 
     // The ONLY creation path is the seeded command.
     $this->artisan('admin:create', ['--name' => 'Root', '--email' => 'seed@vyrobel.test'])
-        ->expectsQuestion('Password (min 12 chars, mixed case + a number)', 'Sup3rSecret-Pass')
+        ->expectsQuestion('Password (min 12 chars, mixed case, a number and a symbol)', 'Sup3rSecret-Pass')
         ->expectsQuestion('Confirm password', 'Sup3rSecret-Pass')
         ->assertExitCode(0);
 
-    expect(PlatformAdmin::query()->where('email', 'seed@vyrobel.test')->exists())->toBeTrue();
+    // ⚠️ ADMIN 01 · Phase 1 — created with an EXPLICIT role (Owner by default); a null role could do nothing.
+    expect(PlatformAdmin::query()->where('email', 'seed@vyrobel.test')->value('role'))->toBe('owner');
 })->group('security');
 
 // ── 🔒 PROOF 6 — ADMIN ACTIONS ARE AUDITED ─────────────────────────────────────────────────────────
 it('the cross-tenant read on the console is AUDITED to the platform action ledger', function () {
     [$admin] = enrolledAdmin();
 
-    $this->actingAs($admin, 'admin')->get('/admin')->assertOk();
+    $this->actingAs($admin, 'admin')->get('/admin/overview')->assertOk();
 
-    // The console's cross-tenant read is audited. (Build 1 · Gate 1 grew the Overview from a trivial org count
-    // to the full metrics read — same audited PlatformQuery::read(), now under the accurate `platform.dashboard`
-    // action. The isolation guarantee is unchanged: the read IS audited to the platform ledger.)
-    $action = PlatformAdminAction::query()->where('action', 'platform.dashboard')->first();
+    // The console's cross-tenant read is audited. ⚠️ ADMIN 01 · Phase 1 moved it: `/admin` is now the health board
+    // (platform facts only — no tenant row, no scope lift), and the cross-tenant metrics read lives on
+    // `/admin/overview` under `platform.overview`. The guarantee this test exists for is unchanged: the read that
+    // lifts the tenant scope IS audited to the platform ledger, against the acting admin.
+    $action = PlatformAdminAction::query()->where('action', 'platform.overview')->first();
     expect($action)->not->toBeNull();
     expect($action->platform_admin_id)->toBe($admin->id);
 })->group('security');

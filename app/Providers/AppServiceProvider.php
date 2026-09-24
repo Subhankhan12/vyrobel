@@ -95,6 +95,7 @@ use App\Support\Mail\MailSafetyGuard;
 use App\Support\Notifications\BookingNotificationIntent;
 use App\Support\OAuth\OAuthScopes;
 use App\Support\Owner\OwnerContext;
+use App\Support\Platform\PlatformWriteGuard;
 use App\Support\Property\PropertyContext;
 use App\Support\Safety\BaselineTenantWriteGuard;
 use App\Support\Tenancy\TenantContext;
@@ -258,6 +259,11 @@ class AppServiceProvider extends ServiceProvider
         //    because "do not touch tenant one" was in every brief for weeks and a probe wrote there anyway:
         //    a rule that is written down and still fires is a note, not a rule.
         BaselineTenantWriteGuard::armFromConfig();
+
+        // ⚠️⚠️ ADMIN 01 · PHASE 1 — also before anything can write: the platform console's one door is read-only
+        //    and the admin audit ledger is append-only, both refused AT THE CONNECTION so that query-builder and
+        //    raw-SQL writes cannot walk around a model event. See PlatformWriteGuard for what it cannot see.
+        PlatformWriteGuard::register($this->app->make('db')->connection());
 
         // HTTPS SCHEME FORCING (audit 2026-08-07 · F6-10). Every generated URL — form actions, redirects,
         // password-reset and email-verification signed links, the assets in a transactional email — is built

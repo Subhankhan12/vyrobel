@@ -19,15 +19,23 @@
     $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
     $adminName = $admin?->name ?? 'Platform admin';
     $initials = \Illuminate\Support\Str::of($adminName)->explode(' ')->take(2)->map(fn ($p) => \Illuminate\Support\Str::substr($p, 0, 1))->implode('');
-    // The nav — [key, label, url, live, icon-path]. The icon set is the SAME 24×24 stroked line family the
-    // operator shell draws (fill:none, stroke:currentColor, width 1.6), so the two consoles read identically.
+    // The nav — [key, label, url, live, icon-path, capability]. The icon set is the SAME 24×24 stroked line
+    // family the operator shell draws (fill:none, stroke:currentColor, width 1.6), so the two consoles read alike.
+    // ⚠️ ADMIN 01 · Phase 1 — an item whose capability this admin's ROLE lacks is not shown at all: the nav asks
+    //    the SAME matrix (PlatformAdminRole) the route gate asks, so a link can never lead to a 403.
     $nav = [
-        ['overview', 'Overview', route('admin.dashboard'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z'],
-        ['customers', 'Customers', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'],
-        ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4'],
-        ['activity', 'Security & activity', route('admin.activity.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z'],
-        ['integrations', 'Integrations', route('admin.integrations.index'), true, 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3'],
+        ['health', 'Health', route('admin.dashboard'), true, 'M3 12h4l3-8 4 16 3-8h4', 'console.view'],
+        ['overview', 'Overview', route('admin.overview'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', 'console.view'],
+        ['customers', 'Customers', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
+        ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
+        ['switches', 'Kill switches', route('admin.switches.index'), true, 'M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7zM16 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'console.view'],
+        ['audit', 'Audit log', route('admin.audit.index'), true, 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01', 'console.view'],
+        ['admins', 'Admins', route('admin.admins.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8.5 15.5c.6-1.5 2-2.5 3.5-2.5s2.9 1 3.5 2.5', 'admins.view'],
+        ['activity', 'Security & activity', route('admin.activity.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', 'console.view'],
+        ['integrations', 'Integrations', route('admin.integrations.index'), true, 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', 'integrations.view'],
     ];
+    $nav = array_values(array_filter($nav, fn (array $item): bool => $admin?->may($item[5]) ?? false));
+    $roleLabel = $admin?->roleEnum()?->label() ?? 'No role';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -265,6 +273,35 @@
         .ad-dl dt { color: var(--ad-muted); }
         .ad-dl dd { margin: 0; font-weight: 500; }
         @media (max-width: 820px) { .ad-layout { grid-template-columns: 1fr; } .ad-side { position: static; height: auto; flex-direction: row; overflow-x: auto; align-items: center; } .ad-nav { flex-direction: row; } .ad-nav-label { display: none; } .ad-main { padding: 18px; } }
+        /* ---- ADMIN 01 · Phase 1 — the health board. Four states; grey is its own state, never green. ------ */
+        .ad-health-summary { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .ad-health-count { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: var(--ad-r-pill); background: var(--ad-glass); border: 1px solid var(--ad-border); font-size: 12.5px; font-weight: 600; color: var(--ad-ink); }
+        .ad-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+        .ad-dot--green { background: rgb(52, 140, 90); } .ad-dot--amber { background: var(--vy-amber-2); } .ad-dot--red { background: var(--ad-danger); } .ad-dot--grey { background: rgb(150, 142, 136); }
+        .ad-health { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .ad-hcard { position: relative; background: var(--ad-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--ad-border); border-radius: var(--ad-r-lg); box-shadow: var(--vy-shadow); padding: 18px 20px 18px 24px; overflow: hidden; }
+        .ad-hcard::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+        .ad-hcard--green::before { background: rgb(52, 140, 90); } .ad-hcard--amber::before { background: var(--vy-amber-2); } .ad-hcard--red::before { background: var(--ad-danger); } .ad-hcard--grey::before { background: rgb(150, 142, 136); }
+        .ad-hcard-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .ad-hcard-title { font-family: var(--ad-display); font-weight: 600; font-size: 14.5px; margin: 0; }
+        .ad-hcard-headline { font-family: var(--ad-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; margin: 10px 0 8px; }
+        .ad-hcard--red .ad-hcard-headline { color: var(--ad-danger); }
+        .ad-hcard-lines { list-style: none; margin: 0; padding: 0; font-size: 12.5px; color: var(--ad-muted); }
+        .ad-hcard-lines li { padding: 3px 0; border-top: 1px solid var(--vy-hairline); overflow-wrap: anywhere; }
+        .ad-hcard-lines li:first-child { border-top: none; }
+        .ad-hcard-note { font-size: 11.5px; color: var(--ad-faint); margin: 10px 0 0; line-height: 1.5; }
+        .ad-hpill { font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: var(--ad-r-pill); white-space: nowrap; }
+        .ad-hpill--green { background: rgba(52, 140, 90, .14); color: var(--vy-green-text); }
+        .ad-hpill--amber { background: rgba(224, 146, 30, .16); color: var(--vy-amber-text); }
+        .ad-hpill--red { background: rgba(143, 49, 16, .12); color: var(--ad-danger); }
+        .ad-hpill--grey { background: rgba(150, 142, 136, .18); color: var(--ad-muted); }
+        /* The reason field every write carries — one look everywhere. */
+        .ad-reason { display: block; width: 100%; margin: 8px 0; }
+        .ad-reason-hint { font-size: 11px; color: var(--ad-faint); margin: -2px 0 8px; }
+        .ad-inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
+        .ad-inline-form .ad-input { width: auto; flex: 1 1 180px; padding: 8px 11px; font-size: 13px; }
+        .ad-once { padding: 14px 16px; border-radius: var(--ad-r-md); background: rgba(224, 146, 30, .10); border: 1px solid rgba(224, 146, 30, .35); border-left: 3px solid var(--vy-amber-2); margin-bottom: 18px; font-size: 13px; }
+        .ad-once code { display: block; margin-top: 8px; padding: 9px 11px; background: rgba(255,255,255,.75); border: 1px solid var(--ad-border); border-radius: var(--ad-r-sm); font-size: 12px; word-break: break-all; user-select: all; }
             /* ⚠️⚠️ DEFINED, NOT ASSUMED. A visually-hidden label whose class is undefined does not hide
            anything — it renders as stray text on the page. This shell had no `.vy-sr-only` while the
            operator, owner and guest shells each define it, so a label placed here would have SHOWN.
@@ -297,7 +334,7 @@
                  rather than the assertion being weakened to match a redesign. --}}
             <nav class="ad-nav" aria-label="Platform console">
                 <div class="ad-nav-label">Platform console</div>
-                @foreach ($nav as [$key, $label, $url, $live, $icon])
+                @foreach ($nav as [$key, $label, $url, $live, $icon, $capability])
                     @if ($live)
                         <a href="{{ $url }}" class="{{ $key === $active ? 'is-active' : '' }}" @if ($key === $active) aria-current="page" @endif>
                             <svg class="ad-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
@@ -331,7 +368,7 @@
                     <a class="ad-chip {{ $active === 'account' ? 'is-active' : '' }}" href="{{ route('admin.account.edit') }}" style="text-decoration: none; color: inherit;">
                         <span class="ad-chip-id">
                             <span class="ad-chip-name">{{ $adminName }}</span>
-                            <span class="ad-chip-role">Platform admin</span>
+                            <span class="ad-chip-role">Platform · {{ $roleLabel }}</span>
                         </span>
                         <span class="ad-ava">{{ $initials }}</span>
                     </a>

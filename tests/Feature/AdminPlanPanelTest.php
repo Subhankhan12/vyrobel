@@ -62,7 +62,7 @@ it('⚠️ SUPER-ADMIN ONLY — a platform admin reaches the panel and an operat
 it('⚠️ WELL-FORMED OR REJECTED — a per-unit plan with no rate is not persisted', function () {
     $admin = platformAdmin();
 
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => 'no_rate', 'name' => 'No rate', 'pricing_type' => Plan::PRICING_PER_UNIT,
         'interval' => 'monthly', 'currency' => 'EUR', 'unit_rate' => '',
     ])->assertSessionHasErrors('unit_rate');
@@ -75,7 +75,7 @@ it('⚠️ WELL-FORMED OR REJECTED — a per-unit plan with no rate is not persi
 it('⚠️ WELL-FORMED OR REJECTED — a ZERO rate is refused, because it silently bills nothing', function () {
     $admin = platformAdmin();
 
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => 'zero_rate', 'name' => 'Zero', 'pricing_type' => Plan::PRICING_PER_UNIT,
         'interval' => 'monthly', 'currency' => 'EUR', 'unit_rate' => '0',
     ])->assertSessionHasErrors('unit_rate');
@@ -86,7 +86,7 @@ it('⚠️ WELL-FORMED OR REJECTED — a ZERO rate is refused, because it silent
 it('⚠️ WELL-FORMED OR REJECTED — an unknown pricing shape is not persisted', function () {
     $admin = platformAdmin();
 
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => 'weird', 'name' => 'Weird', 'pricing_type' => 'metered_by_moonlight',
         'interval' => 'monthly', 'currency' => 'EUR', 'price' => '10',
     ])->assertSessionHasErrors('pricing_type');
@@ -97,7 +97,7 @@ it('⚠️ WELL-FORMED OR REJECTED — an unknown pricing shape is not persisted
 it('creates a PER-UNIT plan — the shape that previously had no in-app path at all', function () {
     $admin = platformAdmin();
 
-    $this->actingAs($admin, 'admin')->post('/admin/plans', [
+    $this->actingAs($admin, 'admin')->post('/admin/plans', ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => 'studio_monthly', 'name' => 'Studio', 'pricing_type' => Plan::PRICING_PER_UNIT,
         'interval' => 'monthly', 'currency' => 'eur', 'unit_rate' => '9.00', 'vat_pct' => '23',
     ])->assertRedirect();
@@ -121,13 +121,13 @@ it('⚠️ NOT BILLABLE WITHOUT A PRICE — a Price-less plan cannot be activate
     $blocked = PlanIntegrity::blockedFromActivation($plan);
     expect($blocked)->toBeString()->and($blocked)->toContain('Stripe Price');
 
-    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->id}/toggle")->assertRedirect();
+    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->id}/toggle", ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect();
 
     expect($plan->fresh()->is_active)->toBeFalse();
 
     // …and with a real Price it activates.
     $plan->update(['stripe_price_id' => 'price_1RealPanel']);
-    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->id}/toggle");
+    $this->actingAs($admin, 'admin')->post("/admin/plans/{$plan->id}/toggle", ['reason' => 'Test fixture — a written reason, as every admin write now requires.']);
     expect($plan->fresh()->is_active)->toBeTrue();
 });
 
@@ -146,7 +146,7 @@ it('⚠️ EDITS AFFECT NEW SUBSCRIPTIONS ONLY — an existing subscriber keeps 
     expect($subscription->chargeFor()['gross_minor'])->toBe(4900);
 
     // The platform doubles the catalogue price.
-    $this->actingAs($admin, 'admin')->put("/admin/plans/{$plan->id}", [
+    $this->actingAs($admin, 'admin')->put("/admin/plans/{$plan->id}", ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         'code' => $plan->code, 'name' => $plan->name, 'pricing_type' => Plan::PRICING_FLAT,
         'interval' => 'monthly', 'currency' => 'EUR', 'price' => '98.00',
         'stripe_price_id' => 'price_1RealPanel', 'is_active' => '1',

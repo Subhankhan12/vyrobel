@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Scopes\OrganizationScope;
 use App\Support\Billing\SubscriptionStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,8 @@ use Illuminate\Support\Carbon;
  *
  * @property Carbon|null $paused_until
  * @property Carbon|null $readonly_from
+ * @property bool|null $is_internal Vyrobel's own test/demo/probe org — excluded from platform statistics.
+ *                                  ⚠️ Deliberately NOT fillable: only the audited console action (and the demo seeder) may set it.
  */
 class Organization extends Model
 {
@@ -53,7 +56,31 @@ class Organization extends Model
             'branding' => 'array',
             'paused_until' => 'datetime',
             'readonly_from' => 'datetime',
+            'is_internal' => 'boolean',
         ];
+    }
+
+    /** Vyrobel's own test/demo/probe organisation — never counted as a customer. */
+    public function isInternal(): bool
+    {
+        return (bool) $this->is_internal;
+    }
+
+    /**
+     * ⚠️ THE ONE DEFINITION of "a customer" for every platform statistic: not marked internal. NULL counts as a
+     * customer — a new signup is a customer until somebody says otherwise, never the reverse.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeCustomers($query): void
+    {
+        $query->where(fn ($q) => $q->whereNull('is_internal')->orWhere('is_internal', false));
+    }
+
+    /** @param  Builder<self>  $query */
+    public function scopeInternal($query): void
+    {
+        $query->where('is_internal', true);
     }
 
     public function users(): BelongsToMany

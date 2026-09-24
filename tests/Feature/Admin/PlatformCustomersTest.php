@@ -59,13 +59,13 @@ it('suspend + reactivate are AUDITED admin actions that really change the status
     $admin = platformAdmin();
 
     $this->actingAs($admin, 'admin')
-        ->post(route('admin.customers.suspend', $org->id), ['current_password' => 'password'])
+        ->post(route('admin.customers.suspend', $org->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'current_password' => 'password'])
         ->assertRedirect(route('admin.customers.show', $org->id));
 
     expect($org->fresh()->status)->toBe('suspended');
     expect(PlatformAdminAction::query()->where('action', 'platform.customer.suspend')->where('target_id', $org->id)->exists())->toBeTrue();
 
-    $this->actingAs($admin, 'admin')->post(route('admin.customers.reactivate', $org->id))->assertRedirect();
+    $this->actingAs($admin, 'admin')->post(route('admin.customers.reactivate', $org->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect();
     expect($org->fresh()->status)->toBe('active');
     expect(PlatformAdminAction::query()->where('action', 'platform.customer.reactivate')->exists())->toBeTrue();
 })->group('security');

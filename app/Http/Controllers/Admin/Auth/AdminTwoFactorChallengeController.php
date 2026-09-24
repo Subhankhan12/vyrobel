@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformAdmin;
+use App\Support\Platform\PlatformAdminSessions;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\TwoFactor\PlatformTwoFactorService;
 use Illuminate\Contracts\View\View;
@@ -60,6 +61,8 @@ class AdminTwoFactorChallengeController extends Controller
         Auth::guard('admin')->login($admin);
         $request->session()->forget('admin.2fa.pending_id');
         $request->session()->regenerate();
+        // ⚠️ AFTER regenerate — the tracking key lives in the session that will actually be used.
+        app(PlatformAdminSessions::class)->start($request, $admin);
         $admin->forceFill(['last_login_at' => now()])->saveQuietly();
         $this->audit->record('platform.login', ['two_factor' => 'passed'], actor: $admin);
 

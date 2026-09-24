@@ -31,10 +31,12 @@ use App\Models\Owner;
 use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\Platform\PlatformAdminPasswordPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
 uses(RefreshDatabase::class);
@@ -124,10 +126,25 @@ it('⚠️ DO13-4 — the platform-admin command keeps its STRONGER bar (confirm
     // Same concept, legitimately different: a super-admin credential is created once, by a human at a
     // terminal, and carries a higher bar. Collapsing it onto the shared default would have been a REGRESSION
     // dressed as consistency — the judgement the payout-status maps needed too.
+    //
+    // ⚠️ ADMIN 01 · Phase 1 MOVED the bar, it did not lower it: the command, the invitation and the admin's own
+    //    password change now share ONE definition, PlatformAdminPasswordPolicy. So this follows the definition to
+    //    where it lives — and, beyond reading source, proves it BEHAVES as the stronger bar: every password the
+    //    tenant rule refuses, the admin rule refuses too, and it refuses a short one the tenant rule would accept.
     $src = (string) file_get_contents(app_path('Console/Commands/CreatePlatformAdminCommand.php'));
-    expect($src)->toContain('Password::min(12)')
-        ->and($src)->toContain('mixedCase()')
+    $policy = (string) file_get_contents(app_path('Support/Platform/PlatformAdminPasswordPolicy.php'));
+    expect($src)->toContain('PlatformAdminPasswordPolicy::rule()')
+        ->and($src)->not->toContain('use App\\Support\\Auth\\PasswordPolicy;')   // the TENANT rule is not imported
+        ->and($policy)->toContain('mixedCase()')
+        ->and(PlatformAdminPasswordPolicy::MIN_LENGTH)->toBe(12)
         ->and(PasswordPolicy::MIN_LENGTH)->toBeLessThan(12);
+
+    $passes = fn ($rule, string $pw): bool => ! Validator::make(['p' => $pw], ['p' => [$rule]])->fails();
+    foreach (do134Weak() as $why => $weak) {
+        expect($passes(PlatformAdminPasswordPolicy::rule(), $weak))->toBeFalse("admin rule accepted a password the tenant rule refuses ({$why})");
+    }
+    expect($passes(Password::defaults(), 'Abcdef1!'))->toBeTrue()                                        // tenant: fine
+        ->and($passes(PlatformAdminPasswordPolicy::rule(), 'Abcdef1!'))->toBeFalse();   // admin: too short
 });
 
 // ── EVERY PATH, END TO END ────────────────────────────────────────────────────────────────────────

@@ -137,7 +137,7 @@ it('refuses a tenant suspension without the current password', function () {
     $c = g3Setup();
 
     $this->actingAs($c['admin'], 'admin')->from('/admin/customers/'.$c['orgId'])
-        ->post(route('admin.customers.suspend', $c['orgId']))
+        ->post(route('admin.customers.suspend', $c['orgId']), ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])
         ->assertSessionHasErrors('current_password');
 
     expect(Organization::withoutGlobalScopes()->find($c['orgId'])->status)->not->toBe('suspended');
@@ -149,7 +149,7 @@ it('refuses a tenant suspension when the admin password is wrong', function () {
     $c = g3Setup();
 
     $this->actingAs($c['admin'], 'admin')->from('/admin/customers/'.$c['orgId'])
-        ->post(route('admin.customers.suspend', $c['orgId']), ['current_password' => 'not-the-admin-password'])
+        ->post(route('admin.customers.suspend', $c['orgId']), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'current_password' => 'not-the-admin-password'])
         ->assertSessionHasErrors('current_password');
 
     expect(Organization::withoutGlobalScopes()->find($c['orgId'])->status)->not->toBe('suspended');
@@ -159,7 +159,7 @@ it('suspends with the correct admin password', function () {
     $c = g3Setup();
 
     $this->actingAs($c['admin'], 'admin')->from('/admin/customers/'.$c['orgId'])
-        ->post(route('admin.customers.suspend', $c['orgId']), ['current_password' => 'admin-Passw0rd!'])
+        ->post(route('admin.customers.suspend', $c['orgId']), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'current_password' => 'admin-Passw0rd!'])
         ->assertRedirect(route('admin.customers.show', $c['orgId']));
 
     expect(Organization::withoutGlobalScopes()->find($c['orgId'])->status)->toBe('suspended');
@@ -200,7 +200,7 @@ it('binds the suspension rule to the ADMIN guard, not merely to whatever is defa
         ->and(auth()->guard('admin')->guest())->toBeFalse();
 
     $this->from('/admin/customers/'.$c['orgId'])
-        ->post(route('admin.customers.suspend', $c['orgId']), ['current_password' => 'admin-Passw0rd!'])
+        ->post(route('admin.customers.suspend', $c['orgId']), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'current_password' => 'admin-Passw0rd!'])
         ->assertRedirect(route('admin.customers.show', $c['orgId']));
 
     expect(Organization::withoutGlobalScopes()->find($c['orgId'])->status)->toBe('suspended');

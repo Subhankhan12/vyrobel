@@ -38,6 +38,9 @@ class PlatformAdminSeeder extends Seeder
                 'name' => 'Platform Admin (demo)',
                 'password' => Hash::make('password'),
                 'status' => 'active',
+                // ⚠️ ADMIN 01 · Phase 1 — every admin carries an EXPLICIT role; a null role can do nothing. Found by
+                //    a fresh seed: the migration's backfill had run against an empty table, so this admin had none.
+                'role' => 'owner',
             ],
         );
     }

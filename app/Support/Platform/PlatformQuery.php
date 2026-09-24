@@ -4,62 +4,68 @@ declare(strict_types=1);
 
 namespace App\Support\Platform;
 
+use App\Models\Scopes\OrganizationScope;
+use App\Models\Scopes\OwnerScope;
+use App\Support\Owner\OwnerContext;
 use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * SUPER ADMIN · GATE 0 — THE ONE, SAFE cross-tenant read path for the /admin realm.
+ * THE ONE DOOR — the only place in the product where tenant isolation is deliberately lifted.
  *
- * The platform panel sits ABOVE the tenancy and must read across every organization. It does so ONLY through
- * this wrapper, which:
- *   1. is ADMIN-GUARD-GATED — it refuses (throws) unless a platform admin is authenticated on the `admin`
- *      guard, so the deliberate scope bypass can never be triggered from a tenant realm;
- *   2. uses the EXISTING, tested {@see TenantContext::runAsSuperAdmin()} closure — the SAME audited, temporary,
- *      finally-restored bypass the app already uses (provisioning, webhooks). We invent NO new scope bypass;
- *   3. AUDITS the access — every cross-tenant read is recorded to the platform action ledger (who + IP + UA).
+ * The platform console sits ABOVE the tenancy and must read across every organisation. It does so ONLY here:
  *
- * THE NON-LEAK GUARANTEE is inherited from `runAsSuperAdmin`: it restores the previous tenant context in a
- * `finally`, so a subsequent request (a tenant request) is scoped exactly as before — the suspension is
- * temporary and local to this closure. Gate 0's isolation tests prove it end-to-end.
+ *   1. ⚠️ ADMIN-GUARD-GATED — both methods refuse (throw) unless a platform admin is authenticated on the
+ *      `admin` guard, so the lift can never be triggered from a tenant realm.
+ *   2. ⚠️⚠️ BOTH REFUSAL SCOPES ARE LIFTED, NOT ONE. {@see OrganizationScope} via the existing, tested
+ *      `TenantContext::runAsSuperAdmin()`, AND {@see OwnerScope} via `OwnerContext::liftForPlatformConsole()`.
+ *      Before Phase 1 only the first was lifted, so an admin also signed into an owner account in the same
+ *      browser had every owner-scoped read (Unit, statements, payouts) silently narrowed to that one owner.
+ *      A test signed in as BOTH proves the lift (PlatformDoorTest).
+ *   3. ⚠️⚠️ `read()` IS READ-ONLY, ENFORCED AT THE CONNECTION ({@see PlatformWriteGuard}) — any write statement
+ *      inside it throws before executing. It used to be read-only by name only.
+ *   4. EVERY ACCESS IS AUDITED to the append-only platform ledger — and every WRITE must carry a written
+ *      reason, or `mutate()` refuses to run.
+ *
+ * Both lifts restore in a `finally`, so the next request (or the rest of this one) is scoped exactly as before.
+ * ⚠️ `withoutGlobalScope(s)` appears nowhere else in the admin realm — PlatformDoorGuardTest fails if it does.
  */
 class PlatformQuery
 {
     public function __construct(
         private readonly TenantContext $tenant,
+        private readonly OwnerContext $owners,
         private readonly PlatformAuditLogger $audit,
     ) {}
 
     /**
-     * Run a read across ALL organizations (the tenant global scope suspended for the closure only).
+     * Run a READ across all organisations and all owners. Any write statement inside the closure is refused.
      *
      * @template TReturn
      *
      * @param  Closure():TReturn  $callback
-     * @param  string  $action  the audit action label for this read (e.g. "platform.count_organizations")
+     * @param  string  $action  the audit label for this read (e.g. "platform.customers.list")
      * @param  array<string, mixed>  $meta
      * @return TReturn
      */
     public function read(string $action, Closure $callback, array $meta = []): mixed
     {
-        // 🔒 The bypass is triggerable ONLY from the authenticated admin realm. Fail closed everywhere else, so a
-        // tenant request can never reach the cross-tenant read path even if it somehow called this service.
-        if (! Auth::guard('admin')->check()) {
-            throw new RuntimeException('PlatformQuery::read() is available only to an authenticated platform admin.');
-        }
+        $this->assertAdmin('read');
 
+        // ⚠️ The audit row is written BEFORE the read-only section opens — it is the one write a read makes.
         $this->audit->record($action, $meta);
 
-        // The EXISTING runAsSuperAdmin closure: suspends the org scope, runs, and RESTORES context in a finally.
-        return $this->tenant->runAsSuperAdmin($callback);
+        return PlatformWriteGuard::readOnly(fn () => $this->lifted($callback));
     }
 
     /**
-     * Run an audited cross-tenant WRITE (e.g. suspend a customer, assign a plan). Semantically distinct from
-     * {@see read()} but the SAME security envelope: admin-guard-gated, wrapped in the existing
-     * `runAsSuperAdmin` closure (scope suspended + restored in a `finally`), and audited. Use this for every
-     * platform mutation that touches a tenant-scoped row so the bypass is never opened outside the admin realm.
+     * Run an audited cross-tenant WRITE — a deliberate admin action, never a side effect of a read.
+     *
+     * ⚠️⚠️ A WRITTEN REASON IS REQUIRED. It is recorded on the audit row with the actor, IP and user agent. An
+     * empty reason throws before anything is written, so no code path can perform an unexplained admin write.
      *
      * @template TReturn
      *
@@ -67,14 +73,36 @@ class PlatformQuery
      * @param  array<string, mixed>  $meta
      * @return TReturn
      */
-    public function mutate(string $action, Closure $callback, array $meta = [], ?string $targetType = null, ?string $targetId = null): mixed
+    public function mutate(string $action, string $reason, Closure $callback, array $meta = [], ?string $targetType = null, ?string $targetId = null): mixed
     {
-        if (! Auth::guard('admin')->check()) {
-            throw new RuntimeException('PlatformQuery::mutate() is available only to an authenticated platform admin.');
+        $this->assertAdmin('mutate');
+
+        if (trim($reason) === '') {
+            throw new InvalidArgumentException("PlatformQuery::mutate('{$action}') refused: every admin write needs a written reason.");
         }
 
-        $this->audit->record($action, $meta, $targetType, $targetId);
+        $this->audit->record($action, $meta, $targetType, $targetId, reason: $reason);
 
-        return $this->tenant->runAsSuperAdmin($callback);
+        return $this->lifted($callback);
+    }
+
+    /**
+     * @template TReturn
+     *
+     * @param  Closure():TReturn  $callback
+     * @return TReturn
+     */
+    private function lifted(Closure $callback): mixed
+    {
+        return $this->tenant->runAsSuperAdmin(
+            fn () => $this->owners->liftForPlatformConsole($callback),
+        );
+    }
+
+    private function assertAdmin(string $method): void
+    {
+        if (! Auth::guard('admin')->check()) {
+            throw new RuntimeException("PlatformQuery::{$method}() is available only to an authenticated platform admin.");
+        }
     }
 }

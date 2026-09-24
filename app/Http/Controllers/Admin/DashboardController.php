@@ -5,31 +5,32 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\Platform\PlatformMetrics;
-use App\Support\Platform\PlatformQuery;
+use App\Support\Platform\Health\HealthBoard;
+use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 
 /**
- * SUPER ADMIN · BUILD 1 · GATE 1 — the platform Overview dashboard: REAL metrics across ALL organizations.
+ * ADMIN 01 · PHASE 1 — `/admin`, the first screen after sign-in, is the "NOTHING IS SILENT" health board.
  *
- * The ENTIRE aggregate is computed inside ONE {@see PlatformQuery::read()} call, so every cross-tenant query
- * runs under the audited, admin-guard-gated, scope-restored `runAsSuperAdmin` context — a single audited read
- * per dashboard load, never an ad-hoc bypass. Figures are real (#39); zero states are honest.
+ * It reads only platform-owned facts (the queue tables, the heartbeat cache, the log files, the release layout,
+ * the resolved config tree, the switch table) — no tenant row — so it needs no scope lift and does not go
+ * through the one door. The view is still recorded on the audit ledger, like every console page.
+ *
+ * The business numbers that used to live here moved to {@see OverviewController} — with internal organisations
+ * excluded and the trial "plan value" removed.
  */
 class DashboardController extends Controller
 {
     public function __construct(
-        private readonly PlatformQuery $platform,
-        private readonly PlatformMetrics $metrics,
+        private readonly HealthBoard $board,
+        private readonly PlatformAuditLogger $audit,
     ) {}
 
     public function index(): View
     {
-        $metrics = $this->platform->read(
-            'platform.dashboard',
-            fn (): array => $this->metrics->compute(),
-        );
+        $cards = $this->board->cards();
+        $this->audit->record('platform.health.view');
 
-        return view('admin.dashboard', ['m' => $metrics]);
+        return view('admin.dashboard', ['cards' => $cards]);
     }
 }

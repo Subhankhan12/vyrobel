@@ -62,7 +62,7 @@ it('updates a plan — integer money (#17) + feature toggles — and AUDITS it',
     $plan = planWithFeatures();
 
     $this->actingAs(platformAdmin(), 'admin')
-        ->put(route('admin.plans.update', $plan->id), [
+        ->put(route('admin.plans.update', $plan->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
             // ⚠️ G8: the shape now travels with the save (see the note in the other update test).
             'code' => $plan->code, 'pricing_type' => Plan::PRICING_FLAT, 'interval' => 'monthly',
             'currency' => 'EUR', 'stripe_price_id' => $plan->stripe_price_id,
@@ -95,7 +95,7 @@ it('editing a plan feature flips what planAllows returns for orgs on that plan (
     expect($org->fresh()->planAllows('channels'))->toBeFalse();
 
     // Admin enables channels on the plan → the SAME org is now granted it (no other change).
-    $this->actingAs(platformAdmin(), 'admin')->put(route('admin.plans.update', $plan->id), [
+    $this->actingAs(platformAdmin(), 'admin')->put(route('admin.plans.update', $plan->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.',
         // ⚠️ G8: the save now validates the plan's SHAPE too, so the payload carries it. A partial
         // payload used to be accepted — which is precisely how a per-unit plan could be saved with
         // no rate at all.
@@ -134,11 +134,11 @@ it('toggling a plan active/inactive works and is audited', function () {
     $plan = planWithFeatures();   // is_active = true
     $admin = platformAdmin();
 
-    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id))->assertRedirect(route('admin.plans.index'));
+    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect(route('admin.plans.index'));
     expect($plan->fresh()->is_active)->toBeFalse();
     expect(PlatformAdminAction::query()->where('action', 'platform.plan.toggled')->exists())->toBeTrue();
 
-    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id))->assertRedirect();
+    $this->actingAs($admin, 'admin')->post(route('admin.plans.toggle', $plan->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])->assertRedirect();
     expect($plan->fresh()->is_active)->toBeTrue();
 })->group('security');
 
@@ -152,7 +152,7 @@ it('assigning a plan to a customer changes its features + is AUDITED; Stripe sta
     expect($org->fresh()->planAllows('channels'))->toBeFalse();
 
     $this->actingAs(platformAdmin(), 'admin')
-        ->post(route('admin.customers.assign-plan', $org->id), ['plan_id' => $pro->id])
+        ->post(route('admin.customers.assign-plan', $org->id), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'plan_id' => $pro->id])
         ->assertRedirect(route('admin.customers.show', $org->id));
 
     // Now on Pro → channels granted; the subscription's plan really changed.

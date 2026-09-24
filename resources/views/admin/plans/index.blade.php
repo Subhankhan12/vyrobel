@@ -11,7 +11,9 @@
         <div class="ad-flash ad-flash--error">{{ session('admin_error') }}</div>
     @endif
 
-    <div style="margin: 0 0 16px;"><a class="ad-btn" href="{{ route('admin.plans.create') }}">New plan</a></div>
+    @if (auth('admin')->user()?->may('billing.manage'))
+        <div style="margin: 0 0 16px;"><a class="ad-btn" href="{{ route('admin.plans.create') }}">New plan</a></div>
+    @endif
 
     <div class="ad-card" style="padding: 8px 10px;">
         <table class="ad-table">
@@ -47,12 +49,15 @@
                             @endif
                         </td>
                         <td style="text-align: right; white-space: nowrap;">
-                            {{-- Audit fix P3 — wire the quick activate/deactivate toggle (was a dead route). --}}
-                            <form method="POST" action="{{ route('admin.plans.toggle', $plan->id) }}" style="display: inline;" data-guard-submit>
-                                @csrf
-                                <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $plan->is_active ? 'Deactivate' : 'Activate' }}</button>
-                            </form>
-                            <a href="{{ route('admin.plans.edit', $plan->id) }}" class="ad-btn ad-btn--ghost ad-btn--sm">Edit</a>
+                            {{-- ADMIN 01 · Phase 1 — plan controls only for a role that may change billing; each toggle carries a reason. --}}
+                            @if (auth('admin')->user()?->may('billing.manage'))
+                                <form method="POST" action="{{ route('admin.plans.toggle', $plan->id) }}" class="ad-inline-form" style="display: inline-flex;" data-guard-submit>
+                                    @csrf
+                                    <input class="ad-input" name="reason" required minlength="5" maxlength="500" placeholder="Reason" aria-label="Reason" style="width: 150px; flex: 0 0 auto;">
+                                    <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $plan->is_active ? 'Deactivate' : 'Activate' }}</button>
+                                </form>
+                                <a href="{{ route('admin.plans.edit', $plan->id) }}" class="ad-btn ad-btn--ghost ad-btn--sm">Edit</a>
+                            @endif
                         </td>
                     </tr>
                 @endforeach

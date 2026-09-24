@@ -2,13 +2,18 @@
 
 use App\Http\Controllers\Admin\AccountController as AdminAccountController;
 use App\Http\Controllers\Admin\ActivityController as AdminActivityController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AuditController as AdminAuditController;
+use App\Http\Controllers\Admin\Auth\AdminInviteController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\IntegrationController as AdminIntegrationController;
+use App\Http\Controllers\Admin\OverviewController as AdminOverviewController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
+use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
 use App\Http\Controllers\Auth\ChangePasswordController;
@@ -137,6 +142,7 @@ use App\Http\Middleware\EnsureOwnerCapability;
 use App\Http\Middleware\EnsureOwnerPortalAccess;
 use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
+use App\Http\Middleware\EnsurePlatformCapability;
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\NoIndex;
@@ -147,6 +153,7 @@ use App\Http\Middleware\ResolvePublicProperty;
 use App\Http\Middleware\SetCurrentPropertyForWebRequest;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Http\Middleware\SetTenantForGuestRequest;
+use App\Http\Middleware\TrackPlatformAdminSession;
 use App\Livewire\FrontDesk;
 use App\Livewire\HousekeepingBoard;
 use App\Livewire\MaintenanceList;
@@ -215,6 +222,7 @@ use App\Livewire\UnitsList;
 use App\Models\MessageThread;
 use App\Support\Ops\Heartbeat;
 use App\Support\Owner\OwnerTeamRole;
+use App\Support\Platform\PlatformAdminRole;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -1752,8 +1760,14 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
         Route::post('two-factor', [AdminTwoFactorChallengeController::class, 'store'])->middleware('throttle:login')->name('2fa.challenge.store');
     });
 
-    // Authenticated on the `admin` guard.
-    Route::middleware('auth:admin')->group(function () {
+    // ADMIN 01 · Phase 1 — accepting an invitation. PUBLIC (the invitee has no session), rate-limited, useless
+    // without a live 64-character one-time token. It sets the person's OWN password; 2FA is enrolled at sign-in.
+    Route::get('invite/{token}', [AdminInviteController::class, 'show'])->middleware('throttle:10,1')->name('invite.show');
+    Route::post('invite/{token}', [AdminInviteController::class, 'store'])->middleware('throttle:10,1')->name('invite.store');
+
+    // Authenticated on the `admin` guard. ⚠️ TrackPlatformAdminSession ends a session whose admin was revoked or
+    // whose session was force-ended — on every request, on any session driver (production's is `file`).
+    Route::middleware(['auth:admin', TrackPlatformAdminSession::class])->group(function () {
         Route::post('logout', [AdminLoginController::class, 'destroy'])->name('logout');
 
         // MANDATORY 2FA ENROLLMENT — deliberately EXEMPT from the mandatory-2FA gate (this is where you enrol),
@@ -1761,46 +1775,75 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
         Route::get('two-factor/setup', [AdminTwoFactorController::class, 'create'])->name('2fa.setup');
         Route::post('two-factor/setup', [AdminTwoFactorController::class, 'store'])->name('2fa.setup.store');
 
-        // The console — behind MANDATORY 2FA.
+        // The console — behind MANDATORY 2FA, and ⚠️⚠️ EVERY route below carries a ROLE gate
+        // (`EnsurePlatformCapability:<capability>`, reading the ONE matrix in PlatformAdminRole). A route with no
+        // capability fails PlatformRoleGateTest, and each gate is mutation-proved there.
         Route::middleware(EnsurePlatformAdminTwoFactor::class)->group(function () {
-            Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+            $can = static fn (string $capability): string => EnsurePlatformCapability::class.':'.$capability;
 
-            // Build 1 · Gate 2 — Customers (all orgs). Reads via PlatformQuery::read; the lifecycle actions via
-            // PlatformQuery::mutate (audited). Rate-limited status actions. No impersonation (deferred).
-            Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
-            Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
-            Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->middleware('throttle:20,1')->name('customers.suspend');
-            Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->middleware('throttle:20,1')->name('customers.reactivate');
-            Route::post('customers/{organization}/plan', [AdminCustomerController::class, 'assignPlan'])->middleware('throttle:20,1')->name('customers.assign-plan');
+            // ── Everyone with a role: the health board, the business overview, the read-only screens.
+            Route::middleware($can(PlatformAdminRole::CONSOLE_VIEW))->group(function () {
+                Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+                Route::get('overview', [AdminOverviewController::class, 'index'])->name('overview');
+                Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+                Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
+                Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
+                Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
+                Route::get('audit', [AdminAuditController::class, 'index'])->name('audit.index');
+                Route::get('switches', [AdminSwitchController::class, 'index'])->name('switches.index');
 
-            // Build 1 · Gate 3 — Plans (DB-backed catalog; feature toggles drive real gating). Global tables (no
-            // tenant bypass needed); every write audited. Stripe billing sync DEFERRED (the stripe_price_id seam).
-            Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
-            Route::get('plans/create', [AdminPlanController::class, 'create'])->name('plans.create');
-            Route::post('plans', [AdminPlanController::class, 'store'])->middleware('throttle:30,1')->name('plans.store');
-            Route::get('plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');
-            Route::put('plans/{plan}', [AdminPlanController::class, 'update'])->middleware('throttle:30,1')->name('plans.update');
-            Route::post('plans/{plan}/toggle', [AdminPlanController::class, 'toggle'])->middleware('throttle:30,1')->name('plans.toggle');
+                // SELF-SERVICE ACCOUNT — the admin's OWN identity. Every role may manage its own account.
+                Route::get('account', [AdminAccountController::class, 'edit'])->name('account.edit');
+                Route::put('account/profile', [AdminAccountController::class, 'updateProfile'])->middleware('throttle:20,1')->name('account.profile');
+                Route::put('account/password', [AdminAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');
+                Route::post('account/recovery-codes', [AdminAccountController::class, 'regenerateRecoveryCodes'])->middleware('throttle:6,1')->name('account.recovery-codes');
+                Route::post('account/email', [AdminAccountController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('account.email.request');
+                Route::delete('account/email', [AdminAccountController::class, 'cancelEmailChange'])->middleware('throttle:20,1')->name('account.email.cancel');
+            });
 
-            // Build 2 · Gate 1 — Security & activity. Login-activity (platform table) read directly; the
-            // cross-tenant audit slice via PlatformQuery::read (audited). Privacy: 90-day retention.
-            Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
+            // ── Tenant lifecycle (Owner, Support). Every write via PlatformQuery::mutate, with a reason.
+            Route::middleware([$can(PlatformAdminRole::TENANTS_MANAGE), 'throttle:20,1'])->group(function () {
+                // ⚠️ Named "suspend" for continuity; it CLOSES THE PUBLIC STOREFRONT and says so (Phase 2 makes it a
+                //    real suspension of /app).
+                Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->name('customers.suspend');
+                Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->name('customers.reactivate');
+                Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
+            });
 
-            // Build 2 · Gate 2 — Integrations. Master channel credentials, ENCRYPTED at rest, write-only/masked;
-            // managing is audited. The test-connection is a stub (real sync account-gated).
-            Route::get('integrations', [AdminIntegrationController::class, 'index'])->name('integrations.index');
-            Route::get('integrations/{channel}', [AdminIntegrationController::class, 'edit'])->name('integrations.edit');
-            Route::put('integrations/{channel}', [AdminIntegrationController::class, 'update'])->middleware('throttle:30,1')->name('integrations.update');
-            Route::post('integrations/{channel}/test', [AdminIntegrationController::class, 'test'])->middleware('throttle:30,1')->name('integrations.test');
+            // ── Billing (Owner, Billing): what a customer pays for. Stripe sync stays deferred.
+            Route::middleware($can(PlatformAdminRole::BILLING_MANAGE))->group(function () {
+                Route::post('customers/{organization}/plan', [AdminCustomerController::class, 'assignPlan'])->middleware('throttle:20,1')->name('customers.assign-plan');
+                Route::get('plans/create', [AdminPlanController::class, 'create'])->name('plans.create');
+                Route::post('plans', [AdminPlanController::class, 'store'])->middleware('throttle:30,1')->name('plans.store');
+                Route::get('plans/{plan}/edit', [AdminPlanController::class, 'edit'])->name('plans.edit');
+                Route::put('plans/{plan}', [AdminPlanController::class, 'update'])->middleware('throttle:30,1')->name('plans.update');
+                Route::post('plans/{plan}/toggle', [AdminPlanController::class, 'toggle'])->middleware('throttle:30,1')->name('plans.toggle');
+            });
 
-            // SUPER ADMIN · ACCOUNT — the admin manages their OWN identity. Self-only; sensitive changes re-auth
-            // (current_password:admin); email change is re-verified; all audited. Mirrors the owner account discipline.
-            Route::get('account', [AdminAccountController::class, 'edit'])->name('account.edit');
-            Route::put('account/profile', [AdminAccountController::class, 'updateProfile'])->middleware('throttle:20,1')->name('account.profile');
-            Route::put('account/password', [AdminAccountController::class, 'changePassword'])->middleware('throttle:6,1')->name('account.password');
-            Route::post('account/recovery-codes', [AdminAccountController::class, 'regenerateRecoveryCodes'])->middleware('throttle:6,1')->name('account.recovery-codes');
-            Route::post('account/email', [AdminAccountController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('account.email.request');
-            Route::delete('account/email', [AdminAccountController::class, 'cancelEmailChange'])->middleware('throttle:20,1')->name('account.email.cancel');
+            // ── Kill switches (Owner). Database-backed; a flip takes effect on the next request.
+            Route::post('switches/{switch}', [AdminSwitchController::class, 'update'])
+                ->middleware([$can(PlatformAdminRole::SWITCHES_MANAGE), 'throttle:20,1'])->name('switches.update');
+
+            // ── Integrations: master channel credentials, ENCRYPTED, write-only (Owner; Analyst may look).
+            Route::middleware($can(PlatformAdminRole::INTEGRATIONS_VIEW))->group(function () {
+                Route::get('integrations', [AdminIntegrationController::class, 'index'])->name('integrations.index');
+                Route::get('integrations/{channel}', [AdminIntegrationController::class, 'edit'])->name('integrations.edit');
+            });
+            Route::middleware([$can(PlatformAdminRole::INTEGRATIONS_MANAGE), 'throttle:30,1'])->group(function () {
+                Route::put('integrations/{channel}', [AdminIntegrationController::class, 'update'])->name('integrations.update');
+                Route::post('integrations/{channel}/test', [AdminIntegrationController::class, 'test'])->name('integrations.test');
+            });
+
+            // ── The platform admins themselves (Owner; Analyst may look).
+            Route::get('admins', [AdminUserController::class, 'index'])->middleware($can(PlatformAdminRole::ADMINS_VIEW))->name('admins.index');
+            Route::middleware([$can(PlatformAdminRole::ADMINS_MANAGE), 'throttle:20,1'])->group(function () {
+                Route::post('admins', [AdminUserController::class, 'invite'])->name('admins.invite');
+                Route::post('admins/{admin}/invite', [AdminUserController::class, 'reissueInvite'])->name('admins.reissue');
+                Route::post('admins/{admin}/role', [AdminUserController::class, 'changeRole'])->name('admins.role');
+                Route::post('admins/{admin}/revoke', [AdminUserController::class, 'revoke'])->name('admins.revoke');
+                Route::post('admins/{admin}/restore', [AdminUserController::class, 'restore'])->name('admins.restore');
+                Route::post('admins/{admin}/sign-out', [AdminUserController::class, 'signOut'])->name('admins.sign-out');
+            });
         });
     });
 

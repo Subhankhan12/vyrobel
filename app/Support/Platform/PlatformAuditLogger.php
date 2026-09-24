@@ -24,9 +24,13 @@ class PlatformAuditLogger
      * Record a platform-admin action. The actor defaults to the currently-authenticated platform admin (the
      * `admin` guard); pass one explicitly for a non-request context (e.g. a console command).
      *
+     * ⚠️ `$reason` — REQUIRED for every admin WRITE (ADMIN 01 · Phase 1). Reads and sign-ins leave it null. The
+     *    reason is the admin's own words about WHY; ⚠️ it must never carry a password, a hash, a guest's contact
+     *    details, a card or an IBAN — the controllers validate it as short free text for that reason.
+     *
      * @param  array<string, mixed>  $meta  small, non-PII context (counts, route, target descriptor)
      */
-    public function record(string $action, array $meta = [], ?string $targetType = null, ?string $targetId = null, ?PlatformAdmin $actor = null): PlatformAdminAction
+    public function record(string $action, array $meta = [], ?string $targetType = null, ?string $targetId = null, ?PlatformAdmin $actor = null, ?string $reason = null): PlatformAdminAction
     {
         $admin = $actor ?? $this->currentAdmin();
         $request = request();
@@ -37,6 +41,7 @@ class PlatformAuditLogger
             'target_type' => $targetType,
             'target_id' => $targetId,
             'meta' => $meta === [] ? null : $meta,
+            'reason' => $reason === null || trim($reason) === '' ? null : trim($reason),
             'ip' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'created_at' => now(),

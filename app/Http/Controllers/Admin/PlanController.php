@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Support\Billing\PlanIntegrity;
+use App\Support\Platform\AdminReason;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -57,6 +58,7 @@ class PlanController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate(PlanIntegrity::rules());
+        $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $plan = Plan::create($this->columnsFrom($validated) + [
             'code' => (string) $validated['code'],
@@ -65,7 +67,7 @@ class PlanController extends Controller
 
         $this->audit->record('platform.plan.created', [
             'plan' => $plan->code, 'pricing_type' => $plan->pricing_type,
-        ], 'plan', $plan->id);
+        ], 'plan', $plan->id, reason: $reason);
 
         return redirect()->route('admin.plans.edit', $plan->id)
             ->with('admin_notice', $plan->name.' created as a draft — add its Stripe Price id, then activate it.');
@@ -119,6 +121,7 @@ class PlanController extends Controller
             'features.*.enabled' => ['nullable', 'boolean'],
             'features.*.limit' => ['nullable', 'integer', 'min:0'],
         ]);
+        $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $model->update($this->columnsFrom($validated));
 
@@ -149,7 +152,7 @@ class PlanController extends Controller
             );
         }
 
-        $this->audit->record('platform.plan.updated', ['plan' => $model->code], 'plan', $model->id);
+        $this->audit->record('platform.plan.updated', ['plan' => $model->code], 'plan', $model->id, reason: $reason);
 
         return redirect()->route('admin.plans.index')->with('admin_notice', $model->name.' updated.');
     }
@@ -158,6 +161,7 @@ class PlanController extends Controller
     public function toggle(Request $request, string $plan): RedirectResponse
     {
         $model = Plan::query()->findOrFail($plan);
+        $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         // Turning a plan ON is gated; turning it OFF never is — retiring a plan must always be possible, and a
         // retired plan keeps its existing subscribers on their captured terms.
@@ -172,7 +176,7 @@ class PlanController extends Controller
 
         $model->update(['is_active' => ! $model->is_active]);
 
-        $this->audit->record('platform.plan.toggled', ['plan' => $model->code, 'is_active' => $model->is_active], 'plan', $model->id);
+        $this->audit->record('platform.plan.toggled', ['plan' => $model->code, 'is_active' => $model->is_active], 'plan', $model->id, reason: $reason);
 
         return redirect()->route('admin.plans.index')->with('admin_notice', $model->name.($model->is_active ? ' activated.' : ' deactivated.'));
     }

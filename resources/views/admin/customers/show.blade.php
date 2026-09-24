@@ -1,42 +1,61 @@
-{{-- SUPER ADMIN · BUILD 1 · GATE 2 — customer detail: real operational facts + the platform lifecycle actions.
-     #28 — operational facts only (never end-guest PII). Impersonation is deliberately NOT offered (deferred). --}}
-@php $org = $d['org']; $sub = $d['subscription']; @endphp
+{{-- Customer detail: real operational facts + the platform lifecycle actions. #28 — operational facts only (never
+     end-guest PII). Break-glass is a separate, later feature.
+
+     ⚠️⚠️ ADMIN 01 · PHASE 1 — "SUSPEND" IS NOW LABELLED FOR WHAT IT DOES: "Close public storefront". Measured: the
+     `suspended` status closes the hotel's public booking pages and does NOT stop its staff reaching /app. Every
+     action here needs a written reason, and each control appears only for a role that may use it. --}}
+@php
+    $org = $d['org'];
+    $sub = $d['subscription'];
+    $me = auth('admin')->user();
+    $canTenants = $me?->may('tenants.manage') ?? false;
+    $canBilling = $me?->may('billing.manage') ?? false;
+@endphp
 <x-admin.shell active="customers" :title="$org->name" :subtitle="$org->slug"
     :back="route('admin.customers.index')" back-label="All customers">
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
+    @if ($errors->any())
+        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
+    @endif
 
-    {{-- The lifecycle action block is a real card, not a bare flex row: once the page title moved into the
-         topbar this row had nothing to anchor it, and the re-auth password field floated on the page
-         background with no surface under it. Status pill left, the one lifecycle action right. --}}
     <div class="ad-card" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;">
         <div>
-            <div class="ad-label" style="margin-bottom: 8px;">Account status</div>
-            <span class="ad-pill ad-pill--{{ $org->status }}">{{ ucfirst($org->status) }}</span>
-        </div>
-        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-            @if ($org->status === 'suspended')
-                <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}" data-guard-submit>
-                    @csrf
-                    <button type="submit" class="ad-btn">Reactivate customer</button>
-                </form>
-            @else
-                <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" onsubmit="return confirm('Suspend {{ $org->name }}? This flags the account as suspended on the platform (it does not yet block their access).');" data-guard-submit>
-                    @csrf
-                    {{-- ⚠️ RE-AUTH (G3): the `onsubmit` confirm on this form is JS only — a direct POST walks past it.
-                         This does not. `current_password:admin`, because /admin runs on the `admin` guard. --}}
-                    <label class="ad-label" for="suspend_pw">Confirm with your password</label>
-                    <input id="suspend_pw" type="password" name="current_password" class="ad-input"
-                           style="max-width: 260px; margin-bottom: 8px;"
-                           autocomplete="current-password" required aria-label="Current password">
-                    @error('current_password') <span style="color: var(--ad-danger); font-size: 11.5px;">{{ $message }}</span> @enderror
-                    <button type="submit" class="ad-btn ad-btn--danger">Suspend customer</button>
-                </form>
+            <div class="ad-label" style="margin-bottom: 8px;">Storefront</div>
+            <span class="ad-pill ad-pill--{{ $org->status }}">{{ $org->status === 'suspended' ? 'Storefront closed' : ucfirst($org->status) }}</span>
+            @if ($org->isInternal())
+                <span class="ad-pill ad-pill--cancelled" style="margin-left: 6px;">Internal</span>
             @endif
-            {{-- Audit fix P2-2 — honest about enforcement: suspension is a lifecycle FLAG today, not an access lock. --}}
-            <span style="color: var(--ad-faint); font-size: 11.5px; max-width: 230px; text-align: right;">Suspension is a status flag. Blocking the customer's access is a planned follow-up — it doesn't lock them out yet.</span>
         </div>
+
+        @if ($canTenants)
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: 360px;">
+                @if ($org->status === 'suspended')
+                    <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}" data-guard-submit style="width: 100%;">
+                        @csrf
+                        <label class="ad-label" for="reopen_reason">Reason</label>
+                        <input id="reopen_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is the storefront reopening?">
+                        <button type="submit" class="ad-btn">Reopen public storefront</button>
+                    </form>
+                @else
+                    <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" data-guard-submit style="width: 100%;"
+                          onsubmit="return confirm('Close the public storefront? Guests will not be able to book online. Staff can still sign in.');">
+                        @csrf
+                        {{-- ⚠️ RE-AUTH: the confirm() above is JS only — a direct POST walks past it. This does not. --}}
+                        <label class="ad-label" for="suspend_reason">Reason</label>
+                        <input id="suspend_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is the storefront closing?">
+                        <label class="ad-label" for="suspend_pw">Confirm with your password</label>
+                        <input id="suspend_pw" type="password" name="current_password" class="ad-input" style="margin-bottom: 8px;" autocomplete="current-password" required aria-label="Current password">
+                        <button type="submit" class="ad-btn ad-btn--danger">Close public storefront</button>
+                    </form>
+                @endif
+                {{-- Honest about enforcement: this closes online booking only. --}}
+                <span style="color: var(--ad-faint); font-size: 11.5px; text-align: right;">
+                    Closing the storefront stops guests booking online. It does <strong>not</strong> sign the hotel's staff out or block the back office — a full suspension arrives in a later release.
+                </span>
+            </div>
+        @endif
     </div>
 
     <div class="ad-grid-2" style="margin-top: 18px;">
@@ -45,7 +64,8 @@
             <dl class="ad-dl">
                 <dt>Organization</dt><dd>{{ $org->name }}</dd>
                 <dt>Slug</dt><dd>{{ $org->slug }}</dd>
-                <dt>Status</dt><dd>{{ ucfirst($org->status) }}</dd>
+                <dt>Status</dt><dd>{{ $org->status === 'suspended' ? 'Storefront closed (suspended)' : ucfirst($org->status) }}</dd>
+                <dt>Counted as</dt><dd>{{ $org->isInternal() ? 'Internal — excluded from statistics' : 'Customer' }}</dd>
                 <dt>Currency</dt><dd>{{ $org->default_currency }}</dd>
                 @if ($org->billing_company)
                     <dt>Billing name</dt><dd>{{ $org->billing_company }}</dd>
@@ -55,6 +75,17 @@
                 @endif
                 <dt>Joined</dt><dd>{{ $org->created_at?->format('j M Y') ?? '—' }}</dd>
             </dl>
+
+            @if ($canTenants)
+                <h2 class="ad-panel-title" style="margin-top: 22px;">Internal or customer</h2>
+                <form method="POST" action="{{ route('admin.customers.internal', $org->id) }}" data-guard-submit>
+                    @csrf
+                    <input type="hidden" name="internal" value="{{ $org->isInternal() ? '0' : '1' }}">
+                    <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500"
+                           placeholder="{{ $org->isInternal() ? 'Why is this a real customer?' : 'Why is this one of Vyrobel\'s own orgs?' }}" aria-label="Reason">
+                    <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $org->isInternal() ? 'Count as a customer' : 'Mark as internal' }}</button>
+                </form>
+            @endif
         </div>
 
         <div class="ad-card">
@@ -75,18 +106,22 @@
             <div class="ad-row"><span class="ad-row-k">Properties</span><span class="ad-row-v">{{ number_format($d['properties']) }}</span></div>
             <div class="ad-row"><span class="ad-row-k">Staff members</span><span class="ad-row-v">{{ number_format($d['members']) }}</span></div>
 
-            {{-- Assign a plan (Gate 3) — sets the plan + features; Stripe billing is a separate go-live step. --}}
-            <h2 class="ad-panel-title" style="margin-top: 22px;">Assign a plan</h2>
-            <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" data-guard-submit>
-                @csrf
-                <select name="plan_id" class="ad-input" style="flex: 1; min-width: 200px;" required>
-                    @foreach ($plans as $plan)
-                        <option value="{{ $plan->id }}" @selected($sub && $sub->plan_id === $plan->id)>{{ $plan->name }} · {{ ucfirst($plan->interval) }}</option>
-                    @endforeach
-                </select>
-                <button type="submit" class="ad-btn ad-btn--sm">Assign</button>
-            </form>
-            <p class="ad-stat-sub" style="margin-top: 10px;">Sets the customer's plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
+            @if ($canBilling)
+                <h2 class="ad-panel-title" style="margin-top: 22px;">Assign a plan</h2>
+                <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" data-guard-submit>
+                    @csrf
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <select aria-label="Plan" name="plan_id" class="ad-input" style="flex: 1; min-width: 200px;" required>
+                            @foreach ($plans as $plan)
+                                <option value="{{ $plan->id }}" @selected($sub && $sub->plan_id === $plan->id)>{{ $plan->name }} · {{ ucfirst($plan->interval) }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="ad-btn ad-btn--sm">Assign</button>
+                    </div>
+                    <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason for the plan change">
+                </form>
+                <p class="ad-stat-sub" style="margin-top: 6px;">Sets the customer's plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
+            @endif
         </div>
     </div>
 

@@ -5,11 +5,17 @@
     <form method="GET" action="{{ route('admin.customers.index') }}" class="ad-filters">
         <label class="vy-sr-only" for="vy-lbl-index-search">Search name or slug…</label>
         <input id="vy-lbl-index-search" type="search" name="search" value="{{ $filters['search'] }}" placeholder="Search name or slug…">
-        <select name="status" onchange="this.form.submit()">
+        <select aria-label="Status" name="status" onchange="this.form.submit()">
             <option value="">All statuses</option>
-            @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled'] as $key => $label)
+            @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Storefront closed', 'cancelled' => 'Cancelled'] as $key => $label)
                 <option value="{{ $key }}" @selected($filters['status'] === $key)>{{ $label }}</option>
             @endforeach
+        </select>
+        {{-- ADMIN 01 · Phase 1 — customers vs Vyrobel's own internal organisations. --}}
+        <select name="kind" onchange="this.form.submit()" aria-label="Kind">
+            <option value="">Customers &amp; internal</option>
+            <option value="customers" @selected(($filters['kind'] ?? '') === 'customers')>Customers only</option>
+            <option value="internal" @selected(($filters['kind'] ?? '') === 'internal')>Internal only</option>
         </select>
         <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">Filter</button>
     </form>
@@ -32,9 +38,12 @@
                         <tr>
                             <td>
                                 <a class="ad-cell-link" href="{{ route('admin.customers.show', $row['id']) }}">{{ $row['name'] }}</a>
+                                @if ($row['internal'])
+                                    <span class="ad-pill ad-pill--cancelled" style="margin-left: 6px; font-size: 10.5px;">Internal</span>
+                                @endif
                                 <div style="color: var(--ad-faint); font-size: 12px;">{{ $row['slug'] }}</div>
                             </td>
-                            <td><span class="ad-pill ad-pill--{{ $row['status'] }}">{{ ucfirst($row['status']) }}</span></td>
+                            <td><span class="ad-pill ad-pill--{{ $row['status'] }}">{{ $row['status'] === 'suspended' ? 'Storefront closed' : ucfirst($row['status']) }}</span></td>
                             <td>{{ $row['plan'] ?? '—' }}</td>
                             <td class="ad-num">{{ number_format($row['properties']) }}</td>
                             <td class="ad-num">{{ number_format($row['members']) }}</td>
@@ -44,28 +53,9 @@
                 </tbody>
             </table>
 
-            {{-- Pager (audit fix P2-1) — control-room styled; the search/status filters are carried in the links. --}}
-            @if ($rows->hasPages())
-                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--ad-border);">
-                    <span style="color: var(--ad-faint); font-size: 12.5px;">
-                        Showing {{ $rows->firstItem() }}–{{ $rows->lastItem() }} of {{ number_format($rows->total()) }}
-                    </span>
-                    <span style="display: flex; gap: 8px;">
-                        @if ($rows->onFirstPage())
-                            <span class="ad-btn ad-btn--ghost ad-btn--sm" style="opacity: .4; cursor: default;">Previous</span>
-                        @else
-                            <a href="{{ $rows->previousPageUrl() }}" class="ad-btn ad-btn--ghost ad-btn--sm">Previous</a>
-                        @endif
-                        @if ($rows->hasMorePages())
-                            <a href="{{ $rows->nextPageUrl() }}" class="ad-btn ad-btn--ghost ad-btn--sm">Next</a>
-                        @else
-                            <span class="ad-btn ad-btn--ghost ad-btn--sm" style="opacity: .4; cursor: default;">Next</span>
-                        @endif
-                    </span>
-                </div>
-            @endif
+            @include('admin.partials.pager', ['rows' => $rows])
         @else
-            <div class="ad-empty" style="padding: 30px 14px;">No customers match — {{ ($filters['search'] !== '' || $filters['status'] !== '') ? 'try clearing the filters.' : 'no organizations on the platform yet.' }}</div>
+            <div class="ad-empty" style="padding: 30px 14px;">No customers match — {{ ($filters['search'] !== '' || $filters['status'] !== '' || ($filters['kind'] ?? '') !== '') ? 'try clearing the filters.' : 'no organizations on the platform yet.' }}</div>
         @endif
     </div>
 </x-admin.shell>

@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\AdminEmailChangeMail;
 use App\Models\PlatformAdmin;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\Platform\PlatformAdminPasswordPolicy;
+use App\Support\Platform\PlatformAdminSessions;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\TwoFactor\PlatformTwoFactorService;
 use Illuminate\Contracts\View\View;
@@ -17,7 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password as PasswordRule;
 
 /**
  * SUPER ADMIN · ACCOUNT — the platform admin manages their OWN identity (name · password · login email · 2FA
@@ -73,14 +74,22 @@ class AccountController extends Controller
 
         $request->validate([
             'current_password' => ['required', 'current_password:admin'],
-            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+            // ⚠️⚠️ ADMIN 01 · PHASE 1 — the SAME rule account creation uses (12+ chars, mixed case, a number). This
+            //    used to be the app-wide default (8 characters), so the super-admin password could be changed to
+            //    something weaker than it was allowed to be created with.
+            'password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()],
         ]);
 
         $admin->changePasswordTo((string) $request->string('password'));
+        // ⚠️ ADMIN 01 · Phase 1 — a changed password ends the admin's OTHER console sessions, enforced on their next
+        //    request whatever the session driver (the tenant side cannot do this on production — KNOWN-LIMITS L16).
+        $endedOthers = app(PlatformAdminSessions::class)->endOthersFor($admin, $request);
 
-        $this->audit->record('platform.account.password_changed');
+        // The audit row records the TRUE number of sessions ended — never a claim the code did not verify.
+        $this->audit->record('platform.account.password_changed', ['other_sessions_ended' => $endedOthers]);
 
-        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your password has been changed.');
+        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your password has been changed.'
+            .($endedOthers > 0 ? " {$endedOthers} other console session(s) were signed out." : ''));
     }
 
     /** Regenerate the 2FA recovery codes (shown ONCE). 🔒 CURRENT password required; audited. */

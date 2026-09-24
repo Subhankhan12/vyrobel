@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\TenantProvisioningService;
+use App\Support\Platform\PlatformSwitches;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,12 +56,22 @@ class OnboardingController extends Controller
             'types' => self::TYPES,
             'currencies' => self::CURRENCIES,
             'social' => $social,
+            // ⚠️ ADMIN 01 · PHASE 1 — a paused signup is SAID, plainly, on a normal page: not a 500, not a
+            //    blank form, not a form that accepts details and then quietly does nothing.
+            'signupsPaused' => ! PlatformSwitches::signupAllowed($social['provider'] ?? null),
         ]);
     }
 
     public function store(Request $request, TenantProvisioningService $provisioner): RedirectResponse
     {
         $social = $this->pendingSocialIdentity($request);
+
+        // ⚠️⚠️ ADMIN 01 · PHASE 1 — THE SWITCH IS CHECKED AGAIN HERE, AT THE WRITE, not only on the form. A form
+        //    loaded before a flip, or a social stash issued before one, must not provision an organisation once
+        //    sign-ups are paused. Nothing is created; the page says why.
+        if (! PlatformSwitches::signupAllowed($social['provider'] ?? null)) {
+            return redirect()->route('signup');
+        }
 
         if ($social !== null) {
             // ⚠️⚠️ THE ADDRESS IS OVERWRITTEN WITH WHAT THE PROVIDER ASSERTED. The form shows it, so an edited

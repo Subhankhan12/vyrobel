@@ -4,44 +4,62 @@ declare(strict_types=1);
 
 namespace App\Support\Platform;
 
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OverviewController;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Property;
 use App\Models\Reservation;
 use App\Models\Subscription;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 /**
- * SUPER ADMIN · BUILD 1 · GATE 1 — REAL platform metrics across ALL organizations.
+ * REAL platform business metrics — computed inside {@see PlatformQuery::read()} by {@see OverviewController}.
  *
- * Every figure is a REAL aggregate over real rows — no fabrication (#39); honest zero/empty states. This class
- * ONLY computes; it does NOT open the cross-tenant bypass itself. The caller ({@see DashboardController})
- * runs `compute()` INSIDE {@see PlatformQuery::read()}, so every query here executes under the audited,
- * admin-guard-gated, scope-restored `runAsSuperAdmin` context — never an ad-hoc bypass.
+ * ⚠️⚠️ ADMIN 01 · PHASE 1 — TWO CORRECTIONS, BOTH TO NUMBERS ON THE FIRST SCREEN THE FOUNDER SEES:
+ *
+ *  1. ⚠️⚠️ INTERNAL ORGANISATIONS ARE EXCLUDED BY DEFAULT. 🔬 Production held three organisations and all three
+ *     were Vyrobel's own (a test workspace, the internal role-account tenant, a probe). Every count here was
+ *     counting them as customers. `$includeInternal` puts them back, visibly, on request.
+ *
+ *  2. ⚠️⚠️ THE "RECURRING PLAN VALUE" IS GONE — NOT RELABELLED, GONE. 🔬 It read €297/month on production: the
+ *     list price of three FREE TRIALS belonging to those three internal orgs, none of them billed. It summed
+ *     `plans.price_minor` over active AND trialing subscriptions — a price table multiplied by intent, which is
+ *     not revenue and was never going to be. Revenue arrives in Phase 4, computed from what is actually
+ *     charged. Until then this reports only whether any LIVE billing exists (a subscription with a Stripe id
+ *     that is active), and the screen says "No live billing yet" when none does.
+ *
+ * ⚠️ `per_unit_minor` and `vat_pct` are read nowhere here (both are display-only / inert — measured).
  */
 class PlatformMetrics
 {
     /**
      * @return array{
+     *   include_internal: bool,
+     *   internal_orgs: int,
      *   organizations: int,
      *   by_status: array<string, int>,
      *   active_subscriptions: int,
      *   on_trial: int,
+     *   live_billed_subscriptions: int,
      *   properties: int,
      *   reservations: int,
      *   plan_distribution: list<array{name: string, code: string, count: int}>,
      *   signups: list<array{label: string, count: int}>,
-     *   recurring_plan_value_minor: int,
-     *   currency: string,
      * }
      */
-    public function compute(?Carbon $now = null): array
+    public function compute(bool $includeInternal = false, ?Carbon $now = null): array
     {
         $now ??= Carbon::now();
 
+        // ⚠️ ONE org set drives every figure. `Organization::query()` already excludes archived (soft-deleted)
+        //    orgs, and every related count is filtered through the SAME set — so including internal orgs can
+        //    never also drag archived ones back in through a subscription or a reservation.
+        $orgs = fn (): Builder => $includeInternal ? Organization::query() : Organization::query()->customers();
+        $inScope = fn (Builder $q): Builder => $q->whereIn('organization_id', $orgs()->select('id'));
+
         // Org status is a real enum column: trialing | active | suspended | cancelled.
-        $byStatusRaw = Organization::query()
+        $byStatusRaw = $orgs()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
@@ -51,34 +69,36 @@ class PlatformMetrics
             $byStatus[$status] = (int) ($byStatusRaw[$status] ?? 0);
         }
 
-        // Subscriptions — the real billing state. `active` is reached only via a real Stripe webhook; `trialing`
-        // is the provisioned free trial. Both are honest counts of real rows.
-        $activeSubscriptions = Subscription::query()->where('status', 'active')->count();
-        $onTrial = Subscription::query()->where('status', 'trialing')->count();
-
         return [
-            'organizations' => Organization::query()->count(),
+            'include_internal' => $includeInternal,
+            'internal_orgs' => Organization::query()->internal()->count(),
+            'organizations' => $orgs()->count(),
             'by_status' => $byStatus,
-            'active_subscriptions' => $activeSubscriptions,
-            'on_trial' => $onTrial,
-            'properties' => Property::query()->count(),
-            'reservations' => Reservation::query()->count(),
-            'plan_distribution' => $this->planDistribution(),
-            'signups' => $this->signupsByMonth($now),
-            'recurring_plan_value_minor' => $this->recurringPlanValueMinor(),
-            'currency' => (string) config('billing.default_currency', 'EUR'),
+            // `active` is reached only via a real Stripe webhook; `trialing` is the provisioned free trial.
+            'active_subscriptions' => $inScope(Subscription::query())->where('status', 'active')->count(),
+            'on_trial' => $inScope(Subscription::query())->where('status', 'trialing')->count(),
+            // ⚠️ LIVE = active AND linked to a real Stripe subscription. A status alone is not money.
+            'live_billed_subscriptions' => $inScope(Subscription::query())
+                ->where('status', 'active')
+                ->whereNotNull('stripe_subscription_id')
+                ->count(),
+            'properties' => $inScope(Property::query())->count(),
+            'reservations' => $inScope(Reservation::query())->count(),
+            'plan_distribution' => $this->planDistribution($inScope),
+            'signups' => $this->signupsByMonth($orgs(), $now),
         ];
     }
 
     /**
-     * How many orgs sit on each plan (via their latest subscription). Real counts; a plan with none is omitted
-     * (honest — no zero-filler).
+     * How many organisations sit on each plan (active OR trialing) — a COUNT of subscriptions, never a sum of
+     * prices. A plan with none is omitted (honest — no zero-filler).
      *
+     * @param  \Closure(Builder): Builder  $inScope
      * @return list<array{name: string, code: string, count: int}>
      */
-    private function planDistribution(): array
+    private function planDistribution(\Closure $inScope): array
     {
-        $counts = Subscription::query()
+        $counts = $inScope(Subscription::query())
             ->selectRaw('plan_id, COUNT(*) as aggregate')
             ->whereIn('status', ['active', 'trialing'])
             ->groupBy('plan_id')
@@ -102,17 +122,16 @@ class PlatformMetrics
     }
 
     /**
-     * Sign-ups (orgs created) per month for the last 6 months — a real time series over `organizations.created_at`.
+     * Sign-ups (organisations created) per month for the last 6 months — a real series over `created_at`.
      *
+     * @param  Builder<Organization>  $orgs
      * @return list<array{label: string, count: int}>
      */
-    private function signupsByMonth(Carbon $now): array
+    private function signupsByMonth(Builder $orgs, Carbon $now): array
     {
         $start = $now->copy()->startOfMonth()->subMonths(5);
 
-        $rows = Organization::query()
-            ->where('created_at', '>=', $start)
-            ->get(['created_at']);
+        $rows = $orgs->where('created_at', '>=', $start)->get(['created_at']);
 
         $series = [];
         for ($i = 0; $i < 6; $i++) {
@@ -128,35 +147,5 @@ class PlatformMetrics
         }
 
         return array_values($series);
-    }
-
-    /**
-     * The recurring monthly PLAN VALUE of active + trialing subscriptions — a REAL sum of real plan prices,
-     * normalised to a monthly figure (a yearly plan ÷ 12). Labelled honestly as *plan value* on the dashboard:
-     * live charging is account-gated (no money is actually collected here), so this is contracted/potential
-     * recurring value, never "collected revenue".
-     */
-    private function recurringPlanValueMinor(): int
-    {
-        $subscriptions = Subscription::query()
-            ->whereIn('status', ['active', 'trialing'])
-            ->with('plan')
-            ->get();
-
-        $total = 0;
-        foreach ($subscriptions as $subscription) {
-            $plan = $subscription->plan;
-            if ($plan === null) {
-                continue;
-            }
-
-            $monthly = $plan->interval === 'yearly'
-                ? (int) round($plan->price_minor / 12)
-                : (int) $plan->price_minor;
-
-            $total += $monthly;
-        }
-
-        return $total;
     }
 }

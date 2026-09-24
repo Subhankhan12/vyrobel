@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformIntegration;
+use App\Support\Platform\AdminReason;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -58,6 +59,7 @@ class IntegrationController extends Controller
             'api_secret' => ['nullable', 'string', 'max:500'],
             'is_enabled' => ['nullable', 'boolean'],
         ]);
+        $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $integration = PlatformIntegration::query()->firstOrNew(['channel' => $channel]);
 
@@ -77,7 +79,7 @@ class IntegrationController extends Controller
         ])->save();
 
         // 🔒 Audit records WHICH channel + WHETHER configured — NEVER the credential value (#28 discipline).
-        $this->audit->record('platform.integration.updated', ['channel' => $channel, 'configured' => $integration->isConfigured()], 'platform_integration', $integration->id);
+        $this->audit->record('platform.integration.updated', ['channel' => $channel, 'configured' => $integration->isConfigured()], 'platform_integration', $integration->id, reason: $reason);
 
         return redirect()->route('admin.integrations.index')->with('admin_notice', PlatformIntegration::CHANNELS[$channel].' credentials saved (encrypted).');
     }
@@ -86,9 +88,11 @@ class IntegrationController extends Controller
      * Test-connection STUB. The real channel APIs are account-gated, so this validates that a credential is
      * present + marks the integration tested; it honestly does NOT reach the live channel yet.
      */
-    public function test(string $channel): RedirectResponse
+    public function test(Request $request, string $channel): RedirectResponse
     {
         abort_unless(array_key_exists($channel, PlatformIntegration::CHANNELS), 404);
+        // ⚠️ The test WRITES (status + last_tested_at), so it carries a reason like every other admin write.
+        $reason = AdminReason::from($request);
         $integration = PlatformIntegration::query()->where('channel', $channel)->first();
 
         if ($integration === null || ! $integration->isConfigured()) {
@@ -96,7 +100,7 @@ class IntegrationController extends Controller
         }
 
         $integration->update(['status' => 'tested', 'last_tested_at' => now()]);
-        $this->audit->record('platform.integration.tested', ['channel' => $channel], 'platform_integration', $integration->id);
+        $this->audit->record('platform.integration.tested', ['channel' => $channel], 'platform_integration', $integration->id, reason: $reason);
 
         return redirect()->route('admin.integrations.index')
             ->with('admin_notice', PlatformIntegration::CHANNELS[$channel].': credential present. A live connection test runs once the '.PlatformIntegration::CHANNELS[$channel].' account is connected (account-gated).');

@@ -35,6 +35,7 @@
         </div>
 
         @include('admin.plans._shape-fields', ['plan' => null])
+        @include('admin.partials.reason', ['placeholder' => 'Why is this plan being added?'])
 
         <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
             <button class="ad-btn" type="submit">Create draft</button>

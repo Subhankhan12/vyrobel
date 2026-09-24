@@ -113,7 +113,10 @@ Schedule::call(function (): void {
     // power loss, a killed cron and a crashed host alike, none of which any in-app check can report.
     // ⛔ FOUNDER STEP: set OPS_HEARTBEAT_PING_URL (Healthchecks.io / Better Stack / Cronitor). Unset, this
     // is inert by design — no ping is attempted and nothing pretends one was.
-    ->pingOnSuccessIf((bool) env('OPS_HEARTBEAT_PING_URL'), (string) env('OPS_HEARTBEAT_PING_URL', ''));
+    // ⚠️⚠️ L14, FIXED (ADMIN 01 · Phase 1): read through config('ops.heartbeat_ping_url'), NOT env(). With a cached
+    //    config (every production deploy) env() here returned NULL no matter what .env said, so this switch could
+    //    never arm. Proven by behaviour on a cached-config run, not by the code reading right — see KNOWN-LIMITS.
+    ->pingOnSuccessIf(filled(config('ops.heartbeat_ping_url')), (string) config('ops.heartbeat_ping_url', ''));
 
 // ⚠️ Dispatched every minute, stamped only when a WORKER runs it — see QueueHeartbeatJob. A dispatch that
 // is never processed is exactly the signal we want, so this must go through the real queue.

@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Plan;
-use App\Models\Scopes\OrganizationScope;
 use App\Models\Subscription;
+use App\Support\Platform\AdminReason;
 use App\Support\Platform\PlatformActivity;
 use App\Support\Platform\PlatformCustomers;
 use App\Support\Platform\PlatformQuery;
@@ -19,12 +19,18 @@ use Illuminate\Http\Request;
 /**
  * SUPER ADMIN · BUILD 1 · GATE 2 — Customers: see + inspect every org, and manage its platform lifecycle.
  *
- * Every READ runs inside {@see PlatformQuery::read()} and every WRITE inside {@see PlatformQuery::mutate()} —
- * both admin-guard-gated, audited, and wrapped in the existing scope-restored `runAsSuperAdmin` closure. No
- * tenant data is ever read/written outside that envelope.
+ * Every READ runs inside {@see PlatformQuery::read()} (read-only, both scopes lifted, audited) and every WRITE
+ * inside {@see PlatformQuery::mutate()} (audited WITH A WRITTEN REASON). No tenant data is read or written
+ * outside that envelope, and no scope is bypassed here — the door does it, once.
  *
- * 🔒 Impersonation / "view as tenant" is DELIBERATELY NOT built (high-risk — deferred). 🔒 #28 — only
- * operational facts are shown, never end-guests' contact PII.
+ * ⚠️⚠️ ADMIN 01 · PHASE 1 — "SUSPEND" IS RELABELLED "CLOSE PUBLIC STOREFRONT", BECAUSE THAT IS WHAT IT DOES.
+ * 🔬 Measured: setting `organizations.status = suspended` closes the public booking pages
+ * (ResolvePublicProperty::CLOSED_FOR_BOOKING) and does NOT stop the hotel's staff reaching /app. A button called
+ * "Suspend" that leaves every user signed in is a misleading control. The behaviour becomes a real suspension in
+ * Phase 2; until then the label says exactly what happens. The status value is unchanged (`suspended`).
+ *
+ * 🔒 Impersonation / "view as tenant" is not built here (break-glass is Phase 3). 🔒 #28 — only operational facts
+ * are shown, never end-guests' contact PII.
  */
 class CustomerController extends Controller
 {
@@ -33,12 +39,13 @@ class CustomerController extends Controller
         private readonly PlatformCustomers $customers,
     ) {}
 
-    /** The customer list — all orgs with plan/status/counts, searchable + status-filterable. */
+    /** The customer list — all orgs with plan/status/counts, searchable + status/kind-filterable. */
     public function index(Request $request): View
     {
         $filters = [
             'search' => $request->string('search')->toString(),
             'status' => $request->string('status')->toString(),
+            'kind' => $request->string('kind')->toString(),
         ];
 
         $rows = $this->platform->read(
@@ -62,54 +69,72 @@ class CustomerController extends Controller
             [],
         );
 
-        // Plans offered for the "assign a plan" control (Gate 3) — the global catalog, no tenant data.
+        // Plans offered for the "assign a plan" control — the global catalog, no tenant data.
         $plans = Plan::query()->where('is_active', true)->orderBy('price_minor')->get();
 
         return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity]);
     }
 
-    /** Suspend a customer — a real, audited platform-lifecycle status change. */
+    /**
+     * CLOSE THE PUBLIC STOREFRONT — sets status `suspended`, which closes the hotel's public booking pages.
+     * ⚠️ Staff are NOT signed out and /app is NOT blocked (that is Phase 2). Re-auth + a written reason required.
+     */
     public function suspend(Request $request, string $organization): RedirectResponse
     {
-        // ⚠️ RE-AUTH (G3, 2026-08-31). ⚠️ A DIFFERENT THREAT MODEL FROM EVERY OTHER FIX IN THIS FAMILY: the
-        // platform realm is VYROBEL'S OWN STAFF, so this protects against the FOUNDER'S session being taken,
-        // not a customer's. The realm's existing controls are strong — `auth:admin`, MANDATORY 2FA behind
-        // EnsurePlatformAdminTwoFactor, and a platform audit row that DOES record the acting admin, their IP
-        // and user-agent. So the exclusion reasoning largely held: this is belt-and-braces on an already
-        // 2FA-gated surface, not a hole being closed.
-        // ⚠️ `current_password:admin` — QUALIFIED, and that is the opposite of the owner-realm answer. `/admin`
-        // runs on `auth:admin`; the BARE rule would check the `web` guard and, with no web user, validate
-        // nothing. Admin\AccountController already uses this exact rule three times.
+        // ⚠️ `current_password:admin` — QUALIFIED. /admin runs on `auth:admin`; the bare rule would check the
+        // `web` guard and, with no web user, validate nothing.
         $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $reason = AdminReason::from($request);
 
         $this->platform->mutate(
             'platform.customer.suspend',
+            $reason,
             fn () => $this->resolveOrg($organization)->update(['status' => 'suspended']),
+            ['effect' => 'public storefront closed; staff access unchanged'],
+            'organization',
+            $organization,
+        );
+
+        return redirect()->route('admin.customers.show', $organization)
+            ->with('admin_notice', 'Public storefront closed. The hotel\'s staff can still sign in — a full suspension arrives in a later release.');
+    }
+
+    /** Reopen the public storefront (status back to `active`). A written reason required. */
+    public function reactivate(Request $request, string $organization): RedirectResponse
+    {
+        $reason = AdminReason::from($request);
+
+        $this->platform->mutate(
+            'platform.customer.reactivate',
+            $reason,
+            fn () => $this->resolveOrg($organization)->update(['status' => 'active']),
             [],
             'organization',
             $organization,
         );
 
-        return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Customer suspended.');
+        return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Public storefront reopened.');
     }
 
     /**
-     * Assign a plan to a customer (Gate 3) — sets the org's subscription plan, which DRIVES its feature-gating
-     * (`Organization::planAllows` reads the plan's `plan_features`). Audited, via mutate (Subscription is
-     * tenant-scoped, so the write runs inside the scope-restored bypass with an explicit organization_id).
+     * Assign a plan to a customer — sets the org's subscription plan, which DRIVES its feature-gating
+     * (`Organization::planAllows`). Audited with a reason, via mutate.
      *
-     * 🔒 STRIPE DEFERRED (Q4): this sets the plan + features ONLY — it does NOT create/sync a Stripe Price or
+     * 🔒 STRIPE DEFERRED: this sets the plan + features ONLY — it does NOT create/sync a Stripe Price or
      * subscription. `stripe_subscription_id` is left exactly as-is; live billing is a separate go-live step.
      */
     public function assignPlan(Request $request, string $organization): RedirectResponse
     {
         $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']]);
+        $reason = AdminReason::from($request);
         $planId = (string) $validated['plan_id'];
 
         $this->platform->mutate(
             'platform.customer.assign_plan',
+            $reason,
             function () use ($organization, $planId): void {
-                $subscription = Subscription::withoutGlobalScopes([OrganizationScope::class])
+                // ⚠️ No scope bypass — mutate() has already lifted the tenant scope for this closure.
+                $subscription = Subscription::query()
                     ->where('organization_id', $organization)
                     ->latest()
                     ->first();
@@ -136,18 +161,27 @@ class CustomerController extends Controller
         return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Plan assigned. The customer\'s features update immediately; billing (Stripe) is a separate step.');
     }
 
-    /** Reactivate a suspended customer. */
-    public function reactivate(string $organization): RedirectResponse
+    /**
+     * Mark an organisation INTERNAL (Vyrobel's own test/demo/probe org) or back to a CUSTOMER. Internal orgs are
+     * excluded from every platform statistic by default. A written reason required.
+     */
+    public function setInternal(Request $request, string $organization): RedirectResponse
     {
+        $validated = $request->validate(['internal' => ['required', 'boolean']]);
+        $reason = AdminReason::from($request);
+        $internal = (bool) $validated['internal'];
+
         $this->platform->mutate(
-            'platform.customer.reactivate',
-            fn () => $this->resolveOrg($organization)->update(['status' => 'active']),
+            $internal ? 'platform.customer.mark_internal' : 'platform.customer.mark_customer',
+            $reason,
+            fn () => $this->resolveOrg($organization)->forceFill(['is_internal' => $internal ? true : null])->save(),
             [],
             'organization',
             $organization,
         );
 
-        return redirect()->route('admin.customers.show', $organization)->with('admin_notice', 'Customer reactivated.');
+        return redirect()->route('admin.customers.show', $organization)
+            ->with('admin_notice', $internal ? 'Marked internal — excluded from platform statistics.' : 'Marked as a customer — counted in platform statistics.');
     }
 
     /**

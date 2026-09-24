@@ -15,6 +15,7 @@ use App\Support\Auth\SocialIdentity;
 use App\Support\Auth\SocialLinking;
 use App\Support\Auth\SocialLinkOutcome;
 use App\Support\Auth\SocialProviders;
+use App\Support\Platform\PlatformSwitches;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -61,6 +62,15 @@ final class SocialAuthController extends Controller
     private function begin(Request $request, string $intent): RedirectResponse
     {
         $provider = $this->provider($request);
+
+        // ⚠️ ADMIN 01 · PHASE 1 — with BOTH sign-in and sign-up paused for this provider there is nothing the
+        //    round trip could lead to, so say so here instead of sending the person to the provider and back.
+        //    Linking an identity to a signed-in account is governed by neither switch.
+        if ($intent === 'login'
+            && ! PlatformSwitches::signinAllowed($provider->key())
+            && ! PlatformSwitches::signupAllowed($provider->key())) {
+            return $this->refuse('login', SocialProviders::label($provider->key()).' sign-in is paused right now. Sign in with your password instead.');
+        }
 
         // ⚠️ Generated per attempt, never reused. This is the CSRF defence of the whole flow: without it, an
         //    attacker can complete an authorization they started and have the victim's browser deliver it.
@@ -112,6 +122,19 @@ final class SocialAuthController extends Controller
     private function finishSignIn(Request $request, SocialIdentity $identity): RedirectResponse
     {
         ['outcome' => $outcome, 'user' => $user] = SocialLinking::forSignIn($identity);
+
+        $label = SocialProviders::label($identity->provider);
+
+        // ⚠️⚠️ ADMIN 01 · PHASE 1 — THE KILL SWITCHES, AT THE POINT THE OUTCOME IS KNOWN. Sign-in and sign-up are
+        //    separate switches because they fail differently: pausing sign-in locks out passwordless accounts
+        //    (the console counts them first); pausing sign-up only stops new organisations being created.
+        if ($outcome === SocialLinkOutcome::SignIn && ! PlatformSwitches::signinAllowed($identity->provider)) {
+            return $this->refuse('login', "Sign-in with {$label} is paused right now. Sign in with your password instead, or try again later.");
+        }
+
+        if ($outcome === SocialLinkOutcome::SignUp && ! PlatformSwitches::signupAllowed($identity->provider)) {
+            return $this->refuse('login', "New sign-ups with {$label} are paused right now. Please try again later.");
+        }
 
         return match ($outcome) {
             SocialLinkOutcome::SignIn => $this->signIn($request, $user, $identity),

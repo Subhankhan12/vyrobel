@@ -17338,3 +17338,77 @@ is not worth it for four dropdowns.
 one control.** 66 selects across 35 non-admin files are still native. Levelling them up is a real pass, not a
 copy-paste — the property and workspace switchers are deliberately borderless selects inside a frosted pill
 and MUST be exempted from any blanket `select` rule. Offered to the founder; not done unasked.
+
+---
+
+## 2026-09-24 — ADMIN 01 · PHASE 1 — the platform console: nothing silent · kill switches · audit · roles
+
+**Scope, as briefed** (ADMIN 01 + the Phase-0 addendum + ADMIN 02 "build now, walk later"): a health board as the
+first screen · the €297 fixed · L14 · database-backed kill switches · the one door hardened · the audit ledger made
+append-only in fact · "Suspend" relabelled · the typed "96 of 142" removed · the owner-sessions defect measured
+and recorded · four admin roles with every gate mutation-proved · the 12-character admin password rule.
+⚠️ `is_internal` moved INTO Phase 1 from Phase 2: the board's "no customers yet" and the €297 fix both need it.
+
+**THE ONE DOOR (`PlatformQuery`) — hardened, not replaced.** `read()` is now read-only at the DATABASE CONNECTION
+(`PlatformWriteGuard`, `beforeExecuting`) — Eloquent, query-builder and raw-SQL writes all refused — and lifts BOTH
+refusal scopes: `OrganizationScope` via `runAsSuperAdmin`, `OwnerScope` via a new admin-guard-gated
+`OwnerContext::liftForPlatformConsole()`. `mutate()` refuses to run without a written reason. The two stray
+`withoutGlobalScopes` calls are gone and a tokenised guard test fails on any new one in the admin realm.
+⚠️⚠️ **CORRECTION TO PHASE 0, MEASURED:** Phase 0 said an admin also signed into an owner account "gets silently
+undercounted". **On the HTTP path that does not happen**, for two independent reasons: `auth:admin` makes the admin
+the DEFAULT guard for the request, and inside the door there is no tenant context, so `actorIsOwnerLinked()` answers
+"not linked". The old door narrows in ONE condition only — an owner context already ACTIVE when it runs (the
+singleton outlives a request in a long-running worker). `PlatformDoorTest` measures all three conditions, with a
+control that reproduces the narrowing; the lift is defence in depth, not the fix of a live leak.
+
+**THE AUDIT LEDGER.** `platform_admin_actions` refuses UPDATE / DELETE / TRUNCATE / REPLACE at the model AND at the
+connection — each layer proved on its own, because both throw the same exception and a combined test stays green
+when either is deleted. New nullable `reason` column; every console WRITE route requires one (`AdminReason`) — a
+structural test sends each of the 16 write routes a payload valid EXCEPT for the reason. Self-service account
+actions are the one deliberate exception. A DB-level trigger is PROPOSED, not done (KNOWN-LIMITS L17).
+
+**ROLES.** `platform_admins.role` (nullable; NULL FAILS CLOSED; existing admins backfilled to `owner` — one row on
+production). One matrix, `PlatformAdminRole`, read by the route gate (`EnsurePlatformCapability`) and the UI
+(`PlatformAdmin::may()`). Owner = everything · Support = tenants + support tools · Billing = revenue + plans ·
+Analyst = read-only. A structural test fails on any console route without a gate; a behavioural test proves every
+gate by a role that must be refused (>40 refusals).
+⚠️ Interpretation stated: Analyst "read-only everywhere" includes the Admins and Integrations screens (read), not
+support tools; Support has no view of revenue.
+
+**ADMIN ACCESS.** Invite (the invitee sets their OWN password from a one-time link — only its SHA-256 is stored;
+shown once, never emailed, because mail is `log`), change role, revoke, restore, force sign-out. Floors: the last
+active Owner can be neither demoted nor revoked; nobody revokes themselves; every change needs the actor's current
+password and a reason. ⚠️ **Sessions are tracked by the app** (`platform_admin_sessions`, keyed by a random value in
+the session data) because production's `session.driver` is `file` — so force sign-out and revocation are enforced on
+the next request on any driver. A revoked admin with a live session is now refused (before: carried on until expiry).
+
+**THE PASSWORD RULE** — `PlatformAdminPasswordPolicy`, at creation, invitation and change: 12+ characters, mixed
+case, a number AND a symbol. ⚠️ **The union of the two old bars, and the suite is why:** the first version copied the
+creation bar alone and silently DROPPED the symbol the change form used to demand — PasswordCompositionTest (path
+6/9) caught `StrongPass12` being accepted where it had been refused the day before.
+
+**KILL SWITCHES** (`platform_settings`): sign-ups (all) · sign-up with Google · with X · sign-in with Google · with X.
+A missing row is ON; an unreadable table is ON (logged). Read per request, 30 s cache busted on write. Enforced at
+the signup form AND its submit (a form or social stash from before a flip cannot provision), and at the social
+callback where the outcome is known; `/login` hides a provider button only when both its switches are off. Turning
+a SIGN-IN switch off shows how many passwordless single-provider accounts it strands and requires a second
+confirmation, enforced server-side. No switch is read by any `/admin` path.
+
+**THE HEALTH BOARD** (`/admin`): mail · queue · scheduler + dead-man's switch · server errors (daily log, origin only,
+no route group — said on the card) · live release (read from the layout; no deploy button) · silent config (names
+only — `ConfigInventory`, now ONE class the CLI script also calls) · switches · exposure battery (GREY by design).
+Four states; a check that throws is GREY, never green. Calibrated: mail `log`/`array` is RED.
+
+**THE €297.** The "recurring plan value" summed list prices over active AND trialing subscriptions — on production,
+three free trials of Vyrobel's own orgs. Removed, not relabelled: the Overview shows "No live billing yet" until
+Phase 4 computes revenue from charges, excludes internal orgs by default, and says "No customers yet" in words.
+
+**L14 CLOSED** — proven by behaviour, A/B, on a cached config with the value only in `.env` (see KNOWN-LIMITS).
+**L16 RECORDED** — on production, "sign out other sessions" and a password reset end no session, and the reset's
+audit row says they did. Not fixed, as ruled. **"96 of 142" removed** from the live records; it was a stale hand
+count of a broader thing than it was quoted as.
+
+**PROOF.** 31 mutations, 31 caught, every file restored byte-identical. Pint clean · PHPStan L5 0 · the full suite
+(its count is whatever the run prints). ⚠️ Two earlier suite runs DIED AT LOAD on a duplicate test-helper name this
+phase introduced — one of them was nearly read as a pass from a truncated tail. A scan for duplicate global test
+functions now exists; the lesson is the standing one: a result you did not see is not a result.

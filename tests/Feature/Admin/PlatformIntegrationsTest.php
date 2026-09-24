@@ -22,7 +22,7 @@ it('lists the channel catalog', function () {
 
 it('saves a master credential ENCRYPTED at rest (the plaintext is never on disk) and AUDITS it', function () {
     $this->actingAs(platformAdmin(), 'admin')
-        ->put(route('admin.integrations.update', 'channex'), ['api_key' => 'sk_channex_SECRET_123', 'is_enabled' => '1'])
+        ->put(route('admin.integrations.update', 'channex'), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'api_key' => 'sk_channex_SECRET_123', 'is_enabled' => '1'])
         ->assertRedirect(route('admin.integrations.index'));
 
     $integration = PlatformIntegration::query()->where('channel', 'channex')->first();
@@ -55,14 +55,20 @@ it('NEVER echoes the stored secret back on the edit screen (write-only / masked)
 it('rotates write-only — a blank field keeps the existing credential', function () {
     PlatformIntegration::create(['channel' => 'channex', 'credentials' => ['api_key' => 'OLD_KEY'], 'status' => 'configured']);
 
+    // ⚠️ ONE admin for both writes (ADMIN 01 · Phase 1). Switching to a second admin inside the same session is
+    //    now refused by the session tracker — a session whose tracking key belongs to a different admin is ended,
+    //    never continued (PlatformAdminSessionsTest proves that separately). This test is about rotation.
+    $admin = platformAdmin();
+
     // Submit with a blank api_key (just toggling enabled) → the existing key is kept.
-    $this->actingAs(platformAdmin(), 'admin')
-        ->put(route('admin.integrations.update', 'channex'), ['api_key' => '', 'is_enabled' => '1']);
+    $this->actingAs($admin, 'admin')
+        ->put(route('admin.integrations.update', 'channex'), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'api_key' => '', 'is_enabled' => '1'])
+        ->assertSessionHasNoErrors();   // ⚠️ so the OLD_KEY below is kept by the write-only rule, not by a refused request
     expect(PlatformIntegration::query()->where('channel', 'channex')->first()->credentials['api_key'])->toBe('OLD_KEY');
 
     // Submit a new key → rotated.
-    $this->actingAs(platformAdmin(), 'admin')
-        ->put(route('admin.integrations.update', 'channex'), ['api_key' => 'NEW_KEY']);
+    $this->actingAs($admin, 'admin')
+        ->put(route('admin.integrations.update', 'channex'), ['reason' => 'Test fixture — a written reason, as every admin write now requires.', 'api_key' => 'NEW_KEY']);
     expect(PlatformIntegration::query()->where('channel', 'channex')->first()->credentials['api_key'])->toBe('NEW_KEY');
 })->group('security');
 
@@ -70,7 +76,7 @@ it('the test-connection is an honest STUB (marks tested; the real sync is accoun
     PlatformIntegration::create(['channel' => 'channex', 'credentials' => ['api_key' => 'k'], 'status' => 'configured']);
 
     $this->actingAs(platformAdmin(), 'admin')
-        ->post(route('admin.integrations.test', 'channex'))
+        ->post(route('admin.integrations.test', 'channex'), ['reason' => 'Test fixture — a written reason, as every admin write now requires.'])
         ->assertRedirect(route('admin.integrations.index'))
         ->assertSessionHas('admin_notice', fn ($m) => str_contains($m, 'account-gated'));   // honest label
 

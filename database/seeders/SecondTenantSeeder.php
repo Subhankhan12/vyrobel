@@ -107,6 +107,10 @@ class SecondTenantSeeder extends Seeder
         /** @var Organization $org */
         $org = $result['organization'];
 
+        // ⚠️ ADMIN 01 · Phase 1 — a DEMO organisation is Vyrobel's own, never a customer: excluded from every
+        //    platform statistic. Set here, where it is created, so a fresh seed can never count it.
+        $org->forceFill(['is_internal' => true])->save();
+
         // ⚠️ THE ASSERTION THAT KEEPS THE RE-RUN IDEMPOTENT. See ORG_SLUG.
         if ((string) $org->slug !== self::ORG_SLUG) {
             throw new \RuntimeException(sprintf(

@@ -31,7 +31,7 @@ assertions do not match the code, and they are listed under each section below.
 | 2 | What we collect | The categories, exhaustively | `DATA-INVENTORY.md` Domains 1–3 — 91 cited entries |
 | 3 | Lawful basis, by category | A basis per category + a balancing test wherever legitimate interests is claimed | Inventory "legal basis" column — **the code's implication only** |
 | 4 | How we use it | Purposes | Inventory "why" column |
-| 5 | Where it lives, and for how long | Hosting, region, retention | ⚠️ **Hosting is not chosen.** Retention: see the gap list — 96 of 142 entries have no rule |
+| 5 | Where it lives, and for how long | Hosting, region, retention | ⚠️ **Hosting is not chosen.** Retention: see the gap list in DATA-INVENTORY.md — most entries have no rule (no count is written here — see the correction there) |
 | 6 | Sub-processors | Named entity, location, DPA, transfer mechanism | Inventory Domain 4 — 27 entries, 3 real |
 | 7 | Your rights | Which rights are self-service, per realm | Inventory Domain 5 |
 | 8 | Cookies | Every cookie, its purpose and lifetime | `App\Support\Privacy\CookieConsent` — the live catalogue, CI-guarded |
@@ -114,5 +114,5 @@ anywhere in the repository**. The only address the codebase knows is `sales@vyro
 1. **The Article 28 DPA does not exist**, and Vyrobel cannot lawfully process a customer's guest data as a
    processor without one. Already a recorded go-live blocker.
 2. **The sub-processor list does not exist.**
-3. **Retention periods do not exist** for 96 of 142 categories. A policy cannot state a period the software
+3. **Retention periods do not exist** for most data categories (no count here on purpose — the old "96 of 142" was a stale hand count; see DATA-INVENTORY.md). A policy cannot state a period the software
    does not implement — the periods must be chosen *and then built*, in that order.

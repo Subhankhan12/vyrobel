@@ -94,6 +94,15 @@
         <h1 class="vy-title">Create your account</h1>
         <p class="vy-sub">Set up your property business — you'll be running it in a couple of minutes.</p>
 
+        {{-- ⚠️ ADMIN 01 · PHASE 1 — SIGN-UPS PAUSED BY A PLATFORM SWITCH. Said plainly on a normal 200 page: no
+             form is rendered, so nothing can be typed in and then silently discarded. The submit is refused
+             server-side as well (OnboardingController::store), so an old form cannot slip through either. --}}
+        @if ($signupsPaused ?? false)
+            <div class="vy-error" role="status" style="background: rgba(224, 146, 30, 0.12);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg>
+                New sign-ups are paused for the moment. If you already have an account, you can still sign in.
+            </div>
+        @else
         <div class="vy-steps" aria-hidden="true"><span class="on" data-dot="0"></span><span data-dot="1"></span><span data-dot="2"></span></div>
 
         @if ($errors->any())
@@ -194,10 +203,12 @@
                 <noscript><button type="submit" class="vy-btn" style="width:100%;margin-top:10px">Create my account</button></noscript>
             </section>
         </form>
+        @endif
 
         <div class="vy-foot">Already have an account? <a href="{{ route('login') }}">Sign in</a></div>
     </main>
 
+    @unless ($signupsPaused ?? false)
     <script>
         (function () {
             document.body.classList.remove('no-js');
@@ -252,5 +263,6 @@
             show(0);
         })();
     </script>
+    @endunless
 </body>
 </html>

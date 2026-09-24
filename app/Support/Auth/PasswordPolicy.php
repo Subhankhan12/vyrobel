@@ -28,9 +28,11 @@ use Illuminate\Validation\Rules\Password;
  *   • `uncompromised()` (Have-I-Been-Pwned) — a founder call, not a code call: an outbound API dependency on
  *     every password set, and it rejects passwords users consider fine. Recorded in DECISIONS, not bundled.
  *
- * ⚠️ `CreatePlatformAdminCommand` deliberately does NOT use this: it requires min(12) + mixedCase + numbers +
- * symbols. Pointing it here would WEAKEN it. A higher bar for the platform super-admin is a real difference,
- * not drift — confirmed before collapsing, the same judgement the payout-status maps needed.
+ * ⚠️ PLATFORM ADMINS deliberately do NOT use this: they use PlatformAdminPasswordPolicy — min(12) + mixedCase +
+ * numbers + symbols — at creation, invitation AND password change. ⚠️ (ADMIN 01 · Phase 1: this note used to say
+ * the admin bar included symbols when the code did not; the admin bar now does, as the union of the old creation
+ * bar and this rule.) Pointing admins here would WEAKEN them. A higher bar for
+ * the platform super-admin is a real difference, not drift.
  */
 final class PasswordPolicy
 {

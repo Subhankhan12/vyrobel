@@ -8,7 +8,6 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\Property;
-use App\Models\Scopes\OrganizationScope;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -33,9 +32,9 @@ class PlatformCustomers
      * The customer list — every org with its plan, status and key operational counts, PAGINATED (search/status
      * carried into the page links). Each page's counts are computed for just that page's org ids (no N+1).
      *
-     * Each page item is a row array: {id, name, slug, status, plan, properties, members, created_at}.
+     * Each page item is a row array: {id, name, slug, status, internal, plan, properties, members, created_at}.
      *
-     * @param  array{search?: ?string, status?: ?string}  $filters
+     * @param  array{search?: ?string, status?: ?string, kind?: ?string}  $filters
      */
     public function list(array $filters = []): LengthAwarePaginator
     {
@@ -53,7 +52,15 @@ class PlatformCustomers
             $query->where('status', $status);
         }
 
-        $paginator = $query->paginate(self::PER_PAGE, ['id', 'name', 'slug', 'status', 'created_at'])->withQueryString();
+        // The directory lists every organisation by default (it is a directory, not a statistic); the kind
+        // filter narrows it to customers or to Vyrobel's own internal orgs.
+        match ((string) ($filters['kind'] ?? '')) {
+            'customers' => $query->customers(),
+            'internal' => $query->internal(),
+            default => null,
+        };
+
+        $paginator = $query->paginate(self::PER_PAGE, ['id', 'name', 'slug', 'status', 'is_internal', 'created_at'])->withQueryString();
 
         $ids = collect($paginator->items())->pluck('id')->all();
         $propertyCounts = $this->countByOrg(Property::query(), $ids);
@@ -65,6 +72,7 @@ class PlatformCustomers
             'name' => (string) $org->name,
             'slug' => (string) $org->slug,
             'status' => (string) $org->status,
+            'internal' => $org->isInternal(),
             'plan' => $plans[$org->id] ?? null,
             'properties' => (int) ($propertyCounts[$org->id] ?? 0),
             'members' => (int) ($memberCounts[$org->id] ?? 0),
@@ -122,8 +130,10 @@ class PlatformCustomers
             return [];
         }
 
+        // ⚠️ No scope bypass here — this only ever runs inside PlatformQuery::read(), which has already lifted
+        //    the tenant scope. Called anywhere else, OrganizationScope throws for want of a tenant: loud, not a
+        //    silent cross-tenant read (which is what the `withoutGlobalScopes` that used to sit here would do).
         $latest = Subscription::query()
-            ->withoutGlobalScopes([OrganizationScope::class])
             ->whereIn('organization_id', $ids)
             ->with('plan:id,name')
             ->latest()

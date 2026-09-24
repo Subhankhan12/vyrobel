@@ -40,8 +40,18 @@ class PlatformAdminFactory extends Factory
             'email' => Str::before(fake()->safeEmail(), '@').'-'.Str::lower((string) Str::ulid()).'@example.net',
             'password' => static::$password ??= Hash::make('password'),
             'status' => 'active',
+            // ⚠️ OWNER BY DEFAULT — the only role that existed before roles did, so every pre-existing admin
+            //    test keeps meaning exactly what it meant. A NULL role fails closed (can do nothing); the
+            //    role-separation tests use the ->role() state below to get the others.
+            'role' => 'owner',
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /** A specific console role: owner | support | billing | analyst (or anything else, to prove fail-closed). */
+    public function role(?string $role): static
+    {
+        return $this->state(fn (array $attributes): array => ['role' => $role]);
     }
 
     /**

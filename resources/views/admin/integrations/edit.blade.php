@@ -33,6 +33,8 @@
             <p class="ad-stat-sub" style="margin-top: 14px;">🔒 Stored encrypted at rest. The secret is never displayed again — you can only replace it.</p>
         </div>
 
+        @include('admin.partials.reason', ['placeholder' => 'Why is this credential being set or rotated?'])
+
         <div style="display: flex; gap: 10px; margin-top: 18px;">
             <button type="submit" class="ad-btn">Save credential</button>
             <a href="{{ route('admin.integrations.index') }}" class="ad-btn ad-btn--ghost">Cancel</a>
@@ -43,6 +45,7 @@
         {{-- Separate form so it POSTs (not the update form's PUT). The real channel API is account-gated. --}}
         <form method="POST" action="{{ route('admin.integrations.test', $channel) }}" style="max-width: 560px; margin-top: 12px;" data-guard-submit>
             @csrf
+            <input class="ad-input" name="reason" required minlength="5" maxlength="500" placeholder="Reason for the test" aria-label="Reason" style="max-width: 260px; margin-bottom: 8px;">
             <button type="submit" class="ad-btn ad-btn--ghost">Test connection</button>
             <span class="ad-stat-sub" style="margin-left: 8px;">Verifies a credential is present; the live test runs when the {{ $label }} account is connected.</span>
         </form>

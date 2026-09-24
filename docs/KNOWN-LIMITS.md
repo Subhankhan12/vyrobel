@@ -1106,7 +1106,29 @@ removing both layers to see a 500 that had presumably been there since the keys 
 
 ---
 
-## ⚠️⚠️ L14 — SETTING `OPS_HEARTBEAT_PING_URL` IN `.env` WILL NOT ARM THE ALARM
+## ✅ L14 — FIXED 2026-09-24 (ADMIN 01 · Phase 1) · setting `OPS_HEARTBEAT_PING_URL` in `.env` did not arm the alarm
+
+### ✅ THE FIX, AND THE PROOF — BY BEHAVIOUR ON A CACHED CONFIG, NOT BY THE CODE READING RIGHT
+
+The key moved into `config/ops.php` (`'heartbeat_ping_url' => env('OPS_HEARTBEAT_PING_URL')`) and
+`routes/console.php` now reads `config('ops.heartbeat_ping_url')`. 🔬 **Proven A/B on 2026-09-24**, locally, with a
+throwaway HTTP listener that was first shown to record a hit (the instrument had to be able to see one):
+
+| run | code | value came from | config | the listener saw |
+|---|---|---|---|---|
+| A | the fix — `config()` | a line added to `.env` | **cached** (`config:cache`) | `GET /ping-AFTER-fix` ✅ |
+| B · control | the OLD line — `env()` | the same `.env` line | **cached** | **nothing** — the defect, reproduced |
+
+⚠️ The value was never supplied through the shell environment (checked: the shell had no such variable) — that is
+the exact route that produced a false "it works" once before. Everything was restored afterwards: the fix in place,
+the original `.env`, no cached config, the listener stopped.
+⚠️ The config inventory's calibration FLIPPED with the fix: it used to assert the heartbeat URL was *not* a config
+key; it now asserts it *is* one, and the tokenised scan finds **0** stray `env()` sites.
+⚠️⚠️ **STILL THE FOUNDER'S STEP:** production has no ping URL configured, so the switch is still unarmed — now for
+the right reason. The health board says so, amber. Setting it needs the value in `.env` **and** a config rebuild
+(every deploy does one).
+
+### The original finding (2026-09-23), kept as written
 
 🔬 Measured 2026-09-23 (SHADOW 01), by the new `ops/config-inventory.php`, whose calibration **failed
 first and was right to** — it asserted the heartbeat URL was a config key, and it is not.
@@ -1158,3 +1180,50 @@ chmod 600 ~/domains/vyrobel.com/releases/*/.env
 only what measurement proved broken and measurement could prove fixed. It is the founder's call.
 
 ⚠️ Also 775 under `storage/`: several `.gitignore` files and one old log. Harmless, same containment.
+
+---
+
+## ⚠️⚠️ L16 — ON PRODUCTION, "SIGN OUT OTHER SESSIONS" AND "A PASSWORD RESET ENDS OTHER SESSIONS" DO NOTHING — AND THE AUDIT ROW SAYS THEY DID
+
+🔬 **Measured 2026-09-24 (ADMIN 01 · Phase 1), on the host.** Production's `session.driver` is **`file`**:
+**163 session files** on disk (3 touched in the last two hours) and **0 rows** in the `sessions` table.
+
+Every tenant-side session feature reads or deletes rows in that table, through ONE shared helper,
+`App\Support\Security\ActiveSessions`:
+
+| surface | what it does on production |
+|---|---|
+| owner Security page — "active sessions" list (`OwnerSecurity`) | always empty |
+| operator Profile / Security — session list | always empty |
+| owner "Sign out all other sessions" (`OwnerSecurityController`) | deletes nothing, then tells the owner **"You have no other active sessions."** — a false statement, not just an empty list |
+| ⚠️⚠️ `User::changePasswordTo()` — **password change AND password reset** | `ActiveSessions::terminateFor()` deletes nothing, so a session an attacker already holds **survives the reset** — and the `user.password_changed` audit row records **`other_sessions_terminated: true`** |
+
+⚠️⚠️ The last row is the serious one. The code comment on that line says the termination exists because "a password
+reset did not actually lock them out, which is the entire reason someone resets a compromised password" — and on this
+host that defect is live again, with an audit trail that says otherwise. The remember-me token IS rotated, so
+"remember me" cookies do die; live sessions do not.
+
+⚠️ **RECORDED, DELIBERATELY NOT FIXED** — the brief ruled "measure it, record it, do not fix it here". Two directions,
+for the founder:
+  · switch production to `SESSION_DRIVER=database` (the table and its 30-day retention window already exist) — a
+    config change plus a config rebuild; every current session is signed out once, at the switch;
+  · or give tenant sessions the same app-level tracking the platform console now has (below).
+⚠️ **The platform console is NOT affected.** Admin sessions are tracked by the application itself
+(`platform_admin_sessions`, keyed by a random value in the session data), so force sign-out and revocation are
+enforced on the next request whatever the session driver.
+
+---
+
+## ⚠️ L17 — THE ADMIN AUDIT LEDGER IS APPEND-ONLY IN THE APPLICATION, NOT YET IN THE DATABASE
+
+Since ADMIN 01 · Phase 1, `platform_admin_actions` refuses UPDATE / DELETE / TRUNCATE / REPLACE twice: model events,
+and a check on every statement this application sends (`PlatformWriteGuard`, via the connection's `beforeExecuting`).
+⚠️ Neither can see a client that is not this application — the MySQL/MariaDB CLI, phpMyAdmin in hPanel, another app.
+
+⚠️ **A tighter database GRANT is not practical here**, and saying so is the point: MySQL table-level `REVOKE` cannot
+subtract from a database-level grant, and the application's user holds database-level privileges (hPanel manages
+it). Restricting it would mean replacing that with per-table grants for ~150 tables, redone at every migration.
+**PROPOSED, NOT DONE:** a `BEFORE UPDATE` and a `BEFORE DELETE` trigger on `platform_admin_actions` that `SIGNAL` an
+error. That refuses every client, including the CLI; someone with the privilege could still drop the trigger, so it
+raises the bar rather than removing it. It changes the database, so it is the founder's call.
+
