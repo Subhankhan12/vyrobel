@@ -68,7 +68,9 @@ function bgRealRequestGuard(): void
 // ══ 0 · DORMANT ═══════════════════════════════════════════════════════════════════════════════════════════════
 
 it('⚠️⚠️ SWITCHED OFF IT DOES NOT EXIST — every entry point 404s, no button, and a leftover key is ignored and cleared', function () {
-    expect(config('platform.break_glass.enabled'))->toBeFalse();   // the shipped default, read from the real config
+    // ⚠️ Shipped ON since 2026-09-24 (ADMIN 03 #0 — the known default password stopped verifying on the host). The
+    //    OFF switch still has to work — it is how break-glass is turned off again — so this proves it with it off.
+    config(['platform.break_glass.enabled' => false]);
     $s = bgWorld();
     $admin = platformAdmin();
 

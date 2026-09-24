@@ -17690,3 +17690,16 @@ Customers: **0**. `Hash::check` of the known default still TRUE → **break-glas
 **Waiting for the walkthrough:** the hotels page; one announcement to the probe org only, seen and dismissed from the
 probe's side, then withdrawn; one status incident posted, seen on /status from outside, resolved — every ledger row
 read back. ⚠️ An incident posted on production is PUBLIC the moment it is saved.
+
+---
+
+## 2026-09-24 — BREAK-GLASS SWITCHED ON (ADMIN 03 #0) — its own small deploy
+
+The founder signed into `/admin` himself and changed the admin password in the browser (ledger:
+`platform.account.password_changed`, 16:23:12 UTC). The host check `Hash::check('123456', <admin hash>)` then returned
+**FALSE** — the same instrument read TRUE earlier that day, so it can say both (control: a random string → false).
+Per ADMIN 02, break-glass goes live as a separate deploy: `config/platform.php` → `break_glass.enabled = true` (a
+literal; turning it back off is that one literal and a deploy). The dormant-behaviour test now sets the switch OFF
+itself, so the OFF path stays proven. Suite: 3898/3899 — the one failure was the memory-index load-ceiling guard
+(a file outside the repo, one line over after a note written this evening), condensed and re-run green; no repository
+file changed after the run. Money gate FULL unchanged.
