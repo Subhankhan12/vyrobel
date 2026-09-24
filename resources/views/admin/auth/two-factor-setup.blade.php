@@ -9,7 +9,7 @@
         Scan with your authenticator app, or enter this key manually:
     </p>
     @if ($secret !== null)
-        <div style="text-align: center; font-family: ui-monospace, monospace; letter-spacing: .12em; font-size: 13px; color: var(--ad-ink); background: rgba(9,14,24,.5); border: 1px solid var(--ad-border); border-radius: 9px; padding: 10px; margin: 8px 0 16px; word-break: break-all;">
+        <div class="ad-well" style="text-align: center; font-family: ui-monospace, monospace; letter-spacing: .12em; font-size: 13px; color: var(--ad-ink); padding: 10px; margin: 8px 0 16px; word-break: break-all;">
             {{ $secret }}
         </div>
     @endif

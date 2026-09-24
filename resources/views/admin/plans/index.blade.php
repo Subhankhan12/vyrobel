@@ -1,16 +1,14 @@
 {{-- SUPER ADMIN · BUILD 1 · GATE 3 — the plan catalog (DB-backed, authoritative). Editing a plan's features
      drives real feature-gating (Organization::planAllows reads plan_features). --}}
 @php use App\Support\Money\MoneyFormatter; @endphp
-<x-admin.shell active="plans" title="Plans">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Plans</h1>
-    <p class="ad-lead">The subscription catalog. A plan's feature set gates which modules its customers get. Billing (Stripe) is connected at go-live — editing here sets pricing &amp; features.</p>
+<x-admin.shell active="plans" title="Plans"
+    subtitle="The subscription catalog — a plan's feature set gates which modules its customers get.">
 
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
     @if (session('admin_error'))
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ session('admin_error') }}</div>
+        <div class="ad-flash ad-flash--error">{{ session('admin_error') }}</div>
     @endif
 
     <div style="margin: 0 0 16px;"><a class="ad-btn" href="{{ route('admin.plans.create') }}">New plan</a></div>

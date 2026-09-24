@@ -5,10 +5,8 @@
     $eventPill = ['login' => 'ad-pill--active', 'failed' => 'ad-pill--suspended', 'lockout' => 'ad-pill--suspended'];
     $realm = ['web' => 'Operator/Owner', 'guest' => 'Guest', 'admin' => 'Platform admin'];
 @endphp
-<x-admin.shell active="activity" title="Security & activity">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Security &amp; activity</h1>
-    <p class="ad-lead">Sign-in activity and account events across the platform — a security signal, kept for {{ $retentionDays }} days then purged.</p>
+<x-admin.shell active="activity" title="Security & activity"
+    :subtitle="'Sign-in activity and account events across the platform — kept for '.$retentionDays.' days, then purged.'">
 
     <div class="ad-kpis" style="margin-bottom: 20px;">
         <div class="ad-kpi">

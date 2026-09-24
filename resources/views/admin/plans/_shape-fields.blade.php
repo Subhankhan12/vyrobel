@@ -79,7 +79,7 @@
            value="{{ old('stripe_price_id', $plan?->stripe_price_id) }}" placeholder="price_...">
 
     @if ($plan !== null && ($blocked = PlanIntegrity::blockedFromActivation($plan)) !== null)
-        <div class="ad-flash" style="margin-top: 14px; background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">
+        <div class="ad-flash ad-flash--error" style="margin-top: 14px;">
             <strong>Draft — not offered to customers.</strong> {{ $blocked }}
         </div>
     @endif

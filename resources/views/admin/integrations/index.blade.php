@@ -1,10 +1,8 @@
 {{-- SUPER ADMIN · BUILD 2 · GATE 2 — the channel-integration catalog. Master platform credentials, encrypted at
      rest; the real sync is account-gated (labelled honestly). --}}
 @php use App\Models\PlatformIntegration; @endphp
-<x-admin.shell active="integrations" title="Integrations">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Integrations</h1>
-    <p class="ad-lead">Your platform-level master credentials for the booking channels. Stored encrypted; a live connection is established once each channel account is connected.</p>
+<x-admin.shell active="integrations" title="Integrations"
+    subtitle="Your platform-level master credentials for the booking channels — stored encrypted.">
 
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>

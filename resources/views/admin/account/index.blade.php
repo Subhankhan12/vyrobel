@@ -1,15 +1,13 @@
 {{-- SUPER ADMIN · ACCOUNT — the platform admin's own account (name · login email [re-verified] · password ·
      2FA recovery). Self-only; sensitive changes re-auth (current password); all audited. Control-room design. --}}
-<x-admin.shell active="account" title="Account">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Your account</h1>
-    <p class="ad-lead">Manage your platform-admin profile and sign-in credentials.</p>
+<x-admin.shell active="account" title="Your account"
+    subtitle="Manage your platform-admin profile and sign-in credentials.">
 
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
     @if ($errors->any())
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
+        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
     @endif
 
     {{-- One-time recovery codes, shown right after a regeneration. --}}

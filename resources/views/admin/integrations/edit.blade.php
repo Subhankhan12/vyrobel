@@ -1,20 +1,14 @@
 {{-- SUPER ADMIN · BUILD 2 · GATE 2 — manage one channel's master credential. 🔒 Write-only: the stored secret is
      NEVER echoed — only "configured" is shown; entering a value ROTATES it. --}}
 @php $configured = $integration && $integration->isConfigured(); @endphp
-<x-admin.shell active="integrations" :title="'Integration · '.$label">
-    <a href="{{ route('admin.integrations.index') }}" class="ad-back">← All integrations</a>
-    <div class="ad-eyebrow">Integration</div>
-    <h1 class="ad-h1">{{ $label }}</h1>
-    <p class="ad-lead">
-        @if ($configured)
-            A master credential is configured (encrypted). Enter a new value below only to rotate it.
-        @else
-            No credential yet. Add your platform master credential for {{ $label }}.
-        @endif
-    </p>
+<x-admin.shell active="integrations" :title="$label"
+    :subtitle="$configured
+        ? 'A master credential is configured (encrypted). Enter a new value below only to rotate it.'
+        : 'No credential yet. Add your platform master credential for '.$label.'.'"
+    :back="route('admin.integrations.index')" back-label="All integrations">
 
     @if ($errors->any())
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
+        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
     @endif
 
     <form method="POST" action="{{ route('admin.integrations.update', $channel) }}" style="max-width: 560px;" data-guard-submit>

@@ -1,21 +1,19 @@
 {{-- SUPER ADMIN · BUILD 1 · GATE 2 — customer detail: real operational facts + the platform lifecycle actions.
      #28 — operational facts only (never end-guest PII). Impersonation is deliberately NOT offered (deferred). --}}
 @php $org = $d['org']; $sub = $d['subscription']; @endphp
-<x-admin.shell active="customers" :title="$org->name">
-    <a href="{{ route('admin.customers.index') }}" class="ad-back">← All customers</a>
-
+<x-admin.shell active="customers" :title="$org->name" :subtitle="$org->slug"
+    :back="route('admin.customers.index')" back-label="All customers">
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
 
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+    {{-- The lifecycle action block is a real card, not a bare flex row: once the page title moved into the
+         topbar this row had nothing to anchor it, and the re-auth password field floated on the page
+         background with no surface under it. Status pill left, the one lifecycle action right. --}}
+    <div class="ad-card" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;">
         <div>
-            <div class="ad-eyebrow">Customer</div>
-            <h1 class="ad-h1">{{ $org->name }}</h1>
-            <p class="ad-lead" style="margin-bottom: 0;">
-                <span class="ad-pill ad-pill--{{ $org->status }}">{{ ucfirst($org->status) }}</span>
-                <span style="color: var(--ad-faint); margin-left: 8px;">{{ $org->slug }}</span>
-            </p>
+            <div class="ad-label" style="margin-bottom: 8px;">Account status</div>
+            <span class="ad-pill ad-pill--{{ $org->status }}">{{ ucfirst($org->status) }}</span>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
             @if ($org->status === 'suspended')
@@ -28,10 +26,11 @@
                     @csrf
                     {{-- ⚠️ RE-AUTH (G3): the `onsubmit` confirm on this form is JS only — a direct POST walks past it.
                          This does not. `current_password:admin`, because /admin runs on the `admin` guard. --}}
-                    <label class="ad-field-label" for="suspend_pw">Confirm with your password</label>
+                    <label class="ad-label" for="suspend_pw">Confirm with your password</label>
                     <input id="suspend_pw" type="password" name="current_password" class="ad-input"
+                           style="max-width: 260px; margin-bottom: 8px;"
                            autocomplete="current-password" required aria-label="Current password">
-                    @error('current_password') <span style="color:#B4400F;font-size:11.5px">{{ $message }}</span> @enderror
+                    @error('current_password') <span style="color: var(--ad-danger); font-size: 11.5px;">{{ $message }}</span> @enderror
                     <button type="submit" class="ad-btn ad-btn--danger">Suspend customer</button>
                 </form>
             @endif
@@ -40,7 +39,7 @@
         </div>
     </div>
 
-    <div class="ad-grid-2" style="margin-top: 22px;">
+    <div class="ad-grid-2" style="margin-top: 18px;">
         <div class="ad-card">
             <h2 class="ad-panel-title">Account</h2>
             <dl class="ad-dl">

@@ -1,9 +1,6 @@
 {{-- SUPER ADMIN · BUILD 1 · GATE 2 — the customer list: every org, real data, via the audited read. #28 — only
      operational facts (name/status/plan/counts), never end-guest PII. --}}
-<x-admin.shell active="customers" title="Customers">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Customers</h1>
-    <p class="ad-lead">Every organization on the platform.</p>
+<x-admin.shell active="customers" title="Customers" subtitle="Every organization on the platform.">
 
     <form method="GET" action="{{ route('admin.customers.index') }}" class="ad-filters">
         <label class="vy-sr-only" for="vy-lbl-index-search">Search name or slug…</label>

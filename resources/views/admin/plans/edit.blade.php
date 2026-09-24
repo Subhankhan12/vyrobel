@@ -5,21 +5,19 @@
     $featureLabels = ['analytics' => 'Insights & reports', 'channels' => 'Channel manager', 'team' => 'Team members'];
     $current = $plan->features->keyBy('key');
 @endphp
-<x-admin.shell active="plans" :title="'Edit · '.$plan->name">
-    <a href="{{ route('admin.plans.index') }}" class="ad-back">← All plans</a>
-    <div class="ad-eyebrow">Plan</div>
-    <h1 class="ad-h1">{{ $plan->name }}</h1>
-    <p class="ad-lead">{{ $plan->code }} · {{ ucfirst($plan->interval) }}</p>
+<x-admin.shell active="plans" :title="$plan->name"
+    :subtitle="$plan->code.' · '.ucfirst($plan->interval)"
+    :back="route('admin.plans.index')" back-label="All plans">
 
     @if (session('admin_error'))
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ session('admin_error') }}</div>
+        <div class="ad-flash ad-flash--error">{{ session('admin_error') }}</div>
     @endif
     @if (session('admin_notice'))
         <div class="ad-flash">{{ session('admin_notice') }}</div>
     @endif
 
     @if ($errors->any())
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">{{ $errors->first() }}</div>
+        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
     @endif
 
     <form method="POST" action="{{ route('admin.plans.update', $plan->id) }}" style="max-width: 640px;" data-guard-submit>

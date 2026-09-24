@@ -3,14 +3,12 @@
 
      ⚠️ A NEW PLAN IS ALWAYS A DRAFT. Its Stripe Price does not exist yet, so offering it immediately would put
      a tier on the paywall whose checkout cannot complete — the broken checkout billing pass 2 made throw. --}}
-<x-admin.shell active="plans" title="New plan">
-    <a href="{{ route('admin.plans.index') }}" class="ad-back">← All plans</a>
-    <div class="ad-eyebrow">Plan</div>
-    <h1 class="ad-h1">New plan</h1>
-    <p class="ad-lead">Created as a draft — add its Stripe Price id, then activate it.</p>
+<x-admin.shell active="plans" title="New plan"
+    subtitle="Created as a draft — add its Stripe Price id, then activate it."
+    :back="route('admin.plans.index')" back-label="All plans">
 
     @if ($errors->any())
-        <div class="ad-flash" style="background: rgba(245,158,158,.1); border-color: rgba(245,158,158,.34); color: #FBD5D5;">
+        <div class="ad-flash ad-flash--error">
             <ul style="margin: 0; padding-left: 18px;">
                 @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>

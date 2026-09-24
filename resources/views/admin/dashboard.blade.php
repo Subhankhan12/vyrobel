@@ -4,10 +4,8 @@
     use App\Support\Money\MoneyFormatter;
     $peak = collect($m['signups'])->max('count') ?: 1;
 @endphp
-<x-admin.shell active="overview" title="Overview">
-    <div class="ad-eyebrow">Platform console</div>
-    <h1 class="ad-h1">Overview</h1>
-    <p class="ad-lead">Real-time metrics across every organization on the platform.</p>
+<x-admin.shell active="overview" title="Overview"
+    subtitle="Real-time metrics across every organization on the platform.">
 
     {{-- KPI band — real counts. --}}
     <div class="ad-kpis">
