@@ -6,6 +6,7 @@ namespace App\Support\Platform\Health;
 
 use App\Support\Ops\ConfigInventory;
 use App\Support\Ops\Heartbeat;
+use App\Support\Platform\MailDelivery;
 use App\Support\Platform\PlatformSwitches;
 use Closure;
 use Illuminate\Support\Carbon;
@@ -59,10 +60,10 @@ final class HealthBoard
 
     private function mail(): HealthCard
     {
-        $mailer = (string) config('mail.default');
+        $mailer = MailDelivery::mailer();
 
         // ⚠️⚠️ `log` and `array` do not deliver. This is RED, in words, whatever else is true.
-        if (in_array($mailer, ['log', 'array'], true)) {
+        if (MailDelivery::discards()) {
             return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'MAIL IS NOT BEING DELIVERED', [
                 "Active mailer: {$mailer} — every email is discarded, not sent.",
                 'Invites, password resets, verification and receipts reach nobody until a real mailer is configured.',

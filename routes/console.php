@@ -28,6 +28,10 @@ Schedule::command('emails:send-pre-arrival')->dailyAt('09:00');
 // older than 90 days, daily (GDPR — security-monitoring purpose, limited retention). See PrunePlatformActivity.
 Schedule::command('platform:prune-activity')->daily();
 
+// ADMIN 01 · PHASE 3 — end and announce break-glass sessions nobody touched again. Expiry is enforced on every request
+// regardless; this only guarantees the end is recorded and the organisation is told.
+Schedule::command('break-glass:expire')->everyMinute();
+
 // ⚠️⚠️ THE RECONCILIATION — it REPORTS drift between this product and Stripe, and never repairs it.
 //    Every defect in the billing sequence was silent; this is the standing version of "somebody looked".
 //    ⚠️ Its own last-successful-run time is printed in its header, so a run that stops happening is

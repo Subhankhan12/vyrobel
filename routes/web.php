@@ -8,11 +8,13 @@ use App\Http\Controllers\Admin\Auth\AdminInviteController;
 use App\Http\Controllers\Admin\Auth\AdminLoginController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorChallengeController;
 use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
+use App\Http\Controllers\Admin\BreakGlassController as AdminBreakGlassController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\IntegrationController as AdminIntegrationController;
 use App\Http\Controllers\Admin\OverviewController as AdminOverviewController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
+use App\Http\Controllers\Admin\SupportController as AdminSupportController;
 use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
@@ -145,6 +147,7 @@ use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
 use App\Http\Middleware\EnsurePlatformCapability;
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
+use App\Http\Middleware\EnterBreakGlassSession;
 use App\Http\Middleware\NoIndex;
 use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Http\Middleware\RequirePlatformAdminTwoFactorPending;
@@ -747,7 +750,9 @@ Route::middleware('auth')->group(function (): void {
 
 // ⚠️ ADMIN 01 · PHASE 2 — RefuseSuspendedOrganization: a suspended or archived organisation's staff are refused here,
 //    with a plain explanation. It sits before every other gate so no /app route — billing included — is reachable.
-Route::middleware(['auth', 'verified', RefuseSuspendedOrganization::class, EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
+// ⚠️ ADMIN 01 · PHASE 3 — EnterBreakGlassSession FIRST: for a browser holding an open break-glass session it borrows the
+//    chosen back-office user's view for this request only, so `auth` and `verified` are satisfied, never skipped.
+Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSuspendedOrganization::class, EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     // D1-1 — tick/un-tick one of the dashboard's DERIVED task rows. ⚠️ A PERSONAL note, not a completion:
@@ -1815,6 +1820,20 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('customers/{organization}/archive', [AdminCustomerController::class, 'archive'])->name('customers.archive');
                 Route::post('customers/{organization}/restore', [AdminCustomerController::class, 'restore'])->name('customers.restore');
                 Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
+            });
+
+            // ── ⚠️ ADMIN 01 · PHASE 3 — SUPPORT TOOLS (Owner, Support): account holders, never guests. Every write
+            //    needs a reason. BREAK-GLASS lives here too — and answers 404 while it is switched off (dormant).
+            Route::middleware($can(PlatformAdminRole::SUPPORT_USE))->group(function () {
+                Route::get('support', [AdminSupportController::class, 'index'])->name('support.index');
+                Route::post('support/users/{user}/verify-email', [AdminSupportController::class, 'verifyEmail'])->middleware('throttle:20,1')->name('support.verify-email');
+                Route::post('support/users/{user}/resend-verification', [AdminSupportController::class, 'resendVerification'])->middleware('throttle:10,1')->name('support.resend-verification');
+                Route::post('support/users/{user}/password-reset', [AdminSupportController::class, 'passwordReset'])->middleware('throttle:10,1')->name('support.password-reset');
+                Route::post('support/users/{user}/identities/{identity}/unlink', [AdminSupportController::class, 'unlink'])->middleware('throttle:20,1')->name('support.unlink');
+
+                Route::get('break-glass', [AdminBreakGlassController::class, 'index'])->name('break-glass.index');
+                Route::post('break-glass', [AdminBreakGlassController::class, 'start'])->middleware('throttle:10,1')->name('break-glass.start');
+                Route::post('break-glass/end', [AdminBreakGlassController::class, 'end'])->middleware('throttle:30,1')->name('break-glass.end');
             });
 
             // ── Billing (Owner, Billing): what a customer pays for. Stripe sync stays deferred.

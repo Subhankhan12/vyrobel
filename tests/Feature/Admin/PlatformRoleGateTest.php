@@ -7,6 +7,8 @@ use App\Http\Middleware\EnsurePlatformCapability;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\PlatformAdmin;
+use App\Models\User;
+use App\Models\UserIdentity;
 use App\Support\Platform\PlatformAdminRole;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Route;
@@ -55,8 +57,10 @@ function consoleFixtureIds(): array
     $org = Organization::create(['name' => 'Gate Fixture Org', 'slug' => 'gate-'.Str::lower(Str::random(8)), 'status' => 'active', 'default_currency' => 'EUR']);
     $plan = Plan::create(['code' => 'gate_'.Str::lower(Str::random(6)), 'name' => 'GATE', 'price_minor' => 100, 'currency' => 'EUR', 'interval' => 'monthly', 'is_active' => false]);
     $other = platformAdmin(['role' => 'analyst']);
+    $user = User::factory()->create(['email' => 'gate-'.Str::lower(Str::random(8)).'@example.net']);
+    $identity = UserIdentity::create(['user_id' => $user->id, 'provider' => 'google', 'provider_user_id' => Str::random(12), 'provider_email' => $user->email]);
 
-    return ['organization' => $org->id, 'plan' => $plan->id, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $other->id];
+    return ['organization' => $org->id, 'plan' => $plan->id, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $other->id, 'user' => $user->id, 'identity' => $identity->id];
 }
 
 // ══ 1 · STRUCTURE — no console route without a gate, no gate naming a capability that does not exist ══════════
@@ -111,6 +115,9 @@ it('⚠️⚠️ EVERY console route REFUSES (403) every role that lacks its cap
 })->group('security');
 
 it('the Owner is admitted by every GET console page (the gates do not over-refuse)', function () {
+    // ⚠️ Break-glass ships DORMANT (a 404 while off). Switched on here so its page is measured like every other —
+    //    a dormant 404 is not a gate over-refusing, and leaving it off would exclude it from this check.
+    config(['platform.break_glass.enabled' => true]);
     $ids = consoleFixtureIds();
 
     foreach (consoleRoutes() as $route) {

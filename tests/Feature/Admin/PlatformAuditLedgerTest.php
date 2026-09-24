@@ -8,6 +8,8 @@ use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\PlatformAdmin;
 use App\Models\PlatformAdminAction;
+use App\Models\User;
+use App\Models\UserIdentity;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Route;
@@ -114,6 +116,11 @@ function writePayloadsWithoutReason(array $ids): array
         'admin.admins.revoke' => ['current_password' => 'password'],
         'admin.admins.restore' => ['current_password' => 'password'],
         'admin.admins.sign-out' => [],
+        'admin.support.verify-email' => [],
+        'admin.support.resend-verification' => [],
+        'admin.support.password-reset' => [],
+        'admin.support.unlink' => [],
+        'admin.break-glass.start' => ['organization_id' => $ids['organization'], 'code' => '000000'],
     ];
 }
 
@@ -124,6 +131,9 @@ function consoleWriteRoutes(): array
         ->filter(fn (Route $r): bool => in_array(EnsurePlatformAdminTwoFactor::class, $r->gatherMiddleware(), true))
         ->filter(fn (Route $r): bool => array_diff($r->methods(), ['GET', 'HEAD']) !== [])
         ->reject(fn (Route $r): bool => str_starts_with((string) $r->getName(), 'admin.account.'))
+        // ⚠️ ADMIN 01 · PHASE 3 — ENDING a break-glass session needs no reason, deliberately: making it harder to STOP
+        //    looking at a tenant's data would be backwards. Starting one needs a reason, and is in the list below.
+        ->reject(fn (Route $r): bool => $r->getName() === 'admin.break-glass.end')
         ->values()
         ->all();
 }
@@ -132,7 +142,11 @@ it('⚠️⚠️ EVERY console write route REFUSES a request with no reason — 
     $org = Organization::create(['name' => 'Reason Org', 'slug' => 'rsn-'.Str::lower(Str::random(8)), 'status' => 'active', 'default_currency' => 'EUR']);
     $plan = Plan::create(['code' => 'rsnp_'.Str::lower(Str::random(6)), 'name' => 'RSN', 'price_minor' => 4900, 'currency' => 'EUR', 'interval' => 'monthly', 'is_active' => false]);
     $target = platformAdmin(['role' => 'analyst']);
-    $ids = ['organization' => $org->id, 'plan' => $plan->id, 'plan_code' => $plan->code, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $target->id];
+    $account = User::factory()->create(['email' => 'rsn-'.Str::lower(Str::random(8)).'@example.net', 'email_verified_at' => null]);
+    $identity = UserIdentity::create(['user_id' => $account->id, 'provider' => 'google', 'provider_user_id' => Str::random(12), 'provider_email' => $account->email]);
+    $ids = ['organization' => $org->id, 'plan' => $plan->id, 'plan_code' => $plan->code, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $target->id, 'user' => $account->id, 'identity' => $identity->id];
+    // ⚠️ Break-glass ships DORMANT (a 404 while off) — switched on so its START is held to the reason rule too.
+    config(['platform.break_glass.enabled' => true]);
     $payloads = writePayloadsWithoutReason($ids);
 
     $routes = consoleWriteRoutes();

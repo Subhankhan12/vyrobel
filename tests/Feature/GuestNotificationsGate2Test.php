@@ -306,7 +306,9 @@ it('never surfaces a guest catalog entry on the operator or owner preferences sc
     $operator = NotificationPreferences::catalogFor('operator');
     $owner = NotificationPreferences::catalogFor('owner');
 
-    expect($operator)->toHaveCount(16);   // unchanged by this gate
+    // ⚠️ 17 since ADMIN 01 · PHASE 3 added the operator's always-on `support_access` notice (break-glass) — nothing to
+    //    do with this gate, which is the guest realm; the count moved because the OPERATOR catalog grew.
+    expect($operator)->toHaveCount(17);
     // ⚠️ 11 since FIX 43 (R-ARCHIVE, F-24) added the owner's always-on property-archived notice — still
     // nothing to do with THIS gate, which is the guest realm; the count moved because the OWNER catalog
     // grew, exactly as it did at 10 for the arrival-secret REVEAL notification.

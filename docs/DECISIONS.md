@@ -17498,3 +17498,60 @@ the database by id, never typed; read back). Customers on the platform: **0**. T
 against admin@vyrobel.com (control: false) — break-glass stays dormant. **Waiting for the signed-in walkthrough:** a
 suspend → the probe's user refused at /app → reactivate → archive → restore, on the probe org only, each audit row
 read back; the triage and directory screens; the confirm-typed-name refusal shown (NOT exercised) on Vyrobel Internal.
+
+---
+
+## 2026-09-24 — ADMIN 01 · PHASE 3 — support tools, and BREAK-GLASS built, proved and shipped DORMANT
+
+**Scope, as briefed** (ADMIN 01 §Phase 3 + ADMIN 02 "the password — off the build, on one feature"). One additive
+migration: a NEW table, `break_glass_sessions` (platform-owned: `target_organization_id`, deliberately not
+`organization_id`, so it can never carry the tenant scope or be read or deleted by the tenant it records).
+
+**SUPPORT TOOLS** (Owner + Support; account holders only, never guests; every action a reason, via `mutate()`):
+lookup by email — the ledger records WHICH user was found, never the address typed · unlink a provider — through the
+PRODUCT'S OWN floor (`SignInCredentials::mayUnlink`), so it is refused exactly when it would leave no way in · mark an
+email verified — the DEPLOYMENT.md "mail is down" procedure as a button, `forceFill` (the column is not fillable and a
+mass-assign drops SILENTLY — mutation-proved) and READ BACK from the database · resend verification / send a password
+reset — the real code paths, and while mail is `log` the result says **NOT DELIVERED** in words; never a success.
+`MailDelivery` is now ONE definition of "mail discards", read by the health board and by these buttons.
+
+**BREAK-GLASS** — requires a reason, a fresh TOTP (step-up, rate-limited; a failure is on the ledger), a chosen
+organisation that is not archived, a VERIFIED back-office user there, and no tenant login in the same browser. Grants
+30 minutes. The admin stays signed in as themselves; each /app request BORROWS that user's view (`setUser`, request
+only — never a login, and the `verified` gate is satisfied, not skipped). VISIBLE: a banner injected into every HTML
+page whatever its layout. AUDITED: start, every page (path + status), every refused write, end. TOLD: at the end —
+by hand, at expiry, or by the per-minute sweep — every active back-office user gets an ALWAYS-ON in-app notice naming
+the admin, the time and the reason (synchronous, so a parked queue cannot swallow it). A suspended organisation may be
+looked at (suspension refuses its own people, not support). Expiry is enforced on every request, not by the cron.
+⚠️⚠️ **READ-ONLY, TWICE, EACH LAYER PROVED ALONE:** (1) `RefuseWritesDuringBreakGlass` refuses every non-GET from a
+browser holding a session — /app, every Livewire action, /owner — outside /admin (the brief's rule); (2)
+`EnterBreakGlassSession` runs each page inside `PlatformWriteGuard::readOnly`, so a page that WRITES while viewed is
+stopped at the connection — and nothing lands in the tenant's history as if their own user did it. 🔬 The whole back
+office was walked in a session: no parameter-free /app page 500s; the maintenance pages CREATE their settings row on
+first view (a write on GET — an existing product behaviour, not changed here) and show the read-only notice instead.
+**Tenant one**: break-glass reads it; a write attempt into it is refused and its rows are unchanged — tested.
+
+⚠️⚠️ **TWO ORDERING DEFECTS, BOTH INVISIBLE TO A GREEN TEST UNTIL THE HARNESS WAS MADE HONEST:**
+1. Laravel SORTS route middleware by its priority list, and `auth` outranks the web group's `SubstituteBindings` — so
+   `auth` was moved AHEAD of `EnterBreakGlassSession`. On a real request a support admin would have been sent to
+   /login before the session was read. The suite was green because `actingAs($admin, 'admin')` had made `admin` the
+   default guard, so `auth` passed on the admin. Fixed with `prependToPriorityList`; every break-glass test now resets
+   the default guard to `web` after starting a session, as a real request has it.
+2. Fixing (1) pulled `EnterBreakGlassSession` ahead of layer 1, so the refusal ran INSIDE the read-only scope, its own
+   audit insert was refused, and the page came back as layer 2's — layer 1 was silently gone. A second priority rule
+   puts it first; the layer-1 test now asserts layer 1's OWN wording, so layer 2 cannot stand in for it.
+⚠️ **AND A MISDIAGNOSIS OF MY OWN, CORRECTED:** I read the maintenance pages as 500s and "fixed" a wrapped-exception
+render path. The failing array was the write-on-view list, not the error list — they were never 500s. The chain walk
+stays (a write from INSIDE a Blade template really is re-thrown wrapped in a `ViewException` — read in vendor), now
+pinned by a test that renders a wrapped refusal; the comment that claimed it fixed the maintenance pages was removed.
+
+**DORMANT** (ADMIN 02): `config/platform.php` → `break_glass.enabled = false`, a LITERAL (never env, never runtime).
+While off: every break-glass route is a 404, no button, a leftover key is cleared and /app is not entered. 🔬 On the
+host, `Hash::check('123456', <admin hash>)` is still TRUE, so it stays off. **Switching it on is one line and a
+separate deploy**, after the founder changes the password and the check returns false.
+
+**PROOF.** 24 mutations, 24 caught — each by the test aimed at it, against a green baseline (a first run was
+discarded: its baseline was red, so its "catches" proved nothing). Pint clean · PHPStan L5 0 · full suite
+3873/3873 on this run (2026-09-24 — dated, not a pin; the first run was 3870/3873 and caught three real things: an
+unread flash key, and two catalogue-size pins that move WITH A REASON — the operator catalogue grew by the always-on
+`support_access` notice, 16 → 17, written beside each pin) · money gate FULL: six figures + four digests unchanged.

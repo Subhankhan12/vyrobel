@@ -54,6 +54,9 @@ class NotificationPreferences
         'new_device_login' => ['label' => 'Login from a new device', 'description' => 'Your account signs in somewhere new', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => true],
         'daily_summary' => ['label' => 'Daily morning summary', 'description' => 'A digest of the day at 08:00', 'group' => 'System', 'audience' => 'operator', 'always_on' => false, 'default' => false, 'email_default' => false],
         'schedule_published' => ['label' => 'Schedule published', 'description' => 'Your week’s roster is published', 'group' => 'Operations', 'audience' => 'operator', 'always_on' => false, 'default' => true, 'email_default' => false],
+        // ⚠️ ADMIN 01 · PHASE 3 — told after a Vyrobel break-glass session: who, when, why. ALWAYS ON — an organisation
+        //    cannot switch off being told that its data was looked at.
+        'support_access' => ['label' => 'Vyrobel support access', 'description' => 'Vyrobel support viewed your workspace, read-only — always on', 'group' => 'System', 'audience' => 'operator', 'always_on' => true, 'default' => true, 'email_default' => false],
         // ── Owner ──
         'statement_ready' => ['label' => 'Statement ready', 'description' => 'Your monthly statement is finalized', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],
         'payout_sent' => ['label' => 'Payout sent', 'description' => 'The day money leaves for your account', 'group' => 'Earnings', 'audience' => 'owner', 'always_on' => false, 'default' => true, 'email_default' => true],

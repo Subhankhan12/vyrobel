@@ -1,12 +1,17 @@
 <?php
 
+use App\Exceptions\PlatformWriteRefused;
+use App\Http\Middleware\EnterBreakGlassSession;
+use App\Http\Middleware\RefuseWritesDuringBreakGlass;
 use App\Http\Middleware\RequirePasswordBeforeReauth;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetTenantForWebRequest;
 use App\Support\Auth\TrustedDeviceService;
+use App\Support\Platform\BreakGlass;
 use App\Support\Security\RefusalLog;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -48,6 +53,24 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Resolve the active organization from the authenticated user on every web request,
         // syncing TenantContext + spatie team id. CLI/queue/tests use programmatic context.
+        // ⚠️⚠️ ADMIN 01 · PHASE 3 — EnterBreakGlassSession MUST run BEFORE `auth`, and its place first in the /app
+        //    group is NOT enough: 🔬 Laravel SORTS route middleware by this priority list, and `auth` outranks the
+        //    web group's SubstituteBindings — so it was moved AHEAD of EnterBreakGlassSession, and a real admin in a
+        //    support session was sent to /login before the session was ever read. The suite did not see it at first:
+        //    `actingAs($admin, 'admin')` had made `admin` the default guard, so `auth` passed on the admin.
+        $middleware->prependToPriorityList(
+            before: AuthenticatesRequests::class,
+            prepend: EnterBreakGlassSession::class,
+        );
+        // ⚠️ …and LAYER 1 (the non-GET refusal) must run BEFORE EnterBreakGlassSession, i.e. OUTSIDE the read-only
+        //    scope it opens. 🔬 Measured: once EnterBreakGlassSession was pulled forward, the refusal ran INSIDE that
+        //    scope, its own audit insert was refused, and the page came back as layer 2's — layer 1 was silently gone.
+        //    Applied in order, so this one can name the prepend above.
+        $middleware->prependToPriorityList(
+            before: EnterBreakGlassSession::class,
+            prepend: RefuseWritesDuringBreakGlass::class,
+        );
+
         $middleware->web(append: [
             // ⚠️⚠️ THE PASSWORDLESS ESCAPE — a STEP BEFORE the twenty-four `current_password` rules, never a
             //    bypass around them. It only ever REDIRECTS: a user with no password who reaches a
@@ -58,6 +81,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Apply the signed-in user's saved language preference (English-only strings today; the
             // preference is real and persists — see App\Http\Middleware\SetLocale).
             SetLocale::class,
+            // ⚠️⚠️ ADMIN 01 · PHASE 3 — BREAK-GLASS READ-ONLY, LAYER 1: every non-GET request from a browser holding a
+            //    break-glass session is refused, on EVERY web route (Livewire updates included) outside /admin.
+            RefuseWritesDuringBreakGlass::class,
         ]);
 
         // Security response headers on EVERY response, all five realms (audit 2026-08-07 — the app sent none
@@ -137,6 +163,32 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
+        );
+
+        // ⚠️⚠️ ADMIN 01 · PHASE 3 — A PAGE THAT TRIED TO WRITE DURING A READ-ONLY BREAK-GLASS SESSION. The
+        //    connection refused it (EnterBreakGlassSession runs every break-glass page inside
+        //    PlatformWriteGuard::readOnly); this turns that into a plain 403 instead of a 500, and marks the request
+        //    so the middleware can audit it. ⚠️ It must NOT write here: this runs INSIDE the read-only scope, so an
+        //    audit insert from this callback would itself be refused. ⚠️ Not reported as a server error — it is the
+        //    guard working, and the health board's error count must not rise because a support session looked.
+        // ⚠️ WALK THE CHAIN: a write attempted from INSIDE a Blade template is re-thrown by Laravel's CompilerEngine
+        //    as a ViewException wrapping the refusal (read in vendor, not assumed), and a callback typed on
+        //    PlatformWriteRefused would not match it — that page would 500. A write from a component's PHP (the
+        //    maintenance pages' first-view settings row) arrives unwrapped; both are covered and both are tested.
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->attributes->has(BreakGlass::ATTRIBUTE) || ! BreakGlass::isWriteRefusal($e)) {
+                return null;
+            }
+            $request->attributes->set(BreakGlass::WRITE_REFUSED, true);
+
+            return response()->view('errors.layout', [
+                'code' => 403,
+                'title' => 'Read-only support session',
+                'message' => 'This page tried to save something, and a Vyrobel support session cannot change anything — so it was stopped.',
+            ], 403);
+        });
+        $exceptions->dontReportWhen(
+            fn (Throwable $e): bool => request()->attributes->has(BreakGlass::ATTRIBUTE) && BreakGlass::isWriteRefusal($e),
         );
 
         // ⚠️⚠️ THE REFUSAL LOG — see {@see \App\Support\Security\RefusalLog} for the full argument.

@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Membership;
 use App\Models\Organization;
+use App\Support\Platform\BreakGlass;
 use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -34,7 +35,9 @@ class RefuseSuspendedOrganization
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->routeIs(self::SWITCH_ROUTE)) {
+        // ⚠️ ADMIN 01 · PHASE 3 — a READ-ONLY Vyrobel support session may look at a suspended organisation: the
+        //    suspension refuses the organisation's OWN people; finding out why it was suspended is support's job.
+        if ($request->routeIs(self::SWITCH_ROUTE) || $request->attributes->has(BreakGlass::ATTRIBUTE)) {
             return $next($request);
         }
 
