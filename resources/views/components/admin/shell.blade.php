@@ -228,6 +228,36 @@
         .ad-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px var(--ad-accent-soft); }
         .ad-input:focus-visible, input[type=checkbox]:focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
         input[type=checkbox] { accent-color: var(--ad-accent); width: 16px; height: 16px; }
+        /* ---- Selects -------------------------------------------------------------------------
+           ⚠️ A NATIVE SELECT IGNORES ALMOST EVERYTHING AROUND IT. `.ad-input` gave these a frosted
+           background and a warm border, and the browser then drew an OS control inside it — grey gradient
+           on macOS, a square arrow on Windows — at its own height, so the one control on a form that was
+           NOT in the product's language was the dropdown. `appearance: none` is what surrenders the OS
+           widget; without it every rule below is decoration the browser paints over.
+           ⚠️ THE CHEVRON IS A BACKGROUND IMAGE, AND ITS COLOUR IS THEREFORE A LITERAL. A data: URI cannot
+           read a custom property, so the two hexes below are `--vy-muted` rgb(95,88,83) = #5F5853 and
+           `--vy-accent-text` rgb(147,42,7) = #932A07, written out. ⚠️ If either token is ever re-measured,
+           these do NOT follow it — that is the one drift this file cannot prevent, so it is named here.
+           The glyph is the same `M6 9l6 6 6-6` chevron the operator's account menu draws.
+           ⚠️ `option` styling is honoured on Windows/Linux and IGNORED by macOS, which renders the popup
+           natively. It is set anyway (it costs nothing and helps two of the three platforms), but the OPEN
+           list is deliberately NOT claimed to be themed — that needs a JS listbox, which is not worth the
+           accessibility debt on four dropdowns. */
+        select.ad-input, .ad-filters select {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            padding-right: 38px; cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235F5853' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 13px center; background-size: 14px 14px;
+            transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+        }
+        select.ad-input:hover, .ad-filters select:hover { background-color: rgba(255, 255, 255, 0.92); border-color: var(--ad-border-strong); }
+        /* Focus + open: the chevron picks up the accent, so the control reads active the way the nav and
+           the buttons do. Same glyph, recoloured — NOT a second icon. */
+        select.ad-input:focus, .ad-filters select:focus {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23932A07' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        }
+        select.ad-input:disabled, .ad-filters select:disabled { opacity: .55; cursor: not-allowed; }
+        select.ad-input option, .ad-filters select option { background: #FFFDFB; color: var(--ad-ink); }
         /* Detail (definition list) */
         .ad-back { display: inline-flex; align-items: center; gap: 6px; color: var(--ad-on-grad); text-decoration: none; font-size: 12.5px; margin-bottom: 4px; }
         .ad-back:hover { color: var(--ad-accent-text); }
