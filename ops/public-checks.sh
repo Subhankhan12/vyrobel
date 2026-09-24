@@ -65,7 +65,7 @@ else verdict FAIL "/signup renders the form (sign-ups ON)" "HTTP $st$(grep -q 'N
 ADMIN_GET=(/admin /admin/overview /admin/customers /admin/customers/01ANONYMOUSPROBE0000000000 /admin/plans /admin/plans/create
            /admin/plans/01ANONYMOUSPROBE0000000000/edit /admin/activity /admin/audit /admin/switches /admin/account
            /admin/admins /admin/integrations /admin/integrations/channex /admin/two-factor/setup /admin/two-factor
-           /admin/triage /admin/support /admin/break-glass)
+           /admin/triage /admin/support /admin/break-glass /admin/revenue /admin/funnel /admin/privacy)
 bad=""; n=0
 for pth in "${ADMIN_GET[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch GET "$pth")"; n=$((n+1))
@@ -83,7 +83,8 @@ IFS='|' read -r st loc body <<<"$(fetch GET /admin/invite/$RANDTOK)"
 
 ADMIN_POST=(/admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/customers/01ANONYMOUSPROBE0000000000/archive
             /admin/customers/01ANONYMOUSPROBE0000000000/restore /admin/switches/signup.enabled /admin/admins /admin/plans
-            /admin/break-glass /admin/break-glass/end /admin/support/users/01ANONYMOUSPROBE0000000000/verify-email)
+            /admin/break-glass /admin/break-glass/end /admin/support/users/01ANONYMOUSPROBE0000000000/verify-email
+            /admin/privacy/requests)
 bad=""
 for pth in "${ADMIN_POST[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch POST "$pth")"

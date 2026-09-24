@@ -97,7 +97,7 @@
                         <input id="resend-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason">
                         <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm" style="margin-top: 8px;">Resend</button>
                         @if ($mailDiscards)
-                            <p class="ad-reason-hint" style="margin: 6px 0 0; color: var(--ad-red-text, #b42318);">Mail is “{{ $mailer }}” — this will be discarded.</p>
+                            <p class="ad-reason-hint" style="margin: 6px 0 0; color: var(--ad-danger);">Mail is “{{ $mailer }}” — this will be discarded.</p>
                         @endif
                     </form>
                 @endif
@@ -107,7 +107,7 @@
                     <input id="reset-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason">
                     <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm" style="margin-top: 8px;">Send reset</button>
                     @if ($mailDiscards)
-                        <p class="ad-reason-hint" style="margin: 6px 0 0; color: var(--ad-red-text, #b42318);">Mail is “{{ $mailer }}” — this will be discarded.</p>
+                        <p class="ad-reason-hint" style="margin: 6px 0 0; color: var(--ad-danger);">Mail is “{{ $mailer }}” — this will be discarded.</p>
                     @endif
                 </form>
             </div>

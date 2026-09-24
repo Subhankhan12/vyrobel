@@ -11,9 +11,12 @@ use App\Http\Controllers\Admin\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Admin\BreakGlassController as AdminBreakGlassController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\FunnelController as AdminFunnelController;
 use App\Http\Controllers\Admin\IntegrationController as AdminIntegrationController;
 use App\Http\Controllers\Admin\OverviewController as AdminOverviewController;
 use App\Http\Controllers\Admin\PlanController as AdminPlanController;
+use App\Http\Controllers\Admin\PrivacyController as AdminPrivacyController;
+use App\Http\Controllers\Admin\RevenueController as AdminRevenueController;
 use App\Http\Controllers\Admin\SupportController as AdminSupportController;
 use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
 use App\Http\Controllers\Auth\AcceptInviteController;
@@ -1797,6 +1800,9 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
                 Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
                 Route::get('triage', [AdminCustomerController::class, 'triage'])->name('customers.triage');
+                // ⚠️ ADMIN 01 · PHASE 4 — the signup funnel (recorded facts only) and the privacy desk (read side).
+                Route::get('funnel', [AdminFunnelController::class, 'index'])->name('funnel');
+                Route::get('privacy', [AdminPrivacyController::class, 'index'])->name('privacy.index');
                 Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
                 Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
                 Route::get('audit', [AdminAuditController::class, 'index'])->name('audit.index');
@@ -1822,6 +1828,12 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
             });
 
+            // ── ⚠️ ADMIN 01 · PHASE 4 — REVENUE (Owner, Billing, Analyst): traced to the charge, read-only with respect
+            //    to money. No route in this console charges, refunds or transfers.
+            Route::middleware($can(PlatformAdminRole::BILLING_VIEW))->group(function () {
+                Route::get('revenue', [AdminRevenueController::class, 'index'])->name('revenue');
+            });
+
             // ── ⚠️ ADMIN 01 · PHASE 3 — SUPPORT TOOLS (Owner, Support): account holders, never guests. Every write
             //    needs a reason. BREAK-GLASS lives here too — and answers 404 while it is switched off (dormant).
             Route::middleware($can(PlatformAdminRole::SUPPORT_USE))->group(function () {
@@ -1830,6 +1842,10 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('support/users/{user}/resend-verification', [AdminSupportController::class, 'resendVerification'])->middleware('throttle:10,1')->name('support.resend-verification');
                 Route::post('support/users/{user}/password-reset', [AdminSupportController::class, 'passwordReset'])->middleware('throttle:10,1')->name('support.password-reset');
                 Route::post('support/users/{user}/identities/{identity}/unlink', [AdminSupportController::class, 'unlink'])->middleware('throttle:20,1')->name('support.unlink');
+
+                // ⚠️ ADMIN 01 · PHASE 4 — the privacy request REGISTER (record + move along). Tracks; never erases.
+                Route::post('privacy/requests', [AdminPrivacyController::class, 'store'])->middleware('throttle:20,1')->name('privacy.store');
+                Route::post('privacy/requests/{privacyRequest}', [AdminPrivacyController::class, 'update'])->middleware('throttle:30,1')->name('privacy.update');
 
                 Route::get('break-glass', [AdminBreakGlassController::class, 'index'])->name('break-glass.index');
                 Route::post('break-glass', [AdminBreakGlassController::class, 'start'])->middleware('throttle:10,1')->name('break-glass.start');

@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\PlatformAdmin;
 use App\Models\PlatformAdminAction;
+use App\Models\PrivacyRequest;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\Platform\PlatformAuditLogger;
@@ -121,6 +122,8 @@ function writePayloadsWithoutReason(array $ids): array
         'admin.support.password-reset' => [],
         'admin.support.unlink' => [],
         'admin.break-glass.start' => ['organization_id' => $ids['organization'], 'code' => '000000'],
+        'admin.privacy.store' => ['kind' => 'export', 'subject_kind' => 'relayed_guest', 'organization_id' => $ids['organization'], 'channel' => 'hotel', 'received_on' => '2026-07-20'],
+        'admin.privacy.update' => ['status' => 'in_progress'],
     ];
 }
 
@@ -144,7 +147,8 @@ it('⚠️⚠️ EVERY console write route REFUSES a request with no reason — 
     $target = platformAdmin(['role' => 'analyst']);
     $account = User::factory()->create(['email' => 'rsn-'.Str::lower(Str::random(8)).'@example.net', 'email_verified_at' => null]);
     $identity = UserIdentity::create(['user_id' => $account->id, 'provider' => 'google', 'provider_user_id' => Str::random(12), 'provider_email' => $account->email]);
-    $ids = ['organization' => $org->id, 'plan' => $plan->id, 'plan_code' => $plan->code, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $target->id, 'user' => $account->id, 'identity' => $identity->id];
+    $privacy = PrivacyRequest::create(['kind' => 'export', 'subject_kind' => 'relayed_guest', 'related_organization_id' => $org->id, 'channel' => 'hotel', 'status' => 'received', 'received_at' => now(), 'due_at' => now()->addMonth(), 'recorded_by' => $target->id]);
+    $ids = ['organization' => $org->id, 'plan' => $plan->id, 'plan_code' => $plan->code, 'channel' => 'channex', 'switch' => 'signup.enabled', 'admin' => $target->id, 'user' => $account->id, 'identity' => $identity->id, 'privacyRequest' => $privacy->id];
     // ⚠️ Break-glass ships DORMANT (a 404 while off) — switched on so its START is held to the reason rule too.
     config(['platform.break_glass.enabled' => true]);
     $payloads = writePayloadsWithoutReason($ids);

@@ -17568,3 +17568,55 @@ marked internal. Customers: **0**. `Hash::check` of the known default: still TRU
 **Waiting for the signed-in walkthrough:** lookup / unlink / mark-verified / resend / reset on a probe account (resend
 and reset must say NOT DELIVERED); `/admin/break-glass` must answer 404 while dormant. **Break-glass has never run on
 production** — the live test, including the banner and the tenant notice, happens only after it is switched on.
+
+---
+
+## 2026-09-24 — ADMIN 01 · PHASE 4 — revenue traced to the charge · the signup funnel · the privacy desk
+
+**Scope, as briefed** (ADMIN 01 §Phase 4 + addendum #6 + ADMIN 02's STOP on the retention definition). One additive
+migration: a NEW table, `privacy_requests`.
+
+**REVENUE — FROM THE CHARGE.** 🔬 Traced: Stripe → `invoice.paid` / `invoice.payment_failed` → `StripeWebhookController`
+stores each VERIFIED event in `webhook_events` with its full payload and organisation → `BillingWebhookService::applyInvoice()`
+moves only status and period and records **no amount anywhere**. So the paid invoice is the only record of what was
+charged, and `PlatformRevenue` sums only PROCESSED `invoice.paid` rows — never `price_minor`, never `per_unit_minor`,
+never `vat_pct` (a test gives the plan an absurd list price and asserts it never reaches a figure). MRR / ARR per
+currency (never summed across currencies) · new / expansion / contraction / churned per organisation, this month vs
+last · trial-to-paid · failed payments · past due. Customers only unless asked. 🔬 **Production today: 6 subscriptions,
+all trialing, none live-billed, zero Stripe events** — the page says **"No live billing yet"** in words.
+⚠️ **A DESIGN FLAW CAUGHT BY ITS OWN TEST:** the first version put a charge "on a monthly footing" by dividing by an
+average month in seconds — a 30-day monthly invoice counted as 101.46% of itself, February ~108.7%: a monthly plan's
+MRR would have wobbled with the calendar. Now: the interval Stripe STATES on the line; failing that the period
+bucketed (week / month / quarter / half-year / year); only an odd period by its exact length.
+⚠️ **Not built, stated:** "comp a plan / extend a trial" — the brief ALLOWS it, it does not require it; it is
+money-adjacent, "assign a plan" already exists, and tenant two must stay paywalled. Left for a ruling.
+
+**SIGNUP FUNNEL** by source (email · Google · X · Unknown), customers only: signed up → verified an email (the gate to
+/app) → first reservation → first check-in → paid (a processed `invoice.paid`). ⚠️ **Named on screen as UNMEASURED:**
+visiting the site · starting the form · reaching /app itself (no page view is recorded; "verified" is the nearest
+recorded step). "Added a property" is not a stage — sign-up creates it — and that is MEASURED (organisations with no
+property), not assumed.
+
+**PRIVACY DESK.** (1) The live GDPR queue — the EXISTING `GuestDeletionService` / `guests:process-deletions`
+machinery, watched: pending, **overdue (red — the daily job is not running)**, erased in 30 days, per hotel; counts
+and hotel names only, never a guest (a test asserts four guest names never reach the page). (2) A REQUEST REGISTER
+for requests arriving by email / letter / phone / a hotel: kind, subject (an account holder BY USER ID — the email is
+looked up and NOT stored; a hotel's guest BY ORGANISATION ONLY), channel, received, **due in one month** (Art. 12(3)),
+status received → in progress → completed | refused, every step a reason on the ledger. ⚠️ **No free text** — a
+register of requests must not become a new store of the personal data it is about. Fulfilment points at what EXISTS
+(and says plainly that there is **no self-service export for staff** and **no account deletion for any human
+account** — the founder's ruling, with retention). (3) **RETENTION COVERAGE — BUILT, AWAITING THE RULING:** M is
+COUNTED from `docs/legal/DATA-INVENTORY.md` (143 category rows today — read, never typed); what the code enforces is
+READ from the code (`RetentionPolicy::windows()`, login activity 90 d, ID documents 30 d); two candidate readings are
+shown side by side — strict (every store the row names is pruned) and lenient (any) — **neither is the ruling**, both
+labelled approximate, `RetentionCoverage::RULING` is `null`. ⚠️ `docs/` is not deployed, so on production the card
+reads **COULD NOT MEASURE** with the reason — it never falls back to a remembered number. (4) **SUB-PROCESSORS:**
+Hostinger, its CDN, Google, X, Postmark, Stripe, Anthropic, Channex — purpose, data shared, today's state read from
+config (never a value), and **"None on file" for every agreement**, because none exists.
+
+**PROOF.** 21 mutations, 21 caught, each by the test aimed at it against a green baseline. ⚠️ The first run left four
+alive and each was a lesson: two were REAL GAPS (no test had a stated-yearly invoice; no fixture had a reservation
+that was not checked in) · one was an EQUIVALENT mutation (the page keys on `live`, not on that branch — replaced by
+one that forces `live`) · one was a BROKEN MUTATION of mine (it renamed a path and left the capability alone).
+Pint clean · PHPStan L5 0 · full suite
+3890/3890 on this run (2026-09-24 — dated, not a pin) · money gate FULL: six figures + four digests unchanged.
