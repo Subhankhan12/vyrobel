@@ -17555,3 +17555,16 @@ discarded: its baseline was red, so its "catches" proved nothing). Pint clean ·
 3873/3873 on this run (2026-09-24 — dated, not a pin; the first run was 3870/3873 and caught three real things: an
 unread flash key, and two catalogue-size pins that move WITH A REASON — the operator catalogue grew by the always-on
 `support_access` notice, 16 → 17, written beside each pin) · money gate FULL: six figures + four digests unchanged.
+
+**DEPLOYED 2026-09-24 — `rel_P @ 7440b720`** (L12k; one additive migration — the new `break_glass_sessions` table —
+run from rel_P while rel_O served, `/`, `/login`, `/signup`, `/admin/login` 200 throughout; swap 4 ms; rollback =
+`ops/release.sh rollback rel_O`). Boot check ON THE HOST: `config('platform.break_glass.enabled')` reads **false** from
+the cached config; the middleware priority reads `RefuseWritesDuringBreakGlass > EnterBreakGlassSession >
+AuthenticatesRequests`; `support_access` is always-on; 0 sessions. **Public checks: PASS 11 · FAIL 0 · COULD NOT
+MEASURE 0** (19 anonymous admin GETs incl. `/admin/support` and `/admin/break-glass`, 9 anonymous POSTs, 154 routes free
+of 5xx, battery SERVED=0). Probe sign-up `ADMIN-P3 PROBE (not a customer)` accepted — ⚠️ which is also the live proof
+that the new web-wide write refusal does not touch an ordinary visitor's POST — read back (`signup_source = email`) and
+marked internal. Customers: **0**. `Hash::check` of the known default: still TRUE → **break-glass stays dormant.**
+**Waiting for the signed-in walkthrough:** lookup / unlink / mark-verified / resend / reset on a probe account (resend
+and reset must say NOT DELIVERED); `/admin/break-glass` must answer 404 while dormant. **Break-glass has never run on
+production** — the live test, including the banner and the tenant notice, happens only after it is switched on.
