@@ -10,15 +10,15 @@
 
 declare(strict_types=1);
 
-$base = getcwd();
-require $base.'/vendor/autoload.php';
-$app = require $base.'/bootstrap/app.php';
-$app->make(Kernel::class)->bootstrap();
-
 use App\Models\Organization;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
+
+$base = getcwd();
+require $base.'/vendor/autoload.php';
+$app = require $base.'/bootstrap/app.php';
+$app->make(Kernel::class)->bootstrap();
 
 [$script, $mode, $arg, $reason] = array_pad($argv, 4, '');
 if (trim($reason) === '') {

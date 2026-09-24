@@ -17412,3 +17412,18 @@ count of a broader thing than it was quoted as.
 (its count is whatever the run prints). ⚠️ Two earlier suite runs DIED AT LOAD on a duplicate test-helper name this
 phase introduced — one of them was nearly read as a pass from a truncated tail. A scan for duplicate global test
 functions now exists; the lesson is the standing one: a result you did not see is not a result.
+
+**DEPLOYED 2026-09-24 — `rel_N @ 7fa23cde`** (L12k; three additive migrations run from rel_N while rel_M served —
+`/`, `/login`, `/signup`, `/admin/login` all 200 throughout; boot check on the target; swap 4 ms; rollback =
+`ops/release.sh rollback rel_M`). **Public checks: PASS 11 · FAIL 0 · COULD NOT MEASURE 0** — both providers' redirects
+and buttons, `/signup`, 16 anonymous `/admin` GETs → login, 4 anonymous POSTs refused, the neutral invite page, 151
+routes free of 5xx, battery SERVED=0. The three Phase-0 orgs marked `is_internal` by id prefix READ from the survey
+(the script refuses any other set), each read back; a probe sign-up (`ADMIN-P1 PROBE (not a customer)`) accepted,
+its rows read back (1 user · 1 property · a trialing subscription), marked internal by exact name. Customers on the
+platform: **0**. Kill switches read ON with zero rows. `Hash::check` of the known default against admin@vyrobel.com
+is still TRUE (control: a random string → false), so **break-glass will ship dormant** (ADMIN 02).
+⚠️ **Three deploy-script defects, found by running them, none by reading:** `release.sh` called a migration
+"pending" because its NAME contained the word (`…add_pending_email…`) — now matches the status column only;
+`mark-internal.php` died at boot because Pint turned an FQCN into a `use` import placed BELOW its first use, and PHP
+resolves a name only against imports above it (`Kernel::class` became the string `"Kernel"`; nothing was written —
+read back); `probe-signup.sh` exited 141 on `tr </dev/urandom | head` under `pipefail` before sending anything.

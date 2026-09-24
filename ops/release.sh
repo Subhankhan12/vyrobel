@@ -19,6 +19,8 @@
 #   · the commit is READ from git and written to `.release` by the script — never typed.
 #   · a migration is ADDITIVE or it is refused here: its up() may not drop, rename or change a column. That is
 #     what lets the old release keep running on the new schema, and keeps rollback a symlink.
+#   · a migration is "pending" when its STATUS column says Pending — not when its NAME contains the word
+#     (`…add_pending_email…` fooled a case-insensitive grep once, on the first run of this script).
 #   · anything needing a vendor/ or public/build rebuild (composer.*, package*.json, resources/css|js) is REFUSED
 #     here — those are built on the target / off-host by a separate, deliberate step, never slipped into a copy.
 set -euo pipefail
@@ -107,14 +109,14 @@ stage)
       rm -rf ~/vy-release-stage ~/vy-release-payload.tar.gz ~/vy-release-payload.list ~/vy-release-payload.del"
     rm -rf "$WORK"
 
-    PENDING="$(ssh_ "cd ~/$ROOT/releases/$NEW && $PHP artisan migrate:status 2>/dev/null | grep -i pending | awk '{print \$1}'" || true)"
+    PENDING="$(ssh_ "cd ~/$ROOT/releases/$NEW && $PHP artisan migrate:status 2>/dev/null | grep -E 'Pending[[:space:]]*\$' | awk '{print \$1}'" || true)"
     say "pending migrations: ${PENDING:-none}"
     ;;
 
 migrate)
     [[ "$NEW" =~ ^rel_[A-Z]+$ ]] || die "usage: migrate rel_<LETTERS>"
     cd "$REPO"
-    PENDING="$(ssh_ "cd ~/$ROOT/releases/$NEW && $PHP artisan migrate:status 2>/dev/null | grep -i pending | awk '{print \$1}'" || true)"
+    PENDING="$(ssh_ "cd ~/$ROOT/releases/$NEW && $PHP artisan migrate:status 2>/dev/null | grep -E 'Pending[[:space:]]*\$' | awk '{print \$1}'" || true)"
     [ -n "$PENDING" ] || { say "no pending migrations — nothing to do"; exit 0; }
     # ⚠️ ADDITIVE ONLY — read each pending migration's up() and refuse a drop / rename / change / NOT NULL add.
     for m in $PENDING; do

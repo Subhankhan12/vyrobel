@@ -16,7 +16,8 @@ STAMP="$(date -u +%Y%m%d-%H%M%S)"
 SLUGBIT="$(echo "$LABEL" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9' '-')"
 ORG="${LABEL} PROBE (not a customer)"
 EMAIL="${SLUGBIT}probe-${STAMP}@vyrobel-probe.invalid"
-PW="Probe-$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 20)1a"   # never printed, never stored by us
+# ⚠️ No `tr </dev/urandom | head` here: under `pipefail` head closing the pipe SIGPIPEs tr, and the script dies (exit 141).
+PW="Probe-$(openssl rand -hex 12)-Aa1"   # never printed, never stored by us
 JAR="$(mktemp)"; trap 'rm -f "$JAR"' EXIT
 
 page="$(curl -sS -c "$JAR" -b "$JAR" -A 'vyrobel-probe-signup/1.0' "$BASE/signup")"
