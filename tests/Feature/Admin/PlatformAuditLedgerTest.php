@@ -13,7 +13,6 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\ViewErrorBag;
 
 // ADMIN 01 · PHASE 1 — THE ADMIN AUDIT LEDGER: append-only in fact (not in a docblock), and every admin WRITE
 // carries a written reason. Each property has a test that goes red when it is removed.
@@ -85,24 +84,6 @@ it('the refusal is scoped to the ledger — other tables still update normally',
     expect($org->fresh()->name)->toBe('Renamed');
 })->group('security');
 
-/**
- * The validation-error KEYS in the session, whatever shape they are stored in. ⚠️ This app's session serialises the
- * error bag to a plain array ({"default": {"messages": {...}}}), which is also why Laravel's own failure message
- * crashes with "Call to a member function all() on array" when an error assertion fails.
- *
- * @return list<string>
- */
-function sessionErrorKeys(): array
-{
-    $errors = session('errors');
-
-    if ($errors instanceof ViewErrorBag) {
-        return $errors->getBag('default')->keys();
-    }
-
-    return is_array($errors) ? array_keys((array) ($errors['default']['messages'] ?? [])) : [];
-}
-
 // ══ 2 · ⚠️⚠️ EVERY ADMIN WRITE CARRIES A REASON ═══════════════════════════════════════════════════════════
 
 /**
@@ -117,6 +98,8 @@ function writePayloadsWithoutReason(array $ids): array
     return [
         'admin.customers.suspend' => ['current_password' => 'password'],
         'admin.customers.reactivate' => [],
+        'admin.customers.archive' => ['current_password' => 'password'],
+        'admin.customers.restore' => [],
         'admin.customers.internal' => ['internal' => '1'],
         'admin.customers.assign-plan' => ['plan_id' => $ids['plan']],
         'admin.plans.store' => ['code' => 'rsn_'.Str::lower(Str::random(8)), 'name' => 'Reason Probe', 'pricing_type' => Plan::PRICING_FLAT, 'interval' => 'monthly', 'currency' => 'EUR', 'price' => '49'],

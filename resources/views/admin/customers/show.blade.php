@@ -1,15 +1,20 @@
-{{-- Customer detail: real operational facts + the platform lifecycle actions. #28 — operational facts only (never
-     end-guest PII). Break-glass is a separate, later feature.
-
-     ⚠️⚠️ ADMIN 01 · PHASE 1 — "SUSPEND" IS NOW LABELLED FOR WHAT IT DOES: "Close public storefront". Measured: the
-     `suspended` status closes the hotel's public booking pages and does NOT stop its staff reaching /app. Every
-     action here needs a written reason, and each control appears only for a role that may use it. --}}
+{{-- ADMIN 01 · PHASE 2 — one tenant: account metadata, its account holders, its subscription, and the lifecycle.
+     ⚠️ Account metadata only — the users listed are Vyrobel ACCOUNT HOLDERS (staff, owners), never guests; the
+     guest numbers are COUNTS, shown so nobody suspends a hotel without seeing whom it affects.
+     ⚠️ Every action needs a written reason; suspend and archive also need the admin's password. A protected
+     organisation shows why, and each control appears only for a role that may use it. --}}
 @php
     $org = $d['org'];
     $sub = $d['subscription'];
+    $impact = $d['impact'];
+    $lock = $d['lock'];
     $me = auth('admin')->user();
     $canTenants = $me?->may('tenants.manage') ?? false;
     $canBilling = $me?->may('billing.manage') ?? false;
+    $archived = $org->trashed();
+    $suspended = $org->status === 'suspended';
+    $guests = $impact['in_house'] + $impact['upcoming'];
+    $statusLabel = $archived ? 'Archived' : (\App\Support\Platform\PlatformCustomers::STATUSES[$org->status] ?? ucfirst($org->status));
 @endphp
 <x-admin.shell active="customers" :title="$org->name" :subtitle="$org->slug"
     :back="route('admin.customers.index')" back-label="All customers">
@@ -20,40 +25,80 @@
         <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
     @endif
 
-    <div class="ad-card" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap;">
-        <div>
-            <div class="ad-label" style="margin-bottom: 8px;">Storefront</div>
-            <span class="ad-pill ad-pill--{{ $org->status }}">{{ $org->status === 'suspended' ? 'Storefront closed' : ucfirst($org->status) }}</span>
+    {{-- ── Lifecycle ─────────────────────────────────────────────────────────────────────────────────────── --}}
+    <div class="ad-card">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+            <span class="ad-pill ad-pill--{{ $archived ? 'cancelled' : $org->status }}">{{ $statusLabel }}</span>
+            @if ($archived)
+                <span class="ad-pill ad-pill--suspended">Suspended underneath</span>
+            @endif
             @if ($org->isInternal())
-                <span class="ad-pill ad-pill--cancelled" style="margin-left: 6px;">Internal</span>
+                <span class="ad-pill ad-pill--cancelled">Internal</span>
+            @endif
+            @if ($lock === 'baseline')
+                <span class="ad-hpill ad-hpill--red">Protected baseline — no console action may change it</span>
+            @elseif ($lock === 'confirm')
+                <span class="ad-hpill ad-hpill--amber">Protected — lifecycle actions need its name typed</span>
             @endif
         </div>
 
-        @if ($canTenants)
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: 360px;">
-                @if ($org->status === 'suspended')
-                    <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}" data-guard-submit style="width: 100%;">
+        <p class="ad-stat-sub" style="margin: 0 0 14px; line-height: 1.6;">
+            @if ($archived)
+                Archived: hidden from the directory, every record kept. Its staff and owners are refused and its storefront is closed.
+            @elseif ($suspended)
+                Suspended: its staff and owners are refused with a plain explanation, and its public storefront is closed. Guests can still reach their own bookings.
+            @else
+                Its staff and owners can sign in, and its storefront follows its status.
+            @endif
+            <strong>{{ $impact['in_house'] }}</strong> guest stay{{ $impact['in_house'] === 1 ? '' : 's' }} in house now ·
+            <strong>{{ $impact['upcoming'] }}</strong> upcoming (not yet ended, not cancelled).
+            Suspending or archiving touches <strong>no</strong> reservation, folio or payment.
+        </p>
+
+        @if ($canTenants && $lock !== 'baseline')
+            @php
+                // One partial per action would hide the differences; these four are deliberately written out.
+                $confirmName = $lock === 'confirm';
+            @endphp
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                @if (! $archived && ! $suspended)
+                    <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" data-guard-submit>
                         @csrf
-                        <label class="ad-label" for="reopen_reason">Reason</label>
-                        <input id="reopen_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is the storefront reopening?">
-                        <button type="submit" class="ad-btn">Reopen public storefront</button>
-                    </form>
-                @else
-                    <form method="POST" action="{{ route('admin.customers.suspend', $org->id) }}" data-guard-submit style="width: 100%;"
-                          onsubmit="return confirm('Close the public storefront? Guests will not be able to book online. Staff can still sign in.');">
-                        @csrf
-                        {{-- ⚠️ RE-AUTH: the confirm() above is JS only — a direct POST walks past it. This does not. --}}
-                        <label class="ad-label" for="suspend_reason">Reason</label>
-                        <input id="suspend_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is the storefront closing?">
-                        <label class="ad-label" for="suspend_pw">Confirm with your password</label>
-                        <input id="suspend_pw" type="password" name="current_password" class="ad-input" style="margin-bottom: 8px;" autocomplete="current-password" required aria-label="Current password">
-                        <button type="submit" class="ad-btn ad-btn--danger">Close public storefront</button>
+                        <label class="ad-label" for="suspend_reason">Suspend — reason</label>
+                        <input id="suspend_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation being suspended?">
+                        @include('admin.customers.partials.lifecycle-confirm', ['id' => 'suspend', 'password' => true])
+                        <button type="submit" class="ad-btn ad-btn--danger" style="margin-top: 10px;">Suspend</button>
                     </form>
                 @endif
-                {{-- Honest about enforcement: this closes online booking only. --}}
-                <span style="color: var(--ad-faint); font-size: 11.5px; text-align: right;">
-                    Closing the storefront stops guests booking online. It does <strong>not</strong> sign the hotel's staff out or block the back office — a full suspension arrives in a later release.
-                </span>
+
+                @if ($suspended && ! $archived)
+                    <form method="POST" action="{{ route('admin.customers.reactivate', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <label class="ad-label" for="reactivate_reason">Reactivate — reason</label>
+                        <input id="reactivate_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is access being restored?">
+                        @include('admin.customers.partials.lifecycle-confirm', ['id' => 'reactivate', 'password' => false, 'noGuests' => true])
+                        <button type="submit" class="ad-btn" style="margin-top: 10px;">Reactivate{{ $org->suspended_from_status ? ' (back to '.(\App\Support\Platform\PlatformCustomers::STATUSES[$org->suspended_from_status] ?? $org->suspended_from_status).')' : '' }}</button>
+                    </form>
+
+                    <form method="POST" action="{{ route('admin.customers.archive', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <label class="ad-label" for="archive_reason">Archive — reason</label>
+                        <input id="archive_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation being archived?">
+                        @include('admin.customers.partials.lifecycle-confirm', ['id' => 'archive', 'password' => true])
+                        <button type="submit" class="ad-btn ad-btn--danger" style="margin-top: 10px;">Archive</button>
+                        <p class="ad-reason-hint" style="margin: 6px 0 0;">Hidden from the directory, every record kept, reversible. There is no permanent delete.</p>
+                    </form>
+                @endif
+
+                @if ($archived)
+                    <form method="POST" action="{{ route('admin.customers.restore', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <label class="ad-label" for="restore_reason">Restore from the archive — reason</label>
+                        <input id="restore_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation coming back?">
+                        @include('admin.customers.partials.lifecycle-confirm', ['id' => 'restore', 'password' => false, 'noGuests' => true])
+                        <button type="submit" class="ad-btn" style="margin-top: 10px;">Restore (stays suspended)</button>
+                    </form>
+                @endif
             </div>
         @endif
     </div>
@@ -62,9 +107,10 @@
         <div class="ad-card">
             <h2 class="ad-panel-title">Account</h2>
             <dl class="ad-dl">
-                <dt>Organization</dt><dd>{{ $org->name }}</dd>
+                <dt>Organisation</dt><dd>{{ $org->name }}</dd>
                 <dt>Slug</dt><dd>{{ $org->slug }}</dd>
-                <dt>Status</dt><dd>{{ $org->status === 'suspended' ? 'Storefront closed (suspended)' : ucfirst($org->status) }}</dd>
+                <dt>Status</dt><dd>{{ $statusLabel }}</dd>
+                <dt>Signed up with</dt><dd>{{ $d['source'] }}</dd>
                 <dt>Counted as</dt><dd>{{ $org->isInternal() ? 'Internal — excluded from statistics' : 'Customer' }}</dd>
                 <dt>Currency</dt><dd>{{ $org->default_currency }}</dd>
                 @if ($org->billing_company)
@@ -73,16 +119,16 @@
                 @if ($org->billing_email)
                     <dt>Billing email</dt><dd>{{ $org->billing_email }}</dd>
                 @endif
-                <dt>Joined</dt><dd>{{ $org->created_at?->format('j M Y') ?? '—' }}</dd>
+                <dt>Created</dt><dd>{{ $org->created_at?->format('j M Y') ?? '—' }}</dd>
             </dl>
 
-            @if ($canTenants)
+            @if ($canTenants && $lock !== 'baseline')
                 <h2 class="ad-panel-title" style="margin-top: 22px;">Internal or customer</h2>
                 <form method="POST" action="{{ route('admin.customers.internal', $org->id) }}" data-guard-submit>
                     @csrf
                     <input type="hidden" name="internal" value="{{ $org->isInternal() ? '0' : '1' }}">
                     <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500"
-                           placeholder="{{ $org->isInternal() ? 'Why is this a real customer?' : 'Why is this one of Vyrobel\'s own orgs?' }}" aria-label="Reason">
+                           placeholder="{{ $org->isInternal() ? 'Why is this a real customer?' : 'Why is this one of Vyrobel\'s own orgs?' }}">
                     <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $org->isInternal() ? 'Count as a customer' : 'Mark as internal' }}</button>
                 </form>
             @endif
@@ -104,9 +150,9 @@
 
             <h2 class="ad-panel-title" style="margin-top: 22px;">Footprint</h2>
             <div class="ad-row"><span class="ad-row-k">Properties</span><span class="ad-row-v">{{ number_format($d['properties']) }}</span></div>
-            <div class="ad-row"><span class="ad-row-k">Staff members</span><span class="ad-row-v">{{ number_format($d['members']) }}</span></div>
+            <div class="ad-row"><span class="ad-row-k">Active users</span><span class="ad-row-v">{{ number_format($d['members']) }}</span></div>
 
-            @if ($canBilling)
+            @if ($canBilling && $lock !== 'baseline')
                 <h2 class="ad-panel-title" style="margin-top: 22px;">Assign a plan</h2>
                 <form method="POST" action="{{ route('admin.customers.assign-plan', $org->id) }}" data-guard-submit>
                     @csrf
@@ -125,16 +171,62 @@
         </div>
     </div>
 
-    {{-- Recent activity for this customer — business/audit events (#28: not guest PII), via the audited read. --}}
-    <div class="ad-card" style="margin-top: 18px;">
-        <h2 class="ad-panel-title">Recent activity</h2>
-        @forelse ($recentActivity as $event)
-            <div class="ad-row">
-                <span class="ad-row-k" style="font-weight: 600; color: var(--ad-ink);">{{ $event['action'] }}</span>
-                <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400;">{{ ucfirst($event['actor_type']) }} · {{ $event['created_at']?->diffForHumans() ?? '—' }}</span>
-            </div>
-        @empty
-            <div class="ad-empty">No recorded activity for this customer yet.</div>
-        @endforelse
+    {{-- ── Account holders — Vyrobel users who sign in to this organisation. Not guests. ─────────────────────── --}}
+    <div class="ad-card" style="margin-top: 18px; overflow-x: auto;">
+        <h2 class="ad-panel-title">Users</h2>
+        <p class="ad-stat-sub" style="margin: -8px 0 12px;">Vyrobel account holders — this organisation's staff and owners. Never its guests.</p>
+        @if ($d['users'] === [])
+            <div class="ad-empty">No users.</div>
+        @else
+            <table class="ad-table">
+                <thead><tr><th>Name</th><th>Role</th><th>Email verified</th><th>Last sign-in</th><th>Membership</th></tr></thead>
+                <tbody>
+                    @foreach ($d['users'] as $u)
+                        <tr>
+                            <td><strong>{{ $u['name'] }}</strong><div style="font-size: 12px; color: var(--ad-faint);">{{ $u['email'] }}</div></td>
+                            <td>{{ $u['roles'] === [] ? '—' : implode(', ', $u['roles']) }}</td>
+                            <td>{{ $u['verified'] ? 'Yes' : 'No' }}</td>
+                            <td style="color: var(--ad-muted);">{{ $u['last_login_at']?->diffForHumans() ?? 'Never' }}</td>
+                            <td>{{ ucfirst($u['status']) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
+    <div class="ad-grid-2" style="margin-top: 18px;">
+        {{-- What the CONSOLE has done to this organisation — the append-only ledger, with each reason. --}}
+        <div class="ad-card">
+            <h2 class="ad-panel-title">Console actions</h2>
+            @forelse ($d['console_actions'] as $action)
+                <div class="ad-row" style="align-items: flex-start;">
+                    <span class="ad-row-k" style="color: var(--ad-ink);">
+                        <strong>{{ $action->action }}</strong>
+                        @if ($action->reason)
+                            <div style="font-size: 12px; color: var(--ad-muted); font-weight: 400;">“{{ $action->reason }}”</div>
+                        @endif
+                    </span>
+                    <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400; text-align: right;">
+                        {{ $action->platformAdmin?->name ?? 'CLI' }}<br>{{ $action->created_at?->diffForHumans() ?? '—' }}
+                    </span>
+                </div>
+            @empty
+                <div class="ad-empty">The console has not acted on this organisation.</div>
+            @endforelse
+        </div>
+
+        {{-- Recent activity inside the tenant — business/audit events (#28: not guest PII), via the audited read. --}}
+        <div class="ad-card">
+            <h2 class="ad-panel-title">Recent activity</h2>
+            @forelse ($recentActivity as $event)
+                <div class="ad-row">
+                    <span class="ad-row-k" style="font-weight: 600; color: var(--ad-ink);">{{ $event['action'] }}</span>
+                    <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400;">{{ ucfirst($event['actor_type']) }} · {{ $event['created_at']?->diffForHumans() ?? '—' }}</span>
+                </div>
+            @empty
+                <div class="ad-empty">No recorded activity for this organisation yet.</div>
+            @endforelse
+        </div>
     </div>
 </x-admin.shell>

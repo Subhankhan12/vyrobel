@@ -12,6 +12,7 @@ use App\Models\Property;
 use App\Models\Scopes\OrganizationScope;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -67,17 +68,23 @@ final class TenantProvisioningService
      * @param  array{name: string, email: string, password: ?string}  $founder
      * @param  array{provider: string, provider_user_id: string, email?: string}|null  $identity
      * @param  array{name: string, type: string, location?: ?string, timezone?: ?string}  $property
+     * @param  ?string  $signupSource  ADMIN 01 · PHASE 2 — how this organisation came to exist (`email` · `google` ·
+     *                                 `twitter`), recorded by the public signup ONLY. Every other caller (the demo
+     *                                 seeders) passes nothing and the column stays NULL, which the console shows as
+     *                                 "Unknown" — never a guess. An unrecognised value is refused as NULL too.
      * @return array{organization: Organization, user: User, property: Property}
      */
-    public function provision(array $organization, array $founder, array $property, ?array $identity = null): array
+    public function provision(array $organization, array $founder, array $property, ?array $identity = null, ?string $signupSource = null): array
     {
-        return DB::transaction(function () use ($organization, $founder, $property, $identity): array {
+        return DB::transaction(function () use ($organization, $founder, $property, $identity, $signupSource): array {
             $currency = strtoupper((string) ($organization['currency'] ?? 'EUR'));
 
             // ① PRE-TENANT — create the org with no tenant/permission context (chicken-and-egg escape).
             $org = $this->tenant->runAsSuperAdmin(fn (): Organization => Organization::create([
                 'name' => $organization['name'],
-                'slug' => $this->uniqueSlug(Organization::query(), Str::slug($organization['name']) ?: 'org'),
+                // ⚠️ withTrashed — the `slug` UNIQUE index covers archived organisations too. Checking only the
+                //    live ones handed a new signup an archived org's slug and the insert died on the index (500).
+                'slug' => $this->uniqueSlug(Organization::withTrashed(), Str::slug($organization['name']) ?: 'org'),
                 'mode' => 'single_property',
                 'default_currency' => $currency,
                 'default_locale' => 'en',
@@ -85,6 +92,11 @@ final class TenantProvisioningService
                 'status' => 'active',
                 'billing_email' => $founder['email'],
             ]));
+
+            // ⚠️ forceFill: `signup_source` is deliberately NOT fillable — platform metadata, written here once.
+            if (array_key_exists((string) $signupSource, TenantLifecycle::SIGNUP_SOURCES)) {
+                $this->tenant->runAsSuperAdmin(fn () => $org->forceFill(['signup_source' => $signupSource])->save());
+            }
 
             // ② RBAC DEFECT #1 FIX — provision the org's role catalog (first real app caller of the provisioner).
             $this->provisioner->provision($org);

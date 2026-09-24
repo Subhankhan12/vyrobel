@@ -82,11 +82,14 @@ class ResolvePublicProperty
         }
 
         // ⚠️⚠️ R-SUSPEND — the organisation, not just the property. See the class docblock.
-        $organizationStatus = $tenant->runAsSuperAdmin(
-            fn (): ?string => Organization::query()->whereKey($property->organization_id)->value('status'),
+        // ⚠️ ADMIN 01 · PHASE 2 — withTrashed, and an ARCHIVED organisation is closed. Without it the lookup
+        //    skipped the soft-deleted row, read the status as NULL — "not closed" — and reopened the shop of a
+        //    hotel Vyrobel had archived. An organisation that cannot be read does not sell rooms either.
+        $organization = $tenant->runAsSuperAdmin(
+            fn (): ?Organization => Organization::withTrashed()->whereKey($property->organization_id)->first(['id', 'status', 'deleted_at']),
         );
 
-        if (in_array($organizationStatus, self::CLOSED_FOR_BOOKING, true)) {
+        if ($organization === null || $organization->trashed() || in_array($organization->status, self::CLOSED_FOR_BOOKING, true)) {
             // ⚠️ RETURNED, NOT `abort()`ed. `abort($response)` is re-rendered by the exception handler as
             //    the GENERIC 404 — 🔬 measured: the closed-sign copy was replaced by "We couldn't find that",
             //    which is precisely the "looks broken / hotel has vanished" outcome this page exists to avoid.

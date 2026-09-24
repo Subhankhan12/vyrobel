@@ -64,7 +64,8 @@ else verdict FAIL "/signup renders the form (sign-ups ON)" "HTTP $st$(grep -q 'N
 # 4 · anonymous /admin: GETs redirect to the admin login; the login + the invite page are public by design
 ADMIN_GET=(/admin /admin/overview /admin/customers /admin/customers/01ANONYMOUSPROBE0000000000 /admin/plans /admin/plans/create
            /admin/plans/01ANONYMOUSPROBE0000000000/edit /admin/activity /admin/audit /admin/switches /admin/account
-           /admin/admins /admin/integrations /admin/integrations/channex /admin/two-factor/setup /admin/two-factor)
+           /admin/admins /admin/integrations /admin/integrations/channex /admin/two-factor/setup /admin/two-factor
+           /admin/triage)
 bad=""; n=0
 for pth in "${ADMIN_GET[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch GET "$pth")"; n=$((n+1))
@@ -80,7 +81,8 @@ RANDTOK="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64)"
 IFS='|' read -r st loc body <<<"$(fetch GET /admin/invite/$RANDTOK)"
 { [ "$st" = 200 ] && grep -q "can't be used\|can&#039;t be used" "$body"; } && verdict PASS "an unknown invite link gets the neutral page" "" || verdict FAIL "an unknown invite link gets the neutral page" "HTTP $st"
 
-ADMIN_POST=(/admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/switches/signup.enabled /admin/admins /admin/plans)
+ADMIN_POST=(/admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/customers/01ANONYMOUSPROBE0000000000/archive
+            /admin/customers/01ANONYMOUSPROBE0000000000/restore /admin/switches/signup.enabled /admin/admins /admin/plans)
 bad=""
 for pth in "${ADMIN_POST[@]}"; do
     IFS='|' read -r st loc body <<<"$(fetch POST "$pth")"

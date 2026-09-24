@@ -2,6 +2,7 @@
 
 // Run on the host, from inside a release:   php mark-internal.php initial <prefix,prefix,...> "<reason>"
 //                                          php mark-internal.php by-name "<exact org name>" "<reason>"
+//                                          php mark-internal.php protect "<exact org name>" "<reason>"
 //
 // ⚠️ IDENTIFIERS ARE READ, NEVER TYPED. `initial` refuses unless the organisations that exist are EXACTLY the set
 //    measured in Phase 0 (by id prefix, read from the survey) — any extra org, e.g. a real customer who signed up
@@ -24,6 +25,28 @@ $app->make(Kernel::class)->bootstrap();
 if (trim($reason) === '') {
     fwrite(STDERR, "  ✗ a reason is required\n");
     exit(2);
+}
+
+// ADMIN 01 · PHASE 2 — `protect "<exact name>" "<reason>"`: lock ONE organisation `confirm`, so every lifecycle
+// action on it needs its exact name typed. For `Vyrobel Internal`, which holds the founder's own role accounts.
+if ($mode === 'protect') {
+    $hits = Organization::query()->withTrashed()->where('name', $arg)->get();
+    if ($hits->count() !== 1) {
+        fwrite(STDERR, "  ✗ REFUSED: {$hits->count()} organisations are named [{$arg}] — expected exactly one; nothing written\n");
+        exit(1);
+    }
+    $org = $hits->first();
+    $was = $org->lifecycle_lock;
+    if ($was === null) {
+        $org->forceFill(['lifecycle_lock' => 'confirm'])->save();
+        app(PlatformAuditLogger::class)->record('platform.customer.lock_confirm', ['via' => 'cli'], 'organization', (string) $org->id, reason: $reason);
+    } elseif ($was !== 'confirm') {
+        fwrite(STDERR, "  ✗ REFUSED: it is already locked [{$was}] — not weakening or changing an existing lock; nothing written\n");
+        exit(1);
+    }
+    $fresh = DB::table('organizations')->where('id', $org->id)->value('lifecycle_lock');
+    printf("  %s…  %-46s lifecycle_lock: %s → %s\n", substr((string) $org->id, 0, 8), mb_strimwidth((string) $org->name, 0, 46, '…'), $was ?? 'none', $fresh ?? 'NONE (!!)');
+    exit($fresh === 'confirm' ? 0 : 1);
 }
 
 $orgs = match ($mode) {
@@ -49,7 +72,7 @@ $orgs = match ($mode) {
         return $hits;
     })(),
     default => (function () {
-        fwrite(STDERR, "  ✗ mode must be initial|by-name\n");
+        fwrite(STDERR, "  ✗ mode must be initial|by-name|protect\n");
         exit(2);
     })(),
 };

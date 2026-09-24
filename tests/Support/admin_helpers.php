@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PlatformAdmin;
+use Illuminate\Support\ViewErrorBag;
 
 // Shared SUPER ADMIN test helpers (Build 1). In a Support file (required from Pest.php, guarded with
 // function_exists) so every admin feature test reuses one definition without cross-file load-order coupling —
@@ -17,5 +18,25 @@ if (! function_exists('platformAdmin')) {
     function platformAdmin(array $attributes = []): PlatformAdmin
     {
         return PlatformAdmin::factory()->withTwoFactor()->create($attributes);
+    }
+}
+
+if (! function_exists('sessionErrorKeys')) {
+    /**
+     * The validation-error KEYS in the session, whatever shape they are stored in. ⚠️ This app's session serialises the
+     * error bag to a plain array ({"default": {"messages": {...}}}), which is also why Laravel's own failure message
+     * crashes with "Call to a member function all() on array" when an error assertion fails.
+     *
+     * @return list<string>
+     */
+    function sessionErrorKeys(): array
+    {
+        $errors = session('errors');
+
+        if ($errors instanceof ViewErrorBag) {
+            return $errors->getBag('default')->keys();
+        }
+
+        return is_array($errors) ? array_keys((array) ($errors['default']['messages'] ?? [])) : [];
     }
 }

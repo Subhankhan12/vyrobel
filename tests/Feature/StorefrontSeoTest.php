@@ -384,6 +384,24 @@ it('⚠️⚠️ never lists a property whose ORGANISATION is closed for booking
     expect($this->get('/sitemap-storefront.xml')->getContent())->not->toContain($url);
 })->with(['suspended', 'cancelled'])->group('storefront-seo');
 
+/**
+ * ⚠️ ADMIN 01 · PHASE 2 — an ARCHIVED organisation (soft-deleted) leaves the sitemap too. The closed-organisation
+ * lookup skipped trashed rows, so an archived organisation's id was never excluded and its properties stayed
+ * advertised. Trashed with its status still `active` — the worst case — and the control first, as above.
+ */
+it('⚠️ never lists a property whose organisation is ARCHIVED', function () {
+    $t = seoSellableTenant('orgarchived');
+    $url = route('booking.browse', ['property' => (string) $t['property']->slug]);
+
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    expect($this->get('/sitemap-storefront.xml')->getContent())->toContain($url);
+
+    Organization::query()->whereKey($t['org_id'])->update(['deleted_at' => now()]);
+
+    Cache::forget(StorefrontSitemapController::CACHE_KEY);
+    expect($this->get('/sitemap-storefront.xml')->getContent())->not->toContain($url);
+})->group('storefront-seo');
+
 it('⚠️ never lists a property whose page would 404 (status != active)', function () {
     $t = seoSellableTenant('inactive');
     $url = route('booking.browse', ['property' => (string) $t['property']->slug]);

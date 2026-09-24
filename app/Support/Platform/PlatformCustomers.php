@@ -7,38 +7,68 @@ namespace App\Support\Platform;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Models\Membership;
 use App\Models\Organization;
-use App\Models\Property;
+use App\Models\PlatformAdminAction;
 use App\Models\Subscription;
+use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
- * SUPER ADMIN · BUILD 1 · GATE 2 — REAL customer (organization) reads for the platform console.
+ * SUPER ADMIN · BUILD 1 · GATE 2 → ADMIN 01 · PHASE 2 — the TENANT DIRECTORY, its detail and its triage queue.
  *
- * ONLY builds queries; it does NOT open the bypass. The caller ({@see CustomerController})
- * runs these INSIDE {@see PlatformQuery::read()}, so they execute under the audited, admin-guard-gated,
- * scope-restored `runAsSuperAdmin` context.
+ * ONLY builds queries; it does NOT open the bypass. The caller ({@see CustomerController}) runs these INSIDE
+ * {@see PlatformQuery::read()} — read-only at the connection, both refusal scopes lifted, audited.
  *
- * 🔒 #28 — PLATFORM-OPERATOR-JUDICIOUS: this surfaces OPERATIONAL facts about a tenant business (name, status,
- * plan, property/staff COUNTS, billing company). It deliberately does NOT expose end-guests' personal/contact
- * PII — the platform operator is looking at a customer account, not surveilling that customer's guests.
+ * ⚠️⚠️ METADATA ONLY. Everything here is account and billing metadata about a Vyrobel CUSTOMER — name, plan, status,
+ * signup source, counts, the account holders' names and sign-in times. Never a guest, a stay, a folio or a payment:
+ * those belong to the hotel, and the console reaches them only through break-glass (Phase 3).
+ *
+ * ⚠️ ONE DEFINITION PER BUCKET. The triage page's counts and the directory's filtered lists use the same
+ * {@see applyBucket()}, so "3 unverified" on one screen cannot become 2 rows on the next.
  */
 class PlatformCustomers
 {
     /** Customers per page (audit fix P2-1 — the list is paginated so it scales past a handful of orgs). */
     public const PER_PAGE = 25;
 
+    /** The triage buckets — key => [label, definition shown on screen]. */
+    public const BUCKETS = [
+        'unverified' => [
+            'Unverified for 7+ days',
+            'Created more than 7 days ago, and none of its users has confirmed an email address.',
+        ],
+        'never_signed_in' => [
+            'Never signed in',
+            'None of its users has ever completed a sign-in. ⚠️ The sign-up session itself is not a sign-in, so this means "never came back after signing up".',
+        ],
+        'via_x' => [
+            'Created with X',
+            'Signed up through X. X does not prove an email address the way Google does — the accepted squatting risk. Surfaced for review, never acted on automatically.',
+        ],
+    ];
+
+    public const SORTS = ['name', 'created', 'last_login', 'properties', 'users'];
+
+    public const STATUSES = ['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'archived' => 'Archived'];
+
     /**
-     * The customer list — every org with its plan, status and key operational counts, PAGINATED (search/status
-     * carried into the page links). Each page's counts are computed for just that page's org ids (no N+1).
+     * The directory — every organisation, with its plan, status, signup source, verified flag, created date, last
+     * sign-in and counts. Searchable, filterable, sortable, paginated. ⚠️ Archived organisations are hidden unless
+     * the status filter asks for them.
      *
-     * Each page item is a row array: {id, name, slug, status, internal, plan, properties, members, created_at}.
+     * Each page item is a row array: {id, name, slug, status, archived, internal, plan, source, verified, properties,
+     * members, last_login_at, created_at}.
      *
-     * @param  array{search?: ?string, status?: ?string, kind?: ?string}  $filters
+     * @param  array{search?: ?string, status?: ?string, kind?: ?string, source?: ?string, verified?: ?string, bucket?: ?string, sort?: ?string, dir?: ?string}  $filters
      */
     public function list(array $filters = []): LengthAwarePaginator
     {
-        $query = Organization::query()->orderBy('name');
+        $query = Organization::query()->select('organizations.*');
+        $this->withFootprint($query);
 
         $search = trim((string) ($filters['search'] ?? ''));
         if ($search !== '') {
@@ -48,7 +78,9 @@ class PlatformCustomers
         }
 
         $status = (string) ($filters['status'] ?? '');
-        if (in_array($status, ['active', 'trialing', 'suspended', 'cancelled'], true)) {
+        if ($status === 'archived') {
+            $query->onlyTrashed();
+        } elseif (array_key_exists($status, self::STATUSES)) {
             $query->where('status', $status);
         }
 
@@ -60,30 +92,84 @@ class PlatformCustomers
             default => null,
         };
 
-        $paginator = $query->paginate(self::PER_PAGE, ['id', 'name', 'slug', 'status', 'is_internal', 'created_at'])->withQueryString();
+        $source = (string) ($filters['source'] ?? '');
+        if ($source === 'unknown') {
+            $query->whereNull('signup_source');
+        } elseif (array_key_exists($source, TenantLifecycle::SIGNUP_SOURCES)) {
+            $query->where('signup_source', $source);
+        }
 
-        $ids = collect($paginator->items())->pluck('id')->all();
-        $propertyCounts = $this->countByOrg(Property::query(), $ids);
-        $memberCounts = $this->countByOrg(Membership::query()->where('status', 'active'), $ids);
+        match ((string) ($filters['verified'] ?? '')) {
+            'yes' => $query->whereExists($this->verifiedMember()),
+            'no' => $query->whereNotExists($this->verifiedMember()),
+            default => null,
+        };
+
+        $bucket = (string) ($filters['bucket'] ?? '');
+        if (array_key_exists($bucket, self::BUCKETS)) {
+            $this->applyBucket($query, $bucket);
+        }
+
+        // Names read A→Z by default; every other column newest / largest first. `dir` flips either.
+        $dirParam = (string) ($filters['dir'] ?? '');
+        $desc = $dirParam === 'asc' ? 'asc' : 'desc';
+        match ((string) ($filters['sort'] ?? '')) {
+            'name' => $query->orderBy('name', $dirParam === 'desc' ? 'desc' : 'asc'),
+            'last_login' => $query->orderBy('last_login_at', $desc),
+            'properties' => $query->orderBy('properties_count', $desc),
+            'users' => $query->orderBy('users_count', $desc),
+            default => $query->orderBy('organizations.created_at', $desc),
+        };
+        $query->orderBy('organizations.id');
+
+        $paginator = $query->paginate(self::PER_PAGE)->withQueryString();
+
+        $ids = collect($paginator->items())->pluck('id')->map(fn ($id): string => (string) $id)->all();
         $plans = $this->currentPlanNames($ids);
 
-        return $paginator->through(fn (Organization $org) => [
+        return $paginator->through(fn (Organization $org): array => [
             'id' => (string) $org->id,
             'name' => (string) $org->name,
             'slug' => (string) $org->slug,
             'status' => (string) $org->status,
+            'archived' => $org->trashed(),
             'internal' => $org->isInternal(),
-            'plan' => $plans[$org->id] ?? null,
-            'properties' => (int) ($propertyCounts[$org->id] ?? 0),
-            'members' => (int) ($memberCounts[$org->id] ?? 0),
+            'plan' => $plans[(string) $org->id] ?? null,
+            'source' => TenantLifecycle::sourceLabel($org->signup_source),
+            'verified' => (int) $org->getAttribute('verified_users') > 0,
+            'properties' => (int) $org->getAttribute('properties_count'),
+            'members' => (int) $org->getAttribute('users_count'),
+            'last_login_at' => $this->asCarbon($org->getAttribute('last_login_at')),
             'created_at' => $org->created_at,
         ]);
     }
 
     /**
-     * One customer's detail — org facts + its subscription/plan + operational counts. Read-only.
+     * The triage counts — per bucket, customers only unless internal organisations are asked for. Archived
+     * organisations are never in a queue: they have already been dealt with.
      *
-     * @return array{org: Organization, subscription: ?Subscription, plan_name: ?string, billing_label: string, properties: int, members: int}
+     * @return array<string, array{label: string, definition: string, count: int}>
+     */
+    public function triage(bool $includeInternal = false): array
+    {
+        $out = [];
+        foreach (self::BUCKETS as $key => [$label, $definition]) {
+            $query = Organization::query();
+            if (! $includeInternal) {
+                $query->customers();
+            }
+            $this->applyBucket($query, $key);
+            $out[$key] = ['label' => $label, 'definition' => $definition, 'count' => $query->count()];
+        }
+
+        return $out;
+    }
+
+    /**
+     * One organisation's detail — account facts, its subscription, its account holders, the reservation COUNTS a
+     * suspension would reach, its lock, and the console's own actions against it. Read-only.
+     *
+     * @return array<string, mixed>
      */
     public function detail(Organization $org): array
     {
@@ -94,28 +180,107 @@ class PlatformCustomers
             'subscription' => $subscription,
             'plan_name' => $subscription?->plan?->name,
             'billing_label' => $org->billingStatus()->label(),
-            'properties' => Property::query()->where('organization_id', $org->id)->count(),
+            'properties' => (int) DB::table('properties')->where('organization_id', $org->id)->whereNull('deleted_at')->count(),
             'members' => Membership::query()->where('organization_id', $org->id)->where('status', 'active')->count(),
+            'users' => $this->accountHolders((string) $org->id),
+            'impact' => TenantLifecycle::reservationImpact((string) $org->id),
+            'lock' => TenantLifecycle::lockFor($org),
+            'source' => TenantLifecycle::sourceLabel($org->signup_source),
+            'console_actions' => PlatformAdminAction::query()
+                ->with('platformAdmin:id,name')
+                ->where('target_type', 'organization')
+                ->where('target_id', $org->id)
+                ->whereNotIn('action', ['platform.customers.view'])
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get(),
         ];
     }
 
     /**
-     * @param  Builder<covariant \Illuminate\Database\Eloquent\Model>  $query
-     * @param  list<string>  $ids
-     * @return array<string, int>
+     * ⚠️ THE ONE DEFINITION of each triage bucket — the counts and the filtered directory both call this.
+     *
+     * @param  Builder<Organization>  $query
      */
-    private function countByOrg($query, array $ids): array
+    public function applyBucket(Builder $query, string $bucket): void
     {
-        if ($ids === []) {
-            return [];
-        }
+        match ($bucket) {
+            'unverified' => $query
+                ->where('organizations.created_at', '<', CarbonImmutable::now()->subDays(7))
+                ->whereNotExists($this->verifiedMember()),
+            'never_signed_in' => $query->whereNotExists(
+                $this->activeMembers()->whereNotNull('users.last_login_at'),
+            ),
+            'via_x' => $query->where('signup_source', 'twitter'),
+            default => throw new \InvalidArgumentException("Unknown triage bucket [{$bucket}]."),
+        };
+    }
 
-        return $query->whereIn('organization_id', $ids)
-            ->selectRaw('organization_id, COUNT(*) as aggregate')
-            ->groupBy('organization_id')
-            ->pluck('aggregate', 'organization_id')
-            ->map(fn ($v): int => (int) $v)
-            ->all();
+    /**
+     * The organisation's Vyrobel ACCOUNT HOLDERS — staff and owners who sign in. Not guests.
+     *
+     * @return list<array{name: string, email: string, roles: list<string>, verified: bool, last_login_at: ?Carbon, status: string}>
+     */
+    private function accountHolders(string $organizationId): array
+    {
+        $members = DB::table('organization_user')
+            ->join('users', 'users.id', '=', 'organization_user.user_id')
+            ->where('organization_user.organization_id', $organizationId)
+            ->orderBy('users.name')
+            ->get(['users.id', 'users.name', 'users.email', 'users.email_verified_at', 'users.last_login_at', 'organization_user.status']);
+
+        $roles = DB::table('model_has_roles')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.organization_id', $organizationId)
+            ->where('model_has_roles.model_type', (new User)->getMorphClass())
+            ->whereIn('model_has_roles.model_id', $members->pluck('id')->all())
+            ->get(['model_has_roles.model_id', 'roles.name'])
+            ->groupBy('model_id');
+
+        return $members->map(fn (object $m): array => [
+            'name' => (string) $m->name,
+            'email' => (string) $m->email,
+            'roles' => collect($roles[$m->id] ?? [])->pluck('name')->map(fn ($r): string => (string) $r)->sort()->values()->all(),
+            'verified' => $m->email_verified_at !== null,
+            'last_login_at' => $this->asCarbon($m->last_login_at),
+            'status' => (string) $m->status,
+        ])->values()->all();
+    }
+
+    /**
+     * The per-organisation footprint as sub-selects, so the directory can SORT on them and still paginate.
+     *
+     * @param  Builder<Organization>  $query
+     */
+    private function withFootprint(Builder $query): void
+    {
+        $query
+            ->selectSub(DB::table('properties')->selectRaw('COUNT(*)')
+                ->whereColumn('properties.organization_id', 'organizations.id')->whereNull('properties.deleted_at'), 'properties_count')
+            ->selectSub(DB::table('organization_user')->selectRaw('COUNT(*)')
+                ->whereColumn('organization_user.organization_id', 'organizations.id')->where('organization_user.status', 'active'), 'users_count')
+            ->selectSub($this->activeMembers()->selectRaw('MAX(users.last_login_at)'), 'last_login_at')
+            ->selectSub($this->activeMembers()->selectRaw('COUNT(*)')->whereNotNull('users.email_verified_at'), 'verified_users');
+    }
+
+    /** The organisation's active members joined to their user row — correlated on `organizations.id`. */
+    private function activeMembers(): QueryBuilder
+    {
+        return DB::table('organization_user')
+            ->join('users', 'users.id', '=', 'organization_user.user_id')
+            ->whereColumn('organization_user.organization_id', 'organizations.id')
+            ->where('organization_user.status', 'active');
+    }
+
+    /** "Verified" = at least one active member has confirmed an email address. */
+    private function verifiedMember(): QueryBuilder
+    {
+        return $this->activeMembers()->selectRaw('1')->whereNotNull('users.email_verified_at');
+    }
+
+    private function asCarbon(mixed $value): ?Carbon
+    {
+        return $value === null ? null : Carbon::parse((string) $value);
     }
 
     /**

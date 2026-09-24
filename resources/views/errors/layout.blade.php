@@ -65,6 +65,12 @@
             background: {{ $isAdmin ? 'linear-gradient(140deg,#6366F1,#4338CA)' : 'linear-gradient(140deg,#E8703A,#C2410C)' }};
         }
         a.btn:focus-visible { outline: 3px solid rgba(232,112,58,.5); outline-offset: 2px; }
+        button.btn { border: 0; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; padding: 11px 22px;
+                     border-radius: 12px; color: #fff; background: {{ $isAdmin ? 'linear-gradient(140deg,#6366F1,#4338CA)' : 'linear-gradient(140deg,#E8703A,#C2410C)' }}; }
+        button.btn--ghost { background: transparent; color: inherit; border: 1px solid {{ $isAdmin ? 'rgba(255,255,255,.18)' : 'rgba(120, 70, 40, .22)' }}; }
+        button.btn:focus-visible { outline: 3px solid rgba(232,112,58,.5); outline-offset: 2px; }
+        .actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .actions form { margin: 0; }
         .foot { margin-top: 22px; font-size: 11.5px; color: {{ $isAdmin ? '#6B7285' : 'rgb(108, 100, 95)' }}; }
         @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
     </style>
@@ -76,7 +82,13 @@
         <p class="code">Error {{ $code }}</p>
         <h1>{{ $title }}</h1>
         <p>{{ $message }}</p>
-        <a class="btn" href="{{ $homeUrl }}">{{ $homeLabel }}</a>
+        {{-- ⚠️ ADMIN 01 · PHASE 2 — a page may replace the home link with its own actions. The suspended-workspace
+             page must: its "home" is the very page that refused, so the link would loop. --}}
+        @if (isset($actions))
+            @include($actions)
+        @else
+            <a class="btn" href="{{ $homeUrl }}">{{ $homeLabel }}</a>
+        @endif
         {{-- ⚠️ REALM-BRANCHED (A1). Renders on all six error views, so it read "contact your Vyrobel
              administrator" to guests and owners, who have none. Same derivation as the back-link above. --}}
         <p class="foot">{{ \App\Support\ErrorRealm::supportLine($realm) }}</p>

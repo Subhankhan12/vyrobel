@@ -12,6 +12,7 @@ use Closure;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 /**
  * THE ONE DOOR — the only place in the product where tenant isolation is deliberately lifted.
@@ -83,7 +84,16 @@ class PlatformQuery
 
         $this->audit->record($action, $meta, $targetType, $targetId, reason: $reason);
 
-        return $this->lifted($callback);
+        // ⚠️ ADMIN 01 · PHASE 2 — the ledger row above is written BEFORE the action runs, and it can never be
+        //    edited. So an action that throws gets a second row saying so: otherwise the ledger claims a
+        //    suspension, a plan change or an archive that never happened.
+        try {
+            return $this->lifted($callback);
+        } catch (Throwable $e) {
+            $this->audit->record($action.'.failed', ['exception' => $e::class], $targetType, $targetId, reason: $reason);
+
+            throw $e;
+        }
     }
 
     /**

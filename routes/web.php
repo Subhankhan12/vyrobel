@@ -146,6 +146,7 @@ use App\Http\Middleware\EnsurePlatformCapability;
 use App\Http\Middleware\EnsurePrimaryOwner;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\NoIndex;
+use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Http\Middleware\RequirePlatformAdminTwoFactorPending;
 use App\Http\Middleware\RequireTwoFactorPending;
 use App\Http\Middleware\ResolvePublicOrganization;
@@ -744,7 +745,9 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('throttle:6,1')->name('verification.send');
 });
 
-Route::middleware(['auth', 'verified', EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
+// ⚠️ ADMIN 01 · PHASE 2 — RefuseSuspendedOrganization: a suspended or archived organisation's staff are refused here,
+//    with a plain explanation. It sits before every other gate so no /app route — billing included — is reachable.
+Route::middleware(['auth', 'verified', RefuseSuspendedOrganization::class, EnsureBackOfficeAccess::class, EnforceIpAllowlist::class, SetCurrentPropertyForWebRequest::class, EnsureSubscriptionActive::class])->prefix('app')->name('app.')->group(function () {
     // Design pass · Operator Screen 5 — operator dashboard (new tenant-scoped overview page).
     Route::get('/dashboard', OperatorDashboard::class)->name('dashboard');
     // D1-1 — tick/un-tick one of the dashboard's DERIVED task rows. ⚠️ A PERSONAL note, not a completion:
@@ -1408,7 +1411,8 @@ Route::middleware(['auth', 'verified', EnsureBackOfficeAccess::class, EnforceIpA
 // ⚠️ THE TWO ROUTES THAT MUST SERVE NON-OWNERS ARE EXEMPT BY CONSTRUCTION, not by an exclusion list: both
 // `owner.team.invite.accept` (a pending invitee is not yet owner-linked) and `owner.account.email.verify`
 // (a signed link opened from a new inbox, possibly with no session) are registered OUTSIDE this group.
-Route::middleware(['auth', EnsureOwnerPortalAccess::class, SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
+// ⚠️ ADMIN 01 · PHASE 2 — and a suspended or archived organisation's OWNERS are refused here, the same way.
+Route::middleware(['auth', RefuseSuspendedOrganization::class, EnsureOwnerPortalAccess::class, SetOwnerScopeForPortal::class])->prefix('owner')->name('owner.')->group(function () {
     // Phase 7c · SG2 — owner-team capability gates ({@see EnsureOwnerCapability}). Named locals keep the
     // per-route middleware legible; the primary owner acts as co_owner (all capabilities), so every existing
     // owner flow is unaffected — these only restrict invited sub-users to their role's grid.
@@ -1787,6 +1791,7 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::get('overview', [AdminOverviewController::class, 'index'])->name('overview');
                 Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
                 Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
+                Route::get('triage', [AdminCustomerController::class, 'triage'])->name('customers.triage');
                 Route::get('plans', [AdminPlanController::class, 'index'])->name('plans.index');
                 Route::get('activity', [AdminActivityController::class, 'index'])->name('activity.index');
                 Route::get('audit', [AdminAuditController::class, 'index'])->name('audit.index');
@@ -1803,10 +1808,12 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
 
             // ── Tenant lifecycle (Owner, Support). Every write via PlatformQuery::mutate, with a reason.
             Route::middleware([$can(PlatformAdminRole::TENANTS_MANAGE), 'throttle:20,1'])->group(function () {
-                // ⚠️ Named "suspend" for continuity; it CLOSES THE PUBLIC STOREFRONT and says so (Phase 2 makes it a
-                //    real suspension of /app).
+                // ⚠️ ADMIN 01 · PHASE 2 — a REAL suspension: staff and owners refused, storefront closed, no money
+                //    touched. Archive is a soft delete of a suspended org; there is no hard-delete route, by ruling.
                 Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->name('customers.suspend');
                 Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->name('customers.reactivate');
+                Route::post('customers/{organization}/archive', [AdminCustomerController::class, 'archive'])->name('customers.archive');
+                Route::post('customers/{organization}/restore', [AdminCustomerController::class, 'restore'])->name('customers.restore');
                 Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
             });
 

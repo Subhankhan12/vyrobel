@@ -27,6 +27,7 @@
         ['health', 'Health', route('admin.dashboard'), true, 'M3 12h4l3-8 4 16 3-8h4', 'console.view'],
         ['overview', 'Overview', route('admin.overview'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', 'console.view'],
         ['customers', 'Customers', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
+        ['triage', 'Triage', route('admin.customers.triage'), true, 'M4 5h16l-6 8v5l-4 2v-7z', 'console.view'],
         ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
         ['switches', 'Kill switches', route('admin.switches.index'), true, 'M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7zM16 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'console.view'],
         ['audit', 'Audit log', route('admin.audit.index'), true, 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01', 'console.view'],
@@ -209,6 +210,10 @@
         .ad-table tbody tr:hover { background: rgba(255, 255, 255, 0.45); }
         .ad-table a.ad-cell-link { color: var(--ad-ink); font-weight: 600; text-decoration: none; }
         .ad-table a.ad-cell-link:hover { color: var(--ad-accent-text); }
+        .ad-table a.ad-sort { color: inherit; text-decoration: none; white-space: nowrap; }
+        .ad-table a.ad-sort:hover { color: var(--ad-accent-text); }
+        .ad-bucket { display: grid; grid-template-columns: 1fr auto; gap: 6px 18px; align-items: baseline; }
+        .ad-bucket-count { font-size: 28px; font-weight: 700; letter-spacing: -.02em; color: var(--ad-ink); }
         .ad-table .ad-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--ad-muted); }
         /* Filters bar */
         .ad-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\GuestUserProvider;
 use App\Contracts\Auth\SocialIdentityProvider;
 use App\Events\DomainEventRecorded;
+use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Listeners\AdjustOwnerLedgerOnRefund;
 use App\Listeners\AuditOAuthTokenGranted;
@@ -332,6 +333,10 @@ class AppServiceProvider extends ServiceProvider
          */
         Livewire::addPersistentMiddleware([
             SetOwnerScopeForPortal::class,
+            // ⚠️ ADMIN 01 · PHASE 2 — a page opened BEFORE its organisation was suspended must not keep working
+            //    through component updates afterwards. Re-applied only for components whose original route
+            //    carried it — /app and /owner — so no other realm is touched.
+            RefuseSuspendedOrganization::class,
         ]);
 
         /*

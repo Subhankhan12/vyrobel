@@ -108,6 +108,8 @@ class OnboardingController extends Controller
             // ⚠️ Written INSIDE the provisioning transaction, so an organisation can never exist with a
             //    passwordless founder and no way for them to sign in.
             identity: $social,
+            // ADMIN 01 · PHASE 2 — recorded from here on; organisations created before this read "Unknown".
+            signupSource: $social !== null ? (string) $social['provider'] : 'email',
         );
 
         // Consumed: the stash is single-use, so a back-button resubmit cannot provision a second org.

@@ -68,6 +68,7 @@ use App\Services\TaxRateService;
 use App\Support\Demo\DemoDataSafetyGuard;
 use App\Support\Media\PlaceholderImage;
 use App\Support\Money\Money;
+use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
@@ -277,7 +278,9 @@ class DemoSeeder extends Seeder
 
         // ⚠️ ADMIN 01 · Phase 1 — a DEMO organisation is Vyrobel's own, never a customer: excluded from every
         //    platform statistic. Set here, where it is created, so a fresh seed can never count it.
-        $org->forceFill(['is_internal' => true])->save();
+        // ⚠️ ADMIN 01 · Phase 2 — and it is the PINNED BASELINE: every console write against it is refused
+        //    (TenantLifecycle::LOCK_BASELINE), and the refusal is audited. The lock travels with the seed.
+        $org->forceFill(['is_internal' => true, 'lifecycle_lock' => TenantLifecycle::LOCK_BASELINE])->save();
 
         $tenant->forOrganization($org->id, fn () => $this->buildDemo($org));
     }

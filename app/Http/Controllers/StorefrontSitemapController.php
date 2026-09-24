@@ -91,8 +91,10 @@ class StorefrontSitemapController extends Controller
                 //    on all four states. ⚠️ It inherits the set from the ONE definition on the middleware —
                 //    this file states no policy of its own, which is why the second ruling needed no edit here
                 //    beyond `where` → `whereIn`.
-                ->whereNotIn('organization_id', Organization::query()
-                    ->whereIn('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)
+                // ⚠️ ADMIN 01 · PHASE 2 — withTrashed: an ARCHIVED organisation's properties leave the sitemap too.
+                //    The default query skipped the soft-deleted row, so its id was never excluded.
+                ->whereNotIn('organization_id', Organization::withTrashed()
+                    ->where(fn ($q) => $q->whereIn('status', ResolvePublicProperty::CLOSED_FOR_BOOKING)->orWhereNotNull('deleted_at'))
                     ->pluck('id'))
                 ->orderBy('slug')
                 ->get();

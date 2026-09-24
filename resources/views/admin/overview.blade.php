@@ -86,7 +86,7 @@
 
             <div class="ad-card">
                 <h2 class="ad-panel-title">By status</h2>
-                @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Storefront closed', 'cancelled' => 'Cancelled'] as $key => $label)
+                @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled'] as $key => $label)
                     <div class="ad-row">
                         <span class="ad-row-k"><span class="ad-pill ad-pill--{{ $key }}">{{ $label }}</span></span>
                         <span class="ad-row-v">{{ number_format($m['by_status'][$key]) }}</span>

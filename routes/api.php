@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\OwnerApiController;
 use App\Http\Middleware\EnsureOwnerApiScope;
+use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Http\Middleware\ResolveApiOwnerContext;
 use Illuminate\Support\Facades\Route;
 
@@ -22,7 +23,9 @@ use Illuminate\Support\Facades\Route;
 |
 | READ-ONLY, least-privilege. Guest data is NAME-only (#28); no arrival secrets (#33).
 */
-Route::middleware(['auth:api', ResolveApiOwnerContext::class])->prefix('owner')->name('api.owner.')->group(function () {
+// ⚠️ ADMIN 01 · PHASE 2 — a token whose organisation is suspended or archived is refused (403), after the owner
+//    context resolves the organisation it belongs to.
+Route::middleware(['auth:api', ResolveApiOwnerContext::class, RefuseSuspendedOrganization::class])->prefix('owner')->name('api.owner.')->group(function () {
     Route::get('/bookings', [OwnerApiController::class, 'bookings'])
         ->middleware(EnsureOwnerApiScope::class.':read:bookings')->name('bookings');
 

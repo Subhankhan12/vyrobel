@@ -17427,3 +17427,62 @@ is still TRUE (control: a random string → false), so **break-glass will ship d
 `mark-internal.php` died at boot because Pint turned an FQCN into a `use` import placed BELOW its first use, and PHP
 resolves a name only against imports above it (`Kernel::class` became the string `"Kernel"`; nothing was written —
 read back); `probe-signup.sh` exited 141 on `tr </dev/urandom | head` under `pipefail` before sending anything.
+
+---
+
+## 2026-09-24 — ADMIN 01 · PHASE 2 — tenants: directory · triage · a REAL suspension · archive · protected tenants
+
+**Scope, as briefed** (ADMIN 01 §Phase 2 + the addendum's #1/#5/#7 + ADMIN 02's loop). ⚠️ `is_internal` was built in
+Phase 1 (the €297 needed it); Phase 2 carries ONE additive migration — three nullable `organizations` columns:
+`signup_source`, `lifecycle_lock`, `suspended_from_status`.
+
+**SUSPEND IS NOW REAL.** 🔬 Until today `status = suspended` closed the storefront and nothing else (Phase 1 relabelled
+the button until this landed). Now `RefuseSuspendedOrganization` refuses the organisation's STAFF (`/app`, every route,
+billing included), its OWNERS (`/owner`), owner API tokens (JSON 403) and — registered as a Livewire PERSISTENT
+middleware — the next component update from a page opened before the suspension. A plain explanation page (the ONE
+branded error layout, given an optional actions slot): sign out, contact Vyrobel, or switch to another organisation
+the person also belongs to (the switcher is the one route let through). The rule is ONE definition,
+`TenantLifecycle::refusesAccess()`: suspended, archived, or unreadable (fails closed).
+⚠️⚠️ **It touches no money** — proven by a test that snapshots reservations, reservation_units, folios, folio_items,
+payments, owner_ledger and availability for the org and requires them identical after. Guests keep their own pages
+(no `guest/`, `book/`, webhook or `/admin` route carries the gate — asserted structurally).
+**The reservation warning**: the detail page counts in-house and upcoming stays (COUNTS, never rows), and a
+suspension or archive of a hotel with any is refused until the admin ticks that they have seen them — server-side.
+**Reactivate** restores the status it had before (`suspended_from_status`), so a trialing hotel stays trialing.
+
+**ARCHIVE** = soft delete, only of a suspended organisation, reversible (restore → still suspended, on purpose).
+⚠️⚠️ **Three defects archive would have introduced, found by audit before it existed:** (1) `TenantProvisioningService`
+checked slug uniqueness against LIVE organisations only while the `slug` UNIQUE index covers archived ones — the
+next signup with an archived org's name would 500 (mutation-proved: SQLSTATE 1062); (2) `ResolvePublicProperty` read
+the org's status without trashed rows, got NULL, read that as "not closed" and would have REOPENED an archived
+hotel's storefront; (3) the storefront sitemap would have kept advertising it. All three now read `withTrashed`.
+⚠️ Stated, not changed: `SendPreArrivalEmails` / `SendPaymentReminders` iterate `Organization::all()`, so an archived
+organisation's guests get neither email — consistent with archive, and moot while mail is `log`.
+No hard delete, no prune — a structural test refuses a destroy/force/purge/prune route name and any `forceDelete`
+token in the console's code.
+
+**PROTECTED ORGANISATIONS** (`lifecycle_lock`): `baseline` refuses EVERY console write (suspend · reactivate ·
+archive · restore · internal · assign-plan), and each refusal is written to the ledger as `platform.customer.refused`
+so it can be SEEN — `DemoSeeder` sets it on tenant one, and the `security.baseline_tenant_guard` organisation is
+locked even with no column set. `confirm` needs the organisation's EXACT name typed — for production's `Vyrobel
+Internal`, set by `ops/host/mark-internal.php protect` (by name, read back, refuses to change an existing lock).
+
+**DIRECTORY / DETAIL / TRIAGE.** Directory: name · status · plan · signed up with · verified · created · last sign-in ·
+properties · users · internal; search, five filters, sortable, paginated; archived hidden unless asked. Detail adds
+the account holders (name, email, role, verified, last sign-in — Vyrobel users, never guests), the lock, and the
+console's own actions against the org with their reasons. Triage: three counted buckets with their definitions on
+screen — unverified 7+ days · never signed in · created with X (surfaced, never acted on) — customers only unless
+asked; ONE predicate (`applyBucket`) feeds both the counts and the directory's filtered list.
+⚠️ **Definitions stated, because they are choices:** "verified" = at least one active member confirmed an email;
+"last sign-in" = the latest COMPLETED sign-in — 🔬 the signup session does not stamp `last_login_at`, so "never
+signed in" means "never came back after signing up"; "upcoming" = not terminal, not checked in, stay not yet ended
+(UTC date).
+**SIGNUP SOURCE** is recorded from the public signup only (`email` / `google` / `twitter`); an unknown value is
+refused as NULL; no backfill — historical rows read "Unknown", never "email".
+
+**THE LEDGER** — `PlatformQuery::mutate()` writes its row BEFORE the action runs and the row can never be edited, so
+an action that throws now gets a second `<action>.failed` row; the ledger no longer claims what did not happen.
+
+**PROOF.** 24 mutations, 24 caught — each by the test aimed at it, named in the run; every file restored
+byte-identical. Pint clean · PHPStan L5 0 · the full suite green on this run (3852/3852, 2026-09-24 — a dated figure, not a pin) ·
+money gate FULL: six figures and the four row digests identical to Phase 1's.
