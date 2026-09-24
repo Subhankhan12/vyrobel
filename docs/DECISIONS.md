@@ -17620,3 +17620,14 @@ that was not checked in) · one was an EQUIVALENT mutation (the page keys on `li
 one that forces `live`) · one was a BROKEN MUTATION of mine (it renamed a path and left the capability alone).
 Pint clean · PHPStan L5 0 · full suite
 3890/3890 on this run (2026-09-24 — dated, not a pin) · money gate FULL: six figures + four digests unchanged.
+
+**DEPLOYED 2026-09-24 — `rel_Q @ 7b8a16d0`** (L12k; one additive migration — the new `privacy_requests` table — run
+from rel_Q while rel_P served, the four front pages 200 throughout; swap 4 ms; rollback = `ops/release.sh rollback rel_P`).
+Boot check ON THE HOST: the retention meter reads **COULD NOT MEASURE** ("the inventory … is not deployed on this
+host") — as designed; the sub-processor states read from the host's real config: Hostinger + its CDN, Google and X
+**active**; Postmark (mail is `log`), Stripe (fake client), Anthropic, Channex **not active**; break-glass still off.
+**Public checks: PASS 11 · FAIL 0 · COULD NOT MEASURE 0** (22 anonymous admin GETs, 10 POSTs, 157 routes free of 5xx,
+battery SERVED=0). Probe `ADMIN-P4 PROBE (not a customer)` accepted, read back (`signup_source = email`), marked
+internal. Customers: **0** → revenue reads "No live billing yet", the funnel "No customers yet". `Hash::check` of the
+known default still TRUE → break-glass stays dormant. **Waiting for the walkthrough:** the three pages signed in, and
+one register entry recorded and moved to a status on a probe account, its ledger rows read back.
