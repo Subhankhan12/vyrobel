@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\UserIdentity;
 use App\Services\Auth\TwitterIdentityProvider;
+use App\Services\TenantProvisioningService;
 use App\Support\Auth\SocialIdentity;
 use App\Support\Auth\SocialLinking;
 use App\Support\Auth\SocialLinkOutcome;
@@ -289,4 +290,44 @@ it('⚠️⚠️ the X provider asserts emailVerified FALSE — X supplies no ve
     //    the provider, the assertion above goes red first, which is exactly the order that should happen.
     $result = SocialLinking::forSignIn(xIdentity('x-unlinked-'.Str::random(8), uniqueEmail('x-new')));
     expect($result['outcome'])->toBe(SocialLinkOutcome::SignUp);
+});
+
+// ══ #7 · ⚠️⚠️ THE SIGNUP GATE — the defect that made a created account unreachable ═══════════════════
+
+it('⚠️⚠️ a SOCIAL signup lands VERIFIED — without this the account exists and nobody can enter it', function () {
+    // 🔬 MEASURED 2026-09-24, BEFORE THE FIX: a provisioned social founder had email_verified_at = NULL,
+    //    no password by construction, and every /app route 302'd to /email/verify — where, with
+    //    MAIL_MAILER=log, the link never arrives. Organisation, property and trial all created
+    //    successfully, and completely unreachable. It affected Google exactly as much as X.
+    $email = uniqueEmail('social-verified');
+
+    $result = app(TenantProvisioningService::class)->provision(
+        organization: ['name' => 'T '.Str::random(8), 'country' => null, 'currency' => 'EUR'],
+        founder: ['name' => 'Ada', 'email' => $email, 'password' => null],
+        property: ['name' => 'P '.Str::random(6), 'type' => 'villa', 'location' => null],
+        identity: ['provider' => 'twitter', 'provider_user_id' => 'x-'.Str::random(12), 'email' => $email, 'name' => 'Ada'],
+    );
+
+    $user = $result['user']->fresh();
+
+    expect($user->email_verified_at)->not->toBeNull('a social founder must not be stranded at /email/verify')
+        ->and($user->hasVerifiedEmail())->toBeTrue()
+        ->and($user->password)->toBeNull('passwordless by construction — the link IS the credential');
+});
+
+it('⚠️⚠️ A PASSWORD SIGNUP IS UNTOUCHED — it still has to verify by email', function () {
+    // ⚠️ THE FENCE. The fix is bound to `$identity !== null`. If it ever leaks to the password path, email
+    //    verification silently stops existing for everyone who signs up normally — and nothing else in the
+    //    suite would notice. This is the test that would.
+    $email = uniqueEmail('password-signup');
+
+    $result = app(TenantProvisioningService::class)->provision(
+        organization: ['name' => 'T '.Str::random(8), 'country' => null, 'currency' => 'EUR'],
+        founder: ['name' => 'Ada', 'email' => $email, 'password' => 'a-real-password'],
+        property: ['name' => 'P '.Str::random(6), 'type' => 'villa', 'location' => null],
+        identity: null,
+    );
+
+    expect($result['user']->fresh()->email_verified_at)
+        ->toBeNull('a password signup must still confirm its address by email');
 });

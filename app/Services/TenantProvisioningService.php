@@ -112,6 +112,25 @@ final class TenantProvisioningService
                 //    organisation must not exist either: a founder with no password and no link would be an
                 //    organisation nobody can sign in to, provisioned successfully.
                 if ($identity !== null) {
+                    // ⚠️⚠️ THE ADDRESS IS MARKED VERIFIED HERE, AND WITHOUT THIS LINE A SOCIAL SIGNUP IS AN
+                    //    ACCOUNT NOBODY CAN ENTER. 🔬 Measured 2026-09-24: a provisioned social founder had
+                    //    `email_verified_at = NULL`, no password by construction, and every /app route 302'd
+                    //    them to /email/verify — where, with MAIL_MAILER=log, the link never arrives. The
+                    //    organisation, property and trial were all created successfully and were unreachable.
+                    //
+                    // ⚠️ WHY IT IS SAFE, AND WHY IT IS NOT A BYPASS. Reaching this line at all means
+                    //    {@see \App\Support\Auth\SocialLinking::forSignIn()} already returned SignUp, and
+                    //    that decision IS the verification test: either the provider asserted the address
+                    //    (Google's `email_verified`), or the provider sits on the ruled
+                    //    `SocialProviders::TRUSTED_FOR_SIGNUP` list. The stash cannot be created any other
+                    //    way. ⚠️ This SATISFIES the gate; it does not exempt anyone from it.
+                    //
+                    // ⚠️⚠️ AND IT IS FENCED TO THE SOCIAL PATH BY `$identity !== null`. A password signup
+                    //    passes `identity: null` and is untouched — it still verifies by email, as it must.
+                    //    ⚠️ forceFill because `email_verified_at` is NOT fillable: a mass-assign would be
+                    //    dropped SILENTLY, which is the exact defect class this project has already paid for.
+                    $user->forceFill(['email_verified_at' => now()])->save();
+
                     UserIdentity::create([
                         'user_id' => $user->id,
                         'provider' => $identity['provider'],
