@@ -3,12 +3,6 @@
 <x-admin.shell active="account" title="Your account"
     subtitle="Manage your platform-admin profile and sign-in credentials.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     {{-- One-time recovery codes, shown right after a regeneration. --}}
     @if ($recoveryCodes)

@@ -5,27 +5,21 @@
     $me = auth('admin')->user();
     $canPublish = $me?->may('tenants.manage') ?? false;
 @endphp
-<x-admin.shell active="announcements" title="Announcements" subtitle="A notice inside every tenant’s back office and owner portal — or chosen ones. Plain text; nothing is emailed.">
+<x-admin.shell active="announcements" title="Announcements" subtitle="A notice inside every organisation’s back office and owner portal — or chosen ones. Plain text; nothing is emailed.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     <div class="ad-card" style="overflow-x: auto;">
         @if ($announcements->isEmpty())
             <div class="ad-empty">No announcement has ever been published.</div>
         @else
             <table class="ad-table">
-                <thead><tr><th>Announcement</th><th>To</th><th>From → until (UTC)</th><th>State</th>@if ($canPublish)<th></th>@endif</tr></thead>
+                <thead><tr><th>Announcement</th><th>To</th><th>From → until</th><th>State</th>@if ($canPublish)<th></th>@endif</tr></thead>
                 <tbody>
                     @foreach ($announcements as $a)
                         <tr>
                             <td style="max-width: 360px;"><strong>{{ $a->title }}</strong><div style="font-size: 12px; color: var(--ad-muted);">{{ \Illuminate\Support\Str::limit($a->body, 140) }}</div></td>
-                            <td>{{ $a->audience === 'all' ? 'Every tenant' : count((array) $a->organization_ids).' chosen' }}</td>
-                            <td>{{ $a->starts_at->utc()->format('j M H:i') }} → {{ $a->ends_at?->utc()->format('j M H:i') ?? 'no end' }}</td>
+                            <td>{{ $a->audience === 'all' ? 'Every organisation' : count((array) $a->organization_ids).' chosen' }}</td>
+                            <td><x-admin.time :at="$a->starts_at" /> → <x-admin.time :at="$a->ends_at" empty="no end" /></td>
                             <td>{{ $a->withdrawn_at ? 'Withdrawn' : ($a->isLive() ? 'Showing' : ($a->starts_at->isFuture() ? 'Scheduled' : 'Ended')) }}</td>
                             @if ($canPublish)
                                 <td>
@@ -58,7 +52,7 @@
                     <div><label class="ad-label" for="an-level">Kind</label><select id="an-level" name="level" class="ad-input">@foreach (PlatformAnnouncement::LEVELS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
                     <div><label class="ad-label" for="an-start">Show from (UTC)</label><input id="an-start" type="datetime-local" name="starts_at" class="ad-input" required value="{{ old('starts_at', now()->utc()->format('Y-m-d\TH:i')) }}"></div>
                     <div><label class="ad-label" for="an-end">Until (UTC, optional)</label><input id="an-end" type="datetime-local" name="ends_at" class="ad-input" value="{{ old('ends_at') }}"></div>
-                    <div><label class="ad-label" for="an-aud">To</label><select id="an-aud" name="audience" class="ad-input"><option value="all">Every tenant</option><option value="chosen">Chosen organisations</option></select></div>
+                    <div><label class="ad-label" for="an-aud">To</label><select id="an-aud" name="audience" class="ad-input"><option value="all">Every organisation</option><option value="chosen">Chosen organisations</option></select></div>
                 </div>
                 <label class="ad-label" for="an-orgs" style="margin-top: 10px;">Chosen organisations (when “Chosen”)</label>
                 <select id="an-orgs" name="organization_ids[]" class="ad-input" multiple size="5">@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select>

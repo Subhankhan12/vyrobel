@@ -27,10 +27,20 @@ use Illuminate\Support\Carbon;
 class AuditController extends Controller
 {
     /** Audit labels that record a READ (a page view / cross-tenant read), not a change. */
+    /**
+     * ⚠️ ADMIN 03 · F1 — EVERY READ ACTION, OR THE DEFAULT "CHANGES & SIGN-INS" VIEW FILLS WITH PAGE VIEWS. 🔬 Found
+     * live: nine read actions added in Phases 2–5 were never listed here, so looking at the triage queue, revenue or
+     * the privacy desk appeared as a CHANGE. ⚠️ A hand-kept list drifts silently — `AuditReadActionsAreCompleteTest`
+     * now fails when any `PlatformQuery::read()` action, or any recorded `.view` / `.page` action, is missing here.
+     */
     public const READ_ACTIONS = [
         'platform.dashboard', 'platform.health.view', 'platform.overview', 'platform.customers.list',
         'platform.customers.view', 'platform.activity.audit_slice', 'platform.switches.view', 'platform.audit.view',
         'platform.admins.view',
+        // ADMIN 01 · Phases 2–5
+        'platform.customers.triage', 'platform.customer.impact', 'platform.support.lookup', 'platform.break_glass.view',
+        'platform.break_glass.page', 'platform.revenue', 'platform.funnel', 'platform.privacy.view', 'platform.hotel_stats',
+        'platform.announcements.view',
     ];
 
     /** Audit labels that record a sign-in event rather than an action. */

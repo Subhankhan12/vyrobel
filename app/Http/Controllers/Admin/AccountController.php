@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -89,7 +90,7 @@ class AccountController extends Controller
         $this->audit->record('platform.account.password_changed', ['other_sessions_ended' => $endedOthers]);
 
         return redirect()->route('admin.account.edit')->with('admin_notice', 'Your password has been changed.'
-            .($endedOthers > 0 ? " {$endedOthers} other console session(s) were signed out." : ''));
+            .($endedOthers > 0 ? " {$endedOthers} other console ".Str::plural('session', $endedOthers).($endedOthers === 1 ? ' was' : ' were').' signed out.' : ''));
     }
 
     /** Regenerate the 2FA recovery codes (shown ONCE). 🔒 CURRENT password required; audited. */

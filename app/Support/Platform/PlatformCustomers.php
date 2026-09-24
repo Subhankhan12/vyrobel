@@ -53,7 +53,10 @@ class PlatformCustomers
 
     public const SORTS = ['name', 'created', 'last_login', 'properties', 'users'];
 
-    public const STATUSES = ['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'archived' => 'Archived'];
+    public const STATUSES = ['active' => 'Active', 'trialing' => 'On a free trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'archived' => 'Archived'];
+
+    /** ADMIN 03 · F9 — a subscription's state in words, never the raw Stripe-style value. */
+    public const SUBSCRIPTION_STATES = ['trialing' => 'On a free trial', 'active' => 'Active — billed', 'past_due' => 'Past due', 'canceled' => 'Cancelled', 'incomplete' => 'Incomplete', 'paused' => 'Paused'];
 
     /**
      * The directory — every organisation, with its plan, status, signup source, verified flag, created date, last
@@ -80,6 +83,12 @@ class PlatformCustomers
         $status = (string) ($filters['status'] ?? '');
         if ($status === 'archived') {
             $query->onlyTrashed();
+        } elseif ($status === 'trialing') {
+            // ⚠️ ADMIN 03 · F2 — "On trial" is the SUBSCRIPTION's state: signup never sets an organisation's own status
+            //    to `trialing`, so filtering that column returned nobody while every organisation was on a free trial.
+            $query->whereExists(fn ($q) => $q->selectRaw('1')->from('subscriptions')
+                ->whereColumn('subscriptions.organization_id', 'organizations.id')
+                ->where('subscriptions.status', 'trialing')->whereNull('subscriptions.deleted_at'));
         } elseif (array_key_exists($status, self::STATUSES)) {
             $query->where('status', $status);
         }
@@ -302,13 +311,14 @@ class PlatformCustomers
             ->whereIn('organization_id', $ids)
             ->with('plan:id,name')
             ->latest()
-            ->get(['id', 'organization_id', 'plan_id', 'created_at']);
+            ->get(['id', 'organization_id', 'plan_id', 'status', 'created_at']);
 
         $out = [];
         foreach ($latest as $subscription) {
-            // First (latest) per org wins.
+            // First (latest) per org wins. ⚠️ ADMIN 03 · F2 — a free trial says so beside the plan: it is the only place
+            //    the directory can show it, because the organisation's own status is "Active" throughout a trial.
             if (! isset($out[$subscription->organization_id]) && $subscription->plan !== null) {
-                $out[$subscription->organization_id] = (string) $subscription->plan->name;
+                $out[$subscription->organization_id] = (string) $subscription->plan->name.($subscription->status === 'trialing' ? ' · free trial' : '');
             }
         }
 

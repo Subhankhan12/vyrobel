@@ -12,13 +12,7 @@
     @if (session('admin_error'))
         <div class="ad-flash ad-flash--error">{{ session('admin_error') }}</div>
     @endif
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
 
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     <form method="POST" action="{{ route('admin.plans.update', $plan->id) }}" style="max-width: 640px;" data-guard-submit>
         @csrf

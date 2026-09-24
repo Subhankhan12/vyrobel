@@ -7,12 +7,6 @@
 <x-admin.shell active="switches" title="Kill switches"
     subtitle="Stop new sign-ups, or sign-in through one provider, without a deploy. Every flip is audited with a reason.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     <div class="ad-card" style="margin-bottom: 18px;">
         <p class="ad-stat-sub" style="margin: 0; line-height: 1.6;">
@@ -42,8 +36,12 @@
                         </p>
                         @if (isset($lockouts[$key]))
                             <p class="ad-stat-sub" style="margin: 8px 0 0;">
-                                Turning this off would lock out <strong>{{ $lockouts[$key] }}</strong>
-                                account{{ $lockouts[$key] === 1 ? '' : 's' }} — no password, and this provider is their only way in.
+                                @if ($lockouts[$key] === 0)
+                                    No account relies on this provider alone right now — every one also has a password or another way in.
+                                @else
+                                    Turning this off would lock out <strong>{{ $lockouts[$key] }}</strong>
+                                    account{{ $lockouts[$key] === 1 ? '' : 's' }} — no password, and this provider is their only way in.
+                                @endif
                             </p>
                         @endif
                     </div>
@@ -58,7 +56,13 @@
                             @if ($state['on'] && isset($lockouts[$key]))
                                 <label style="display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; margin: 10px 0 0; color: var(--ad-ink);">
                                     <input type="checkbox" name="confirm_lockout" value="1" required style="margin-top: 2px;">
-                                    I understand this locks out {{ $lockouts[$key] }} account{{ $lockouts[$key] === 1 ? '' : 's' }} until it is turned back on.
+                                    {{-- ⚠️ ADMIN 03 · F20 — still required at zero (the count can change between loading this page and
+                                         pressing the button — SwitchController), but it no longer asks him to "understand" locking out 0. --}}
+                                    @if ($lockouts[$key] === 0)
+                                        I understand anyone who signs in only this way from now until it is back on will be locked out.
+                                    @else
+                                        I understand this locks out {{ $lockouts[$key] }} account{{ $lockouts[$key] === 1 ? '' : 's' }} until it is turned back on.
+                                    @endif
                                 </label>
                             @endif
                             <button type="submit" class="ad-btn {{ $state['on'] ? 'ad-btn--danger' : '' }} ad-btn--sm" style="margin-top: 10px;">

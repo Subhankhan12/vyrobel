@@ -15,6 +15,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -132,7 +133,7 @@ class AdminUserController extends Controller
         $ended = $this->sessions->endAllFor($target, 'revoked', $this->actor());
         $this->audit->record('platform.admin.revoked', ['sessions_ended' => $ended], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "{$target->name}'s access is revoked; {$ended} session(s) ended.");
+        return redirect()->route('admin.admins.index')->with('admin_notice', "{$target->name}'s access is revoked; {$ended} ".Str::plural('session', $ended).' ended.');
     }
 
     public function restore(Request $request, string $admin): RedirectResponse
@@ -157,7 +158,7 @@ class AdminUserController extends Controller
         $ended = $this->sessions->endAllFor($target, 'forced', $this->actor());
         $this->audit->record('platform.admin.signed_out', ['sessions_ended' => $ended], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} session(s) for {$target->name}.");
+        return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} ".Str::plural('session', $ended)." for {$target->name}.");
     }
 
     private function find(string $id): PlatformAdmin

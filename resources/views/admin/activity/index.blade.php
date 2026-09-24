@@ -38,7 +38,7 @@
                             <td style="color: var(--ad-muted);">{{ $realm[$row->guard] ?? ($row->guard ?? '—') }}</td>
                             <td>{{ $row->identifier ?? ($row->subject_type ? ucfirst(str_replace('_', ' ', $row->subject_type)) : '—') }}</td>
                             <td style="color: var(--ad-faint); font-variant-numeric: tabular-nums;">{{ $row->ip ?? '—' }}</td>
-                            <td style="color: var(--ad-muted);">{{ $row->occurred_at?->diffForHumans() ?? '—' }}</td>
+                            <td style="color: var(--ad-muted);"><x-admin.time :at="$row->occurred_at" /></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -58,10 +58,10 @@
                 <tbody>
                     @foreach ($accountEvents as $event)
                         <tr>
-                            <td style="font-weight: 600;">{{ $event['action'] }}</td>
+                            <td style="font-weight: 600;" title="{{ $event['action'] }}">{{ \App\Support\Platform\ActionLabel::event($event['action']) }}</td>
                             <td style="color: var(--ad-muted);">{{ $event['organization'] }}</td>
                             <td style="color: var(--ad-faint);">{{ ucfirst($event['actor_type']) }}</td>
-                            <td style="color: var(--ad-muted);">{{ $event['created_at']?->diffForHumans() ?? '—' }}</td>
+                            <td style="color: var(--ad-muted);"><x-admin.time :at="$event['created_at']" /></td>
                         </tr>
                     @endforeach
                 </tbody>

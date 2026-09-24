@@ -6,12 +6,6 @@
 @endphp
 <x-admin.shell active="status" title="Status page" subtitle="Incidents on the public status page — posted by hand. Nothing internal ever reaches it.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     <div class="ad-card" style="margin-bottom: 18px;">
         <p class="ad-stat-sub" style="margin: 0; line-height: 1.6;">
@@ -27,7 +21,7 @@
             @foreach ($incidents as $i)
                 <div style="padding: 12px 0; border-bottom: 1px solid var(--ad-border);">
                     <strong>{{ $i->title }}</strong> · {{ StatusIncident::IMPACTS[$i->impact] ?? $i->impact }} · {{ StatusIncident::STATUSES[$i->status] ?? $i->status }}
-                    <div style="font-size: 12px; color: var(--ad-muted);">Started {{ $i->started_at->utc()->format('j M Y, H:i') }} UTC{{ $i->resolved_at ? ' · resolved '.$i->resolved_at->utc()->format('j M H:i').' UTC' : '' }}</div>
+                    <div style="font-size: 12px; color: var(--ad-muted);">Started <x-admin.time :at="$i->started_at" />@if ($i->resolved_at) · resolved <x-admin.time :at="$i->resolved_at" />@endif</div>
                     <p class="ad-stat-sub" style="margin: 6px 0;">{{ $i->message }}</p>
                     @if ($canPost && $i->isOpen())
                         <form method="POST" action="{{ route('admin.status.update', $i->id) }}" data-guard-submit style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 8px;">

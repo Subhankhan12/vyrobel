@@ -36,9 +36,12 @@ class StatusIncidentController extends Controller
         ]);
         $reason = AdminReason::from($request);
 
-        $this->platform->mutate('platform.status.incident_open', $reason, fn () => StatusIncident::create($data + [
+        // ⚠️ ADMIN 03 · F13 — mint the id first so the "posted" ledger row names the incident its updates will name.
+        $id = (new StatusIncident)->newUniqueId();
+
+        $this->platform->mutate('platform.status.incident_open', $reason, fn () => (new StatusIncident($data + [
             'started_at' => now(), 'created_by' => (string) auth('admin')->id(),
-        ]), ['impact' => $data['impact']], 'status_incident', null);
+        ]))->forceFill(['id' => $id])->save(), ['impact' => $data['impact']], 'status_incident', $id);
 
         return redirect()->route('admin.status.index')->with('admin_notice', 'Posted to the public status page.');
     }

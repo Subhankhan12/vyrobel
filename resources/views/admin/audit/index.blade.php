@@ -18,7 +18,7 @@
         <select name="action" aria-label="Action">
             <option value="">Any action</option>
             @foreach ($actions as $action)
-                <option value="{{ $action }}" @selected($filters['action'] === $action)>{{ $action }}</option>
+                <option value="{{ $action }}" @selected($filters['action'] === $action)>{{ \App\Support\Platform\ActionLabel::platform($action) }}</option>
             @endforeach
         </select>
         <select name="tenant" aria-label="Organisation">
@@ -45,7 +45,7 @@
                         <tr>
                             <td style="white-space: nowrap;">{{ $row->created_at?->format('Y-m-d H:i:s') }}</td>
                             <td>{{ $row->platform_admin_id ? ($adminNames[$row->platform_admin_id] ?? 'Removed admin') : 'System / CLI' }}</td>
-                            <td><code style="font-size: 12px;">{{ $row->action }}</code></td>
+                            <td>{{ \App\Support\Platform\ActionLabel::platform($row->action) }}<div><code style="font-size: 11.5px; color: var(--ad-faint);">{{ $row->action }}</code></div></td>
                             <td>
                                 @if ($row->target_type === 'organization')
                                     {{ $orgNames[$row->target_id] ?? $row->target_id }}

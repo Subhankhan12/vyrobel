@@ -7,12 +7,6 @@
 <x-admin.shell active="admins" title="Admins"
     subtitle="Who can reach this console, with which role — and who is signed in right now.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     @if (session('invite_link'))
         {{-- ⚠️ SHOWN ONCE. Only its hash is stored — this page cannot show it again. Nothing was emailed: production
@@ -41,16 +35,16 @@
                             <span class="ad-pill {{ $a->status === 'active' ? 'ad-pill--active' : ($a->status === 'invited' ? 'ad-pill--trialing' : 'ad-pill--suspended') }}">{{ ucfirst($a->status) }}</span>
                             @if ($a->status === 'invited' && $a->invite_expires_at)
                                 <div style="font-size: 11.5px; color: var(--ad-faint); margin-top: 3px;">
-                                    {{ $a->invite_expires_at->isPast() ? 'Link expired' : 'Link expires '.$a->invite_expires_at->diffForHumans() }}
+                                    {{ $a->invite_expires_at->isPast() ? 'Link expired' : 'Link expires' }} <x-admin.time :at="$a->invite_expires_at" />
                                 </div>
                             @endif
                         </td>
                         <td>{{ $a->hasTwoFactorEnabled() ? 'Enrolled' : 'Not yet — forced at first sign-in' }}</td>
-                        <td>{{ $a->last_login_at?->diffForHumans() ?? 'Never' }}</td>
+                        <td><x-admin.time :at="$a->last_login_at" empty="Never" /></td>
                         <td>
                             @forelse ($sessions as $session)
                                 <div style="font-size: 12px; margin-bottom: 3px;">
-                                    {{ $session->ip ?? 'unknown IP' }} · seen {{ $session->last_seen_at?->diffForHumans() }}
+                                    {{ $session->ip ?? 'unknown IP' }} · seen <x-admin.time :at="$session->last_seen_at" empty="never" />
                                     @if ($currentHash && $session->session_key_hash === $currentHash) <strong>(this session)</strong> @endif
                                 </div>
                             @empty

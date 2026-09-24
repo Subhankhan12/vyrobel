@@ -26,13 +26,13 @@
     $nav = [
         ['health', 'Health', route('admin.dashboard'), true, 'M3 12h4l3-8 4 16 3-8h4', 'console.view'],
         ['overview', 'Overview', route('admin.overview'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', 'console.view'],
-        ['customers', 'Customers', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
+        ['customers', 'Organisations', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
         ['triage', 'Triage', route('admin.customers.triage'), true, 'M4 5h16l-6 8v5l-4 2v-7z', 'console.view'],
         ['support', 'Support', route('admin.support.index'), true, 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.9 4.9l4.3 4.3M14.8 14.8l4.3 4.3M14.8 9.2l4.3-4.3M4.9 19.1l4.3-4.3', 'support.use'],
         ['revenue', 'Revenue', route('admin.revenue'), true, 'M3 17l6-6 4 4 8-8M14 7h7v7', 'billing.view'],
         ['funnel', 'Signup funnel', route('admin.funnel'), true, 'M3 4h18l-7 8v6l-4 2v-8z', 'console.view'],
         ['privacy', 'Privacy desk', route('admin.privacy.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9.5 12l2 2 3.5-4', 'console.view'],
-        ['hotels', 'Hotels', route('admin.hotels'), true, 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', 'console.view'],
+        ['hotels', 'Statistics', route('admin.hotels'), true, 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', 'console.view'],
         ['announcements', 'Announcements', route('admin.announcements.index'), true, 'M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8', 'console.view'],
         ['status', 'Status page', route('admin.status.index'), true, 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', 'console.view'],
         ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
@@ -311,6 +311,23 @@
         /* The reason field every write carries — one look everywhere. */
         .ad-reason { display: block; width: 100%; margin: 8px 0; }
         .ad-reason-hint { font-size: 11px; color: var(--ad-faint); margin: -2px 0 8px; }
+        /* ⚠️ ADMIN 03 — the phone-width and figure fixes, once, for every page:
+           F4  the header stacks (admin chip above the title) instead of crushing the title to one word per line;
+           F5  a card holding a table scrolls ITSELF, so the page never scrolls sideways; label/value lists shrink and
+               long unbroken values (emails, slugs) wrap instead of pushing the page wider;
+           F16 every figure uses tabular digits so columns line up; F17 a timestamp never breaks across two lines. */
+        .ad-flash-list { margin: 0; padding-left: 18px; }
+        .ad-card:has(table) { overflow-x: auto; }
+        .ad-dl { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); }
+        .ad-dl dd, .ad-row-k, .ad-row-v, .ad-chip-name { overflow-wrap: anywhere; }
+        .ad-row-v, .ad-bucket-count, .ad-bar-val, .ad-kpi-val, .ad-stat { font-variant-numeric: tabular-nums; }
+        .ad-time { white-space: nowrap; }
+        @media (max-width: 640px) {
+            .ad-top { flex-direction: column-reverse; align-items: stretch; gap: 12px; }
+            .ad-user { justify-content: flex-end; flex-wrap: wrap; }
+            .ad-dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+            .ad-dl dd { margin-bottom: 10px; }
+        }
         .ad-inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
         .ad-inline-form .ad-input { width: auto; flex: 1 1 180px; padding: 8px 11px; font-size: 13px; }
         .ad-once { padding: 14px 16px; border-radius: var(--ad-r-md); background: rgba(224, 146, 30, .10); border: 1px solid rgba(224, 146, 30, .35); border-left: 3px solid var(--vy-amber-2); margin-bottom: 18px; font-size: 13px; }
@@ -392,6 +409,24 @@
                 </div>
             </header>
             <main class="ad-content">
+                {{-- ⚠️ ADMIN 03 · F12 — the notice and EVERY validation error, once, for every page. Eleven pages each carried
+                     their own copy that showed only `$errors->first()`, so a form missing three fields named one. --}}
+                @if (session('admin_notice'))
+                    <div class="ad-flash" role="status">{{ session('admin_notice') }}</div>
+                @endif
+                @if ($errors->any())
+                    <div class="ad-flash ad-flash--error" role="alert">
+                        @if (count($errors->all()) === 1)
+                            {{ $errors->first() }}
+                        @else
+                            <ul class="ad-flash-list">
+                                @foreach ($errors->all() as $message)
+                                    <li>{{ $message }}</li>
+                                @endforeach
+                            </ul>
+                        @endif
+                    </div>
+                @endif
                 {{ $slot }}
             </main>
         </div>

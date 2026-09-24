@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -68,7 +69,9 @@ class SwitchController extends Controller
             //    count can change between loading the page and pressing the button.
             if (! $request->boolean('confirm_lockout')) {
                 throw ValidationException::withMessages([
-                    'confirm_lockout' => "Confirm that you understand this locks out {$lockout} account(s) whose only way in is this provider.",
+                    'confirm_lockout' => $lockout === 0
+                        ? 'Tick the box to confirm — no account relies on this provider alone right now, but anyone who does by the time it is off will be locked out.'
+                        : "Confirm that you understand this locks out {$lockout} ".Str::plural('account', $lockout).' whose only way in is this provider.',
                 ]);
             }
         }

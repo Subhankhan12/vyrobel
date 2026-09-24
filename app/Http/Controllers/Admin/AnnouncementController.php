@@ -47,7 +47,11 @@ class AnnouncementController extends Controller
         ]);
         $reason = AdminReason::from($request);
 
-        $announcement = $this->platform->mutate('platform.announcement.publish', $reason, fn () => PlatformAnnouncement::create([
+        // ⚠️ ADMIN 03 · F13 — the ledger row is written BEFORE the row exists, so it used to carry no target and a
+        //    "publish" could never be tied to its later "withdraw". The id is minted first and both rows name it.
+        $id = (new PlatformAnnouncement)->newUniqueId();
+
+        $announcement = $this->platform->mutate('platform.announcement.publish', $reason, fn () => tap(new PlatformAnnouncement([
             'title' => $data['title'],
             'body' => $data['body'],
             'level' => $data['level'],
@@ -56,7 +60,7 @@ class AnnouncementController extends Controller
             'starts_at' => $data['starts_at'],
             'ends_at' => $data['ends_at'] ?? null,
             'created_by' => (string) auth('admin')->id(),
-        ]), ['audience' => $data['audience'], 'organizations' => count($data['organization_ids'] ?? [])], 'announcement', null);
+        ]), fn (PlatformAnnouncement $a) => $a->forceFill(['id' => $id])->save()), ['audience' => $data['audience'], 'organizations' => count($data['organization_ids'] ?? [])], 'announcement', $id);
 
         return redirect()->route('admin.announcements.index')->with('admin_notice', 'Announcement published'.($announcement->isLive() ? ' — showing now.' : ' — it will show from its start time.'));
     }

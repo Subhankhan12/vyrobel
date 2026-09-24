@@ -17,13 +17,7 @@
     $statusLabel = $archived ? 'Archived' : (\App\Support\Platform\PlatformCustomers::STATUSES[$org->status] ?? ucfirst($org->status));
 @endphp
 <x-admin.shell active="customers" :title="$org->name" :subtitle="$org->slug"
-    :back="route('admin.customers.index')" back-label="All customers">
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
+    :back="route('admin.customers.index')" back-label="All organisations">
 
     {{-- ── Lifecycle ─────────────────────────────────────────────────────────────────────────────────────── --}}
     <div class="ad-card">
@@ -109,7 +103,7 @@
             <dl class="ad-dl">
                 <dt>Organisation</dt><dd>{{ $org->name }}</dd>
                 <dt>Slug</dt><dd>{{ $org->slug }}</dd>
-                <dt>Status</dt><dd>{{ $statusLabel }}</dd>
+                <dt>Account status</dt><dd>{{ $statusLabel }}</dd>
                 <dt>Signed up with</dt><dd>{{ $d['source'] }}</dd>
                 <dt>Counted as</dt><dd>{{ $org->isInternal() ? 'Internal — excluded from statistics' : 'Customer' }}</dd>
                 <dt>Currency</dt><dd>{{ $org->default_currency }}</dd>
@@ -119,7 +113,7 @@
                 @if ($org->billing_email)
                     <dt>Billing email</dt><dd>{{ $org->billing_email }}</dd>
                 @endif
-                <dt>Created</dt><dd>{{ $org->created_at?->format('j M Y') ?? '—' }}</dd>
+                <dt>Created</dt><dd><x-admin.time :at="$org->created_at" date /></dd>
             </dl>
 
             @if ($canTenants && $lock !== 'baseline')
@@ -140,11 +134,11 @@
                 <dt>Plan</dt><dd>{{ $d['plan_name'] ?? 'None' }}</dd>
                 <dt>Billing state</dt><dd>{{ $d['billing_label'] }}</dd>
                 @if ($sub)
-                    <dt>Status</dt><dd>{{ ucfirst($sub->status) }}</dd>
+                    <dt>Subscription</dt><dd>{{ \App\Support\Platform\PlatformCustomers::SUBSCRIPTION_STATES[$sub->status] ?? ucfirst((string) $sub->status) }}</dd>
                     @if ($sub->trial_ends_at)
-                        <dt>Trial ends</dt><dd>{{ $sub->trial_ends_at->format('j M Y') }}</dd>
+                        <dt>Trial ends</dt><dd><x-admin.time :at="$sub->trial_ends_at" date /></dd>
                     @endif
-                    <dt>Stripe</dt><dd>{{ $sub->stripe_subscription_id ? 'Connected' : 'Not connected (billing account-gated)' }}</dd>
+                    <dt>Stripe</dt><dd>{{ $sub->stripe_subscription_id ? 'Billed through Stripe' : 'Not billed through Stripe' }}</dd>
                 @endif
             </dl>
 
@@ -166,7 +160,7 @@
                     </div>
                     <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason for the plan change">
                 </form>
-                <p class="ad-stat-sub" style="margin-top: 6px;">Sets the customer's plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
+                <p class="ad-stat-sub" style="margin-top: 6px;">Sets this organisation’s plan &amp; features immediately. Billing (Stripe) is connected separately at go-live.</p>
             @endif
         </div>
     </div>
@@ -186,7 +180,7 @@
                             <td><strong>{{ $u['name'] }}</strong><div style="font-size: 12px; color: var(--ad-faint);">{{ $u['email'] }}</div></td>
                             <td>{{ $u['roles'] === [] ? '—' : implode(', ', $u['roles']) }}</td>
                             <td>{{ $u['verified'] ? 'Yes' : 'No' }}</td>
-                            <td style="color: var(--ad-muted);">{{ $u['last_login_at']?->diffForHumans() ?? 'Never' }}</td>
+                            <td style="color: var(--ad-muted);"><x-admin.time :at="$u['last_login_at']" empty="Never" /></td>
                             <td>{{ ucfirst($u['status']) }}</td>
                         </tr>
                     @endforeach
@@ -202,13 +196,13 @@
             @forelse ($d['console_actions'] as $action)
                 <div class="ad-row" style="align-items: flex-start;">
                     <span class="ad-row-k" style="color: var(--ad-ink);">
-                        <strong>{{ $action->action }}</strong>
+                        <strong title="{{ $action->action }}">{{ \App\Support\Platform\ActionLabel::platform($action->action) }}</strong>
                         @if ($action->reason)
                             <div style="font-size: 12px; color: var(--ad-muted); font-weight: 400;">“{{ $action->reason }}”</div>
                         @endif
                     </span>
                     <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400; text-align: right;">
-                        {{ $action->platformAdmin?->name ?? 'CLI' }}<br>{{ $action->created_at?->diffForHumans() ?? '—' }}
+                        {{ $action->platformAdmin?->name ?? 'CLI' }}<br><x-admin.time :at="$action->created_at" />
                     </span>
                 </div>
             @empty
@@ -221,8 +215,8 @@
             <h2 class="ad-panel-title">Recent activity</h2>
             @forelse ($recentActivity as $event)
                 <div class="ad-row">
-                    <span class="ad-row-k" style="font-weight: 600; color: var(--ad-ink);">{{ $event['action'] }}</span>
-                    <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400;">{{ ucfirst($event['actor_type']) }} · {{ $event['created_at']?->diffForHumans() ?? '—' }}</span>
+                    <span class="ad-row-k" style="font-weight: 600; color: var(--ad-ink);" title="{{ $event['action'] }}">{{ \App\Support\Platform\ActionLabel::event($event['action']) }}</span>
+                    <span class="ad-row-v" style="color: var(--ad-muted); font-weight: 400;">{{ ucfirst($event['actor_type']) }} · <x-admin.time :at="$event['created_at']" /></span>
                 </div>
             @empty
                 <div class="ad-empty">No recorded activity for this organisation yet.</div>

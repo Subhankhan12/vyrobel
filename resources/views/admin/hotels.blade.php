@@ -7,7 +7,7 @@
     $few = $s['organizations'] < PlatformHotelStats::TREND_FLOOR;
     $maxDay = max(1, max($s['bookings_per_day'] ?: [0]));
 @endphp
-<x-admin.shell active="hotels" title="Hotels" subtitle="What the platform is doing — in aggregate. Never a guest, never a row.">
+<x-admin.shell active="hotels" title="Statistics" subtitle="What the platform is doing — in aggregate. Never a guest, never a row.">
 
     <div class="ad-filters" style="justify-content: space-between;">
         <span class="ad-stat-sub" style="margin: 0;">{{ $s['include_internal'] ? 'Including Vyrobel’s own internal organisations.' : 'Customers only.' }} · {{ number_format($s['organizations']) }} organisation{{ $s['organizations'] === 1 ? '' : 's' }}</span>
@@ -83,7 +83,8 @@
                 <tbody>
                     @foreach ($s['cohorts'] as $c)
                         <tr>
-                            <td>{{ $c['month'] }}</td>
+                            {{-- ADMIN 03 · F18 — "Sep 2026" like every other date here; the `Y-m` key stays underneath because it sorts. --}}
+                            <td>{{ preg_match('/^\d{4}-\d{2}$/', $c['month']) === 1 ? \Carbon\CarbonImmutable::createFromFormat('!Y-m', $c['month'], 'UTC')->format('M Y') : 'Unknown' }}</td>
                             <td class="ad-num">{{ $c['size'] }}</td>
                             @foreach (PlatformHotelStats::COHORT_MONTHS as $k)
                                 <td class="ad-num" style="{{ $c['active'][$k] === null ? 'color: var(--ad-faint);' : '' }}">{{ $c['active'][$k] === null ? 'not yet' : $c['active'][$k].' of '.$c['size'] }}</td>

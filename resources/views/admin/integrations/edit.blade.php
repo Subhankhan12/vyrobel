@@ -7,9 +7,6 @@
         : 'No credential yet. Add your platform master credential for '.$label.'.'"
     :back="route('admin.integrations.index')" back-label="All integrations">
 
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     <form method="POST" action="{{ route('admin.integrations.update', $channel) }}" style="max-width: 560px;" data-guard-submit>
         @csrf

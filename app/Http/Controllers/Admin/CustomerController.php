@@ -18,6 +18,7 @@ use App\Support\Platform\TenantLifecycle;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * SUPER ADMIN · BUILD 1 · GATE 2 → ADMIN 01 · PHASE 2 — the TENANTS: directory, detail, triage, and lifecycle.
@@ -324,7 +325,7 @@ class CustomerController extends Controller
     private function refusedWithoutAcknowledgement(Request $request, Organization $org, array $impact): ?RedirectResponse
     {
         if ($impact['in_house'] + $impact['upcoming'] > 0 && ! $request->boolean('acknowledge_guests')) {
-            return $this->back($org)->withErrors(['acknowledge_guests' => 'This hotel has '.$impact['in_house'].' guest stay(s) in house and '.$impact['upcoming'].' upcoming. Confirm you have seen that.']);
+            return $this->back($org)->withErrors(['acknowledge_guests' => 'This organisation has '.$impact['in_house'].' guest '.Str::plural('stay', $impact['in_house']).' in house and '.$impact['upcoming'].' upcoming. Confirm you have seen that.']);
         }
 
         return null;

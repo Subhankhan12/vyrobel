@@ -41,7 +41,9 @@
             <div class="ad-kpi">
                 <div class="ad-kpi-label">{{ $m['include_internal'] ? 'Organisations' : 'Customers' }}</div>
                 <div class="ad-kpi-val">{{ number_format($m['organizations']) }}</div>
-                <div class="ad-kpi-sub">{{ number_format($m['by_status']['active']) }} active · {{ number_format($m['by_status']['trialing']) }} on trial</div>
+                {{-- ⚠️ ADMIN 03 · F2 — the ACCOUNT's own status. A free trial is a SUBSCRIPTION state (next card): signup never
+                     sets an organisation's status to "trialing", so an "on trial" figure here was always 0 beside "N in free trial". --}}
+                <div class="ad-kpi-sub">{{ number_format($m['by_status']['active']) }} active · {{ number_format($m['by_status']['suspended']) }} suspended</div>
             </div>
             <div class="ad-kpi">
                 <div class="ad-kpi-label">Subscriptions</div>
@@ -55,7 +57,8 @@
                     <div class="ad-kpi-sub">No subscription is billed through Stripe. A trial's list price is not revenue.</div>
                 @else
                     <div class="ad-kpi-val" style="font-size: 20px; margin-top: 14px;">{{ number_format($m['live_billed_subscriptions']) }} billed live</div>
-                    <div class="ad-kpi-sub">Revenue is computed from charges, not the price list — that screen arrives in a later release.</div>
+                    {{-- ADMIN 03 · F22 — the Revenue screen exists (Phase 4); this used to say it "arrives in a later release". --}}
+                    <div class="ad-kpi-sub">Computed from what Stripe charged, never the price list — see <a class="ad-cell-link" href="{{ route('admin.revenue') }}">Revenue</a>.</div>
                 @endif
             </div>
             <div class="ad-kpi">
@@ -85,13 +88,15 @@
             </div>
 
             <div class="ad-card">
-                <h2 class="ad-panel-title">By status</h2>
-                @foreach (['active' => 'Active', 'trialing' => 'On trial', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled'] as $key => $label)
+                <h2 class="ad-panel-title">Account status</h2>
+                @foreach (['active' => 'Active', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'trialing' => 'Trialing (account)'] as $key => $label)
+                    @continue($key === 'trialing' && $m['by_status']['trialing'] === 0)
                     <div class="ad-row">
                         <span class="ad-row-k"><span class="ad-pill ad-pill--{{ $key }}">{{ $label }}</span></span>
                         <span class="ad-row-v">{{ number_format($m['by_status'][$key]) }}</span>
                     </div>
                 @endforeach
+                <p class="ad-reason-hint" style="margin-top: 8px;">A free trial is a subscription state, not an account status — {{ number_format($m['on_trial']) }} on a free trial now.</p>
 
                 <h2 class="ad-panel-title" style="margin-top: 22px;">Plans in use <span class="ad-stat-sub" style="font-weight: 400;">· active or trial</span></h2>
                 @forelse ($m['plan_distribution'] as $plan)

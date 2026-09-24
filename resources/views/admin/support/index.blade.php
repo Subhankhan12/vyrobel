@@ -2,12 +2,6 @@
      ⚠️ While mail is `log`, the two email actions say plainly that nothing reaches anyone — never a silent success. --}}
 <x-admin.shell active="support" title="Support" subtitle="Find an account holder by email, and help them back in. Every action needs a reason.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     @if ($mailDiscards)
         <div class="ad-card" style="margin-bottom: 16px; display: flex; gap: 12px; align-items: flex-start;">
@@ -36,11 +30,11 @@
                 <dl class="ad-dl">
                     <dt>Email</dt><dd>{{ $u->email }}</dd>
                     <dt>Status</dt><dd>{{ ucfirst((string) $u->status) }}</dd>
-                    <dt>Email verified</dt><dd>{{ $u->email_verified_at ? $u->email_verified_at->format('j M Y, H:i').' UTC' : 'No' }}</dd>
+                    <dt>Email verified</dt><dd><x-admin.time :at="$u->email_verified_at" empty="No" /></dd>
                     <dt>Password</dt><dd>{{ $result['has_password'] ? 'Set' : 'None (signs in with a provider)' }}</dd>
                     <dt>Two-factor</dt><dd>{{ $result['two_factor'] ? 'On' : 'Off' }}</dd>
-                    <dt>Last sign-in</dt><dd>{{ $u->last_login_at?->diffForHumans() ?? 'Never' }}</dd>
-                    <dt>Created</dt><dd>{{ $u->created_at?->format('j M Y') ?? '—' }}</dd>
+                    <dt>Last sign-in</dt><dd><x-admin.time :at="$u->last_login_at" empty="Never" /></dd>
+                    <dt>Created</dt><dd><x-admin.time :at="$u->created_at" date /></dd>
                 </dl>
             </div>
 
@@ -63,7 +57,7 @@
                 <div class="ad-row" style="align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                     <span class="ad-row-k" style="color: var(--ad-ink);">
                         <strong>{{ $i['provider'] === 'twitter' ? 'X' : ucfirst($i['provider']) }}</strong>
-                        <div style="font-size: 12px; color: var(--ad-faint);">{{ $i['provider_email'] ?? 'no email from the provider' }} · last used {{ $i['last_used_at']?->diffForHumans() ?? 'never' }}</div>
+                        <div style="font-size: 12px; color: var(--ad-faint);">{{ $i['provider_email'] ?? 'no email from the provider' }} · last used <x-admin.time :at="$i['last_used_at']" empty="never" /></div>
                     </span>
                     @if ($i['may_unlink'])
                         <form method="POST" action="{{ route('admin.support.unlink', [$u->id, $i['id']]) }}" data-guard-submit style="display: flex; gap: 8px; flex-wrap: wrap;">

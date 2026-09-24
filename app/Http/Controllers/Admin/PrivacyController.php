@@ -17,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -110,6 +111,6 @@ class PrivacyController extends Controller
             'closed_at' => $closing ? now() : null,
         ]), ['from' => $row->status], 'privacy_request', (string) $row->id);
 
-        return redirect()->route('admin.privacy.index')->with('admin_notice', 'Request marked '.PrivacyRequest::STATUSES[$data['status']].'.');
+        return redirect()->route('admin.privacy.index')->with('admin_notice', 'Request marked as '.Str::lower(PrivacyRequest::STATUSES[$data['status']]).'.');
     }
 }

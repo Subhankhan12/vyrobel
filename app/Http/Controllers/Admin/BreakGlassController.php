@@ -88,7 +88,7 @@ class BreakGlassController extends Controller
         RateLimiter::clear($throttle);
 
         if (Auth::guard('web')->check()) {
-            return $back->withErrors(['organization_id' => 'Sign out of the tenant account in this browser first — a support session must never mix with a real user\'s session.']);
+            return $back->withErrors(['organization_id' => 'Sign out of the organisation account in this browser first — a support session must never mix with a real user\'s session.']);
         }
         if ($this->breakGlass->current($request) !== null) {
             return $back->withErrors(['organization_id' => 'You already have a support session open. End it first.']);

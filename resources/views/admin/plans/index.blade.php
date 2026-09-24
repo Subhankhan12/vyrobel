@@ -4,9 +4,6 @@
 <x-admin.shell active="plans" title="Plans"
     subtitle="The subscription catalog — a plan's feature set gates which modules its customers get.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
     @if (session('admin_error'))
         <div class="ad-flash ad-flash--error">{{ session('admin_error') }}</div>
     @endif

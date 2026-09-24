@@ -11,6 +11,7 @@ use App\Support\Platform\PlatformSwitches;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -119,7 +120,7 @@ final class HealthBoard
         ];
 
         if ($failed > 0 || ! $beat['healthy']) {
-            return new HealthCard('queue', 'Queue', HealthCard::RED, $failed > 0 ? "{$failed} failed job(s)" : 'Worker not seen', $lines);
+            return new HealthCard('queue', 'Queue', HealthCard::RED, $failed > 0 ? $failed.' failed '.Str::plural('job', $failed) : 'Worker not seen', $lines);
         }
 
         if ($oldestAge !== null && $oldestAge > self::QUEUE_BACKLOG_SECONDS) {
@@ -163,7 +164,9 @@ final class HealthBoard
 
         $lines = ["Errors: {$counts['errors_24h']} · warnings: {$counts['warnings_24h']}"];
         foreach (array_slice($counts['by_hour'], -6, null, true) as $hour => $n) {
-            $lines[] = "{$hour} — {$n}";
+            // ADMIN 03 · F7 — the log's clock is the app's (UTC); say so, and say which hour.
+            $at = Carbon::parse($hour, 'UTC');
+            $lines[] = $at->format('j M, H:i').'–'.$at->copy()->addHour()->format('H:i').' UTC — '.$n.' '.Str::plural('error', $n);
         }
 
         $status = match (true) {
@@ -173,7 +176,7 @@ final class HealthBoard
         };
 
         return new HealthCard('errors', 'Server errors (24h)', $status,
-            $counts['errors_24h'] === 0 ? 'No server errors logged' : "{$counts['errors_24h']} server error(s) logged", $lines, $note);
+            $counts['errors_24h'] === 0 ? 'No server errors logged' : $counts['errors_24h'].' server '.Str::plural('error', $counts['errors_24h']).' logged', $lines, $note);
     }
 
     private function release(): HealthCard
@@ -194,7 +197,7 @@ final class HealthBoard
             $lines[] = "Rollback candidate {$old['name']}".($old['commit'] === null ? ' — commit unreadable' : ' · '.substr($old['commit'], 0, 8));
         }
         if (count($r['retained']) > 3) {
-            $lines[] = '… and '.(count($r['retained']) - 3).' older release(s) retained';
+            $lines[] = '… and '.(count($r['retained']) - 3).' older '.Str::plural('release', count($r['retained']) - 3).' retained';
         }
 
         return new HealthCard('release', 'Live release', HealthCard::GREEN, "{$r['current']} · ".substr($r['commit'], 0, 8), $lines,
@@ -217,7 +220,7 @@ final class HealthBoard
         }
 
         return new HealthCard('config', 'Silent configuration', $silent === [] ? HealthCard::GREEN : HealthCard::RED,
-            $silent === [] ? 'No silent gaps' : count($silent).' setting(s) empty that fail silently', $lines,
+            $silent === [] ? 'No silent gaps' : count($silent).' '.Str::plural('setting', count($silent)).' empty that '.(count($silent) === 1 ? 'fails' : 'fail').' silently', $lines,
             'Names only — no value is ever shown.');
     }
 

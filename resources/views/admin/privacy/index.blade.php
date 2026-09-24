@@ -8,12 +8,6 @@
 @endphp
 <x-admin.shell active="privacy" title="Privacy desk" subtitle="Data-subject requests, the erasure queue, retention coverage and who we share data with.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     {{-- ── 1 · The live erasure queue ─────────────────────────────────────────────────────────────────────────── --}}
     <div class="ad-card">
@@ -31,7 +25,9 @@
         </p>
         <div class="ad-row"><span class="ad-row-k">Waiting for their date</span><span class="ad-row-v">{{ number_format($live['pending'] - $live['overdue']) }}</span></div>
         <div class="ad-row"><span class="ad-row-k">Past their date, not yet erased</span><span class="ad-row-v">{{ number_format($live['overdue']) }}</span></div>
-        <div class="ad-row"><span class="ad-row-k">Next due</span><span class="ad-row-v">{{ $live['next_due']?->format('j M Y, H:i').' UTC' ?? '—' }}</span></div>
+        {{-- ⚠️ ADMIN 03 · F3 — `?->format(…).' UTC' ?? '—'` printed a lone "UTC" when nothing was due: the null-safe call
+             returns null, the concatenation turns it into " UTC", and `??` never fires. --}}
+        <div class="ad-row"><span class="ad-row-k">Next due</span><span class="ad-row-v">{{ $live['next_due'] ? $live['next_due']->format('j M Y, H:i').' UTC' : 'Nothing scheduled' }}</span></div>
         <div class="ad-row"><span class="ad-row-k">Erased in the last 30 days</span><span class="ad-row-v">{{ number_format($live['erased_30d']) }}</span></div>
         @foreach ($live['by_org'] as $o)
             <div class="ad-row"><span class="ad-row-k">{{ $o['organization'] }}{{ $o['internal'] ? ' (internal)' : '' }}</span><span class="ad-row-v">{{ $o['pending'] }} pending{{ $o['overdue'] ? ' · '.$o['overdue'].' overdue' : '' }}</span></div>
@@ -56,8 +52,8 @@
                         <tr>
                             <td>{{ PrivacyRequest::KINDS[$req->kind] ?? $req->kind }}<div style="font-size: 12px; color: var(--ad-faint);">{{ PrivacyRequest::CHANNELS[$req->channel] ?? $req->channel }}</div></td>
                             <td>{{ $req->subject_kind === 'account_holder' ? ($req->subjectUser?->name ?? 'an account holder') : 'A guest of '.($req->organization?->name ?? 'an organisation') }}</td>
-                            <td>{{ $req->received_at->format('j M Y') }}</td>
-                            <td style="{{ $req->isOpen() && $req->due_at->isPast() ? 'color: var(--ad-danger); font-weight: 600;' : '' }}">{{ $req->due_at->format('j M Y') }}</td>
+                            <td><x-admin.time :at="$req->received_at" date /></td>
+                            <td style="{{ $req->isOpen() && $req->due_at->isPast() ? 'color: var(--ad-danger); font-weight: 600;' : '' }}"><x-admin.time :at="$req->due_at" date /></td>
                             <td>{{ PrivacyRequest::STATUSES[$req->status] ?? $req->status }}</td>
                             @if ($canRecord)
                                 <td>
@@ -95,15 +91,18 @@
             <form method="POST" action="{{ route('admin.privacy.store') }}" data-guard-submit style="margin-top: 16px; border-top: 1px solid var(--ad-border); padding-top: 14px;">
                 @csrf
                 <h3 class="ad-label" style="margin-bottom: 10px;">Record a request</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    <select aria-label="Kind" name="kind" class="ad-input" required>@foreach (PrivacyRequest::KINDS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select>
-                    <select aria-label="About" name="subject_kind" class="ad-input" required>@foreach (PrivacyRequest::SUBJECTS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select>
-                    <select aria-label="Channel" name="channel" class="ad-input" required>@foreach (PrivacyRequest::CHANNELS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select>
-                    <input aria-label="Received on" type="date" name="received_on" class="ad-input" required value="{{ now()->toDateString() }}">
-                    <input aria-label="Account holder email" type="email" name="email" class="ad-input" placeholder="Account holder’s email (not stored)">
-                    <select aria-label="Organisation" name="organization_id" class="ad-input"><option value="">Organisation (for a guest’s request)</option>@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select>
+                {{-- ADMIN 03 · F19 — every field has a visible label (the placeholders were doing that job and were cut off at
+                     desktop width); the grid's columns are wide enough for the longest option. --}}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 12px;">
+                    <div><label class="ad-label" for="pr-kind">Kind</label><select id="pr-kind" name="kind" class="ad-input" required>@foreach (PrivacyRequest::KINDS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="pr-about">About</label><select id="pr-about" name="subject_kind" class="ad-input" required>@foreach (PrivacyRequest::SUBJECTS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="pr-channel">Received by</label><select id="pr-channel" name="channel" class="ad-input" required>@foreach (PrivacyRequest::CHANNELS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="pr-on">Received on</label><input id="pr-on" type="date" name="received_on" class="ad-input" required value="{{ now()->toDateString() }}"></div>
+                    <div><label class="ad-label" for="pr-email">Account holder’s email — not stored</label><input id="pr-email" type="email" name="email" class="ad-input"></div>
+                    <div><label class="ad-label" for="pr-org">Organisation — for a guest’s request</label><select id="pr-org" name="organization_id" class="ad-input"><option value="">None</option>@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select></div>
                 </div>
-                <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason — e.g. email from the account holder, 24 Sep" style="margin-top: 10px;">
+                <label class="ad-label" for="pr-reason" style="margin-top: 10px;">Reason</label>
+                <input id="pr-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="e.g. email from the account holder, 24 Sep">
                 <button type="submit" class="ad-btn ad-btn--sm" style="margin-top: 10px;">Record request</button>
             </form>
         @endif

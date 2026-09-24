@@ -3,12 +3,6 @@
 <x-admin.shell active="support" title="Break-glass" subtitle="A read-only, time-boxed look inside one organisation — reason, 2FA, and the organisation is told."
     :back="route('admin.support.index')" back-label="Support">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
-    @if ($errors->any())
-        <div class="ad-flash ad-flash--error">{{ $errors->first() }}</div>
-    @endif
 
     @if ($current)
         <div class="ad-card" style="margin-bottom: 18px;">
@@ -63,14 +57,14 @@
             <div class="ad-empty">No break-glass session has ever been opened.</div>
         @else
             <table class="ad-table">
-                <thead><tr><th>Admin</th><th>Organisation</th><th>Reason</th><th>Started (UTC)</th><th>Ended</th><th class="ad-num">Pages</th><th>Told</th></tr></thead>
+                <thead><tr><th>Admin</th><th>Organisation</th><th>Reason</th><th>Started</th><th>Ended</th><th class="ad-num">Pages</th><th>Told</th></tr></thead>
                 <tbody>
                     @foreach ($recent as $s)
                         <tr>
                             <td>{{ $s->platformAdmin?->name ?? '—' }}</td>
                             <td>{{ $s->organization?->name ?? '—' }}</td>
                             <td style="max-width: 280px;">{{ $s->reason }}</td>
-                            <td>{{ $s->started_at->utc()->format('j M, H:i') }}</td>
+                            <td><x-admin.time :at="$s->started_at" /></td>
                             <td>{{ $s->ended_at ? $s->ended_at->utc()->format('H:i').' · '.$s->ended_reason : ($s->isOpen() ? 'open' : 'due — not yet swept') }}</td>
                             <td class="ad-num">{{ $s->pages_viewed }}</td>
                             <td>{{ $s->tenant_notified_at ? 'Yes' : 'Not yet' }}</td>

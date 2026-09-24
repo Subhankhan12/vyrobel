@@ -4,9 +4,6 @@
 <x-admin.shell active="integrations" title="Integrations"
     subtitle="Your platform-level master credentials for the booking channels — stored encrypted.">
 
-    @if (session('admin_notice'))
-        <div class="ad-flash">{{ session('admin_notice') }}</div>
-    @endif
 
     <div class="ad-card" style="padding: 8px 10px;">
         <table class="ad-table">
@@ -37,7 +34,7 @@
                                 <span class="ad-pill ad-pill--active" style="margin-left: 4px;">Enabled</span>
                             @endif
                         </td>
-                        <td style="color: var(--ad-muted);">{{ $i?->last_tested_at?->diffForHumans() ?? '—' }}</td>
+                        <td style="color: var(--ad-muted);"><x-admin.time :at="$i?->last_tested_at" /></td>
                         <td style="text-align: right;"><a href="{{ route('admin.integrations.edit', $key) }}" class="ad-btn ad-btn--ghost ad-btn--sm">Manage</a></td>
                     </tr>
                 @endforeach
@@ -50,7 +47,7 @@
         <p class="ad-stat-sub" style="line-height: 1.65;">
             These are the <strong style="color: var(--ad-ink);">platform's</strong> master credentials. Later, each
             customer connects <strong style="color: var(--ad-ink);">their own</strong> channel account on top (the
-            tenant-facing "connect your account" flow) — that per-customer connection, and the live two-way sync, are
+            organisation’s own "connect your account" flow) — that per-customer connection, and the live two-way sync, are
             account-gated and arrive with the real channel accounts. This page manages the platform side.
         </p>
     </div>

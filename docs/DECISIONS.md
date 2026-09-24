@@ -17703,3 +17703,58 @@ literal; turning it back off is that one literal and a deploy). The dormant-beha
 itself, so the OFF path stays proven. Suite: 3898/3899 — the one failure was the memory-index load-ceiling guard
 (a file outside the repo, one line over after a note written this evening), condensed and re-run green; no repository
 file changed after the run. Money gate FULL unchanged.
+
+---
+
+## 2026-09-25 — ADMIN 03 — every console page, four ways (functionality · design · content · fonts)
+
+A quality pass, not a feature pass: no new feature, no redesign, the console's own design language. 28 GET routes
+listed from the route file; 38 views walked (the signed-in pages and their states — empty, internal, found, not found —
+plus the invite page, the public `/status`, the 404) at 1440 desktop and 390 phone, 76 screenshots. ⚠️ NOT walked: the
+2FA challenge, 2FA setup and the email-change link — each needs the founder mid-sign-in or a mailed link (dark mode: the console and the product support none —
+excluded once, not per page; ⚠️ the public `/status` DOES carry a dark block, found while fixing). The walk came first;
+fixes second; the register grouped by ROOT CAUSE, so one fix closes many sightings.
+
+**S1 — the console told the admin something untrue (3), each fixed, tested and mutation-proved:**
+- **F1** the audit log's default "Changes & sign-ins" view listed nine kinds of PAGE VIEW — `READ_ACTIONS` was a hand
+  list nobody updated after Phase 1. Extended, and `AuditReadActionsAreCompleteTest` now scans the code (tokenised) so a
+  new `->read('platform.*')` that is not in the list fails the suite.
+- **F2** the overview said "0 on trial" beside "8 in free trial", and the directory's "On trial" filter could never match:
+  a free trial lives on the SUBSCRIPTION (signup sets the account status to `active`). Filter, plan column, overview and
+  detail now read the subscription; the two statuses are labelled apart ("Account status" / "Subscription", in words).
+- **F3** the privacy desk printed "Next due: UTC" — a timezone with no date (`?->format().' UTC' ?? '—'` — the `??` never
+  fires because the concatenation is never null). Now "Nothing scheduled".
+
+**S2/S3 — fixed at the root, once:** the shell renders the notice and EVERY validation error once (F12 — eleven pages
+each showed only the first error; their copies removed) · shell CSS for phone: header stacks, table cards scroll
+themselves, label/value lists shrink, long values wrap (F4/F5) · tabular digits and non-wrapping times (F16/F17) ·
+`App\Support\Platform\ActionLabel` — ONE place an action key becomes words, the key kept in reach (F6) ·
+`<x-admin.time>` — ONE way a moment is printed: absolute UTC on screen, relative in the title (F7, 20 sites; the health
+board's error hour now says its hour and zone) · the glossary (F8 — "Organisations", "Statistics", no "tenant" in copy)
+· the ledger rows for a published announcement and a posted incident now NAME the row they created (F13 — the id is
+minted before `mutate()`) · plurals (F14) · cohort months "Sep 2026" (F18) · the privacy form's visible labels (F19) ·
+the kill switch's wording at zero lock-outs (F20) · "marked as in progress" (F21).
+
+**Refused or reclassified — say which, never silently:**
+- ⚠️ **F20's zero-count confirmation is KEPT.** Only its words changed. Requiring it at zero is deliberate (the count can
+  change between loading the page and pressing the button); dropping it would weaken a kill-switch guard.
+- ⚠️ **F10 WITHDRAWN — a probe artefact.** "Auth inputs render Arial 13.3px" came from `querySelector('input, select')`,
+  whose first match is the hidden `_token` input (always the browser default). Every visible input carries `.ad-input`
+  → Inter. The instrument, not the page.
+- **F11 DELIBERATE** — `/status` uses the system font by its own rule: no request of any kind, so it renders when the
+  asset pipeline is what is broken (as the error pages).
+- **F8's "11 American spellings" was a SOURCE pre-read** that counted comments and identifiers; on rendered copy there
+  are none. Nothing to fix; recorded.
+- F15 (label sizes) matches the product (`/app` uses the same 10.5px uppercase labels). The audit log keeps
+  `Y-m-d H:i:s` under "When (UTC)" — a forensic ledger, seconds matter.
+- OUT OF SCOPE (needs a feature): no way to remove a mistaken status incident before its 14 days end.
+
+**⚠️ TWO EARLIER MUTATIONS HAD BEEN PROVING NOTHING SINCE PHASE 3.** Re-running every prior mutation (115) found
+Phase 1's M21 ("mail on log shown green") and Phase 2's M18 ("switch not exempt") could no longer land: Phase 3
+(`7440b720`) refactored both guarded lines, so the needles matched nothing and the scripts reported DID NOT LAND /
+SETUP-FAIL — correctly refusing to count them, but no one re-ran them after Phase 3. Re-anchored to the current code:
+both RED, each caught by the test aimed at it. The guards were intact throughout; the proofs were not. ⚠️ **A mutation
+set is code about code — it goes stale when the code moves, and only re-running it says so.**
+
+**PROOF.** ADMIN 03: 11 mutations, 11 caught (F1 ×1, F2 ×1, F3 ×1, F12 ×2, F13 ×2, F6 ×2, F7 ×2). Prior phases:
+115/115 (two after re-anchoring). full suite 3906/3906 (2026-09-25 22:07 UTC — dated, not a pin; the first run was 3905/3906: the layout guard counted `minmax(min(100%, 240px), 1fr)` on the privacy form as a bare `1fr` — its `minmax\([^)]*\)` strip stops at the first `)`, so a nested `min()` leaves `, 1fr)` behind. The CSS had a floor; it was rewritten as `minmax(240px, 1fr)` rather than bending the instrument, and the parser limit is recorded here) · Pint clean · PHPStan L5 0 · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`, four digests `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` — matching the start (tenant one only; five money tables read by no instrument).

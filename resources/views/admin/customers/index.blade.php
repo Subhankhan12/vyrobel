@@ -15,7 +15,7 @@
     $bucket = \App\Support\Platform\PlatformCustomers::BUCKETS[$filters['bucket'] ?? ''] ?? null;
     $anyFilter = collect($filters)->except(['sort', 'dir'])->filter(fn ($v) => $v !== '')->isNotEmpty();
 @endphp
-<x-admin.shell active="customers" title="Customers" subtitle="Every organisation on the platform — account metadata only, never a guest.">
+<x-admin.shell active="customers" title="Organisations" subtitle="Every organisation on the platform — account metadata only, never a guest.">
 
     @if ($bucket)
         <div class="ad-flash" style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
@@ -95,8 +95,8 @@
                             <td>{{ $row['plan'] ?? '—' }}</td>
                             <td style="{{ $row['source'] === 'Unknown' ? 'color: var(--ad-faint);' : '' }}">{{ $row['source'] }}</td>
                             <td>{{ $row['verified'] ? 'Yes' : 'No' }}</td>
-                            <td style="color: var(--ad-muted);">{{ $row['created_at']?->format('j M Y') ?? '—' }}</td>
-                            <td style="color: var(--ad-muted);">{{ $row['last_login_at']?->diffForHumans() ?? 'Never' }}</td>
+                            <td style="color: var(--ad-muted);"><x-admin.time :at="$row['created_at']" date /></td>
+                            <td style="color: var(--ad-muted);"><x-admin.time :at="$row['last_login_at']" empty="Never" /></td>
                             <td class="ad-num">{{ number_format($row['properties']) }}</td>
                             <td class="ad-num">{{ number_format($row['members']) }}</td>
                         </tr>
