@@ -17486,3 +17486,15 @@ an action that throws now gets a second `<action>.failed` row; the ledger no lon
 **PROOF.** 24 mutations, 24 caught — each by the test aimed at it, named in the run; every file restored
 byte-identical. Pint clean · PHPStan L5 0 · the full suite green on this run (3852/3852, 2026-09-24 — a dated figure, not a pin) ·
 money gate FULL: six figures and the four row digests identical to Phase 1's.
+
+**DEPLOYED 2026-09-24 — `rel_O @ 1152752b`** (L12k; one additive migration run from rel_O while rel_N served — `/`,
+`/login`, `/signup`, `/admin/login` 200 throughout; boot check on the target, every `/app`, `/owner` and `api/owner`
+route carrying the gate except the signed owner email-change link, by design; swap 3 ms; rollback =
+`ops/release.sh rollback rel_N`). **Public checks: PASS 11 · FAIL 0 · COULD NOT MEASURE 0** (17 anonymous admin GETs
+now including `/admin/triage`, 6 anonymous POSTs including archive/restore, 152 routes free of 5xx, battery SERVED=0).
+Probe sign-up `ADMIN-P2 PROBE (not a customer)` accepted and read back — ⚠️ **`signup_source = email`, the first
+source ever recorded on production** — then marked internal. `Vyrobel Internal` locked `confirm` (its name READ from
+the database by id, never typed; read back). Customers on the platform: **0**. The known default still verifies
+against admin@vyrobel.com (control: false) — break-glass stays dormant. **Waiting for the signed-in walkthrough:** a
+suspend → the probe's user refused at /app → reactivate → archive → restore, on the probe org only, each audit row
+read back; the triage and directory screens; the confirm-typed-name refusal shown (NOT exercised) on Vyrobel Internal.
