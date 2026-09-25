@@ -142,3 +142,20 @@ it('a queued email that FAILED turns the card amber, counted from failed_jobs', 
     expect(mhCard()->status)->toBe(HealthCard::AMBER)
         ->and(implode(' ', mhCard()->lines))->toContain('Failed on the queue — 7 days: 1');
 })->group('security');
+
+// ══ 5 · THE PUBLIC PRIVACY PAGE — the email processor it names follows the configured mailer ══════════════════════
+
+it('⚠️ the public privacy page names Hostinger for email, never Postmark, and says "active" only when mail really goes', function () {
+    config(['mail.default' => 'log']);
+    $off = (string) $this->get(route('marketing.page.privacy'))->assertOk()->getContent();
+
+    config(['mail.default' => 'smtp']);
+    $on = (string) $this->get(route('marketing.page.privacy'))->assertOk()->getContent();
+
+    foreach ([$off, $on] as $html) {
+        expect($html)->toContain('Hostinger (email)')->not->toContain('Postmark');
+    }
+    expect($off)->toContain('no email is currently being delivered from this system')
+        ->and($on)->not->toContain('no email is currently being delivered from this system')
+        ->and($on)->toMatch('/Hostinger \(email\)<\/strong>[^<]*\s+Active\.\s/');
+})->group('security');

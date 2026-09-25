@@ -76,4 +76,12 @@ return [
         'new' => '',
         'tests' => [['file' => 'tests/Feature/MailHostingerSmtpTest.php', 'filter' => 'records every message the mail server accepted']],
     ],
+    [
+        'id' => 'MAIL-M9',
+        'name' => 'the public privacy page says email is active whatever the mailer',
+        'file' => 'resources/views/marketing/privacy.blade.php',
+        'old' => '          @if ($mailProcessor[\'active\'])',
+        'new' => '          @if (true)',
+        'tests' => [['file' => 'tests/Feature/MailHostingerSmtpTest.php', 'filter' => 'the public privacy page names Hostinger']],
+    ],
 ];

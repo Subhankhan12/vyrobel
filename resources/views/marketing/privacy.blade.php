@@ -72,7 +72,18 @@
       <p style="color:var(--vy-muted);">Today the product can transmit data to:</p>
       <ul style="color:var(--vy-muted);padding-left:20px;">
         <li><strong>Stripe</strong> — card payments and, for owner payouts, identity verification. Live card processing is not yet switched on.</li>
-        <li><strong>Postmark</strong> — transactional email. <strong>Not yet active:</strong> no email is currently being delivered from this system.</li>
+        {{-- MAIL 02 (2026-09-25) — email moved from Postmark to Hostinger's own mail, and this line now reads the SAME
+             register the platform console reads (`SubProcessors`), so "active" follows the configured mailer instead
+             of a sentence typed once. The static line it replaces named Postmark and said nothing was delivered —
+             both became false the moment mail was switched on, and nothing would have gone red. --}}
+        @php($mailProcessor = collect(\App\Support\Privacy\SubProcessors::register())->firstWhere('name', 'Hostinger (email)'))
+        <li><strong>Hostinger (email)</strong> — transactional email: booking confirmations, account verification, password resets and invitations, sent from a vyrobel.com mailbox. It receives the recipient's address and the message itself.
+          @if ($mailProcessor['active'])
+            Active.
+          @else
+            <strong>Not yet active:</strong> no email is currently being delivered from this system.
+          @endif
+        </li>
         <li><strong>Google</strong> — only if you choose to sign in with Google, and only your identifier, email and basic profile.</li>
         <li><strong>Hostinger</strong> — hosting and storage.</li>
       </ul>
