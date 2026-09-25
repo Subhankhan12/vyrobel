@@ -17782,3 +17782,75 @@ long names, emails and reasons; every state) and measured in a throwaway headles
   checkbox is not a font defect — a checkbox draws no text (the same blind spot as F10).
 PROOF (addendum): 6 more mutations, 6 caught (the map dropped from two forms, the map only in a comment, a word lost
 from the map, the placeholder removed, the placeholder never selected). Three PRIOR mutations went stale under this batch's own validate() edits — Phase 1 M17b and Phase 2 M21/M23 — found by re-running every set, re-anchored so only the guard changes, each RED: prior sets 115/115 again. Suite 3908/3908 (2026-09-25 10:34 UTC — dated, not a pin) · PHPStan L5 0 · Pint clean · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0` + four digests unchanged.
+
+---
+
+## 2026-09-25 — ADMIN 03B — THE SIGNED-IN CLOSE (live on `rel_V @ 9d0bf6ce`)
+
+The founder signed in; every page touched by rel_T / rel_U was re-walked on the LIVE site, signed in, at 1440 (28
+views) and 390 (26 views), each screenshotted, with console errors and failed requests recorded (0 and 0). By his later
+ruling (FINISH 01) the four step-up walks that need his password or 2FA were NOT walked — they are listed below as
+test-covered only, never as passed.
+
+**The 21 ADMIN 03 fixes — 20 seen CLOSED on live signed-in pages, 1 not seen live:**
+- CLOSED live: F1 (audit default view: 36 rows, 0 page views; the reads view 50 rows, all reads) · F2 (overview "9 in
+  free trial" = directory trial filter 9 rows, plan "Pro · free trial") · F3 ("Nothing scheduled") · F4 (phone header:
+  title ≥343px, no overlap on 25 views) · F6 (words, key as title) · F7 (absolute UTC, relative in the title) · F8
+  ("Organisations", "Statistics", no "tenant"/"organiz…" in copy — the only hits are the internal org's NAME and slug)
+  · F9 · F12 (every error listed) · F14 · F16 (`tabular-nums` computed) · F17 (`nowrap` computed) · F18 ("Sep 2026")
+  · F19 (six visible labels) · F20 (the zero-lock-out words) · F22 (audit log 0 overflow at 390) · F23 ("organisation",
+  "about", "received by") · F24 (placeholder present, `required` refuses an empty choice — checked by the browser's own
+  validity API, nothing submitted) · F13 (announcement half: a PROBE-ONLY announcement, published 12:38:47 and withdrawn
+  12:39:14 UTC — 27 s, seen and dismissed from the probe user's side — both ledger rows name `announcement:
+  01m3c96k…`).
+- ⚠️ REOPENED, then fixed and re-closed live: **F5** — the INTERNAL organisation's page scrolled 15px sideways at 390px:
+  a `nowrap` "Protected — lifecycle actions need its name typed" pill (the pre-walk never rendered a locked org).
+- ⚠️ NOT seen live: **F21** ("marked as in progress") — seeing it means changing a privacy request's status on
+  production, i.e. writing a record; source- and render-verified only. **F13's incident half** — posting a `/status`
+  incident is PUBLIC the moment it is saved; covered by `Admin03QualityPassTest` (F13) only.
+
+**Found by the live walk and fixed in rel_V (each tested + mutation-proved, each re-seen live):**
+- F5 re-open (above).
+- **F25** — a `required_if` message printed the other field's RAW value: "The organisation field is required when
+  about is relayed_guest." `ConsoleFields::MESSAGES` gives all five console `required_if` rules a sentence; a scan test
+  fails if a new one lacks it. Live: "A guest's request needs the organisation that relayed it."
+- **F26** — "Assign a plan" preselects the CURRENT plan; re-assigning it was MEASURED (rows before/after): no
+  subscription column changed (Eloquent saves nothing when unchanged), but an `assign_plan` ledger row was written with
+  the reason and the page said "Plan assigned" — a ledger claiming a change that never happened. Now refused before
+  anything is written ("This organisation is already on that plan — nothing was changed"); the current plan is read
+  through the door as an honest read row (`platform.customer.current_plan`, in the read list). Live on probe W1:
+  refused, no ledger row.
+
+**NOT walked live — needs the founder's password or 2FA, by design (FINISH 01). Covered by the automated suite only:**
+- Suspend → reactivate: `PlatformTenantLifecycleTest` — "suspending changes the status and nothing else — and needs a
+  reason plus a password", "SUSPEND refuses the organisation…", "REACTIVATE restores full access — and the status it had
+  BEFORE". (The probe side WAS measured live: the ADMIN-03B probe user reaches `/app` — 200 — as the baseline.)
+- Admin invite create → cancel (cancel = revoke the invited admin; there is no separate cancel route):
+  `PlatformAdminAccessTest` — "an invitation creates an INVITED admin with a password nobody knows…", "REVOKE disables
+  the admin…".
+- Remove the last Owner: `PlatformAdminAccessTest` — "the LAST active Owner can be neither demoted nor revoked";
+  mutation P1-M18.
+- A live break-glass session: `PlatformBreakGlassTest` (15 tests) — the 30-minute bannered session, LAYER 1 write
+  refusal, tenant one read-only, the always-on tenant notice.
+
+**The three sign-in pages:** 2FA code page — observed only through his sign-in (a signed-in admin is redirected).
+2FA setup — live it redirects an enrolled admin to Health BEFORE touching any secret (read in the controller first);
+rendered LOCALLY for an unenrolled test admin: Inter/Sora, 0 overflow at 1440 and 390, QR present. Email-change link —
+UNMEASURED: it needs a mailed token and mail is `log`; not forged.
+
+**Nothing left behind (read on the host + `/status` from outside):** ADMIN-03B probe `active`, internal; 0 suspended
+orgs; 0 pending invites (1 admin); 0 open break-glass; 0 live or scheduled announcements; 0 status incidents ("No
+incidents have been posted."); all five switches ON. Probes left as they are (FINISH 01): PUBLIC-01, ADMIN-P1..P5,
+ADMIN03-W1, ADMIN-03B — all internal; customers 0.
+
+**Password check (host, never by logging in, hash never printed):** the known default verifies FALSE (control FALSE;
+the same instrument read TRUE before the change) → break-glass stays ON, as since rel_S. The live walk of it is recorded
+above as needing his 2FA.
+
+**Instrument notes:** the pre-walk renderer used `?q=` for the support lookup (the real parameter is `email`), so its
+"person found" state was the empty page — the found state was walked LIVE instead (0 overflow at 390). A pill lookup
+missed because `text-transform: uppercase` changes `innerText`; the screenshot was the evidence.
+
+**Mutations:** one harness now (`tests/Mutations/run.php`, commit 975116b2) — 135 mutations (P1–P5 115 + ADMIN 03 20), **135 landed and caught · 0 landed and not caught · 0 did not land**, the harness's self-check 5/5 and all 49 aimed tests green on the clean tree first (2026-09-25 13:00 UTC). `MutationSetsStillLandTest` now runs with the SUITE and reddens the moment a guarded line moves — it fired for real on rel_V's own edit (A03-N1/N2), which were re-anchored in the same change.
+
+**THE THREE SENTENCES.** 20 of the 21 ADMIN 03 fixes are seen closed on live signed-in pages (F21 was not, because seeing it means writing a privacy record on production), and the live walk found and fixed three more (F5 re-opened, F25, F26), each re-seen live on rel_V. Break-glass is LIVE — on since rel_S, the known default password no longer verifies on the host — but a live session was not walked because it needs the founder's 2FA; it is covered by `PlatformBreakGlassTest`. 135 of 135 mutations landed and were caught.
