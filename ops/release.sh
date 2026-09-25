@@ -5,6 +5,7 @@
 #
 #   ops/release.sh status                 which release is live (READ from .release), which are retained
 #   ops/release.sh stage   rel_<X>        build the new release beside the live one (never touches the live one)
+#   ops/release.sh recache rel_<X>        the SAME code, config + routes rebuilt from the .env as it is now (L14)
 #   ops/release.sh migrate rel_<X>        run PENDING migrations from the new release — ADDITIVE ONLY, checked
 #   ops/release.sh swap    rel_<X>        the one atomic step: repoint `current`
 #   ops/release.sh rollback rel_<X>       repoint `current` back (the previous release is never modified)
@@ -97,6 +98,11 @@ stage)
       $PHP artisan config:cache >/dev/null
       $PHP artisan route:cache >/dev/null
       chmod 600 bootstrap/cache/config.php
+      # ⚠️ TONIGHT 01 — the ONE shared .env: every release LINKS it (never a copy), and it stays 600. Re-asserted on
+      #    every stage, because a hand edit in the hosting panel's file editor can rewrite it with a wider mode.
+      [ -L .env ] && [ \"\$(readlink .env)\" = '../../public_html/.env' ] || { echo '  ✗ .env is not the link to the shared file'; exit 1; }
+      chmod 600 ../../public_html/.env
+      echo \"  .env → \$(readlink .env) · shared file mode \$(stat -c %a ../../public_html/.env)\"
       echo \"  caches rebuilt → paths point at: \$(grep -oE 'releases/rel_[A-Z]+' bootstrap/cache/config.php | sort -u | tr '\n' ' ')\"
       echo \"  .release = \$(cat .release)\"
       # ⚠️ THE LIVE RELEASE MUST BE UNTOUCHED: every shipped file that exists in it has its OWN inode now.
@@ -128,6 +134,33 @@ migrate)
         say "✓ $m — additive"
     done
     ssh_ "cd ~/$ROOT/releases/$NEW && $PHP artisan migrate --force 2>&1 | tail -20"
+    ;;
+
+recache)
+    # ⚠️ TONIGHT 01 — an .env-only change (a password, a key, a URL) needs the config cache REBUILT (L14), and `stage`
+    #    rightly refuses a commit that is already live. This builds a new release of the SAME commit — a hardlink copy
+    #    of the live one — with config and routes rebuilt from the .env as it is NOW. `swap` makes it live; a rollback
+    #    to the previous release restores the previous config exactly, because that release is never touched.
+    [[ "$NEW" =~ ^rel_[A-Z]+$ ]] || die "usage: recache rel_<LETTERS>"
+    CUR="$(live_release)"; FROM="$(live_commit)"
+    [[ "$FROM" =~ ^[0-9a-f]{40}$ ]] || die "live .release is not a 40-char commit: [$FROM]"
+    say "live $CUR @ ${FROM:0:8}  →  $NEW: the same code, config + routes rebuilt from the current .env"
+    ssh_ "set -euo pipefail
+      cd ~/$ROOT/releases
+      [ ! -e $NEW ] || { echo '  ✗ $NEW already exists'; exit 1; }
+      cp -al $CUR $NEW
+      cd $NEW
+      # the caches are HARDLINKS shared with the live release: unlink them first, so the rebuild writes NEW inodes
+      rm -f bootstrap/cache/config.php bootstrap/cache/routes-v7.php
+      $PHP artisan config:cache >/dev/null
+      $PHP artisan route:cache >/dev/null
+      chmod 600 bootstrap/cache/config.php
+      [ -L .env ] && [ \"\$(readlink .env)\" = '../../public_html/.env' ] || { echo '  ✗ .env is not the link to the shared file'; exit 1; }
+      chmod 600 ../../public_html/.env
+      echo \"  .env → \$(readlink .env) · shared file mode \$(stat -c %a ../../public_html/.env)\"
+      echo \"  caches rebuilt → paths point at: \$(grep -oE 'releases/rel_[A-Z]+' bootstrap/cache/config.php | sort -u | tr '\n' ' ')\"
+      echo \"  .release = \$(cat .release)  (unchanged: the same code)\"
+      [ \"\$(stat -c %i ../$CUR/bootstrap/cache/config.php)\" != \"\$(stat -c %i bootstrap/cache/config.php)\" ] && echo '  ✓ its own config cache — the live release is untouched' || { echo '  ✗ SHARED config-cache inode'; exit 1; }"
     ;;
 
 swap|rollback)

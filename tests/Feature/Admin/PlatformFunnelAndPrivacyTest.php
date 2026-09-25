@@ -95,7 +95,9 @@ it('⚠️⚠️ the RETENTION METER counts from the inventory, reads enforcemen
     expect(RetentionCoverage::RULING)->toBeNull();
 
     $c = (new RetentionCoverage)->compute();
-    $rows = count(array_filter(file(RetentionCoverage::inventoryPath()) ?: [], fn ($l) => str_starts_with($l, '| **')));
+    // ⚠️ M is the AUDITED DOC's own row count — read from the doc, never typed — even though the meter reads the
+    //    shipped data file generated from it (TONIGHT 01).
+    $rows = count(array_filter(file(RetentionCoverage::sourcePath()) ?: [], fn ($l) => str_starts_with($l, '| **')));
     expect($c['measurable'])->toBeTrue()
         ->and($c['categories'])->toBe($rows)   // read, never typed
         ->and($c['strict'])->toBeLessThanOrEqual($c['lenient'])
@@ -104,11 +106,49 @@ it('⚠️⚠️ the RETENTION METER counts from the inventory, reads enforcemen
         ->and(array_keys($c['enforced']))->toContain('login_activity', 'guest_documents');
 
     // Where the inventory is not deployed, it says so — it never falls back to a remembered number.
-    $gone = (new RetentionCoverage)->compute('/nonexistent/DATA-INVENTORY.md');
+    $gone = (new RetentionCoverage)->compute('/nonexistent/data-inventory.json');
     expect($gone['measurable'])->toBeFalse()->and($gone['categories'])->toBeNull()->and($gone['reason'])->toContain('not deployed');
 
     $this->actingAs(platformAdmin(), 'admin')->get(route('admin.privacy.index'))->assertOk()
         ->assertSee('Awaiting the founder’s ruling on what counts')->assertSee('Neither reading is the ruling');
+})->group('security');
+
+// ⚠️⚠️ TONIGHT 01 (2026-09-25) — the meter reads a SHIPPED data file generated from the doc, because docs/ is not
+// deployed. These three tests are what make "one source of truth" true rather than hoped for.
+it('⚠️⚠️ the SHIPPED inventory data file is exactly what the audited doc produces — the two cannot drift', function () {
+    $fresh = RetentionCoverage::render(RetentionCoverage::categoriesFrom(
+        (string) file_get_contents(RetentionCoverage::sourcePath()),
+        RetentionCoverage::liveTables(),
+    ));
+
+    expect((string) file_get_contents(RetentionCoverage::inventoryPath()))->toBe($fresh,
+        RetentionCoverage::SOURCE_DOC.' and '.RetentionCoverage::DATA_FILE.' differ — run `php artisan privacy:inventory-data` and commit both');
+
+    // it holds categories and table names — no address, nothing personal
+    expect((string) file_get_contents(RetentionCoverage::inventoryPath()))->not->toContain('@');
+})->group('security');
+
+it('⚠️⚠️ the inventory the meter reads is one the release script SHIPS — never docs/, tests/ or a .md file', function () {
+    $file = RetentionCoverage::DATA_FILE;
+
+    // ⚠️ ops/release.sh's own exclusion and refusal, READ from the script rather than remembered, then applied.
+    $script = (string) file_get_contents(base_path('ops/release.sh'));
+    expect($script)->toContain('grep -vE \'^(docs/|tests/|\.github/)|\.md$\'')
+        ->and($script)->toContain('resources/css/*|resources/js/*');
+
+    expect(RetentionCoverage::inventoryPath())->toBe(base_path($file))
+        ->and(preg_match('#^(docs/|tests/|\.github/)|\.md$#', $file))->toBe(0)
+        ->and(str_starts_with($file, 'resources/css/') || str_starts_with($file, 'resources/js/'))->toBeFalse();
+})->group('security');
+
+it('an unreadable inventory data file is reported, never counted', function () {
+    $path = tempnam(sys_get_temp_dir(), 'inv');
+    file_put_contents($path, '{"not": "an inventory"');
+
+    $c = (new RetentionCoverage)->compute($path);
+    unlink($path);
+
+    expect($c['measurable'])->toBeFalse()->and($c['categories'])->toBeNull()->and($c['reason'])->toContain('could not be read');
 })->group('security');
 
 it('the sub-processor register claims NO agreement, and shows states — never a config value', function () {

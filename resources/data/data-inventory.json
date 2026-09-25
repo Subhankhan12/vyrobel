@@ -1,0 +1,1270 @@
+{
+    "generated_from": "docs/legal/DATA-INVENTORY.md",
+    "regenerate": "php artisan privacy:inventory-data — edit the doc, regenerate, commit both; a test fails if they differ",
+    "holds": "data CATEGORIES and the table names each one mentions — no personal data",
+    "categories": [
+        {
+            "category": "Guest identity & contact profile (core record)",
+            "tables": [
+                "guests",
+                "migrations",
+                "organizations"
+            ]
+        },
+        {
+            "category": "Guest portal credentials & the email blind index",
+            "tables": [
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Guest 2FA / passkeys — ABSENT (negative finding, verified)",
+            "tables": [
+                "guests",
+                "login_approvals",
+                "migrations",
+                "passkeys",
+                "trusted_devices",
+                "users"
+            ]
+        },
+        {
+            "category": "Identity documents (passport / EU ID card) captured at online check-in",
+            "tables": [
+                "documents",
+                "guest_documents",
+                "media",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Reservations & stays (the booking record)",
+            "tables": [
+                "bookings",
+                "guests",
+                "migrations",
+                "reservation_guests",
+                "reservation_units",
+                "reservations"
+            ]
+        },
+        {
+            "category": "Free text ABOUT the guest on the reservation",
+            "tables": [
+                "guests",
+                "migrations",
+                "owners",
+                "reservations"
+            ]
+        },
+        {
+            "category": "⚠️ GAP — reservation cancellation reason (free text about the guest, survives erasure)",
+            "tables": [
+                "domain_events",
+                "migrations",
+                "reservation_status_history",
+                "reservations"
+            ]
+        },
+        {
+            "category": "Operator notes about a guest (polymorphic notes)",
+            "tables": [
+                "guests",
+                "migrations",
+                "notes",
+                "tickets"
+            ]
+        },
+        {
+            "category": "⚠️ GAP — tags applied to a guest (survive erasure, and the tag text is copied into two event tables)",
+            "tables": [
+                "audit_events",
+                "domain_events",
+                "migrations",
+                "taggables",
+                "tags"
+            ]
+        },
+        {
+            "category": "Unified inbox — guest↔operator conversations",
+            "tables": [
+                "message_threads",
+                "messages",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Reviews written by guests — PUBLICLY PUBLISHED",
+            "tables": [
+                "documents",
+                "guests",
+                "migrations",
+                "reviews",
+                "tags"
+            ]
+        },
+        {
+            "category": "Guest change requests (date change / add-ons / cancellation)",
+            "tables": [
+                "guest_change_requests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "⚠️ GAP — abandoned booking quotes (an unconverted visitor's email, retained forever, no purge)",
+            "tables": [
+                "booking_quotes",
+                "migrations",
+                "reservations"
+            ]
+        },
+        {
+            "category": "Guest wallet / credit ledger",
+            "tables": [
+                "guest_credit_ledger",
+                "migrations"
+            ]
+        },
+        {
+            "category": "⚠️ GAP — wishlist, waitlist and email opt-outs (travel intentions, survive erasure)",
+            "tables": [
+                "guest_email_preferences",
+                "guest_waitlist_entries",
+                "guest_wishlist_items",
+                "migrations",
+                "owners",
+                "reviews"
+            ]
+        },
+        {
+            "category": "Payment records — and the absence of any card data",
+            "tables": [
+                "folio_items",
+                "folios",
+                "invoices",
+                "migrations",
+                "payment_authorizations",
+                "payments",
+                "units"
+            ]
+        },
+        {
+            "category": "Stripe (payment processor) — what leaves, what comes back",
+            "tables": [
+                "payments",
+                "payouts",
+                "units",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "🚨 GAP — webhook_events.payload: verbatim third-party payloads containing guest PII in plaintext",
+            "tables": [
+                "audit_events",
+                "domain_events",
+                "guests",
+                "jobs",
+                "migrations",
+                "payments",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "⚠️ audit_events — the field-name rule HOLDS, but the guest's IP and user-agent do not",
+            "tables": [
+                "audit_events",
+                "domain_events",
+                "guests",
+                "migrations",
+                "owners",
+                "tags"
+            ]
+        },
+        {
+            "category": "⚠️ domain_events — the business event outbox",
+            "tables": [
+                "availability",
+                "domain_events",
+                "migrations",
+                "notifications",
+                "webhook_deliveries",
+                "webhooks"
+            ]
+        },
+        {
+            "category": "In-app notifications",
+            "tables": [
+                "guests",
+                "migrations",
+                "notes",
+                "notifications",
+                "owners"
+            ]
+        },
+        {
+            "category": "Authentication security log (login_activity)",
+            "tables": [
+                "guests",
+                "login_activity",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Sessions (server-side) for signed-in guests",
+            "tables": [
+                "guests",
+                "migrations",
+                "sessions"
+            ]
+        },
+        {
+            "category": "Cookies set in a guest's/visitor's browser",
+            "tables": [
+                "guests"
+            ]
+        },
+        {
+            "category": "Email sent to guests — content and what is retained",
+            "tables": [
+                "guests",
+                "jobs",
+                "notifications"
+            ]
+        },
+        {
+            "category": "Marketing consent and unsubscribe",
+            "tables": [
+                "guest_email_preferences",
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Arrival secrets released to the guest (door code, wifi)",
+            "tables": [
+                "migrations",
+                "units"
+            ]
+        },
+        {
+            "category": "Guest password-reset tokens",
+            "tables": [
+                "guest_password_reset_tokens",
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Disclosure of guest data to OWNERS and to third-party OAuth apps",
+            "tables": [
+                "bookings",
+                "guests",
+                "messages",
+                "owners",
+                "roles",
+                "units",
+                "users"
+            ]
+        },
+        {
+            "category": "Bulk export of guest contact data by operators",
+            "tables": [
+                "audit_events",
+                "export_downloads",
+                "guests",
+                "migrations",
+                "roles"
+            ]
+        },
+        {
+            "category": "Documents the guest can download about themselves",
+            "tables": [
+                "documents",
+                "guests",
+                "invoices",
+                "media",
+                "owners",
+                "reservations"
+            ]
+        },
+        {
+            "category": "Unclaimed guest records (people who never created an account)",
+            "tables": [
+                "guests"
+            ]
+        },
+        {
+            "category": "Demo / seed guest data",
+            "tables": [
+                "guests"
+            ]
+        },
+        {
+            "category": "Account identity — operator / owner / staff login (`users`)",
+            "tables": [
+                "documents",
+                "guests",
+                "migrations",
+                "owners",
+                "users"
+            ]
+        },
+        {
+            "category": "Credential — password hash",
+            "tables": [
+                "sessions",
+                "users"
+            ]
+        },
+        {
+            "category": "Credential — 2FA / TOTP secret and recovery codes",
+            "tables": [
+                "migrations",
+                "platform_admins",
+                "users"
+            ]
+        },
+        {
+            "category": "Credential — passkeys / WebAuthn",
+            "tables": [
+                "migrations",
+                "owners",
+                "passkeys"
+            ]
+        },
+        {
+            "category": "Device / session security records — trusted devices",
+            "tables": [
+                "documents",
+                "migrations",
+                "trusted_devices"
+            ]
+        },
+        {
+            "category": "Device / session security records — login approvals",
+            "tables": [
+                "login_approvals",
+                "migrations",
+                "users"
+            ]
+        },
+        {
+            "category": "Sessions (the `sessions` table)",
+            "tables": [
+                "migrations",
+                "sessions"
+            ]
+        },
+        {
+            "category": "Password reset tokens (operator / owner realm)",
+            "tables": [
+                "migrations",
+                "password_reset_tokens"
+            ]
+        },
+        {
+            "category": "Login activity — the auth security signal",
+            "tables": [
+                "login_activity"
+            ]
+        },
+        {
+            "category": "API tokens — OAuth2 authorization server (Passport) + tenant API keys",
+            "tables": [
+                "api_keys",
+                "bookings",
+                "migrations",
+                "oauth_access_tokens",
+                "oauth_auth_codes",
+                "oauth_clients",
+                "oauth_device_codes",
+                "oauth_refresh_tokens",
+                "units"
+            ]
+        },
+        {
+            "category": "Per-user preferences, quiet hours and avatar",
+            "tables": [
+                "migrations",
+                "operator_dashboard_preferences",
+                "operator_task_states",
+                "users"
+            ]
+        },
+        {
+            "category": "Pending email change (`users.pending_email`)",
+            "tables": [
+                "migrations",
+                "platform_admins",
+                "users"
+            ]
+        },
+        {
+            "category": "Operator staff — organisation membership and property assignment",
+            "tables": [
+                "migrations",
+                "organization_user",
+                "properties",
+                "property_user",
+                "users"
+            ]
+        },
+        {
+            "category": "Operator staff — role assignments (RBAC)",
+            "tables": [
+                "migrations",
+                "model_has_roles",
+                "roles",
+                "users"
+            ]
+        },
+        {
+            "category": "Staff roster — shifts and published weeks",
+            "tables": [
+                "documents",
+                "migrations",
+                "open_shifts",
+                "schedule_publications",
+                "shifts"
+            ]
+        },
+        {
+            "category": "⚠️ Staff leave / time-off requests — POSSIBLE SPECIAL-CATEGORY DATA",
+            "tables": [
+                "leave_requests",
+                "shifts"
+            ]
+        },
+        {
+            "category": "Staff work attribution across the operational tables",
+            "tables": [
+                "agreement_amendments",
+                "email_templates",
+                "folio_items",
+                "housekeeping_tasks",
+                "inventory_blocks",
+                "ip_allow_rules",
+                "maintenance_settings",
+                "maintenance_tickets",
+                "message_threads",
+                "migrations",
+                "notes",
+                "overbooking_conflicts",
+                "owner_expenses",
+                "owner_statements",
+                "payments",
+                "payouts",
+                "rate_proposals",
+                "reservation_status_history",
+                "unit_requests",
+                "unit_status_logs",
+                "users"
+            ]
+        },
+        {
+            "category": "Notifications feed and delivery preferences",
+            "tables": [
+                "migrations",
+                "notification_preferences",
+                "notifications",
+                "settings"
+            ]
+        },
+        {
+            "category": "⚠️ Owner party record (`owners`) — the counterparty's identity and tax profile",
+            "tables": [
+                "notes",
+                "owners",
+                "payouts"
+            ]
+        },
+        {
+            "category": "⚠️ Owner bank account / IBAN (`payout_methods`)",
+            "tables": [
+                "payout_methods"
+            ]
+        },
+        {
+            "category": "Owner payout preferences and Stripe Connect identifiers",
+            "tables": [
+                "documents",
+                "migrations",
+                "owner_payout_preferences",
+                "owners",
+                "payments"
+            ]
+        },
+        {
+            "category": "Owner sub-users (`owner_users`) — the nested team",
+            "tables": [
+                "migrations",
+                "owner_users",
+                "passkeys",
+                "sessions",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ INVITES — operator→owner AND operator→staff (`owner_invites`)",
+            "tables": [
+                "migrations",
+                "owner_invites",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ INVITES — owner→sub-user (`owner_team_invites`)",
+            "tables": [
+                "migrations",
+                "owner_invites",
+                "owner_team_invites",
+                "users"
+            ]
+        },
+        {
+            "category": "Management agreement, amendments and the owner's acknowledgment",
+            "tables": [
+                "agreement_amendment_acknowledgments",
+                "agreement_amendments",
+                "fees",
+                "management_agreements",
+                "migrations",
+                "users"
+            ]
+        },
+        {
+            "category": "Organisation — company, billing and invoicing identity",
+            "tables": [
+                "migrations",
+                "organizations",
+                "payments"
+            ]
+        },
+        {
+            "category": "Subscription and Stripe customer identifiers",
+            "tables": [
+                "subscription_items",
+                "subscriptions",
+                "usage_counters"
+            ]
+        },
+        {
+            "category": "⚠️ Provider webhook payload archive (`webhook_events`)",
+            "tables": [
+                "migrations",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "⚠️⚠️ AUDIT TRAIL (`audit_events`) — THE HEADLINE RETENTION GAP",
+            "tables": [
+                "audit_events"
+            ]
+        },
+        {
+            "category": "Business event outbox (`domain_events`)",
+            "tables": [
+                "audit_events",
+                "availability",
+                "domain_events",
+                "migrations",
+                "webhooks"
+            ]
+        },
+        {
+            "category": "⚠️ Export download log and file watermark (`export_downloads`)",
+            "tables": [
+                "bookings",
+                "export_downloads",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Platform admins — Vyrobel's OWN staff (`platform_admins`, `platform_admin_actions`)",
+            "tables": [
+                "migrations",
+                "platform_admin_actions",
+                "platform_admins",
+                "users"
+            ]
+        },
+        {
+            "category": "Messages and threads — staff and owner names in a permanent conversation record",
+            "tables": [
+                "message_reactions",
+                "message_stars",
+                "message_threads",
+                "messages",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Operator free-text notes ABOUT an owner",
+            "tables": [
+                "guests",
+                "migrations",
+                "notes",
+                "owners",
+                "payouts",
+                "units",
+                "users"
+            ]
+        },
+        {
+            "category": "IP allowlist rules (`ip_allow_rules`)",
+            "tables": [
+                "ip_allow_rules"
+            ]
+        },
+        {
+            "category": "Ask Vyrobel — owner free-text questions sent to a third-party LLM",
+            "tables": [
+                "llm_usage",
+                "messages",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Queue payloads and failed jobs",
+            "tables": [
+                "failed_jobs",
+                "jobs",
+                "migrations"
+            ]
+        },
+        {
+            "category": "COOKIE — session (strictly necessary, framework)",
+            "tables": [
+                "sessions"
+            ]
+        },
+        {
+            "category": "COOKIE — CSRF token (strictly necessary, framework)",
+            "tables": [
+                "webhooks"
+            ]
+        },
+        {
+            "category": "COOKIE — consent record (strictly necessary, application)",
+            "tables": []
+        },
+        {
+            "category": "COOKIE — trusted device (strictly necessary, application, opt-in)",
+            "tables": [
+                "migrations",
+                "sessions",
+                "trusted_devices"
+            ]
+        },
+        {
+            "category": "⚠️ COOKIE — UNCATALOGUED remember-me recaller (FINDING: real disclosure gap)",
+            "tables": [
+                "guests"
+            ]
+        },
+        {
+            "category": "⚠️ BROWSER LOCAL STORAGE — undisclosed terminal-equipment storage",
+            "tables": [
+                "information"
+            ]
+        },
+        {
+            "category": "THIRD-PARTY REQUESTS FROM THE MARKETING SITE — VERIFIED NONE (publishable)",
+            "tables": [
+                "documents",
+                "permissions",
+                "tags"
+            ]
+        },
+        {
+            "category": "ANALYTICS / PRODUCT TELEMETRY / ERROR REPORTING / SESSION RECORDING — VERIFIED NONE",
+            "tables": [
+                "packages",
+                "payments"
+            ]
+        },
+        {
+            "category": "SERVER LOGS — application log file",
+            "tables": [
+                "channels",
+                "jobs"
+            ]
+        },
+        {
+            "category": "IP ADDRESS — `sessions` table",
+            "tables": [
+                "migrations",
+                "sessions"
+            ]
+        },
+        {
+            "category": "⚠️ IP ADDRESS + LOGIN EMAIL — `login_activity` (includes FAILED logins)",
+            "tables": [
+                "guests",
+                "login_activity",
+                "migrations",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ IP ADDRESS — `audit_events` (NO RETENTION LIMIT)",
+            "tables": [
+                "audit_events",
+                "migrations"
+            ]
+        },
+        {
+            "category": "IP ADDRESS — the four remaining audit/security stores",
+            "tables": [
+                "audit_events",
+                "documents",
+                "export_downloads",
+                "guests",
+                "login_approvals",
+                "migrations",
+                "platform_admin_actions",
+                "platform_admins",
+                "trusted_devices",
+                "users"
+            ]
+        },
+        {
+            "category": "IP ADDRESS — operator-configured IP allowlist (a FEATURE, not a log)",
+            "tables": [
+                "audit_events",
+                "ip_allow_rules",
+                "login_activity",
+                "migrations",
+                "sessions"
+            ]
+        },
+        {
+            "category": "⚠️ RATE LIMITING / THROTTLING — two paths, and only ONE hashes the key",
+            "tables": [
+                "cache",
+                "migrations",
+                "tags"
+            ]
+        },
+        {
+            "category": "MARKETING SITE FORMS — exactly ONE, and it collects nothing about the person",
+            "tables": []
+        },
+        {
+            "category": "⚠️ THE PUBLIC STOREFRONT — the abandoned-quote capture (MOST MATERIAL FINDING)",
+            "tables": [
+                "availability",
+                "booking_quotes",
+                "migrations",
+                "reservations"
+            ]
+        },
+        {
+            "category": "⚠️ THE COOKIE NOTICE IS NOT SHOWN ON THE MONEY PATH (FINDING)",
+            "tables": [
+                "information"
+            ]
+        },
+        {
+            "category": "PASSWORD RESET — plaintext email for the operator realm",
+            "tables": [
+                "guest_password_reset_tokens",
+                "migrations",
+                "password_reset_tokens",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ INBOUND WEBHOOK PAYLOADS — raw third-party bodies retained verbatim",
+            "tables": [
+                "audit_events",
+                "domain_events",
+                "guests",
+                "migrations",
+                "payments",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "COOKIE NAME DERIVATION — a disclosure-drift risk in deployment",
+            "tables": []
+        },
+        {
+            "category": "⚠️ HEADLINE — ONLY TWO OUTBOUND HTTP CALL SITES EXIST IN app/, PLUS TWO SDK/TRANSPORT SEAMS. Verified by mechanism, not by name.",
+            "tables": [
+                "payments"
+            ]
+        },
+        {
+            "category": "STRIPE — subscription billing (operator's own SaaS subscription). Seam SG1. CONFIGURED-BUT-INERT today; ACTIVE on the founder's live-key flip.",
+            "tables": [
+                "migrations",
+                "organizations",
+                "payments",
+                "plans",
+                "sessions",
+                "subscriptions"
+            ]
+        },
+        {
+            "category": "STRIPE — VAT/tax-ID sync to the Stripe customer (DO-BILL-1). CONFIGURED-BUT-INERT today.",
+            "tables": [
+                "migrations",
+                "organizations",
+                "payments"
+            ]
+        },
+        {
+            "category": "STRIPE — GUEST card charge, public storefront checkout. Seam SG2. INERT today (double-gated).",
+            "tables": [
+                "payments",
+                "sessions"
+            ]
+        },
+        {
+            "category": "STRIPE — GUEST card charge from the guest portal. Seam SG2. ⚠️ SINGLE-GATED, unlike the storefront.",
+            "tables": [
+                "payments"
+            ]
+        },
+        {
+            "category": "STRIPE — PaymentIntent gateway (token-based charge/authorize/capture/refund). CONFIGURED-BUT-INERT (`PAYMENTS_GATEWAY=manual`).",
+            "tables": [
+                "gateways",
+                "payments"
+            ]
+        },
+        {
+            "category": "⚠️ STRIPE CONNECT — OWNER IDENTITY + KYC. Seam SG3. INERT today, and the most identity-heavy seam.",
+            "tables": [
+                "documents",
+                "owners",
+                "payments",
+                "payouts"
+            ]
+        },
+        {
+            "category": "STRIPE CONNECT — owner PAYOUT transfers. INERT today (`PAYOUTS_RAIL` unset → default 'manual'; `PAYOUT_ENGINE_ENABLED` unset → default false).",
+            "tables": [
+                "payments",
+                "payout_methods",
+                "payouts"
+            ]
+        },
+        {
+            "category": "⚠️ STRIPE — THE RETURN LEG. Inbound Stripe webhook payloads are stored VERBATIM, in plaintext, FOREVER.",
+            "tables": [
+                "documents",
+                "guests",
+                "messages",
+                "migrations",
+                "notes",
+                "payments",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "⚠️ STRIPE POSTURE TODAY — INERT, and enforced in code, not by convention.",
+            "tables": [
+                "payments"
+            ]
+        },
+        {
+            "category": "⚠️ HOSTINGER MAIL (SMTP) — THE PRODUCTION MAIL PROVIDER since 2026-09-25 (MAIL 02). The single biggest personal-data recipient.",
+            "tables": [
+                "guests",
+                "mail_send_log"
+            ]
+        },
+        {
+            "category": "⚠️ POSTMARK (Wildbit/ActiveCampaign) — SUPERSEDED 2026-09-25 (MAIL 02). Never the production provider; it received nothing.",
+            "tables": [
+                "guests",
+                "messages",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ MailSafetyGuard — WHAT IT ACTUALLY PREVENTS (verified, and it is narrower than \"emails are safe\").",
+            "tables": [
+                "guests",
+                "owners"
+            ]
+        },
+        {
+            "category": "MAIL POSTURE TODAY — NOT ACTIVE. Default is `log`; this machine uses local Mailpit.",
+            "tables": []
+        },
+        {
+            "category": "⚠️ QUEUE (Redis) — personal data serialised into job payloads. ACTIVE TODAY.",
+            "tables": [
+                "cache",
+                "failed_jobs",
+                "jobs",
+                "sessions",
+                "users"
+            ]
+        },
+        {
+            "category": "⚠️ CHANNEX / OTA CHANNELS — NOT INTEGRATED. And even if switched on, the OUTBOUND path carries NO personal data by construction.",
+            "tables": [
+                "availability",
+                "bookings",
+                "channels",
+                "rate_plans",
+                "restrictions",
+                "webhook_events",
+                "webhooks"
+            ]
+        },
+        {
+            "category": "INBOX EXTERNAL CHANNELS (guest email-as-a-channel, WhatsApp, Booking.com, Airbnb) — NOT INTEGRATED. They THROW.",
+            "tables": [
+                "channels",
+                "guests"
+            ]
+        },
+        {
+            "category": "SMS — NOT INTEGRATED. VERIFIED BY MECHANISM, not by the word \"SMS\".",
+            "tables": []
+        },
+        {
+            "category": "⚠️ ID VERIFICATION / KYC VENDOR — NOT INTEGRATED. Guest ID images stay on the local disk, encrypted.",
+            "tables": [
+                "documents",
+                "guest_documents",
+                "media",
+                "payments"
+            ]
+        },
+        {
+            "category": "⚠️ ANTHROPIC (the \"Ask Vyrobel\" support LLM) — CONFIGURED-BUT-INERT. A real, wired sub-processor seam with no key.",
+            "tables": [
+                "messages"
+            ]
+        },
+        {
+            "category": "⚠️ OAUTH CONNECTED APPS — A REAL, LIVE DISCLOSURE MECHANISM to third parties chosen by the customer. ACTIVE.",
+            "tables": [
+                "bookings",
+                "oauth_access_tokens",
+                "oauth_clients",
+                "oauth_refresh_tokens",
+                "units"
+            ]
+        },
+        {
+            "category": "⚠️ OAUTH — WHAT IS AUDITED AND WHAT IS NOT.",
+            "tables": [
+                "audit_events",
+                "bookings"
+            ]
+        },
+        {
+            "category": "FILE STORAGE — LOCAL DISK ONLY. S3 is declared but has no credentials and no caller.",
+            "tables": [
+                "documents",
+                "media"
+            ]
+        },
+        {
+            "category": "BROWSER-SIDE THIRD PARTIES — NONE. And this is enforced by a CI gate plus a CSP, not by convention.",
+            "tables": [
+                "documents"
+            ]
+        },
+        {
+            "category": "OPS HEARTBEAT / DEAD-MAN'S-SWITCH MONITOR (Healthchecks.io / Better Stack / Cronitor) — NOT CONFIGURED, and carries NO personal data even when it is.",
+            "tables": [
+                "availability"
+            ]
+        },
+        {
+            "category": "BACKUPS — LOCAL ONLY. No offsite third party today, and the repo says so plainly.",
+            "tables": []
+        },
+        {
+            "category": "PLATFORM INTEGRATION CREDENTIAL VAULT — a store with NO consumer. Storing OTA credentials is not an integration.",
+            "tables": [
+                "platform_integrations"
+            ]
+        },
+        {
+            "category": "DECLARED-BUT-UNUSED SERVICE CONFIG — present in config, wired to nothing. Name none of these to a regulator.",
+            "tables": [
+                "channels"
+            ]
+        },
+        {
+            "category": "SCHEDULER — the execution dependency for ALL retention (the landmine, VERIFIED, with one reversal)",
+            "tables": [
+                "documents",
+                "guests",
+                "jobs",
+                "login_activity",
+                "payouts",
+                "properties"
+            ]
+        },
+        {
+            "category": "Guest identity & contact PII — the erasure target",
+            "tables": [
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Guest ID documents — the 30-day purge (⚠️ TWO SILENT GAPS)",
+            "tables": [
+                "documents",
+                "guest_documents",
+                "media",
+                "migrations",
+                "tenants"
+            ]
+        },
+        {
+            "category": "Guest account deletion — the 14-day grace window",
+            "tables": [
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "Guest free text — reservation notes (COVERED by erasure)",
+            "tables": [
+                "guests",
+                "notes",
+                "reservations"
+            ]
+        },
+        {
+            "category": "Guest free text — inbox messages, threads, and staff thread notes (COVERED)",
+            "tables": [
+                "message_threads",
+                "messages",
+                "notes"
+            ]
+        },
+        {
+            "category": "Guest free text — operator CRM notes, change requests, group organiser name (COVERED)",
+            "tables": [
+                "groups",
+                "guest_change_requests",
+                "notes"
+            ]
+        },
+        {
+            "category": "Guest in-app notifications (COVERED — deleted, not blanked)",
+            "tables": [
+                "guests",
+                "migrations",
+                "notifications"
+            ]
+        },
+        {
+            "category": "⚠️ Guest reviews — DELIBERATELY RETAINED after erasure",
+            "tables": [
+                "migrations",
+                "reviews"
+            ]
+        },
+        {
+            "category": "🔴 CRITICAL — Abandoned booking quotes: NO RETENTION RULE, NOT REACHED BY ERASURE, AND THE CODE CLAIMS OTHERWISE",
+            "tables": [
+                "booking_quotes",
+                "jobs",
+                "migrations",
+                "reservations"
+            ]
+        },
+        {
+            "category": "⚠️ Guest wallet ledger, wishlist, waitlist, email preferences — NOT REACHED BY ERASURE",
+            "tables": [
+                "folios",
+                "guest_credit_ledger",
+                "guest_email_preferences",
+                "guest_waitlist_entries",
+                "guest_wishlist_items",
+                "guests",
+                "migrations"
+            ]
+        },
+        {
+            "category": "⚠️ audit_events — DOES ERASURE REACH IT? NO. And the 'never write values' rule is a CONVENTION, not a control.",
+            "tables": [
+                "audit_events",
+                "migrations"
+            ]
+        },
+        {
+            "category": "⚠️ domain_events — NO RETENTION, NOT REACHED BY ERASURE",
+            "tables": [
+                "audit_events",
+                "availability",
+                "domain_events",
+                "migrations",
+                "webhooks"
+            ]
+        },
+        {
+            "category": "Login activity — the ONE retention rule that is fully modelled (⚠️ and a CONFIRM-FIRST reversal in the code's favour)",
+            "tables": [
+                "migrations"
+            ]
+        },
+        {
+            "category": "⚠️ sessions — personal data with NO deterministic retention",
+            "tables": [
+                "migrations",
+                "sessions"
+            ]
+        },
+        {
+            "category": "⚠️ platform_admin_actions and export_downloads — audit-adjacent, NO RETENTION",
+            "tables": [
+                "export_downloads",
+                "migrations",
+                "platform_admin_actions"
+            ]
+        },
+        {
+            "category": "DATA SUBJECT RIGHTS — GUEST REALM (⚠️ NO ACCESS/PORTABILITY)",
+            "tables": []
+        },
+        {
+            "category": "DATA SUBJECT RIGHTS — OWNER REALM (⚠️ export is PARTIAL; 'Deactivate' is NOT deletion)",
+            "tables": [
+                "audit_events",
+                "export_downloads",
+                "login_activity",
+                "messages",
+                "notifications",
+                "passkeys",
+                "payout_methods",
+                "payouts",
+                "sessions",
+                "units"
+            ]
+        },
+        {
+            "category": "DATA SUBJECT RIGHTS — OPERATOR / STAFF REALM (⚠️ NO EXPORT, NO ERASURE, NO DELETION)",
+            "tables": [
+                "passkeys",
+                "sessions"
+            ]
+        },
+        {
+            "category": "🔴 ACCOUNT DELETION — NO TRUE DELETION EXISTS ANYWHERE FOR ANY HUMAN ACCOUNT",
+            "tables": [
+                "guests",
+                "migrations",
+                "owner_users",
+                "owners",
+                "users"
+            ]
+        },
+        {
+            "category": "RETENTION PERIODS THAT EXIST IN CODE — the complete list",
+            "tables": [
+                "documents",
+                "guests",
+                "users"
+            ]
+        },
+        {
+            "category": "🔴 RETENTION PERIODS THAT DO NOT EXIST — the enumerated 'no rule' list",
+            "tables": [
+                "api_keys",
+                "audit_events",
+                "booking_quotes",
+                "documents",
+                "domain_events",
+                "export_downloads",
+                "folio_items",
+                "folios",
+                "guest_change_requests",
+                "guest_credit_ledger",
+                "guest_documents",
+                "guest_email_preferences",
+                "guest_password_reset_tokens",
+                "guest_waitlist_entries",
+                "guest_wishlist_items",
+                "guests",
+                "housekeeping_tasks",
+                "invoices",
+                "ip_allow_rules",
+                "leave_requests",
+                "llm_usage",
+                "login_approvals",
+                "maintenance_tickets",
+                "media",
+                "message_reactions",
+                "message_stars",
+                "message_threads",
+                "messages",
+                "migrations",
+                "notes",
+                "notifications",
+                "open_shifts",
+                "owner_expenses",
+                "owner_ledger",
+                "owner_statement_lines",
+                "owner_statements",
+                "owner_users",
+                "owners",
+                "passkeys",
+                "password_reset_tokens",
+                "payment_authorizations",
+                "payments",
+                "payout_methods",
+                "payouts",
+                "platform_admin_actions",
+                "reservation_guests",
+                "reservation_status_history",
+                "reservation_units",
+                "reservations",
+                "reviews",
+                "sessions",
+                "shifts",
+                "sync_logs",
+                "taggables",
+                "tags",
+                "users",
+                "webhook_deliveries",
+                "webhook_events"
+            ]
+        },
+        {
+            "category": "⚠️ BACKUPS — THEY EXIST, AND THEY DO UNDERMINE DELETION (a second reversal of the brief's premise)",
+            "tables": [
+                "documents",
+                "guests"
+            ]
+        },
+        {
+            "category": "Financial records — deliberately RETAINED through erasure",
+            "tables": [
+                "folio_items",
+                "folios",
+                "guests",
+                "invoices",
+                "owner_ledger",
+                "owner_statements",
+                "payment_authorizations",
+                "payments",
+                "payouts",
+                "reservations",
+                "units"
+            ]
+        },
+        {
+            "category": "Public contact enquiry",
+            "tables": [
+                "marketing_contact_messages",
+                "migrations"
+            ]
+        }
+    ]
+}

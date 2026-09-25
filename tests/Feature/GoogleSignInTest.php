@@ -12,10 +12,12 @@ use App\Support\Auth\SocialIdentity;
 use App\Support\Auth\SocialLinking;
 use App\Support\Auth\SocialLinkOutcome;
 use App\Support\Authorization\RolePermissions;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -394,6 +396,30 @@ it('⚠️ completes the social signup: one org, a founder with NO password, and
     $orgId = DB::table('organization_user')->where('user_id', $user->getKey())->value('organization_id');
     expect($orgId)->not->toBeNull()
         ->and(DB::table('subscriptions')->where('organization_id', $orgId)->exists())->toBeTrue();
+});
+
+// ⚠️ TONIGHT 01 (2026-09-25) — sign-up now sends the FIRST verification link, and only to an UNVERIFIED founder.
+it('⚠️ a Google sign-up is sent NO verification link — the provider already verified the address', function () {
+    Notification::fake();
+    $fake = fakeGoogle();
+    $email = uniqueEmail('no-link');
+    $fake->next = googleIdentity('sub-'.Str::random(10), $email, name: 'Ada Okafor');
+
+    $state = beginGoogleFlow($this);
+    $this->get(route('social.google.callback', ['code' => 'c', 'state' => $state]));
+
+    $this->post(route('signup'), [
+        'org_name' => 'Okafor Stays '.Str::random(6),
+        'property_type' => 'villa',
+        'currency' => 'EUR',
+        'property_name' => 'Casa Azul',
+        'name' => 'Ada Okafor',
+        'email' => $email,
+    ])->assertRedirect('/app/portfolio');
+
+    $user = User::query()->where('email', $email)->firstOrFail();
+    expect($user->hasVerifiedEmail())->toBeTrue();
+    Notification::assertNotSentTo($user, VerifyEmail::class);
 });
 
 it('⚠️ the posted email is IGNORED — the provider assertion wins', function () {

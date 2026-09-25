@@ -11,7 +11,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 /**
  * Vyrobel ONBOARDING / self-signup (Phase 7a · Step 2) — the PUBLIC, pre-auth flow that provisions a brand
@@ -118,6 +120,21 @@ class OnboardingController extends Controller
         // Log the founder in on the web guard (fixation protection), exactly like accept-invite activation.
         Auth::guard('web')->login($result['user']);
         $request->session()->regenerate();
+
+        // ⚠️⚠️ TONIGHT 01 (2026-09-25) — THE FIRST VERIFICATION LINK. The page every new founder lands on says "Click
+        //    the link we sent you", and nothing had sent one: the only senders were that page's own "Resend the link"
+        //    and the console's support button. Invisible while production discarded mail (MAIL_MAILER=log); the
+        //    first thing every real email sign-up would have met the moment mail was switched on.
+        //    ⚠️ Only an UNVERIFIED founder is sent one: a social founder was verified at provisioning by the
+        //    provider's own assertion, and gets none. ⚠️ A failed send never fails the sign-up — the account exists,
+        //    and the page's "Resend the link" is the way out; the failure is logged, never the address.
+        if (! $result['user']->hasVerifiedEmail()) {
+            try {
+                $result['user']->sendEmailVerificationNotification();
+            } catch (Throwable $e) {
+                Log::warning('The first verification link could not be sent at sign-up.', ['user_id' => $result['user']->getKey(), 'error' => $e::class]);
+            }
+        }
 
         return redirect()->to('/app/portfolio')->with('portfolio_notice',
             // ⚠️ P-6 · Gate 1 — the very first sentence a new tenant reads. It used to name three steps, none of

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Privacy;
 
+use App\Console\Commands\ExportDataInventory;
 use App\Models\GuestDocument;
 use App\Models\LoginActivity;
 use App\Support\Retention\RetentionPolicy;
@@ -25,16 +26,75 @@ use Illuminate\Support\Facades\Schema;
  *     if every real table its row names is pruned by that code, and under the LENIENT one if any is. ⚠️ Both are
  *     approximate: a row's table names are the real tables it MENTIONS, including in passing.
  *
- * ⚠️ `docs/` is not deployed, so on the production host M cannot be counted — the card says so, and shows only the
- * code-enforced windows. It never falls back to a remembered number.
+ * ⚠️⚠️ TONIGHT 01 (2026-09-25) — THE METER NOW COUNTS ON THE PRODUCTION HOST. `docs/` is not deployed, so it used to
+ *    say it could not count there. The doc stays the ONE source; what ships is a data file GENERATED from it
+ *    ({@see self::DATA_FILE}, by {@see ExportDataInventory}) holding only each category's name and the tables its row
+ *    names — no prose, no addresses, no personal data. ⚠️ It cannot drift: a test regenerates it from the doc and
+ *    fails on any difference. ⚠️ Which of those tables EXIST is still measured here, on the host's own database.
+ *    A missing or unreadable file still says so — it never falls back to a remembered number.
  */
 final class RetentionCoverage
 {
     public const RULING = null;   // ⚠️ the founder's definition — NOT SET. Nothing here may pretend it is.
 
+    /** The shipped data file the meter reads — inside every release (`ops/release.sh` ships it; it skips docs/). */
+    public const DATA_FILE = 'resources/data/data-inventory.json';
+
+    /** The audited doc the data file is generated from — in the repository, NOT on the production host. */
+    public const SOURCE_DOC = 'docs/legal/DATA-INVENTORY.md';
+
     public static function inventoryPath(): string
     {
-        return base_path('docs/legal/DATA-INVENTORY.md');
+        return base_path(self::DATA_FILE);
+    }
+
+    public static function sourcePath(): string
+    {
+        return base_path(self::SOURCE_DOC);
+    }
+
+    /**
+     * ⚠️ THE ONE PARSER — the doc's categories, each with the real tables its row names. Read by the generator and by
+     * the drift test, so the shipped file can only ever be what this produces from the doc.
+     *
+     * @param  list<string>  $tables  the database's real table names
+     * @return list<array{category: string, tables: list<string>}>
+     */
+    public static function categoriesFrom(string $markdown, array $tables): array
+    {
+        $known = array_flip(array_map('strtolower', $tables));
+        $rows = array_values(array_filter(preg_split('/\R/', $markdown) ?: [], fn (string $l): bool => str_starts_with($l, '| **')));
+
+        return array_map(function (string $row) use ($known): array {
+            preg_match('/^\| \*\*(.+?)\*\*/', $row, $name);
+            preg_match_all('/\b[a-z][a-z0-9_]{2,}\b/', strtolower($row), $m);
+            $named = array_values(array_unique(array_filter($m[0], fn (string $w): bool => isset($known[$w]))));
+            sort($named);
+
+            return ['category' => trim($name[1] ?? ''), 'tables' => $named];
+        }, $rows);
+    }
+
+    /**
+     * The exact bytes of the shipped file for these categories — one renderer, so the generator and the drift test
+     * cannot disagree about formatting.
+     *
+     * @param  list<array{category: string, tables: list<string>}>  $categories
+     */
+    public static function render(array $categories): string
+    {
+        return json_encode([
+            'generated_from' => self::SOURCE_DOC,
+            'regenerate' => 'php artisan privacy:inventory-data — edit the doc, regenerate, commit both; a test fails if they differ',
+            'holds' => 'data CATEGORIES and the table names each one mentions — no personal data',
+            'categories' => $categories,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n";
+    }
+
+    /** @return list<string> the connected database's real tables, lower-case */
+    public static function liveTables(): array
+    {
+        return array_map('strtolower', array_map(fn ($t) => is_array($t) ? (string) $t['name'] : (string) $t, Schema::getTables()));
     }
 
     /**
@@ -64,19 +124,24 @@ final class RetentionCoverage
         $path ??= self::inventoryPath();
 
         if (! is_readable($path)) {
-            return ['measurable' => false, 'reason' => 'The inventory it counts (docs/legal/DATA-INVENTORY.md) is not deployed on this host, so the categories cannot be counted here.',
+            return ['measurable' => false, 'reason' => 'The inventory it counts ('.self::DATA_FILE.') is not deployed on this host, so the categories cannot be counted here.',
                 'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
         }
 
-        $tables = array_map('strtolower', array_map(fn ($t) => is_array($t) ? (string) $t['name'] : (string) $t, Schema::getTables()));
-        $tables = array_flip($tables);
-        $rows = array_values(array_filter(preg_split('/\R/', (string) file_get_contents($path)) ?: [], fn (string $l): bool => str_starts_with($l, '| **')));
+        $data = json_decode((string) file_get_contents($path), true);
+        if (! is_array($data) || ! is_array($data['categories'] ?? null)) {
+            return ['measurable' => false, 'reason' => 'The inventory it counts ('.self::DATA_FILE.') could not be read, so the categories cannot be counted here.',
+                'categories' => null, 'strict' => null, 'lenient' => null, 'enforced' => $enforced, 'ruling' => self::RULING];
+        }
+
+        $tables = array_flip(self::liveTables());
+        $rows = array_values($data['categories']);
 
         $strict = 0;
         $lenient = 0;
         foreach ($rows as $row) {
-            preg_match_all('/\b[a-z][a-z0-9_]{2,}\b/', strtolower($row), $m);
-            $named = array_values(array_unique(array_filter($m[0], fn (string $w): bool => isset($tables[$w]))));
+            // ⚠️ The file records what the doc NAMES; whether each table exists is measured HERE, on this database.
+            $named = array_values(array_filter(array_map('strval', (array) ($row['tables'] ?? [])), fn (string $t): bool => isset($tables[$t])));
             if ($named === []) {
                 continue;
             }

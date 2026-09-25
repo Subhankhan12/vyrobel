@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -181,4 +184,45 @@ it('⚠️⚠️ an accepted invite really sets email_verified_at, so invited st
     //    `$fillable`. If someone "tidies" this by adding it there, this assertion says why not.
     expect((new User)->isFillable('email_verified_at'))
         ->toBeFalse('a verification timestamp must not be mass-assignable');
+});
+
+// ── 8 · ⚠️⚠️ THE FIRST LINK IS SENT (TONIGHT 01, 2026-09-25) ──────────────────────────────────────────────────
+// The notice page says "Click the link we sent you". Until this, nothing had sent one — the only senders were the
+// page's own "Resend the link" and the console's support button — invisible while production discarded mail.
+function firstLinkSignup(object $test, string $email): void
+{
+    $test->post('/signup', [
+        'name' => 'First Link', 'email' => $email,
+        'password' => 'Str0ng-Passw0rd!x', 'password_confirmation' => 'Str0ng-Passw0rd!x',
+        'org_name' => 'First Link Hotels', 'property_name' => 'First Link House',
+        'property_type' => 'hotel', 'currency' => 'EUR', 'location' => 'Lisbon',
+    ])->assertRedirect('/app/portfolio');
+}
+
+it('⚠️⚠️ an email sign-up is SENT its first verification link — exactly one, to the new founder', function () {
+    Notification::fake();
+    $email = 'first-link-'.Str::lower((string) Str::ulid()).'@example.net';
+
+    firstLinkSignup($this, $email);
+
+    $founder = User::query()->where('email', $email)->firstOrFail();
+    expect($founder->hasVerifiedEmail())->toBeFalse('the gate still stands — the link is sent, the address is not assumed');
+    Notification::assertSentToTimes($founder, VerifyEmail::class, 1);
+});
+
+it('⚠️ a mail server that refuses never fails the sign-up — the account exists and the failure is logged', function () {
+    // A real SMTP attempt at a port nothing listens on: the transport throws, as a rejecting provider would.
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1', 'mail.mailers.smtp.port' => 1,
+        'mail.mailers.smtp.timeout' => 2]);
+    Log::spy();
+    // ⚠️ a deliverable-looking domain on purpose: a reserved one is suppressed before any send is attempted
+    $email = 'first-link-'.Str::lower((string) Str::ulid()).'@vyrobel.com';
+
+    firstLinkSignup($this, $email);
+
+    expect(User::query()->where('email', $email)->exists())->toBeTrue();
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'first verification link')
+            && ! str_contains(json_encode($context), $email))
+        ->once();
 });
