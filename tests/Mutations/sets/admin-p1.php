@@ -1,0 +1,273 @@
+<?php
+
+declare(strict_types=1);
+
+// Mutation set admin-p1 — run with `php tests/Mutations/run.php --set=admin-p1`. Each row: the exact text a guard lives in (`old`),
+// what it becomes with the guard removed (`new`), and the test aimed at it. See tests/Mutations/run.php.
+
+return [
+    [
+        'id' => 'P1-M1',
+        'name' => 'a role-gate group removed',
+        'file' => 'routes/web.php',
+        'old' => 'Route::middleware([$can(PlatformAdminRole::TENANTS_MANAGE), \'throttle:20,1\'])->group(function () {',
+        'new' => 'Route::middleware([\'throttle:20,1\'])->group(function () {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformRoleGateTest.php', 'filter' => 'EVERY console route']],
+    ],
+    [
+        'id' => 'P1-M2',
+        'name' => 'the capability check removed',
+        'file' => 'app/Http/Middleware/EnsurePlatformCapability.php',
+        'old' => '        if (! $admin->may($capability)) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformRoleGateTest.php', 'filter' => 'REFUSES']],
+    ],
+    [
+        'id' => 'P1-M3',
+        'name' => 'a null role fails OPEN',
+        'file' => 'app/Models/PlatformAdmin.php',
+        'old' => '($this->roleEnum()?->allows($capability) ?? false)',
+        'new' => '($this->roleEnum()?->allows($capability) ?? true)',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformRoleGateTest.php', 'filter' => 'NULL or UNKNOWN']],
+    ],
+    [
+        'id' => 'P1-M4',
+        'name' => 'owner-scope lift removed from the door',
+        'file' => 'app/Support/Platform/PlatformQuery.php',
+        'old' => 'fn () => $this->owners->liftForPlatformConsole($callback),',
+        'new' => 'fn () => $callback(),',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'signed in as BOTH']],
+    ],
+    [
+        'id' => 'P1-M5',
+        'name' => 'read-only removed from read()',
+        'file' => 'app/Support/Platform/PlatformQuery.php',
+        'old' => 'return PlatformWriteGuard::readOnly(fn () => $this->lifted($callback));',
+        'new' => 'return $this->lifted($callback);',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'refuses an Eloquent write']],
+    ],
+    [
+        'id' => 'P1-M5b',
+        'name' => 'read-only removed (query builder)',
+        'file' => 'app/Support/Platform/PlatformQuery.php',
+        'old' => 'return PlatformWriteGuard::readOnly(fn () => $this->lifted($callback));',
+        'new' => 'return $this->lifted($callback);',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'QUERY-BUILDER']],
+    ],
+    [
+        'id' => 'P1-M6',
+        'name' => 'mutate() reason check removed',
+        'file' => 'app/Support/Platform/PlatformQuery.php',
+        'old' => 'if (trim($reason) === \'\') {',
+        'new' => 'if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'without a written reason']],
+    ],
+    [
+        'id' => 'P1-M7',
+        'name' => 'a stray withoutGlobalScopes() added',
+        'file' => 'app/Support/Platform/PlatformCustomers.php',
+        'old' => '        $latest = Subscription::query()
+            ->whereIn(\'organization_id\', $ids)',
+        'new' => '        $latest = Subscription::query()
+            ->withoutGlobalScopes()->whereIn(\'organization_id\', $ids)',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'appears NOWHERE']],
+    ],
+    [
+        'id' => 'P1-M8',
+        'name' => 'ledger model events removed',
+        'file' => 'app/Models/PlatformAdminAction.php',
+        'old' => '        static::updating(static function (): never {',
+        'new' => '        if (false) static::updating(static function (): never {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAuditLedgerTest.php', 'filter' => 'LAYER 1']],
+    ],
+    [
+        'id' => 'P1-M9',
+        'name' => 'connection guard not registered',
+        'file' => 'app/Providers/AppServiceProvider.php',
+        'old' => '        PlatformWriteGuard::register($this->app->make(\'db\')->connection());',
+        'new' => '        // PlatformWriteGuard::register($this->app->make(\'db\')->connection());',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAuditLedgerTest.php', 'filter' => 'LAYER 2']],
+    ],
+    [
+        'id' => 'P1-M9b',
+        'name' => 'connection guard off (door QB write)',
+        'file' => 'app/Providers/AppServiceProvider.php',
+        'old' => '        PlatformWriteGuard::register($this->app->make(\'db\')->connection());',
+        'new' => '        // PlatformWriteGuard::register($this->app->make(\'db\')->connection());',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDoorTest.php', 'filter' => 'QUERY-BUILDER']],
+    ],
+    [
+        'id' => 'P1-M10',
+        'name' => 'a missing switch row means OFF',
+        'file' => 'app/Support/Platform/PlatformSwitches.php',
+        'old' => 'return $value === null ? true : (bool) $value;',
+        'new' => 'return $value === null ? false : (bool) $value;',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'NO rows']],
+    ],
+    [
+        'id' => 'P1-M11',
+        'name' => 'an unreadable switch table throws',
+        'file' => 'app/Support/Platform/PlatformSwitches.php',
+        'old' => '            return [];
+        }
+    }
+
+    private static function assertKnown',
+        'new' => '            throw $e;
+        }
+    }
+
+    private static function assertKnown',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'UNREADABLE']],
+    ],
+    [
+        'id' => 'P1-M12',
+        'name' => 'signup switch not checked at the write',
+        'file' => 'app/Http/Controllers/Auth/OnboardingController.php',
+        'old' => '        if (! PlatformSwitches::signupAllowed($social[\'provider\'] ?? null)) {
+            return redirect()->route(\'signup\');
+        }',
+        'new' => '',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'posted signup creates NOTHING']],
+    ],
+    [
+        'id' => 'P1-M12b',
+        'name' => '...and the stale stash slips through',
+        'file' => 'app/Http/Controllers/Auth/OnboardingController.php',
+        'old' => '        if (! PlatformSwitches::signupAllowed($social[\'provider\'] ?? null)) {
+            return redirect()->route(\'signup\');
+        }',
+        'new' => '',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'stashed BEFORE']],
+    ],
+    [
+        'id' => 'P1-M13',
+        'name' => 'social sign-in switch not checked',
+        'file' => 'app/Http/Controllers/Auth/SocialAuthController.php',
+        'old' => 'if ($outcome === SocialLinkOutcome::SignIn && ! PlatformSwitches::signinAllowed($identity->provider)) {',
+        'new' => 'if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'sign-in with X OFF']],
+    ],
+    [
+        'id' => 'P1-M13b',
+        'name' => 'social sign-up switch not checked',
+        'file' => 'app/Http/Controllers/Auth/SocialAuthController.php',
+        'old' => 'if ($outcome === SocialLinkOutcome::SignUp && ! PlatformSwitches::signupAllowed($identity->provider)) {',
+        'new' => 'if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'sign-up with X OFF']],
+    ],
+    [
+        'id' => 'P1-M14',
+        'name' => 'no second confirmation for sign-in off',
+        'file' => 'app/Http/Controllers/Admin/SwitchController.php',
+        'old' => 'if (! $request->boolean(\'confirm_lockout\')) {',
+        'new' => 'if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSwitchesTest.php', 'filter' => 'without the second confirmation']],
+    ],
+    [
+        'id' => 'P1-M15',
+        'name' => 'a disabled admin keeps their session',
+        'file' => 'app/Http/Middleware/TrackPlatformAdminSession.php',
+        'old' => '        if (! $admin->isActive()) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformRoleGateTest.php', 'filter' => 'disabled admin with a live session']],
+    ],
+    [
+        'id' => 'P1-M16',
+        'name' => 'an ended session is honoured',
+        'file' => 'app/Support/Platform/PlatformAdminSessions.php',
+        'old' => '        if ($row->ended_at !== null) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'FORCE SIGN-OUT']],
+    ],
+    [
+        'id' => 'P1-M16b',
+        'name' => 'a key of another admin is honoured',
+        'file' => 'app/Support/Platform/PlatformAdminSessions.php',
+        'old' => '        if ($row->platform_admin_id !== $admin->getKey()) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'belongs to ANOTHER admin']],
+    ],
+    [
+        'id' => 'P1-M17',
+        'name' => 'admin password change back to the 8-char rule',
+        'file' => 'app/Http/Controllers/Admin/AccountController.php',
+        'old' => '\'password\' => [\'required\', \'confirmed\', PlatformAdminPasswordPolicy::rule()],',
+        'new' => '\'password\' => [\'required\', \'confirmed\', \\Illuminate\\Validation\\Rules\\Password::defaults()],',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'refuses what account CREATION']],
+    ],
+    [
+        'id' => 'P1-M17b',
+        'name' => 'invitation accepts the 8-char rule',
+        'file' => 'app/Http/Controllers/Admin/Auth/AdminInviteController.php',
+        'old' => '$request->validate([\'password\' => [\'required\', \'confirmed\', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::NAMES);',
+        'new' => '$request->validate([\'password\' => [\'required\', \'confirmed\', \\Illuminate\\Validation\\Rules\\Password::defaults()]], [], ConsoleFields::NAMES);',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'accepting sets']],
+    ],
+    [
+        'id' => 'P1-M18',
+        'name' => 'the last-Owner floor removed',
+        'file' => 'app/Http/Controllers/Admin/AdminUserController.php',
+        'old' => 'if ($from === PlatformAdminRole::Owner->value && $to !== PlatformAdminRole::Owner && $this->isLastActiveOwner($target)) {',
+        'new' => 'if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'LAST active Owner']],
+    ],
+    [
+        'id' => 'P1-M19',
+        'name' => 'a write route stops requiring a reason',
+        'file' => 'app/Http/Controllers/Admin/SwitchController.php',
+        'old' => '        $reason = AdminReason::from($request);',
+        'new' => '        $reason = (string) $request->input(\'reason\', \'\');',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAuditLedgerTest.php', 'filter' => 'REFUSES a request with no reason']],
+    ],
+    [
+        'id' => 'P1-M20',
+        'name' => 'L14 regresses to raw env()',
+        'file' => 'routes/console.php',
+        'old' => '->pingOnSuccessIf(filled(config(\'ops.heartbeat_ping_url\')), (string) config(\'ops.heartbeat_ping_url\', \'\'));',
+        'new' => '->pingOnSuccessIf((bool) env(\'OPS_HEARTBEAT_PING_URL\'), (string) env(\'OPS_HEARTBEAT_PING_URL\', \'\'));',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformHealthBoardTest.php', 'filter' => 'is called outside config']],
+    ],
+    [
+        'id' => 'P1-M21',
+        'name' => 'mail on log shown green',
+        'file' => 'app/Support/Platform/Health/HealthBoard.php',
+        'old' => '        if (MailDelivery::discards()) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformHealthBoardTest.php', 'filter' => 'is RED, in words']],
+    ],
+    [
+        'id' => 'P1-M22',
+        'name' => 'internal orgs counted as customers',
+        'file' => 'app/Support/Platform/PlatformMetrics.php',
+        'old' => '$includeInternal ? Organization::query() : Organization::query()->customers();',
+        'new' => 'Organization::query();',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformDashboardTest.php', 'filter' => 'CUSTOMERS only by default']],
+    ],
+    [
+        'id' => 'P1-M23',
+        'name' => 'invite stores the raw token',
+        'file' => 'app/Support/Platform/PlatformAdminInvites.php',
+        'old' => '            \'invite_token_hash\' => hash(\'sha256\', $token),
+            \'invited_at\'',
+        'new' => '            \'invite_token_hash\' => $token,
+            \'invited_at\'',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'INVITED admin']],
+    ],
+    [
+        'id' => 'P1-M24',
+        'name' => 'you can revoke yourself',
+        'file' => 'app/Http/Controllers/Admin/AdminUserController.php',
+        'old' => '        if ($target->is($this->actor())) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'cannot revoke YOURSELF']],
+    ],
+    [
+        'id' => 'P1-M25',
+        'name' => 'a throwing card shown as not-grey',
+        'file' => 'app/Support/Platform/Health/HealthBoard.php',
+        'old' => '            return HealthCard::fromFailure($key, $title, $e);',
+        'new' => '            return new HealthCard($key, $title, HealthCard::GREEN, \'fine\');',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformHealthBoardTest.php', 'filter' => 'THROWS']],
+    ],
+];
