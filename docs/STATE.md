@@ -160,6 +160,7 @@ accessors, `units()` and `unitsAtLiveProperties()`. `ArchivedPropertyGhostUnitsT
 | 6 | **A `failed_jobs` retention window** — a failed mailable persists a recipient email and, once, **a whole statement PDF** | PII kept indefinitely | GDPR posture |
 | 7 | **`core/terms.html`'s per-unit proration clause** — meaningless under flat billing. Possibly a lawyer's | A contract contradicting the invoice | Publishing terms |
 | 10/11 | **IP + user-agent** in exception logs *and* platform audit rows — **same question, opposite defaults** | Personal data across rotations | GDPR posture |
+| 12 | **`sales@vyrobel.com` has no mailbox** — the privacy page's rights contact, the terms' support line and the contact page all print it; mail to it is REJECTED (KNOWN-LIMITS L18). One alias in hPanel | Enquiries and privacy requests bounce | Go-live |
 
 ### The founder's — product, nothing blocked today
 
@@ -192,7 +193,7 @@ Struck: ~~the billing model~~ (settled 2026-08-28: flat).
 
 ⚠️ **🔬 2026-09-01 — 54 instances in 13 classes.** Each is a check that looked like protection and wasn't; each class
 recurred, and the next will wear a new face. **The evidence is `docs/INSTRUMENT-ERRORS.md`** — consult it when you
-write a check. The names only, so you can recognise one:
+write a check. The names only, so you can recognise one: ⚠️ 🔬 2026-09-25: `stat` on a **symlink** reports the LINK's mode (always 777) — KNOWN-LIMITS L15 read `.env` as world-writable from exactly that; `stat -L` reads the file (600). Class **C**.
 
 **A** the assertion that cannot fail · **B** proving something ADJACENT · **C** the wrong layer or target ·
 **D** placed wrong in time · **E** green as an artefact of the environment · **F** the mutation that lies ·

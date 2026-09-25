@@ -678,6 +678,10 @@ scope"* applies to the figures this project writes about itself.
    — ⚠️ the whole deploy, and the only atomic step.
 5. ⚠️ **Wait ≥180 s, then** prune older releases.
 6. ⚠️ **A MIGRATION IS NOT THIS.** See the scope note below.
+7. ⚠️ **AN `.env`-ONLY CHANGE IS A RELEASE TOO** (L14 — a cached config never reads `.env`). `ops/release.sh
+   recache rel_<new>` builds a release of the SAME commit with config and routes rebuilt from `.env` as it is now
+   (`stage` refuses a commit that is already live); then `swap`. The live release is never touched — the new one
+   gets its own config-cache inode, checked — so a rollback restores the previous config exactly.
 
 ⚠️ **TO REVERT THE LAYOUT ENTIRELY:** move the release's contents back into `public_html`, delete `current`
 and the `artisan` shim, restore the previous `.htaccess`, and rebuild the caches in place.
@@ -1159,7 +1163,23 @@ reported and deliberately not done: SHADOW 01 was scoped to configuration and pe
 
 ---
 
-## ⚠️ L15 — `.env` IS MODE 777 IN EVERY RELEASE (contained, not exposed)
+## ✅ L15 — CLOSED 2026-09-25 (TONIGHT 01) · NOT A DEFECT: the "777" was each release's SYMLINK, not a file
+
+🔬 **Measured 2026-09-25.** Every `releases/rel_*/.env` (25 of 25) is a **symbolic link** to the ONE shared file —
+`.env → ../../public_html/.env` — and **no release holds a copy** (0 regular `.env` files in any release). `stat -c %a`
+on a symlink reports the LINK's own mode, which is **always 777 and ignored by Linux**; what a reader reaches is the
+target: `stat -L` → **600**, owner `u545270279`. The oldest link (rel_B) was created 2026-09-20 18:44 UTC — before this
+entry was measured — so the "777" below was the link then too. ⚠️ The `chmod 600 releases/*/.env` it proposed would
+have followed the links to a file that was already 600: a no-op.
+⚠️ **The web process runs as that owner** — 🔬 the three cache files a live sign-up request wrote (19:17 UTC) are
+owned by `u545270279` — so 600 is readable by the app (the L13 prerequisite, re-measured, not assumed).
+⚠️ **And a deploy now RE-DOES it:** `ops/release.sh stage` and `recache` refuse a release whose `.env` is not the
+link, and re-apply 600 to the shared file on every deploy — because a hand edit in hPanel's file editor can rewrite
+it with a wider mode. 🔬 Proven on `rel_Z`: `.env → ../../public_html/.env · shared file mode 600`.
+⚠️ **The real finding sat BESIDE it:** 9 old releases (rel_B, D–K) kept `bootstrap/cache/config.php` — a compiled
+copy of `.env` — at **644**, from before `stage` set 600. All 24 are 600 now, digests unchanged.
+
+### The original entry (2026-09-23), kept as written
 
 🔬 Measured 2026-09-23: all five `releases/*/.env` are **777** — world-readable *and* world-writable.
 (`public_html/.env` is correctly 600.)
@@ -1246,4 +1266,21 @@ it). Restricting it would mean replacing that with per-table grants for ~150 tab
 **PROPOSED, NOT DONE:** a `BEFORE UPDATE` and a `BEFORE DELETE` trigger on `platform_admin_actions` that `SIGNAL` an
 error. That refuses every client, including the CLI; someone with the privilege could still drop the trigger, so it
 raises the bar rather than removing it. It changes the database, so it is the founder's call.
+
+---
+
+## ⚠️ L18 — THE PUBLISHED `sales@vyrobel.com` HAS NO MAILBOX: MAIL SENT TO IT IS REJECTED — PRIVACY REQUESTS INCLUDED
+
+🔬 **Measured 2026-09-25 (TONIGHT 01).** The public site prints `sales@vyrobel.com` 12 times in 8 templates — as the
+**privacy page's contact for "any privacy question or to exercise a right"**, the **terms' support line** ("Support is
+by email at sales@vyrobel.com"), the contact page and the contact form's fallback, pricing, and three customer
+stories. The domain has ONE mailbox, `contact@vyrobel.com`, and no alias, forwarder or catch-all. hPanel's delivery
+log (Emails → Email Logs → Delivery, inbound) shows mail to `sales@` and to `info@` **Rejected** — 9 since
+2026-08-30, the latest on 2026-09-25. Most look like spam; ⚠️ **but any real enquiry or data-subject request sent
+to the published address is refused, and the sender is told so by their own provider, not by us.**
+
+⚠️ **THE FOUNDER'S STEP — one minute, no code:** hPanel → Emails → **Email Alias** → `sales@vyrobel.com` delivering to
+`contact@vyrobel.com`. (The other direction — printing `contact@` instead — is a copy change across 8 templates and
+the legal pages; the alias keeps every published address working.) ⚠️ Not done by the session: it changes his mail
+setup, and nothing briefed it.
 

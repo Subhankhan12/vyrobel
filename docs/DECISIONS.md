@@ -17943,3 +17943,76 @@ Mutation set `finish-01-c` (3): all land and are caught.
 **DEPLOYED.** Part B: `rel_W @ 3cd72c26` (swap 3 ms, 14:03:50 UTC — it signed everyone out once, including the founder). Part C: `rel_X @ 6afbfeb0` (swap 4 ms; database sessions survive a release swap, so this one signed nobody out). Front door after each: PASS 12 · FAIL 0 · COULD NOT MEASURE 0; 0 server errors; the notification page re-seen live (Verified badge, no "Unverified").
 
 **PROOF.** Suite 3928/3928 (2026-09-25 15:32 UTC — dated, not a pin; with the silent-discard switch ON) · mutation harness 146/146 landed and caught, 0 not caught, 0 did not land (15:43 UTC; self-check 5/5; 61/61 aimed tests green on the clean tree first) · PHPStan L5 0 · Pint clean · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0` + four digests unchanged (demo users 14/14 verified — the seeder change moved no money figure).
+
+---
+
+## 2026-09-25 — TONIGHT 01 · PART 1 — the backups out of the web root, `.env` measured locked, the inventory shipped, the first verification link
+
+**Scope, as briefed** (the part that needs nothing from the founder): move the three older `.env` backups out of the
+web root; lock `.env` down and prove a deploy cannot undo it; ship the data inventory so the retention meter counts on
+production. ⚠️ Two defects surfaced on the way and were fixed: sign-up never sent the FIRST verification link, and the
+mail log recorded every NOTIFICATION as "unknown".
+
+1. **Backups — MOVED.** `public_html/.env.bak.pre-google` · `.env.bak.pre-rotate2` · `.env.bak.pre-twitter` →
+   `~/domains/vyrobel.com/env-backups/` (dir 700, each 600), beside this session's own two (`.env.bak-mail02-…`,
+   `.env.bak-sessions01-…`). sha256 identical before and after; names, sizes, modes and digests only — never contents.
+   The only `.env*` left under `public_html` is the live `.env`; none under any release's `public/`; nothing in the app,
+   the deploy scripts or the host's own scripts names the old paths. ⚠️ They were never web-reachable — every request
+   is rewritten into `current/public/`, and `<FilesMatch "^\.">` denies dotfiles (read from `.htaccess`).
+2. **`.env` — ONE shared file, measured; KNOWN-LIMITS L15 was a misreading.** `public_html/.env` (600, owner
+   `u545270279`) is LINKED into all 25 releases; none holds a copy. L15's "777" is each SYMLINK's own mode, which
+   Linux ignores (`stat -L` → 600). The web process runs as the owner — 🔬 the cache files a live sign-up request wrote
+   are owned by `u545270279`. ⚠️ **Beside it, a real one, fixed:** 9 old releases kept their cached config (a compiled
+   copy of `.env`) at 644; all 24 are 600 now, digests unchanged. **By result:** front door PASS 12 · FAIL 0 · CNM 0
+   and a real sign-up accepted. ⚠️ **A deploy re-does it rather than undoing it:** `stage` (and `recache`) refuse a
+   release whose `.env` is not the link and re-apply 600 to the shared file every time — a hand edit in hPanel's file
+   editor may rewrite it wider. 🔬 On rel_Z: `.env → ../../public_html/.env · shared file mode 600`.
+3. **`ops/release.sh recache rel_<X>` — NEW** (KNOWN-LIMITS L12k step 7). An `.env`-only change needs the config
+   rebuilt (L14) and `stage` refuses a commit that is already live; `recache` builds a release of the SAME commit with
+   config and routes rebuilt from the current `.env`, and checks the live release's cache is untouched.
+4. **The retention meter COUNTS ON PRODUCTION.** It read `docs/legal/DATA-INVENTORY.md`, which is not deployed. It
+   now reads `resources/data/data-inventory.json`, GENERATED from the doc (`php artisan privacy:inventory-data`): each
+   category's name and the real tables its row names — no prose, no address, nothing personal. The doc stays the ONE
+   source: a test regenerates the file and fails on any byte of difference; a second fails if the file sits where
+   `release.sh` would not ship it; the doc points at the file. Which tables EXIST is still measured on the host.
+   🔬 Live, through the page's own code path (`app(RetentionCoverage::class)->compute()` on the host — the founder
+   was not signed into `/admin` in the session's browser): rel_Y *"cannot be counted here"* → rel_Z **measurable ·
+   144 categories · strict 2 · lenient 40 · 10 code-enforced windows · ruling NULL**, identical to local. The ruling
+   stays the founder's and his lawyer's; both readings are still shown.
+   ⚠️ MAIL 02 had turned the superseded Postmark row's bold label into a long note carrying an address; it is a short
+   label again, the note moved into the row.
+5. **Sign-up SENDS the first verification link.** The page every new founder lands on says "Click the link we sent
+   you" — and nothing had sent one; the only senders were that page's "Resend the link" and the console's support
+   button. Invisible while production discarded mail; the first thing every real email sign-up would have met with
+   mail on. Sent only to an UNVERIFIED founder (Google/X founders are verified by the provider); a refused send never
+   fails the sign-up (logged, never the address). 🔬 On rel_Z: a probe sign-up's first link was generated and REFUSED
+   by the skip list (`.invalid`) — `mail_send_log`: one `suppressed` row.
+6. **The mail log's type for notifications.** That live row read `unknown`: a notification carries its class under
+   `__laravel_notification`, a Mailable under `__laravel_mailable`, and the recorder read only the second.
+   `MailSendLog::typeOf()` reads both (MAIL-M10). Committed after rel_Z; it ships with the mail switch-on.
+8. **The console's "resend verification" / "send password reset" REFUSE a never-deliverable address.** Since MAIL 02
+   the skip list suppresses such a send at the last moment — and the console then said "handed to the mailer" while
+   nobody received anything: the silent success `SupportController` promises never to be. With mail on, both now
+   refuse first, naming WHY (a reserved domain, a probe, a listed no-mailbox address — never the address itself) and
+   handing nothing to the mailer (T01-M7/M8). ⚠️ One fixture asserted "really sends" to a reserved `@example.net`
+   address — the silent success itself; it now uses a deliverable-looking address. P3-B20 re-anchored (the refusal
+   now sits between its line and the `mutate()` call); still caught. Ships with the mail switch-on.
+7. **Found, the founder's to fix — `sales@vyrobel.com` has NO MAILBOX** (KNOWN-LIMITS L18). The site prints it 12
+   times — the privacy page's rights contact, the terms' support line, the contact page and form, pricing, three
+   stories — and hPanel's delivery log shows mail to it rejected, 9 since 2026-08-30, the latest today. One minute in
+   hPanel: Email Alias `sales@` → contact@.
+
+Probes, each marked internal by exact name with a reason, read back: `TONIGHT01 PROBE (not a customer)` ·
+`TONIGHT01B PROBE (not a customer)`. Customers on the platform: 0.
+
+**DEPLOYED `rel_Z @ 687c51a1`** (~20:06 UTC; swap 5 ms; no migrations; `.release` read from the file). Mail kept OFF
+for it — `MAIL_MAILER=log`, because the mailbox password is not in `.env` yet. Front door after: PASS 12 · FAIL 0 ·
+CNM 0. Errors from the site since the swap: 0 (the one logged line is this pass's own check script, run against the
+old release). Rollback: `ops/release.sh rollback rel_Y`.
+
+**PROOF.** Suite 3942/3942 (dated, not a pin) · PHPStan L5 0 · Pint clean · money gate FULL — tenant one's six
+aggregates unchanged and its four covered tables row-identical; ⚠️ not "the money is unchanged" · mutation harness
+161/161 landed and caught (tonight-01 6/6).
+**Items 6 and 8 (committed after rel_Z, not yet deployed):** suite 3944/3944 · PHPStan L5 0 · Pint clean · mutation
+harness 164/164 landed and caught (+ MAIL-M10, T01-M7, T01-M8; P3-B20 re-anchored and still caught).
+
