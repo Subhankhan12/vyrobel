@@ -70,6 +70,7 @@ final class RetentionPolicy
         // ⚠️ 30 days vastly exceeds the 120-MINUTE configured session lifetime (config/session.php), so this
         // can never prune a live session and log someone out. Verified, not assumed.
         'sessions' => ['days' => 30, 'column' => 'last_activity', 'holds' => 'session payloads, user id, IP address and user agent'],
+        'mail_send_log' => ['days' => 365, 'column' => 'created_at', 'holds' => 'which email TYPE was accepted or suppressed, and when — no address, subject or body'],
 
         // ⚠️⚠️ THIS TABLE DEDUPLICATES REPLAYS — UNIQUE(source, external_event_id). Pruning a key too early
         // lets a replayed event be processed a SECOND time, and on the Connect plane that is a money event.

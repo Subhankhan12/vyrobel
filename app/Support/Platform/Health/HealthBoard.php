@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Platform\Health;
 
+use App\Support\Mail\MailSafetyGuard;
+use App\Support\Mail\MailSendLog;
 use App\Support\Ops\ConfigInventory;
 use App\Support\Ops\Heartbeat;
 use App\Support\Platform\MailDelivery;
@@ -69,7 +71,7 @@ final class HealthBoard
             return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'MAIL IS NOT BEING DELIVERED', [
                 "Active mailer: {$mailer} — every email is discarded, not sent.",
                 'Invites, password resets, verification and receipts reach nobody until a real mailer is configured.',
-            ], 'Founder step: the Postmark DNS records and token (docs/EMAIL-PRODUCTION.md).');
+            ], 'Founder step: the Hostinger mailbox password, typed into the server\'s .env (docs/EMAIL-PRODUCTION.md).');
         }
 
         $lines = ["Active mailer: {$mailer}."];
@@ -79,9 +81,53 @@ final class HealthBoard
             ]));
         }
 
-        return new HealthCard('mail', 'Mail delivery', HealthCard::GREEN, 'A delivering mailer is configured', array_merge($lines, [
-            'Sent / bounced / failed: not measured yet — the provider\'s delivery events are not recorded here.',
-        ]));
+        // ⚠️ MAIL 02 — SMTP (Hostinger's own mail, the founder's choice). Each check names a KEY, never a value.
+        if ($mailer === 'smtp') {
+            if (MailSafetyGuard::isLocalSmtpHost((string) config('mail.mailers.smtp.host'))) {
+                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'Mail goes to this machine, not to people', array_merge($lines, [
+                    'MAIL_HOST points at a local catch-inbox (loopback / Mailpit) — nothing reaches a person.',
+                ]));
+            }
+            $missing = array_keys(array_filter([
+                'MAIL_USERNAME' => config('mail.mailers.smtp.username'),
+                'MAIL_PASSWORD' => config('mail.mailers.smtp.password'),
+            ], static fn ($v): bool => blank($v)));
+            if ($missing !== []) {
+                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'SMTP login incomplete', array_merge($lines, [
+                    'Not set: '.implode(', ', $missing).' — the mail server will refuse every message.',
+                ]));
+            }
+            if (strcasecmp(trim((string) config('mail.from.address')), trim((string) config('mail.mailers.smtp.username'))) !== 0) {
+                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'Sender does not match the SMTP login', array_merge($lines, [
+                    'MAIL_FROM_ADDRESS is not the mailbox that signs in (MAIL_USERNAME) — Hostinger rejects mail sent as anyone else.',
+                ]));
+            }
+            $lines[] = 'SMTP: a real mail server, a complete login, and a From address that matches it.';
+        }
+
+        $failed = $this->queuedMailFailures(now()->subDays(7));
+        $lines[] = 'Accepted by the mail server — 24h: '.MailSendLog::count(MailSendLog::ACCEPTED, now()->subDay())
+            .' · 7 days: '.MailSendLog::count(MailSendLog::ACCEPTED, now()->subDays(7)).'.';
+        $lines[] = 'Suppressed (an address that can never receive mail — never sent) — 7 days: '.MailSendLog::count(MailSendLog::SUPPRESSED, now()->subDays(7)).'.';
+        $lines[] = "Failed on the queue — 7 days: {$failed}. (An inline send that fails shows as an error on the page that sent it, and in the log.)";
+        $lines[] = 'Bounced: not visible to the app — with SMTP a bounce comes back as an email to the sending mailbox. "Accepted" is not "delivered".';
+
+        if ($failed > 0) {
+            return new HealthCard('mail', 'Mail delivery', HealthCard::AMBER, "Delivering — but {$failed} queued ".Str::plural('email', $failed).' failed in 7 days', $lines);
+        }
+
+        return new HealthCard('mail', 'Mail delivery', HealthCard::GREEN, 'A delivering mailer is configured', $lines);
+    }
+
+    /** Queued email jobs that ended in `failed_jobs` since the given moment — read by the job's display name. */
+    private function queuedMailFailures(\DateTimeInterface $since): int
+    {
+        return DB::table('failed_jobs')->where('failed_at', '>=', $since)->pluck('payload')
+            ->filter(static function ($payload): bool {
+                $name = (string) (json_decode((string) $payload, true)['displayName'] ?? '');
+
+                return preg_match('/SendQueuedMailable|SendQueuedNotifications|Mail\\\\|Email/', $name) === 1;
+            })->count();
     }
 
     /**

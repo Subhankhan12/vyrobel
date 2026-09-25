@@ -45,6 +45,7 @@ function seedAgedRow(string $table, int $days): string
             'id' => $id, 'usage_date' => $at->toDateString(),
             'created_at' => $at, 'updated_at' => $at,
         ]),
+        'mail_send_log' => DB::table('mail_send_log')->insert(['id' => $id, 'outcome' => 'accepted', 'mailable' => 'RetentionProbe', 'created_at' => $at]),
         default => DB::table($table)->insert(['id' => $id, 'created_at' => $at, 'updated_at' => $at]),
     };
 
@@ -166,6 +167,7 @@ it('pins each approved retention window', function () {
         'failed_jobs' => 7,        // ⚠️ a PRIVACY window: statement PDF + recipient email in the payload
         'notifications' => 90,
         'sessions' => 30,          // ⚠️ » the 120-MINUTE session lifetime, so it cannot log anyone out
+        'mail_send_log' => 365,    // MAIL 02 — founder-approved 2026-09-25; the rows hold no personal data (type, server id, time)
         'webhook_events' => 90,    // ⚠️ » Stripe's ~3-day retry window; pruning a dedupe key early = double-post
         // ⚠️ A NIGHTLY REPORT IS NOT EVIDENCE. `audit_events`/`domain_events` are never pruned because they
         //    record what HAPPENED; a reconciliation run records what was TRUE at 04:00, which stops being

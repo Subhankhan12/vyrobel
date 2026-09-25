@@ -118,7 +118,7 @@ it('the sub-processor register claims NO agreement, and shows states — never a
         expect($row['agreement'])->toBe('None on file');
     }
     $this->actingAs(platformAdmin(), 'admin')->get(route('admin.privacy.index'))->assertOk()
-        ->assertSee('Postmark (email)')->assertSee('Stripe (payments &amp; billing)', false)->assertSee('No agreement is on file with any of them yet.')
+        ->assertSee('Hostinger (email)')->assertSee('Stripe (payments &amp; billing)', false)->assertSee('No agreement is on file with any of them yet.')
         ->assertDontSee('SECRET-NEEDLE');
 })->group('security');
 

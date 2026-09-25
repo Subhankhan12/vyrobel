@@ -34,7 +34,10 @@ uses(RefreshDatabase::class);
 function confirmedBookingWithFolio(int $roomChargeMinor = 24500): array
 {
     $s = seedScenario(1);
-    $s['guest']->update(['email' => 'ada@example.test', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+    // MAIL 02 — a DELIVERABLE-looking address: the product now never hands a reserved one (example.test, .invalid…) to
+    // the mail server (SuppressUndeliverableRecipients), so this path needs a real-shaped one. Tests use the array
+    // transport — nothing is ever delivered — and the domain is the founder's own.
+    $s['guest']->update(['email' => 'ada.guest@vyrobel.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
 
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
@@ -79,7 +82,7 @@ it('deserializes and RENDERS the queued confirmation with NO ambient tenant cont
     $sent = $messages[0]->getOriginalMessage();
     $html = (string) $sent->getHtmlBody();
 
-    expect($sent->getTo()[0]->getAddress())->toBe('ada@example.test');
+    expect($sent->getTo()[0]->getAddress())->toBe('ada.guest@vyrobel.com');
     expect($html)->toContain((string) $reservation->reference);
     expect($html)->toContain('245.00');   // the REAL committed folio total (#17), never a "€0.00" email
 });
@@ -119,7 +122,7 @@ it('keeps guest PII out of the queued payload', function () {
     // A queue payload is stored in PLAINTEXT in `jobs`/`failed_jobs`. Serialising the address would copy an
     // encrypted column into a plaintext store and put it beyond the reach of Guest::anonymize() (audit F-2b-04).
     // The recipient is resolved inside the job, in tenant context, at send time.
-    expect($payload)->not->toContain('ada@example.test');
+    expect($payload)->not->toContain('ada.guest@vyrobel.com');
     expect($payload)->toContain((string) $reservation->getKey());
 });
 

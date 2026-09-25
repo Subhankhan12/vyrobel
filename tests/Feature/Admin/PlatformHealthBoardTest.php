@@ -38,11 +38,14 @@ it('⚠️⚠️ mail on `log` (production today) is RED, in words', function ()
     expect(card('mail')->status)->toBe(HealthCard::RED);
 })->group('security');
 
-it('a delivering mailer is green — and says delivery statistics are NOT measured', function () {
-    config(['mail.default' => 'smtp']);
+it('a delivering mailer is green — with real accepted/suppressed/failed counts, and honest that bounces are not visible', function () {
+    // MAIL 02 — SMTP to a real host, a complete login, and a From that matches it (Hostinger rejects anything else).
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.hostinger.com', 'mail.mailers.smtp.username' => 'contact@vyrobel.com',
+        'mail.mailers.smtp.password' => 'not-a-real-password', 'mail.from.address' => 'contact@vyrobel.com']);
     $c = card('mail');
     expect($c->status)->toBe(HealthCard::GREEN)
-        ->and(implode(' ', $c->lines))->toContain('not measured');
+        ->and(implode(' ', $c->lines))->toContain('Accepted by the mail server')->toContain('Bounced: not visible')
+        ->and(implode(' ', $c->lines).' '.$c->headline)->not->toContain('not-a-real-password')->not->toContain('contact@vyrobel.com');
 })->group('security');
 
 it('⚠️⚠️ a scheduler that never beat is RED; beating but unwatched is AMBER; beating AND watched is GREEN', function () {
@@ -76,12 +79,12 @@ it('the exposure battery card is GREY by design — its results live outside the
 })->group('security');
 
 it('⚠️ the config card shows key NAMES only — never a value', function () {
-    config(['services.postmark.token' => null]);
+    config(['mail.mailers.smtp.password' => null]);   // MAIL 02 — the silent key now (Postmark is unused, INERT)
     $c = card('config');
     $secret = (string) config('app.key');
 
     expect($c->status)->toBe(HealthCard::RED)
-        ->and(implode(' ', $c->lines))->toContain('services.postmark.token')
+        ->and(implode(' ', $c->lines))->toContain('mail.mailers.smtp.password')
         ->and(implode(' ', $c->lines).' '.$c->headline)->not->toContain($secret);
 })->group('security');
 

@@ -156,7 +156,7 @@ accessors, `units()` and `unitsAtLiveProperties()`. `ArchivedPropertyGhostUnitsT
 | # | Decision | If skipped | Blocks |
 |---|---|---|---|
 | 4 | **Stripe live keys + dashboard steps** | No payments | Go-live |
-| 5 | **Hosting region, backup location, Postmark region** | Cannot answer a lawyer's first question | The DPA |
+| 5 | **Hosting region, backup location, mail region** (Hostinger mail since 2026-09-25, not Postmark) | Cannot answer a lawyer's first question | The DPA |
 | 6 | **A `failed_jobs` retention window** — a failed mailable persists a recipient email and, once, **a whole statement PDF** | PII kept indefinitely | GDPR posture |
 | 7 | **`core/terms.html`'s per-unit proration clause** — meaningless under flat billing. Possibly a lawyer's | A contract contradicting the invoice | Publishing terms |
 | 10/11 | **IP + user-agent** in exception logs *and* platform audit rows — **same question, opposite defaults** | Personal data across rotations | GDPR posture |

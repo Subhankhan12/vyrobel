@@ -17,31 +17,49 @@ use App\Providers\AppServiceProvider;
  * `MAIL_MAILER=postmark` in a local/CI env silently logs instead of delivering. Only `production` may use a
  * sending provider.
  *
- * SAFE (non-sending / local-only) transports are left untouched: `log`, `array` (the test transport),
- * `smtp` (Mailpit → 127.0.0.1:1025 in dev), `sendmail` is treated as SENDING (it can deliver to real MX).
+ * SAFE (non-sending / local-only) transports are left untouched: `log`, `array` (the test transport), and `smtp`
+ * pointed at THIS machine (Mailpit → 127.0.0.1:1025 in dev). `sendmail` is treated as SENDING (it can deliver to real MX).
+ *
+ * ⚠️⚠️ MAIL 02 (2026-09-25) — `smtp` IS ALSO A REAL PROVIDER NOW. The founder chose Hostinger's own mail
+ * (`smtp.hostinger.com`) over Postmark, and until today `smtp` meant only Mailpit here — so a developer's `.env`
+ * holding the Hostinger mailbox credentials would have emailed real guests from a laptop, and this guard would have
+ * waved it through. `smtp` now counts as SENDING unless its host is a LOCAL one (loopback / `mailpit`).
  */
 final class MailSafetyGuard
 {
     /** Transports that can deliver to a REAL inbox — forbidden outside production. */
-    private const SENDING = ['postmark', 'ses', 'resend', 'mailgun', 'sendmail'];
+    private const SENDING = ['postmark', 'ses', 'ses-v2', 'resend', 'mailgun', 'sendmail'];
+
+    /** SMTP hosts that are THIS machine — a local catch-inbox (Mailpit), never a real person. */
+    private const LOCAL_SMTP_HOSTS = ['', '127.0.0.1', 'localhost', '::1', '0.0.0.0', 'mailpit'];
 
     /**
      * The mailer that is SAFE to use for the given environment. Production keeps whatever is configured; every
      * other environment has a real-sending transport downgraded to `log` (Mailpit `smtp` / `log` / `array`
      * stay as-is — they never reach a real person).
      */
-    public static function safeMailerFor(string $environment, string $configured): string
+    public static function safeMailerFor(string $environment, string $configured, ?string $smtpHost = null): string
     {
         if ($environment === 'production') {
             return $configured;
         }
 
-        return in_array($configured, self::SENDING, true) ? 'log' : $configured;
+        return self::isSending($configured, $smtpHost) ? 'log' : $configured;
     }
 
     /** Whether a transport delivers to real inboxes (used for logging/telemetry). */
-    public static function isSending(string $mailer): bool
+    public static function isSending(string $mailer, ?string $smtpHost = null): bool
     {
+        if ($mailer === 'smtp') {
+            return ! self::isLocalSmtpHost($smtpHost);
+        }
+
         return in_array($mailer, self::SENDING, true);
+    }
+
+    /** Whether an SMTP host is THIS machine (a local catch-inbox) rather than a real mail provider. */
+    public static function isLocalSmtpHost(?string $host): bool
+    {
+        return in_array(strtolower(trim((string) $host)), self::LOCAL_SMTP_HOSTS, true);
     }
 }

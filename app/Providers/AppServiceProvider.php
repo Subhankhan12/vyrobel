@@ -12,6 +12,8 @@ use App\Listeners\AuditOAuthTokenGranted;
 use App\Listeners\DispatchNotificationsForDomainEvent;
 use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
+use App\Listeners\Mail\RecordAcceptedMail;
+use App\Listeners\Mail\SuppressUndeliverableRecipients;
 use App\Listeners\ReattributeOwnerOnUnitMove;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
@@ -107,6 +109,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Event;
@@ -407,7 +411,7 @@ class AppServiceProvider extends ServiceProvider
         // outside `production`, downgraded to `log`, so no dev/CI run can ever email a real person — even with
         // MAIL_MAILER=postmark in a stray .env. Enforced in code, not by convention. See MailSafetyGuard.
         $configuredMailer = (string) config('mail.default');
-        $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer);
+        $safeMailer = MailSafetyGuard::safeMailerFor($this->app->environment(), $configuredMailer, (string) config('mail.mailers.smtp.host'));
         if ($safeMailer !== $configuredMailer) {
             config(['mail.default' => $safeMailer]);
             Log::warning('MailSafetyGuard downgraded a real mail transport outside production.', [
@@ -438,6 +442,11 @@ class AppServiceProvider extends ServiceProvider
         // Audit every token issuance (#20) — the token exchange is session-less, so the listener resolves the
         // actor + org itself (there is no auth()/TenantContext at /oauth/token).
         Event::listen(AccessTokenCreated::class, AuditOAuthTokenGranted::class);
+        // MAIL 02 — before EVERY send: never hand the provider an address that can never receive mail (probe accounts
+        //    on .invalid bounce against the founder's own Hostinger mailbox). After every send: count what the server
+        //    accepted, for the health board. See SuppressUndeliverableRecipients / RecordAcceptedMail.
+        Event::listen(MessageSending::class, SuppressUndeliverableRecipients::class);
+        Event::listen(MessageSent::class, RecordAcceptedMail::class);
 
         // Stable morph aliases so polymorphic *_type columns (mediable_type, notable_type,
         // subject_type, owner_type, model_has_roles.model_type, …) store short, refactor-proof

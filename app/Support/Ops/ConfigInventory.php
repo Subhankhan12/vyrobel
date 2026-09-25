@@ -38,8 +38,12 @@ final class ConfigInventory
      */
     public const CLASSIFY = [
         'mail.default' => ['SILENT', 'a non-delivering mailer (log/array) discards every email; under a log level above debug it is not even recorded'],
-        'mail.mailers.postmark.token' => ['SILENT', 'Postmark transport present but unauthenticated — sends fail or vanish depending on the mailer above it'],
-        'services.postmark.token' => ['SILENT', 'same token, read from the services config'],
+        // MAIL 02 (2026-09-25) — the founder chose Hostinger's own mail (SMTP) over Postmark: an empty SMTP login is
+        //    now the silent failure, and an empty Postmark token is simply the correct state for an unused provider.
+        'mail.mailers.smtp.username' => ['SILENT', 'SMTP transport present but not logged in — the mail server refuses every message, and an inline send fails inside a request that may swallow it'],
+        'mail.mailers.smtp.password' => ['SILENT', 'as above — the mailbox password is the founder\'s to type into the server .env'],
+        'mail.mailers.postmark.token' => ['INERT', 'Postmark is not the chosen provider (Hostinger SMTP is, 2026-09-25) — empty is correct'],
+        'services.postmark.token' => ['INERT', 'same token, read from the services config — unused'],
         'mail.from.address' => ['SILENT', 'mail may be built with an empty From and rejected by the provider, after the queue has already reported success'],
         'ops.heartbeat_ping_url' => ['SILENT', 'the external dead-man\'s-switch is NOT ARMED — a skipped cron, a dead worker or a dead host raises nothing at all'],
         'services.google.client_id' => ['LOUD', 'Google sign-in disables itself entirely — no button, no route, no error page. Deliberate and asserted'],

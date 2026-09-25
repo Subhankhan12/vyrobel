@@ -1,4 +1,45 @@
-# Production email (Phase 8) — Postmark
+# Production email — Hostinger mail (SMTP) · ⚠️ Postmark superseded 2026-09-25
+
+## ⚠️ READ THIS FIRST — MAIL 02 (2026-09-25): THE PROVIDER IS HOSTINGER'S OWN MAIL, NOT POSTMARK
+
+The founder chose Hostinger's own mail over Postmark: he already has live mail on `vyrobel.com` there (MX →
+`mx1/mx2.hostinger.com`), so there is no new vendor and no new DNS. Everything below the line is the Postmark history,
+kept as a record — **do not follow it.**
+
+**The production settings** (`.env` on the host, shared by every release; the config cache is rebuilt by staging a
+release — L14 — so a `.env` edit alone does nothing):
+
+```
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_SCHEME=smtps
+MAIL_USERNAME=contact@vyrobel.com
+MAIL_PASSWORD=<the mailbox password — typed by the founder, never seen by anyone else>
+MAIL_FROM_ADDRESS=contact@vyrobel.com     # MUST equal MAIL_USERNAME — Hostinger rejects mail sent as anyone else
+MAIL_FROM_NAME="Vyrobel"
+MAIL_SUPPRESS_ADDRESSES=                  # optional: exact addresses measured to have no mailbox
+```
+
+**DNS — already in place, measured 2026-09-25, nothing added or changed:** SPF `v=spf1 include:_spf.mail.hostinger.com
+~all` (one record) · DKIM `hostingermail-a._domainkey` (a live RSA key; `-b`/`-c` are empty, rotated out) · DMARC
+`v=DMARC1; p=none`. MX untouched.
+
+**What protects it (code, tested and mutation-proved — `tests/Feature/MailHostingerSmtpTest.php`, set `mail-02`):**
+- `MailSafetyGuard` — `smtp` to a REAL host is real sending, refused outside production; `smtp` to this machine
+  (Mailpit) is left for development.
+- `SuppressUndeliverableRecipients` — before every send, addresses that can never receive mail (RFC-reserved `.invalid`,
+  `.test`, `.example`, `.localhost`, example.com/.net/.org, plus `MAIL_SUPPRESS_ADDRESSES`) are removed; a message with
+  nobody real left is cancelled. The probe accounts live on `.invalid` — without this they would bounce against the
+  founder's own mailbox.
+- The health board's mail card: red for SMTP pointed at this machine, an incomplete login, or a From that is not the
+  login; otherwise green with real counts — accepted by the server (24h / 7 days), suppressed, failed on the queue.
+  ⚠️ **Bounces are not visible to the app:** with SMTP a bounce comes back as an email to `contact@vyrobel.com`, and
+  guests' replies land there too. "Accepted" is not "delivered".
+
+---
+
+## Production email (Phase 8) — Postmark · ⚠️ HISTORY, superseded 2026-09-25
 
 Phase 3 built the **entire mail layer** (9 guest transactional Mailables + owner/operator delivery, the
 per-channel preference gate, the "a mail failure never rolls back the domain transaction" boundary) on

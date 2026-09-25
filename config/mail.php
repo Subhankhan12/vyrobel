@@ -45,7 +45,8 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // MAIL 02 — fail fast (seconds): a hung SMTP server must not hold a queue worker for a minute.
+            'timeout' => env('MAIL_TIMEOUT', 10),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
@@ -115,5 +116,12 @@ return [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
+
+    /*
+    | MAIL 02 — addresses measured to have NO mailbox behind them (comma-separated in MAIL_SUPPRESS_ADDRESSES). Mail to
+    | them is suppressed before sending, like mail to reserved names (.invalid, .test, example.com…) always is — see
+    | App\Support\Mail\UndeliverableRecipients. Exact addresses only, never patterns.
+    */
+    'suppress_addresses' => array_values(array_filter(array_map('trim', explode(',', (string) env('MAIL_SUPPRESS_ADDRESSES', ''))))),
 
 ];

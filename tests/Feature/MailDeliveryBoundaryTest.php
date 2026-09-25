@@ -42,7 +42,10 @@ it('never rolls back a booking when the mail provider fails', function () {
     Log::spy();
 
     $s = seedScenario(1);
-    $s['guest']->update(['email' => 'ada@example.test', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+    // MAIL 02 — a DELIVERABLE-looking address: the product now never hands a reserved one (example.test, .invalid…) to
+    // the mail server (SuppressUndeliverableRecipients), so this path needs a real-shaped one. Tests use the array
+    // transport — nothing is ever delivered — and the domain is the founder's own.
+    $s['guest']->update(['email' => 'ada.guest@vyrobel.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
 
     // Booking fires reservation.confirmed → the guest-email listener → the send THROWS. The listener catches
     // it, so book() returns normally and the reservation is committed.
@@ -63,7 +66,7 @@ it('never rolls back a cancellation when the mail provider fails', function () {
     useExplodingMailer();
 
     $s = seedScenario(1);
-    $s['guest']->update(['email' => 'ada@example.test', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
+    $s['guest']->update(['email' => 'ada.guest@vyrobel.com', 'first_name' => 'Ada', 'last_name' => 'Lovelace']);
     $reservation = book($s, ['unit_id' => $s['units'][0]->id]);
 
     // Cancelling fires reservation.cancelled → the cancellation email → the send THROWS (caught). The cancel
