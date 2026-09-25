@@ -1183,7 +1183,27 @@ only what measurement proved broken and measurement could prove fixed. It is the
 
 ---
 
-## ⚠️⚠️ L16 — ON PRODUCTION, "SIGN OUT OTHER SESSIONS" AND "A PASSWORD RESET ENDS OTHER SESSIONS" DO NOTHING — AND THE AUDIT ROW SAYS THEY DID
+## ✅ L16 — CLOSED 2026-09-25 (SESSIONS 01, `rel_W @ 3cd72c26`) — WAS: ON PRODUCTION, "SIGN OUT OTHER SESSIONS" AND "A PASSWORD RESET ENDS OTHER SESSIONS" DID NOTHING — AND THE AUDIT ROW SAID THEY DID
+
+🔬 **CLOSED BY MEASUREMENT, LIVE, BOTH WAYS.** Before the fix (rel_V, `file` driver), two real sessions of one probe
+account: after A changed the password, B still got **200**; after A pressed "sign out other sessions", B still got
+**200**; `sessions` held **0** rows. After (rel_W, `database` driver + the fixes below), the same script: B → **302
+/login** in both, A stays signed in (200), the probe's rows **2 → 1** each time; a password RESET (token from the app's
+own broker, on the host, for the probe only) signed B out too. The driver was proven by BEHAVIOUR — a fresh sign-up
+after the swap created its `sessions` row — never by reading the file.
+
+What changed (DECISIONS.md, "SESSIONS 01"): `SESSION_DRIVER=database` on production (config cache rebuilt at staging —
+L14) · Laravel's AuthenticateSession on every web route (`EndSessionsOnPasswordChange`) so a password change or reset
+is fatal to every OTHER session on every guard WHATEVER THE DRIVER · one shared "sign out others"
+(`ActiveSessions::signOutOthers`: rows + `logoutOtherDevices` re-hash + remember token) · guest password change/reset
+now ends other sessions (it ended none, on any driver) · admin force sign-out on yourself ends only your OTHER
+sessions · a break-glass session is filed under the admin, never the viewed hotel user.
+⚠️ Rollback (`ops/release.sh rollback rel_V`) returns sessions to FILES and signs everyone out a second time.
+⚠️ Owner API tokens are NOT revoked by a password reset — reported to the founder, his ruling.
+
+---
+
+**THE RECORD AS IT STOOD (2026-09-24), kept as history:**
 
 🔬 **Measured 2026-09-24 (ADMIN 01 · Phase 1), on the host.** Production's `session.driver` is **`file`**:
 **163 session files** on disk (3 touched in the last two hours) and **0 rows** in the `sessions` table.
