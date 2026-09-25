@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\Platform\ConsoleFields;
 
 // ⚠️ ADMIN 03 — every console form names its fields in the words the admin sees (App\Support\Platform\ConsoleFields).
 // A validate() that forgets the map puts "The organization id field is required" back on screen — nothing else would
@@ -56,4 +57,17 @@ it('⚠️ every console validate() passes ConsoleFields::NAMES — the instrume
     }
     expect($all)->toBeGreaterThan(20)
         ->and(consoleValidateCallsWithoutFieldNames())->toBe([]);
+})->group('security');
+
+it('⚠️ every conditional rule (required_if) in the console has a sentence — never "…when about is relayed_guest"', function () {
+    $files = array_merge(glob(base_path('app/Http/Controllers/Admin/*.php')) ?: [], [base_path('app/Support/Billing/PlanIntegrity.php')]);
+    $fields = [];
+    foreach ($files as $f) {
+        preg_match_all("/'([a-z_.*]+)'\s*=>\s*\[\s*'required_if:/", (string) file_get_contents($f), $m);
+        $fields = array_merge($fields, $m[1]);
+    }
+    expect(count($fields))->toBeGreaterThanOrEqual(5);   // the scan must be seeing the rules
+
+    $missing = array_values(array_filter($fields, fn (string $f) => ! isset(ConsoleFields::MESSAGES[$f.'.required_if'])));
+    expect($missing)->toBe([]);
 })->group('security');

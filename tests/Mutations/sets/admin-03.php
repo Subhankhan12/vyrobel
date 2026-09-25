@@ -99,9 +99,9 @@ return [
         'id' => 'A03-N1',
         'name' => 'announcement form drops the field-name map',
         'file' => 'app/Http/Controllers/Admin/AnnouncementController.php',
-        'old' => '        ], [], ConsoleFields::NAMES);
+        'old' => '        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
         $reason',
-        'new' => '        ]);
+        'new' => '        ], ConsoleFields::MESSAGES);
         $reason',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php'], ['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F12']],
     ],
@@ -110,9 +110,9 @@ return [
         'name' => 'privacy form drops the field-name map',
         'file' => 'app/Http/Controllers/Admin/PrivacyController.php',
         'old' => '            \'received_on\' => [\'required\', \'date\', \'before_or_equal:today\'],
-        ], [], ConsoleFields::NAMES);',
+        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);',
         'new' => '            \'received_on\' => [\'required\', \'date\', \'before_or_equal:today\'],
-        ]);',
+        ], ConsoleFields::MESSAGES);',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php'], ['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F12']],
     ],
     [
@@ -150,5 +150,34 @@ return [
         'old' => '@selected(! $sub || ! $plans->contains(\'id\', $sub->plan_id))',
         'new' => '@selected(false)',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'deliberate choice']],
+    ],
+    [
+        'id' => 'A03-N7',
+        'name' => 'privacy form drops the conditional sentences',
+        'file' => 'app/Http/Controllers/Admin/PrivacyController.php',
+        'old' => '        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        $reason = AdminReason::from($request);
+        $back',
+        'new' => '        ], [], ConsoleFields::NAMES);
+        $reason = AdminReason::from($request);
+        $back',
+        'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'conditional error']],
+    ],
+    [
+        'id' => 'A03-N8',
+        'name' => 'the organisation sentence removed from the map',
+        'file' => 'app/Support/Platform/ConsoleFields.php',
+        'old' => '        \'organization_id.required_if\' => \'A guest’s request needs the organisation that relayed it.\',
+',
+        'new' => '',
+        'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'conditional error'], ['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php', 'filter' => 'conditional rule']],
+    ],
+    [
+        'id' => 'A03-N9',
+        'name' => 'the same-plan refusal removed',
+        'file' => 'app/Http/Controllers/Admin/CustomerController.php',
+        'old' => '        if ($currentPlanId !== null && (string) $currentPlanId === $planId) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'ALREADY on']],
     ],
 ];

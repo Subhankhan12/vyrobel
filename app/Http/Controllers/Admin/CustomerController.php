@@ -240,6 +240,19 @@ class CustomerController extends Controller
             return $refused;
         }
 
+        // ⚠️ ADMIN 03B — the plan it is ALREADY on is refused before anything is written. Measured: re-assigning it
+        //    changed no subscription row (Eloquent saves nothing when the value is unchanged) but still wrote an
+        //    `assign_plan` ledger row with the admin's reason and said "Plan assigned" — a ledger claiming a change that
+        //    never happened. The detail page preselects the CURRENT plan, so that was one careless click away.
+        $currentPlanId = $this->platform->read(
+            'platform.customer.current_plan',
+            fn (): ?string => Subscription::query()->where('organization_id', $organization)->latest()->value('plan_id'),
+            [],
+        );
+        if ($currentPlanId !== null && (string) $currentPlanId === $planId) {
+            return $this->back($org)->withErrors(['plan_id' => 'This organisation is already on that plan — nothing was changed. Choose a different plan to assign.']);
+        }
+
         $this->platform->mutate(
             'platform.customer.assign_plan',
             $reason,

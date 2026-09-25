@@ -45,7 +45,7 @@ class AnnouncementController extends Controller
             'organization_ids.*' => ['string', 'exists:organizations,id'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
-        ], [], ConsoleFields::NAMES);
+        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
 
         // ⚠️ ADMIN 03 · F13 — the ledger row is written BEFORE the row exists, so it used to carry no target and a

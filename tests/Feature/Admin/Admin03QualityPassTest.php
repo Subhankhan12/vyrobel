@@ -135,3 +135,39 @@ it('⚠️ assigning a plan is a deliberate choice — nothing is preselected fo
     expect(preg_match('/<option value=""\s+selected[^>]*>\s*Choose a plan…\s*<\/option>/', $html))->toBe(1)
         ->and(preg_match('/<option value="[^"]+"\s+selected[^>]*>[^<]*AQ Active Plan/', $html))->toBe(0);
 })->group('security');
+
+it('⚠️ ADMIN 03B — a conditional error is a sentence, never the other field\'s raw value', function () {
+    $admin = platformAdmin();
+
+    // Privacy: a guest's request without the organisation (and without `kind`, so it can never be recorded).
+    $html = (string) $this->actingAs($admin, 'admin')->from(route('admin.privacy.index'))->followingRedirects()
+        ->post(route('admin.privacy.store'), ['subject_kind' => 'relayed_guest', 'channel' => 'email', 'received_on' => now()->toDateString(), 'reason' => 'ADMIN 03B conditional message test'])
+        ->assertOk()->getContent();
+    // ⚠️ scoped to the error box — the page's own <option value="relayed_guest"> is legitimately in the HTML.
+    preg_match('/<div class="ad-flash ad-flash--error"[^>]*>(.*?)<\/div>/s', $html, $box);
+    expect($box[1] ?? '')->toContain('A guest’s request needs the organisation that relayed it.')->not->toContain('relayed_guest');
+
+    // Announcements: "chosen" with nobody chosen.
+    $this->flushSession();
+    $html = (string) $this->actingAs($admin, 'admin')->from(route('admin.announcements.index'))->followingRedirects()
+        ->post(route('admin.announcements.store'), ['audience' => 'chosen', 'reason' => 'ADMIN 03B conditional message test'])
+        ->assertOk()->getContent();
+    preg_match('/<div class="ad-flash ad-flash--error"[^>]*>(.*?)<\/div>/s', $html, $box);
+    expect($box[1] ?? '')->toContain('Choose at least one organisation — or send it to every organisation.')->not->toContain('when audience is');
+})->group('security');
+
+it('⚠️⚠️ ADMIN 03B — assigning the plan an organisation is ALREADY on is refused: no ledger row, no subscription change', function () {
+    $org = aqTrialOrg('Zaq Same Plan Org');
+    $sub = app(TenantContext::class)->forOrganization((string) $org->id, fn () => Subscription::query()->where('organization_id', $org->id)->sole());
+    Plan::query()->whereKey($sub->plan_id)->update(['is_active' => true]);
+    $admin = platformAdmin();
+    $before = $sub->only(['plan_id', 'status', 'trial_ends_at', 'updated_at']);
+
+    $this->actingAs($admin, 'admin')->from(route('admin.customers.show', $org->id))
+        ->post(route('admin.customers.assign-plan', $org->id), ['plan_id' => $sub->plan_id, 'reason' => 'ADMIN 03B same-plan test'])
+        ->assertRedirect(route('admin.customers.show', $org->id));
+
+    expect(sessionErrorKeys())->toContain('plan_id')
+        ->and(PlatformAdminAction::query()->where('action', 'platform.customer.assign_plan')->where('target_id', $org->id)->count())->toBe(0)
+        ->and(app(TenantContext::class)->forOrganization((string) $org->id, fn () => Subscription::query()->whereKey($sub->id)->sole()->only(['plan_id', 'status', 'trial_ends_at', 'updated_at'])))->toEqual($before);
+})->group('security');

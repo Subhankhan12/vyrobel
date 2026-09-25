@@ -39,4 +39,17 @@ final class ConsoleFields
         'features.*.enabled' => 'feature switch',
         'features.*.limit' => 'feature limit',
     ];
+
+    /**
+     * ⚠️ ADMIN 03B — a conditional rule's default message prints the RAW VALUE of the other field: live, the privacy
+     * desk said "The organisation field is required when about is relayed_guest". Every `required_if` in the console
+     * gets a sentence here instead (ConsoleFieldNamesAreUsedTest fails if one does not).
+     */
+    public const MESSAGES = [
+        'email.required_if' => 'An account holder’s request needs their email address — it finds the account and is not stored.',
+        'organization_id.required_if' => 'A guest’s request needs the organisation that relayed it.',
+        'organization_ids.required_if' => 'Choose at least one organisation — or send it to every organisation.',
+        'price.required_if' => 'A flat-priced plan needs a price.',
+        'unit_rate.required_if' => 'A per-unit plan needs a rate per unit.',
+    ];
 }

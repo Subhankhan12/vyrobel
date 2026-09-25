@@ -58,7 +58,7 @@ class PlanController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate(PlanIntegrity::rules(), [], ConsoleFields::NAMES);
+        $validated = $request->validate(PlanIntegrity::rules(), ConsoleFields::MESSAGES, ConsoleFields::NAMES);
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $plan = Plan::create($this->columnsFrom($validated) + [
@@ -121,7 +121,7 @@ class PlanController extends Controller
             'features' => ['array'],
             'features.*.enabled' => ['nullable', 'boolean'],
             'features.*.limit' => ['nullable', 'integer', 'min:0'],
-        ], [], ConsoleFields::NAMES);
+        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $model->update($this->columnsFrom($validated));

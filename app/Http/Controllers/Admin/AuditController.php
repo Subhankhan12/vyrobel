@@ -40,7 +40,7 @@ class AuditController extends Controller
         // ADMIN 01 · Phases 2–5
         'platform.customers.triage', 'platform.customer.impact', 'platform.support.lookup', 'platform.break_glass.view',
         'platform.break_glass.page', 'platform.revenue', 'platform.funnel', 'platform.privacy.view', 'platform.hotel_stats',
-        'platform.announcements.view',
+        'platform.announcements.view', 'platform.customer.current_plan',
     ];
 
     /** Audit labels that record a sign-in event rather than an action. */

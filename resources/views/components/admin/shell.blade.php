@@ -330,6 +330,9 @@
             .ad-user { justify-content: flex-end; flex-wrap: wrap; }
             .ad-dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
             .ad-dl dd { margin-bottom: 10px; }
+            /* ADMIN 03B — a status pill is `nowrap`; on a phone a long one ("Protected — lifecycle actions need its name
+               typed") pushed the locked organisation's page 15px sideways. It may wrap here instead. */
+            .ad-hpill { white-space: normal; max-width: 100%; }
         }
         .ad-inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
         .ad-inline-form .ad-input { width: auto; flex: 1 1 180px; padding: 8px 11px; font-size: 13px; }

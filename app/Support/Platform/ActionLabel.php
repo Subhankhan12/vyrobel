@@ -48,6 +48,7 @@ final class ActionLabel
         'platform.customer.mark_customer' => 'Marked as a customer',
         'platform.customer.refused' => 'Refused — the organisation is protected',
         'platform.customer.impact' => 'Checked guests in house',
+        'platform.customer.current_plan' => 'Checked the current plan',
         // Support and break-glass
         'platform.support.lookup' => 'Looked up a person',
         'platform.support.password_reset' => 'Sent a password-reset link',

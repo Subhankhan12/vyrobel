@@ -60,7 +60,7 @@ class PrivacyController extends Controller
             'organization_id' => ['required_if:subject_kind,relayed_guest', 'nullable', 'string'],
             'channel' => ['required', Rule::in(array_keys(PrivacyRequest::CHANNELS))],
             'received_on' => ['required', 'date', 'before_or_equal:today'],
-        ], [], ConsoleFields::NAMES);
+        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $back = redirect()->route('admin.privacy.index');
 
