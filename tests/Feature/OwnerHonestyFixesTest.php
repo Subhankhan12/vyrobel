@@ -146,7 +146,6 @@ it('offers a copy-text control on a message without adding any route', function 
     // at all and the assertions below would be vacuous.
     $thread = MessageThread::create([
         'organization_id' => $f['s']['org']->id,
-        'property_id' => $f['s']['property']->id,
         // ⚠️ AN OWNER THREAD IS `owner_id` SET / `guest_id` NULL — the two kinds are discriminated by that
         // XOR, and an owner genuinely cannot see a guest thread. My first fixture set `guest_id` and the
         // page rendered no messages at all: the scope was right and the test was wrong.

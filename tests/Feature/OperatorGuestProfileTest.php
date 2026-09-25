@@ -327,7 +327,6 @@ it('renders a real review rating, which is what makes the no-fabrication asserti
     // A REAL review by this guest — the only thing that puts a rating on the page.
     Review::create([
         'organization_id' => $s['org']->id,
-        'property_id' => $s['property']->id,
         'reservation_id' => $stay->getKey(),
         'guest_id' => $guest->getKey(),
         'rating' => 5,

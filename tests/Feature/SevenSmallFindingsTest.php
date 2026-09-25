@@ -86,7 +86,7 @@ it('⚠️ F-7 — both focused create screens render exactly one h1, RENDERED n
 it('⚠️ F-12 — the maintenance ticket detail renders exactly one h1', function () {
     $s = seedScenario(1);
     $t = MaintenanceTicket::create([
-        'organization_id' => $s['org']->id, 'property_id' => $s['property']->id,
+        'organization_id' => $s['org']->id,
         'unit_id' => $s['units'][0]->id, 'title' => 'Leaking tap', 'status' => 'open',
         'priority' => 'normal', 'category' => 'plumbing', 'opened_at' => now(),
     ]);

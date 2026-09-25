@@ -71,6 +71,7 @@ use App\Support\Money\Money;
 use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -249,6 +250,15 @@ class DemoSeeder extends Seeder
     }
 
     public function run(): void
+    {
+        // ⚠️ SESSIONS 01 · Part C — UNGUARDED however it is invoked. `db:seed` already runs every seeder inside
+        //    Model::unguarded() (Laravel's SeedCommand), but a test calling `(new DemoSeeder)->run()` ran it GUARDED — so
+        //    every `email_verified_at` below was silently dropped and that test's demo users were UNVERIFIED, a different
+        //    world from the one `db:seed` builds (measured with preventSilentlyDiscardingAttributes, 2026-09-25).
+        Model::unguarded(fn () => $this->seedDemo());
+    }
+
+    private function seedDemo(): void
     {
         // ⚠️⚠️ Reachable directly as `db:seed --class=DemoSeeder`, which never runs DatabaseSeeder — so the
         // refusal has to live here as well as there. See DemoDataSafetyGuard: an allow-list of development

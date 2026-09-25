@@ -64,7 +64,6 @@ it('⚠️ no dialog on the rates screen sits inside a card — F-37 (the apply 
 
     // A DRAFT season, so the Apply/Edit/Delete dialogs actually render. Writes no prices.
     RateSeason::create([
-        'property_id' => $propertyId,
         'rate_plan_id' => (string) $s['ratePlan']->getKey(),
         'name' => 'Guard probe', 'starts_on' => '2026-10-05', 'ends_on' => '2026-10-09',
         'price_minor' => 14000, 'currency' => 'EUR',

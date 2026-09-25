@@ -23,7 +23,6 @@ uses(DatabaseTransactions::class);
 function f20Season(array $s, string $from, string $to, int $priceMinor): RateSeason
 {
     return RateSeason::create([
-        'property_id' => $s['property']->id,
         'rate_plan_id' => $s['ratePlan']->id,
         'name' => 'Pinned season',
         'starts_on' => $from, 'ends_on' => $to,

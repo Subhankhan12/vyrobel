@@ -31,10 +31,11 @@
                 <div class="vy-np-chan">
                     <div class="vy-np-chan-icon">✉</div>
                     <div style="flex: 1;"><div class="vy-np-chan-name">Email</div><div class="vy-np-chan-detail">{{ $email !== '' ? $email : 'No email on file' }}</div></div>
+                    {{-- SESSIONS 01 · Part C — the "Unverified" branch was removed as unreachable: this page is behind the /app
+                         group's `verified` middleware, and nothing ever clears a user's email_verified_at (checked
+                         2026-09-25). The @if stays, so the badge still never claims "Verified" for an address that is not. --}}
                     @if ($emailVerified)
                         <span class="vy-np-status is-on" title="Your login email is verified">Verified</span>
-                    @else
-                        <span class="vy-np-status" style="color:var(--vy-muted)" title="Your login email has not been verified yet">Unverified</span>
                     @endif
                 </div>
                 <div class="vy-np-chan is-off" title="Push isn’t set up yet">

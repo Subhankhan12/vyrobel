@@ -201,7 +201,7 @@ it('sources S1-176 — a photo attached to the task travels with the task', func
 
     $task->media()->create([
         'organization_id' => $s['org']->id, 'disk' => 'public',
-        'path' => 'proof/clean.jpg', 'url' => '/storage/proof/clean.jpg',
+        'path' => 'proof/clean.jpg',
         'mime' => 'image/jpeg', 'size' => 1024, 'alt' => 'proof',
     ]);
 

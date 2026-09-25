@@ -125,6 +125,10 @@ it('shows a real email-verification badge, not a hardcoded one', function () {
     // ⚠️ The badge is NOT removed. It is real, it is honest, and it becomes meaningful again the moment any
     //    surface outside the gate renders it (the owner portal is ungated, for instance). Deleting a correct
     //    feature because a gate currently hides it is how a product loses things quietly.
+    // ⚠️ UPDATE 2026-09-25 (FINISH 01 · Part C, the founder's ruling "remove it, or keep it with a comment if something
+    //    still reaches it"): nothing reaches it — the owner portal renders its OWN view, not this one — so the
+    //    "Unverified" ELSE-branch was removed. The "Verified" badge stays CONDITIONAL on the real column, so the page
+    //    still can never claim an address is verified when it is not; only the unreachable alternative copy is gone.
     // ⚠️ What is asserted instead is the new truth: the unverified operator is TURNED AWAY from the page.
     $unverified = operatorUser($s, ['name' => 'Unverified Uma', 'email_verified_at' => null]);
     $this->actingAs($unverified)->get('/app/notification-preferences')

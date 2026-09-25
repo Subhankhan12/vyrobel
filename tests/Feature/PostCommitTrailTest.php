@@ -75,7 +75,7 @@ function pcOwnedRefund(): object
         'organization_id' => $folio->organization_id, 'folio_id' => $folio->getKey(),
         'reservation_id' => $folio->reservation_id, 'type' => 'refund', 'method' => 'card',
         'status' => 'pending', 'amount_minor' => -10000, 'currency' => 'EUR',
-        'gateway' => 'stripe', 'gateway_ref' => $ref, 'refunds_payment_id' => $payment->getKey(),
+        'gateway' => 'stripe', 'gateway_ref' => $ref, 'metadata' => ['refunds_payment_id' => $payment->getKey()],
     ]);
 
     expect($refund->status)->toBe('pending');

@@ -159,8 +159,16 @@ it('derives the unlock date from ArrivalPack, never a hardcoded interval', funct
     $this->travelTo(CarbonImmutable::parse('2026-08-01'));
     $expected = CarbonImmutable::parse('2026-09-01')->subDays(ArrivalPack::LEAD_DAYS)->format('D, j M');
 
-    $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))->assertOk()
+    $html = (string) $this->actingAs($a, 'guest')->get(route('guest.reservation', $reservation->getKey()))->assertOk()
         ->assertSee($expected, false)          // the gate's own released_from
-        ->assertDontSee('48h');                // the prototype's mock interval must not be restated
+        ->getContent();
+
+    // ⚠️ F-68 (2026-09-25) — the prototype's mock interval must not be restated. `assertDontSee('48h')` searched the raw
+    //    HTML, which carries a random 40-char CSRF token: about 1 render in 6,300 that token contains "48h", and this
+    //    went red for no product reason (demonstrated with such a token — matched in the hidden `_token` input). The most
+    //    probable mechanism of the 2026-09-23 red, which left no failure message. ⚠️ NOT `assertDontSeeText`: measured by
+    //    mutation (C-M2), strip_tags() of THIS page swallows the visible sentence, so it went blind. Instead the interval
+    //    must not stand as a WORD of its own — a token has letters/digits on both sides of "48h"; the copy does not.
+    expect($html)->not->toMatch('/(?<![A-Za-z0-9])48\s?h(?:ours?)?(?![A-Za-z0-9])/');
     $this->travelBack();
 });

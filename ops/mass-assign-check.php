@@ -47,6 +47,52 @@ function contractFor(string $class): ?array
     return ['model' => new $class];
 }
 
+/**
+ * ⚠️⚠️ THE KEYS OF THE OUTERMOST ARRAY LITERAL ONLY (SESSIONS 01 · Part C, 2026-09-25). 🔬 The first version ran one regex
+ * over the whole argument, so a key INSIDE a nested array — the contents of a JSON column — was scored as a column
+ * the model silently drops. All five of its "DROPPED" findings were exactly that (`address.city`,
+ * `requested[].room_type_id…`, `metadata.authorization_id`, `meta.encrypted/cipher`): the data WAS stored, and "remove
+ * the dead key" would have destroyed it. Depth 1 = directly inside the outer `[`; strings are skipped whole.
+ *
+ * @return list<string>
+ */
+function topLevelKeys(string $arg): array
+{
+    $keys = [];
+    $depth = 0;
+    $len = strlen($arg);
+    for ($i = 0; $i < $len; $i++) {
+        $c = $arg[$i];
+        if ($c === "'" || $c === '"') {
+            $j = $i + 1;
+            $buf = '';
+            while ($j < $len && $arg[$j] !== $c) {
+                if ($arg[$j] === '\\') {
+                    $buf .= $arg[$j + 1] ?? '';
+                    $j += 2;
+
+                    continue;
+                }
+                $buf .= $arg[$j];
+                $j++;
+            }
+            if ($depth === 1 && preg_match('/^\s*=>/', substr($arg, $j + 1)) === 1 && preg_match('/^[a-z0-9_]+$/i', $buf) === 1) {
+                $keys[] = $buf;
+            }
+            $i = $j;
+
+            continue;
+        }
+        if ($c === '[' || $c === '(') {
+            $depth++;
+        } elseif ($c === ']' || $c === ')') {
+            $depth--;
+        }
+    }
+
+    return $keys;
+}
+
 /** Map a variable/expression to a model class using `use` imports and common idioms. */
 function guessModel(string $receiver, array $uses): ?string
 {
@@ -130,13 +176,13 @@ foreach ($files as $path) {
             $rel = str_replace(dirname(__DIR__).'/', '', $path);
 
             // ⚠️ THIRD VERDICT: an array we cannot read statically is UNMEASURABLE, not clean.
-            if (! preg_match('/^\s*\[/', $arg) || ! preg_match_all("/'([a-z0-9_]+)'\s*=>/i", $arg, $km)) {
+            if (! preg_match('/^\s*\[/', $arg) || topLevelKeys($arg) === []) {
                 $unmeasurable++;
                 $unmeasured[] = "{$rel}:{$line}  {$method}(".trim(substr($arg, 0, 34)).'…)';
 
                 continue;
             }
-            $keys = $km[1];
+            $keys = topLevelKeys($arg);
 
             // resolve the receiver
             if (! preg_match('/([A-Za-z0-9_\\\\]+)\s*(->|::)\s*$/', $before, $rm)) {

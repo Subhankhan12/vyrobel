@@ -249,7 +249,7 @@ it('surfaces an unmapped incoming room type as a clear error without crashing or
 it('unknown channel id → 404, nothing recorded', function () {
     channelScenario();
 
-    postChannexWebhook(new Channel(['id' => '01JUNKUNKNOWNCHANNELXXXXXX']), channexBookingPayload())
+    postChannexWebhook((new Channel)->forceFill(['id' => '01JUNKUNKNOWNCHANNELXXXXXX']), channexBookingPayload())
         ->assertStatus(404);
 
     expect(WebhookEvent::query()->count())->toBe(0);

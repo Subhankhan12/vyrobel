@@ -156,7 +156,6 @@ it('offers unit-request Approve and Decline only to a role holding units.manage'
     $request = UnitRequest::withoutGlobalScopes()->create([
         'organization_id' => $s['org']->id,
         'owner_id' => $owner->getKey(),
-        'property_id' => $s['property']->id,
         'requested_name' => 'Casa Onda 2B',
         'status' => 'pending',
     ]);

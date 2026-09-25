@@ -245,7 +245,7 @@ it('⚠️⚠️ FINDS a succeeded refund with no owner-ledger adjustment — th
         'reservation_id' => $folio->reservation_id, 'type' => 'refund', 'method' => 'card',
         'status' => 'succeeded', 'amount_minor' => -10000, 'currency' => 'EUR',
         'gateway' => 'stripe', 'gateway_ref' => 're_'.Str::lower(Str::random(20)),
-        'refunds_payment_id' => $payment->getKey(), 'processed_at' => now(),
+        'metadata' => ['refunds_payment_id' => $payment->getKey()], 'processed_at' => now(),
     ]);
 
     $check = rcCheck('refund_without_owner_adjustment');

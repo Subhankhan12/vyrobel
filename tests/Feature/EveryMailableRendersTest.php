@@ -80,18 +80,18 @@ function emrBuilders(): array
     $ownerId = (string) $s['units'][0]->fresh()->owner_id;
 
     $ownerInvite = OwnerInvite::create([
-        'organization_id' => $s['org']->id, 'email' => 'invitee@example.test', 'name' => 'Ivy Invitee',
+        'organization_id' => $s['org']->id, 'email' => 'invitee@example.test',
         'role' => 'owner', 'token_hash' => hash('sha256', 'tok'), 'status' => 'pending',
         'expires_at' => Carbon::now()->addDays(7),
     ]);
     $teamInvite = OwnerTeamInvite::create([
         'organization_id' => $s['org']->id, 'owner_id' => $ownerId,
-        'email' => 'team@example.test', 'name' => 'Tom Team', 'role' => 'accountant',
+        'email' => 'team@example.test', 'role' => 'accountant',
         'token_hash' => hash('sha256', 'tok2'), 'status' => 'pending', 'expires_at' => Carbon::now()->addDays(7),
     ]);
     $contact = MarketingContactMessage::create([
         'name' => 'Cara Contact', 'email' => 'cara@example.test', 'topic' => 'sales',
-        'message' => 'Tell me more.', 'status' => 'new',
+        'message' => 'Tell me more.',
     ]);
 
     return [

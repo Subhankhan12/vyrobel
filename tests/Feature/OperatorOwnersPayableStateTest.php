@@ -65,7 +65,6 @@ function payableStateOwner(array $s): array
         'owner_statement_id' => $julyStatement->id,
         'amount_minor' => 50000,
         'currency' => 'EUR',
-        'method' => 'bank_transfer',
         'status' => 'paid',
         'paid_at' => now(),
     ]);

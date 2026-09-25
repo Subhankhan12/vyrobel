@@ -33,7 +33,7 @@ function gateBook(array $s, string $in, string $out, array $override = [])
     return app(AssignmentService::class)->createBooking([
         'organization_id' => (string) $s['org']->id,
         'property_id' => (string) $s['property']->id,
-        'guest_id' => (string) $s['guest']->id,
+        'lead_guest_id' => (string) $s['guest']->id,
         'currency' => 'EUR',
         'check_in' => $in,
         'check_out' => $out,

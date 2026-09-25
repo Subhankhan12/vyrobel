@@ -8,6 +8,7 @@ use App\Services\Auth\GoogleIdentityProvider;
 use App\Services\Channex\ChannexClient;
 use App\Support\Llm\AnthropicLlmClient;
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 
@@ -80,5 +81,12 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         Http::preventStrayRequests();
+
+        // ⚠️⚠️ SESSIONS 01 · Part C — a key a model does not accept THROWS here instead of vanishing. Eloquent drops a
+        //    non-fillable key from update()/create()/fill() silently — no exception, no log line — and a static sweep
+        //    (ops/mass-assign-check.php) cannot read 220 of the app's write sites (runtime-built arrays). This reads
+        //    every write the suite actually makes. ⚠️ TEST ENVIRONMENT ONLY, by ruling: production keeps Laravel's
+        //    default. Left ON so the class cannot return unseen.
+        Model::preventSilentlyDiscardingAttributes();
     }
 }

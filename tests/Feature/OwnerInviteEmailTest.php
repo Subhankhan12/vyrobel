@@ -98,7 +98,9 @@ it('leaks no other owner and no guest data into the rendered invite', function (
 
     // An EXISTING owner in the same org — the invitee must never learn they exist.
     $existing = ownUnit($s['units'][0]);
-    $existing->update(['legal_name' => 'Ingrid Halvorsen', 'billing_company' => 'Halvorsen Eiendom AS']);
+    // (An owner carries a legal name; there is no owner company column — `billing_company` is the ORGANISATION's —
+    //  so the fixture's old company-name key was silently dropped and its "never leaks" check could not fail.)
+    $existing->update(['legal_name' => 'Ingrid Halvorsen']);
 
     // A real guest of that org, with the encrypted contact PII.
     $guest = Guest::create([
@@ -109,7 +111,7 @@ it('leaks no other owner and no guest data into the rendered invite', function (
     $r = app(OwnerInviteService::class)->invite('Priya Anand', 'newowner@example.test', [], null, 'owner');
     $html = (new OwnerInviteMail($r['invite'], $r['token'], 'Priya Anand'))->render();
 
-    foreach (['Ingrid Halvorsen', 'Halvorsen Eiendom AS', $existing->id,
+    foreach (['Ingrid Halvorsen', $existing->id,
         'Tomasz', 'Wieczorek', 'tomasz.wieczorek@example.test', '+48511222333', $guest->id] as $secret) {
         expect($html)->not->toContain($secret);
     }

@@ -39,7 +39,7 @@ it('marks a ticket awaiting parts from the detail, then clears it (real persiste
 it('renders the real SLA target on the detail when the property configures one', function () {
     $s = seedScenario(1);
     $manager = operatorUser($s, [], 'Hotel Manager');
-    MaintenanceSetting::create(['property_id' => $s['property']->id, 'sla_high_hours' => 24]);
+    MaintenanceSetting::create(['sla_high_hours' => 24]);   // settings are per ORGANISATION — there is no property_id column
     $ticket = app(MaintenanceService::class)->open(['unit_id' => $s['units'][0]->id, 'title' => 'Fix heater', 'priority' => 'high']);
 
     $this->actingAs($manager)->withSession(['current_property_id' => $s['property']->id])

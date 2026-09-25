@@ -44,7 +44,6 @@ function mccSetup(int $rows = MCC_ROWS): array
 
     for ($i = 0; $i < $rows; $i++) {
         MaintenanceTicket::create([
-            'property_id' => $s['property']->id,
             'unit_id' => $s['units'][0]->id,
             'title' => 'Costed job '.$i,
             'category' => 'plumbing',

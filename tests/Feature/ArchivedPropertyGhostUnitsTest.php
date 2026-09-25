@@ -72,7 +72,7 @@ function ghostWorld(): array
     ReservationUnit::create([
         'reservation_id' => $res->id, 'unit_id' => $ghost->id, 'room_type_id' => $rt->id,
         'rate_plan_id' => $s['ratePlan']->id, 'check_in' => '2026-06-01', 'check_out' => '2026-06-04',
-        'status' => 'active', 'currency' => 'EUR', 'nightly_rate_minor' => 10000,
+        'status' => 'active', 'currency' => 'EUR', 'price_minor' => 10000,
     ]);
     OwnerLedgerEntry::create([
         'owner_id' => $owner->id, 'unit_id' => $ghost->id, 'reservation_id' => $res->id,

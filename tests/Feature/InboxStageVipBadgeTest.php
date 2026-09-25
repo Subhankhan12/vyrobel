@@ -47,7 +47,6 @@ function d102Thread(array $s, ?Reservation $reservation, ?Guest $guest = null): 
 
     return MessageThread::create([
         'organization_id' => $s['org']->id,
-        'property_id' => $s['property']->id,
         'guest_id' => $guest->getKey(),
         'reservation_id' => $reservation?->getKey(),
         // ⚠️ A REAL enum member — the column is enum('manual','email','whatsapp','booking_com','airbnb')

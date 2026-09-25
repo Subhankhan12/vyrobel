@@ -134,7 +134,7 @@ function soPendingRefund(): Payment
         'currency' => 'EUR',
         'gateway' => 'stripe',
         'gateway_ref' => 're_'.Str::lower(Str::random(22)),
-        'refunds_payment_id' => $payment->getKey(),
+        'metadata' => ['refunds_payment_id' => $payment->getKey()],
     ]);
 }
 

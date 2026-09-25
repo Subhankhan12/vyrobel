@@ -94,7 +94,9 @@ it('picks the genuinely latest payout when every created_at is tied', function (
             'source_currency' => 'EUR',
         ]);
 
-        Payout::create([
+        // ⚠️ forceCreate: the identical stamps ARE the precondition, and `create()` silently dropped them (it held only
+        //    because the frozen test clock happened to give every row the same now()).
+        Payout::forceCreate([
             'organization_id' => $s['org']->id,
             'owner_id' => $owner->id,
             'owner_statement_id' => $statement->id,

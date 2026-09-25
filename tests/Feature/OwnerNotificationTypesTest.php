@@ -153,7 +153,6 @@ it('notifies the owner when their operator messages them, but never about their 
 
     $thread = MessageThread::create([
         'organization_id' => $f['s']['org']->id,
-        'property_id' => $f['s']['property']->id,
         'owner_id' => $f['owner']->getKey(),
         'channel' => 'manual',
         'subject' => 'September statement',
