@@ -7,11 +7,31 @@ use App\Payments\Stripe\StripeSafetyGuard;
 use App\Services\Auth\GoogleIdentityProvider;
 use App\Services\Channex\ChannexClient;
 use App\Support\Llm\AnthropicLlmClient;
+use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
 {
+    /**
+     * ⚠️ SESSIONS 01 — `actingAs()` switches the signed-in account WITHOUT a login or a logout, inside the one session
+     * this test process keeps. A real browser cannot do that: two people are two sessions, and every sign-out in this app
+     * invalidates the session (LoginController, OwnerSecurityController, GuestLoginController, AdminLoginController,
+     * TrackPlatformAdminSession — checked 2026-09-25), so a real session never carries another account's password hash.
+     * Without this, `actingAs(A)` then `actingAs(B)` carried A's hash into B's requests and the password-change check
+     * (EndSessionsOnPasswordChange) signed B out — four tests went red on the harness, not the product. A test that WANTS
+     * a stale hash (a second, older session of the same account) sets it with `withSession()` AFTER `actingAs()`.
+     */
+    public function be(UserContract $user, $guard = null)
+    {
+        $guardName = $guard ?? $this->app['auth']->getDefaultDriver();
+        if ($this->app->bound('session')) {
+            $this->app['session']->forget('password_hash_'.$guardName);
+        }
+
+        return parent::be($user, $guard);
+    }
+
     /**
      * ⚠️⚠️ F-35 — THE SUITE MAY NOT REACH THE REAL INTERNET THROUGH THE `Http` FACADE (ruled 2026-09-19).
      *

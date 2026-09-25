@@ -7,9 +7,9 @@ namespace App\Http\Controllers\Operator;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Security\ActiveSessions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -81,12 +81,9 @@ class OperatorProfileController extends Controller
         $user = $request->user();
         $request->validate(['current_password' => ['required', 'current_password']]);
 
-        $deleted = DB::table('sessions')
-            ->where('user_id', $user->getKey())
-            ->where('id', '!=', $request->session()->getId())
-            ->delete();
-
-        $user->forceFill(['remember_token' => Str::random(60)])->save();
+        // ⚠️ SESSIONS 01 — the ONE shared implementation (this used to carry its own copy of the delete query):
+        // rows deleted, password re-hashed so every other session fails its hash check, remember-token rotated.
+        $deleted = ActiveSessions::signOutOthers($request, $user, (string) $request->input('current_password'));
         $audit->record('user.other_sessions_signed_out', $user, null, ['count' => $deleted]);
 
         return redirect()->route('app.profile')->with('profile_notice', $deleted > 0

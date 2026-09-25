@@ -70,6 +70,13 @@ class EnterBreakGlassSession
         //    viewed is stopped, so nothing lands in the tenant's history as if their own user had done it.
         $response = PlatformWriteGuard::readOnly(fn () => $next($request));
 
+        // ⚠️ SESSIONS 01 — hand the default guard BACK before the session is saved. With the `database` session driver
+        //    the row's `user_id` is whatever the default guard says at save time (`auth.driver` is a singleton, so it is
+        //    forgotten too): left on `web`, the ADMIN's browser session would be filed under the VIEWED hotel user, and
+        //    that user's Security page would list a session from a device they have never seen.
+        Auth::shouldUse('admin');
+        app()->forgetInstance('auth.driver');
+
         // Outside the read-only scope: the platform's own records.
         $admin = Auth::guard('admin')->user() instanceof PlatformAdmin ? Auth::guard('admin')->user() : null;
         $path = '/'.ltrim($request->path(), '/');

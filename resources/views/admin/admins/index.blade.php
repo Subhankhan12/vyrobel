@@ -73,9 +73,10 @@
                                             </form>
                                             <form method="POST" action="{{ route('admin.admins.sign-out', $a->id) }}" data-guard-submit>
                                                 @csrf
-                                                <label class="ad-label">End every session</label>
+                                                {{-- SESSIONS 01 — on your own row this ends your OTHER sessions only; the controller enforces it. --}}
+                                                <label class="ad-label">{{ $me && $a->is($me) ? 'End your other sessions' : 'End every session' }}</label>
                                                 <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Reason">
-                                                <button class="ad-btn ad-btn--ghost ad-btn--sm" type="submit">Force sign-out</button>
+                                                <button class="ad-btn ad-btn--ghost ad-btn--sm" type="submit">{{ $me && $a->is($me) ? 'Sign out my other sessions' : 'Force sign-out' }}</button>
                                             </form>
                                             @unless ($me && $a->is($me))
                                                 <form method="POST" action="{{ route('admin.admins.revoke', $a->id) }}" data-guard-submit>

@@ -131,7 +131,15 @@ if ($sets === []) {
 }
 
 // ── PREMISES ─────────────────────────────────────────────────────────────────────────────────────────────────────
-exec('bash ops/proc-check.sh -q '.escapeshellarg('pest|artisan test').' 2>&1', $o, $busy);
+// A test run that has just FINISHED can still be exiting for a moment — re-check a few times before refusing, so the
+// refusal means "another run is active", not "the last one had not quite gone yet".
+for ($try = 0; $try < 5; $try++) {
+    exec('bash ops/proc-check.sh -q '.escapeshellarg('pest|artisan test').' 2>&1', $o, $busy);
+    if ($busy === 0) {
+        break;
+    }
+    sleep(1);
+}
 if ($busy !== 0) {
     fwrite(STDERR, "✗ another test run is active — one run at a time (ops/proc-check.sh)\n");
     exit(2);

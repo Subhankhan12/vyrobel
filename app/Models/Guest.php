@@ -10,6 +10,7 @@ use App\Models\Concerns\HasTags;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Guest\GuestName;
+use App\Support\Security\ActiveSessions;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
@@ -171,12 +172,18 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
      * guest reset and any future guest change-password can't drift. Rotating the remember token logs OTHER
      * remembered guest sessions out on a password change.
      */
-    public function changePasswordTo(string $plainPassword): void
+    public function changePasswordTo(string $plainPassword, ?string $keepSessionId = null): void
     {
         $this->forceFill([
             'password' => $plainPassword,
             'remember_token' => Str::random(60),
         ])->save();
+
+        // ⚠️ SESSIONS 01 — until 2026-09-25 a guest's password change or reset ended NO other session at all, on any
+        //    driver (only "remember me" cookies died, via the token above). Two layers now, as for hotel users: every
+        //    other session fails its hash check on its next request (EndSessionsOnPasswordChange), and its `sessions`
+        //    row is deleted here. The in-portal change keeps the session it was made from; a reset keeps none.
+        ActiveSessions::terminateFor((string) $this->getKey(), $keepSessionId);
     }
 
     /**

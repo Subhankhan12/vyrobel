@@ -142,7 +142,7 @@ class GuestAccountController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $guest->changePasswordTo((string) $request->string('password'));   // the one shared hash + rotate path
+        $guest->changePasswordTo((string) $request->string('password'), $request->session()->getId());   // the one shared hash + rotate path; this session stays
 
         return redirect()->route('guest.account')->with('status', 'Your password has been changed.');
     }

@@ -34,12 +34,9 @@ class OwnerSecurityController extends Controller
 
         $request->validate(['current_password' => ['required', 'current_password']]);
 
-        // Via the SHARED terminator (auth pass, item 3) — the same code the password paths use, so
-        // "sign out others" and "reset kills siblings" can never diverge in what they actually delete.
-        $deleted = ActiveSessions::terminateFor((string) $user->getKey(), $request->session()->getId());
-
-        // Rotate the remember-token so any "remember me" cookie on those devices is dead too.
-        $user->forceFill(['remember_token' => Str::random(60)])->save();
+        // ⚠️ SESSIONS 01 — the ONE shared implementation: the other rows deleted, the password re-hashed so every
+        // other session fails its hash check whatever the driver, and the remember-token rotated.
+        $deleted = ActiveSessions::signOutOthers($request, $user, (string) $request->input('current_password'));
 
         $audit->record('owner.other_sessions_signed_out', $user, null, ['count' => $deleted]);
 

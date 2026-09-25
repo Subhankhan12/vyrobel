@@ -356,3 +356,30 @@ it('⚠️ every parameter-free /app page answers during break-glass — never a
 
     expect($broken)->toBe([]);
 })->group('security');
+
+it('⚠️⚠️ SESSIONS 01 — with the DATABASE session driver, a support session is filed under the ADMIN, never the viewed user, and writes no password hash into the web session', function () {
+    config(['session.driver' => 'database']);   // production's driver from SESSIONS 01 on
+    bgOn();
+    $s = bgWorld();
+    $admin = platformAdmin();
+
+    $this->actingAs($admin, 'admin')->post(route('admin.break-glass.start'), ['organization_id' => $s['org']->id, 'code' => bgCode($admin), 'reason' => bgReason()])
+        ->assertRedirect(route('app.dashboard'));
+    bgRealRequestGuard();
+    // ⚠️ `auth.driver` is a SINGLETON: the admin request above resolved it to the admin guard, and in this test process
+    //    it would stay that way — so the row would be filed under the admin whether or not the product resets the
+    //    guard (measured: the mutation that removes the reset stayed green). A real request resolves it fresh.
+    app()->forgetInstance('auth.driver');
+
+    $this->get('/app/dashboard')->assertOk()->assertSee('data-break-glass-banner', false);
+
+    // The session row's `user_id` is whatever `auth.driver` (Guard::class) says when the session is SAVED, at the end of
+    // the request — DatabaseSessionHandler::userId(). ⚠️ Asserted on that value, not on a row: this test process reuses
+    // ONE session handler whose "row exists" flag turns the second request's write into an UPDATE of an id that has no
+    // row, so no row is written here at all (measured) — a row count would pass with or without the fix.
+    expect(app('auth.driver')->id())->toBe($admin->id)
+        // …so the viewed hotel user's Security page can never list a session from a Vyrobel admin's browser…
+        ->and(DB::table('sessions')->where('user_id', $s['manager']->id)->count())->toBe(0)
+        // …and nothing about the borrowed user was stored in the session: it is not a login.
+        ->and(session()->has('password_hash_web'))->toBeFalse();
+})->group('security');

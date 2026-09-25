@@ -155,8 +155,20 @@ class AdminUserController extends Controller
     {
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
+        $actor = $this->actor();
 
-        $ended = $this->sessions->endAllFor($target, 'forced', $this->actor());
+        // ⚠️⚠️ SESSIONS 01 — force sign-out can NEVER end the caller's own session. Pointed at yourself it used to end
+        //    EVERY session including the one pressing the button — the last Owner signing themselves out of the
+        //    console mid-incident, the same trap as a kill switch locking out the admin. On yourself it now ends your
+        //    OTHER sessions only (a lost laptop), and this one stays.
+        if ($target->is($actor)) {
+            $ended = $this->sessions->endOthersFor($target, $request);
+            $this->audit->record('platform.admin.signed_out', ['sessions_ended' => $ended, 'own_other_sessions_only' => true], 'platform_admin', $target->id, reason: $reason);
+
+            return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} of your other ".Str::plural('session', $ended).' — this one stays signed in.');
+        }
+
+        $ended = $this->sessions->endAllFor($target, 'forced', $actor);
         $this->audit->record('platform.admin.signed_out', ['sessions_ended' => $ended], 'platform_admin', $target->id, reason: $reason);
 
         return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} ".Str::plural('session', $ended)." for {$target->name}.");

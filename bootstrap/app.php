@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\PlatformWriteRefused;
+use App\Http\Middleware\EndSessionsOnPasswordChange;
 use App\Http\Middleware\EnterBreakGlassSession;
 use App\Http\Middleware\RefuseWritesDuringBreakGlass;
 use App\Http\Middleware\RequirePasswordBeforeReauth;
@@ -72,6 +73,11 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $middleware->web(append: [
+            // ⚠️⚠️ SESSIONS 01 (L16) — a password change or reset signs out every OTHER session of that account,
+            //    whatever the session driver; the session that made the change stays in. Laravel's AuthenticateSession
+            //    (sorted after `auth` by the priority list, so it checks the guard the route authenticated with),
+            //    standing aside only for a break-glass request. See EndSessionsOnPasswordChange.
+            EndSessionsOnPasswordChange::class,
             // ⚠️⚠️ THE PASSWORDLESS ESCAPE — a STEP BEFORE the twenty-four `current_password` rules, never a
             //    bypass around them. It only ever REDIRECTS: a user with no password who reaches a
             //    confirmation is sent to set one and brought back; everyone else falls straight through to
