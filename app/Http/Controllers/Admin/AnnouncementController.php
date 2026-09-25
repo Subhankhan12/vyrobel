@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\PlatformAnnouncement;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -44,7 +45,7 @@ class AnnouncementController extends Controller
             'organization_ids.*' => ['string', 'exists:organizations,id'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
 
         // ⚠️ ADMIN 03 · F13 — the ledger row is written BEFORE the row exists, so it used to carry no target and a

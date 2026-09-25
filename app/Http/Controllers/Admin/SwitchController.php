@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PlatformAdmin;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformSwitches;
 use Illuminate\Contracts\View\View;
@@ -56,7 +57,7 @@ class SwitchController extends Controller
         $catalogue = PlatformSwitches::catalogue();
         abort_unless(array_key_exists($switch, $catalogue), 404);
 
-        $validated = $request->validate(['on' => ['required', 'boolean']]);
+        $validated = $request->validate(['on' => ['required', 'boolean']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $on = (bool) $validated['on'];
         $meta = $catalogue[$switch];

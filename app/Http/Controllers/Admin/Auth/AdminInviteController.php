@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminInvites;
 use App\Support\Platform\PlatformAdminPasswordPolicy;
 use App\Support\Platform\PlatformAuditLogger;
@@ -51,7 +52,7 @@ class AdminInviteController extends Controller
             return view('admin.auth.invite-invalid', ['message' => 'This invitation link is not valid. It may have expired or already been used — ask an Owner for a new one.']);
         }
 
-        $request->validate(['password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()]]);
+        $request->validate(['password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::NAMES);
 
         $this->invites->accept($admin, (string) $request->string('password'));
         $this->audit->record('platform.admin.invite_accepted', ['role' => $admin->role], 'platform_admin', $admin->id, actor: $admin);

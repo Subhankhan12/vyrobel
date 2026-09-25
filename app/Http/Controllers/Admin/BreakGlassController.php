@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\PlatformAdmin;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\BreakGlass;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformQuery;
 use App\Support\TwoFactor\PlatformTwoFactorService;
@@ -66,7 +67,7 @@ class BreakGlassController extends Controller
         $data = $request->validate([
             'organization_id' => ['required', 'string'],
             'code' => ['required', 'string'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
 
         /** @var PlatformAdmin $admin */

@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\PrivacyRequest;
 use App\Models\User;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformQuery;
 use App\Support\Privacy\PrivacyQueue;
 use App\Support\Privacy\RetentionCoverage;
@@ -59,7 +60,7 @@ class PrivacyController extends Controller
             'organization_id' => ['required_if:subject_kind,relayed_guest', 'nullable', 'string'],
             'channel' => ['required', Rule::in(array_keys(PrivacyRequest::CHANNELS))],
             'received_on' => ['required', 'date', 'before_or_equal:today'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $back = redirect()->route('admin.privacy.index');
 
@@ -97,7 +98,7 @@ class PrivacyController extends Controller
     /** MOVE a request along: received → in progress → completed | refused. A reason each time. */
     public function update(Request $request, string $privacyRequest): RedirectResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::in(['in_progress', 'completed', 'refused'])]]);
+        $data = $request->validate(['status' => ['required', Rule::in(['in_progress', 'completed', 'refused'])]], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $row = PrivacyRequest::query()->findOrFail($privacyRequest);
 

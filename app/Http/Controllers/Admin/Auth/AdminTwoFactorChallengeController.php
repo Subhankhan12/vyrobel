@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformAdmin;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminSessions;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\TwoFactor\PlatformTwoFactorService;
@@ -46,7 +47,7 @@ class AdminTwoFactorChallengeController extends Controller
         }
 
         $this->ensureNotRateLimited($request, (string) $admin->getKey());
-        $request->validate(['code' => ['required', 'string']]);
+        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::NAMES);
 
         if (! $this->twoFactor->verifyChallenge($admin, (string) $request->string('code'))) {
             RateLimiter::hit($this->throttleKey($request, (string) $admin->getKey()));

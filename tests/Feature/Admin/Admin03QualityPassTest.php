@@ -64,12 +64,23 @@ it('⚠️ F12 — a form with several problems names EVERY one, once, from the 
         ->post(route('admin.announcements.store'), ['reason' => 'ADMIN 03 test — empty form'])
         ->assertOk()->getContent();
 
-    // Title, message and start time are all missing — all three are named, not only the first.
+    // Title, message and start time are all missing — all three are named, not only the first, and each by the LABEL
+    // the admin sees ("message", "show from"), never the input name ("body", "starts at").
     expect($html)->toContain('The title field is required.')
-        ->toContain('The body field is required.')
-        ->toContain('The starts at field is required.')
+        ->toContain('The message field is required.')
+        ->toContain('The show from field is required.')
+        ->not->toContain('The body field')->not->toContain('starts at')
         // …and exactly once: the per-page copies that duplicated the shell's are gone.
         ->and(substr_count($html, 'The title field is required.'))->toBe(1);
+
+    // The privacy form: its fields in words, never "subject kind".
+    $this->flushSession();
+    $privacy = (string) $this->actingAs(platformAdmin(), 'admin')
+        ->from(route('admin.privacy.index'))->followingRedirects()
+        ->post(route('admin.privacy.store'), ['reason' => 'ADMIN 03 test — empty form'])
+        ->assertOk()->getContent();
+    expect($privacy)->toContain('The about field is required.')->toContain('The received by field is required.')
+        ->not->toContain('subject kind');
 })->group('security');
 
 it('⚠️⚠️ F13 — the ledger row for a published announcement and a posted incident NAMES the row it created', function () {
@@ -112,4 +123,15 @@ it('⚠️ F6 · F7 — console pages print words for actions and absolute UTC t
     expect(ActionLabel::platform('platform.customer.suspend.failed'))->toBe('Suspended the organisation — failed')
         ->and(ActionLabel::platform('platform.privacy.request_in_progress'))->toBe('Marked a privacy request as in progress')
         ->and(ActionLabel::event('organization.settings_updated'))->toBe('Organisation settings updated');
+})->group('security');
+
+it('⚠️ assigning a plan is a deliberate choice — nothing is preselected for an organisation without one', function () {
+    $org = Organization::create(['name' => 'Zaq No Plan Org', 'slug' => 'aq-np-'.Str::lower(Str::random(8)), 'status' => 'active', 'default_currency' => 'EUR']);
+    Plan::create(['code' => 'aq_on_'.Str::lower(Str::random(6)), 'name' => 'AQ Active Plan', 'price_minor' => 100, 'currency' => 'EUR', 'interval' => 'monthly', 'is_active' => true]);
+
+    $html = (string) $this->actingAs(platformAdmin(), 'admin')->get(route('admin.customers.show', $org->id))->assertOk()->getContent();
+
+    // The empty placeholder is the selected option, so the browser's `required` refuses a submit without a choice.
+    expect(preg_match('/<option value=""\s+selected[^>]*>\s*Choose a plan…\s*<\/option>/', $html))->toBe(1)
+        ->and(preg_match('/<option value="[^"]+"\s+selected[^>]*>[^<]*AQ Active Plan/', $html))->toBe(0);
 })->group('security');

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\AdminEmailChangeMail;
 use App\Models\PlatformAdmin;
 use App\Support\Auth\PasswordPolicy;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminPasswordPolicy;
 use App\Support\Platform\PlatformAdminSessions;
 use App\Support\Platform\PlatformAuditLogger;
@@ -54,7 +55,7 @@ class AccountController extends Controller
     {
         $admin = $this->admin();
 
-        $data = $request->validate(['name' => ['required', 'string', 'max:120']]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:120']], [], ConsoleFields::NAMES);
         $admin->forceFill($data)->save();
 
         $this->audit->record('platform.account.profile_updated', ['fields' => array_keys($data)]);
@@ -79,7 +80,7 @@ class AccountController extends Controller
             //    used to be the app-wide default (8 characters), so the super-admin password could be changed to
             //    something weaker than it was allowed to be created with.
             'password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()],
-        ]);
+        ], [], ConsoleFields::NAMES);
 
         $admin->changePasswordTo((string) $request->string('password'));
         // ⚠️ ADMIN 01 · Phase 1 — a changed password ends the admin's OTHER console sessions, enforced on their next
@@ -97,7 +98,7 @@ class AccountController extends Controller
     public function regenerateRecoveryCodes(Request $request, PlatformTwoFactorService $twoFactor): RedirectResponse
     {
         $admin = $this->admin();
-        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
 
         if (! $admin->hasTwoFactorEnabled()) {
             return redirect()->route('admin.account.edit')->with('admin_notice', 'Two-factor is not active yet.');
@@ -124,7 +125,7 @@ class AccountController extends Controller
                 Rule::unique('platform_admins', 'email')->ignore($admin->getKey()),
                 Rule::notIn([(string) $admin->email]),
             ],
-        ], [], ['email' => 'email address']);
+        ], [], ['email' => 'email address'] + ConsoleFields::NAMES);
 
         $newEmail = (string) $data['email'];
         $admin->forceFill(['pending_email' => $newEmail])->save();

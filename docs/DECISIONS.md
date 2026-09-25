@@ -17758,3 +17758,27 @@ set is code about code — it goes stale when the code moves, and only re-runnin
 
 **PROOF.** ADMIN 03: 11 mutations, 11 caught (F1 ×1, F2 ×1, F3 ×1, F12 ×2, F13 ×2, F6 ×2, F7 ×2). Prior phases:
 115/115 (two after re-anchoring). full suite 3906/3906 (2026-09-25 22:07 UTC — dated, not a pin; the first run was 3905/3906: the layout guard counted `minmax(min(100%, 240px), 1fr)` on the privacy form as a bare `1fr` — its `minmax\([^)]*\)` strip stops at the first `)`, so a nested `min()` leaves `, 1fr)` behind. The CSS had a floor; it was rewritten as `minmax(240px, 1fr)` rather than bending the instrument, and the parser limit is recorded here) · Pint clean · PHPStan L5 0 · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`, four digests `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` — matching the start (tenant one only; five money tables read by no instrument).
+
+**ADDENDUM 2026-09-25 — a PRE-WALK in a real browser found three more, after rel_T was live.** The founder's console
+session had expired, so before the signed-in re-walk every console page was rendered from the test app (realistic
+long names, emails and reasons; every state) and measured in a throwaway headless Chromium at 1440 and 390 — 52 views.
+- **The audit log still scrolled sideways on a phone (70px)** — F5 was fixed for TABLES, and the cause here was a
+  `<select>`: a select is as wide as its longest option, and one long organisation name made the filter 442px on a
+  390px screen. Fixed in the shell (`max-width: 100%` on every filter and form select). After: 0 overflow on all 52.
+- **Validation messages named fields by their INPUT names** — "The subject kind field…", "The starts at field…", and
+  on break-glass "The organization id field…" (internal name, American spelling). F12 made this visible: when only the
+  first error showed, most never appeared. ⚠️ So F8's "American spellings" pre-read was not entirely wrong — it was
+  looking in the view copy, and the real ones were in messages Laravel builds. Fixed once: `ConsoleFields::NAMES`,
+  passed by every console `validate()` (26 calls), and `ConsoleFieldNamesAreUsedTest` (tokenised — a comment cannot
+  satisfy it) fails if a new form forgets it. `code` is deliberately NOT mapped: it is the plan code on one form and
+  the 2FA code on others.
+- **"Assign a plan" preselected the first active plan** — pressing Assign without choosing assigned whatever sorted
+  first; with none active the select rendered empty. Now an empty, selected "Choose a plan…" placeholder (`required`
+  refuses a submit without a choice; the server already refused an empty `plan_id`), and "No plan is active — turn one
+  on under Plans first" when there is none.
+- ⚠️ **Two instrument traps met on the way, each caught by a control run:** a screenshot taken at load catches the
+  shell's entry fade mid-flight (blank / washed-out cards) — wait for the FINITE animations only, because the
+  background orbs animate forever and `Promise.all(getAnimations().finished)` never settles; and "Arial" on a
+  checkbox is not a font defect — a checkbox draws no text (the same blind spot as F10).
+PROOF (addendum): 6 more mutations, 6 caught (the map dropped from two forms, the map only in a comment, a word lost
+from the map, the placeholder removed, the placeholder never selected). Three PRIOR mutations went stale under this batch's own validate() edits — Phase 1 M17b and Phase 2 M21/M23 — found by re-running every set, re-anchored so only the guard changes, each RED: prior sets 115/115 again. Suite 3908/3908 (2026-09-25 10:34 UTC — dated, not a pin) · PHPStan L5 0 · Pint clean · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0` + four digests unchanged.

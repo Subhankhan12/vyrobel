@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\EnsurePlatformAdminTwoFactor;
 use App\Models\PlatformAdmin;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\TwoFactor\PlatformTwoFactorService;
 use Illuminate\Contracts\View\View;
@@ -54,7 +55,7 @@ class AdminTwoFactorController extends Controller
     public function store(Request $request): View|RedirectResponse
     {
         $admin = $this->admin();
-        $request->validate(['code' => ['required', 'string']]);
+        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::NAMES);
 
         $codes = $this->twoFactor->confirm($admin, (string) $request->string('code'));
 

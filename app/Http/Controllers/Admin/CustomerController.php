@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformActivity;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformCustomers;
@@ -108,7 +109,7 @@ class CustomerController extends Controller
     {
         // ⚠️ `current_password:admin` — QUALIFIED. /admin runs on `auth:admin`; the bare rule would check the
         // `web` guard and, with no web user, validate nothing.
-        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
@@ -172,7 +173,7 @@ class CustomerController extends Controller
      */
     public function archive(Request $request, string $organization): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
@@ -230,7 +231,7 @@ class CustomerController extends Controller
      */
     public function assignPlan(Request $request, string $organization): RedirectResponse
     {
-        $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']]);
+        $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $planId = (string) $validated['plan_id'];
         $org = $this->resolveOrg($organization);
@@ -277,7 +278,7 @@ class CustomerController extends Controller
      */
     public function setInternal(Request $request, string $organization): RedirectResponse
     {
-        $validated = $request->validate(['internal' => ['required', 'boolean']]);
+        $validated = $request->validate(['internal' => ['required', 'boolean']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $internal = (bool) $validated['internal'];
         $org = $this->resolveOrg($organization);

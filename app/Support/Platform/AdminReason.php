@@ -43,7 +43,7 @@ final class AdminReason
     /** Validate and return the trimmed reason. */
     public static function from(Request $request): string
     {
-        $request->validate(self::rules(), self::messages());
+        $request->validate(self::rules(), self::messages(), ConsoleFields::NAMES);
 
         return trim((string) $request->string('reason'));
     }

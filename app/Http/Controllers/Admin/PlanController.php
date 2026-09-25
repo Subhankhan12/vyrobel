@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use App\Support\Billing\PlanIntegrity;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -57,7 +58,7 @@ class PlanController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate(PlanIntegrity::rules());
+        $validated = $request->validate(PlanIntegrity::rules(), [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $plan = Plan::create($this->columnsFrom($validated) + [
@@ -120,7 +121,7 @@ class PlanController extends Controller
             'features' => ['array'],
             'features.*.enabled' => ['nullable', 'boolean'],
             'features.*.limit' => ['nullable', 'integer', 'min:0'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $model->update($this->columnsFrom($validated));

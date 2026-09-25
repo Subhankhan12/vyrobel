@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PlatformAdmin;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAdminInvites;
 use App\Support\Platform\PlatformAdminRole;
 use App\Support\Platform\PlatformAdminSessions;
@@ -63,7 +64,7 @@ class AdminUserController extends Controller
             'email' => ['required', 'email', 'max:190', Rule::unique('platform_admins', 'email')],
             'role' => ['required', Rule::enum(PlatformAdminRole::class)],
             'current_password' => ['required', 'current_password:admin'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
 
         [$admin, $token] = $this->invites->invite(
@@ -99,7 +100,7 @@ class AdminUserController extends Controller
         $request->validate([
             'role' => ['required', Rule::enum(PlatformAdminRole::class)],
             'current_password' => ['required', 'current_password:admin'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
         $to = PlatformAdminRole::from((string) $request->string('role'));
@@ -117,7 +118,7 @@ class AdminUserController extends Controller
 
     public function revoke(Request $request, string $admin): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
 
@@ -138,7 +139,7 @@ class AdminUserController extends Controller
 
     public function restore(Request $request, string $admin): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']]);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
         abort_unless($target->status === PlatformAdmin::STATUS_DISABLED, 409, 'Only a revoked admin can be restored.');

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PlatformIntegration;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformAuditLogger;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -58,7 +59,7 @@ class IntegrationController extends Controller
             'api_key' => ['nullable', 'string', 'max:500'],
             'api_secret' => ['nullable', 'string', 'max:500'],
             'is_enabled' => ['nullable', 'boolean'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $integration = PlatformIntegration::query()->firstOrNew(['channel' => $channel]);

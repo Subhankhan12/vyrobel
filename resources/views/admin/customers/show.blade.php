@@ -152,6 +152,12 @@
                     @csrf
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                         <select aria-label="Plan" name="plan_id" class="ad-input" style="flex: 1; min-width: 200px;" required>
+                            {{-- ⚠️ ADMIN 03 — with no placeholder the FIRST active plan was preselected, so "Assign" without
+                                 choosing assigned whatever plan happened to sort first; and with none active it rendered
+                                 empty. `required` + value="" makes the choice deliberate (the server refuses empty too). --}}
+                            <option value="" @selected(! $sub || ! $plans->contains('id', $sub->plan_id))>
+                                {{ $plans->isEmpty() ? 'No plan is active — turn one on under Plans first' : 'Choose a plan…' }}
+                            </option>
                             @foreach ($plans as $plan)
                                 <option value="{{ $plan->id }}" @selected($sub && $sub->plan_id === $plan->id)>{{ $plan->name }} · {{ ucfirst($plan->interval) }}</option>
                             @endforeach

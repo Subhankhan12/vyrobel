@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\StatusIncident;
 use App\Support\Platform\AdminReason;
+use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,7 @@ class StatusIncidentController extends Controller
             'impact' => ['required', Rule::in(array_keys(StatusIncident::IMPACTS))],
             'status' => ['required', Rule::in(['investigating', 'identified', 'monitoring'])],
             'message' => ['required', 'string', 'max:2000'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
 
         // ⚠️ ADMIN 03 · F13 — mint the id first so the "posted" ledger row names the incident its updates will name.
@@ -51,7 +52,7 @@ class StatusIncidentController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(StatusIncident::STATUSES))],
             'message' => ['required', 'string', 'max:2000'],
-        ]);
+        ], [], ConsoleFields::NAMES);
         $reason = AdminReason::from($request);
         $row = StatusIncident::query()->findOrFail($incident);
         if (! $row->isOpen()) {

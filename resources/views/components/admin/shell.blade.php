@@ -318,6 +318,9 @@
            F16 every figure uses tabular digits so columns line up; F17 a timestamp never breaks across two lines. */
         .ad-flash-list { margin: 0; padding-left: 18px; }
         .ad-card:has(table) { overflow-x: auto; }
+        /* A <select> is as wide as its longest option — one long organisation name made the audit log's filter 442px
+           on a 390px phone (found by the pre-walk). It may shrink to its row; the browser truncates the label. */
+        .ad-filters select, .ad-filters input, select.ad-input { max-width: 100%; min-width: 0; }
         .ad-dl { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); }
         .ad-dl dd, .ad-row-k, .ad-row-v, .ad-chip-name { overflow-wrap: anywhere; }
         .ad-row-v, .ad-bucket-count, .ad-bar-val, .ad-kpi-val, .ad-stat { font-variant-numeric: tabular-nums; }
