@@ -17989,14 +17989,14 @@ mail log recorded every NOTIFICATION as "unknown".
    by the skip list (`.invalid`) — `mail_send_log`: one `suppressed` row.
 6. **The mail log's type for notifications.** That live row read `unknown`: a notification carries its class under
    `__laravel_notification`, a Mailable under `__laravel_mailable`, and the recorder read only the second.
-   `MailSendLog::typeOf()` reads both (MAIL-M10). Committed after rel_Z; it ships with the mail switch-on.
+   `MailSendLog::typeOf()` reads both (MAIL-M10). Live on rel_AA.
 8. **The console's "resend verification" / "send password reset" REFUSE a never-deliverable address.** Since MAIL 02
    the skip list suppresses such a send at the last moment — and the console then said "handed to the mailer" while
    nobody received anything: the silent success `SupportController` promises never to be. With mail on, both now
    refuse first, naming WHY (a reserved domain, a probe, a listed no-mailbox address — never the address itself) and
    handing nothing to the mailer (T01-M7/M8). ⚠️ One fixture asserted "really sends" to a reserved `@example.net`
    address — the silent success itself; it now uses a deliverable-looking address. P3-B20 re-anchored (the refusal
-   now sits between its line and the `mutate()` call); still caught. Ships with the mail switch-on.
+   now sits between its line and the `mutate()` call); still caught. Live on rel_AA.
 7. **Found, the founder's to fix — `sales@vyrobel.com` has NO MAILBOX** (KNOWN-LIMITS L18). The site prints it 12
    times — the privacy page's rights contact, the terms' support line, the contact page and form, pricing, three
    stories — and hPanel's delivery log shows mail to it rejected, 9 since 2026-08-30, the latest today. One minute in
@@ -18013,6 +18013,6 @@ old release). Rollback: `ops/release.sh rollback rel_Y`.
 **PROOF.** Suite 3942/3942 (dated, not a pin) · PHPStan L5 0 · Pint clean · money gate FULL — tenant one's six
 aggregates unchanged and its four covered tables row-identical; ⚠️ not "the money is unchanged" · mutation harness
 161/161 landed and caught (tonight-01 6/6).
-**Items 6 and 8 (committed after rel_Z, not yet deployed):** suite 3944/3944 · PHPStan L5 0 · Pint clean · mutation
+**Items 6 and 8 — DEPLOYED `rel_AA @ 61f14059`** (~20:50 UTC; swap 3 ms; mail still off; front door PASS 12 · FAIL 0 · CNM 0; 0 errors since): suite 3944/3944 · PHPStan L5 0 · Pint clean · mutation
 harness 164/164 landed and caught (+ MAIL-M10, T01-M7, T01-M8; P3-B20 re-anchored and still caught).
 
