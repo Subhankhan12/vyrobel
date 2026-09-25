@@ -171,12 +171,11 @@ return [
         'id' => 'P3-B20',
         'name' => 'discarding mail reported as sent',
         'file' => 'app/Http/Controllers/Admin/SupportController.php',
+        // ⚠️ re-anchored TONIGHT 01: the skip-list refusal now sits between this line and the mutate() call.
         'old' => '        $discards = MailDelivery::discards();
-        $this->platform->mutate(
-            \'platform.support.resend_verification\',',
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the verification email\')) !== null) {',
         'new' => '        $discards = false;
-        $this->platform->mutate(
-            \'platform.support.resend_verification\',',
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the verification email\')) !== null) {',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformSupportToolsTest.php']],
     ],
     [

@@ -9,6 +9,7 @@ use App\Models\Membership;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\Auth\SignInCredentials;
+use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\BreakGlass;
 use App\Support\Platform\MailDelivery;
@@ -131,6 +132,9 @@ class SupportController extends Controller
         }
 
         $discards = MailDelivery::discards();
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'the verification email')) !== null) {
+            return $refused;
+        }
         $this->platform->mutate(
             'platform.support.resend_verification',
             $reason,
@@ -151,6 +155,9 @@ class SupportController extends Controller
         $reason = AdminReason::from($request);
         $account = User::query()->findOrFail($user);
         $discards = MailDelivery::discards();
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'the reset link')) !== null) {
+            return $refused;
+        }
 
         $status = $this->platform->mutate(
             'platform.support.password_reset',
@@ -168,6 +175,19 @@ class SupportController extends Controller
         return $discards
             ? $this->back($account)->withErrors(['mail' => 'NOT DELIVERED — a reset link was created, but mail is “'.MailDelivery::mailer().'”, so the email was discarded. Nobody received anything.'])
             : $this->back($account)->with('admin_notice', 'Password reset email handed to the mailer ('.MailDelivery::mailer().').');
+    }
+
+    /**
+     * ⚠️⚠️ TONIGHT 01 (2026-09-25) — an address that can NEVER receive mail (a reserved test domain, a probe account,
+     * a listed no-mailbox address) is refused HERE, before anything is handed to the mailer. Since MAIL 02 the skip list
+     * suppresses such a send at the last moment — and this console then said "handed to the mailer" while nobody
+     * received anything: the silent success this class promises never to be. The reason is named; the address never.
+     */
+    private function refusedUndeliverable(User $account, string $what): ?RedirectResponse
+    {
+        $why = UndeliverableRecipients::reason((string) $account->email);
+
+        return $why === null ? null : $this->back($account)->withErrors(['mail' => 'NOT SENT — this address can never receive mail ('.$why.'), so '.$what.' was not handed to the mailer. Nobody received anything.']);
     }
 
     /**

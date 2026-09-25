@@ -9,9 +9,11 @@ use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\Health\HealthBoard;
 use App\Support\Platform\Health\HealthCard;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 // ⚠️⚠️ MAIL 02 (2026-09-25) — the founder chose Hostinger's own mail (SMTP, contact@vyrobel.com) over Postmark. Three
@@ -158,4 +160,32 @@ it('⚠️ the public privacy page names Hostinger for email, never Postmark, an
     expect($off)->toContain('no email is currently being delivered from this system')
         ->and($on)->not->toContain('no email is currently being delivered from this system')
         ->and($on)->toMatch('/Hostinger \(email\)<\/strong>[^<]*\s+Active\.\s/');
+})->group('security');
+
+// ══ 6 · WHICH EMAIL — a notification sent by email is recorded by its class, never "unknown" ═════════════════════
+// 🔬 Found on production (TONIGHT 01): the first real sign-up's verification link — a NOTIFICATION — was logged as
+// "unknown", because a notification carries its class under `__laravel_notification`, not `__laravel_mailable`.
+
+final class MhProbeNotification extends Illuminate\Notifications\Notification
+{
+    /** @return list<string> */
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)->subject('Probe')->line('Probe.');
+    }
+}
+
+it('⚠️ a NOTIFICATION sent by email is recorded by its class — accepted and suppressed alike, never "unknown"', function () {
+    $since = now()->subSecond();
+    Notification::route('mail', 'someone@vyrobel.com')->notify(new MhProbeNotification);   // accepted (the suite's array transport)
+    Notification::route('mail', 'nobody@example.net')->notify(new MhProbeNotification);    // suppressed (a reserved domain)
+
+    $outcomes = DB::table('mail_send_log')->where('created_at', '>=', $since)->where('mailable', 'MhProbeNotification')->pluck('outcome')->all();
+    expect($outcomes)->toContain(MailSendLog::ACCEPTED)->toContain(MailSendLog::SUPPRESSED)
+        ->and(DB::table('mail_send_log')->where('created_at', '>=', $since)->where('mailable', 'unknown')->count())->toBe(0);
 })->group('security');

@@ -107,7 +107,9 @@ it('with a delivering mailer, resend and reset really send the product\'s own no
     config(['mail.default' => 'smtp']);
     Notification::fake();
     Mail::fake();   // ⚠️ the reset is a Mailable (User::sendPasswordResetNotification) — never let a test reach a real SMTP
-    $user = stUser(['email_verified_at' => null]);
+    // ⚠️ TONIGHT 01 — a DELIVERABLE-looking address: the fixture's default (@example.net) is a reserved domain the console
+    //    now refuses up front, correctly — asserting "really sends" to it would be asserting the silent success.
+    $user = stUser(['email' => 'st-'.Str::lower(Str::random(10)).'@vyrobel.com', 'email_verified_at' => null]);
     $admin = platformAdmin();
 
     $this->actingAs($admin, 'admin')->post(route('admin.support.resend-verification', $user->id), ['reason' => stReason()])->assertSessionHasNoErrors();
@@ -115,6 +117,35 @@ it('with a delivering mailer, resend and reset really send the product\'s own no
 
     Notification::assertSentTo($user, VerifyEmail::class);
     Mail::assertSent(PasswordResetMail::class, fn (PasswordResetMail $m) => $m->hasTo($user->email));
+})->group('security');
+
+// ⚠️⚠️ TONIGHT 01 (2026-09-25) — since MAIL 02 the skip list suppresses mail to an address that can never receive it,
+// at the last moment. The console used to say "handed to the mailer" regardless: a silent success. It now refuses first.
+it('⚠️⚠️ an address that can NEVER receive mail is REFUSED before the mailer — never "handed to the mailer"', function () {
+    config(['mail.default' => 'smtp', 'mail.suppress_addresses' => ['listed-nomailbox@vyrobel.com']]);
+    Notification::fake();
+    Mail::fake();
+    $admin = platformAdmin();
+    $mailError = function (): string {
+        $errors = session('errors');
+
+        return $errors instanceof ViewErrorBag ? (string) $errors->first('mail') : (string) ($errors['default']['messages']['mail'][0] ?? '');
+    };
+
+    foreach (['probe-'.Str::lower(Str::random(8)).'@vyrobel-probe.invalid', 'st-'.Str::lower(Str::random(8)).'@example.net', 'listed-nomailbox@vyrobel.com'] as $email) {
+        $user = stUser(['email' => $email, 'email_verified_at' => null]);
+
+        $this->actingAs($admin, 'admin')->post(route('admin.support.resend-verification', $user->id), ['reason' => stReason()]);
+        expect($mailError())->toStartWith('NOT SENT')->toContain('the verification email was not handed to the mailer')->not->toContain($email);
+
+        $this->actingAs($admin, 'admin')->post(route('admin.support.password-reset', $user->id), ['reason' => stReason()]);
+        expect($mailError())->toStartWith('NOT SENT')->toContain('the reset link was not handed to the mailer');
+
+        Notification::assertNotSentTo($user, VerifyEmail::class);
+        expect(PlatformAdminAction::query()->whereIn('action', ['platform.support.resend_verification', 'platform.support.password_reset'])
+            ->where('target_id', $user->id)->count())->toBe(0);
+    }
+    Mail::assertNotSent(PasswordResetMail::class);
 })->group('security');
 
 it('the support tools are Owner and Support only — Billing and Analyst are refused, and the nav agrees', function () {

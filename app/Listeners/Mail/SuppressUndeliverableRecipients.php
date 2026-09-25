@@ -46,7 +46,7 @@ final class SuppressUndeliverableRecipients
             return true;
         }
 
-        $mailable = (string) ($event->data['__laravel_mailable'] ?? 'unknown');
+        $mailable = MailSendLog::typeOf($event->data);
         MailSendLog::suppressed($mailable, count($reasons));
         Log::info('Mail to an undeliverable address was suppressed before sending.', [
             'mailable' => $mailable,

@@ -84,4 +84,12 @@ return [
         'new' => '          @if (true)',
         'tests' => [['file' => 'tests/Feature/MailHostingerSmtpTest.php', 'filter' => 'the public privacy page names Hostinger']],
     ],
+    [
+        'id' => 'MAIL-M10',
+        'name' => 'a notification sent by email is recorded as "unknown"',
+        'file' => 'app/Support/Mail/MailSendLog.php',
+        'old' => '        return (string) ($data[\'__laravel_mailable\'] ?? $data[\'__laravel_notification\'] ?? \'unknown\');',
+        'new' => '        return (string) ($data[\'__laravel_mailable\'] ?? \'unknown\');',
+        'tests' => [['file' => 'tests/Feature/MailHostingerSmtpTest.php', 'filter' => 'recorded by its class']],
+    ],
 ];

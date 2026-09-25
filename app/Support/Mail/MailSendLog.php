@@ -33,6 +33,19 @@ final class MailSendLog
         self::write(self::SUPPRESSED, $mailable, null, $recipients);
     }
 
+    /**
+     * WHICH email this is, from the data Laravel hands the mail events. ⚠️ A Mailable carries its class under
+     * `__laravel_mailable`; a NOTIFICATION sent by email (the verification link, a reset notice) carries it under
+     * `__laravel_notification` instead. 🔬 Reading only the first recorded every notification as "unknown" — found
+     * on production (TONIGHT 01), on the first real sign-up's verification link.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function typeOf(array $data): string
+    {
+        return (string) ($data['__laravel_mailable'] ?? $data['__laravel_notification'] ?? 'unknown');
+    }
+
     /** How many messages had this outcome since the given moment. */
     public static function count(string $outcome, \DateTimeInterface $since): int
     {

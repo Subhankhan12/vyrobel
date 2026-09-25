@@ -16,9 +16,6 @@ final class RecordAcceptedMail
 {
     public function handle(MessageSent $event): void
     {
-        MailSendLog::accepted(
-            (string) ($event->data['__laravel_mailable'] ?? 'unknown'),
-            $event->sent->getMessageId(),
-        );
+        MailSendLog::accepted(MailSendLog::typeOf($event->data), $event->sent->getMessageId());
     }
 }

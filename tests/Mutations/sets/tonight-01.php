@@ -57,4 +57,20 @@ return [
                 Log::warning(\'The first verification link could not be sent at sign-up.\'',
         'tests' => [['file' => 'tests/Feature/VerifiedEmailGateTest.php', 'filter' => 'a mail server that refuses']],
     ],
+    [
+        'id' => 'T01-M7',
+        'name' => 'the console hands a verification email for a never-deliverable address to the mailer',
+        'file' => 'app/Http/Controllers/Admin/SupportController.php',
+        'old' => '        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the verification email\')) !== null) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSupportToolsTest.php', 'filter' => 'can NEVER receive mail is REFUSED']],
+    ],
+    [
+        'id' => 'T01-M8',
+        'name' => 'the console hands a reset link for a never-deliverable address to the mailer',
+        'file' => 'app/Http/Controllers/Admin/SupportController.php',
+        'old' => '        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the reset link\')) !== null) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => 'tests/Feature/Admin/PlatformSupportToolsTest.php', 'filter' => 'can NEVER receive mail is REFUSED']],
+    ],
 ];
