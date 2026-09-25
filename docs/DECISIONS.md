@@ -17854,3 +17854,92 @@ missed because `text-transform: uppercase` changes `innerText`; the screenshot w
 **Mutations:** one harness now (`tests/Mutations/run.php`, commit 975116b2) — 135 mutations (P1–P5 115 + ADMIN 03 20), **135 landed and caught · 0 landed and not caught · 0 did not land**, the harness's self-check 5/5 and all 49 aimed tests green on the clean tree first (2026-09-25 13:00 UTC). `MutationSetsStillLandTest` now runs with the SUITE and reddens the moment a guarded line moves — it fired for real on rel_V's own edit (A03-N1/N2), which were re-anchored in the same change.
 
 **THE THREE SENTENCES.** 20 of the 21 ADMIN 03 fixes are seen closed on live signed-in pages (F21 was not, because seeing it means writing a privacy record on production), and the live walk found and fixed three more (F5 re-opened, F25, F26), each re-seen live on rel_V. Break-glass is LIVE — on since rel_S, the known default password no longer verifies on the host — but a live session was not walked because it needs the founder's 2FA; it is covered by `PlatformBreakGlassTest`. 135 of 135 mutations landed and were caught.
+
+---
+
+## 2026-09-25 — SESSIONS 01 — sign-out means signed out (L16 CLOSED) · and FINISH 01 Part C, the small backlog
+
+Run unattended by the founder's ruling (FINISH 01): no password or 2FA of his typed, nothing asked, probes only.
+
+### B1 — the causes, MEASURED before any fix (per guard)
+
+| behaviour | what the code did | what production did (rel_V, `file` driver) |
+|---|---|---|
+| change password (web) | `User::changePasswordTo` → rotate remember token + `ActiveSessions::terminateFor` (DELETE rows) | deleted 0 rows — **B stayed signed in (200)**, live, two real sessions of one probe |
+| password reset (web) | same shared path | same — nothing reached the other sessions |
+| "sign out other sessions" (owner + operator) | DELETE rows + rotate token (operator carried its OWN copy of the query) | deleted 0 rows, said "You have no other active sessions" — **B stayed in (200)**, live |
+| hotel Security page session list | reads `sessions` rows | always empty (0 rows; 414 session FILES on disk) |
+| guest password change/reset | rotate remember token only | **ended NO other session, on ANY driver** — a code gap, not a driver one |
+| admin session list / force sign-out | app-tracked `platform_admin_sessions` | worked, driver-independent — ⚠️ but force sign-out on YOURSELF ended the caller's own session too |
+| remember-me | web + admin issue none (`LoginRequest` omits it); guest does, token rotated on change/reset | web/admin: no cookie to steal (measured: `Set-Cookie` = session + XSRF only); guest: already rotated |
+| `AuthenticateSession` | applied NOWHERE | so a session never noticed its password changed, on any guard |
+
+⚠️ **Owner API tokens (Passport): a password reset does NOT revoke them** (`changePasswordTo` never touches the OAuth
+tables; production holds 0 live tokens). Revoking protects a hacked owner and breaks their integrations — **the
+founder's ruling, reported not decided.**
+
+### B2 — fixed at the root, all layers (`rel_W @ 3cd72c26`)
+- `SESSION_DRIVER=database` on production — the shared `.env` edited on the host (backup kept, 600), baked into rel_W's
+  config cache at staging (L14); rel_V kept `file` until the 3 ms swap. `sessions` already existed (additive: none).
+  **Proven by behaviour**: a fresh sign-up after the swap created its `sessions` row.
+- `EndSessionsOnPasswordChange` (Laravel's AuthenticateSession) on the web group → a password change or reset is fatal
+  to every OTHER session on web, guest and admin, whatever the driver; the session that made the change stays in. It
+  stands aside for a break-glass request (nothing is written to the web session — it is not a login).
+- `ActiveSessions::signOutOthers` — the ONE "sign out others": rows deleted + `logoutOtherDevices()` re-hash (driver-
+  independent; it refuses loudly unless `web` is a session guard) + remember token rotated. The operator copy is gone.
+- Guest change/reset now end other sessions (hash layer + rows). Admin force sign-out on YOURSELF ends only your OTHER
+  sessions. With the database driver a break-glass session would have been filed under the VIEWED hotel user
+  (`auth.driver` is a singleton resolved at save time) — the default guard is handed back to `admin` first.
+- ⚠️ A `Login` listener to clear a "stale hash" was written and REMOVED before commit: every sign-out in the app
+  invalidates the session (checked), so no real path leaves one — its docblock claimed "measured" and was not.
+- ⚠️ Rollback = `ops/release.sh rollback rel_V` — returns sessions to FILES and signs everyone out a second time.
+
+### B3 — proven the way an intruder meets it
+13 tests (`SignOutMeansSignedOutTest` + one in `PlatformBreakGlassTest`): the four scenarios per guard, the ORDINARY
+case (you stay signed in where you changed it) in every one, per-layer tests for the two sign-out-others layers.
+Mutation set `sessions-01` (8): all land and are caught. ⚠️ Two instrument traps met: the break-glass test was blind
+twice (the `auth.driver` singleton survives between test requests; the test process reuses one session handler whose
+"row exists" flag makes the second write an UPDATE of nothing) — caught by the harness (S01-M7 NOT CAUGHT), fixed by
+asserting what `DatabaseSessionHandler::userId()` reads at save. Four suite reds were the HARNESS (`actingAs` switching
+accounts inside one session) → `TestCase::be()` forgets the previous account's hash; the product check was not touched.
+
+### B4 — live, after the deploy (a SESSIONS-01 probe; password ours, never printed)
+Before (rel_V): change password → B **200**; sign out others → B **200**; `sessions` rows 0.
+After (rel_W): change password → B **302 /login**, A 200, the probe's rows **2 → 1**; sign out others → B **302**, A
+200, rows **2 → 1**; password RESET (token from the app's own broker ON the host, never printed; new password over a
+600 temp file, deleted) → B **302**, the new password signs in. The operator Security page lists the probe's REAL
+sessions ("This device" marked; only "sign out all other devices" — the current one can never revoke itself).
+Front door right after the swap: PASS 12 · FAIL 0 · COULD NOT MEASURE 0; a real `/signup` accepted; 0 server errors.
+⚠️ The deploy signed everyone out, including the founder's admin session — said in the report, as ruled.
+
+**Session rows are personal data (IP, user-agent) — their real lifetime, MEASURED, not assumed:** at 16:12 and 16:45 UTC the 213 rows from the switch's first hour were still present, up to 42 minutes past the 120-minute lifetime — the 2% garbage-collection lottery barely fires at this traffic. The bound is `retention:prune` (30 days, daily 04:00; the scheduler's heartbeat was live). `docs/legal/DATA-INVENTORY.md` corrected: both session rows had said there was NO scheduled sweep. Old session FILES (218 at the switch) were left on disk as ruled — they stopped mattering at the swap.
+
+### FINISH 01 · Part C — the small backlog
+1. **`preventSilentlyDiscardingAttributes` — TEST ENVIRONMENT ONLY, left ON.** One recording run of the full suite
+   found **454 discards at 30 sites**: 22 test fixtures, `AssignmentService` fed a dead `guest_id` by one test file,
+   and `DemoSeeder` run GUARDED by tests that call `run()` directly (so their demo users were UNVERIFIED — `db:seed`
+   runs unguarded; the seeder now wraps itself in `Model::unguarded` so both worlds match). Fixture keys with no column
+   were removed (behaviour-preserving by definition); keys whose INTENT was real were corrected — three refund fixtures
+   now link through `metadata->refunds_payment_id` as the product does (they were silently unlinked), the Channex
+   "unknown channel → 404" test now reaches the controller (its id was dropped, the 404 came from the ROUTER — it was
+   vacuous), the payout stamps land by `forceCreate` (the tie held only by the frozen clock's luck). No `$fillable` was
+   widened. Guarded by `SilentDiscardIsLoudInTestsTest`.
+2. **"The five writes to columns that don't exist" — the premise was wrong.** All five were the DETECTOR's false
+   positives: keys INSIDE JSON columns (`address.city`, `requested[].…`, `metadata.authorization_id`,
+   `meta.encrypted/cipher`). The data WAS stored; removing the keys would have destroyed it. `ops/mass-assign-check.php`
+   now reads only the outermost array's keys → **0 dropped, 94 clean, 220 unmeasurable**; verified by a PLANTED
+   top-level drop it still catches.
+3. **The "Unverified" badge branch — removed**: `/app` is behind `verified`, nothing clears a user's
+   `email_verified_at`, and the owner portal renders its OWN view. The "Verified" badge stays conditional on the column.
+4. **F-68 — mechanism found, test-side, fixed.** The test named in the row lives in `GuestReservationTest` (the row
+   quotes it from a `CopyDriftTest` comment). Its `assertDontSee('48h')` searched raw HTML carrying a random 40-char CSRF
+   token — ~1 render in 6,300 that token contains "48h" (demonstrated with such a token; 400 normal renders, 0 hits). No
+   ordering evidence: every input is rebuilt per test. ⚠️ The 2026-09-23 failure left no message, so this is the most
+   probable mechanism, proven POSSIBLE — not proven to be that event. ⚠️ The first fix (`assertDontSeeText`) made the test
+   BLIND — the harness caught it (C-M2 NOT CAUGHT): `strip_tags()` of that page swallows the sentence. Now a boundary
+   regex on the raw HTML — "48h" as a word of its own; a token has letters/digits on both sides.
+Mutation set `finish-01-c` (3): all land and are caught.
+
+**DEPLOYED.** Part B: `rel_W @ 3cd72c26` (swap 3 ms, 14:03:50 UTC — it signed everyone out once, including the founder). Part C: `rel_X @ 6afbfeb0` (swap 4 ms; database sessions survive a release swap, so this one signed nobody out). Front door after each: PASS 12 · FAIL 0 · COULD NOT MEASURE 0; 0 server errors; the notification page re-seen live (Verified badge, no "Unverified").
+
+**PROOF.** Suite 3928/3928 (2026-09-25 15:32 UTC — dated, not a pin; with the silent-discard switch ON) · mutation harness 146/146 landed and caught, 0 not caught, 0 did not land (15:43 UTC; self-check 5/5; 61/61 aimed tests green on the clean tree first) · PHPStan L5 0 · Pint clean · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0` + four digests unchanged (demo users 14/14 verified — the seeder change moved no money figure).
