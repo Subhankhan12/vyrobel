@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsurePlatformCapability;
 use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Models\Membership;
 use App\Models\Organization;
 use App\Models\PlatformAdminAction;
 use App\Services\TenantProvisioningService;
+use App\Support\Platform\PlatformAdminRole;
 use App\Support\Platform\PlatformQuery;
 use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
@@ -292,13 +294,24 @@ it('⚠️ an archived organisation\'s slug is never handed to a new signup (the
     expect($result['organization']->slug)->not->toBe('slug-clash-hotel')->toStartWith('slug-clash-hotel');
 })->group('security');
 
-it('⚠️⚠️ there is NO hard delete — no route, and no forceDelete anywhere in the console', function () {
+// ⚠️⚠️ WAS "there is NO hard delete". The founder ruled on 2026-09-26 for a permanent Delete ("delete everything,
+//    always" — ADMIN 05). This now pins that it is the ONLY permanent path, that it is OWNER-only, and that nothing else
+//    in the console force-deletes — so a second, quieter way to erase data cannot appear unnoticed.
+it('⚠️⚠️ ONE permanent path and only one — the Owner-only Delete; nothing else in the console hard-deletes', function () {
     $names = collect(app('router')->getRoutes()->getRoutes())->map(fn (Route $r) => (string) $r->getName())
         ->filter(fn (string $n): bool => str_starts_with($n, 'admin.'))->values();
 
     expect($names->count())->toBeGreaterThan(40);   // the instrument sees the console's routes
-    $deleteNamed = $names->filter(fn (string $n): bool => (bool) preg_match('/destroy|force|purge|prune/', $n))->values()->all();
-    expect($deleteNamed)->toBe([]);
+    $deleteNamed = $names->filter(fn (string $n): bool => (bool) preg_match('/destroy|force|purge|prune|delete/', $n))->values()->all();
+    expect($deleteNamed)->toBe(['admin.customers.delete']);
+
+    $route = app('router')->getRoutes()->getByName('admin.customers.delete');
+    expect($route->methods())->toBe(['POST'])
+        ->and($route->gatherMiddleware())->toContain(EnsurePlatformCapability::class.':'.PlatformAdminRole::TENANTS_DELETE);
+    foreach (PlatformAdminRole::cases() as $role) {
+        expect($role->allows(PlatformAdminRole::TENANTS_DELETE))
+            ->toBe($role === PlatformAdminRole::Owner, "only an Owner may delete permanently — {$role->value}");
+    }
 
     foreach (['app/Http/Controllers/Admin', 'app/Support/Platform'] as $dir) {
         foreach (glob(base_path($dir).'/*.php') as $file) {
@@ -308,6 +321,28 @@ it('⚠️⚠️ there is NO hard delete — no route, and no forceDelete anywhe
             expect(str_contains($code, 'forceDelete'))->toBeFalse("{$file} calls forceDelete");
         }
     }
+
+    // ⚠️ ADMIN 05 — and the ONE erase lives in ONE place. Across ALL of app/ (not only the console's folders — the erase
+    //    itself lives in app/Services): the only statement that deletes rows of the organisations table is
+    //    OrganizationDeletion's, and nothing force-deletes or destroys an Organization model. Comments are stripped, so
+    //    this guard cannot read its own needle.
+    $erasers = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path(), FilesystemIterator::SKIP_DOTS)) as $file) {
+        if (! $file->isFile() || $file->getExtension() !== 'php') {
+            continue;
+        }
+        $code = collect(token_get_all((string) file_get_contents($file->getPathname())))
+            ->reject(fn ($t) => is_array($t) && in_array($t[0], [T_COMMENT, T_DOC_COMMENT], true))
+            ->map(fn ($t) => is_array($t) ? $t[1] : $t)->implode('');
+        foreach (explode(';', $code) as $statement) {
+            $rowsOfOrganizations = preg_match("/table\\(\\s*['\"]organizations['\"]\\s*\\)/", $statement) === 1 && str_contains($statement, '->delete(');
+            $modelErased = str_contains($statement, 'Organization') && preg_match('/forceDelete|::destroy\\(/', $statement) === 1;
+            if ($rowsOfOrganizations || $modelErased) {
+                $erasers[] = str_replace(base_path().'/', '', $file->getPathname());
+            }
+        }
+    }
+    expect($erasers)->toBe(['app/Services/Platform/OrganizationDeletion.php'], 'a second way to erase an organisation exists');
 })->group('security');
 
 // ══ 4 · PROTECTED ORGANISATIONS ════════════════════════════════════════════════════════════════════════════════

@@ -344,6 +344,8 @@
            Copied verbatim from those three: separate documents, one rule. */
         .vy-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 </style>
+    {{-- ADMIN 05 — the console's field system (inputs, dropdowns, choices, switches), after the layout's own rules --}}
+    @include('admin.partials.fields')
     <x-vy-scrollbar />
 </head>
 <body>

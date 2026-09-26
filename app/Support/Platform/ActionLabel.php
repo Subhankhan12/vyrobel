@@ -53,6 +53,9 @@ final class ActionLabel
         'platform.customer.create' => 'Started creating an organisation',
         'platform.customer.created' => 'Created the organisation',
         'platform.customer.founder_link' => 'Sent the founder a set-password link',
+        'platform.customer.delete' => 'Asked to delete the organisation permanently',
+        'platform.customer.deleted' => 'Deleted the organisation permanently — what was removed',
+        'platform.customer.delete_check' => 'Checked whether it can be deleted',
         // Support and break-glass
         'platform.support.lookup' => 'Looked up a person',
         'platform.support.password_reset' => 'Sent a password-reset link',

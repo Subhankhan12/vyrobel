@@ -133,6 +133,8 @@ function writePayloadsWithoutReason(array $ids): array
         // ADMIN 04 — a valid payload in every respect but the reason
         'admin.customers.update-details' => ['name' => 'Reason Org Renamed', 'default_locale' => 'en'],
         'admin.customers.store' => ['org_name' => 'Reason Probe Org', 'currency' => 'EUR', 'property_name' => 'Reason House', 'property_type' => 'hotel', 'founder_name' => 'Reason Founder', 'founder_email' => 'rsn-founder@vyrobel.com'],
+        // ADMIN 05 — the password and the acknowledgement pass; only the reason is missing
+        'admin.customers.delete' => ['current_password' => 'password', 'confirm_name' => 'Reason Org', 'acknowledge_delete' => '1'],
     ];
 }
 

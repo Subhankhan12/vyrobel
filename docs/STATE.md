@@ -193,7 +193,7 @@ Struck: ~~the billing model~~ (settled 2026-08-28: flat).
 
 ⚠️ **🔬 2026-09-01 — 54 instances in 13 classes.** Each is a check that looked like protection and wasn't; each class
 recurred, and the next will wear a new face. **The evidence is `docs/INSTRUMENT-ERRORS.md`** — consult it when you
-write a check. The names only, so you can recognise one: ⚠️ 🔬 2026-09-25: `stat` on a **symlink** reports the LINK's mode (always 777) — KNOWN-LIMITS L15 read `.env` as world-writable from exactly that; `stat -L` reads the file (600). Class **C**.
+write a check. The names only, so you can recognise one: ⚠️ 🔬 2026-09-25: `stat` on a **symlink** reports the LINK's mode (always 777) — KNOWN-LIMITS L15 read `.env` as world-writable from exactly that; `stat -L` reads the file (600). Class **C**. ⚠️ 🔬 2026-09-26: Laravel 13's `Schema::getTables()` with **no argument lists every database the connection can see** (five on the dev machine) — the shipped privacy inventory named six OTHER projects' tables, and its drift test stayed green because it regenerated through the same list; scope it (`getTables(Schema::getCurrentSchemaName())`) and check against an independent read. Classes **E** and **B**.
 
 **A** the assertion that cannot fail · **B** proving something ADJACENT · **C** the wrong layer or target ·
 **D** placed wrong in time · **E** green as an artefact of the environment · **F** the mutation that lies ·
@@ -254,7 +254,9 @@ leave an org with **zero** sign-in-able role-managers — **unrecoverable from i
 
 ## 9 · Rulings worth knowing — ⚠️ a ruling without its reason gets re-opened as an oversight
 
-**Direct charges on the operator's connected account** — the conservative end: whatever a lawyer says about who may
+**Delete permanently (ADMIN 05, 2026-09-26)** — the founder's "delete everything, always" replaces "no hard delete" for
+ONE Owner-only action on a suspended or archived, unprotected organisation; archive stays the reversible option and
+nothing deletes on a timer. The console's own records of it are kept. · **Direct charges on the operator's connected account** — the conservative end: whatever a lawyer says about who may
 hold funds, direct charges cannot be wrong on it. · **Standard Connect, not Express** — Express puts dispute
 liability on the platform. · **No statement-descriptor field** — it would claim a control we do not have. · **The
 channels page is stopped**, not deferred; it may make **no** future promise. · **The changelog was refused** — no

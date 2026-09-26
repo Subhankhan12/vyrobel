@@ -7,7 +7,8 @@
 #    at the reserved `.invalid` TLD (RFC 2606 — undeliverable by definition, and mail is not delivered anyway).
 # ⚠️ The org is then READ BACK on the host by its name, its id is READ (never typed), and it is marked
 #    `is_internal` there with an audited ledger row — so no platform statistic ever counts it as a customer.
-# ⚠️ Nothing is deleted: there is no hard delete and no prune (both are the founder's ruling).
+# ⚠️ Nothing is deleted by this script. The console's ONE hard delete (ADMIN 05 — Owner-only, a suspended org,
+#    password + typed name) is a person's deliberate act, never automated, and never run from here.
 set -euo pipefail
 
 LABEL="${1:?usage: probe-signup.sh <LABEL e.g. ADMIN-P1>}"

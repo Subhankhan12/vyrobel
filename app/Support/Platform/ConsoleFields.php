@@ -50,6 +50,8 @@ final class ConsoleFields
         'location' => 'location',
         'founder_name' => "founder's name",
         'founder_email' => "founder's email",
+        // ADMIN 05 — delete permanently
+        'acknowledge_delete' => 'the acknowledgement',
         'features.*.enabled' => 'feature switch',
         'features.*.limit' => 'feature limit',
     ];

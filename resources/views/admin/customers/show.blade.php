@@ -80,7 +80,7 @@
                         <input id="archive_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation being archived?">
                         @include('admin.customers.partials.lifecycle-confirm', ['id' => 'archive', 'password' => true])
                         <button type="submit" class="ad-btn ad-btn--danger" style="margin-top: 10px;">Archive</button>
-                        <p class="ad-reason-hint" style="margin: 6px 0 0;">Hidden from the directory, every record kept, reversible. There is no permanent delete.</p>
+                        <p class="ad-reason-hint" style="margin: 6px 0 0;">Hidden from the directory, every record kept, reversible. To erase everything instead, an Owner can delete it permanently below.</p>
                     </form>
                 @endif
 
@@ -91,6 +91,51 @@
                         <input id="restore_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation coming back?">
                         @include('admin.customers.partials.lifecycle-confirm', ['id' => 'restore', 'password' => false, 'noGuests' => true])
                         <button type="submit" class="ad-btn" style="margin-top: 10px;">Restore (stays suspended)</button>
+                    </form>
+                @endif
+            </div>
+        @endif
+
+        {{-- ⚠️⚠️ ADMIN 05 — DELETE PERMANENTLY (the founder's ruling, 2026-09-26). Owner only, a suspended or archived
+             organisation, never a protected one. It says exactly what goes BEFORE asking for anything, and shows the
+             refusal instead of the form while something makes deletion unsafe. --}}
+        @if ($deletePreview)
+            <div class="ad-danger-zone" style="margin-top: 20px;">
+                <h2 class="ad-panel-title" style="color: var(--ad-danger);">Delete permanently</h2>
+                @php
+                    $count = fn (string $key, string $noun): string => number_format($deletePreview[$key]).' '.\Illuminate\Support\Str::plural($noun, $deletePreview[$key]);
+                    $one = fn (string $key): bool => $deletePreview[$key] === 1;
+                @endphp
+                <p class="ad-stat-sub" style="margin: 0 0 12px; line-height: 1.6;">
+                    Erases this organisation and <strong>everything it owns</strong> — {{ $count('rows', 'record') }} in
+                    {{ $count('tables', 'table') }}, including {{ $count('reservations', 'reservation') }},
+                    {{ $count('guests', 'guest') }}, {{ $count('payments', 'payment') }} and
+                    {{ $count('invoices', 'invoice') }}; {{ $count('users_deleted', 'account') }}
+                    that {{ $one('users_deleted') ? 'belongs' : 'belong' }} to no other organisation; and {{ number_format($deletePreview['files']) }} uploaded {{ \Illuminate\Support\Str::plural('file', $deletePreview['files']) }}.
+                    @if ($deletePreview['users_kept'] > 0)
+                        {{ $count('users_kept', 'person') }} who also {{ $one('users_kept') ? 'belongs elsewhere keeps their account' : 'belong elsewhere keep their accounts' }}.
+                    @endif
+                    @if ($guests > 0)
+                        <strong>{{ $guests }} {{ \Illuminate\Support\Str::plural('guest', $guests) }} {{ $guests === 1 ? 'is' : 'are' }} in house or arriving</strong> — {{ $guests === 1 ? 'their booking goes' : 'their bookings go' }} too, and nothing tells them.
+                    @endif
+                    <strong>This cannot be undone.</strong> The console’s own record of it is kept.
+                </p>
+                @if ($deletePreview['refusal'])
+                    <div class="ad-flash ad-flash--error" role="status">{{ $deletePreview['refusal'] }}</div>
+                @else
+                    <form method="POST" action="{{ route('admin.customers.delete', $org->id) }}" data-guard-submit>
+                        @csrf
+                        <label class="ad-label" for="delete_reason">Delete — reason</label>
+                        <input id="delete_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this organisation being erased?" autocomplete="off">
+                        <label class="ad-label" for="delete_confirm">Type <strong class="ad-confirm-name">{{ $org->name }}</strong> to confirm</label>
+                        <input id="delete_confirm" class="ad-input" name="confirm_name" required autocomplete="off">
+                        <label class="ad-label" for="delete_pw">Your password</label>
+                        <input id="delete_pw" type="password" name="current_password" class="ad-input" autocomplete="current-password" required>
+                        <label class="ad-switch-row" style="margin-top: 14px;">
+                            <input type="checkbox" name="acknowledge_delete" value="1" required>
+                            <span>I understand this permanently deletes all of it and cannot be undone.</span>
+                        </label>
+                        <button type="submit" class="ad-btn ad-btn--destroy" style="margin-top: 12px;">Delete permanently</button>
                     </form>
                 @endif
             </div>
@@ -134,36 +179,36 @@
                     <form method="POST" action="{{ route('admin.customers.update-details', $org->id) }}" data-guard-submit style="margin-top: 10px;">
                         @csrf
                         <label class="ad-label" for="d_name">Organisation name</label>
-                        <input id="d_name" class="ad-input" name="name" required maxlength="255" value="{{ old('name', $org->name) }}">
+                        <input id="d_name" class="ad-input" name="name" required maxlength="255" value="{{ old('name', $org->name) }}" autocomplete="off" @error('name') aria-invalid="true" @enderror>
                         <label class="ad-label" for="d_country">Country</label>
-                        <select id="d_country" class="ad-input" name="country">
+                        <select id="d_country" class="ad-input" name="country" data-searchable data-flags>
                             <option value="">— Not set —</option>
                             @foreach (\App\Support\Countries::options() as $code => $countryName)
                                 <option value="{{ $code }}" @selected(old('country', $org->country) === $code)>{{ $countryName }}</option>
                             @endforeach
                         </select>
-                        <label class="ad-label" for="d_locale">Language</label>
-                        <select id="d_locale" class="ad-input" name="default_locale" required>
+                        <fieldset class="ad-choices" style="margin-top: 16px;">
+                            <legend class="ad-label">Language</legend>
                             @php($currentLocale = (string) old('default_locale', $org->default_locale ?? 'en'))
                             @if ($currentLocale !== '' && ! in_array($currentLocale, (array) config('app.available_locales', ['en']), true))
-                                <option value="{{ $currentLocale }}" selected>{{ strtoupper($currentLocale) }} (current)</option>
+                                <label class="ad-choice"><input type="radio" name="default_locale" value="{{ $currentLocale }}" required checked><span>{{ strtoupper($currentLocale) }} <small>current</small></span></label>
                             @endif
                             @foreach ((array) config('app.available_locales', ['en']) as $locale)
-                                <option value="{{ $locale }}" @selected($currentLocale === $locale)>{{ strtoupper($locale) }}</option>
+                                <label class="ad-choice"><input type="radio" name="default_locale" value="{{ $locale }}" required @checked($currentLocale === $locale)><span>{{ strtoupper($locale) }}</span></label>
                             @endforeach
-                        </select>
+                        </fieldset>
                         <label class="ad-label" for="d_billing_email">Billing email</label>
-                        <input id="d_billing_email" type="email" class="ad-input" name="billing_email" maxlength="255" value="{{ old('billing_email', $org->billing_email) }}">
+                        <input id="d_billing_email" type="email" class="ad-input" name="billing_email" maxlength="255" value="{{ old('billing_email', $org->billing_email) }}" autocomplete="off" @error('billing_email') aria-invalid="true" @enderror>
                         <label class="ad-label" for="d_billing_company">Billing name</label>
-                        <input id="d_billing_company" class="ad-input" name="billing_company" maxlength="160" value="{{ old('billing_company', $org->billing_company) }}">
+                        <input id="d_billing_company" class="ad-input" name="billing_company" maxlength="255" value="{{ old('billing_company', $org->billing_company) }}" autocomplete="off" @error('billing_company') aria-invalid="true" @enderror>
                         <label class="ad-label" for="d_vat">VAT ID</label>
-                        <input id="d_vat" class="ad-input" name="billing_vat_id" maxlength="40" value="{{ old('billing_vat_id', $org->billing_vat_id) }}">
+                        <input id="d_vat" class="ad-input" name="billing_vat_id" maxlength="255" value="{{ old('billing_vat_id', $org->billing_vat_id) }}" autocomplete="off" @error('billing_vat_id') aria-invalid="true" @enderror>
                         <label class="ad-label" for="d_city">Billing city</label>
-                        <input id="d_city" class="ad-input" name="billing_city" maxlength="120" value="{{ old('billing_city', $org->billing_city) }}">
+                        <input id="d_city" class="ad-input" name="billing_city" maxlength="120" value="{{ old('billing_city', $org->billing_city) }}" autocomplete="off" @error('billing_city') aria-invalid="true" @enderror>
                         <label class="ad-label" for="details_reason">Reason</label>
-                        <input id="details_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why are these details changing?">
+                        <input id="details_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why are these details changing?" autocomplete="off">
                         @if ($lock === 'confirm')
-                            <label class="ad-label" for="details_confirm">Protected — type <strong>{{ $org->name }}</strong> to confirm</label>
+                            <label class="ad-label" for="details_confirm">Protected — type <strong class="ad-confirm-name">{{ $org->name }}</strong> to confirm</label>
                             <input id="details_confirm" class="ad-input" name="confirm_name" required autocomplete="off">
                         @endif
                         <button type="submit" class="ad-btn ad-btn--sm" style="margin-top: 10px;">Save details</button>

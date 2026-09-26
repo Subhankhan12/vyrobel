@@ -91,10 +91,16 @@ final class RetentionCoverage
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)."\n";
     }
 
-    /** @return list<string> the connected database's real tables, lower-case */
+    /**
+     * ⚠️ SCOPED TO THIS CONNECTION'S DATABASE. Laravel 13's `Schema::getTables()` with no argument lists EVERY database
+     * the user can see — on the dev machine five, and the shipped inventory named six tables (`bookings`, `tickets`, …)
+     * that only other projects' databases hold. The drift test could not see it: it regenerated through this same list.
+     *
+     * @return list<string> the connected database's real tables, lower-case
+     */
     public static function liveTables(): array
     {
-        return array_map('strtolower', array_map(fn ($t) => is_array($t) ? (string) $t['name'] : (string) $t, Schema::getTables()));
+        return array_map('strtolower', array_column(Schema::getTables(Schema::getCurrentSchemaName()), 'name'));
     }
 
     /**

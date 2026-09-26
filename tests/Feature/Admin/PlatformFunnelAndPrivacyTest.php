@@ -128,6 +128,23 @@ it('⚠️⚠️ the SHIPPED inventory data file is exactly what the audited doc
     expect((string) file_get_contents(RetentionCoverage::inventoryPath()))->not->toContain('@');
 })->group('security');
 
+// ⚠️⚠️ ADMIN 05 (2026-09-26) — the drift test above regenerates through liveTables() itself, so it could not see
+// liveTables() reading the WRONG databases: Laravel 13's getTables() with no argument lists every database the
+// connection can see, and the shipped file named six tables (`bookings`, `tickets`, …) only other projects hold.
+// This reads the answer independently (information_schema, DATABASE()). ⚠️ It can only catch the regression on a server
+// where more than one database is visible — the dev machine has five.
+it('⚠️⚠️ the meter reads THIS database\'s tables only — never another database the connection can see', function () {
+    $mine = array_map(fn ($r): string => strtolower((string) $r->t), DB::select(
+        "SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE IN ('BASE TABLE', 'SYSTEM VERSIONED')"
+    ));
+    sort($mine);
+    $live = RetentionCoverage::liveTables();
+    sort($live);
+
+    expect(count($mine))->toBeGreaterThan(100, 'the independent read must really see the schema')
+        ->and($live)->toBe($mine);
+})->group('security');
+
 it('⚠️⚠️ the inventory the meter reads is one the release script SHIPS — never docs/, tests/ or a .md file', function () {
     $file = RetentionCoverage::DATA_FILE;
 

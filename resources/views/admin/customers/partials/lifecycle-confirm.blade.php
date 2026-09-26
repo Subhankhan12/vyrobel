@@ -14,6 +14,6 @@
     </label>
 @endif
 @if ($confirmName)
-    <label class="ad-label" for="{{ $id }}_confirm" style="margin-top: 10px;">Protected — type <strong>{{ $org->name }}</strong> to confirm</label>
+    <label class="ad-label" for="{{ $id }}_confirm" style="margin-top: 10px;">Protected — type <strong class="ad-confirm-name">{{ $org->name }}</strong> to confirm</label>
     <input id="{{ $id }}_confirm" class="ad-input" name="confirm_name" required autocomplete="off" aria-label="Type the organisation name to confirm">
 @endif

@@ -7,6 +7,7 @@ namespace App\Notifications;
 use App\Models\User;
 use App\Services\NotificationPreferences;
 use App\Support\Notifications\QuietHours;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -91,10 +92,15 @@ abstract class FeedNotification extends Notification
     }
 
     /**
-     * @return array{title: string, context: string, url: string, category: string}
+     * ⚠️ ADMIN 05 — the stored row also names the organisation it is about (when there is one): a person can belong to
+     * several, and deleting one must find ITS notifications in their feed without touching the rest.
+     *
+     * @return array{title: string, context: string, url: string, category: string, organization_id?: string}
      */
     public function toArray(object $notifiable): array
     {
-        return $this->data($notifiable);
+        $organization = app(TenantContext::class)->id();
+
+        return $this->data($notifiable) + ($organization !== null ? ['organization_id' => $organization] : []);
     }
 }

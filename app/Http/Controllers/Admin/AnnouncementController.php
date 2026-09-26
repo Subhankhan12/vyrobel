@@ -13,6 +13,7 @@ use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -46,6 +47,12 @@ class AnnouncementController extends Controller
             'starts_at' => ['required', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
         ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        // ⚠️ ADMIN 05 — "Every organisation" with organisations ticked used to publish to EVERY tenant and drop the ticks
+        //    without a word (and a failed submit reset the audience to "Every organisation"). Contradictory input is
+        //    refused, never guessed at.
+        if ($data['audience'] === 'all' && ($data['organization_ids'] ?? []) !== []) {
+            return back()->withInput()->withErrors(['audience' => 'You ticked organisations but chose “Every organisation”. Choose “Chosen organisations” to send it only to them, or untick them.']);
+        }
         $reason = AdminReason::from($request);
 
         // ⚠️ ADMIN 03 · F13 — the ledger row is written BEFORE the row exists, so it used to carry no target and a
@@ -63,7 +70,10 @@ class AnnouncementController extends Controller
             'created_by' => (string) auth('admin')->id(),
         ]), fn (PlatformAnnouncement $a) => $a->forceFill(['id' => $id])->save()), ['audience' => $data['audience'], 'organizations' => count($data['organization_ids'] ?? [])], 'announcement', $id);
 
-        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Announcement published'.($announcement->isLive() ? ' — showing now.' : ' — it will show from its start time.'));
+        $chosen = count($data['organization_ids'] ?? []);
+        $to = $data['audience'] === 'all' ? 'every organisation' : $chosen.' chosen '.Str::plural('organisation', $chosen);
+
+        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Announcement published to '.$to.($announcement->isLive() ? ' — showing now.' : ' — it will show from its start time.'));
     }
 
     public function withdraw(Request $request, string $announcement): RedirectResponse

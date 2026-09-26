@@ -99,7 +99,7 @@
                     <div><label class="ad-label" for="pr-channel">Received by</label><select id="pr-channel" name="channel" class="ad-input" required>@foreach (PrivacyRequest::CHANNELS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
                     <div><label class="ad-label" for="pr-on">Received on</label><input id="pr-on" type="date" name="received_on" class="ad-input" required value="{{ now()->toDateString() }}"></div>
                     <div><label class="ad-label" for="pr-email">Account holder’s email — not stored</label><input id="pr-email" type="email" name="email" class="ad-input"></div>
-                    <div><label class="ad-label" for="pr-org">Organisation — for a guest’s request</label><select id="pr-org" name="organization_id" class="ad-input"><option value="">None</option>@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="pr-org">Organisation — for a guest’s request</label><select data-searchable id="pr-org" name="organization_id" class="ad-input"><option value="">None</option>@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select></div>
                 </div>
                 <label class="ad-label" for="pr-reason" style="margin-top: 10px;">Reason</label>
                 <input id="pr-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="e.g. email from the account holder, 24 Sep">

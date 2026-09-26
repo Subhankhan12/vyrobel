@@ -10,6 +10,7 @@ use App\Services\Guest\GuestIdDocumentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -106,6 +107,25 @@ it('supersedes a prior ID on re-upload without stacking duplicates', function ()
     expect(GuestDocument::query()->where('reservation_id', $reservation->getKey())->count())->toBe(1);
     expect(Storage::disk('local')->exists($firstPath))->toBeFalse();   // the old blob is purged
     expect(GuestDocument::query()->where('reservation_id', $reservation->getKey())->value('type'))->toBe('id_card');
+});
+
+// ── ⚠️ ADMIN 05 — when the rows do not land, the encrypted bytes do not outlive them ───────────────────
+it('removes the encrypted file when its rows do not land — nothing stays on disk with no record of it', function () {
+    Storage::fake('local');
+    $s = seedScenario(1);
+    $a = vaultGuest($s['guest'], 'ada-orphan@example.test');
+    $reservation = vaultBook($s, $a, $s['units'][0]);
+    DB::connection()->beforeExecuting(function (string $sql): void {
+        if (str_starts_with(strtolower(ltrim($sql)), 'insert into `documents`')) {
+            throw new RuntimeException('the rows did not land');
+        }
+    });
+
+    expect(fn () => app(GuestIdDocumentService::class)->store($a, $reservation, UploadedFile::fake()->image('p.jpg'), 'passport'))
+        ->toThrow(RuntimeException::class, 'the rows did not land');
+
+    expect(Storage::disk('local')->allFiles())->toBe([])
+        ->and(Media::query()->where('collection', 'guest-id')->count())->toBe(0);
 });
 
 // ── GDPR erase purges the ID (file + rows) AND the guest's arrival note/window ──────────────────────

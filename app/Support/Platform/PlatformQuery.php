@@ -90,7 +90,13 @@ class PlatformQuery
         try {
             return $this->lifted($callback);
         } catch (Throwable $e) {
-            $this->audit->record($action.'.failed', ['exception' => $e::class], $targetType, $targetId, reason: $reason);
+            try {
+                $this->audit->record($action.'.failed', ['exception' => $e::class], $targetType, $targetId, reason: $reason);
+            } catch (Throwable $ledger) {
+                // ⚠️ ADMIN 05 — when the database itself is the cause, this row cannot be written either: the ORIGINAL
+                //    failure is the one rethrown below — it is never replaced by the ledger's
+                report($ledger);
+            }
 
             throw $e;
         }

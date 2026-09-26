@@ -1289,3 +1289,27 @@ that REJECTS mail until the alias below exists.**
 the legal pages; the alias keeps every published address working.) ⚠️ Not done by the session: it changes his mail
 setup, and nothing briefed it.
 
+## ⚠️ L19 — DELETING AN ORGANISATION CANNOT SEE AN OPEN STRIPE CHECKOUT PAGE — DORMANT TODAY, A PREREQUISITE OF THE STRIPE FLIP
+
+🔬 **Found 2026-09-26 (ADMIN 05, by the data-safety review; verified by reading `BillingService::startCheckout()`).**
+Starting a subscription checkout writes NOTHING to the database — the Checkout Session lives only at Stripe (up to 24
+hours). So `OrganizationDeletion::refusal()` cannot see one. The case: a founder opens the payment page; the organisation
+is then suspended and deleted; the founder completes the payment → Stripe holds a LIVE subscription for an organisation
+that no longer exists, and `checkout.session.completed` resolves to nothing (recorded unresolved, 202) — Stripe keeps
+charging until someone cancels it by hand. (The refusal's `incomplete` clause is dead code: nothing writes that status.)
+
+🔬 **DORMANT on production — measured 2026-09-26, booleans only:** `APP_ENV=production` with the **fake Stripe client
+ON**, **no Stripe key**, and all four plans on **placeholder** prices (`price_fake_…`). No real Checkout Session can
+exist, so there is nothing for a deletion to miss today.
+
+⛔ **IT MUST BE CLOSED BEFORE THE STRIPE FLIP (GO-LIVE B19).** The shape: persist the open session's id and expiry when
+checkout starts, and refuse deletion while one is unexpired (or expire it through the API at deletion). ⚠️ Not built
+now: it needs a schema change and a new Stripe call on the money path, neither briefed in this pass. 🔒 Pinned by
+`Admin05DeleteOrganisationTest` › *L19 — starting a subscription checkout writes NOTHING*: whoever closes this turns it red.
+
+**Beside it, recorded, not fixed:** (1) a REPLACED brand logo's old file is never deleted (`SettingsActionController`
+stores the new one and forgets the old path — pre-existing), so a deletion cannot find it; ✅ nothing personal — logos are
+public brand images. (2) Queued work for a deleted organisation is not removed: a job that loads its records fails
+harmlessly; an owner's already-queued "email me my statement" still arrives — their own data, to their own inbox.
+(3) A deleted organisation's slug and custom domain become free for a new organisation — an old guest link would then
+reach the new one. The console ledger keeps the old slug.

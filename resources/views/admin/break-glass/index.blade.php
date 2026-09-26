@@ -32,7 +32,7 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
                     <div>
                         <label class="ad-label" for="bg-org">Organisation</label>
-                        <select id="bg-org" name="organization_id" class="ad-input" required>
+                        <select id="bg-org" name="organization_id" class="ad-input" required data-searchable>
                             <option value="">Choose…</option>
                             @foreach ($organizations as $id => $name)
                                 <option value="{{ $id }}" @selected(old('organization_id') === $id)>{{ $name }}</option>

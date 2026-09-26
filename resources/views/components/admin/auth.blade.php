@@ -88,6 +88,8 @@
         /* A recessed panel (recovery codes, the TOTP secret) — was a dark slate well; now warm cream. */
         .ad-well { background: rgba(255, 255, 255, 0.62); border: 1px solid var(--ad-border); border-radius: var(--ad-r-md); }
     </style>
+    {{-- ADMIN 05 — the console's field system (inputs, dropdowns, choices, switches), after the layout's own rules --}}
+    @include('admin.partials.fields')
     <x-vy-scrollbar />
 </head>
 <body>

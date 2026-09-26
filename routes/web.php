@@ -1831,7 +1831,8 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
             // ── Tenant lifecycle (Owner, Support). Every write via PlatformQuery::mutate, with a reason.
             Route::middleware([$can(PlatformAdminRole::TENANTS_MANAGE), 'throttle:20,1'])->group(function () {
                 // ⚠️ ADMIN 01 · PHASE 2 — a REAL suspension: staff and owners refused, storefront closed, no money
-                //    touched. Archive is a soft delete of a suspended org; there is no hard-delete route, by ruling.
+                //    touched. Archive is a soft delete of a suspended org. The ONE hard delete is ADMIN 05's (below):
+                //    Owner-only (tenants.delete on top of this group), by the founder's ruling of 2026-09-26.
                 Route::post('customers/{organization}/suspend', [AdminCustomerController::class, 'suspend'])->name('customers.suspend');
                 Route::post('customers/{organization}/reactivate', [AdminCustomerController::class, 'reactivate'])->name('customers.reactivate');
                 Route::post('customers/{organization}/archive', [AdminCustomerController::class, 'archive'])->name('customers.archive');
@@ -1846,6 +1847,9 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('customers/{organization}/details', [AdminCustomerController::class, 'updateDetails'])->name('customers.update-details');
                 // ADMIN 04 — create an organisation (through TenantProvisioningService; the founder gets a set-password link).
                 Route::post('customers', [AdminCustomerController::class, 'store'])->name('customers.store');
+                // ⚠️ ADMIN 05 — PERMANENT deletion (the founder's ruling, 2026-09-26). OWNER ONLY, on top of tenants.manage.
+                Route::post('customers/{organization}/delete', [AdminCustomerController::class, 'destroy'])
+                    ->middleware(EnsurePlatformCapability::class.':'.PlatformAdminRole::TENANTS_DELETE)->name('customers.delete');
             });
 
             // ── ⚠️ ADMIN 01 · PHASE 4 — REVENUE (Owner, Billing, Analyst): traced to the charge, read-only with respect

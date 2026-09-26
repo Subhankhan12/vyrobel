@@ -18090,3 +18090,110 @@ removed; a currency mutation that 500'd while the test checked only that nothing
 PHPStan L5 0 · Pint clean · money gate FULL unchanged (tenant one) · mutation harness 187/187. Pages rendered through
 the app and viewed at 1280 px and 390 px (no sideways scroll).
 
+## 2026-09-26 — ADMIN 05 · delete an organisation permanently, and one field system for every console form
+
+**THE RULINGS (the founder, 2026-09-26).** (1) The organisation screens become full CRUD: create and update (ADMIN 04),
+suspend and archive (ADMIN 01), and now **DELETE — "delete everything, always"**: one deliberate, Owner-only action that
+erases an organisation and everything it owns. ⚠️ **This replaces, for this one action, the standing "no hard delete"
+ruling** (§ADMIN 01 Phase 2 — the entry is left as written; this is the pointer). Archive stays the reversible option,
+and nothing deletes on a timer (no prune). (2) **"Every console form"** gets the redesigned fields — dropdowns, inputs,
+choices and switches — tested in a browser.
+
+**DELETE — what it does** (`POST admin/customers/{id}/delete` · `tenants.manage` AND the new `tenants.delete`, Owner
+only · `OrganizationDeletion`):
+- Asks for the admin's password, the organisation's exact name typed, an acknowledgement and a written reason; refuses
+  a protected organisation (the lock), and anything not suspended or archived first.
+- **Refuses before touching anything** while money is moving at a third party — live Stripe billing, an open card
+  payment or hold, a payout in transit, a payout run in progress, a payment notification being processed — or while
+  another organisation's rows point into this one (a cascade would take them). The service re-checks on its own, so a
+  caller that skips the console still cannot delete (tested per layer).
+- **One transaction:** rows reachable only through a parent go first (amenity links, a guest's notifications, sessions,
+  security-log rows, reset tokens); then every table with an `organization_id` — READ from the schema at run time,
+  never a typed list — then the organisation row; then the people whose ONLY link was this organisation. A
+  **post-condition** re-reads every organisation table and rolls the lot back if one row survives. Files (media — which
+  carries guests' ID scans — brand logos, avatars) are removed only after commit; one that cannot be removed is
+  counted and logged, never fatal.
+- **Kept:** the platform's own records — the append-only console ledger (the intent with the reason, and the result
+  with counts), break-glass sessions, privacy requests.
+- The confirmation screen says exactly what goes before asking for anything (records, tables, reservations, guests,
+  payments, invoices, accounts deleted and kept, files) — or shows the refusal instead of the form.
+
+**FOUND WHILE BUILDING IT — three defects, each now pinned by a test and a mutation:**
+- ⚠️⚠️ **Laravel 13's `Schema::getTables()` with no argument lists EVERY database the connection can see** — on the dev
+  machine five (225 names for 100 organisation tables), so the confirmation screen counted each table once per copy.
+  🔬 The SAME call was in the retention meter (`RetentionCoverage::liveTables()`), and the shipped
+  `resources/data/data-inventory.json` (TONIGHT 01 #3) named six tables — `bookings`, `tickets`, `information`,
+  `packages`, `gateways`, `tenants` — that only OTHER projects' databases on the dev machine hold. Its drift test could
+  not see it: it regenerated through the same list. Both calls are now scoped to the connection's own database, the
+  file is regenerated (meter unchanged: 144 categories · 2 strict · 40 lenient), and an independent read
+  (information_schema, `DATABASE()`) pins both. 🔬 **Production was never affected**: its database user sees ONE
+  database (147 tables), measured 2026-09-26.
+- ⚠️⚠️ **"Belongs to no other organisation" is not the same as "no other organisation's records name them."** Five
+  foreign keys into `users` CASCADE (shifts, leave requests, signed amendment acknowledgements, message reactions and
+  stars) and the rest set null — so deleting a FORMER member of another organisation would have deleted that
+  organisation's history. A person is now kept whenever any other organisation's row references them, read from the
+  schema's foreign keys.
+- The confirm prompt showed the organisation's name through an UPPERCASE label while the check is exact — an admin
+  typing what they saw was refused. The name now shows as stored, in all three type-to-confirm prompts (the two older
+  ones had the same flaw).
+
+**THE FIELD SYSTEM** (`resources/views/admin/partials/fields.blade.php`, included once by both console layouts): one look
+for inputs, choice chips (radio buttons), switches (checkboxes) and a **searchable dropdown** — progressive, never a
+replacement: every control stays the native element the form posts. Searchable: the country lists (with flags) and
+every organisation picker (audit filter, privacy desk, break-glass) — and the announcement audience becomes a
+searchable **checklist** (a native multi-select drops every earlier choice on a plain click). Browser-tested
+(Playwright, 1280 px and 390 px): keyboard (↑/↓/Home/End/Enter/Esc/Tab), outside click, no-match, the posted values,
+no sideways scroll. Found in the browser: the open list was translucent enough for the labels beneath to read through
+it (now opaque); its chevron differed from the plain dropdowns' (now the same glyph); a plain dropdown in a form had
+lost its surface to the shell's chevron rule (restored); the filter bar's searchable picker did not match its
+neighbours (now the bar's own look); a screen reader heard the label but not the value (now "Country: Portugal").
+
+**TWO INDEPENDENT REVIEWS before deploy** (a data-safety adversary, and a silent-failure hunter; both read-only) —
+every finding verified against the code or the schema before acting; all real ones fixed and pinned by a test and a
+mutation:
+- ⚠️⚠️ **a failure AFTER the commit** (the permission-cache flush, a log write) was reported as "Nothing was deleted —
+  rolled back", written to the append-only ledger as `.failed`, and skipped the file removal — guests' ID scans left on
+  disk with no record → nothing after the commit can throw; each step reports what it could not do; a refusal is a
+  typed `OrganizationDeletionRefused`, and any other failure CHECKS whether the organisation still exists before
+  claiming nothing was deleted;
+- ⚠️⚠️ **races**: the people, the files and the refusal were read before the transaction with no lock → the
+  organisation row is locked first, then the open payouts (a payout mid-transfer is waited for, then seen), then the
+  people (someone accepting another organisation's invite waits, instead of being cascaded with their new membership);
+  the lifecycle bounds (protected, suspended-first) are re-checked by the SERVICE under the lock;
+- ⚠️ **a tenant with more than 65,535 guests could never be deleted** (every guest id was bound into one statement;
+  🔬 reproduced by the reviewer: error 1390) → subqueries, and bounded chunks of 1,000;
+- **the security-log cleanup** would also have erased a platform admin's own console sign-in history at the same address
+  → narrowed to the tenant realm's attempts;
+- **a KEPT person's notifications about this organisation** (guests' names) stayed in their feed → notifications now
+  name their organisation (stamped on every new one), and a deletion removes the ones that name it or link to its
+  records — never their others;
+- **three columns name a person without a foreign key** (`audit_events.actor_id` and four more) → a former member
+  named only there keeps their account; a drift test fails on a new such column not in the list;
+- **files**: a failure was mostly not logged (the disks do not throw), a missing file counted as "removed", and a file
+  two tenants share (seeded demo photos) would have been deleted from under the other → confirmed-gone per file, missing
+  and shared counted apart, failures logged with their paths and written to the ledger; a guest ID upload whose rows do
+  not land now removes its bytes;
+- **the counts** under-reported (cascaded rows counted 0) → the result is the pre-deletion count the post-condition
+  proves gone, the same the preview shows; Stripe ids (customers, subscriptions, connected accounts) are written to the
+  ledger to close by hand;
+- **refusals that can never clear said "try again in a few minutes"** → each names its source and age, and calls it
+  stuck after 30 minutes; the announcement form could widen a targeted notice to every tenant after a failed submit →
+  choices restored, the contradiction refused, the audience named in the notice; the result ledger row can no longer
+  500 a completed deletion; a failed `.failed` write no longer replaces the original error;
+- **the field script** now builds each control off the page and swaps it in last (an error leaves the plain select
+  working), shows a required field's own message instead of the browser's bubble on a hidden element, chooses on click,
+  mirrors `disabled`, and repaints after the back/forward cache.
+**Not fixed, recorded** (`KNOWN-LIMITS` L19): an open Stripe Checkout page is invisible to the refusal — 🔬 DORMANT on
+production (fake Stripe client, no key, placeholder prices — measured 2026-09-26), and a go-live prerequisite before the
+Stripe flip; a replaced brand logo's old file is never deleted (pre-existing, so a deletion cannot find it); queued work
+for a deleted organisation fails harmlessly or completes.
+
+**PROOF (pre-deploy).** `Admin05DeleteOrganisationTest` 24 tests and `Admin05ConsoleFieldsTest` 4, plus the widened
+one-permanent-path guard (all of `app/`), the meter's own-database pin and the ID-vault orphan test. Mutation set
+`admin-05` **47/47** landed and caught; the full harness **234/234**. Full suite **3,992/3,992 on MySQL 8.4.10 AND on
+MariaDB 11.8.9** (READ COMMITTED; ⚠️ MariaDB's test database was first brought up to date — eight migrations had not
+reached it since the engine gate last ran, 2026-09-22), then **3,993/3,993** on MySQL with the L19 pin. PHPStan L5 0 ·
+Pint clean · money gate **MONEY AS SEEDED · FULL** (`929 / 10928000 / 0 / 42 / 16 / 0`, row digests identical — tenant
+one only, as the script says). Browser (Playwright, pages rendered through the app): every enhanced control at 1280 px
+and 390 px — keyboard, click, search, no-match, the checklist, a required field's own message, the posted values; no
+sideways scroll, no script errors.

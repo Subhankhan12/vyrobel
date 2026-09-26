@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * The SINGLE writer of a guest ID document (Guest Portal batch 2 · GATE 2 · founder decision D2). Captures the
@@ -50,7 +51,28 @@ class GuestIdDocumentService
     {
         $type = in_array($type, self::TYPES, true) ? $type : 'passport';
 
-        return DB::transaction(function () use ($guest, $reservation, $file, $type): GuestDocument {
+        // ⚠️ ADMIN 05 — the encrypted bytes are written BEFORE their rows; when the rows do not land (a failure, or the
+        //    organisation deleted while the upload was in flight), the bytes must not outlive them with nothing to find
+        //    them by. Rolled back → removed.
+        $path = null;
+        try {
+            return $this->storeRows($guest, $reservation, $file, $type, $path);
+        } catch (Throwable $e) {
+            if ($path !== null) {
+                try {
+                    Storage::disk(self::DISK)->delete($path);
+                } catch (Throwable $cleanup) {
+                    report($cleanup);
+                }
+            }
+
+            throw $e;
+        }
+    }
+
+    private function storeRows(Guest $guest, Reservation $reservation, UploadedFile $file, string $type, ?string &$path): GuestDocument
+    {
+        return DB::transaction(function () use ($guest, $reservation, $file, $type, &$path): GuestDocument {
             // Supersede an existing pending ID for this booking (purge its bytes + rows first).
             foreach (GuestDocument::query()
                 ->where('guest_id', $guest->getKey())

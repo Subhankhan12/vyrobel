@@ -100,9 +100,9 @@ return [
         'name' => 'announcement form drops the field-name map',
         'file' => 'app/Http/Controllers/Admin/AnnouncementController.php',
         'old' => '        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
-        $reason',
+        // ⚠️ ADMIN 05 — "Every organisation"',
         'new' => '        ], ConsoleFields::MESSAGES);
-        $reason',
+        // ⚠️ ADMIN 05 — "Every organisation"',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php'], ['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F12']],
     ],
     [

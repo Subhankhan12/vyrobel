@@ -7,6 +7,7 @@ namespace App\Support\Platform;
 use App\Http\Middleware\RefuseSuspendedOrganization;
 use App\Models\Organization;
 use App\Services\AssignmentService;
+use App\Services\Platform\OrganizationDeletion;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -23,7 +24,9 @@ use Illuminate\Support\Facades\DB;
  * ⚠️ ARCHIVE = soft delete (`deleted_at`), reversible, every row retained. An archived organisation is refused
  * exactly as a suspended one is, and it can only be archived once it is suspended, so it keeps `status =
  * suspended` underneath — which is what closes its storefront even on a lookup that forgets the trashed rows.
- * ⚠️ There is NO hard delete and NO prune. Both are the founder's ruling, tied to a retention policy he has not set.
+ * ⚠️ There is NO prune. And there is exactly ONE hard delete — ADMIN 05's "Delete permanently" (the founder's ruling,
+ *    2026-09-26: "delete everything, always"), Owner-only, of a suspended or archived organisation, never a protected
+ *    one: {@see OrganizationDeletion}. Nothing deletes on a timer; archive stays reversible.
  */
 final class TenantLifecycle
 {

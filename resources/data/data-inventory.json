@@ -41,7 +41,6 @@
         {
             "category": "Reservations & stays (the booking record)",
             "tables": [
-                "bookings",
                 "guests",
                 "migrations",
                 "reservation_guests",
@@ -72,8 +71,7 @@
             "tables": [
                 "guests",
                 "migrations",
-                "notes",
-                "tickets"
+                "notes"
             ]
         },
         {
@@ -258,7 +256,6 @@
         {
             "category": "Disclosure of guest data to OWNERS and to third-party OAuth apps",
             "tables": [
-                "bookings",
                 "guests",
                 "messages",
                 "owners",
@@ -373,7 +370,6 @@
             "category": "API tokens — OAuth2 authorization server (Passport) + tenant API keys",
             "tables": [
                 "api_keys",
-                "bookings",
                 "migrations",
                 "oauth_access_tokens",
                 "oauth_auth_codes",
@@ -575,7 +571,6 @@
         {
             "category": "⚠️ Export download log and file watermark (`export_downloads`)",
             "tables": [
-                "bookings",
                 "export_downloads",
                 "migrations"
             ]
@@ -665,9 +660,7 @@
         },
         {
             "category": "⚠️ BROWSER LOCAL STORAGE — undisclosed terminal-equipment storage",
-            "tables": [
-                "information"
-            ]
+            "tables": []
         },
         {
             "category": "THIRD-PARTY REQUESTS FROM THE MARKETING SITE — VERIFIED NONE (publishable)",
@@ -680,7 +673,6 @@
         {
             "category": "ANALYTICS / PRODUCT TELEMETRY / ERROR REPORTING / SESSION RECORDING — VERIFIED NONE",
             "tables": [
-                "packages",
                 "payments"
             ]
         },
@@ -762,9 +754,7 @@
         },
         {
             "category": "⚠️ THE COOKIE NOTICE IS NOT SHOWN ON THE MONEY PATH (FINDING)",
-            "tables": [
-                "information"
-            ]
+            "tables": []
         },
         {
             "category": "PASSWORD RESET — plaintext email for the operator realm",
@@ -831,7 +821,6 @@
         {
             "category": "STRIPE — PaymentIntent gateway (token-based charge/authorize/capture/refund). CONFIGURED-BUT-INERT (`PAYMENTS_GATEWAY=manual`).",
             "tables": [
-                "gateways",
                 "payments"
             ]
         },
@@ -910,7 +899,6 @@
             "category": "⚠️ CHANNEX / OTA CHANNELS — NOT INTEGRATED. And even if switched on, the OUTBOUND path carries NO personal data by construction.",
             "tables": [
                 "availability",
-                "bookings",
                 "channels",
                 "rate_plans",
                 "restrictions",
@@ -947,7 +935,6 @@
         {
             "category": "⚠️ OAUTH CONNECTED APPS — A REAL, LIVE DISCLOSURE MECHANISM to third parties chosen by the customer. ACTIVE.",
             "tables": [
-                "bookings",
                 "oauth_access_tokens",
                 "oauth_clients",
                 "oauth_refresh_tokens",
@@ -957,8 +944,7 @@
         {
             "category": "⚠️ OAUTH — WHAT IS AUDITED AND WHAT IS NOT.",
             "tables": [
-                "audit_events",
-                "bookings"
+                "audit_events"
             ]
         },
         {
@@ -1020,8 +1006,7 @@
                 "documents",
                 "guest_documents",
                 "media",
-                "migrations",
-                "tenants"
+                "migrations"
             ]
         },
         {

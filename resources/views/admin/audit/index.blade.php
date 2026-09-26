@@ -21,7 +21,7 @@
                 <option value="{{ $action }}" @selected($filters['action'] === $action)>{{ \App\Support\Platform\ActionLabel::platform($action) }}</option>
             @endforeach
         </select>
-        <select name="tenant" aria-label="Organisation">
+        <select name="tenant" aria-label="Organisation" data-searchable>
             <option value="">Any organisation</option>
             @foreach ($organizations as $org)
                 <option value="{{ $org->id }}" @selected($filters['tenant'] === $org->id)>{{ $org->name }}{{ $org->is_internal ? ' (internal)' : '' }}</option>

@@ -13,6 +13,8 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\OwnerInviteService;
+use App\Services\Platform\OrganizationDeletion;
+use App\Services\Platform\OrganizationDeletionRefused;
 use App\Services\TenantProvisioningService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Countries;
@@ -22,6 +24,7 @@ use App\Support\Platform\ConsoleFields;
 use App\Support\Platform\MailDelivery;
 use App\Support\Platform\OrganizationSignIns;
 use App\Support\Platform\PlatformActivity;
+use App\Support\Platform\PlatformAdminRole;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformCustomers;
 use App\Support\Platform\PlatformQuery;
@@ -29,6 +32,7 @@ use App\Support\Platform\TenantLifecycle;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -50,7 +54,8 @@ use Throwable;
  *   · REACTIVATE → the status it had before, restored — a trialing hotel stays trialing.
  *   · ARCHIVE    → soft delete. Only a SUSPENDED organisation can be archived, so it stays closed underneath.
  *   · RESTORE    → back from the archive, still suspended until someone reactivates it on purpose.
- * ⚠️ There is NO hard delete and NO prune — the founder's ruling, tied to retention he has not set.
+ * ⚠️ ARCHIVE stays reversible. The ONE permanent path is DELETE ({@see self::destroy()}) — the founder's ruling of
+ *   2026-09-26 ("delete everything, always"), Owner-only, from a suspended organisation. There is still NO prune.
  *
  * ⚠️⚠️ PROTECTED ORGANISATIONS ({@see TenantLifecycle::lockFor()}): the pinned baseline tenant refuses EVERY write
  * here, and the refusal is itself audited; an organisation locked `confirm` (Vyrobel Internal, which holds the
@@ -98,22 +103,136 @@ class CustomerController extends Controller
     }
 
     /** One customer's detail — account facts, subscription, account holders, the suspension's reach. Read-only. */
-    public function show(string $organization, PlatformActivity $activity, OrganizationSignIns $signIns): View
+    public function show(string $organization, PlatformActivity $activity, OrganizationSignIns $signIns, OrganizationDeletion $deletion): View
     {
-        [$detail, $recentActivity, $signInActivity] = $this->platform->read(
+        $mayDelete = (bool) auth('admin')->user()?->may(PlatformAdminRole::TENANTS_DELETE);
+        [$detail, $recentActivity, $signInActivity, $deletePreview] = $this->platform->read(
             'platform.customers.view',
-            fn (): array => [
-                $this->customers->detail($this->resolveOrg($organization)),
-                $activity->auditSliceForOrg($organization),   // #28 — business events, not guest PII
-                $signIns->for($organization),                  // ADMIN 04 — its account holders' sign-ins, never a guest's
-            ],
+            function () use ($organization, $activity, $signIns, $deletion, $mayDelete): array {
+                $org = $this->resolveOrg($organization);
+                // ADMIN 05 — what a deletion would remove, counted only where the Delete control can be offered at all
+                $deletable = $mayDelete && TenantLifecycle::lockFor($org) === null && ($org->trashed() || $org->status === TenantLifecycle::SUSPENDED);
+
+                return [
+                    $this->customers->detail($org),
+                    $activity->auditSliceForOrg($organization),   // #28 — business events, not guest PII
+                    $signIns->for($organization),                  // ADMIN 04 — its account holders' sign-ins, never a guest's
+                    $deletable ? $deletion->preview($organization) + ['refusal' => $deletion->refusal($organization)] : null,
+                ];
+            },
             [],
         );
 
         // Plans offered for the "assign a plan" control — the global catalog, no tenant data.
         $plans = Plan::query()->where('is_active', true)->orderBy('price_minor')->get();
 
-        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity, 'signIns' => $signInActivity]);
+        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity, 'signIns' => $signInActivity, 'deletePreview' => $deletePreview]);
+    }
+
+    /**
+     * ⚠️⚠️ ADMIN 05 (2026-09-26) — PERMANENTLY DELETE an organisation and everything it owns: the founder's ruling,
+     * "delete everything, always", which replaces the standing "no hard delete" for this one deliberate action.
+     * OWNER ONLY (`tenants.delete`); only a SUSPENDED or archived organisation (archive's rule — its staff, owners and
+     * storefront are already stopped); the admin's password, the organisation's exact name typed, a written reason and
+     * an explicit acknowledgement. BOTH protected locks refuse outright. It REFUSES while money is moving at a third
+     * party, or while another organisation's records point into this one ({@see OrganizationDeletion::refusal()}).
+     * ⚠️ Audited in two rows: the intent with the reason BEFORE acting, and the result with what was removed. A failure
+     * part-way rolls the whole deletion back and is recorded `.failed`.
+     */
+    public function destroy(Request $request, string $organization, OrganizationDeletion $deletion): RedirectResponse
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password:admin'],
+            'acknowledge_delete' => ['accepted'],
+        ], [], ConsoleFields::NAMES);
+        $reason = AdminReason::from($request);
+        $org = $this->resolveOrg($organization);
+
+        if (($lock = TenantLifecycle::lockFor($org)) !== null) {
+            $this->audit->record('platform.customer.refused', ['attempted' => 'delete', 'lock' => $lock], 'organization', (string) $org->id, reason: $reason);
+
+            return $this->back($org)->withErrors(['lock' => 'Refused — this organisation is protected and can never be deleted from the console.']);
+        }
+        if (! hash_equals((string) $org->name, trim((string) $request->input('confirm_name')))) {
+            return $this->back($org)->withErrors(['confirm_name' => 'Type the organisation’s exact name to confirm the deletion.']);
+        }
+        if (! $org->trashed() && $org->status !== TenantLifecycle::SUSPENDED) {
+            return $this->back($org)->withErrors(['status' => 'Suspend it first — only a suspended or archived organisation can be deleted.']);
+        }
+        if (($refusal = $this->platform->read('platform.customer.delete_check', fn (): ?string => $deletion->refusal((string) $org->id), [])) !== null) {
+            return $this->back($org)->withErrors(['delete' => 'Nothing was deleted. '.$refusal]);
+        }
+
+        $id = (string) $org->id;
+        $name = (string) $org->name;
+        $slug = (string) $org->slug;
+        // a large organisation is many statements in one transaction — give it the time, where the host allows it
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+        try {
+            $result = $this->platform->mutate(
+                'platform.customer.delete',
+                $reason,
+                fn (): array => $deletion->delete($org),
+                ['name' => $name, 'slug' => $slug],
+                'organization',
+                $id,
+            );
+        } catch (OrganizationDeletionRefused $e) {
+            // nothing was deleted, and the service says why in its own plain words
+            return $this->stillThere($id)
+                ? $this->back($org)->withErrors(['delete' => 'Nothing was deleted. '.$e->getMessage()])
+                : redirect()->route('admin.customers.index')->withErrors(['delete' => $e->getMessage()]);
+        } catch (Throwable $e) {
+            report($e);
+            // ⚠️ the service never throws after its commit — but "nothing was deleted" is CHECKED, never assumed
+            if (! $this->stillThere($id)) {
+                return redirect()->route('admin.customers.index')->withErrors(['delete' => '“'.$name.'” was deleted, but the console could not confirm what was removed — see the error log.']);
+            }
+
+            return $this->back($org)->withErrors(['delete' => 'Nothing was deleted — the deletion failed part-way and was rolled back. The cause is in the error log.']);
+        }
+
+        $meta = [
+            'name' => $name, 'slug' => $slug,
+            'records' => $result['records'], 'tables' => $result['tables'], 'linked' => $result['linked'],
+            'users_deleted' => $result['users_deleted'], 'users_kept' => $result['users_kept'],
+            'files_deleted' => $result['files_deleted'], 'files_missing' => $result['files_missing'], 'files_shared' => $result['files_shared'],
+            'files_failed' => count($result['files_failed']), 'files_failed_paths' => array_slice($result['files_failed'], 0, 50),
+            'stripe' => $result['stripe'],   // ids to close in Stripe by hand — not secrets, and the only record once the rows are gone
+            'survivors' => $result['survivors'],
+            'warnings' => $result['warnings'],
+        ];
+        $ledgerNote = '';
+        try {
+            $this->audit->record('platform.customer.deleted', $meta, 'organization', $id, reason: $reason);
+        } catch (Throwable $e) {
+            // the deletion HAS happened: it is told as such, and the result goes to the log instead of a 500
+            report($e);
+            Log::error('ADMIN 05 — an organisation was deleted, but its result could not be written to the console ledger.', ['organization_id' => $id] + $meta);
+            $ledgerNote = ' ⚠️ The result could not be written to the console ledger (the request was) — the details are in the error log.';
+        }
+
+        $failed = count($result['files_failed']);
+        $atStripe = count($result['stripe']['customers']) + count($result['stripe']['subscriptions']) + count($result['stripe']['connect_accounts']);
+
+        return redirect()->route('admin.customers.index')->with('admin_notice', 'Deleted “'.$name.'” permanently — '
+            .number_format($result['records']).' '.Str::plural('record', $result['records']).' in '.$result['tables'].' '.Str::plural('table', $result['tables']).', '
+            .$result['users_deleted'].' '.Str::plural('account', $result['users_deleted']).' and '
+            .$result['files_deleted'].' '.Str::plural('file', $result['files_deleted']).' removed.'
+            .($result['users_kept'] > 0 ? ' '.$result['users_kept'].' '.($result['users_kept'] === 1 ? 'person who also belongs elsewhere kept their account.' : 'people who also belong elsewhere kept their accounts.') : '')
+            .($result['files_missing'] > 0 ? ' '.$result['files_missing'].' '.Str::plural('file', $result['files_missing']).' had already gone from storage.' : '')
+            .($result['files_shared'] > 0 ? ' '.$result['files_shared'].' '.Str::plural('file', $result['files_shared']).' shared with another organisation stayed.' : '')
+            .($failed > 0 ? ' ⚠️ '.$failed.' '.Str::plural('file', $failed).' could not be removed — their paths are in the ledger and the error log.' : '')
+            .($atStripe > 0 ? ' ⚠️ Stripe still holds '.$atStripe.' '.Str::plural('record', $atStripe).' for it — customers, subscriptions or connected accounts; their ids are in the ledger. Close them in Stripe.' : '')
+            .($result['warnings'] !== [] ? ' ⚠️ '.implode(' ', $result['warnings']) : '')
+            .' The console’s own record of the deletion is kept.'.$ledgerNote);
+    }
+
+    private function stillThere(string $organizationId): bool
+    {
+        return DB::table('organizations')->where('id', $organizationId)->exists();
     }
 
     /**

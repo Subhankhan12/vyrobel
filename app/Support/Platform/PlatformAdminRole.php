@@ -36,6 +36,12 @@ enum PlatformAdminRole: string
     /** Tenant lifecycle: close/reopen storefront, mark internal, (Phase 2) suspend/archive. */
     public const TENANTS_MANAGE = 'tenants.manage';
 
+    /**
+     * ⚠️ ADMIN 05 — PERMANENTLY DELETE an organisation and everything it owns (the founder's ruling). OWNER ONLY:
+     * Support may suspend and archive — both reversible — but never erase.
+     */
+    public const TENANTS_DELETE = 'tenants.delete';
+
     /** See revenue and subscription money (Phase 4). */
     public const BILLING_VIEW = 'billing.view';
 
@@ -68,7 +74,7 @@ enum PlatformAdminRole: string
     {
         return match ($this) {
             self::Owner => [
-                self::CONSOLE_VIEW, self::TENANTS_MANAGE, self::BILLING_VIEW, self::BILLING_MANAGE,
+                self::CONSOLE_VIEW, self::TENANTS_MANAGE, self::TENANTS_DELETE, self::BILLING_VIEW, self::BILLING_MANAGE,
                 self::SUPPORT_USE, self::SWITCHES_MANAGE, self::INTEGRATIONS_VIEW, self::INTEGRATIONS_MANAGE,
                 self::ADMINS_VIEW, self::ADMINS_MANAGE,
             ],

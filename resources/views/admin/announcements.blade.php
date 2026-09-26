@@ -49,13 +49,13 @@
                 <label class="ad-label" for="an-body" style="margin-top: 10px;">Message (plain text)</label>
                 <textarea id="an-body" class="ad-input" name="body" required maxlength="1000" rows="3">{{ old('body') }}</textarea>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
-                    <div><label class="ad-label" for="an-level">Kind</label><select id="an-level" name="level" class="ad-input">@foreach (PlatformAnnouncement::LEVELS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="an-level">Kind</label><select id="an-level" name="level" class="ad-input">@foreach (PlatformAnnouncement::LEVELS as $k => $label)<option value="{{ $k }}" @selected(old('level') === $k)>{{ $label }}</option>@endforeach</select></div>
                     <div><label class="ad-label" for="an-start">Show from (UTC)</label><input id="an-start" type="datetime-local" name="starts_at" class="ad-input" required value="{{ old('starts_at', now()->utc()->format('Y-m-d\TH:i')) }}"></div>
                     <div><label class="ad-label" for="an-end">Until (UTC, optional)</label><input id="an-end" type="datetime-local" name="ends_at" class="ad-input" value="{{ old('ends_at') }}"></div>
-                    <div><label class="ad-label" for="an-aud">To</label><select id="an-aud" name="audience" class="ad-input"><option value="all">Every organisation</option><option value="chosen">Chosen organisations</option></select></div>
+                    <div><label class="ad-label" for="an-aud">To</label><select id="an-aud" name="audience" class="ad-input"><option value="all" @selected(old('audience', 'all') === 'all')>Every organisation</option><option value="chosen" @selected(old('audience') === 'chosen')>Chosen organisations</option></select></div>
                 </div>
                 <label class="ad-label" for="an-orgs" style="margin-top: 10px;">Chosen organisations (when “Chosen”)</label>
-                <select id="an-orgs" name="organization_ids[]" class="ad-input" multiple size="5">@foreach ($organizations as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select>
+                <select id="an-orgs" name="organization_ids[]" class="ad-input" multiple size="5" data-searchable data-placeholder="No organisation chosen yet">@foreach ($organizations as $id => $name)<option value="{{ $id }}" @selected(in_array((string) $id, array_map('strval', (array) old('organization_ids', [])), true))>{{ $name }}</option>@endforeach</select>
                 <label class="ad-label" for="an-reason" style="margin-top: 10px;">Reason</label>
                 <input id="an-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why is this going out?">
                 <button type="submit" class="ad-btn" style="margin-top: 12px;">Publish</button>
