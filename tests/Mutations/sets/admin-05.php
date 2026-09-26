@@ -104,6 +104,22 @@ return [
         'tests' => [['file' => $t, 'filter' => 'every organisation table of THIS database']],
     ],
     [
+        'id' => 'A05-M48',
+        'name' => 'the one-query key read also takes primary and unique keys (no longer the framework\'s answer)',
+        'file' => $svc,
+        'old' => "                .' WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL'",
+        'new' => "                .' WHERE TABLE_SCHEMA = DATABASE()'",
+        'tests' => [['file' => $t, 'filter' => 'framework']],
+    ],
+    [
+        'id' => 'A05-M49',
+        'name' => 'keys read one table at a time again (1.1 s each on production MariaDB — a 118 s preview)',
+        'file' => $svc,
+        'old' => '        return $this->foreignKeys[$table] ?? [];',
+        'new' => '        return Schema::getForeignKeys($table);',
+        'tests' => [['file' => $t, 'filter' => 'never reads the one schema view']],
+    ],
+    [
         'id' => 'A05-M8',
         'name' => 'one organisation table (no foreign key) is skipped by the sweep',
         'file' => $svc,

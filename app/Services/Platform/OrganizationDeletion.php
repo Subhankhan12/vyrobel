@@ -77,8 +77,8 @@ final class OrganizationDeletion
     /** @var list<string>|null the schema read, once per request */
     private ?array $tables = null;
 
-    /** @var array<string, list<array<string, mixed>>> foreign keys per table, read once per request */
-    private array $foreignKeys = [];
+    /** @var array<string, list<array{name: string, columns: list<string>, foreign_table: string, foreign_columns: list<string>}>>|null */
+    private ?array $foreignKeys = null;
 
     /**
      * What stops a deletion, in plain words — or null when it may proceed. Read-only.
@@ -318,10 +318,40 @@ final class OrganizationDeletion
             ->sort()->values()->all();
     }
 
-    /** @return list<array<string, mixed>> */
-    private function foreignKeys(string $table): array
+    /**
+     * A table's foreign keys — the same shape `Schema::getForeignKeys()` returns (name, columns, foreign_table,
+     * foreign_columns), read for the WHOLE schema in ONE query.
+     * ⚠️⚠️ 🔬 Measured on production (MariaDB 11.8.9, 2026-09-26): one `Schema::getForeignKeys()` takes 1,110 ms there —
+     * it joins `REFERENTIAL_CONSTRAINTS`, which MariaDB rebuilds on every read — so a preview that read a hundred tables'
+     * keys one at a time took 118 SECONDS; this read takes 2 ms. Public so a test can hold it equal to the framework's
+     * own answer, table for table.
+     *
+     * @return list<array{name: string, columns: list<string>, foreign_table: string, foreign_columns: list<string>}>
+     */
+    public function foreignKeysOf(string $table): array
     {
-        return $this->foreignKeys[$table] ??= Schema::getForeignKeys($table);
+        if ($this->foreignKeys === null) {
+            $this->foreignKeys = [];
+            // aliased: MySQL 8 returns information_schema labels in UPPER case, and an unaliased key would read as nothing
+            $rows = DB::select(
+                'SELECT TABLE_NAME AS child, CONSTRAINT_NAME AS name, COLUMN_NAME AS col, REFERENCED_TABLE_NAME AS parent, REFERENCED_COLUMN_NAME AS parent_col'
+                .' FROM information_schema.KEY_COLUMN_USAGE'
+                .' WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL'
+                .' ORDER BY TABLE_NAME, CONSTRAINT_NAME, ORDINAL_POSITION'
+            );
+            $keys = [];
+            foreach ($rows as $row) {
+                $at = (string) $row->child.' '.(string) $row->name;
+                $keys[$at] ??= ['child' => (string) $row->child, 'name' => (string) $row->name, 'columns' => [], 'foreign_table' => (string) $row->parent, 'foreign_columns' => []];
+                $keys[$at]['columns'][] = (string) $row->col;
+                $keys[$at]['foreign_columns'][] = (string) $row->parent_col;
+            }
+            foreach ($keys as $key) {
+                $this->foreignKeys[$key['child']][] = ['name' => $key['name'], 'columns' => $key['columns'], 'foreign_table' => $key['foreign_table'], 'foreign_columns' => $key['foreign_columns']];
+            }
+        }
+
+        return $this->foreignKeys[$table] ?? [];
     }
 
     /**
@@ -397,7 +427,7 @@ final class OrganizationDeletion
     {
         $refs = [];
         foreach ($tables as $table) {
-            foreach ($this->foreignKeys($table) as $fk) {
+            foreach ($this->foreignKeysOf($table) as $fk) {
                 if ((string) $fk['foreign_table'] === 'users' && count($fk['columns']) === 1) {
                     $refs[] = [$table, (string) $fk['columns'][0]];
                 }
@@ -575,7 +605,7 @@ final class OrganizationDeletion
             if ($child === 'organizations') {
                 continue;
             }
-            foreach ($this->foreignKeys($child) as $fk) {
+            foreach ($this->foreignKeysOf($child) as $fk) {
                 $parent = (string) $fk['foreign_table'];
                 if ($parent === 'organizations' || ! isset($withOrg[$parent]) || count($fk['columns']) !== 1) {
                     continue;

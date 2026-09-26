@@ -18197,3 +18197,15 @@ Pint clean · money gate **MONEY AS SEEDED · FULL** (`929 / 10928000 / 0 / 42 /
 one only, as the script says). Browser (Playwright, pages rendered through the app): every enhanced control at 1280 px
 and 390 px — keyboard, click, search, no-match, the checklist, a required field's own message, the posted values; no
 sideways scroll, no script errors.
+
+**⚠️⚠️ FOUND AT THE DEPLOY PREFLIGHT — A TWO-MINUTE PAGE, VISIBLE ONLY ON PRODUCTION.** Before swapping, the staged
+release (`rel_AD @ 9bbccc12`) was run read-only against production (MariaDB 11.8.9): the delete preview took
+**117,704 ms**. 🔬 One `Schema::getForeignKeys()` takes **1,110 ms** there — it joins `REFERENTIAL_CONSTRAINTS`, which
+MariaDB rebuilds on every read — and the preview read a hundred tables' keys one at a time; the table list itself took
+108 ms. Locally the same code is fast on BOTH engines, so ⚠️ **neither suite nor the local MariaDB gate could have seen
+it: only the production server does this.** Now ONE read of `KEY_COLUMN_USAGE` for the whole schema (🔬 **2 ms** there),
+held equal to the framework's own answer table for table by a test (both engines), and a second test refuses any
+preview that touches `referential_constraints`. `rel_AD` was staged and never swapped. ⚠️ **A deploy preflight that
+TIMES the new path on the real host is what caught it — keep doing it for anything that reads the schema.** The fix's own gates: suite **3,995/3,995** (MySQL 8.4.10) · the
+delete tests on MariaDB 11.8.9 **81/81** · PHPStan L5 0 · Pint clean · its two new mutations and the two that ride the key
+read **4/4** caught (`admin-05` is now 49).

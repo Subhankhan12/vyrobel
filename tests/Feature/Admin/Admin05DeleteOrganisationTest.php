@@ -291,6 +291,34 @@ it('⚠️⚠️ the service reads every organisation table of THIS database —
     expect(app(OrganizationDeletion::class)->organizationTables())->toBe(a05Tables());
 })->group('security');
 
+it('⚠️⚠️ the one-query foreign-key read is the framework\'s own answer, table for table', function () {
+    $service = app(OrganizationDeletion::class);
+    $shape = fn (array $keys): array => collect($keys)
+        ->map(fn (array $k): array => ['name' => (string) $k['name'], 'columns' => array_values($k['columns']), 'foreign_table' => (string) $k['foreign_table'], 'foreign_columns' => array_values($k['foreign_columns'])])
+        ->sortBy('name')->values()->all();
+    $compared = 0;
+    foreach (a05Tables() as $table) {
+        expect($shape($service->foreignKeysOf($table)))->toBe($shape(Schema::getForeignKeys($table)), "the foreign keys of [{$table}] differ");
+        $compared += count(Schema::getForeignKeys($table));
+    }
+    expect($compared)->toBeGreaterThan(150, 'the comparison must really see the schema\'s keys');
+})->group('security');
+
+it('⚠️⚠️ a preview never reads the one schema view MariaDB rebuilds on every read (118 s on production)', function () {
+    $w = a05World();
+    $slow = [];
+    DB::listen(function ($query) use (&$slow): void {
+        if (stripos($query->sql, 'referential_constraints') !== false) {
+            $slow[] = $query->sql;
+        }
+    });
+
+    app(OrganizationDeletion::class)->preview((string) $w['org']->id);
+    app(OrganizationDeletion::class)->refusal((string) $w['org']->id);
+
+    expect($slow)->toBe([]);
+})->group('security');
+
 it('⚠️⚠️ refuses — and rolls EVERYTHING back — if a row of the organisation survives the sweep', function () {
     $w = a05World();
     $orgId = (string) $w['org']->id;
