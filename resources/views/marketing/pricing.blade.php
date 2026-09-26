@@ -22,7 +22,7 @@
     <div data-printhead="" style="display: none; border-bottom: 1pt solid #B8ADA5; padding-bottom: 8pt; margin-bottom: 14pt;">
       <div style="font-family: var(--vy-display); font-size: 15pt; font-weight: 600; color: var(--vy-accent);">Vyrobel</div>
       <div style="font-size: 8.5pt; color: var(--vy-muted); margin-top: 3pt;">Property management platform · Pricing summary · <span data-printdate=""></span></div>
-      <div style="font-size: 8pt; color: var(--vy-muted); margin-top: 2pt;">{{ \App\Support\Marketing\MarketingPricing::priceNote() }} For a firm quote: sales@vyrobel.com · vyrobel.com/pricing</div>
+      <div style="font-size: 8pt; color: var(--vy-muted); margin-top: 2pt;">{{ \App\Support\Marketing\MarketingPricing::priceNote() }} For a firm quote: contact@vyrobel.com · vyrobel.com/pricing</div>
     </div>
 
     <section data-sec="" style="position: relative; max-width: 1240px; margin: 0 auto; padding: 74px 28px 44px; text-align: center;">

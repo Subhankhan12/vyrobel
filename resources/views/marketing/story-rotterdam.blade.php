@@ -157,7 +157,7 @@
   </main>
 
     <div data-printfoot="" style="display: none; border-top: 1pt solid #B8ADA5; padding-top: 7pt; margin-top: 10pt;">
-      <div style="font-size: 7.5pt; line-height: 1.5; color: var(--vy-muted);">Vyrobel · Property management for hotels, apartments and villas · sales@vyrobel.com · vyrobel.com<br>Figures in this story are illustrative. Named customers and verified numbers replace them at launch.</div>
+      <div style="font-size: 7.5pt; line-height: 1.5; color: var(--vy-muted);">Vyrobel · Property management for hotels, apartments and villas · contact@vyrobel.com · vyrobel.com<br>Figures in this story are illustrative. Named customers and verified numbers replace them at launch.</div>
     </div>
 
 </div>

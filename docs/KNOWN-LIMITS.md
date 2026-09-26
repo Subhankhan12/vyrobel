@@ -1279,6 +1279,11 @@ log (Emails → Email Logs → Delivery, inbound) shows mail to `sales@` and to 
 2026-08-30, the latest on 2026-09-25. Most look like spam; ⚠️ **but any real enquiry or data-subject request sent
 to the published address is refused, and the sender is told so by their own provider, not by us.**
 
+✅ **RULED 2026-09-26 (the founder):** `sales@vyrobel.com` STAYS on the privacy page and the terms; everywhere else — the
+contact page and form, pricing, the three stories — now prints **`contact@vyrobel.com`**, the mailbox that exists (7
+lines in 6 templates). ⚠️ **So the privacy page's rights contact and the terms' support line still point at an address
+that REJECTS mail until the alias below exists.**
+
 ⚠️ **THE FOUNDER'S STEP — one minute, no code:** hPanel → Emails → **Email Alias** → `sales@vyrobel.com` delivering to
 `contact@vyrobel.com`. (The other direction — printing `contact@` instead — is a copy change across 8 templates and
 the legal pages; the alias keeps every published address working.) ⚠️ Not done by the session: it changes his mail

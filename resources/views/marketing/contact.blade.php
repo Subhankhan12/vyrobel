@@ -57,14 +57,14 @@
               <div style="display: flex; gap: 13px;">
                 <span style="flex-shrink: 0; width: 34px; height: 34px; border-radius: 11px; background: rgba(217,102,46,.13); display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M4 7l8 6 8-6"></path></svg></span>
                 <div>
-                  <div style="font-size: 13.5px; font-weight: 500; color: var(--vy-ink);">sales@vyrobel.com</div>
+                  <div style="font-size: 13.5px; font-weight: 500; color: var(--vy-ink);">contact@vyrobel.com</div>
                   <div style="font-size: 12px; color: var(--vy-muted); margin-top: 2px;">Pricing, demos and migrations</div>
                 </div>
               </div>
               <div style="display: flex; gap: 13px;">
                 <span style="flex-shrink: 0; width: 34px; height: 34px; border-radius: 11px; background: rgba(217,102,46,.13); display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4l3 2"></path></svg></span>
                 <div>
-                  <div style="font-size: 13.5px; font-weight: 500; color: var(--vy-ink);">sales@vyrobel.com</div>
+                  <div style="font-size: 13.5px; font-weight: 500; color: var(--vy-ink);">contact@vyrobel.com</div>
                   <div style="font-size: 12px; color: var(--vy-muted); margin-top: 2px;">Anything else</div>
                 </div>
               </div>

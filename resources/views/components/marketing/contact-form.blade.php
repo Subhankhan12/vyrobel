@@ -47,7 +47,7 @@
         <p style="margin: 0 0 22px; font-size: 15px; line-height: 1.6; color: var(--vy-muted);">
             Your message is saved. One person reads these, so a reply comes when it comes &mdash; we&rsquo;d
             rather not promise you a time we can&rsquo;t keep. If it&rsquo;s urgent, mail
-            <a href="mailto:sales@vyrobel.com" style="color: var(--vy-accent-text); font-weight: 500;">sales@vyrobel.com</a> directly.
+            <a href="mailto:contact@vyrobel.com" style="color: var(--vy-accent-text); font-weight: 500;">contact@vyrobel.com</a> directly.
         </p>
         <a href="{{ route('marketing.page.contact') }}#vy-contact-form" style="display: inline-block; padding: 12px 22px; border-radius: 12px; border: 1px solid rgba(255,255,255,.85); background: rgba(255,255,255,.6); font-family: var(--vy-sans); font-size: 14px; font-weight: 500; color: var(--vy-ink); text-decoration: none;">Send another message</a>
     </div>

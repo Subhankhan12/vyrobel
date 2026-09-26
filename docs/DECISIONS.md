@@ -18016,3 +18016,21 @@ aggregates unchanged and its four covered tables row-identical; ⚠️ not "the 
 **Items 6 and 8 — DEPLOYED `rel_AA @ 61f14059`** (~20:50 UTC; swap 3 ms; mail still off; front door PASS 12 · FAIL 0 · CNM 0; 0 errors since): suite 3944/3944 · PHPStan L5 0 · Pint clean · mutation
 harness 164/164 landed and caught (+ MAIL-M10, T01-M7, T01-M8; P3-B20 re-anchored and still caught).
 
+---
+
+## 2026-09-26 — the published addresses (founder's ruling) · and a test that read another tenant's price
+
+**RULING (the founder, 2026-09-26):** `sales@vyrobel.com` stays on the **privacy page** and the **terms**; the contact
+page and its form, pricing and the three customer stories print **`contact@vyrobel.com`** instead — the domain's one
+real mailbox. 7 lines in 6 templates; `sales@` now appears on those two pages only. ⚠️ `sales@` still has no mailbox,
+so the privacy page's rights contact and the terms' support line bounce until the founder adds the hPanel alias
+(KNOWN-LIMITS L18).
+
+**FOUND WHILE GATING IT — a test-isolation defect, pre-existing, fixed.** `SeasonalPricingFormTest` failed (12000 vs
+10000) when run after `GuestHistoryTest` AND `GuestPricingDisplayAnd403Test` — never alone, never in the full suite's
+order. 🔬 Bisected; reproduced on the unchanged tree, so not this change. Two causes, both fixed: the season test read
+`rate_calendar` by DATE alone (the first tenant's row it met) where its sibling assertion already scoped by
+`rate_plan_id` — now all four reads are scoped; and `GuestPricingDisplayAnd403Test` had no isolation at all, so its
+rows were committed and outlived it — it now uses `DatabaseTransactions`, as every test must while `RefreshDatabase`
+is off. 🔬 The failing trio now passes 21/21, and the 29-file batch 244/244.
+

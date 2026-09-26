@@ -160,7 +160,7 @@ accessors, `units()` and `unitsAtLiveProperties()`. `ArchivedPropertyGhostUnitsT
 | 6 | **A `failed_jobs` retention window** — a failed mailable persists a recipient email and, once, **a whole statement PDF** | PII kept indefinitely | GDPR posture |
 | 7 | **`core/terms.html`'s per-unit proration clause** — meaningless under flat billing. Possibly a lawyer's | A contract contradicting the invoice | Publishing terms |
 | 10/11 | **IP + user-agent** in exception logs *and* platform audit rows — **same question, opposite defaults** | Personal data across rotations | GDPR posture |
-| 12 | **`sales@vyrobel.com` has no mailbox** — the privacy page's rights contact, the terms' support line and the contact page all print it; mail to it is REJECTED (KNOWN-LIMITS L18). One alias in hPanel | Enquiries and privacy requests bounce | Go-live |
+| 12 | **`sales@vyrobel.com` has no mailbox** — ruled to stay on the privacy page (rights contact) and the terms (support line); everything else prints `contact@` since 2026-09-26. Mail to `sales@` is REJECTED until one alias exists in hPanel (KNOWN-LIMITS L18) | Privacy requests and support mail bounce | Go-live |
 
 ### The founder's — product, nothing blocked today
 
