@@ -18209,3 +18209,11 @@ preview that touches `referential_constraints`. `rel_AD` was staged and never sw
 TIMES the new path on the real host is what caught it — keep doing it for anything that reads the schema.** The fix's own gates: suite **3,995/3,995** (MySQL 8.4.10) · the
 delete tests on MariaDB 11.8.9 **81/81** · PHPStan L5 0 · Pint clean · its two new mutations and the two that ride the key
 read **4/4** caught (`admin-05` is now 49).
+
+✅ **LIVE on `rel_AE @ 1ede4c63` (2026-09-26, swap 6 ms).** 🔬 Preflight from the staged release, read-only against
+production: the delete preview of a probe organisation **188 ms** (was 117,704), the refusal 42 ms, and the one-query
+key read equal to the framework's answer for **all 266 foreign keys** on production's MariaDB (the framework's own read
+took 124 s to compare). Public checks **12 PASS · 0 FAIL · 0 could not measure**. 🖥 The console's sign-in page, live,
+carries the field system (no script error, no sideways scroll at 390 px). ⚠️ **NOT YET DONE — the signed-in live pass**
+(the redesigned forms on production, and one real deletion of a probe organisation): the console session had
+expired, and a session never types the founder's password or 2FA. `rel_AD` stays staged and was never live.
