@@ -12,7 +12,12 @@ use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
 use App\Support\Owner\OwnerContext;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Auth;
+
+// ⚠️ TONIGHT 01 — this file had no isolation: its rows were COMMITTED and outlived it (RefreshDatabase is off
+//    project-wide). Found when they made SeasonalPricingFormTest read another tenant's price.
+uses(DatabaseTransactions::class);
 
 /**
  * ⚠️⚠️ F-50 (FIX 40) — THE OWNER 403 NOW HAS TWO AUDIENCES, so a test that calls it with NO ACTOR is asking

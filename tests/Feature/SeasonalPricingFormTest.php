@@ -189,16 +189,18 @@ it('⚠️ saves, previews and applies a season end to end', function () {
 
     $season = RateSeason::query()->where('name', 'Summer')->firstOrFail();
     expect($season->applied_at)->toBeNull();
+    // ⚠️ Every price read is scoped to THIS scenario's rate plan (TONIGHT 01): an unscoped read by date took the
+    //    first tenant's row it met — another test's leftover row once made this read 12000 instead of 10000.
     // ⚠️ Saving wrote NO price.
-    expect((int) DB::table('rate_calendar')->where('date', '2026-09-02')->value('price_minor'))->toBe(10000);
+    expect((int) DB::table('rate_calendar')->where('rate_plan_id', $w['s']['ratePlan']->id)->where('date', '2026-09-02')->value('price_minor'))->toBe(10000);
 
     test()->actingAs($w['operator'])->post(route('app.seasons.apply', $season->id))->assertRedirect();
 
     expect($season->fresh()->applied_at)->not->toBeNull();
-    expect((int) DB::table('rate_calendar')->where('date', '2026-09-02')->value('price_minor'))->toBe(25000);
-    expect((int) DB::table('rate_calendar')->where('date', '2026-09-04')->value('price_minor'))->toBe(25000);
+    expect((int) DB::table('rate_calendar')->where('rate_plan_id', $w['s']['ratePlan']->id)->where('date', '2026-09-02')->value('price_minor'))->toBe(25000);
+    expect((int) DB::table('rate_calendar')->where('rate_plan_id', $w['s']['ratePlan']->id)->where('date', '2026-09-04')->value('price_minor'))->toBe(25000);
     // ⚠️ The inclusive→exclusive conversion: the night AFTER the last one is untouched.
-    expect((int) DB::table('rate_calendar')->where('date', '2026-09-05')->value('price_minor'))->toBe(10000);
+    expect((int) DB::table('rate_calendar')->where('rate_plan_id', $w['s']['ratePlan']->id)->where('date', '2026-09-05')->value('price_minor'))->toBe(10000);
 });
 
 // ── ⚠️ #6 · THE PEAK COLUMN — the owner-facing payoff, from a RENDERED page ──────────────────────
