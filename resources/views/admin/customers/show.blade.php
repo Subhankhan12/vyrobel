@@ -106,6 +106,8 @@
                 <dt>Account status</dt><dd>{{ $statusLabel }}</dd>
                 <dt>Signed up with</dt><dd>{{ $d['source'] }}</dd>
                 <dt>Counted as</dt><dd>{{ $org->isInternal() ? 'Internal — excluded from statistics' : 'Customer' }}</dd>
+                <dt>Country</dt><dd>{{ \App\Support\Countries::name($org->country) ?? 'Not set' }}</dd>
+                <dt>Language</dt><dd>{{ strtoupper((string) ($org->default_locale ?? 'en')) }}</dd>
                 <dt>Currency</dt><dd>{{ $org->default_currency }}</dd>
                 @if ($org->billing_company)
                     <dt>Billing name</dt><dd>{{ $org->billing_company }}</dd>
@@ -125,6 +127,49 @@
                            placeholder="{{ $org->isInternal() ? 'Why is this a real customer?' : 'Why is this one of Vyrobel\'s own orgs?' }}">
                     <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm">{{ $org->isInternal() ? 'Count as a customer' : 'Mark as internal' }}</button>
                 </form>
+
+                {{-- ADMIN 04 — edit the details. Currency and slug are deliberately not here (money / links). --}}
+                <details style="margin-top: 22px;" @if ($errors->hasAny(['name', 'country', 'default_locale', 'billing_email', 'billing_company', 'billing_vat_id', 'billing_city', 'details'])) open @endif>
+                    <summary class="ad-panel-title" style="cursor: pointer;">Edit details</summary>
+                    <form method="POST" action="{{ route('admin.customers.update-details', $org->id) }}" data-guard-submit style="margin-top: 10px;">
+                        @csrf
+                        <label class="ad-label" for="d_name">Organisation name</label>
+                        <input id="d_name" class="ad-input" name="name" required maxlength="255" value="{{ old('name', $org->name) }}">
+                        <label class="ad-label" for="d_country">Country</label>
+                        <select id="d_country" class="ad-input" name="country">
+                            <option value="">— Not set —</option>
+                            @foreach (\App\Support\Countries::options() as $code => $countryName)
+                                <option value="{{ $code }}" @selected(old('country', $org->country) === $code)>{{ $countryName }}</option>
+                            @endforeach
+                        </select>
+                        <label class="ad-label" for="d_locale">Language</label>
+                        <select id="d_locale" class="ad-input" name="default_locale" required>
+                            @php($currentLocale = (string) old('default_locale', $org->default_locale ?? 'en'))
+                            @if ($currentLocale !== '' && ! in_array($currentLocale, (array) config('app.available_locales', ['en']), true))
+                                <option value="{{ $currentLocale }}" selected>{{ strtoupper($currentLocale) }} (current)</option>
+                            @endif
+                            @foreach ((array) config('app.available_locales', ['en']) as $locale)
+                                <option value="{{ $locale }}" @selected($currentLocale === $locale)>{{ strtoupper($locale) }}</option>
+                            @endforeach
+                        </select>
+                        <label class="ad-label" for="d_billing_email">Billing email</label>
+                        <input id="d_billing_email" type="email" class="ad-input" name="billing_email" maxlength="255" value="{{ old('billing_email', $org->billing_email) }}">
+                        <label class="ad-label" for="d_billing_company">Billing name</label>
+                        <input id="d_billing_company" class="ad-input" name="billing_company" maxlength="160" value="{{ old('billing_company', $org->billing_company) }}">
+                        <label class="ad-label" for="d_vat">VAT ID</label>
+                        <input id="d_vat" class="ad-input" name="billing_vat_id" maxlength="40" value="{{ old('billing_vat_id', $org->billing_vat_id) }}">
+                        <label class="ad-label" for="d_city">Billing city</label>
+                        <input id="d_city" class="ad-input" name="billing_city" maxlength="120" value="{{ old('billing_city', $org->billing_city) }}">
+                        <label class="ad-label" for="details_reason">Reason</label>
+                        <input id="details_reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Why are these details changing?">
+                        @if ($lock === 'confirm')
+                            <label class="ad-label" for="details_confirm">Protected — type <strong>{{ $org->name }}</strong> to confirm</label>
+                            <input id="details_confirm" class="ad-input" name="confirm_name" required autocomplete="off">
+                        @endif
+                        <button type="submit" class="ad-btn ad-btn--sm" style="margin-top: 10px;">Save details</button>
+                        <p class="ad-reason-hint" style="margin: 6px 0 0;">Currency ({{ $org->default_currency }}) and the web address ({{ $org->slug }}) cannot be changed here.</p>
+                    </form>
+                </details>
             @endif
         </div>
 
@@ -188,6 +233,43 @@
                             <td>{{ $u['verified'] ? 'Yes' : 'No' }}</td>
                             <td style="color: var(--ad-muted);"><x-admin.time :at="$u['last_login_at']" empty="Never" /></td>
                             <td>{{ ucfirst($u['status']) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+
+    {{-- ── ADMIN 04 — sign-in activity: when this organisation's people last signed in, who, from where, on what.
+         The platform's own security record (the Activity page shows the same rows platform-wide). Never a guest. ── --}}
+    <div class="ad-card" style="margin-top: 18px; overflow-x: auto;">
+        <h2 class="ad-panel-title">Sign-in activity</h2>
+        <p class="ad-stat-sub" style="margin: -8px 0 12px;">
+            Sign-ins by this organisation's staff and owners, and lockouts after repeated wrong passwords against their addresses —
+            the last {{ $signIns['window_days'] }} days, newest first. A person in more than one organisation appears in each.
+        </p>
+        @if ($signIns['last'])
+            <div class="ad-row" style="margin-bottom: 12px;">
+                <span class="ad-row-k" style="color: var(--ad-ink);"><strong>Last sign-in</strong></span>
+                <span class="ad-row-v" style="text-align: right;">
+                    <x-admin.time :at="$signIns['last']['at']" /> · {{ $signIns['last']['name'] }}
+                    <div style="font-size: 12px; color: var(--ad-muted); font-weight: 400;">{{ $signIns['last']['device'] }} · IP {{ $signIns['last']['ip'] ?? '—' }}</div>
+                </span>
+            </div>
+        @endif
+        @if ($signIns['rows'] === [])
+            <div class="ad-empty">No sign-ins in the last {{ $signIns['window_days'] }} days.</div>
+        @else
+            <table class="ad-table">
+                <thead><tr><th>When</th><th>Event</th><th>Who</th><th>Device</th><th>IP</th></tr></thead>
+                <tbody>
+                    @foreach ($signIns['rows'] as $row)
+                        <tr>
+                            <td style="color: var(--ad-muted); white-space: nowrap;"><x-admin.time :at="$row['at']" /></td>
+                            <td><span class="ad-pill {{ $row['event'] === 'login' ? 'ad-pill--active' : 'ad-pill--suspended' }}">{{ $row['label'] }}</span></td>
+                            <td><strong>{{ $row['name'] }}</strong><div style="font-size: 12px; color: var(--ad-faint);">{{ $row['email'] }}</div></td>
+                            <td>{{ $row['device'] }}</td>
+                            <td style="color: var(--ad-faint); font-variant-numeric: tabular-nums;">{{ $row['ip'] ?? '—' }}</td>
                         </tr>
                     @endforeach
                 </tbody>

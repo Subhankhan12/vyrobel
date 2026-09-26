@@ -62,7 +62,7 @@ elif [ "$st" = 200 ] && grep -q 'id="signup"' "$body" && ! grep -q "New sign-ups
 else verdict FAIL "/signup renders the form (sign-ups ON)" "HTTP $st$(grep -q 'New sign-ups are paused' "$body" && echo ' — SIGN-UPS ARE PAUSED')"; fi
 
 # 4 · anonymous /admin: GETs redirect to the admin login; the login + the invite page are public by design
-ADMIN_GET=(/admin /admin/overview /admin/customers /admin/customers/01ANONYMOUSPROBE0000000000 /admin/plans /admin/plans/create
+ADMIN_GET=(/admin /admin/overview /admin/customers /admin/customers/create /admin/customers/01ANONYMOUSPROBE0000000000 /admin/plans /admin/plans/create
            /admin/plans/01ANONYMOUSPROBE0000000000/edit /admin/activity /admin/audit /admin/switches /admin/account
            /admin/admins /admin/integrations /admin/integrations/channex /admin/two-factor/setup /admin/two-factor
            /admin/triage /admin/support /admin/break-glass /admin/revenue /admin/funnel /admin/privacy
@@ -82,7 +82,7 @@ RANDTOK="$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 64)"
 IFS='|' read -r st loc body <<<"$(fetch GET /admin/invite/$RANDTOK)"
 { [ "$st" = 200 ] && grep -q "can't be used\|can&#039;t be used" "$body"; } && verdict PASS "an unknown invite link gets the neutral page" "" || verdict FAIL "an unknown invite link gets the neutral page" "HTTP $st"
 
-ADMIN_POST=(/admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/customers/01ANONYMOUSPROBE0000000000/archive
+ADMIN_POST=(/admin/customers /admin/customers/01ANONYMOUSPROBE0000000000/details /admin/customers/01ANONYMOUSPROBE0000000000/suspend /admin/customers/01ANONYMOUSPROBE0000000000/archive
             /admin/customers/01ANONYMOUSPROBE0000000000/restore /admin/switches/signup.enabled /admin/admins /admin/plans
             /admin/break-glass /admin/break-glass/end /admin/support/users/01ANONYMOUSPROBE0000000000/verify-email
             /admin/privacy/requests /admin/announcements /admin/status)

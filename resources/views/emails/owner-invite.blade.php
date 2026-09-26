@@ -163,10 +163,10 @@
                          the "why you got this" line. Contrast here is the priority, not an afterthought. --}}
                     <tr>
                         <td bgcolor="#F4ECE4" style="background-color:#F4ECE4; border-top:1px solid #EADFD4; border-radius:0 0 20px 20px; padding:22px 32px;">
-                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">If you didn’t expect this, you can safely ignore this email — no account is created until you set a password.</p>
+                            <p style="margin:0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6; color:#5F5853;">{{ $ignoreNote ?? 'If you didn’t expect this, you can safely ignore this email — no account is created until you set a password.' }}</p>
                             <p style="margin:8px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:11.5px; line-height:1.6;"><a href="{{ url('/login') }}" style="color:#5F5853; font-weight:600; text-decoration:underline;">Sign in</a></p>
                             <p style="margin:12px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">Vyrobel · hospitality, warmly run · You’re receiving this because {{ $operator }} {{ $roleReason }}</p>
-                            <p style="margin:4px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">Sent automatically when an operator invites someone to their organization.</p>
+                            <p style="margin:4px 0 0; font-family:'Inter',Arial,Helvetica,sans-serif; font-size:10.5px; line-height:1.6; color:#6C645F;">{{ $footerNote ?? 'Sent automatically when an operator invites someone to their organization.' }}</p>
                         </td>
                     </tr>
                 </table>

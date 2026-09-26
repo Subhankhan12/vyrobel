@@ -37,9 +37,10 @@ use Throwable;
 class OnboardingController extends Controller
 {
     /** The three property kinds the wizard offers (a subset of the real `properties.type` enum). */
-    private const TYPES = ['villa', 'hotel', 'hostel'];
+    /** ⚠️ Public since ADMIN 04: the platform console's "create an organisation" offers exactly these — one list. */
+    public const TYPES = ['villa', 'hotel', 'hostel'];
 
-    private const CURRENCIES = ['EUR', 'GBP', 'USD'];
+    public const CURRENCIES = ['EUR', 'GBP', 'USD'];
 
     public function create(Request $request): View|RedirectResponse
     {

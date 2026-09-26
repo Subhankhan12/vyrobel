@@ -18,6 +18,7 @@ use App\Models\Reservation;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\OwnerInviteService;
 use App\Services\SettingsService;
 use App\Support\Branding\PropertyBrand;
 use App\Support\Folio\StayEstimator;
@@ -373,6 +374,8 @@ class OperatorSettings extends Component
     {
         return OwnerInvite::query()
             ->where('status', 'pending')
+            // ADMIN 04 — a console-created organisation's FOUNDER link is not an invite this operator sent
+            ->where('role', '!=', OwnerInviteService::FOUNDER_ROLE)
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (OwnerInvite $i): array => [

@@ -2,7 +2,8 @@
      measure are NAMED below, not dropped. --}}
 @php
     $stages = \App\Support\Platform\PlatformFunnel::STAGES;
-    $cols = ['total' => 'All', 'email' => 'Email', 'google' => 'Google', 'twitter' => 'X', 'unknown' => 'Unknown'];
+    // ADMIN 04 — from the ONE list of sources, so a new one (the console's) can never drop out of the columns.
+    $cols = ['total' => 'All'] + array_replace(\App\Support\Platform\TenantLifecycle::SIGNUP_SOURCES, ['console' => 'Console']) + ['unknown' => 'Unknown'];
     $value = fn (string $col, string $stage): int => $col === 'total' ? $f['total'][$stage] : $f['sources'][$col][$stage];
 @endphp
 <x-admin.shell active="funnel" title="Signup funnel" subtitle="Where organisations get to, split by how they signed up — from what is recorded, nothing invented.">

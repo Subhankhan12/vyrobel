@@ -45,7 +45,11 @@ class OwnerInviteMail extends Mailable
             with: [
                 'ownerName' => $this->ownerName,
                 'orgName' => $orgName,
-                'operator' => $orgName,
+                // ⚠️ ADMIN 04 — a founder's workspace is set up by VYROBEL, not by the hotel: the footer's "you're
+                //    receiving this because …" must name who actually sent it.
+                'operator' => $copy['operator'] ?? $orgName,
+                'footerNote' => $copy['footer_note'] ?? 'Sent automatically when an operator invites someone to their organization.',
+                'ignoreNote' => $copy['ignore_note'] ?? 'If you didn’t expect this, you can safely ignore this email — no account is created until you set a password.',
                 'acceptUrl' => url('/invite/'.$this->token),
                 'expiresAt' => $this->invite->expires_at,
                 'accountLabel' => $copy['account'],
@@ -65,11 +69,29 @@ class OwnerInviteMail extends Mailable
      * the operator app's operations. Unknown roles fall back to the owner copy. The feature lists are honest,
      * static descriptions of what each role/portal actually gives — no per-account data.
      *
-     * @return array{account: string, eyebrow: string, headline: string, intro: string, section_title: string, features: list<array{title: string, desc: string}>, role_reason: string}
+     * @return array{account: string, eyebrow: string, headline: string, intro: string, section_title: string, features: list<array{title: string, desc: string}>, role_reason: string, operator?: string, footer_note?: string, ignore_note?: string}
      */
     private function copyFor(string $role, string $orgName): array
     {
         return match ($role) {
+            // ADMIN 04 — the founder of an organisation created in the platform console (OwnerInviteService::FOUNDER_ROLE).
+            'founder' => [
+                'account' => 'account',
+                'eyebrow' => 'Your new workspace',
+                'headline' => "{$orgName} is ready on Vyrobel",
+                'intro' => "A Vyrobel workspace has been set up for {$orgName}, with you as its founder. Set your password to sign in — using this link also confirms your email address.",
+                'section_title' => 'Your first steps',
+                'features' => [
+                    ['title' => 'Rooms & units', 'desc' => 'Add a room type and a unit to your first property'],
+                    ['title' => 'Rates', 'desc' => 'Create a rate plan with prices'],
+                    ['title' => 'Bookings', 'desc' => 'Take bookings on your storefront and at the front desk'],
+                ],
+                'operator' => 'Vyrobel',
+                'role_reason' => "set up a workspace for {$orgName} with you as its founder.",
+                'footer_note' => 'Sent when Vyrobel creates a workspace for someone.',
+                // ⚠️ the workspace ALREADY exists for a founder — the standard "no account is created" line would be false
+                'ignore_note' => 'If you didn’t expect this, you can ignore this email — a workspace was set up for this address, but nobody can sign in to it until a password is set with this link.',
+            ],
             'manager' => [
                 'account' => 'Hotel Manager account',
                 'eyebrow' => 'Property manager invitation',

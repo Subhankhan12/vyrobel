@@ -1803,6 +1803,8 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
                 Route::get('overview', [AdminOverviewController::class, 'index'])->name('overview');
                 Route::get('customers', [AdminCustomerController::class, 'index'])->name('customers.index');
+                // ADMIN 04 — ⚠️ registered BEFORE `customers/{organization}`, or "create" would be read as an organisation id.
+                Route::get('customers/create', [AdminCustomerController::class, 'create'])->middleware(EnsurePlatformCapability::class.':'.PlatformAdminRole::TENANTS_MANAGE)->name('customers.create');
                 Route::get('customers/{organization}', [AdminCustomerController::class, 'show'])->name('customers.show');
                 Route::get('triage', [AdminCustomerController::class, 'triage'])->name('customers.triage');
                 // ⚠️ ADMIN 01 · PHASE 4 — the signup funnel (recorded facts only) and the privacy desk (read side).
@@ -1840,6 +1842,10 @@ Route::prefix('admin')->name('admin.')->middleware(NoIndex::class)->group(functi
                 Route::post('status', [AdminStatusIncidentController::class, 'store'])->name('status.store');
                 Route::post('status/{incident}', [AdminStatusIncidentController::class, 'update'])->name('status.update');
                 Route::post('customers/{organization}/internal', [AdminCustomerController::class, 'setInternal'])->name('customers.internal');
+                // ADMIN 04 — update an organisation's details (name, country, language, billing; never currency or slug).
+                Route::post('customers/{organization}/details', [AdminCustomerController::class, 'updateDetails'])->name('customers.update-details');
+                // ADMIN 04 — create an organisation (through TenantProvisioningService; the founder gets a set-password link).
+                Route::post('customers', [AdminCustomerController::class, 'store'])->name('customers.store');
             });
 
             // ── ⚠️ ADMIN 01 · PHASE 4 — REVENUE (Owner, Billing, Analyst): traced to the charge, read-only with respect

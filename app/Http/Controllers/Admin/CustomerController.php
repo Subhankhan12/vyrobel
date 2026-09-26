@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\RefuseSuspendedOrganization;
+use App\Mail\OwnerInviteMail;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\User;
+use App\Services\OwnerInviteService;
+use App\Services\TenantProvisioningService;
+use App\Support\Billing\StripeTaxIdSync;
+use App\Support\Countries;
+use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\ConsoleFields;
+use App\Support\Platform\MailDelivery;
+use App\Support\Platform\OrganizationSignIns;
 use App\Support\Platform\PlatformActivity;
 use App\Support\Platform\PlatformAuditLogger;
 use App\Support\Platform\PlatformCustomers;
@@ -19,7 +29,11 @@ use App\Support\Platform\TenantLifecycle;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Throwable;
 
 /**
  * SUPER ADMIN · BUILD 1 · GATE 2 → ADMIN 01 · PHASE 2 — the TENANTS: directory, detail, triage, and lifecycle.
@@ -84,13 +98,14 @@ class CustomerController extends Controller
     }
 
     /** One customer's detail — account facts, subscription, account holders, the suspension's reach. Read-only. */
-    public function show(string $organization, PlatformActivity $activity): View
+    public function show(string $organization, PlatformActivity $activity, OrganizationSignIns $signIns): View
     {
-        [$detail, $recentActivity] = $this->platform->read(
+        [$detail, $recentActivity, $signInActivity] = $this->platform->read(
             'platform.customers.view',
             fn (): array => [
                 $this->customers->detail($this->resolveOrg($organization)),
                 $activity->auditSliceForOrg($organization),   // #28 — business events, not guest PII
+                $signIns->for($organization),                  // ADMIN 04 — its account holders' sign-ins, never a guest's
             ],
             [],
         );
@@ -98,7 +113,7 @@ class CustomerController extends Controller
         // Plans offered for the "assign a plan" control — the global catalog, no tenant data.
         $plans = Plan::query()->where('is_active', true)->orderBy('price_minor')->get();
 
-        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity]);
+        return view('admin.customers.show', ['d' => $detail, 'plans' => $plans, 'recentActivity' => $recentActivity, 'signIns' => $signInActivity]);
     }
 
     /**
@@ -354,6 +369,190 @@ class CustomerController extends Controller
             [],
         );
     }
+
+    /**
+     * ⚠️⚠️ ADMIN 04 (2026-09-26) — UPDATE AN ORGANISATION'S DETAILS: name, country, language and billing, the
+     * founder's ruling. ⚠️ Currency and the web address (slug) are NOT editable here: changing currency once prices
+     * exist would corrupt money, and a slug change breaks links. A written reason, audited, the lock respected
+     * (the baseline refuses; a protected organisation needs its exact name typed), and every value READ BACK.
+     * ⚠️ The ledger records WHICH fields changed, never their values — a billing email is someone's contact.
+     * ⚠️ A changed VAT number reaches Stripe from here too ({@see StripeTaxIdSync}), exactly as it does from the
+     * operator's own two screens that edit it — otherwise which screen was used would decide the tax.
+     */
+    public function updateDetails(Request $request, string $organization): RedirectResponse
+    {
+        $org = $this->resolveOrg($organization);
+        // ⚠️ `organizations.country` is an ISO code (char 2) — the ONE country list normalises a name or a
+        //    lower-case code to it, and only a code that list knows is accepted (an unknown one would not fit).
+        $request->merge(['country' => Countries::toCode($request->input('country'))]);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'country' => ['nullable', 'string', Rule::in(array_keys(Countries::options()))],
+            // the app's own list — plus the value already stored, so a language set elsewhere survives an unrelated save
+            'default_locale' => ['required', Rule::in(array_values(array_unique(array_filter([...(array) config('app.available_locales', ['en']), (string) $org->default_locale]))))],
+            'billing_email' => ['nullable', 'email', 'max:255'],
+            // A CHANGED value meets the operator's Settings limits — the stricter of its two writers, so it passes both;
+            // an UNCHANGED one (the operator's Billing screen allows longer) only has to fit its column.
+            'billing_company' => ['nullable', 'string', $this->unchanged($request, $org, 'billing_company') ? 'max:255' : 'max:160'],
+            'billing_vat_id' => ['nullable', 'string', $this->unchanged($request, $org, 'billing_vat_id') ? 'max:255' : 'max:40'],
+            'billing_city' => ['nullable', 'string', 'max:120'],
+        ], [], ConsoleFields::NAMES);
+        $reason = AdminReason::from($request);
+
+        if ($refused = $this->refusedByLock($request, $org, 'update_details', $reason)) {
+            return $refused;
+        }
+
+        $changes = [];
+        foreach (self::EDITABLE_DETAILS as $field) {
+            $value = isset($data[$field]) ? trim((string) $data[$field]) : '';
+            $value = $value === '' ? null : $value;
+            if ((string) $org->getAttribute($field) !== (string) $value) {
+                $changes[$field] = $value;
+            }
+        }
+
+        if ($changes === []) {
+            return $this->back($org)->with('admin_notice', 'Nothing changed — every value was already as entered.');
+        }
+
+        // ⚠️ The Stripe copy of a VAT number is a SIDE EFFECT of a save that has already landed: if Stripe cannot be
+        //    reached, the save still stands, the ledger stays true, and the admin is told — never a 500 over a saved edit.
+        $stripeOk = $this->platform->mutate(
+            'platform.customer.update_details',
+            $reason,
+            function () use ($org, $changes): bool {
+                $org->forceFill($changes)->save();
+                if (! array_key_exists('billing_vat_id', $changes)) {
+                    return true;
+                }
+                try {
+                    StripeTaxIdSync::push($org->fresh() ?? $org);
+
+                    return true;
+                } catch (Throwable $e) {
+                    report($e);
+
+                    return false;
+                }
+            },
+            ['changed' => array_keys($changes)],
+            'organization',
+            (string) $org->id,
+        );
+
+        // READ BACK — a write that did not land must never be reported as saved.
+        $stored = Organization::withTrashed()->findOrFail($org->id);
+        $missed = array_keys(array_filter($changes, fn ($value, string $field): bool => (string) $stored->getAttribute($field) !== (string) $value, ARRAY_FILTER_USE_BOTH));
+        $words = array_map(fn (string $field): string => $field === 'name' ? 'name' : ConsoleFields::NAMES[$field], array_keys($changes));
+
+        return $missed === []
+            ? $this->back($org)->with('admin_notice', 'Saved — read back from the database: '.implode(', ', $words).'.'
+                .($stripeOk ? '' : ' ⚠️ The new VAT number could not be sent to Stripe just now — it is saved here; save again to retry.'))
+            : $this->back($org)->withErrors(['details' => 'The write did not land for: '.implode(', ', $missed).'.']);
+    }
+
+    /** ADMIN 04 — the "create an organisation" form: the same choices self-signup offers, and one founder. */
+    public function create(): View
+    {
+        return view('admin.customers.create', [
+            'currencies' => OnboardingController::CURRENCIES,
+            'types' => OnboardingController::TYPES,
+            'mailDiscards' => MailDelivery::discards(),
+        ]);
+    }
+
+    /**
+     * ⚠️⚠️ ADMIN 04 (2026-09-26) — CREATE AN ORGANISATION from the console. It goes through the ONE door every
+     * organisation is created by ({@see TenantProvisioningService} — roles, founder as `Property Owner`, first
+     * property and trial, all in one transaction), so it can never be a half-made tenant.
+     *
+     * ⚠️ THE FOUNDER GETS IN BY A SET-PASSWORD LINK, NEVER A PASSWORD TYPED HERE (the founder's ruling). The founder
+     * is created with no password; the single-use link ({@see OwnerInviteService::issueFounderActivation()}) sets one
+     * and verifies the address. So creation is REFUSED — before anything is written — when that link could not reach
+     * them: mail is discarding, the address can never receive mail, or an account already holds the address.
+     * ⚠️ Audited in two rows because the ledger writes BEFORE acting: the intent with the reason, then the result with
+     * the new organisation's id (and a third for the link). A creation that throws gets its own `.failed` row.
+     */
+    public function store(Request $request, TenantProvisioningService $provisioner, OwnerInviteService $invites): RedirectResponse
+    {
+        $request->merge([
+            'country' => Countries::toCode($request->input('country')),
+            'founder_email' => strtolower(trim((string) $request->input('founder_email'))),
+        ]);
+        $data = $request->validate([
+            'org_name' => ['required', 'string', 'max:255'],
+            'currency' => ['required', Rule::in(OnboardingController::CURRENCIES)],
+            'country' => ['nullable', 'string', Rule::in(array_keys(Countries::options()))],
+            'property_name' => ['required', 'string', 'max:255'],
+            'property_type' => ['required', Rule::in(OnboardingController::TYPES)],
+            'location' => ['nullable', 'string', 'max:255'],
+            'founder_name' => ['required', 'string', 'max:255'],
+            'founder_email' => ['required', 'email', 'max:255'],
+            'internal' => ['sometimes', 'boolean'],
+        ], [], ConsoleFields::NAMES);
+        $reason = AdminReason::from($request);
+
+        $refusal = match (true) {
+            MailDelivery::discards() => 'Mail is not being delivered (mail is “'.MailDelivery::mailer().'”), so the founder could never receive the set-password link. Nothing was created.',
+            ($why = UndeliverableRecipients::reason($data['founder_email'])) !== null => 'This address can never receive mail ('.$why.'), so the founder could never receive the set-password link. Nothing was created.',
+            User::query()->where('email', $data['founder_email'])->exists() => 'An account already uses this email address. Nothing was created.',
+            default => null,
+        };
+        if ($refusal !== null) {
+            return redirect()->route('admin.customers.create')->withInput()->withErrors(['founder_email' => $refusal]);
+        }
+
+        $internal = (bool) ($data['internal'] ?? false);
+        $result = $this->platform->mutate(
+            'platform.customer.create',
+            $reason,
+            function () use ($provisioner, $data, $internal): array {
+                $result = $provisioner->provision(
+                    organization: ['name' => $data['org_name'], 'country' => $data['country'] ?? null, 'currency' => $data['currency']],
+                    founder: ['name' => (string) $data['founder_name'], 'email' => (string) $data['founder_email'], 'password' => null],   // none — the link sets it
+                    property: ['name' => $data['property_name'], 'type' => $data['property_type'], 'location' => $data['location'] ?? null],
+                    signupSource: 'console',
+                );
+                if ($internal) {
+                    $result['organization']->forceFill(['is_internal' => true])->save();
+                }
+
+                return $result;
+            },
+            ['internal' => $internal],
+            'organization',
+            null,
+        );
+
+        /** @var Organization $org */
+        $org = $result['organization'];
+        $this->audit->record('platform.customer.created', ['source' => 'console', 'internal' => $internal], 'organization', (string) $org->id, reason: $reason);
+
+        [$invite, $token] = $invites->issueFounderActivation($result['user'], (string) $org->id);
+        $sentTo = null;
+        try {
+            Mail::to($data['founder_email'])->send(new OwnerInviteMail($invite, $token, (string) $data['founder_name']));
+            $sentTo = true;
+        } catch (Throwable $e) {
+            Log::warning('The founder set-password link could not be sent.', ['organization_id' => $org->id, 'error' => $e::class]);
+            $sentTo = false;
+        }
+        $this->audit->record($sentTo ? 'platform.customer.founder_link' : 'platform.customer.founder_link.failed', ['handed_to_mailer' => $sentTo], 'organization', (string) $org->id, reason: $reason);
+
+        return redirect()->route('admin.customers.show', $org->id)->with('admin_notice', $sentTo
+            ? 'Created. The founder’s set-password link was handed to the mailer — it is single-use and expires in '.OwnerInviteService::EXPIRY_DAYS.' days.'
+            : 'Created — but the set-password email could not be sent. Use Support → “Send password reset” for the founder once mail is working.');
+    }
+
+    /** Whether a submitted value is exactly what is already stored (so a looser, older limit may apply to it). */
+    private function unchanged(Request $request, Organization $org, string $field): bool
+    {
+        return trim((string) $request->input($field)) === (string) $org->getAttribute($field);
+    }
+
+    /** ADMIN 04 — what "Update details" may change. Currency and slug are absent on purpose (see updateDetails). */
+    private const EDITABLE_DETAILS = ['name', 'country', 'default_locale', 'billing_email', 'billing_company', 'billing_vat_id', 'billing_city'];
 
     private function back(Organization $org): RedirectResponse
     {

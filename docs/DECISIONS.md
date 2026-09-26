@@ -18034,3 +18034,59 @@ order. 🔬 Bisected; reproduced on the unchanged tree, so not this change. Two 
 rows were committed and outlived it — it now uses `DatabaseTransactions`, as every test must while `RefreshDatabase`
 is off. 🔬 The failing trio now passes 21/21, and the 29-file batch 244/244.
 
+---
+
+## 2026-09-26 — ADMIN 04 · create and update organisations from the console, and each one's sign-in activity
+
+**Asked by the founder:** in the console's Organisations, create an organisation, update one, and see when each one's
+people last signed in — "the exact details". **His rulings (asked, 2026-09-26):** a console-created founder gets a
+set-password link by email, which also verifies the address; name, country, language and billing are editable —
+currency and the web address are NOT; sign-ins show time, user, IP and device.
+
+1. **Sign-in activity** (organisation page): the last successful sign-in (exact UTC time, who, device, IP) and the last
+   25 sign-ins, failed attempts and lockouts for its staff and owners, within `login_activity`'s 90-day window — the
+   rows the Activity page already shows platform-wide, narrowed to one organisation. Never a guest (by construction:
+   a success must name a `user`; the guest realm records no address). Devices in words (`DeviceLabel`: "Chrome on
+   macOS", an unknown agent shown as itself). Read inside the page's existing audited read.
+2. **Update details** (`POST admin/customers/{id}/details`, tenants.manage): name, country (an ISO code through the ONE
+   `Countries` list — the column is char 2; a name is normalised, an unknown value refused), language (the app's own
+   list), billing email / name / VAT / city (the operator's Settings limits). Reason required; the baseline refuses and
+   a protected organisation needs its name typed; the ledger records WHICH fields changed, never their values; every
+   value read back. A changed VAT number reaches Stripe (`StripeTaxIdSync::push`) as it does from the operator's two
+   screens. ⚠️ Found: those two operator writers disagree on limits (company 255 vs 160, VAT 64 vs 40) — the console
+   uses the stricter; the drift itself is recorded, not fixed.
+3. **Create** (`GET admin/customers/create` — registered BEFORE `customers/{organization}`; `POST admin/customers`):
+   through `TenantProvisioningService` — roles, founder as `Property Owner` with NO password, first property, trial —
+   `signup_source = console`, optionally internal. The founder's link reuses the invite machinery
+   (`OwnerInviteService::issueFounderActivation`, role `founder`: hashed single-use token, 7 days; redeeming sets the
+   password, verifies the address, assigns no second role) and the invite email with founder wording (sent by
+   "Vyrobel", not by the hotel). REFUSED before anything is written when the link could not reach the founder: mail
+   discarding, an address that can never receive mail, an address an account already holds. Ledger: the intent with
+   the reason, then the result with the new id, then the link.
+
+**AN INDEPENDENT ADVERSARIAL REVIEW before deploy** (29 agents: four lenses — security, correctness, contracts, test
+adequacy — and one skeptic per finding, defaulting to refuted): 23 reports survived, **11 distinct defects**, all fixed
+and each pinned by a test:
+- the "last sign-in" came from the same 25 rows as lockouts, so a burst of lockouts — which anyone who knows an address
+  can cause from the login page — hid every real sign-in → its own query;
+- attempts at the PLATFORM CONSOLE's login with a member's address showed as that organisation's → the staff and
+  owners' own realm (`web`) only; the tenant login records lockouts, not per-attempt failures;
+- the 90-day window was claimed but not applied → applied in the query;
+- a Stripe outage after a VAT change 500'd a save that had landed and logged it as failed → the save stands, the
+  ledger stays true, the admin is told;
+- a language outside en/pt/es/fr set on the operator's screens was reset to `en` by an unrelated save → the stored
+  value round-trips; billing values the operator's Billing screen allows longer no longer block an unrelated save;
+- the founder-link ledger row said "sent" when the send failed → `.failed`;
+- the signup funnel's typed columns dropped the new `console` source, so the columns no longer added up to "All" →
+  built from the ONE list of sources;
+- the founder email's "ignore this" line said no account exists → a founder wording;
+- a founder's pending link appeared in the operator's own pending-invite lists → excluded.
+Two reports were refuted by their skeptics. The every-console-write-needs-a-reason test caught the two new routes
+unregistered; they are now held to it.
+
+**PROOF (pre-deploy).** `Admin04OrganisationsTest` 19 tests; mutation set `admin-04` 23/23 landed and caught — two were
+NOT caught at first and the tests were tightened (a `LOWER()` in SQL the case-insensitive collation made redundant —
+removed; a currency mutation that 500'd while the test checked only that nothing changed). Full suite 3963/3963 ·
+PHPStan L5 0 · Pint clean · money gate FULL unchanged (tenant one) · mutation harness 187/187. Pages rendered through
+the app and viewed at 1280 px and 390 px (no sideways scroll).
+

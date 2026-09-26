@@ -7,12 +7,15 @@ namespace App\Models;
 use App\Listeners\RecordAuthActivity;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * SUPER ADMIN · BUILD 2 · GATE 1 — a single auth security-signal row (see the migration for the privacy posture:
  * security-monitoring purpose, 90-day retention, /admin-only access). Written ONLY by
  * {@see RecordAuthActivity} (added onto the framework auth events; the tenant login flow is not
  * modified). Immutable.
+ *
+ * @property Carbon|null $occurred_at the `datetime` cast makes this a Carbon at runtime
  */
 class LoginActivity extends Model
 {

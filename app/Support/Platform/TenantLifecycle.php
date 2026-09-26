@@ -36,7 +36,7 @@ final class TenantLifecycle
     public const LOCK_CONFIRM = 'confirm';
 
     /** How an organisation was created. NULL is shown as "Unknown" — never guessed. */
-    public const SIGNUP_SOURCES = ['email' => 'Email', 'google' => 'Google', 'twitter' => 'X'];
+    public const SIGNUP_SOURCES = ['email' => 'Email', 'google' => 'Google', 'twitter' => 'X', 'console' => 'Created in the console'];   // `console` — ADMIN 04
 
     /**
      * ⚠️⚠️ THE ACCESS RULE: suspended, archived, or not there at all → the organisation's people are refused.

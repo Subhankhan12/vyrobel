@@ -17,6 +17,13 @@
 @endphp
 <x-admin.shell active="customers" title="Organisations" subtitle="Every organisation on the platform — account metadata only, never a guest.">
 
+    {{-- ADMIN 04 — create an organisation (a tenant manager only; the founder gets a set-password link). --}}
+    @if (auth('admin')->user()?->may('tenants.manage'))
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+            <a href="{{ route('admin.customers.create') }}" class="ad-btn ad-btn--sm">Create an organisation</a>
+        </div>
+    @endif
+
     @if ($bucket)
         <div class="ad-flash" style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
             <span><strong>Triage · {{ $bucket[0] }}</strong> — {{ $bucket[1] }}</span>

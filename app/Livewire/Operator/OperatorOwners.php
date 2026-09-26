@@ -12,6 +12,7 @@ use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\PayoutMethod;
 use App\Models\Unit;
+use App\Services\OwnerInviteService;
 use App\Support\Money\MoneyFormatter;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -183,6 +184,8 @@ class OperatorOwners extends Component
     {
         return OwnerInvite::query()
             ->where('status', 'pending')
+            // ADMIN 04 — a console-created organisation's FOUNDER link is not an invite this operator sent
+            ->where('role', '!=', OwnerInviteService::FOUNDER_ROLE)
             ->orderByDesc('created_at')
             ->get()
             ->map(fn (OwnerInvite $i): array => ['email' => (string) $i->email, 'expires' => $i->expires_at?->format('j M Y')])

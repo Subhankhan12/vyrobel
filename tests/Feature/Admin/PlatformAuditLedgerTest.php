@@ -130,6 +130,9 @@ function writePayloadsWithoutReason(array $ids): array
         'admin.announcements.withdraw' => [],
         'admin.status.store' => ['title' => 'Reason probe', 'impact' => 'minor', 'status' => 'investigating', 'message' => 'Reason probe'],
         'admin.status.update' => ['status' => 'monitoring', 'message' => 'Reason probe'],
+        // ADMIN 04 — a valid payload in every respect but the reason
+        'admin.customers.update-details' => ['name' => 'Reason Org Renamed', 'default_locale' => 'en'],
+        'admin.customers.store' => ['org_name' => 'Reason Probe Org', 'currency' => 'EUR', 'property_name' => 'Reason House', 'property_type' => 'hotel', 'founder_name' => 'Reason Founder', 'founder_email' => 'rsn-founder@vyrobel.com'],
     ];
 }
 

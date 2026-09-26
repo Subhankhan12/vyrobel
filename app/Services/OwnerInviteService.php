@@ -45,6 +45,12 @@ class OwnerInviteService
 {
     public const EXPIRY_DAYS = 7;
 
+    /**
+     * ⚠️ ADMIN 04 — the founder of an organisation created in the platform console. NOT a slug the operator UI may
+     * request (it is absent from ROLE_SLUGS on purpose): only {@see self::issueFounderActivation()} writes it.
+     */
+    public const FOUNDER_ROLE = 'founder';
+
     /** Invite role slugs the UI/API may request. */
     private const ROLE_SLUGS = ['owner', 'manager', 'accountant'];
 
@@ -177,6 +183,36 @@ class OwnerInviteService
     }
 
     /**
+     * ⚠️⚠️ ADMIN 04 (2026-09-26) — THE FOUNDER'S SET-PASSWORD LINK for an organisation the platform console created.
+     * The founder already exists — {@see TenantProvisioningService} made them, with the organisation's roles and
+     * `Property Owner`, and with NO password — so this writes ONLY the single-use tokened link, through the same
+     * hardened discipline as every invite: a random token held as its sha256 hash, {@see self::EXPIRY_DAYS} days,
+     * spent on use. Redeeming it sets the password and VERIFIES the address — clicking a mailed link is proof of
+     * ownership — and assigns no role (the founder has theirs). Returns [invite, plaintext token]; the caller mails it.
+     *
+     * @return array{0: OwnerInvite, 1: string}
+     */
+    public function issueFounderActivation(User $founder, string $organizationId): array
+    {
+        return app(TenantContext::class)->forOrganization($organizationId, function () use ($founder, $organizationId): array {
+            $plain = Str::random(64);
+            $invite = new OwnerInvite;
+            $invite->fill([
+                'organization_id' => $organizationId,
+                'owner_id' => null,
+                'invited_by' => null,   // the platform console, not an account holder of this organisation
+                'email' => (string) $founder->email,
+                'token_hash' => hash('sha256', $plain),
+                'role' => self::FOUNDER_ROLE,
+                'status' => 'pending',
+                'expires_at' => now()->addDays(self::EXPIRY_DAYS),
+            ])->save();
+
+            return [$invite, $plain];
+        });
+    }
+
+    /**
      * Redeem a valid invite: set the password + ACTIVATE the login, then apply the role's effects, and
      * SPEND the token (single-use). Runs in the invite's org context so every write is correctly scoped.
      *
@@ -209,9 +245,11 @@ class OwnerInviteService
                 if ($invite->owner_id !== null) {
                     $this->activateOwner($invite);
                     $this->assignOwnerRole($user, $invite);
-                } else {
+                } elseif ($invite->role !== self::FOUNDER_ROLE) {
                     $this->assignStaffRole($user, $invite);
                 }
+                // ⚠️ ADMIN 04 — a FOUNDER gets no role here: provisioning already made them the organisation's
+                //    `Property Owner`, and granting a second, staff role would only be a way to widen it.
 
                 // SPEND the token — single-use. A reused/expired token can never activate again.
                 $invite->update(['status' => 'accepted', 'accepted_at' => now()]);

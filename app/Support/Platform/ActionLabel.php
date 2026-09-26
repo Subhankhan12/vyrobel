@@ -49,6 +49,10 @@ final class ActionLabel
         'platform.customer.refused' => 'Refused — the organisation is protected',
         'platform.customer.impact' => 'Checked guests in house',
         'platform.customer.current_plan' => 'Checked the current plan',
+        'platform.customer.update_details' => "Updated the organisation's details",
+        'platform.customer.create' => 'Started creating an organisation',
+        'platform.customer.created' => 'Created the organisation',
+        'platform.customer.founder_link' => 'Sent the founder a set-password link',
         // Support and break-glass
         'platform.support.lookup' => 'Looked up a person',
         'platform.support.password_reset' => 'Sent a password-reset link',
