@@ -1,0 +1,143 @@
+<?php
+
+// VYROBEL — READ-ONLY FOOTPRINT SEARCH for one organisation: every row, in EVERY table, that still names it.
+//   php footprint.php before <ids.json> <out.json> <organisation id>   — collects the ids it owns, then searches
+//   php footprint.php after  <ids.json> <out.json>                     — searches again for the SAME ids (read from ids.json)
+// What it searches for: the organisation's id, the id of EVERY row in every table that has organization_id = it
+// (its property, roles, memberships, …), the ids and email addresses of the accounts linked to it.
+// Where: every character/text/JSON column of every base table of THIS database (information_schema — independent of
+// the code under test). Exact match on short columns, substring (case-insensitive) on long ones.
+// Output: counts per table.column — never a value. ⚠️ The email addresses are used inside queries only, never printed.
+declare(strict_types=1);
+
+$root = getcwd();
+require $root.'/vendor/autoload.php';
+$app = require $root.'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+use Illuminate\Support\Facades\DB;
+
+[, $mode, $idsFile, $outFile, $org] = $argv + [null, null, null, null, null];
+
+$columns = DB::select(
+    "SELECT TABLE_NAME AS t, COLUMN_NAME AS c, DATA_TYPE AS dt, CHARACTER_MAXIMUM_LENGTH AS len
+     FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE()
+       AND TABLE_NAME IN (SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE IN ('BASE TABLE', 'SYSTEM VERSIONED'))
+       AND DATA_TYPE IN ('char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'json')
+     ORDER BY TABLE_NAME, ORDINAL_POSITION"
+);
+
+$fks = DB::select(
+    'SELECT TABLE_NAME AS child, COLUMN_NAME AS col, REFERENCED_TABLE_NAME AS parent, REFERENCED_COLUMN_NAME AS pcol
+     FROM information_schema.KEY_COLUMN_USAGE
+     WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL'
+);
+$orgTables = array_map(fn ($r) => (string) $r->t, DB::select(
+    "SELECT TABLE_NAME AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME = 'organization_id'"
+));
+
+if ($mode === 'before') {
+    // the ids it owns: every row of every table carrying organization_id = the organisation
+    $ids = [$org];
+    foreach ($orgTables as $t) {
+        $hasId = DB::selectOne("SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = 'id'", [$t])->n > 0;
+        if ($hasId) {
+            foreach (DB::table($t)->where('organization_id', $org)->pluck('id') as $id) {
+                $ids[] = strtolower((string) $id);
+            }
+        }
+    }
+    $people = collect()
+        ->merge(DB::table('organization_user')->where('organization_id', $org)->pluck('user_id'))
+        ->merge(DB::table('owner_users')->where('organization_id', $org)->pluck('user_id'))
+        ->merge(DB::table('owners')->where('organization_id', $org)->whereNotNull('user_id')->pluck('user_id'))
+        ->map(fn ($v) => strtolower((string) $v))->unique()->values()->all();
+    $emails = DB::table('users')->whereIn('id', $people)->pluck('email')->map(fn ($e) => strtolower((string) $e))->filter()->values()->all();
+    $ids = array_values(array_unique([...$ids, ...$people]));
+    // the KEY VALUES of every parent row it owns, for every column a foreign key points at — numeric ones included
+    // (roles.id is a bigint: a text search can never see role_has_permissions.role_id)
+    $keys = [];
+    foreach ($fks as $fk) {
+        $parent = (string) $fk->parent;
+        $pcol = (string) $fk->pcol;
+        if (isset($keys[$parent][$pcol])) {
+            continue;
+        }
+        if ($parent === 'organizations') {
+            $vals = DB::table('organizations')->where('id', $org)->pluck($pcol)->all();
+        } elseif ($parent === 'users') {
+            $vals = DB::table('users')->whereIn('id', $people)->pluck($pcol)->all();
+        } elseif (in_array($parent, $orgTables, true)) {
+            $vals = DB::table($parent)->where('organization_id', $org)->pluck($pcol)->all();
+        } else {
+            continue;
+        }
+        $keys[$parent][$pcol] = array_values(array_unique(array_map('strval', $vals)));
+    }
+    file_put_contents($idsFile, json_encode(['organization' => $org, 'ids' => $ids, 'people' => $people, 'emails' => $emails, 'keys' => $keys]));
+    chmod($idsFile, 0600);
+} else {
+    $saved = json_decode((string) file_get_contents($idsFile), true);
+    [$ids, $emails, $org, $keys] = [$saved['ids'], $saved['emails'], $saved['organization'], $saved['keys']];
+}
+
+// ── A · every foreign-key column in the schema, searched for the saved key values of the organisation's rows
+$fkHits = [];
+foreach ($fks as $fk) {
+    $vals = $keys[(string) $fk->parent][(string) $fk->pcol] ?? [];
+    if ($vals === []) {
+        continue;
+    }
+    $n = 0;
+    foreach (array_chunk($vals, 500) as $chunk) {
+        $n += DB::table((string) $fk->child)->whereIn((string) $fk->col, $chunk)->count();
+    }
+    if ($n > 0) {
+        $fkHits["{$fk->child}.{$fk->col} → {$fk->parent}.{$fk->pcol}"] = $n;
+    }
+}
+ksort($fkHits);
+
+// ── B · every text column, searched for its string ids and addresses (never a bare number — it would match unrelated text)
+$needles = array_values(array_filter([...$ids, ...$emails], fn ($v) => ! ctype_digit((string) $v)));
+$hits = [];
+$scanned = 0;
+foreach ($columns as $col) {
+    [$t, $c] = [(string) $col->t, (string) $col->c];
+    $short = in_array($col->dt, ['char', 'varchar'], true) && (int) $col->len <= 64;
+    $q = DB::table($t);
+    if ($short) {
+        $q->whereIn(DB::raw('LOWER(`'.$c.'`)'), $needles);
+    } else {
+        $q->where(function ($w) use ($c, $needles) {
+            foreach ($needles as $n) {
+                $w->orWhereRaw('LOWER(CAST(`'.$c.'` AS CHAR)) LIKE ?', ['%'.$n.'%']);
+            }
+        });
+    }
+    $n = $q->count();
+    $scanned++;
+    if ($n > 0) {
+        $hits["{$t}.{$c}"] = $n;
+    }
+}
+ksort($hits);
+$out = ['mode' => $mode, 'taken_at_utc' => gmdate('c'), 'ids_searched' => count($ids), 'emails_searched' => count($emails), 'foreign_keys_searched' => count($fks), 'columns_scanned' => $scanned, 'foreign_key_hits' => $fkHits, 'text_hits' => $hits];
+file_put_contents($outFile, json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+chmod($outFile, 0600);
+echo "footprint {$mode}: ", count($needles), ' text needles across ', $scanned, ' text columns · key values across ', count($fks), " foreign keys\n";
+echo " A · rows referencing its keys through a foreign key:\n";
+foreach ($fkHits as $k => $n) {
+    echo '     ', str_pad($k, 70), $n, "\n";
+}
+if ($fkHits === []) {
+    echo "     (none)\n";
+}
+echo " B · rows whose text names its ids or addresses:\n";
+foreach ($hits as $k => $n) {
+    echo '     ', str_pad($k, 70), $n, "\n";
+}
+if ($hits === []) {
+    echo "     (none)\n";
+}

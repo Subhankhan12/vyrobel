@@ -1,0 +1,79 @@
+<?php
+
+// VYROBEL — a READ-ONLY census of the whole production database, for the first live deletion (PW-SIGNUP PROBE).
+// Counts and money sums only — no personal data. Run from a release directory:  php census.php <out.json> <organisation id>
+// ⚠️ INDEPENDENT of the code under test: the table list comes from information_schema (this database, aliased
+//    labels), never from OrganizationDeletion::organizationTables().
+declare(strict_types=1);
+
+$root = getcwd();
+require $root.'/vendor/autoload.php';
+$app = require $root.'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+use Illuminate\Support\Facades\DB;
+
+[$script, $outFile, $probe] = $argv + [null, null, null];
+if (! $outFile || ! $probe) {
+    fwrite(STDERR, "usage: php census.php <out.json> <organisation id>\n");
+    exit(2);
+}
+
+$tables = array_map(fn ($r) => (string) $r->t, DB::select(
+    "SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE IN ('BASE TABLE', 'SYSTEM VERSIONED') ORDER BY TABLE_NAME"
+));
+$columns = [];
+foreach (DB::select('SELECT TABLE_NAME AS t, COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()') as $r) {
+    $columns[(string) $r->t][] = (string) $r->c;
+}
+
+$out = ['taken_at_utc' => gmdate('c'), 'tables' => count($tables), 'totals' => [], 'per_org' => [], 'probe' => []];
+
+// every table's total rows; for every table with organization_id, rows and every *_minor column summed, per organisation
+foreach ($tables as $t) {
+    $out['totals'][$t] = (int) DB::table($t)->count();
+    if (! in_array('organization_id', $columns[$t] ?? [], true)) {
+        continue;
+    }
+    $minor = array_values(array_filter($columns[$t], fn (string $c): bool => str_ends_with($c, '_minor')));
+    $select = ['organization_id', DB::raw('COUNT(*) AS rows_n')];
+    foreach ($minor as $m) {
+        $select[] = DB::raw('COALESCE(SUM(`'.$m.'`), 0) AS `sum_'.$m.'`');
+    }
+    foreach (DB::table($t)->select($select)->groupBy('organization_id')->get() as $row) {
+        $row = (array) $row;
+        $org = $row['organization_id'] === null ? '(null)' : (string) $row['organization_id'];
+        unset($row['organization_id']);
+        $out['per_org'][$t][$org] = array_map(fn ($v) => (string) $v, $row);
+    }
+}
+
+// the probe's people: who it links to an account, and what each person has elsewhere in the database
+$people = collect()
+    ->merge(DB::table('organization_user')->where('organization_id', $probe)->pluck('user_id'))
+    ->merge(DB::table('owner_users')->where('organization_id', $probe)->pluck('user_id'))
+    ->merge(DB::table('owners')->where('organization_id', $probe)->whereNotNull('user_id')->pluck('user_id'))
+    ->map(fn ($v) => (string) $v)->unique()->values()->all();
+foreach ($people as $id) {
+    $email = (string) DB::table('users')->where('id', $id)->value('email');
+    $out['probe'][$id] = [
+        'user_row' => DB::table('users')->where('id', $id)->count(),
+        'memberships_elsewhere' => DB::table('organization_user')->where('user_id', $id)->where('organization_id', '!=', $probe)->count()
+            + DB::table('owner_users')->where('user_id', $id)->where('organization_id', '!=', $probe)->count(),
+        'sessions' => DB::table('sessions')->where('user_id', $id)->count(),
+        'social_sign_ins (user_identities)' => DB::table('user_identities')->where('user_id', $id)->count(),
+        'social_providers' => DB::table('user_identities')->where('user_id', $id)->pluck('provider')->map(fn ($p) => (string) $p)->all(),
+        'login_activity' => DB::table('login_activity')->where(fn ($q) => $q->where('subject_type', 'user')->where('subject_id', $id))
+            ->orWhere(fn ($q) => $q->where('guard', 'web')->whereNull('subject_type')->where('identifier', $email))->count(),
+        'notifications' => DB::table('notifications')->where('notifiable_type', 'user')->where('notifiable_id', $id)->count(),
+        'passkeys' => DB::table('passkeys')->where('user_id', $id)->count(),
+        'trusted_devices' => DB::table('trusted_devices')->where('user_id', $id)->count(),
+        'password_reset_tokens' => $email === '' ? 0 : DB::table('password_reset_tokens')->where('email', $email)->count(),
+        'oauth_access_tokens' => DB::table('oauth_access_tokens')->where('user_id', $id)->count(),
+    ];
+}
+
+$json = json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+file_put_contents($outFile, $json);
+chmod($outFile, 0600);
+echo 'census: ', basename($outFile), ' · ', count($tables), ' tables · ', array_sum($out['totals']), ' rows · ', count($people), " people linked to the probe · sha256 ", substr(hash('sha256', $json), 0, 16), "\n";

@@ -1,0 +1,309 @@
+# RULES — the rules that don't bend, the lessons behind them, and the instruments
+
+**MEMORY 01, 2026-09-27.** Part 1 is the hard rules. Part 2 is the working rules and the lessons, each with where it is
+written. Part 3 is how to run each instrument and what a pass looks like. The canon is the linked docs; this file points at
+them. Ten of these rules are repeated at the top of `CLAUDE.md`.
+
+---
+
+## PART 1 — THE HARD RULES
+
+**As the founder's planning side wrote them (Appendix A §2 of the MEMORY 01 brief, word for word):**
+
+**Secrets and access**
+- Never type the founder's password or 2FA code.
+- Secrets (the mailbox password, Stripe, Google and X secrets, `APP_KEY`, the DB password, the bypass secret, the Healthchecks URL) are typed by the founder into `.env` on the server.
+  - They are never pasted into chat, and never seen, echoed or stored by the agent.
+  - If one is pasted, refuse it and tell him to rotate it.
+- Never print, `cat`, `head` or show a prefix of a secret file. Report modes, owners and digests only.
+- Never put the maintenance bypass secret into a tool-call parameter.
+- Identifiers are read, never written.
+
+**Money**
+- Never initiate a real Stripe transfer. Test mode is free to use. Live transfers are always the founder's. No live charge, ever.
+- Never re-baseline money silently. The money gate FULL must stay unmoved.
+
+**Data and organisations**
+- Never touch tenant one (local and tests), not even inside a transaction meant to roll back.
+- Act only on probe organisations. Never on `Vyrobel Internal`, `Vyrobel Test Workspace` or a real customer.
+- Never delete an organisation on production. Only the founder deletes, with his password. Delete never calls Stripe.
+- Sign-in links are credentials: count them, never print one.
+
+**Checks and permissions**
+- Never grant a permission to make a check pass.
+- The demo seeder refuses to run outside local/testing. Never work around it.
+- The seeded admin password is published. Never allow-list it.
+- Never complete an admin invite link. Never force-sign-out the founder's session.
+- No test backdoors, 2FA bypass, or "if testing" branches in production code.
+
+**DNS and email**
+- Never touch MX records. Never add a second SPF record. Never change DMARC. Never edit or delete an existing DNS record without the founder's yes.
+- Never email a probe or undeliverable address.
+- Never switch mail on against an unverified domain, or with unreviewed mail in the queue.
+
+**Code and deploys**
+- One suite at a time, and no edits while a suite runs.
+- Additive migrations only.
+- Never `--force` push. Push only under the four hard stops.
+- If any public check fails after a deploy, roll back first and diagnose second.
+- Don't change the social sign-in rules, the verify gate, `RefuseEmailTaken` or `throttle:5,1` unless a brief says so.
+
+**Hard rules the planning side's list does not carry (added by MEMORY 01, each with where it is written):**
+- **Never `db:seed` production.** The seeders create a demo super-admin with the published password `password`.
+  (`CLAUDE.md`, Commands)
+- **A red pin on a ruled behaviour is the system working. Stop and ask; never adjust the test.** (`docs/MEMORY.md`;
+  R-SEASON is the sharpest case)
+- **Local demo tenants:**
+  - tenant one `vyrobel-demo` is the untouchable baseline;
+  - tenant two `northgate-demo-city-rooms` must stay paywalled, so never extend its trial;
+  - tenant three `harbourpoint-demo-walkthrough` is the only writable one, and no pin may reference it.
+
+  (the memory index; `docs/KNOWN-LIMITS.md` L8, L9)
+- **Only one session deploys at a time.** Don't start while another pass (for example the email pass) is running.
+  (`briefs/ADMIN-06.md`)
+- **A suite count is whatever the run prints.** Never quote one copied from a doc as current. Quote the money gate's
+  own sentence, never "the money is unchanged". (`CLAUDE.md`, Commands)
+- **Every fact says how it is known: Verified, Reported or Founder said.** A claim is not a measurement, and an old
+  report is not a check. (MEMORY 01 brief; the "no queue worker" and "96 of 142" mistakes)
+- **Never stop, kill or measure against another project's processes.** Identify a process by its path or working
+  folder, never by the look of its command line. (MEMORY 01, 2026-09-27: a `phpunit` in `restiox/admin` and Chromium
+  from the global `ms-playwright` cache were running beside this repo's work)
+
+---
+
+## PART 2 — THE WORKING RULES AND LESSONS
+
+**As the planning side wrote them (Appendix A §3 of the MEMORY 01 brief, word for word).** Where each is recorded is in 2b:
+
+**Proving things**
+- A write is proven by reading the value back.
+- Any failing probe gets a control run before it's believed.
+- A test that supplies a value by a route the real caller doesn't use proves nothing.
+- A metric that improves for free is measuring the wrong thing.
+- Check the checker. Detectors have bugs too (the "five dead columns" were a detector bug).
+- A founder action is a precondition to verify, never a belief.
+
+**Reasoning**
+- Reason from the consumer, not the config. "No queue worker" was wrong; a worker cron existed.
+- Don't reason about one layer and assume the layers next to it comply. SOCIAL 02 missed a non-nullable DTO this way.
+
+**Production specifics**
+- Production caches config: raw `env()` returns NULL at runtime (L14). Every `.env` change needs the cache rebuilt, and is proven by behaviour, not by reading the file.
+- `/up` is exempt from every layer. Never use it as a probe.
+- A 302 from `/auth/google/redirect` proves the client ID, not the secret. Only a completed sign-in proves the secret.
+- A fix a deploy undoes is not a fix.
+- The mutation runner refuses to count a mutation that didn't land. A stale mutation fails a test.
+- `preventSilentlyDiscardingAttributes` is on in tests only. It found about 30 silent drops.
+
+### 2a · Every L-entry in docs/KNOWN-LIMITS.md (one line each: what broke → what it taught → status)
+
+All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the doc's own.
+
+- **L1** One Stripe Connect account per org; Stripe fixes its country and we never set it → state an irreversible choice *before* it is made → told in product (billing card); pre-sale copy is a founder decision, open.
+- **L2** No OTA channel connects: `FakeChannexClient` is bound, and live sync "never started" → say "never started", not "stopped" → told on `/integrations`; account-gated.
+- **L3** A guest can erase their data but not export it. The operator answers Art.15 by hand. The legal record contradicts itself (§299 vs §170) → open; the author and a lawyer fix legal text, never a build pass.
+- **L4** Retention windows are fixed in code (`RetentionPolicy::WINDOWS`), one for every jurisdiction → the obligation moves to the DPA → by design; recorded in DATA-RESIDENCY-INVENTORY.
+- **L5** An org cannot require 2FA of its staff, and cannot even see who enrolled → name the "can't check" half too → open; founder decides whether `/security` says it.
+- **L6** 17 of 51 permissions gate nothing. Both counts were once wrong: the matcher read comments, and the denominator skipped `'*'` → a census must tokenise and count wildcards → pinned. Options (remove / wire / label) are the founder's (see docs/PHANTOM-PERMISSIONS.md).
+- **L7** The back office is desktop-only. At 375px the nav is unreachable. The obvious fix (FIX 11) was worse → ruled a POSITION (F-33, 2026-09-19); the counter-argument is housekeeping staff on phones. No surface states it yet: founder decision.
+- **L8** The money gate at FULL expires tenant two's trial, so its `/app` is paywalled → both gates are right. NEVER extend the trial, move the clock or re-seed later → internal limit, standing.
+- **L9** Tenant three (`harbourpoint-demo-walkthrough`) exists to be walked and destroyed → NO pinned figure may reference it → standing rule.
+- **L10** A guest on a tentative group hold gets no message until confirm, because the old "confirmed" email was false (F-64) → don't invent a new message inside a defect fix → open; product decision.
+- **L11** A coverage % for money-write routes gives 3/47/163/190 at call depths 0–3 → there is no honest number, so name what was driven and don't count it → standing (AUDIT-SUMMARY §5).
+- **L12** Production (Hostinger shared) is not the verified stack: MariaDB 11.8.9, a database queue run by cron, file cache (2026-09-20) → every difference is measured below. (Sessions are now `database`, see L16.)
+- **L12a** MariaDB cannot index the one-live-payout generated column (1901). The migration's `hasColumn` guard then skipped silently → "Ran" is not "installed" → ✅ restored by INSERT+UPDATE triggers (2026-09-20). `SIGNAL` text is capped at 128 chars.
+- **L12b** At REPEATABLE READ, MariaDB `FOR UPDATE` raises 1020. Prod was on READ COMMITTED only by the host's default → the app states its own isolation → ✅ fixed via PDO init command, pinned `DatabaseIsolationLevelTest` (2026-09-20).
+- **L12c** A failed job was invisible → the heartbeat now throws when `failed_jobs` is non-empty; the alert goes through Healthchecks' own mail, never ours → ✅ built, ⛔ inert until `OPS_HEARTBEAT_PING_URL` is set (L14).
+- **L12c-old** The original finding (no Horizon, no route, no external switch), kept for the record.
+- **L12d** A reboot cannot be tested on shared hosting → stays unknown, permanently.
+- **L12e** Laravel's `mariadb` driver makes `notifications.id` a native UUID, which breaks ULIDs → ✅ closed: stay on `mysql`.
+- **L12f** Queue worst case is ≈60 s, and unbounded while parked. Correction: the Stripe webhook never queues. Do NOT add `--force` to the worker → every figure carries its scope.
+- **L12g** A Stripe event during a park gets a 503 before the controller: no row, no log → only Stripe's Dashboard knows → open, narrowed by L12k to migration parks.
+- **L12h** `ops/deploy.sh` cannot run on the host (no `.git`, default php 8.3, no node, no `crontab`). Its ERR trap is inert → a script that documents a recovery it lacks is worse than none → it now REFUSES to run. Don't "fix" it by adding `-E`. Superseded by L12k.
+- **L12i** The heartbeats stop when maintenance is on → ruled NOISY, never LYING (`HeartbeatIsMaintenanceGatedTest`) → after L12k only a schema park can ring it.
+- **L12j** THE risk statement: Stripe retries are bounded (📖 3 days live, a few hours in sandbox), a park is not → open, narrowed to migration deploys.
+- **L12k** The release layout: `releases/rel_X` plus one `current` symlink. Swap 3 ms, 0/220 non-200 at the origin. Prune only ≥180 s after a swap. Compiled caches bake ABSOLUTE PATHS, so rebuild config+route caches in EVERY release. Never `scp` onto a hardlinked file. An `artisan` shim keeps the panel cron alive → ✅ adopted 2026-09-20, live.
+- **L12m** A CDN (`server: hcdn`) nobody owned cached a transient 301 for 2+ hours. `/up` is exempt from it → keeping HTML uncacheable is load-bearing; the webhook passes straight through → open: a purge, or disabling it, is the founder's call.
+- **L12n** Does the alarm bound a park? Yes: detection ≤ 60 s + grace (≤ ~6 min at 5 min). Expand-then-contract is not a prerequisite → but neither the ping nor a `/up/liveness` poller was configured (2026-09-20).
+- **L12p** The document root IS the app root. `.env` is protected by a rewrite plus a host rule; `FilesMatch` is inert → `/app` collision ✅ fixed. `/storage` media 404 is still OPEN and will fail silently. Founder step: move the docroot.
+- **L13** `/api/owner/*` returned 500 on a mode-775 key → a route nothing can reach is a route nothing has tested. Check the web user before a chmod → ✅ closed 2026-09-23, proven by 500→401.
+- **L14** A raw `env()` returns NULL under cached config, so the heartbeat was never armed. A shell-env test once "proved" it worked → ✅ fixed 2026-09-24 (`config/ops.php`), proven A/B on a cached config. The ping URL is still unset (founder).
+- **L15** "777 `.env`" was the symlink's own mode → read `stat -L` → ✅ closed 2026-09-25, not a defect. The real finding beside it: 9 old config caches at 644, now 600. `stage` re-asserts link+600.
+- **L16** On the `file` session driver, "sign out others" and a password reset did nothing, and the audit row said they did → ✅ closed 2026-09-25, rel_W @ 3cd72c26 (git): `database` driver + AuthenticateSession, proven live both ways.
+- **L17** The admin audit ledger is append-only in the app, not in the DB → open; a DB trigger is proposed, founder's call.
+- **L18** Published `sales@` has no mailbox. Mail is rejected, privacy requests included → ruled to stay on privacy/terms (2026-09-26). **Reported 2026-09-26: the alias `sales@` → `contact@` WAS created in hPanel by the session.** Delivery is not proven (`OPEN.md` F8).
+- **L19** A deletion could not see an open Stripe Checkout page → ✅ CLOSED by ADMIN 06 (2026-09-27; **uncommitted in the working tree**) via `stripe_checkout_sessions`, with a 24 h fallback. **Two gaps are open:** `OPEN.md` D-R2-2 and D-R2-4.
+- **L20** The guest card Checkout cannot open with real Stripe: `payment_intent` is null at creation, while the fake returns one → ⛔ OPEN, dormant, GO-LIVE B20. First confirm it with ONE test-mode session (📖, **uncommitted** entry, 2026-09-27).
+
+### 2b · The founder's planning-side lessons (short)
+
+- **A write is proven by reading the value back**, never by the success message (Reported: briefs KEYBOARD-01, MAIL-02, TONIGHT-01).
+- **Any failing probe gets a control run before it's believed** (Reported: docs/memory/briefs/KEYBOARD-01.md).
+- **A test that supplies a value by a route the real caller doesn't use proves nothing.** The shell-env "proof" in L14 (Reported: KNOWN-LIMITS L14, 2026-09-23).
+- **A metric that improves for free is measuring the wrong thing.** The battery went 46→53/53 when a lock was added (Reported: docs/MEMORY.md §1).
+- **Check the checker.** "Five writes to dead columns" were the detector's false positives (keys inside JSON); `ops/mass-assign-check.php` was fixed and a planted drop proved it (Reported: DECISIONS.md FINISH 01 Part C).
+- **A founder action is a precondition to verify, never a belief.** Example: "ping URL set" is proven only by a ping arriving (Reported: founder's planning notes; see L14, L18).
+- **Reason from the consumer, not the config.** "No queue worker" was false: a php84 worker cron existed (Reported: CLAUDE.md, corrected 2026-09-23).
+- **Don't reason about one layer and assume its neighbours comply.** SOCIAL 02 missed a non-nullable DTO (Reported: founder's planning notes. unknown — no "SOCIAL 02" or DTO record found by grep of docs/ and git log).
+- **Production caches config, so a raw `env()` is NULL at runtime (L14).** Every `.env` change needs the cache rebuilt (`ops/release.sh recache`), and is proven by BEHAVIOUR, never by reading the file (Reported: L14; KEYBOARD-01).
+- **`/up` is exempt from every layer** (maintenance, the lock, the CDN). Never use it as a probe (Reported: L12m; CLAUDE.md).
+- **A 302 from `/auth/google/redirect` proves the client ID, not the secret.** Only a completed sign-in proves the secret (Reported: KEYBOARD-01 Job 1).
+- **A fix a deploy undoes is not a fix.** Put the fix where the deploy re-applies it (L13 storage is shared; L15 `stage` re-asserts 600; ADMIN 06 drift check).
+- **The mutation runner refuses to count a mutation that didn't land** (git: tests/Mutations/run.php header, commit 975116b2).
+- **`preventSilentlyDiscardingAttributes` is on in tests only** (git: tests/TestCase.php:90; no hit in app/). It found 454 discards at 30 sites (Reported: DECISIONS.md FINISH 01 Part C).
+
+### 2c · Other load-bearing rules (from docs/MEMORY.md and the auto-memory `audit-method-and-traps.md`)
+
+- **The brief is wrong about half the time, and so is the fix. Sweep your own diff** (audit-method Tier 1).
+- **Check the register (AUDIT-SUMMARY §4 rulings) BEFORE the work, and check it for the identifier too.** A red pin on a ruled behaviour means STOP and ask. Never adjust the test (audit-method Tier 1; auto-memory index, R-SEASON).
+- **An instrument reads its own needle.** Tokenise, bracket-split, skip comments (MEMORY §2; `ops/references.php`, `ops/ps-check.sh`).
+- **A layer in front answers for the thing you measure** (503, 401, CDN). Score by WHO answered, not by the status (MEMORY §2).
+- **A status code is not a result.** Assert on content that only the new code emits, and take the BEFORE reading before the swap (L12k, 2026-09-24).
+- **A 0-second step must prove it succeeded.** Capture every exit code (L12g).
+- **A sparse sample cannot see a short process.** A parked worker lives ~2 s, so sample every 1 s. A correctly identified process may be someone else's: `hrmzy.com`'s php83 `queue:work` (CLAUDE.md; MEMORY §2).
+- **A test that reaches a capability through a door the user lacks proves the capability, not the access** (R3 `ReverseCheckOut`, audit-method).
+- **An alarm that shares a failure mode with what it watches is not an alarm.** Noisy beats lying (L12c, L12i).
+- **Pin what must never move; don't pin what legitimately moves.** Re-pin only with a named cause (MEMORY §3).
+- **Unreachable is not clear: report a third verdict. Report, never repair. Prove both directions** (MEMORY §1).
+- **Never widen access to green a gate. Fix fixtures, never the check** (MEMORY §1; CLAUDE.md #30).
+- **`RefreshDatabase` has two opposite failure modes.** OFF lets fixtures accumulate; ON hides rows from worker processes (audit-method).
+- Shell traps: in `cmd | sed; echo $?`, the `$?` is sed's status. zsh does not word-split an unquoted `$VAR`. `artisan serve` serves stale classes (MEMORY §2; audit-method Tier 2).
+
+### 2d · Lessons from 2026-09-26/27 (ADMIN 05, ADMIN 06, MEMORY 01)
+
+- **Time any new schema-reading path ON THE PRODUCTION HOST before a swap.** One `Schema::getForeignKeys()` takes 1.1 s on
+  production MariaDB, so the delete preview took 118 s there while it was fast locally on both engines. Found at preflight,
+  never shipped (Reported: DECISIONS ADMIN 05).
+- **A count someone reads before an irreversible click must count what actually goes.** The preview showed 17 of 232 rows.
+  It is now proven against the whole database, table for table (Reported: DECISIONS ADMIN 06 #3b).
+- **A fake can hide the real API's shape.** The fake Stripe client returns a PaymentIntent at Checkout creation; real Stripe
+  does not (L20). Stripe's Refund object has no `livemode` at all (Reported: ADMIN 06).
+- **Stripe does not deliver events in order, and a payment can carry more than one dispute.** Order by the event's own time and
+  key on the object's own id (📖 Stripe docs, read 2026-09-27).
+- **Pest's `toContain` is variadic.** A "message" becomes a second needle, and a negated one then always passes.
+  `NegatedVariadicMatcherGuardTest` catches it. A bare `withoutGlobalScopes()` is banned; `SoftDeleteScopeGuardTest` catches it.
+  Both fired on this session's own code (Reported: 2026-09-27).
+- **Run long local runs under `caffeinate -i`, and check what else is running first.** The Mac sleeps, and other projects share
+  it (`restiox`, `advisor-platform`). A process is identified by its working folder, never by its command line (Verified 2026-09-27).
+- **An adversarial review of your own fixes finds things.** Two rounds on ADMIN 06 found real defects each time, including in the
+  first round's fixes (Reported: 2026-09-27).
+
+---
+
+## PART 3 — THE INSTRUMENTS
+
+Rule for all of them: **one run at a time**. A guard never seen to fire is not a guard, so use the self-test or
+prove-red mode where one exists. Commands are copied from each script's header (git). Where a header and the code
+disagree, it says so.
+
+**Suite on MySQL (local).** Prerequisites: a `vyrobel_test` DB and Redis. Run it ALONE:
+`ops/proc-check.sh -q '[p]hpunit|[p]est|artisan [t]est' && php artisan test`
+Pass = the suite is green. The count is whatever the run prints. Last reported for the LIVE commit: 3995/3995 MySQL
+(Reported: DECISIONS ADMIN 05). For the working tree with ADMIN 06: **4,018/4,018 on MySQL 8.4.10 and on MariaDB 11.8.9**
+(Reported: this session's runs, 2026-09-27). ⚠️ **Run it under `caffeinate -i`:** on 2026-09-27 the Mac slept mid-run, and a
+~17-minute suite took 8½ hours of wall time. `RefreshDatabase` is OFF, so fixtures need unique ids (CLAUDE.md).
+
+**The MariaDB engine swap (both engines are a gate).** The engines SWAP on 3306 and never run side by side: on
+another port the concurrency workers still hit 3306. Steps: `brew services stop mysql@8.4`, then
+`mariadbd-safe --no-defaults --basedir=/opt/homebrew/opt/mariadb@11.8 --datadir=/opt/homebrew/var/mariadb118 --port=3306 --socket=/tmp/mysql.sock`,
+run the suite, then `brew services start mysql@8.4`. `--no-defaults` is required. The app sets READ COMMITTED itself (L12b).
+(Reported: CLAUDE.md Commands.)
+
+**Money gate FULL — local only, never production.** It wipes the local DB and paywalls tenant two (L8):
+`export VY_SEED_DATE=2026-09-01; php artisan migrate:fresh --seed --force; bash ops/money-as-seeded.sh`
+Pass = `mode=FULL` + `✅ MONEY AS SEEDED · FULL`, exit 0. `mode=INVARIANT` / `⚠️ PARTIAL — 4 of 6` is NOT the gate.
+EXPORT the date; a `VAR=x cmd1 && cmd2` prefix reaches cmd1 only. Quote its own sentence ("tenant one's six aggregates…"),
+never "the money is unchanged". The constants live in the script (git). The suite never runs this.
+
+**Mutation runner.** `php tests/Mutations/run.php --set=admin-06` · `--only=A06-M7,A06-M8` · `--list` · no args = every set.
+Verdicts: `LANDED · CAUGHT` (good) · `LANDED · NOT CAUGHT` (guard unproven) · `DID NOT LAND` (harness error, never a result).
+It refuses to run beside another test run or with cached routes/config. It self-checks every run (git: header).
+Sets: tests/Mutations/sets/*.php (git ls). admin-06 is untracked. Last reported: 238/238 caught before ADMIN 06 (Reported: ADMIN-06 brief
+header); **291/291 on the working tree with ADMIN 06** (Reported: harness run, 2026-09-27).
+
+**`ops/proc-check.sh`** — is a test run already going? `ops/proc-check.sh -q '<regex>'`; `--kill '<regex>'` kills by PID and confirms.
+Exit **0 = SAFE** (a trusted zero) · 1 = matches found · 3 = BLIND (its positive control failed) · 4 = `--kill` refused.
+The exit codes were inverted 2026-09-22 so that `&&` fails safe (git: header).
+
+**`ops/ps-check.sh`** — self-match-proof `ps | grep`. `ops/ps-check.sh 'queue:work|horizon'`, or `-c` for the count.
+Exit 0 = matches printed · 1 = none. ⚠️ These exits are grep-like, the OPPOSITE of proc-check. It cannot tell WHOSE process it
+found, so pin the php84 binary or the CRONJOBID. Sample every 1 s for short-lived workers (git: header; CLAUDE.md).
+
+**`ops/exposure-battery.sh`** — the wall around `.env`/`artisan`/`storage` (L12p). It never prints a body.
+`ops/exposure-battery.sh [BASE]` · `--prove-red` (adds `/robots.txt`, which MUST go red) · `--self-test`.
+(History: while the private-preview lock was on, it had to run with `VY_BATTERY_NETRC=<path to a netrc file>`. **The lock and the
+park were turned OFF on 2026-09-23 (`5d631d9f`), so the site is public: Verified 2026-09-27.** Never pass a password in an env var or argv.)
+Pass = exit 0, `SERVED=0` with `APPLICATION-REFUSED` > 0. Exit 1 = something SERVED. Exit 2 = unmeasured, OR nothing reached the
+app ("a weather report"), OR the PHP-marker premise failed (git: script). (The "46/53 proven" figure dates from when the lock was on.)
+
+**`ops/htaccess-drift-check.sh`** — are the rules of `public_html/.htaccess` still PRESENT (not byte-identical)? Run it ON the host:
+`ops/htaccess-drift-check.sh [PATH]` · `--self-test` (deletes a rule from a copy and must go red).
+Exit 0 = every rule present · 1 = missing / anti-rule violated · 2 = cannot run. Reference copy: `ops/reference/public_html.htaccess`.
+It catches a CHANGE; the battery catches an EFFECT. Neither replaces the other (git: header).
+
+**`ops/public-checks.sh [BASE]`** — after EVERY swap. It checks /login + both social buttons, both social 302s, /signup, the anonymous /admin redirects and POST refusals, a 5xx sweep of public GETs, and battery SERVED=0.
+Pass = `PASS N · FAIL 0 · COULD NOT MEASURE 0`, exit 0. Exit 2 = a CDN browser challenge (403 "Checking your browser"): control-run it.
+**Any FAIL → roll back FIRST, diagnose after.** Last reported PASS 12 · FAIL 0 · CNM 0 (Reported: DECISIONS.md, ADMIN 05 on rel_AE, 2026-09-26).
+
+**`php artisan tinker --execute='require "ops/config-inventory.php";'`** (on the host with the php84 binary, inside the release).
+It reports which config keys are EMPTY and what each emptiness does: SILENT / LOUD / INERT / UNCLASSIFIED. It never prints a value.
+Pass = calibration ✓ and `0 EMPTY+SILENT`, exit 0. Exit 1 = ≥1 silent empty · 2 = calibration failed / no Laravel context.
+It also prints the cached-config hazard and the stray `env()` sites. ⚠️ The header also lists `ops/config-inventory.php --json`, but
+the file is not executable, loads no autoloader and has no `--json` branch (📖 read, not run). Use the tinker form.
+The same class feeds the admin console health board (git: header).
+
+**`php ops/references.php '<literal>'`** — is a name REALLY referenced, or only mentioned? It walks the booted router's `can:`
+gates, tokenises PHP and compiled Blade, and splits PROD from TEST. Flags: `--all` · `--routes` (named routes no view links; ≠ unreachable).
+Exit 0 = referenced by code · 1 = no real reference (pending a second method) · 2 = usage. It is blind to runtime-built names,
+DB rows and .sh/.md. ⚠️ The header says `ops/references.php …`, but the file has no shebang, so call it with `php` (📖 read, not run).
+
+**`ops/secret-scan.sh tree|history [--all]`** — run `history` before any push: it covers every blob in every ref, which tree mode misses.
+Exit 0 = no hits · 1 = hits (triage them) · 2 = usage. Matches are redacted. There is NO allow-list, so the demo seed password is
+reported every time, correctly (git: header). Trust it only after it has found a planted needle (Reported: auto-memory index).
+
+**`ops/release.sh`** (L12k as a script; runs over SSH with the founder's deploy key; do not run it from a read-only pass):
+`status` (live release + commit read from `.release`) → `stage rel_<LETTERS>` → `migrate rel_X` (pending only; ADDITIVE only, refuses
+drop/rename/change) → `swap rel_X` → `ops/public-checks.sh` → prune by hand, ≥180 s later. `rollback rel_<prev>` repoints `current`.
+`recache rel_X` = the same commit, with config+routes rebuilt from the current `.env` (the L14 path for an `.env`-only change).
+`stage` refuses a dirty tree, an already-live HEAD, and composer/package/vite/resources css/js changes. Its pass lines:
+`✓ every shipped file has its own inode — the live release is untouched`, `.release = <HEAD>`, and
+`.env → ../../public_html/.env · shared file mode 600` (git: script).
+⚠️ **Byte-for-byte live check, UNCOMMITTED (git diff ops/release.sh, +27 lines, ADMIN 06 #6):** `stage` now builds a sha256 manifest
+of the deployable files (app bootstrap config database public resources routes ops artisan). It excludes bootstrap/cache, public/build
+and resources/css|js; vendor/, `.env` and storage/ are not in it. The manifest is built at the LIVE commit, and
+`sha256sum -c` runs it inside the live release. Each file that differs or is missing ships from git at the new commit.
+Pass line: `drifted from git on the host: none`. It found 4 of 1,395 drifted on rel_AE (Reported: DECISIONS.md ADMIN 06 #6,
+uncommitted, 2026-09-27). ⚠️ `stage` refuses a dirty tree, so this change cannot ship until it is committed.
+Never use `ops/deploy.sh` on the host: it refuses by design (L12h).
+
+**The PW-SIGNUP delete proof tools** live in `docs/memory/tools/` (saved by MEMORY 01; see its README). **Verified 2026-09-27:
+byte-identical (sha256) to the server copies** in the private folder `~/domains/vyrobel.com/env-backups/`.
+Run the PHP ones from a release directory with the php84 binary. They are read-only, print counts and fingerprints only, and read
+tables and keys from `information_schema`, independent of `OrganizationDeletion` (git: headers).
+(Stored as `*.php.txt` so the style gate does not lint them; copy each to its `.php` name to run it.)
+- `php census.php <out.json> <organisation id>` — per-org row counts and money sums, every table.
+- `php proof.php before <organisation id> <dir>`, then `php proof.php after <dir>` — premises, controls, census, orphans, footprint.
+- `php footprint.php before <ids.json> <out.json> <organisation id>` / `after <ids.json> <out.json>` — every row still naming it.
+- `python3 compare.py before.json after.json` — pass = exit 0 (the probe's rows gone, every other org unchanged, volatile tables excepted).
+Status: the before-measurements exist (27 Sept). PW-SIGNUP PROBE was NOT yet deleted, and no after-count exists (Reported: DECISIONS.md
+ADMIN 06 #0, uncommitted). The preview said 17 records; the deletion removes 232 (same source).
+
+Other `ops/` scripts not covered here (git ls): backup.sh · restore-drill.sh · liveness-drill.sh · runtime-contract.sh ·
+probe-signup.sh · mass-assign-check.php · host/mark-internal.php · deploy.sh (refuses to run). Read each header before use.
+
+---
+
+## Sources
+
+- docs/KNOWN-LIMITS.md (L1–L20; L19 close + L20 are uncommitted) · docs/MEMORY.md (2026-09-05) · docs/DECISIONS.md
+  (FINISH 01 Part C, SESSIONS 01, ADMIN 06 uncommitted) · CLAUDE.md (Commands, worker-cron correction)
+- docs/DEPLOYMENT.md · docs/STRIPE-PRODUCTION.md · docs/GO-LIVE-REQUIREMENTS.md (B19, B20) · docs/GOOGLE-SIGN-IN.md ·
+  docs/OAUTH-DESIGN.md · docs/THE-WALK-2026-09-23.md · docs/STATE.md · docs/AUDIT-SUMMARY.md (rulings §4, untested §5) ·
+  docs/INSTRUMENT-ERRORS.md · docs/PHANTOM-PERMISSIONS.md
+- Script headers (git): ops/exposure-battery.sh · ops/ps-check.sh · ops/proc-check.sh · ops/config-inventory.php ·
+  ops/htaccess-drift-check.sh · ops/public-checks.sh · ops/release.sh (+ `git diff ops/release.sh`) · ops/secret-scan.sh ·
+  ops/references.php · ops/money-as-seeded.sh · tests/Mutations/run.php · tests/TestCase.php:90
+- Untracked: docs/memory/briefs/{ADMIN-06,KEYBOARD-01,MAIL-02,TONIGHT-01,PW-SIGNUP-DELETE-1,-2}.md · docs/memory/tools/*
+- Auto-memory (outside the repo): `~/.claude/projects/-Applications-XAMPP-xamppfiles-htdocs-vyrobel/memory/` —
+  MEMORY.md (index) and audit-method-and-traps.md (Tier 1/2)
+- git: log (91b83801, 975116b2, 3cd72c26, 6a444d09), `git status`, `git diff --stat`

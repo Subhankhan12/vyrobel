@@ -1,0 +1,36 @@
+<?php
+// MEMORY 01 — READ-ONLY production state. Booleans, names and counts only; no secret or setting VALUE is printed.
+use App\Support\Platform\PlatformSwitches;
+use Illuminate\Support\Facades\DB;
+$set = fn ($v) => $v !== null && (string) $v !== '' ? 'yes' : 'no';
+$orgs = DB::table('organizations')->orderBy('created_at')->get(['name', 'slug', 'status', 'deleted_at', 'is_internal', 'created_at'])
+  ->map(fn ($o) => ['name' => $o->name, 'slug' => $o->slug, 'status' => $o->deleted_at ? 'archived' : $o->status, 'internal' => (bool) $o->is_internal, 'created' => substr((string) $o->created_at, 0, 10)])->all();
+echo json_encode([
+  'app_env' => app()->environment(),
+  'config_cached' => app()->configurationIsCached(),
+  'mail_default_mailer' => config('mail.default'),
+  'MAIL_PASSWORD_set' => $set(config('mail.mailers.smtp.password')),
+  'MAIL_HOST_is_hostinger' => str_contains((string) config('mail.mailers.smtp.host'), 'hostinger'),
+  'POSTMARK_token_set' => $set(config('services.postmark.token') ?? config('services.postmark.key')),
+  'stripe_fake_client' => (bool) config('services.stripe.fake'),
+  'STRIPE_SECRET_set' => $set(config('services.stripe.secret')),
+  'STRIPE_SECRET_is_live' => str_starts_with((string) config('services.stripe.secret'), 'sk_live_'),
+  'stripe_webhook_secret_set' => $set(config('services.stripe.webhook_secret')),
+  'stripe_connect_webhook_secret_set' => $set(config('services.stripe.connect_webhook_secret')),
+  'google_client_id_set' => $set(config('services.google.client_id')),
+  'google_client_secret_set' => $set(config('services.google.client_secret')),
+  'twitter_client_id_set' => $set(config('services.twitter.client_id')),
+  'twitter_client_secret_set' => $set(config('services.twitter.client_secret')),
+  'OPS_HEARTBEAT_PING_URL_set' => $set(config('ops.heartbeat_ping_url')),
+  'break_glass_enabled' => (bool) config('platform.break_glass.enabled'),
+  'break_glass_minutes' => config('platform.break_glass.minutes'),
+  'switches' => PlatformSwitches::states(),
+  'queue_connection' => config('queue.default'),
+  'session_driver' => config('session.driver'),
+  'cache_store' => config('cache.default'),
+  'maintenance_mode' => app()->isDownForMaintenance(),
+  'organisations' => $orgs,
+  'organisations_total' => count($orgs),
+  'organisations_not_internal' => collect($orgs)->where('internal', false)->count(),
+  'users' => DB::table('users')->count(),
+], JSON_PRETTY_PRINT), "\n";

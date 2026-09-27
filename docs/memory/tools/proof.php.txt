@@ -1,0 +1,318 @@
+<?php
+
+// VYROBEL — READ-ONLY PROOF of one organisation's permanent deletion. Counts, fingerprints and totals only — never a value.
+//   php proof.php before <organisation id> <dir>   — premises, controls, census, fingerprints, orphans, footprint; saves ids.json
+//   php proof.php after  <dir>                     — the same measurements for the SAME ids (read from ids.json)
+// Independent of the code under test (OrganizationDeletion): tables, columns and foreign keys come from information_schema
+// of THIS database; people are derived from every foreign key into `users`, not from the deletion's own candidates().
+declare(strict_types=1);
+
+$root = getcwd();
+require $root.'/vendor/autoload.php';
+$app = require $root.'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+use Illuminate\Support\Facades\DB;
+
+$mode = $argv[1] ?? '';
+if ($mode === 'before') {
+    [$org, $dir] = [strtolower((string) ($argv[2] ?? '')), rtrim((string) ($argv[3] ?? ''), '/')];
+} else {
+    $dir = rtrim((string) ($argv[2] ?? ''), '/');
+    $org = null;
+}
+if (! in_array($mode, ['before', 'after'], true) || $dir === '' || ! is_dir($dir) || ($mode === 'before' && $org === '')) {
+    fwrite(STDERR, "usage: php proof.php before <organisation id> <dir> | php proof.php after <dir>\n");
+    exit(2);
+}
+$fail = function (string $why): never {
+    fwrite(STDERR, "REFUSED: {$why}\n");
+    exit(1);
+};
+$like = fn (string $s): string => str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $s);
+
+// ── the schema, read once
+$tables = array_map(fn ($r) => (string) $r->t, DB::select(
+    "SELECT TABLE_NAME AS t FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE IN ('BASE TABLE', 'SYSTEM VERSIONED') ORDER BY TABLE_NAME"
+));
+$cols = [];
+$types = [];
+foreach (DB::select('SELECT TABLE_NAME AS t, COLUMN_NAME AS c, DATA_TYPE AS dt, CHARACTER_MAXIMUM_LENGTH AS len FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, ORDINAL_POSITION') as $r) {
+    $cols[(string) $r->t][] = (string) $r->c;
+    $types[(string) $r->t][(string) $r->c] = [(string) $r->dt, (int) $r->len];
+}
+$fks = DB::select(
+    'SELECT TABLE_NAME AS child, COLUMN_NAME AS col, REFERENCED_TABLE_NAME AS parent, REFERENCED_COLUMN_NAME AS pcol
+     FROM information_schema.KEY_COLUMN_USAGE
+     WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL'
+);
+$orgTables = array_values(array_filter($tables, fn ($t) => in_array('organization_id', $cols[$t] ?? [], true)));
+$premises = [
+    'database' => (string) DB::selectOne('SELECT DATABASE() AS d')->d,
+    'server' => (string) DB::selectOne('SELECT @@hostname AS h')->h,
+    'version' => (string) DB::selectOne('SELECT VERSION() AS v')->v,
+    'tables' => count($tables),
+    'organisation_tables' => count($orgTables),
+    'foreign_key_columns' => count($fks),
+    'session_driver' => (string) config('session.driver'),
+    'session_encrypt' => (bool) config('session.encrypt'),
+    'cache_store' => (string) config('cache.default'),
+];
+if ($premises['tables'] < 100 || $premises['organisation_tables'] < 90 || $premises['foreign_key_columns'] < 150) {
+    $fail('the schema read is too small to be this database: '.json_encode($premises));
+}
+
+// ── BEFORE: the ids it owns, derived independently; saved for the AFTER run
+if ($mode === 'before') {
+    if (! DB::table('organizations')->where('id', $org)->exists()) {
+        $fail("organisation {$org} not found — nothing to prove");
+    }
+    $ids = [$org];
+    foreach ($orgTables as $t) {
+        if (in_array('id', $cols[$t], true)) {
+            foreach (DB::table($t)->where('organization_id', $org)->pluck('id') as $id) {
+                $ids[] = strtolower((string) $id);
+            }
+        }
+    }
+    // people: every foreign key into `users`, over this organisation's rows (NOT the deletion's own candidates())
+    $people = [];
+    foreach ($fks as $fk) {
+        if ((string) $fk->parent === 'users' && in_array((string) $fk->child, $orgTables, true)) {
+            foreach (DB::table((string) $fk->child)->where('organization_id', $org)->whereNotNull((string) $fk->col)->pluck((string) $fk->col) as $u) {
+                $people[] = strtolower((string) $u);
+            }
+        }
+    }
+    foreach (DB::table('model_has_roles')->where('organization_id', $org)->where('model_type', 'user')->pluck('model_id') as $u) {
+        $people[] = strtolower((string) $u);
+    }
+    $people = array_values(array_unique($people));
+    $sole = [];
+    $kept = [];
+    foreach ($people as $u) {
+        $elsewhere = false;
+        foreach ($fks as $fk) {
+            if ((string) $fk->parent === 'users' && in_array((string) $fk->child, $orgTables, true)
+                && DB::table((string) $fk->child)->where((string) $fk->col, $u)->where('organization_id', '!=', $org)->exists()) {
+                $elsewhere = true;
+                break;
+            }
+        }
+        $elsewhere ? $kept[] = $u : $sole[] = $u;
+    }
+    $emails = collect()
+        ->merge(DB::table('users')->whereIn('id', $sole)->pluck('email'))
+        ->merge(DB::table('users')->whereIn('id', $sole)->pluck('pending_email'))
+        ->merge(DB::table('user_identities')->whereIn('user_id', $sole)->pluck('provider_email'))
+        ->merge(DB::table('organizations')->where('id', $org)->pluck('billing_email'))
+        ->merge(in_array('owner_invites', $tables, true) ? DB::table('owner_invites')->where('organization_id', $org)->pluck('email') : [])
+        ->merge(in_array('owner_team_invites', $tables, true) ? DB::table('owner_team_invites')->where('organization_id', $org)->pluck('email') : [])
+        ->filter()->map(fn ($e) => mb_strtolower(trim((string) $e)))->unique()->values()->all();
+    $guestHashes = DB::table('guests')->where('organization_id', $org)->whereNotNull('email_hash')->pluck('email_hash')->map(fn ($h) => (string) $h)->all();
+    $stripe = collect()
+        ->merge(DB::table('subscriptions')->where('organization_id', $org)->pluck('stripe_customer_id'))
+        ->merge(DB::table('subscriptions')->where('organization_id', $org)->pluck('stripe_subscription_id'))
+        ->merge(DB::table('organizations')->where('id', $org)->pluck('stripe_connect_account_id'))
+        ->filter()->map(fn ($s) => strtolower((string) $s))->unique()->values()->all();
+    // key values of every parent row it owns, for every column a foreign key points at (numeric role ids included)
+    $keys = [];
+    foreach ($fks as $fk) {
+        [$p, $pc] = [(string) $fk->parent, (string) $fk->pcol];
+        if (isset($keys[$p][$pc])) {
+            continue;
+        }
+        $vals = match (true) {
+            $p === 'organizations' => DB::table('organizations')->where('id', $org)->pluck($pc)->all(),
+            $p === 'users' => DB::table('users')->whereIn('id', $sole)->pluck($pc)->all(),
+            in_array($p, $orgTables, true) => DB::table($p)->where('organization_id', $org)->pluck($pc)->all(),
+            default => [],
+        };
+        if ($vals !== []) {
+            $keys[$p][$pc] = array_values(array_unique(array_map('strval', $vals)));
+        }
+    }
+    $saved = ['organization' => $org, 'premises' => $premises, 'ids' => array_values(array_unique([...$ids, ...$sole])), 'sole' => $sole, 'kept' => $kept,
+        'emails' => $emails, 'guest_hashes' => $guestHashes, 'stripe' => $stripe, 'keys' => $keys];
+    file_put_contents("{$dir}/proof-ids.json", json_encode($saved));
+    chmod("{$dir}/proof-ids.json", 0600);
+} else {
+    $saved = json_decode((string) @file_get_contents("{$dir}/proof-ids.json"), true) ?: $fail('proof-ids.json missing — run "before" first');
+    foreach (['database', 'server', 'tables', 'organisation_tables', 'foreign_key_columns'] as $k) {
+        if ($saved['premises'][$k] !== $premises[$k]) {
+            $fail("premise changed since BEFORE: {$k} was ".json_encode($saved['premises'][$k]).', now '.json_encode($premises[$k]));
+        }
+    }
+    $org = $saved['organization'];
+}
+[$sole, $emails, $keys] = [$saved['sole'], $saved['emails'], $saved['keys']];
+
+// ── 1 · every table: total rows; every organisation table: rows AND a content fingerprint, per organisation
+//        (JSON_ARRAY, never CONCAT: CONCAT is NULL when any column is NULL and the fingerprint would see nothing)
+$totals = [];
+$perOrg = [];
+foreach ($tables as $t) {
+    $totals[$t] = (int) DB::table($t)->count();
+    $fields = implode(', ', array_map(fn ($c) => '`'.$c.'`', $cols[$t]));
+    $finger = "BIT_XOR(CAST(CONV(SUBSTR(MD5(JSON_ARRAY({$fields})), 1, 15), 16, 10) AS UNSIGNED))";
+    if (in_array($t, $orgTables, true)) {
+        foreach (DB::select("SELECT organization_id AS o, COUNT(*) AS n, {$finger} AS f FROM `{$t}` GROUP BY organization_id") as $r) {
+            $perOrg[$t][$r->o === null ? '(null)' : strtolower((string) $r->o)] = [(int) $r->n, (string) $r->f];
+        }
+    } else {
+        $perOrg[$t]['(whole table)'] = [(int) $totals[$t], (string) DB::selectOne("SELECT {$finger} AS f FROM `{$t}`")->f];
+    }
+}
+
+// ── 2 · orphans — needle-free: rows whose parent no longer exists (independent of the saved ids); must not increase
+$orphans = [];
+$q = fn (string $sql): int => (int) DB::selectOne($sql)->n;
+foreach ($orgTables as $t) {
+    $orphans["{$t}.organization_id → organizations"] = $q("SELECT COUNT(*) AS n FROM `{$t}` x WHERE x.organization_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM organizations o WHERE o.id = x.organization_id)");
+}
+$orphans['sessions.user_id → users ∪ guests ∪ platform_admins'] = $q('SELECT COUNT(*) AS n FROM sessions s WHERE s.user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = s.user_id) AND NOT EXISTS (SELECT 1 FROM guests g WHERE g.id = s.user_id) AND NOT EXISTS (SELECT 1 FROM platform_admins a WHERE a.id = s.user_id)');
+$orphans['notifications (user) → users'] = $q("SELECT COUNT(*) AS n FROM notifications n WHERE n.notifiable_type = 'user' AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = n.notifiable_id)");
+$orphans['notifications (guest) → guests'] = $q("SELECT COUNT(*) AS n FROM notifications n WHERE n.notifiable_type = 'guest' AND NOT EXISTS (SELECT 1 FROM guests g WHERE g.id = n.notifiable_id)");
+$orphans['login_activity (user) → users'] = $q("SELECT COUNT(*) AS n FROM login_activity l WHERE l.subject_type = 'user' AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = l.subject_id)");
+$orphans['login_activity (guest) → guests'] = $q("SELECT COUNT(*) AS n FROM login_activity l WHERE l.subject_type = 'guest' AND NOT EXISTS (SELECT 1 FROM guests g WHERE g.id = l.subject_id)");
+foreach (['property' => 'properties', 'room_type' => 'room_types', 'unit' => 'units', 'unit_request' => 'unit_requests'] as $type => $parent) {
+    $orphans["amenitiables ({$type}) → {$parent}"] = $q("SELECT COUNT(*) AS n FROM amenitiables a WHERE a.amenitiable_type = '{$type}' AND NOT EXISTS (SELECT 1 FROM `{$parent}` p WHERE p.id = a.amenitiable_id)");
+}
+foreach (['oauth_access_tokens', 'oauth_auth_codes', 'oauth_device_codes', 'announcement_dismissals'] as $t) {
+    if (in_array($t, $tables, true)) {
+        $orphans["{$t}.user_id → users"] = $q("SELECT COUNT(*) AS n FROM `{$t}` x WHERE x.user_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = x.user_id)");
+    }
+}
+$orphans['llm_usage.owner_id → users ∪ guests'] = $q('SELECT COUNT(*) AS n FROM llm_usage x WHERE x.owner_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = x.owner_id) AND NOT EXISTS (SELECT 1 FROM guests g WHERE g.id = x.owner_id)');
+$orphans['oauth_refresh_tokens → oauth_access_tokens'] = $q('SELECT COUNT(*) AS n FROM oauth_refresh_tokens r WHERE NOT EXISTS (SELECT 1 FROM oauth_access_tokens a WHERE a.id = r.access_token_id)');
+$orphans['password_reset_tokens.email → users'] = $q('SELECT COUNT(*) AS n FROM password_reset_tokens p WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.email = p.email)');
+$orphans['guest_password_reset_tokens.email → guests.email_hash'] = $q('SELECT COUNT(*) AS n FROM guest_password_reset_tokens t WHERE NOT EXISTS (SELECT 1 FROM guests g WHERE g.email_hash = t.email)');
+$orphans['platform_announcements.organization_ids → organizations'] = 0;
+foreach (DB::table('platform_announcements')->whereNotNull('organization_ids')->pluck('organization_ids') as $json) {
+    foreach ((array) json_decode((string) $json, true) as $oid) {
+        $orphans['platform_announcements.organization_ids → organizations'] += DB::table('organizations')->where('id', (string) $oid)->exists() ? 0 : 1;
+    }
+}
+foreach (\App\Services\Platform\OrganizationDeletion::UNKEYED_USER_COLUMNS as [$t, $c]) {
+    if (in_array($t, $tables, true)) {
+        $orphans["{$t}.{$c} → users (unkeyed)"] = $q("SELECT COUNT(*) AS n FROM `{$t}` x WHERE x.`{$c}` IS NOT NULL AND x.`{$c}` <> '' AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = x.`{$c}`) AND NOT EXISTS (SELECT 1 FROM platform_admins a WHERE a.id = x.`{$c}`)");
+    }
+}
+
+// ── 3 · footprint A — every foreign-key column, searched for the saved key values (numeric role ids included)
+$footA = [];
+foreach ($fks as $fk) {
+    $vals = $keys[(string) $fk->parent][(string) $fk->pcol] ?? [];
+    $n = 0;
+    foreach (array_chunk($vals, 500) as $chunk) {
+        $n += DB::table((string) $fk->child)->whereIn((string) $fk->col, $chunk)->count();
+    }
+    if ($n > 0) {
+        $footA["{$fk->child}.{$fk->col} → {$fk->parent}.{$fk->pcol}"] = $n;
+    }
+}
+ksort($footA);
+
+// ── 4 · footprint B — every text column for its string ids, addresses, guest hashes and Stripe ids;
+//        session payloads are base64 — searched DECODED (a raw search there is a guaranteed false zero)
+$needles = array_values(array_filter(array_unique([...$saved['ids'], ...$emails, ...$saved['guest_hashes'], ...$saved['stripe']]), fn ($v) => $v !== '' && ! ctype_digit((string) $v)));
+$footB = [];
+$scanned = 0;
+foreach ($tables as $t) {
+    foreach ($types[$t] as $c => [$dt, $len]) {
+        if (! in_array($dt, ['char', 'varchar', 'tinytext', 'text', 'mediumtext', 'longtext', 'json'], true)) {
+            continue;
+        }
+        $scanned++;
+        $query = DB::table($t);
+        if ($t === 'sessions' && $c === 'payload') {
+            $query->where(function ($w) use ($needles) {
+                foreach ($needles as $n) {
+                    $w->orWhereRaw('LOCATE(?, LOWER(CONVERT(FROM_BASE64(`payload`) USING utf8mb4))) > 0', [$n]);
+                }
+            });
+        } elseif (in_array($dt, ['char', 'varchar'], true) && $len <= 64) {
+            $query->whereIn(DB::raw('LOWER(`'.$c.'`)'), $needles);
+        } else {
+            $query->where(function ($w) use ($c, $needles, $like) {
+                foreach ($needles as $n) {
+                    $w->orWhereRaw('LOWER(CAST(`'.$c.'` AS CHAR)) LIKE ?', ['%'.$like($n).'%']);
+                }
+            });
+        }
+        $n = $query->count();
+        if ($n > 0) {
+            $footB["{$t}.{$c}"] = $n;
+        }
+    }
+}
+ksort($footB);
+$undecodableSessions = (int) DB::selectOne('SELECT COUNT(*) AS n FROM sessions WHERE payload IS NOT NULL AND FROM_BASE64(payload) IS NULL')->n;
+
+// ── 5 · its people, counted from the SAVED ids (the membership rows that name them are gone after)
+$peopleCounts = [];
+foreach ($sole as $u) {
+    $row = ['users' => DB::table('users')->where('id', $u)->count(), 'sessions' => DB::table('sessions')->where('user_id', $u)->count(),
+        'user_identities (Google/X)' => DB::table('user_identities')->where('user_id', $u)->count()];
+    foreach (['passkeys', 'trusted_devices', 'login_approvals', 'notification_preferences', 'oauth_access_tokens', 'oauth_auth_codes', 'announcement_dismissals'] as $t) {
+        if (in_array($t, $tables, true)) {
+            $row[$t] = DB::table($t)->where('user_id', $u)->count();
+        }
+    }
+    $row['notifications'] = DB::table('notifications')->where('notifiable_type', 'user')->where('notifiable_id', $u)->count();
+    $row['login_activity (as subject)'] = DB::table('login_activity')->where('subject_type', 'user')->where('subject_id', $u)->count();
+    $row['llm_usage'] = DB::table('llm_usage')->where('owner_id', $u)->count();
+    $peopleCounts[$u] = $row;
+}
+$addressRows = [
+    'login_activity (identifier = its addresses, any guard)' => $emails === [] ? 0 : DB::table('login_activity')->whereIn(DB::raw('LOWER(identifier)'), $emails)->count(),
+    'password_reset_tokens (its addresses)' => $emails === [] ? 0 : DB::table('password_reset_tokens')->whereIn(DB::raw('LOWER(email)'), $emails)->count(),
+];
+
+// ── 6 · the file cache (outside every table): files naming the organisation or its people — a count, never a name
+$cacheFiles = null;
+$cacheDir = storage_path('framework/cache/data');
+if (is_dir($cacheDir)) {
+    $cacheFiles = 0;
+    $idNeedles = array_values(array_unique([$org, ...$sole]));
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($cacheDir, FilesystemIterator::SKIP_DOTS)) as $f) {
+        $body = (string) @file_get_contents($f->getPathname());
+        foreach ($idNeedles as $n) {
+            if ($n !== '' && stripos($body, $n) !== false) {
+                $cacheFiles++;
+                break;
+            }
+        }
+    }
+}
+
+// ── controls: in BEFORE, each search must see what is known to be there, or its later zero means nothing
+$controls = [];
+if ($mode === 'before') {
+    $controls['B finds the organisation row'] = ($footB['organizations.id'] ?? 0) === 1;
+    $controls['B finds every sole person'] = ($footB['users.id'] ?? 0) === count($sole);
+    $controls['A finds the role permissions (numeric keys)'] = ! DB::table('roles')->where('organization_id', $org)->exists() || ($footA['role_has_permissions.role_id → roles.id'] ?? 0) > 0;
+    $controls['fingerprint sees its rows'] = ($perOrg['organization_user'][$org][0] ?? 0) > 0 || ($perOrg['roles'][$org][0] ?? 0) > 0;
+    // the SAME SQL decode the search uses must find what every session holds ('_token'), or its zeros mean nothing
+    $controls['the decoded session search sees inside payloads'] = DB::table('sessions')->count() === 0
+        || (int) DB::selectOne("SELECT COUNT(*) AS n FROM sessions WHERE LOCATE('_token', LOWER(CONVERT(FROM_BASE64(`payload`) USING utf8mb4))) > 0")->n > 0;
+    foreach ($controls as $name => $ok) {
+        if (! $ok) {
+            $fail("positive control failed: {$name}");
+        }
+    }
+}
+
+$out = ['mode' => $mode, 'taken_at_utc' => gmdate('c'), 'organization' => $org, 'premises' => $premises, 'controls' => $controls,
+    'totals' => $totals, 'per_org' => $perOrg, 'orphans' => $orphans, 'footprint_fk' => $footA, 'footprint_text' => $footB,
+    'text_columns_scanned' => $scanned, 'undecodable_sessions' => $undecodableSessions, 'people' => $peopleCounts, 'address_rows' => $addressRows,
+    'cache_files_naming_it' => $cacheFiles, 'sole' => count($sole), 'kept' => count($saved['kept']), 'needles' => count($needles)];
+$file = "{$dir}/proof-{$mode}-".gmdate('Ymd\THis\Z').'.json';
+$json = json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+file_put_contents($file, $json);
+chmod($file, 0600);
+echo "proof {$mode}: ", basename($file), ' · ', $premises['database'], ' on ', $premises['version'], ' · ', count($tables), ' tables · ', array_sum($totals), ' rows · ',
+    count($sole), ' sole / ', count($saved['kept']), ' kept people · ', count($needles), ' needles · ', $scanned, ' text columns · sha256 ', substr(hash('sha256', $json), 0, 16), "\n";
+if ($controls !== []) {
+    echo '  controls: ', implode(' · ', array_map(fn ($k, $v) => ($v ? '✓ ' : '✗ ').$k, array_keys($controls), $controls)), "\n";
+}
