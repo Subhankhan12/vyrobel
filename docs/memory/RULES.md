@@ -260,7 +260,7 @@ It catches a CHANGE; the battery catches an EFFECT. Neither replaces the other (
 
 **`ops/public-checks.sh [BASE]`** — after EVERY swap. It checks /login + both social buttons, both social 302s, /signup, the anonymous /admin redirects and POST refusals, a 5xx sweep of public GETs, and battery SERVED=0.
 Pass = `PASS N · FAIL 0 · COULD NOT MEASURE 0`, exit 0. Exit 2 = a CDN browser challenge (403 "Checking your browser"): control-run it.
-**Any FAIL → roll back FIRST, diagnose after.** Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AG` (Verified 2026-09-29, after the Portfolio-remove swap).
+**Any FAIL → roll back FIRST, diagnose after.** Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AH` (Verified 2026-09-29, after the Portfolio Open + fields swap).
 
 **`php artisan tinker --execute='require "ops/config-inventory.php";'`** (on the host with the php84 binary, inside the release).
 It reports which config keys are EMPTY and what each emptiness does: SILENT / LOUD / INERT / UNCLASSIFIED. It never prints a value.

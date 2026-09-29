@@ -288,7 +288,8 @@ progressive operator components over the real form fields (the console field sys
 and the browser:** a component tag inside a CSS comment is compiled by Blade (every page 500'd); `.vy-input` reset the
 combobox padding; a tile overflowed at 390 px; the keyboard guard wanted a reasoned exemption for the listbox options
 (added with its backing string, PF-M6). Gates: 4,047/4,047 on both engines; 343/343 mutations; money gate FULL unmoved.
-Deploy: see `STATE.md`.
+**Deploy — LIVE `rel_AH @ 3b012e93`, swap 4 ms (Verified 2026-09-29 18:25 Baku);** public checks 12/0/0; 1,405/1,405 files
+match git; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

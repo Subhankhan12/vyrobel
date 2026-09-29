@@ -18558,3 +18558,8 @@ keyboard path it describes.
 11.8.9** (29,315 assertions each, 0 skipped, the same tree `8a717c280ea6f4af`) · mutations **343/343 across every set**
 (`portfolio-fields` 6/6) · money gate FULL unmoved · PHPStan 0 · Pint clean · 🖥 browser-walked (above).
 
+✅ **LIVE on `rel_AH @ 3b012e93` (2026-09-29, swap 4 ms, 18:25 Baku).** No migration. 🔬 Preflight from the staged release:
+production's PHP 8.4.19 builds the 419 time zones in 1.6 ms (Asia/Baku UTC+4, Europe/Lisbon UTC+1); both routes and both
+components present. After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`), **1,405 of
+1,405** deployable files match git at `3b012e93`, 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
+

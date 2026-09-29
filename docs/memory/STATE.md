@@ -5,11 +5,11 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AG` → commit `e4117aeb`** (the Portfolio remove, on top of ADMIN 06). **V:** `readlink current` +
-  `cat current/.release` over SSH after the swap, 2026-09-29 16:34 Baku. Rollback targets: `rel_AF @ 4c17edd2` (ADMIN 06),
-  `rel_AE @ 1ede4c63` (ADMIN 05) — `ops/release.sh rollback rel_<X>`.
-- **GitHub `origin/main`** carries `e4117aeb` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,402 of 1,402 deployable files match git at `e4117aeb`.** **V** 2026-09-29 16:3x,
+- **Live release `rel_AH` → commit `3b012e93`** (Portfolio Open + dialog fields, on top of the Portfolio remove and ADMIN 06).
+  **V:** `readlink current` + `cat current/.release` over SSH after the swap, 2026-09-29 18:25 Baku. Rollback targets:
+  `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06), `rel_AE @ 1ede4c63` — `ops/release.sh rollback rel_<X>`.
+- **GitHub `origin/main`** carries `3b012e93` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,405 of 1,405 deployable files match git at `3b012e93`.** **V** 2026-09-29 18:2x,
   sha256 manifest checked inside the live release.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
@@ -21,7 +21,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **343/343 landed and caught across every set**, 0 not caught, 0 did not land (`admin-06` = 87, `admin-05` = 49, `portfolio-remove` = 14, `portfolio-fields` = 6) | **V** harness output 2026-09-29 17:40 Baku |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-29. Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-29 |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AG`, 2026-09-29 16:3x Baku (and on `rel_AF` at 13:4x; drift check passes, self-test 3/3) | **V** `ops/public-checks.sh` 2026-09-29 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AH`, 2026-09-29 18:3x Baku (and on `rel_AG`, `rel_AF` the same day; drift check passes, self-test 3/3) | **V** `ops/public-checks.sh` 2026-09-29 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -44,8 +44,7 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 ## ⚠️ IN FLIGHT — started, not finished
 0. **Portfolio remove (2026-09-29)** — ✅ LIVE on `rel_AG` (V). Left: a signed-in look on production (his sign-in); his calls
    DEC-h (F-58) and DEC-i (Edit scope).
-0b. **Portfolio Open + dialog fields (2026-09-29)** — built, every gate green, committed with this memory; deployed right after.
-    **The docs commit that follows records whether it went live.**
+0b. **Portfolio Open + dialog fields (2026-09-29)** — ✅ LIVE on `rel_AH` (V). Left: a signed-in look on production.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
