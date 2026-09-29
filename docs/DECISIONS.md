@@ -18443,3 +18443,18 @@ refuse for ever with a false explanation.**
 - **PHPStan L5: 0 errors · Pint: clean.**
 - ⚠️ **The machine is shared.** `advisor-platform` runs suites against the same local MySQL: the harness refused once until a
   gap, and the MariaDB swap waited for the founder to pause that project (his choice, 2026-09-29).
+
+✅ **LIVE on `rel_AF @ 4c17edd2` (2026-09-29, swap 4 ms, 13:41 Baku).** Staged from the pushed commit: 42 files shipped, among
+them the four `ops/` check files that had drifted from git (the #6 fix, working on its first deploy); caches rebuilt in the
+new release; every shipped file on its own inode, the live release untouched. The migration ran additive, in 1 s, while
+`rel_AE` served. 🔬 **Preflight from the staged release, read-only against production's MariaDB:** the delete preview of
+PW-SIGNUP PROBE **144 ms — 232 rows in 9 tables** (18 of its own, 212 linked, 2 of its account; the old preview said 17), the
+refusal 264 ms (none: it holds no money; the deletion still requires suspension), and the count's premise on production's
+own schema **0 problems** over 196 cascading keys. **After the swap:** public checks **12 PASS · 0 FAIL · 0 could not
+measure**, battery `SERVED=0` · the drift check on the live `.htaccess` passes, its self-test fires 3/3 · **1,401 of 1,401**
+deployable files match git at `4c17edd2` byte for byte (was 1,391 of 1,395) · 0 errors logged since the swap · the
+heartbeats fresh (`/up/liveness` 200) · the 775 log set to 644, still 404 from the web · one `.env` under the web root, 600.
+Production's switches read back unchanged (mail `log`, the fake Stripe client, no key, heartbeat unarmed, every kill switch
+on). ⚠️ The first pages after the swap took up to 35 s while the shared host's load average sat near 50; the same pages then
+answered in 0.3–0.5 s. ⚠️ **NOT DONE: a signed-in look at the new delete screen on production** — it needs the founder's
+sign-in, which a session never types.

@@ -55,7 +55,7 @@ releases/rel_<X>/storage  → ../../public_html/storage
 - **Script:** `ops/release.sh` — `status · stage · recache · migrate · swap · rollback` (git). Full procedure and
   traps: `docs/KNOWN-LIMITS.md` L12k "HOW TO DEPLOY INTO THIS LAYOUT"; older runbook `docs/DEPLOYMENT.md`.
 - **Which commit is live:** read `public_html/current/.release` (`ops/release.sh status` does this). Never type a
-  hash. **Verified 2026-09-27 (MEMORY 01): `rel_AE @ 1ede4c63`**; read it again before relying on it.
+  hash. **Verified 2026-09-29 (ADMIN 06 deploy): `rel_AF @ 4c17edd2`**; read it again before relying on it.
 - **`stage`** (git): refuses a dirty tree; `cp -al` of the live release (hardlinks); ships only files changed
   between the live commit and HEAD, each written as a **new inode** (never `scp` onto a hardlinked file); writes
   `.release`; rebuilds `config:cache` + `route:cache` **in the new release every time** (the config cache bakes

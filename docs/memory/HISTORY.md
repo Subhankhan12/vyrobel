@@ -259,7 +259,10 @@ read matched `STATE.md` (Verified 2026-09-27 15:55–16:05 Baku, and again 2026-
   second needle, so the check always passed. `NegatedVariadicMatcherGuardTest` caught it; the same trap fired on 2026-09-27.
 - **Gates (Verified, this pass's run outputs):** 4,033/4,033 on MySQL 8.4.10 and on MariaDB 11.8.9 (same tree, fingerprint
   `8f8813b4fac362d8`); 323/323 mutations caught across every set; money gate FULL unmoved; PHPStan 0; Pint clean.
-- **Deploy:** see `STATE.md` and the docs commit that follows this one.
+- **Deploy — LIVE `rel_AF @ 4c17edd2`, swap 4 ms (Verified 2026-09-29 13:41 Baku).** Preflight on production's MariaDB,
+  read-only: the delete preview 144 ms, 232 rows (was shown as 17). Public checks 12/0/0; 1,401/1,401 files match git;
+  0 errors since the swap; the 775 log set to 644. ⚠️ First pages after the swap were slow (up to 35 s) under a shared-host
+  load near 50, then 0.3–0.5 s. Not done: the signed-in look at the delete screen (needs his sign-in).
 - **Another project shares the Mac.** `advisor-platform` runs full suites against the same local MySQL; the mutation harness
   refused once because of it (its guard matches any `pest`, `OPEN.md` A7), and the MariaDB engine swap needed the founder
   to pause that project (F 2026-09-29).

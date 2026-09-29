@@ -252,7 +252,7 @@ It catches a CHANGE; the battery catches an EFFECT. Neither replaces the other (
 
 **`ops/public-checks.sh [BASE]`** — after EVERY swap. It checks /login + both social buttons, both social 302s, /signup, the anonymous /admin redirects and POST refusals, a 5xx sweep of public GETs, and battery SERVED=0.
 Pass = `PASS N · FAIL 0 · COULD NOT MEASURE 0`, exit 0. Exit 2 = a CDN browser challenge (403 "Checking your browser"): control-run it.
-**Any FAIL → roll back FIRST, diagnose after.** Last reported PASS 12 · FAIL 0 · CNM 0 (Reported: DECISIONS.md, ADMIN 05 on rel_AE, 2026-09-26).
+**Any FAIL → roll back FIRST, diagnose after.** Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AF` (Verified 2026-09-29, after the ADMIN 06 swap).
 
 **`php artisan tinker --execute='require "ops/config-inventory.php";'`** (on the host with the php84 binary, inside the release).
 It reports which config keys are EMPTY and what each emptiness does: SILENT / LOUD / INERT / UNCLASSIFIED. It never prints a value.
@@ -281,8 +281,8 @@ drop/rename/change) → `swap rel_X` → `ops/public-checks.sh` → prune by han
 of the deployable files (app bootstrap config database public resources routes ops artisan). It excludes bootstrap/cache, public/build
 and resources/css|js; vendor/, `.env` and storage/ are not in it. The manifest is built at the LIVE commit, and
 `sha256sum -c` runs it inside the live release. Each file that differs or is missing ships from git at the new commit.
-Pass line: `drifted from git on the host: none`. It found 4 of 1,395 drifted on rel_AE (Verified again 2026-09-29, before the
-ADMIN 06 deploy).
+Pass line: `drifted from git on the host: none`. It found 4 of 1,395 drifted on rel_AE and shipped them on its first run
+(ADMIN 06 deploy, 2026-09-29); after it, 1,401 of 1,401 match (Verified).
 Never use `ops/deploy.sh` on the host: it refuses by design (L12h).
 
 **The PW-SIGNUP delete proof tools** live in `docs/memory/tools/` (saved by MEMORY 01; see its README). **Verified 2026-09-27:

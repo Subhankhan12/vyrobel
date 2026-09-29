@@ -9,9 +9,9 @@ change is said.** Briefs live in `briefs/`.
 |---|---|---|---|---|
 | F1 | Change the exposed `contact@` password in hPanel, then put the new one in `.env` as `MAIL_PASSWORD`. **Exposed because** it was pasted into a chat session during the email passes (R: MEMORY 01; exact date not recorded). It was never used, and must be rotated. (**V 2026-09-29:** not set; mailer `log`) | him | `TONIGHT-01.md` Part 2, `MAIL-02.md` | Until then every email is thrown away: invites, resets, verification. |
 | F2 | Copy `APP_KEY` into his password manager, off the server | him | — | It exists in one place. Lose it and encrypted guest data is gone for good. |
-| F3 | PW-SIGNUP PROBE: suspend, then delete, with his password. **V 2026-09-29:** still `active`, so not started | him — ADMIN 06 is now finished (see `STATE.md` for whether it is live) | `PW-SIGNUP-DELETE-1.md`, `-2-follow-up.md` | The first real deletion; it proves the delete on production. The agent retakes the backup and baselines first (A3). |
+| F3 | PW-SIGNUP PROBE: suspend, then delete, with his password. **V 2026-09-29:** still `active`, so not started | him — ready: ADMIN 06 is live (V 2026-09-29) | `PW-SIGNUP-DELETE-1.md`, `-2-follow-up.md` | The first real deletion; it proves the delete on production. The agent retakes the backup and baselines first (A3). |
 | F4 | KEYBOARD 01 at the keyboard: (1) rotate the Google secret, proven by a real signup; (2) the four admin checks; (3) the heartbeat alarm (**V 2026-09-29:** unarmed); (4) the Stripe dashboard set-up, only after ADMIN 06 is live. **Its own rule: run it after TONIGHT 01 has closed.** | him | `KEYBOARD-01.md` | Proves the secrets and turns the heartbeat on. |
-| F5 | Stripe live: keys, both webhook secrets, Connect verification, the four Price IDs, real prices | him | `docs/STRIPE-PRODUCTION.md` | ⛔ Not before ADMIN 06 is live, B20 is settled (D-B20) **and** payout confirmation is proven with one test-mode transfer (D-TRANSFER). |
+| F5 | Stripe live: keys, both webhook secrets, Connect verification, the four Price IDs, real prices | him | `docs/STRIPE-PRODUCTION.md` | ⛔ Not before ADMIN 06 is live (✅ V 2026-09-29, `rel_AF`), B20 is settled (D-B20) **and** payout confirmation is proven with one test-mode transfer (D-TRANSFER). |
 | F6 | The lawyer: Article 28 agreements (Hostinger first); who may hold customers' money; how long invoices and payment records must be kept | him | — | The ADMIN 06 hold on deleting live money records waits on the third answer. |
 | F7 | Real tax rates (`tax:set-rate`, replacing the EXAMPLE rates) | him | `docs/TAX-ENGINE-DESIGN.md` | The VAT figures shown are example rates. |
 | F8 | Optional: one email to `sales@` to prove the alias | him | — | **R:** the alias was created 2026-09-26; delivery is not proven. |
@@ -20,7 +20,7 @@ change is said.** Briefs live in `briefs/`.
 ## Agent
 | ID | What | Waiting on | Brief | Why it matters |
 |---|---|---|---|---|
-| A1 | **Finish ADMIN 06** — ✅ code, tests, mutations and gates DONE 2026-09-29 (`HISTORY.md`, "ADMIN 06 finish"). The deploy state is in `STATE.md`. | — | `ADMIN-06.md` | ⛔ Must be live before any live Stripe key. |
+| A1 | **Finish ADMIN 06** — ✅ DONE and LIVE on `rel_AF @ 4c17edd2` (V 2026-09-29; `HISTORY.md`, "ADMIN 06 finish"). Left: the signed-in look at the delete screen (needs his sign-in). | him, for the signed-in look | `ADMIN-06.md` | ⛔ Must be live before any live Stripe key. |
 | A2 | The email pass (TONIGHT 01 Part 2 / MAIL 02) | F1 | `TONIGHT-01.md`, `MAIL-02.md` | Switches production mail on. |
 | A3 | PW-SIGNUP proof: **retake** the backup and the before-baselines right before his click (the 26 September ones predate ADMIN 06's migration); after his delete, run the proof `after` twice, `compare.py`, read the ledger back, keep the backup, delete the two ids files | F3 | `PW-SIGNUP-DELETE-1.md` | Proves only the probe's rows went, and nothing else moved. |
 | A4 | The whole-day walk on a test hotel | A2 | — (R: planning side) | The first end-to-end use with real email. |
@@ -37,17 +37,16 @@ change is said.** Briefs live in `briefs/`.
 - **D-LOGO**: replaced logo files were never deleted. **Built by ADMIN 06, as the brief asked**, but ruling DEC-f may reverse
   it: removing an old logo breaks the image in emails already sent.
 - **D-LOGO-Q**: nothing to do. V 2026-09-27: 0 logos are referenced and there is no logo folder on disk.
-- **D-OPS3**: the three check files on the host (`ops/exposure-battery.sh`, `ops/htaccess-drift-check.sh`,
-  `ops/reference/public_html.htaccess`) are old hand copies, and `ops/ps-check.sh` is missing (V 2026-09-29: 1,391 of 1,395
-  deployable files match git). ADMIN 06's `release.sh stage` ships them from git at the next deploy; they then need running
-  once on the server. See `STATE.md` for whether that happened.
+- **D-OPS3**: ✅ fixed 2026-09-29. `release.sh stage` shipped the four drifted `ops/` files from git; on the host the drift
+  check passes on the live `.htaccess` and its self-test fires 3/3; the battery reports `SERVED=0`; 1,401 of 1,401
+  deployable files match git (V).
 - **D-B20 (pre-existing; read, not run)**: a guest's card payment page cannot open with real Stripe. Under the SDK's
   pinned API version, a payment-mode Checkout page has no PaymentIntent. `docs/KNOWN-LIMITS.md` L20. Verify with one
   test-mode session.
 - **D-TRANSFER (pre-existing; read, not run; review 2 confirmed)**: payouts are confirmed only by the Connect endpoint,
   but a platform-created transfer raises its events on the PLATFORM account. Live payouts could sit `processing`
   forever. Verify with one test-mode transfer before go-live (needs his Stripe test keys).
-- **D-LOG**: `storage/logs/laravel-2026-09-20.log` is mode 775 (V 2026-09-27). Set it to 644 at the next deploy.
+- **D-LOG**: ✅ fixed 2026-09-29 — `storage/logs/laravel-2026-09-20.log` set 775 → 644 (V; still 404 from the web).
 - **D-HEARTBEAT**: the heartbeat alarm is unarmed; `OPS_HEARTBEAT_PING_URL` is not set (V 2026-09-29). Fixed by F4(3).
 - **D-R3-3 (small, a call for him)**: a TEST-mode Checkout page's `checkout.session.expired`, arriving after its
   organisation was deleted, is recorded `failed` (its metadata names the organisation), so the daily reconciliation shows
