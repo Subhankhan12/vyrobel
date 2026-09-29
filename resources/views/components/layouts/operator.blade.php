@@ -330,6 +330,47 @@
         }
         @keyframes vy-rm-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
+        /* ── Choice tiles and the searchable dropdown (2026-09-29) — components/operator/choices + combobox. ────
+           ⚠️ Never write a component TAG in a comment here: Blade compiles it even inside CSS, and the page breaks.
+           Real radios and a real <select> underneath; these only give them a face. Same tokens as the fields beside them. */
+        .vy-choices { border: 0; padding: 0; margin: 0 0 15px; min-width: 0; }
+        .vy-choices legend { padding: 0; }
+        .vy-choice-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+        .vy-choice { position: relative; display: flex; cursor: pointer; min-width: 0; }
+        .vy-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+        .vy-choice-face { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 7px; min-width: 0; padding: 11px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.62); color: var(--vy-ink); font-size: 13px; font-weight: 500; line-height: 1.25; transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease; }
+        .vy-choice-face svg { color: var(--vy-muted); transition: color 0.15s ease; }
+        .vy-choice-text { min-width: 0; max-width: 100%; overflow-wrap: anywhere; hyphens: auto; }
+        @media (max-width: 520px) { .vy-choice-face { padding: 10px 9px; font-size: 12.5px; } }
+        .vy-choice:hover .vy-choice-face { border-color: var(--vy-accent-border, rgba(232, 112, 58, 0.4)); background: rgba(255, 255, 255, 0.85); }
+        .vy-choice input:checked + .vy-choice-face { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
+        .vy-choice input:checked + .vy-choice-face svg { color: #fff; }
+        .vy-choice input:focus-visible + .vy-choice-face { outline: 2px solid var(--vy-accent-3, #E8703A); outline-offset: 2px; }
+        .vy-choices--segmented .vy-choice-row { gap: 0; padding: 3px; border-radius: var(--vy-r-sm); background: rgba(120, 70, 40, 0.07); border: 1px solid var(--vy-glass-border); }
+        .vy-choices--segmented .vy-choice-face { flex-direction: row; justify-content: center; padding: 8px 10px; border: 0; background: transparent; border-radius: 8px; }
+        .vy-choices--segmented .vy-choice input:checked + .vy-choice-face { box-shadow: 0 2px 8px rgba(194, 65, 12, 0.24); }
+
+        .vy-combo { position: relative; }
+        .vy-combo-native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important; overflow: hidden; }
+        .vy-combo-trigger { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; cursor: pointer; position: relative; min-height: 40px; }
+        .vy-combo .vy-combo-trigger { padding-right: 38px; }   /* ⚠️ scoped: .vy-input comes later in this sheet and resets the padding */
+        .vy-combo-trigger::after { content: ""; position: absolute; right: 13px; top: 50%; width: 8px; height: 8px; margin-top: -6px; border-right: 1.6px solid var(--vy-muted); border-bottom: 1.6px solid var(--vy-muted); transform: rotate(45deg); transition: transform 0.15s ease; }
+        .vy-combo-trigger[aria-expanded="true"]::after { transform: rotate(225deg); margin-top: -2px; }
+        .vy-combo-trigger:focus-visible { outline: 2px solid var(--vy-accent-3, #E8703A); outline-offset: 2px; }
+        .vy-combo-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-combo-hint { flex: none; font-size: 11.5px; font-weight: 600; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-combo-panel { margin-top: 6px; padding: 8px; border-radius: var(--vy-r-sm); background: rgba(255, 252, 248, 0.97); border: 1px solid var(--vy-glass-border); box-shadow: 0 12px 30px rgba(150, 90, 50, 0.16); }
+        .vy-combo-search { width: 100%; padding: 8px 11px; border-radius: 8px; border: 1px solid var(--vy-glass-border); background: #fff; font-family: var(--vy-sans); font-size: 13px; color: var(--vy-ink); }
+        .vy-combo-search:focus { outline: none; border-color: var(--vy-accent-3, #E8703A); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.14); }
+        .vy-combo-list { list-style: none; margin: 6px 0 0; padding: 0; max-height: 220px; overflow-y: auto; }
+        .vy-combo-list li { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: var(--vy-ink); cursor: pointer; }
+        .vy-combo-list li.is-active { background: rgba(232, 112, 58, 0.11); }
+        .vy-combo-list li[aria-selected="true"] { font-weight: 600; }
+        .vy-combo-list li[aria-selected="true"] .vy-combo-hint { color: var(--vy-accent-text); }
+        .vy-combo-opt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-combo-empty { margin: 8px 4px 2px; font-size: 12.5px; color: var(--vy-muted); }
+        @media (prefers-reduced-motion: reduce) { .vy-choice-face, .vy-combo-trigger::after { transition: none; } }
+
         /* Analytics — Insights + Reports (Phase 6b). */
         .vy-ins-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
         @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: minmax(0, 1fr); } }

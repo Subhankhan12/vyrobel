@@ -140,9 +140,11 @@
 
                             <div class="vy-prop-actions">
                                 @if (! $p['is_current'])
+                                    {{-- ⚠️ 2026-09-29 — Open takes you INTO the property (its Dashboard), not back to this page. --}}
                                     <form method="POST" action="{{ route('app.property.switch') }}">
                                         @csrf
                                         <input type="hidden" name="property_id" value="{{ $p['id'] }}">
+                                        <input type="hidden" name="open" value="dashboard">
                                         <button type="submit" class="vy-btn vy-btn--ghost">Open</button>
                                     </form>
                                 @endif
@@ -286,23 +288,12 @@
                                 <label class="vy-field-label" for="vy-add-loc">Location <span class="vy-fl-note">· optional</span></label>
                                 <input type="text" id="vy-add-loc" name="location" class="vy-input" maxlength="255" placeholder="e.g. Faro, Portugal" value="{{ old('location') }}">
                             </div>
-                            <div class="vy-field" style="display: flex; gap: 12px;">
-                                <div style="flex: 1;">
-                                    <label class="vy-field-label" for="vy-add-type">Type</label>
-                                    <select id="vy-add-type" name="type" class="vy-input">
-                                        <option value="villa">Villas &amp; apartments</option>
-                                        <option value="hotel">Hotel</option>
-                                        <option value="guest_house">Guesthouse / lodge</option>
-                                    </select>
-                                </div>
-                                <div style="flex: 1;">
-                                    <label class="vy-field-label" for="vy-add-tz">Time zone</label>
-                                    <select id="vy-add-tz" name="timezone" class="vy-input">
-                                        @foreach (timezone_identifiers_list() as $tz)
-                                            <option value="{{ $tz }}" @selected($tz === 'Europe/Lisbon')>{{ $tz }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                            {{-- 2026-09-29 — the type as three tiles, the time zone as a searchable list with offsets (the same
+                                 posted fields as before; see the components). --}}
+                            <x-operator.choices name="type" label="Type" :options="$typeChoices" :selected="old('type', 'villa')" />
+                            <div class="vy-field">
+                                <label class="vy-field-label" for="vy-add-tz">Time zone</label>
+                                <x-operator.combobox name="timezone" id="vy-add-tz" :options="$timezones" :selected="old('timezone', 'Europe/Lisbon')" search="Search time zones" empty="No time zone matches — try a city or “UTC+4”" />
                             </div>
                             {{-- ⚠️ P-6 · Gate 1 — channels dropped: they still have no creation path (decision ④), and naming a
                                  step the tenant cannot take is the defect this gate exists to remove. --}}
@@ -343,30 +334,12 @@
                                 <label class="vy-field-label">Property name</label>
                                 <input type="text" name="name" class="vy-input" required maxlength="255" x-model="editing.name">
                             </div>
-                            <div class="vy-field" style="display: flex; gap: 12px;">
-                                <div style="flex: 1;">
-                                    <label class="vy-field-label">Type</label>
-                                    <select name="type" class="vy-input" x-model="editing.type">
-                                        <option value="villa">Villas &amp; apartments</option>
-                                        <option value="hotel">Hotel</option>
-                                        <option value="guest_house">Guesthouse / lodge</option>
-                                    </select>
-                                </div>
-                                <div style="flex: 1;">
-                                    <label class="vy-field-label">Status</label>
-                                    <select name="status" class="vy-input" x-model="editing.status">
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <x-operator.choices name="type" label="Type" :options="$typeChoices" model="editing.type" />
+                            <x-operator.choices name="status" label="Status" variant="segmented" model="editing.status"
+                                :options="[['value' => 'active', 'label' => 'Active'], ['value' => 'inactive', 'label' => 'Inactive']]" />
                             <div class="vy-field">
-                                <label class="vy-field-label">Time zone</label>
-                                <select name="timezone" class="vy-input" x-model="editing.timezone">
-                                    @foreach (timezone_identifiers_list() as $tz)
-                                        <option value="{{ $tz }}">{{ $tz }}</option>
-                                    @endforeach
-                                </select>
+                                <label class="vy-field-label" for="vy-edit-tz">Time zone</label>
+                                <x-operator.combobox name="timezone" id="vy-edit-tz" :options="$timezones" x-model="editing.timezone" search="Search time zones" empty="No time zone matches — try a city or “UTC+4”" />
                             </div>
                         </div>
                         <div class="vy-modal-foot">

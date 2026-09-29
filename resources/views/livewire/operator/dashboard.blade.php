@@ -14,6 +14,11 @@
     <x-operator.shell active="dashboard" :title="$vyGreet . ', ' . $vyFirst"
         :subtitle="($property['name'] ?? 'No property yet') . ' · ' . $day['label']" :viewer="$viewer">
 
+        {{-- 2026-09-29 — arriving from the Portfolio's "Open": say which property you are now working in --}}
+        @if (session('property_notice'))
+            <div class="vy-flash is-ok vy-fade" role="status">{{ session('property_notice') }}</div>
+        @endif
+
         {{-- REAL day navigation (GET links) --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">

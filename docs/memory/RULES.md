@@ -196,6 +196,10 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   (`ControlNameContractTest`, `DialogFocusContractTest`) read a tag up to its first `>`, so the arrow cuts the tag short and
   hides `name`, `tabindex` and `x-trap`. Key such ids on a value with no arrow (`{{ $p['id'] }}`). And the `word@directive`
   trap fired again in new copy (`run@if`): use `{{ cond ? '…' : '' }}` inside words (Verified 2026-09-29).
+- **Blade compiles a component TAG even inside a CSS or HTML comment** (`<x-operator.choices>` in a `/* */` comment in the
+  layout broke every page with a PHP parse error). Never write `<x-…>` in a comment; name the file instead (Verified 2026-09-29).
+- **Which MySQL a neighbour uses decides whether the engine swap touches it:** `advisor-platform` is on 3306 (pause it);
+  `restiox` is on its own server on **3310** (the swap does not reach it) — check the connection's port, not the name.
 - **Another project shares this Mac's MySQL.** `advisor-platform`'s suites block the mutation harness (its premise matches any
   `pest`), and the MariaDB engine swap stops the server its tests and its Octane dev server use: ask him to pause it first
   (F 2026-09-29). Identify its processes by working folder; never stop them.
@@ -211,7 +215,7 @@ disagree, it says so.
 **Suite on MySQL (local).** Prerequisites: a `vyrobel_test` DB and Redis. Run it ALONE:
 `ops/proc-check.sh -q '[p]hpunit|[p]est|artisan [t]est' && php artisan test`
 Pass = the suite is green. The count is whatever the run prints. Last reported for the LIVE commit: 3995/3995 MySQL
-(Reported: DECISIONS ADMIN 05). After the Portfolio remove (2026-09-29): **4,042/4,042 on MySQL 8.4.10 and on MariaDB 11.8.9**
+(Reported: DECISIONS ADMIN 05). After the Portfolio Open + fields (2026-09-29): **4,047/4,047 on MySQL 8.4.10 and on MariaDB 11.8.9**
 (Verified: run outputs). ⚠️ **Run it under `caffeinate -i`:** on 2026-09-27 the Mac slept mid-run, and a
 ~17-minute suite took 8½ hours of wall time. `RefreshDatabase` is OFF, so fixtures need unique ids (CLAUDE.md).
 
@@ -230,8 +234,8 @@ never "the money is unchanged". The constants live in the script (git). The suit
 **Mutation runner.** `php tests/Mutations/run.php --set=admin-06` · `--only=A06-M7,A06-M8` · `--list` · no args = every set.
 Verdicts: `LANDED · CAUGHT` (good) · `LANDED · NOT CAUGHT` (guard unproven) · `DID NOT LAND` (harness error, never a result).
 It refuses to run beside another test run or with cached routes/config. It self-checks every run (git: header).
-Sets: tests/Mutations/sets/*.php (git ls). Last: **337/337 caught across every set, 0 not caught, 0 did not land** (Verified: harness,
-2026-09-29; `admin-06` = 87, `admin-05` = 49, `portfolio-remove` = 14). ⚠️ Its "another test run is active" premise matches ANY `pest` on the Mac, another
+Sets: tests/Mutations/sets/*.php (git ls). Last: **343/343 caught across every set, 0 not caught, 0 did not land** (Verified: harness,
+2026-09-29; `admin-06` = 87, `admin-05` = 49, `portfolio-remove` = 14, `portfolio-fields` = 6). ⚠️ Its "another test run is active" premise matches ANY `pest` on the Mac, another
 project's included (`advisor-platform` runs suites here): wait for a gap, and never weaken the check (`OPEN.md` A7).
 
 **`ops/proc-check.sh`** — is a test run already going? `ops/proc-check.sh -q '<regex>'`; `--kill '<regex>'` kills by PID and confirms.

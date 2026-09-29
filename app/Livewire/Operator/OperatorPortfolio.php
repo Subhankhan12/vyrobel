@@ -15,6 +15,7 @@ use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Property\PropertyOccupancy;
 use App\Support\Tenancy\TenantContext;
+use App\Support\Time\TimezoneOptions;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -164,6 +165,13 @@ class OperatorPortfolio extends Component
             'comparisonYear' => CarbonImmutable::today()->format('Y'),
             'canViewAnalytics' => (bool) auth()->user()?->can('reports.view'),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
+            // 2026-09-29 — the Add/Edit dialogs' fields: every time zone with its offset now, and the three types as tiles
+            'timezones' => TimezoneOptions::all(),
+            'typeChoices' => [
+                ['value' => 'hotel', 'label' => 'Hotel', 'icon' => '<path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16"/><path d="M2 21h20M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/>'],
+                ['value' => 'villa', 'label' => 'Villas & apartments', 'icon' => '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>'],
+                ['value' => 'guest_house', 'label' => 'Guesthouse / lodge', 'icon' => '<path d="M3 18V7M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="2"/>'],
+            ],
         ]);
     }
 

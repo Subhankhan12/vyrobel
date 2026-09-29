@@ -280,6 +280,16 @@ Gates: 4,042/4,042 on both engines; 337/337 mutations; money gate FULL unmoved; 
 **Deploy — LIVE `rel_AG @ e4117aeb`, swap 4 ms (Verified 2026-09-29 16:34 Baku);** preflight on production: the removal
 read 1.1 ms median per card; public checks 12/0/0; 1,402/1,402 files match git; 0 errors since the swap.
 
+**PORTFOLIO OPEN + DIALOG FIELDS — 2026-09-29 — the founder's report.** *Open did nothing:* reproduced in a browser first
+— it reused the top-bar switcher, which redirects back, so the page reloaded in place and only a small tag moved; now Open
+lands on the property's Dashboard with a notice, through a fixed destination list (never a URL). *The dropdowns looked
+basic:* Type is three icon tiles, Status an Active | Inactive toggle, Time zone a searchable list with offsets — two small
+progressive operator components over the real form fields (the console field system's contract). **Found by the guards
+and the browser:** a component tag inside a CSS comment is compiled by Blade (every page 500'd); `.vy-input` reset the
+combobox padding; a tile overflowed at 390 px; the keyboard guard wanted a reasoned exemption for the listbox options
+(added with its backing string, PF-M6). Gates: 4,047/4,047 on both engines; 343/343 mutations; money gate FULL unmoved.
+Deploy: see `STATE.md`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

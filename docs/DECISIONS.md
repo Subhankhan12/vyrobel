@@ -18519,3 +18519,42 @@ organisation's only property (their Remove explains itself), none scheduled. Aft
 FAIL · 0 could not measure** (`SERVED=0`), **1,402 of 1,402** deployable files match git at `e4117aeb`, 0 errors since the
 swap, an anonymous `/app/portfolio` redirects to sign-in. ⚠️ **Not done: a signed-in look on production** (his sign-in).
 
+## 2026-09-29 — Portfolio: "Open" goes into the property · the Add/Edit dialogs' fields (the founder's report; design approved)
+
+**Reported:** "when we click on Open nothing is working" · the Add and Edit dialogs' dropdowns "look very pathetic, very
+basic — should be cool, modern and minimal".
+
+**Open — root cause, reproduced in a browser before any change.** The card's Open posted to the top-bar property switcher,
+which stores the choice and redirects BACK — so the Portfolio reloaded at the same scroll position, with no message, and
+only the small "Working here" tag moved (🖥 measured: same URL, `scrollY` 0, no notice). The switch worked; nothing showed
+it. **Fix:** the switcher accepts one optional destination from a FIXED list (`open=dashboard` → `app.dashboard`, never a
+URL — an arbitrary destination would be an open redirect); the card's Open asks for it and lands on the property's
+Dashboard with "You're now working in X.". The top-bar switcher sends none and still keeps you where you are.
+
+**The fields.** Type → three choice tiles with an icon each (Hotel · Villas & apartments · Guesthouse / lodge); Status
+(Edit) → an Active | Inactive toggle; Time zone → a searchable dropdown over all ~420 zones, each with its offset now
+(`App\Support\Time\TimezoneOptions`), filtering by name or offset ("baku", "utc+4"), ↑/↓, Enter, Esc, Tab. Two small
+operator components, `components/operator/choices` and `components/operator/combobox`, on the console field system's
+contract (ADMIN 05): PROGRESSIVE — the real radios and the real `<select>` stay in the form, so the posted fields,
+validation and every existing test are unchanged. The list opens in the flow under its field (not floating), so the
+dialog's focus trap and its scrolling keep working; Esc closes the list first and the dialog only when the list is shut.
+
+**Found on the way, by the guards and the browser, not by reading:** a `<x-…>` component tag written inside a CSS COMMENT
+in the layout is compiled by Blade even there — every page 500'd until it was reworded (and the comment now says so); the
+shared `.vy-input` later in the sheet reset the combobox's right padding, so its chevron overlapped the offset; "Guesthouse"
+overflowed its tile at 390 px.
+
+**Proof.** `PortfolioOpenAndFieldsTest` (5, each written to fail first where it could) · mutation set `portfolio-fields`
+5/5 · 🖥 walked in a real browser: Open → the Dashboard with its notice; Add with the Hotel tile and "utc+4" → saved
+`hotel` / `Asia/Baku` (read back from the database); Edit opened on the property's own values and saved `villa` /
+`inactive`; Esc and Enter behave; no sideways scroll and no overflowing tile at 390 px; 0 console errors.
+**The keyboard guard's reasoned exemption.** `KeyboardReachabilityContractTest` flagged the list's options (a click on an
+`<li>`). It is the ARIA listbox pattern — options are not tab stops; the search box drives them (↑/↓, Enter, Esc) and
+points at the active one with `aria-activedescendant` — so an allow-list entry was added WITH ITS BACKING STRING (the
+Enter handler); mutation PF-M6 removes that handler and the guard goes red again. The exemption cannot outlive the
+keyboard path it describes.
+
+**Gates (each read from its own output, 2026-09-29):** suite **4,047/4,047 on MySQL 8.4.10 and 4,047/4,047 on MariaDB
+11.8.9** (29,315 assertions each, 0 skipped, the same tree `8a717c280ea6f4af`) · mutations **343/343 across every set**
+(`portfolio-fields` 6/6) · money gate FULL unmoved · PHPStan 0 · Pint clean · 🖥 browser-walked (above).
+
