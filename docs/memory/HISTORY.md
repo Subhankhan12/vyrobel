@@ -312,7 +312,9 @@ Calendar New reservation and Billing dialogs use the same see-through glass (not
 Gates: 4,065/4,065 on MariaDB 11.8.9 and on MySQL 8.4.10 (the MySQL run before the last code fix was 4,064/4,065 —
 the Livewire boundary guard); 367/367 mutations; money gate FULL unmoved; browser-walked on tenant three (desktop and
 390 px, 0 console errors).
-**Deploy — pending (the next step).**
+**Deploy — LIVE `rel_AI @ 9f704a3a`, swap 8 ms (Verified 2026-09-29 22:02 Baku);** preflight on production: every sort order
+ran in ≤ 0.9 ms on MariaDB, and the way back rebuilt to the list from a query carrying junk; public checks 12/0/0; 1,407/1,407
+files match git; drift check passes; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

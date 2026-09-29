@@ -18644,3 +18644,10 @@ skipped, tree `05db8a286e25bcfa`) — the MySQL 8.4.10 run on the tree before it
 the final run **4,065/4,065 on MySQL 8.4.10** (29,551 assertions, 0 skipped, tree `e048f951be99c7af`:
 the same code with this entry and the memory written, before these figures were filled in) · mutations **367/367 across every set** (`guests-list` 24/24; tree `05db8a286e25bcfa`) ·
 money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local) · PHPStan 0 · Pint clean · an independent read-only review of the whole diff: nothing at its bar.
+
+✅ **LIVE on `rel_AI @ 9f704a3a` (2026-09-29, swap 8 ms, 22:02 Baku).** No migration; 8 files shipped. 🔬 Preflight from the
+staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: all three routes present; the way back rebuilt to
+`/app/guests?filter=vip&sort=stays&page=2` from a query carrying junk, and an off-site value stayed on `vyrobel.com`; all
+six sort orders ran on production's data (15 organisations, 1 guest) in ≤ 0.9 ms. After the swap: public checks **12 PASS
+· 0 FAIL · 0 could not measure** (`SERVED=0`), **1,407 of 1,407** deployable files match git at `9f704a3a`, the
+`.htaccess` drift check passes (self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
