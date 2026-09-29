@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GUESTS pass** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -27,6 +27,8 @@ change is said.** Briefs live in `briefs/`.
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
 | A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
 | A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
+| A8 | **The x-show + inline display sweep.** 45 elements on other screens carry `x-show` together with an inline `display` (rates ×8, maintenance ×6, security ×5, units ×4, the owner portal ×10 across nine pages, and 12 more across housekeeping, new reservation, roles, unit requests, settings, schedule, passkeys and the unit price form). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 45 (V 2026-09-29, scanned). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
+| A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs, the Calendar's New reservation dialog and Billing's still use the shared `.vy-modal` glass. On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these five were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
 
 ## Known defects (each its own ID)
 - **D-B19**: delete could not see an open Stripe Checkout page. **Fixed by ADMIN 06**, including the two gaps review 2 found
@@ -57,6 +59,13 @@ change is said.** Briefs live in `briefs/`.
 - **D-EDIT-SCOPE (found 2026-09-29, not fixed — his call)**: the Portfolio's **Edit** action (`PropertyController::update`)
   resolves the property through the tenant scope only, not the person's property allow-list (#38): staff scoped to some
   properties could edit another by its id. The new Remove/Keep actions do check the allow-list (a 404 outside it).
+- **D-XSHOW (found 2026-09-29)**: see A8. Fixed on the Guests list and the guest profile; 45 sites elsewhere, under a ceiling.
+- **D-MODAL-GLASS (found 2026-09-29)**: see A9. Fixed on the Guests pages and the Portfolio (measured after: 6.27 / 5.28 and
+  6.18 / 5.30:1).
+- **D-GL-FLAKE (seen once, not reproduced)**: during the browser walk, one click on a row's ⋯ left the page in select mode,
+  scrolled, with the menu shut. Three exact replays (same order, including a dialog open before the navigation) behaved
+  correctly, and a click logger saw one click on the ⋯ only. Not explained; the menu's closing logic was reworked afterwards
+  for an unrelated measured reason. Watch for it on the signed-in look.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

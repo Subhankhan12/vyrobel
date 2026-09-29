@@ -18563,3 +18563,84 @@ production's PHP 8.4.19 builds the 419 time zones in 1.6 ms (Asia/Baku UTC+4, Eu
 components present. After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`), **1,405 of
 1,405** deployable files match git at `3b012e93`, 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
 
+## 2026-09-29 — Guests: the page rebuilt — centred dialogs, a sortable table, row Edit and Erase (the founder's report; design approved)
+
+**Reported:** "the Add guest modal is not in the centre — the Edit modal should be too", "the design of this page … is so
+messed", "the data table should be so advanced, so good", "the filter should be very smooth and minimal and modern", and
+"we should have an option to edit and delete the guest as well".
+
+**The dialogs — root cause, measured before any change.** Every dialog on the page (Message, Add tag, Erase, Add guest) and
+the profile's Edit centred itself with an INLINE `display: flex` beside `x-show`. Alpine's `x-show` hides by writing
+`display: none` and shows by REMOVING the inline display, so the first hide erased the flex and each dialog came back as
+`display: block` in the top-left corner (🖥 the Add guest panel's centre sat at 260,242 in a 1280×900 window; its backdrop
+computed `block`). All now centre with the shared `.vy-modal-backdrop`, whose display lives in a class. 🖥 After: every
+dialog on both pages centres at 640,450. **The same pattern sits on 45 elements in other screens** (rates, units, security,
+owner pages…); `XShowInlineDisplayContractTest` holds the Guests pages at zero and the rest at a ceiling of 45 so it can
+only fall. That sweep is its own pass, asked for separately.
+
+**The page.** One toolbar: search that follows the typing (placeholder now honest — *name, city or exact email*; the
+encryption note is behind an ⓘ), All · In-house · Upcoming · VIP with live counts, Select, Add guest. The table sorts by
+**Guest** (surname, first name), **Stays** (most first) and **Last stay** (latest first), each through an allow-list
+(`GuestsList::SORTS`; a `?sort=` outside it falls back to the name, so the URL can never order people by a column the page
+does not show). **Lifetime is not sortable**: it is per currency, and ranking EUR against USD would invent a rate (#17).
+**Last stay sorts by the date the column SHOWS**, computed in SQL exactly as the PHP computes the cell (in house → today;
+otherwise the latest non-cancelled booking's arrival if ahead, its departure if not; never-stayed last in both directions)
+— sorting by check-in alone would put a long stay that ended last before a short one that ended sooner. Pages of 25, 50 or
+100 (anything else → 25); a real footer ("1–25 of 312 guests · A–Z by surname") OUTSIDE the table — the old pager sat inside
+`<tbody>`. Every link keeps every other setting. The header stays in view while scrolling (desktop).
+
+**Smooth, and still #20.** Every control is an ordinary GET link or form that works with no script. The page's script only
+fetches the SAME URL and swaps the two marked regions (filters, results) in place, pushing the URL to history (Back works),
+so every change still runs every middleware. Anything unexpected — an error, a redirect elsewhere, a missing region — falls
+back to loading the page normally.
+
+**Edit and Erase on every row** (a ⋯ menu: Open profile · Edit details · Erase personal data). Edit is shown only with
+`guests.manage`, Erase only with `guests.erase` (Property Owner / Group Admin), the same permissions the routes require
+(#30, "never invite a 403"). Both come back to the list the operator was on — the way back is REBUILT from the list's own
+allow-listed settings (`GuestsList::returnUrl()`), never taken from the request as a URL, so it cannot be an open redirect.
+Erase is the certified `Guest::anonymize()` with ERASE typed and checked on the server (never a delete — #28); its dialog
+says what goes and what is kept, from one shared partial used by the bulk Erase too. An edit the server refuses reopens with
+what was typed and says why inside the dialog.
+
+**Found on the way, before shipping:**
+- ⚠️ **An Edit from the list would have wiped the guest's stay preferences.** The profile update reads "no preferences in
+  the request" as "none ticked" (right for the profile, whose form carries every chip). The list's Edit does not show them,
+  so it sends `keep_preferences=1` and the server leaves them untouched — proven both ways by a test (GL-M11, GL-M22).
+- ⚠️ **The old footer called every filter but VIP "flagged at risk"** — In-house and Upcoming included. Gone with the footer.
+- ⚠️ **A test was passing on the wrong element.** `UnwiredControlsTest` asserted the manager sees "Add guest" through
+  `Livewire::test()`, which skips the middleware that sets the permission team — so `@can` answered a silent false (the #30
+  note) and the button never rendered; the assertion matched the Add guest DIALOG's heading, which was not gated. 🔬 A probe
+  confirmed team=NULL → `can()`=false. The test now renders through the real route and looks for the button itself.
+- ⚠️ **Contrast inside the dialogs (DO-STATE-1 again).** The shared `.vy-modal` panel is the see-through glass; over the
+  scrim it drops grey text below AA. 🖥 Measured by sampling the rendered pixels on the Portfolio's Add dialog (my own work
+  from earlier today): sub-text 3.52:1, field labels 3.25:1. The Guests and Portfolio panels now carry `vy-modal-card` and a
+  two-class rule makes it near-opaque: 🖥 Guests 6.27 / 5.28, Portfolio 6.18 / 5.30. **Not touched, and likely the same
+  (not measured):** the Inbox's three dialogs, the Calendar's New reservation dialog and Billing's.
+- A swapped-out row's bindings ran once more after it was detached and threw (`$root` of a detached element) — the script
+  now holds its DOM handles itself (🖥 0 console errors after).
+- ⚠️ **The Livewire boundary guard caught two helpers of this pass on the first full run.** `cleanParams()` and `returnUrl()`
+  were public static methods on the component — and any public method on an operator component is callable over
+  `/livewire/update`, where no route middleware runs (`OperatorLivewireMutationBoundaryTest`). They wrote nothing, but the rule
+  is structural; they now live in `App\Support\Guest\GuestListParams`, and the component keeps only `render()`.
+- The row menu first closed itself on any scroll — including the smooth scroll still settling after a tap (🖥 at 390 px it
+  shut before it could be used). It now follows its button while the page or the table scrolls, and closes only when the
+  button leaves the screen.
+
+**Divergence from the #87 exact match** (`docs/design/DIVERGENCE-REGISTER.md`): the wireframe had no sorting, no page sizes,
+no row actions and a different toolbar; the founder asked for all of them, so the Guests CRM is now a deliberate divergence.
+
+**Proof.** `GuestsListRedesignTest` (15) and `XShowInlineDisplayContractTest` (3), each written to fail first where it
+could; `UnwiredControlsTest` and `DataConditionalContrastTest` updated where their premise changed (both still assert the
+same protection, now through the real markup); mutation set `guests-list` (24). 🖥 Walked in a real browser on tenant three
+(34 local walkthrough guests, 9 stays booked through `AssignmentService`): every dialog centred; sort, filters, search,
+page size, paging and Back in place; a row Edit saved (the audit row lists `phone`, `risk_flag` — never values) and came
+back to page 2 of the Stays sort; a row Erase needed ERASE and came back to the search; bulk select → Message/Tag/Erase; the
+menu by keyboard (Enter, Tab, Esc back to its button); 390 px: no sideways scroll, two rows of filters, the ⋯ column
+pinned; 0 console errors.
+
+**Gates (each read from its own output, 2026-09-29):** suite **4,065/4,065 on MariaDB 11.8.9** (29,551 assertions, 0
+skipped, tree `05db8a286e25bcfa`) — the MySQL 8.4.10 run on the tree before it was **4,064/4,065**: the one red was
+`OperatorLivewireMutationBoundaryTest` (the two helpers above), fixed and re-run in the MariaDB and final runs ·
+the final run **4,065/4,065 on MySQL 8.4.10** (29,551 assertions, 0 skipped, tree `e048f951be99c7af`:
+the same code with this entry and the memory written, before these figures were filled in) · mutations **367/367 across every set** (`guests-list` 24/24; tree `05db8a286e25bcfa`) ·
+money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local) · PHPStan 0 · Pint clean · an independent read-only review of the whole diff: nothing at its bar.

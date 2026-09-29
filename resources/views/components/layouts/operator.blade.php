@@ -681,7 +681,9 @@
         .vy-btn--accent:hover { transform: translateY(-1px); }
         .vy-btn--ghost { background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); border-color: var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
         .vy-btn--ghost:hover { background: rgba(255, 255, 255, 0.85); }
-        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-icobtn:focus-visible, .vy-rowopen:focus-visible, .vy-detail-head:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-icobtn:focus-visible, .vy-rowopen:focus-visible, .vy-detail-head:focus-visible,
+        .vy-gl-chip:focus-visible, .vy-gl-sort:focus-visible, .vy-gl-name:focus-visible, .vy-gl-more:focus-visible, .vy-gl-menu-item:focus-visible,
+        .vy-gl-size:focus-visible, .vy-gl-page:focus-visible, .vy-gl-clear:focus-visible, .vy-gl-tip-btn:focus-visible, .vy-gl-link:focus-visible, .vy-modal-x:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
 
         /* ⚠️⚠️ A BUTTON THAT INHERITS ITS SURROUNDINGS — the ONE reset, so a keyboard path can be added to
            a row without changing how that row looks to everyone else. Two surfaces needed a real control
@@ -1608,6 +1610,182 @@
         .vy-modal-body { padding: 6px 24px 22px; }
         .vy-modal-foot { display: flex; gap: 10px; justify-content: flex-end; padding: 4px 24px 22px; }
         .vy-modal-foot .vy-btn--accent { flex: 1; justify-content: center; padding: 12px 16px; }
+        /* A modal panel that is also a modal CARD is near-opaque (DO-STATE-1): over the scrim the see-through glass took
+           muted labels to 3.38:1. Two classes, so it wins over the glass above whatever the order of the rules. */
+        .vy-modal.vy-modal-card { background: rgba(255, 252, 248, 0.94); }
+        .vy-modal--wide { max-width: 560px; }
+
+        /* ── Guests (2026-09-29) — the CRM list rebuilt: one toolbar, a sortable table with a real footer, a menu on every
+           row, and centred dialogs. Secondary text INSIDE rows is --vy-on-grad, never --vy-muted, which read 4.48:1 on
+           the row plate (DO-A11Y-5). ⚠️ Every display below is in a class, never inline beside x-show — x-show removes
+           an inline display when it shows the element (XShowInlineDisplayContractTest). ────────────────────────────── */
+        .vy-gl-bar { position: relative; z-index: 3; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 22px 0 16px; padding: 8px; border-radius: var(--vy-r-lg); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
+        .vy-gl-search { position: relative; display: flex; align-items: center; gap: 6px; flex: 1 1 300px; min-width: 0; height: 40px; padding: 0 5px 0 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.72); border: 1px solid var(--vy-glass-border); transition: border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+        .vy-gl-search:focus-within { background: #fff; border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.12); }
+        .vy-gl-search-ico { flex: none; color: var(--vy-on-grad); }
+        .vy-gl-spinner { flex: none; display: inline-block; width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(194, 65, 12, 0.18); border-top-color: var(--vy-accent); animation: vy-gl-spin .7s linear infinite; }
+        @keyframes vy-gl-spin { to { transform: rotate(360deg); } }
+        .vy-gl-search-in { flex: 1; min-width: 0; height: 100%; margin-left: 2px; border: none; background: transparent; font: inherit; font-size: 13.5px; color: var(--vy-ink); outline: none; }
+        .vy-gl-search-in::placeholder { color: var(--vy-faint); }
+        .vy-gl-search-in::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
+        .vy-gl-clear, .vy-gl-tip-btn { flex: none; width: 28px; height: 28px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, color .15s ease; }
+        .vy-gl-clear:hover, .vy-gl-tip-btn:hover, .vy-gl-tip-btn[aria-expanded="true"] { background: rgba(120, 70, 40, 0.08); color: var(--vy-ink); }
+        .vy-gl-tipwrap { position: relative; flex: none; display: inline-flex; }
+        .vy-gl-tip { position: absolute; right: -4px; top: calc(100% + 10px); display: block; width: min(280px, calc(100vw - 48px)); padding: 11px 13px; border-radius: var(--vy-r-md); background: rgba(38, 29, 24, 0.96); color: rgba(255, 255, 255, 0.93); font-size: 12px; font-weight: 500; line-height: 1.5; box-shadow: 0 14px 34px rgba(40, 20, 8, 0.28); z-index: 5; }
+        .vy-gl-tip::before { content: ""; position: absolute; top: -5px; right: 13px; width: 10px; height: 10px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
+        .vy-gl-chips { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.45); border: 1px solid var(--vy-glass-border); }
+        .vy-gl-chip { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: var(--vy-r-pill); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); white-space: nowrap; transition: background .15s ease, color .15s ease, box-shadow .15s ease; }
+        .vy-gl-chip:hover { color: var(--vy-ink); background: rgba(255, 255, 255, 0.6); }
+        .vy-gl-chip.is-on { background: #fff; color: var(--vy-accent-text); box-shadow: var(--vy-shadow-sm); }
+        .vy-gl-count { min-width: 20px; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; background: rgba(120, 70, 40, 0.08); color: var(--vy-on-grad); }
+        .vy-gl-chip.is-on .vy-gl-count { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent-text); }
+        .vy-gl-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .vy-gl-select.is-on { background: #fff; color: var(--vy-accent-text); border-color: var(--vy-accent-border); }
+
+        .vy-gl-results { transition: opacity .18s ease; }
+        .vy-gl-results.is-loading { opacity: .55; }
+        .vy-gl-root.is-selecting .vy-gl-results { padding-bottom: 76px; }
+        .vy-gl-card { position: relative; padding: 0; overflow: clip; }
+        .vy-gl-progress { position: absolute; top: 0; left: 0; right: 0; z-index: 4; height: 2px; opacity: 0; background: linear-gradient(90deg, transparent, var(--vy-accent-3), transparent) no-repeat; background-size: 40% 100%; transition: opacity .15s ease; }
+        .vy-gl-results.is-loading .vy-gl-progress { opacity: 1; animation: vy-gl-load 1s ease-in-out infinite; }
+        @keyframes vy-gl-load { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+        .vy-gl-scroll { overflow-x: auto; }
+        .vy-gl-table { width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; }
+        .vy-gl-table thead th { z-index: 2; padding: 13px 14px 11px; text-align: left; white-space: nowrap; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); background: rgba(255, 251, 247, 0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--vy-hairline); }
+        .vy-gl-table th.is-num, .vy-gl-table td.is-num { text-align: right; }
+        .vy-gl-table tbody td { padding: 12px 14px; border-top: 1px solid var(--vy-hairline); font-size: 13px; color: var(--vy-ink); vertical-align: middle; }
+        .vy-gl-table tbody tr:first-child td { border-top: none; }
+        .vy-gl-table tbody tr { transition: background .15s ease; }
+        .vy-gl-table tbody tr:hover { background: rgba(255, 255, 255, 0.5); }
+        .vy-gl-table tbody tr.is-selected { background: rgba(232, 112, 58, 0.09); }
+        /* The header stays in view while the rows scroll — only where the table fits without scrolling sideways (a
+           sideways scroller would become the sticky header's frame, and it would not stick to the page). */
+        @media (min-width: 1101px) {
+            .vy-gl-scroll { overflow: visible; }
+            .vy-gl-table thead th { position: sticky; top: 0; }
+        }
+        .vy-gl-sort { display: inline-flex; align-items: center; gap: 7px; color: inherit; border-radius: 5px; }
+        .vy-gl-sort:hover, .vy-gl-sort.is-on { color: var(--vy-ink); }
+        .vy-gl-arrow { width: 6px; height: 6px; margin-top: -3px; border-right: 1.7px solid currentColor; border-bottom: 1.7px solid currentColor; transform: rotate(45deg); opacity: 0; transition: opacity .15s ease, transform .15s ease; }
+        .vy-gl-sort:hover .vy-gl-arrow, .vy-gl-sort:focus-visible .vy-gl-arrow { opacity: .45; }
+        .vy-gl-sort.is-on .vy-gl-arrow { opacity: 1; color: var(--vy-accent-text); }
+        .vy-gl-sort.is-asc .vy-gl-arrow { margin-top: 3px; transform: rotate(-135deg); }
+        /* a right-aligned column keeps its label on the numbers' edge — the arrow goes on the left */
+        .vy-gl-table th.is-num .vy-gl-sort { flex-direction: row-reverse; }
+        .vy-gl-check { width: 42px; }
+        .vy-gl-table th.vy-gl-check, .vy-gl-table td.vy-gl-check { padding-right: 0; }
+        .vy-gl-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--vy-accent); cursor: pointer; vertical-align: middle; }
+        .vy-gl-guest { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-gl-table td.vy-gl-guestcell { min-width: 250px; }
+        .vy-gl-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600; letter-spacing: .02em; color: var(--vy-ink); background: #F3C9AE; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+        .vy-gl-avatar.tone-1 { background: #EBD3B5; }
+        .vy-gl-avatar.tone-2 { background: #EFC6C0; }
+        .vy-gl-avatar.tone-3 { background: #E4C3A7; }
+        .vy-gl-avatar.tone-4 { background: #DCD4CD; }
+        .vy-gl-avatar.tone-erased { background: transparent; color: var(--vy-on-grad); box-shadow: inset 0 0 0 1px rgba(120, 70, 40, 0.28); }
+        .vy-gl-who { min-width: 0; }
+        .vy-gl-nameline { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 7px; }
+        .vy-gl-name { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; color: var(--vy-ink); border-radius: 4px; overflow-wrap: anywhere; }
+        .vy-gl-name:hover { color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+        tr.is-erased .vy-gl-name { font-style: italic; font-weight: 500; color: var(--vy-on-grad); }
+        .vy-gl-contact { margin-top: 3px; font-size: 11.5px; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vy-gl-contact a:hover { color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+        .vy-gl-sep { margin: 0 2px; }
+        .vy-gl-fig { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
+        .vy-gl-none { color: var(--vy-on-grad); }
+        .vy-gl-when { white-space: nowrap; }
+        .vy-gl-when.is-live { font-weight: 600; color: var(--vy-accent-text); }
+        .vy-gl-phone { white-space: nowrap; }
+        .vy-gl-due { margin-top: 2px; font-size: 11px; font-weight: 600; color: var(--vy-accent-text); }
+        .vy-gl-actcol { width: 56px; text-align: right; }
+        .vy-gl-table td.vy-gl-actcol { padding-top: 6px; padding-bottom: 6px; }
+        .vy-gl-more { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: inline-grid; place-items: center; border: 1px solid transparent; background: transparent; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+        .vy-gl-more:hover, .vy-gl-more[aria-expanded="true"] { background: #fff; border-color: var(--vy-glass-border); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); }
+        .vy-gl-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 18px; padding: 12px 16px; border-top: 1px solid var(--vy-hairline); }
+        .vy-gl-summary { margin: 0; font-size: 12.5px; color: var(--vy-on-grad); font-variant-numeric: tabular-nums; }
+        .vy-gl-summary strong { font-weight: 600; color: var(--vy-ink); }
+        .vy-gl-summary:focus { outline: none; }
+        .vy-gl-paging { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .vy-gl-rows-label, .vy-gl-pagepos { font-size: 12px; color: var(--vy-on-grad); font-variant-numeric: tabular-nums; }
+        .vy-gl-sizes { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); }
+        .vy-gl-size { min-width: 34px; height: 26px; padding: 0 8px; display: inline-grid; place-items: center; border-radius: var(--vy-r-pill); font-size: 12px; font-weight: 600; color: var(--vy-on-grad); font-variant-numeric: tabular-nums; }
+        .vy-gl-size:hover { color: var(--vy-ink); }
+        .vy-gl-size.is-on { background: #fff; color: var(--vy-accent-text); box-shadow: var(--vy-shadow-sm); }
+        .vy-gl-pages { display: inline-flex; align-items: center; gap: 8px; }
+        .vy-gl-page { width: 30px; height: 30px; border-radius: 50%; display: inline-grid; place-items: center; background: rgba(255, 255, 255, 0.65); border: 1px solid var(--vy-glass-border); color: var(--vy-ink); transition: background .15s ease; }
+        .vy-gl-page:hover { background: #fff; }
+        .vy-gl-page.is-off { opacity: .4; }
+        .vy-gl-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 24px; text-align: center; }
+        .vy-gl-empty-ico { width: 52px; height: 52px; margin-bottom: 4px; border-radius: 50%; display: grid; place-items: center; background: rgba(232, 112, 58, 0.12); color: var(--vy-accent-text); }
+        .vy-gl-empty-title { margin: 0; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-gl-empty-text { max-width: 460px; margin: 0 0 8px; font-size: 13px; line-height: 1.55; color: var(--vy-on-grad); }
+
+        .vy-gl-menu { position: fixed; z-index: 38; width: 224px; display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 14px; background: rgba(255, 252, 248, 0.97); backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: 0 18px 44px rgba(90, 50, 25, 0.22), 0 2px 6px rgba(90, 50, 25, 0.08); animation: vy-gl-pop .14s ease-out; }
+        .vy-gl-menu.is-up { transform: translateY(-100%); }
+        @keyframes vy-gl-pop { from { opacity: 0; } to { opacity: 1; } }
+        .vy-gl-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 11px; border: none; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; font-weight: 500; color: var(--vy-ink); text-align: left; cursor: pointer; }
+        .vy-gl-menu-item svg { flex: none; color: var(--vy-on-grad); }
+        .vy-gl-menu-item:hover, .vy-gl-menu-item:focus-visible { background: rgba(232, 112, 58, 0.09); }
+        .vy-gl-menu-item.is-danger, .vy-gl-menu-item.is-danger svg { color: #8F3110; }
+        .vy-gl-menu-item.is-danger:hover, .vy-gl-menu-item.is-danger:focus-visible { background: rgba(143, 49, 16, 0.07); }
+        .vy-gl-menu-note { margin: 2px 0 0; padding: 8px 11px 5px; border-top: 1px solid var(--vy-hairline); font-size: 11.5px; line-height: 1.45; color: var(--vy-on-grad); }
+
+        .vy-gl-bulk { position: fixed; z-index: 35; left: 0; right: 0; bottom: 24px; width: max-content; max-width: calc(100vw - 32px); margin: 0 auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; padding: 8px 8px 8px 16px; border-radius: 16px; background: rgba(38, 29, 24, 0.95); color: #fff; box-shadow: 0 18px 50px rgba(20, 10, 5, 0.35); }
+        .vy-gl-bulk form { display: contents; }
+        .vy-gl-bulk-count { margin-right: 2px; font-size: 13px; }
+        .vy-gl-bulk-count strong { font-family: var(--vy-display); font-weight: 600; }
+        .vy-gl-bulk-clear, .vy-gl-bulk-act { padding: 8px 12px; border: none; border-radius: 10px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background .15s ease; }
+        .vy-gl-bulk-clear { padding: 8px 9px; background: none; color: #F0A57A; }
+        .vy-gl-bulk-act { background: rgba(255, 255, 255, 0.09); color: #fff; }
+        .vy-gl-bulk-act:hover, .vy-gl-bulk-clear:hover { background: rgba(255, 255, 255, 0.17); }
+        .vy-gl-bulk-act.is-danger { color: #F6C6B4; }
+        .vy-gl-bulk-sep { width: 1px; height: 20px; margin: 0 4px; background: rgba(255, 255, 255, 0.18); }
+        .vy-gl-bulk-act:focus-visible, .vy-gl-bulk-clear:focus-visible { outline: 2px solid #F0A57A; outline-offset: 2px; }
+
+        .vy-gl-head-text { flex: 1; min-width: 0; }
+        .vy-gl-head-text .vy-modal-title { overflow-wrap: anywhere; }
+        .vy-gl-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+        .vy-gl-code { text-transform: uppercase; }
+        .vy-gl-textarea { min-height: 112px; resize: vertical; }
+        .vy-gl-switches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .vy-gl-switches > .vy-gl-switch:last-child:nth-child(odd) { grid-column: 1 / -1; }
+        .vy-gl-switch { position: relative; display: flex; align-items: flex-start; gap: 11px; padding: 11px 12px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.62); border: 1px solid var(--vy-hairline); cursor: pointer; transition: border-color .15s ease; }
+        .vy-gl-switch:hover { border-color: var(--vy-accent-border); }
+        .vy-gl-switch input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+        .vy-gl-track { position: relative; flex: none; width: 34px; height: 20px; margin-top: 1px; border-radius: 999px; background: rgb(150, 128, 114); transition: background .18s ease; }
+        .vy-gl-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(60, 30, 10, 0.3); transition: transform .18s ease; }
+        .vy-gl-switch input:checked + .vy-gl-track { background: var(--vy-accent); }
+        .vy-gl-switch input:checked + .vy-gl-track::after { transform: translateX(14px); }
+        .vy-gl-switch input:focus-visible + .vy-gl-track { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-gl-switch-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .vy-gl-switch-text strong { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
+        .vy-gl-switch-text span { font-size: 11.5px; line-height: 1.4; color: var(--vy-muted); }
+        .vy-gl-note { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-gl-errors { margin: 0 0 14px; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(143, 49, 16, 0.07); border: 1px solid rgba(143, 49, 16, 0.2); font-size: 12.5px; line-height: 1.5; color: #8F3110; }
+        .vy-gl-link { color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+        .vy-gl-fieldset { min-width: 0; margin: 0 0 15px; padding: 0; border: none; }
+        .vy-gl-fieldset legend { padding: 0; }
+        .vy-gl-prefs { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vy-gl-pref { position: relative; cursor: pointer; }
+        .vy-gl-pref input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+        .vy-gl-pref span { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.62); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); transition: background .15s ease, border-color .15s ease, color .15s ease; }
+        .vy-gl-pref:hover span { border-color: var(--vy-accent-border); }
+        .vy-gl-pref input:checked + span { background: rgba(232, 112, 58, 0.12); border-color: var(--vy-accent-border); color: var(--vy-accent-text); }
+        .vy-gl-pref input:checked + span::before { content: "✓"; font-size: 11px; }
+        .vy-gl-pref input:focus-visible + span { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        @media (max-width: 1100px) {
+            .vy-gl-search { flex-basis: 100%; }
+        }
+        @media (max-width: 560px) {
+            .vy-gl-chips, .vy-gl-tools { width: 100%; }
+            /* four chips with their counts do not fit one row on a phone — two even rows, never a lone stretched chip */
+            .vy-gl-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: var(--vy-r-md); }
+            .vy-gl-chip { justify-content: center; padding: 0 10px; border-radius: var(--vy-r-sm); }
+            .vy-gl-tools .vy-btn { flex: 1; justify-content: center; }
+            .vy-gl-fields, .vy-gl-switches { grid-template-columns: minmax(0, 1fr); }
+            .vy-gl-foot { justify-content: center; }
+        }
 
         .vy-field { margin-bottom: 15px; }
         .vy-field-label { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 7px; }

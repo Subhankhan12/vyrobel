@@ -243,7 +243,7 @@
         @if ($canManage)
             <div class="vy-modal-backdrop" x-cloak x-show="addOpen" x-transition.opacity
                  @keydown.escape.window="addOpen = false" @click.self="addOpen = false">
-                <div class="vy-modal" x-show="addOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-add-title" tabindex="-1" x-trap.noscroll="addOpen">
+                <div class="vy-modal vy-modal-card" x-show="addOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-add-title" tabindex="-1" x-trap.noscroll="addOpen">
                     <form method="POST" action="{{ route('app.portfolio.store') }}">
                         @csrf
                         <input type="hidden" name="_form" value="add">
@@ -313,7 +313,7 @@
             {{-- EDIT PROPERTY modal --}}
             <div class="vy-modal-backdrop" x-cloak x-show="editOpen" x-transition.opacity
                  @keydown.escape.window="editOpen = false" @click.self="editOpen = false">
-                <div class="vy-modal" x-show="editOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-edit-title" tabindex="-1" x-trap.noscroll="editOpen">
+                <div class="vy-modal vy-modal-card" x-show="editOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-edit-title" tabindex="-1" x-trap.noscroll="editOpen">
                     <form method="POST" action="{{ route('app.portfolio.update') }}">
                         @csrf
                         <input type="hidden" name="property_id" :value="editing.id">
@@ -357,7 +357,7 @@
                 @continue($p['removal']['scheduled'] || $readOnly)
                 <div class="vy-modal-backdrop" x-cloak x-show="removing === @js($p['id'])" x-transition.opacity
                      @keydown.escape.window="removing = null" @click.self="removing = null">
-                    <div class="vy-modal" x-show="removing === @js($p['id'])" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-rm-title-{{ $p['id'] }}" tabindex="-1" x-trap.noscroll="removing === @js($p['id'])" x-data="{ typed: '' }">
+                    <div class="vy-modal vy-modal-card" x-show="removing === @js($p['id'])" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-rm-title-{{ $p['id'] }}" tabindex="-1" x-trap.noscroll="removing === @js($p['id'])" x-data="{ typed: '' }">
                         @if ($p['removal']['last_remaining'])
                             <div class="vy-modal-head">
                                 <span class="vy-modal-ico">

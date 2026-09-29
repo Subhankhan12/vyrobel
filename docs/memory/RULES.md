@@ -203,6 +203,31 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Another project shares this Mac's MySQL.** `advisor-platform`'s suites block the mutation harness (its premise matches any
   `pest`), and the MariaDB engine swap stops the server its tests and its Octane dev server use: ask him to pause it first
   (F 2026-09-29). Identify its processes by working folder; never stop them.
+- **`x-show` erases an inline `display`.** It hides by writing `display: none` and shows by REMOVING the inline display, so
+  an element styled `x-show="open" style="display: flex"` comes back as `block` after its first hide — every Guests dialog
+  opened in the top-left corner (🖥 260,242 instead of 640,450). Put the display in a class (`.vy-modal-backdrop`).
+  `XShowInlineDisplayContractTest` holds the Guests pages at 0 and 45 other sites at a ceiling (Verified 2026-09-29).
+- **`Livewire::test()` skips the web middleware that sets the permission team**, so `@can` there answers a silent FALSE (the
+  #30 note). A test asserting a gated control through it can pass on an ungated look-alike — `UnwiredControlsTest` did, on a
+  dialog heading. Render gated controls through the real route (🔬 probe: team=NULL → `can()`=false) (Verified 2026-09-29).
+- **A public method on an operator Livewire component is an action** callable over `/livewire/update` (no route middleware).
+  `OperatorLivewireMutationBoundaryTest` caught two pure static helpers on the first full run; they moved to a support class
+  (`GuestListParams`). Keep components to lifecycle methods (Verified 2026-09-29).
+- **`TestResponse::session()` starts the session store**, and flashed input is then gone before a follow-up request in the same
+  test: `->assertSessionHasErrors()` followed by a `get()` saw no old input. Assert a refusal by what the next page renders
+  (Verified 2026-09-29, by probe).
+- **Livewire wraps `@foreach`/`@if` output in `<!--[if BLOCK]-->` markers** — a regex over closing tags misses them. Read a
+  block by position (Verified 2026-09-29).
+- **The shared `.vy-modal` panel is see-through glass**; over the scrim, grey text falls below AA (🖥 sampled on the Portfolio's
+  Add dialog: 3.52:1 sub-text, 3.25:1 labels). A dialog panel is also a `vy-modal-card` (near-opaque; 6.18 / 5.30 after)
+  (Verified 2026-09-29).
+- **Sort a derived column by exactly what it shows.** "Last stay" shows a departure for a past stay, so sorting by check-in
+  put a long stay that ended last before a short one that ended sooner. The SQL mirrors the PHP cell, and the test's cast is
+  chosen so the naive key gives a different order (Verified 2026-09-29).
+- **The mutation harness found a weak check of this pass's own:** a count of `class="vy-modal "` WITH a trailing space never
+  saw a panel whose class is exactly `vy-modal` (GL-M21 stayed green). Run the harness on your own guards (Verified 2026-09-29).
+- **Close-on-scroll menus close themselves** under smooth or coasting scrolls: anchor a popup to its trigger while anything
+  scrolls, and close it only when the trigger leaves the screen (🖥 390 px, Verified 2026-09-29).
 
 ---
 

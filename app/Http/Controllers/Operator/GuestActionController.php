@@ -10,6 +10,7 @@ use App\Models\MessageThread;
 use App\Models\Tag;
 use App\Services\GuestService;
 use App\Services\InboxService;
+use App\Support\Guest\GuestListParams;
 use App\Support\Operator\OperatorWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,13 +52,13 @@ class GuestActionController extends Controller
         $model = Guest::query()->findOrFail($guest);   // tenant-scoped → cross-org 404
 
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+            return $this->done($request, $model->id, 'guest_error', $this->pausedMessage());
         }
 
         // An anonymized guest must not be re-populated with PII: the row is kept ONLY so the financial
         // history that references it stays intact, and writing a name back would quietly un-erase them.
         if ($model->isAnonymized()) {
-            return $this->back($model->id, 'guest_error', 'That guest has been anonymized — their details cannot be edited.');
+            return $this->done($request, $model->id, 'guest_error', 'That guest has been anonymized — their details cannot be edited.');
         }
 
         $validated = $request->validate([
@@ -84,11 +85,18 @@ class GuestActionController extends Controller
             $validated[$flag] = $request->boolean($flag);
         }
         // A form with no preference chips ticked posts no `preferences` key — read it as "clear them all".
-        $validated['preferences'] = (array) $request->input('preferences', []);
+        // ⚠️ EXCEPT from the Guests LIST (2026-09-29), whose Edit does not show the preferences at all and says so with
+        //    `keep_preferences`. Without that marker, every edit from the list would silently wipe the guest's stay
+        //    preferences — the profile's form carries every chip, so "none posted" means "none ticked" only there.
+        if ($request->boolean('keep_preferences')) {
+            unset($validated['preferences']);
+        } else {
+            $validated['preferences'] = (array) $request->input('preferences', []);
+        }
 
         $guests->updateProfile($model, $validated, $request->user());
 
-        return $this->back($model->id, 'guest_notice', 'Profile updated.');
+        return $this->done($request, $model->id, 'guest_notice', 'Profile updated.');
     }
 
     /**
@@ -238,13 +246,13 @@ class GuestActionController extends Controller
         $model = Guest::query()->findOrFail($guest);   // tenant-scoped → cross-org 404
 
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($model->id, 'guest_error', $this->pausedMessage());
+            return $this->done($request, $model->id, 'guest_error', $this->pausedMessage());
         }
 
         // Idempotence with a clean flash, never a 500: re-erasing is harmless (the fields are already null)
         // but it would restamp `anonymized_at` and re-audit, implying a second erasure that did not happen.
         if ($model->isAnonymized()) {
-            return $this->back($model->id, 'guest_error', 'That guest has already been anonymized.');
+            return $this->done($request, $model->id, 'guest_error', 'That guest has already been anonymized.');
         }
 
         $request->validate([
@@ -259,13 +267,30 @@ class GuestActionController extends Controller
         // The REAL erase — one call, the existing method, its own transaction + audit/domain events.
         $model->anonymize();
 
-        return $this->back($model->id, 'guest_notice', 'Guest erased. Their personal data is gone; the financial history remains.');
+        return $this->done($request, $model->id, 'guest_notice', 'Guest erased. Their personal data is gone; the financial history remains.');
     }
 
     /** PRG back to the profile, using the two flash keys that view renders. */
     private function back(string $guestId, string $key, string $message): RedirectResponse
     {
         return redirect()->route('app.guests.show', $guestId)->with($key, $message);
+    }
+
+    /**
+     * Where an edit or an erase comes back to (2026-09-29). The Guests LIST edits and erases from a guest's own row
+     * (`return=list`), and lands back on the list with the same filter, sort, page size and page — not on the profile.
+     *
+     * ⚠️ The way back is REBUILT by {@see GuestListParams::returnUrl()} from the list's own allow-listed settings, never taken
+     *    from the request as a URL, so it can only ever be the Guests list — not an open redirect. Anything else in
+     *    `return` is the profile's own behaviour.
+     */
+    private function done(Request $request, string $guestId, string $key, string $message): RedirectResponse
+    {
+        if ($request->input('return') === 'list') {
+            return redirect()->to(GuestListParams::returnUrl($request->input('return_query')))->with($key, $message);
+        }
+
+        return $this->back($guestId, $key, $message);
     }
 
     /** The read-only refusal message — the workspace is paused (#84), so no guest write lands. */

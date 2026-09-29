@@ -291,6 +291,29 @@ combobox padding; a tile overflowed at 390 px; the keyboard guard wanted a reaso
 **Deploy — LIVE `rel_AH @ 3b012e93`, swap 4 ms (Verified 2026-09-29 18:25 Baku);** public checks 12/0/0; 1,405/1,405 files
 match git; 0 errors since the swap.
 
+**GUESTS — 2026-09-29 — the founder's report ("the Add guest modal is not in the centre … the data table should be so
+advanced … edit and delete the guest as well").** Design approved first. *The dialogs:* measured in a browser before any
+change — every dialog on the page and the profile's Edit centred with an inline `display: flex` beside `x-show`, which
+Alpine erases on the first hide (the Add panel's centre sat at 260,242 in 1280×900); all now use `.vy-modal-backdrop`,
+and a new guard holds the Guests pages at zero and the 45 other sites at a ceiling. *The page:* one toolbar (search that
+follows the typing, honest placeholder, filters with counts, Select, Add guest); sortable Guest / Stays / Last stay
+through an allow-list, Last stay by the date the column shows (computed in SQL as the PHP computes the cell); 25 / 50 /
+100 per page; a real footer outside the table; links that keep every setting; in-place updates that still fetch the same
+GET URL (#20); row actions (Open · Edit · Erase personal data) gated like their routes, coming back to the list through
+an allow-list rebuild (never a request URL). **Found and closed:** a list Edit would have wiped the stay preferences
+(now `keep_preferences`); the old footer called In-house and Upcoming "flagged at risk"; `UnwiredControlsTest` passed on
+an ungated dialog heading because `Livewire::test()` leaves the permission team empty; the shared `.vy-modal` glass put
+grey text at 3.52 / 3.25:1 in the Portfolio dialogs (my own work earlier today) — Guests and Portfolio panels now
+near-opaque (6.27 / 5.28 and 6.18 / 5.30); a detached row's bindings threw once on a swap. **Two guards caught this
+pass's own code:** the Livewire boundary guard (two public static helpers on the component, moved to `GuestListParams`),
+and the mutation harness (GL-M21 stayed green because the contrast test counted `class="vy-modal "` with a space). An
+independent read-only review of the whole diff found nothing at its confidence bar. Not touched (reported): the Inbox,
+Calendar New reservation and Billing dialogs use the same see-through glass (not measured).
+Gates: 4,065/4,065 on MariaDB 11.8.9 and on MySQL 8.4.10 (the MySQL run before the last code fix was 4,064/4,065 —
+the Livewire boundary guard); 367/367 mutations; money gate FULL unmoved; browser-walked on tenant three (desktop and
+390 px, 0 console errors).
+**Deploy — pending (the next step).**
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -319,6 +342,9 @@ match git; 0 errors since the swap.
   `caffeinate -i`.
 - **A review of the fixes found what the fixes missed** (2026-09-29): an ARCHIVED organisation's Stripe reports were never
   applied, so a delete's refusals could never lift; and one fix was broader than its defect and hid a real problem.
+- **Guards catching the author (the Guests pass, 2026-09-29):** two public helpers put on a Livewire component (the boundary
+  guard); a contrast check that could not see `class="vy-modal"` without a trailing space (the mutation harness, GL-M21); and
+  a pre-existing test that had passed on an ungated look-alike under `Livewire::test()`. Each was caught before commit.
 - **The same trap, two days after writing it down:** a negated `toContain` with a message, in this pass's own new test. The
   guard test caught it, not the author.
 

@@ -293,45 +293,55 @@
                 </div>
             </div>
 
-            {{-- ── EDIT PROFILE modal — the real write (name/email/phone/city/prefs/toggles) ──────────── --}}
+            {{-- ── EDIT PROFILE modal — the real write (name/email/phone/city/prefs/toggles) ──────────────────────
+                 2026-09-29 — centred by `.vy-modal-backdrop`: the inline `display: flex` it had was erased by x-show the first
+                 time the dialog closed, so it opened top-left (XShowInlineDisplayContractTest). Same chrome as the Guests
+                 list's Edit; every field it had is still here, the stay preferences included. --}}
             @unless ($guest['anonymized'])
-                <div x-show="editOpen" x-cloak @keydown.escape.window="editOpen = false"
-                     style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-                    <div @click.outside="editOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 480px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="editOpen" aria-labelledby="vy-dlg-guest-profile-editopen-1">
-                        <h2 class="vy-card-title" style="margin-bottom: 12px;" id="vy-dlg-guest-profile-editopen-1">Edit profile</h2>
-                        <form method="POST" action="{{ route('app.guests.update', $guest['id']) }}">
+                <div class="vy-modal-backdrop" x-cloak x-show="editOpen" x-transition.opacity @keydown.escape.window="editOpen = false" @click.self="editOpen = false">
+                    <div class="vy-modal vy-modal-card vy-modal--wide" x-show="editOpen" x-transition role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="editOpen" aria-labelledby="vy-dlg-guest-profile-editopen-1">
+                        <form method="POST" action="{{ route('app.guests.update', $guest['id']) }}" data-guard-submit>
                             @csrf
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <div><label class="vy-field-label" for="first_name">First name</label><input class="vy-input" id="first_name" type="text" name="first_name" maxlength="255" value="{{ old('first_name', $guest['first_name']) }}" style="width: 100%;"></div>
-                                <div><label class="vy-field-label" for="last_name">Last name</label><input class="vy-input" id="last_name" type="text" name="last_name" maxlength="255" value="{{ old('last_name', $guest['last_name']) }}" style="width: 100%;"></div>
-                                <div><label class="vy-field-label" for="email">Email</label><input class="vy-input" id="email" type="email" name="email" maxlength="255" value="{{ old('email', $guest['email']) }}" style="width: 100%;"></div>
-                                <div><label class="vy-field-label" for="phone">Phone</label><input class="vy-input" id="phone" type="text" name="phone" maxlength="64" value="{{ old('phone', $guest['phone']) }}" style="width: 100%;"></div>
-                                <div><label class="vy-field-label" for="city">City / country</label><input class="vy-input" id="city" type="text" name="city" maxlength="255" value="{{ old('city', $guest['city']) }}" style="width: 100%;"></div>
-                                <div><label class="vy-field-label" for="nat">Nationality</label><input class="vy-input" id="nat" type="text" name="nationality" maxlength="2" value="{{ old('nationality', $guest['nationality_code']) }}" style="width: 100%; text-transform: uppercase;"></div>
+                            <div class="vy-modal-head">
+                                <span class="vy-modal-ico">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+                                </span>
+                                <div class="vy-gl-head-text">
+                                    <h3 class="vy-modal-title" id="vy-dlg-guest-profile-editopen-1">Edit profile</h3>
+                                    <p class="vy-modal-sub">Contact changes apply to future confirmations, not emails already sent.</p>
+                                </div>
+                                <button type="button" class="vy-modal-x" @click="editOpen = false" aria-label="Close">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
                             </div>
+                            <div class="vy-modal-body">
+                                <div class="vy-gl-fields">
+                                    <div class="vy-field"><label class="vy-field-label" for="first_name">First name</label><input class="vy-input" id="first_name" type="text" name="first_name" maxlength="255" value="{{ old('first_name', $guest['first_name']) }}" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="last_name">Last name</label><input class="vy-input" id="last_name" type="text" name="last_name" maxlength="255" value="{{ old('last_name', $guest['last_name']) }}" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="email">Email</label><input class="vy-input" id="email" type="email" name="email" maxlength="255" value="{{ old('email', $guest['email']) }}" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="phone">Phone</label><input class="vy-input" id="phone" type="tel" name="phone" maxlength="64" value="{{ old('phone', $guest['phone']) }}" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="city">City / country</label><input class="vy-input" id="city" type="text" name="city" maxlength="255" value="{{ old('city', $guest['city']) }}" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="nat">Nationality <span class="vy-fl-note">· 2 letters</span></label><input class="vy-input vy-gl-code" id="nat" type="text" name="nationality" maxlength="2" pattern="[A-Za-z]{2}" title="Two letters, e.g. IE" value="{{ old('nationality', $guest['nationality_code']) }}" autocomplete="off"></div>
+                                </div>
 
-                            {{-- Preferences — the real structured store; shown to HK & front desk --}}
-                            <div style="margin-top: 14px;">
-                                <label class="vy-field-label" style="display: flex; justify-content: space-between;"><span>Preferences</span><span style="text-transform: none; font-weight: 500; color: var(--vy-faint);">Shown to housekeeping &amp; front desk</span></label>
-                                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
-                                    @foreach ($prefCatalog as $key => $label)
-                                        <label class="vy-tag" style="cursor: pointer; border: 1px solid var(--vy-hairline);">
-                                            <input type="checkbox" name="preferences[]" value="{{ $key }}" @checked(in_array($key, $guest['preferences'], true)) style="margin-right: 5px;">
-                                            {{ $label }}
-                                        </label>
-                                    @endforeach
+                                {{-- Preferences — the real structured store; shown to housekeeping and the front desk --}}
+                                <fieldset class="vy-gl-fieldset">
+                                    <legend class="vy-field-label">Stay preferences <span class="vy-fl-note">· shown to housekeeping and the front desk</span></legend>
+                                    <div class="vy-gl-prefs">
+                                        @foreach ($prefCatalog as $key => $label)
+                                            <label class="vy-gl-pref"><input type="checkbox" name="preferences[]" value="{{ $key }}" @checked(in_array($key, $guest['preferences'], true))><span>{{ $label }}</span></label>
+                                        @endforeach
+                                    </div>
+                                </fieldset>
+
+                                <div class="vy-gl-switches">
+                                    <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1" @checked(old('is_vip', $guest['is_vip']))><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>VIP guest</strong><span>Flagged on arrivals and at the front desk</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="risk_flag" value="1" @checked(old('risk_flag', $guest['risk_flag']))><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>At risk</strong><span>Flag this guest for the team</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="prefers_email" value="1" @checked(old('prefers_email', $guest['prefers_email']))><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Prefers email</strong><span>How they like to be contacted</span></span></label>
+                                    <label class="vy-gl-switch"><input type="checkbox" name="marketing_consent" value="1" @checked(old('marketing_consent', $guest['marketing_consent']))><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>Marketing consent</strong><span>Governs marketing email</span></span></label>
                                 </div>
                             </div>
-
-                            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px;">
-                                <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;"><input type="checkbox" name="is_vip" value="1" @checked(old('is_vip', $guest['is_vip']))> VIP guest <span style="color: var(--vy-faint); font-weight: 500;">· flags arrivals &amp; the front desk</span></label>
-                                <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;"><input type="checkbox" name="risk_flag" value="1" @checked(old('risk_flag', $guest['risk_flag']))> Flagged at risk</label>
-                                <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;"><input type="checkbox" name="prefers_email" value="1" @checked(old('prefers_email', $guest['prefers_email']))> Prefers email contact</label>
-                                <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0;"><input type="checkbox" name="marketing_consent" value="1" @checked(old('marketing_consent', $guest['marketing_consent']))> Marketing consent <span style="color: var(--vy-faint); font-weight: 500;">· governs marketing email</span></label>
-                            </div>
-                            <p class="vy-recon" style="margin-top: 8px;">Contact changes apply to future confirmations, not emails already sent.</p>
-
-                            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                            <div class="vy-modal-foot">
                                 <button type="button" class="vy-btn vy-btn--ghost" @click="editOpen = false">Cancel</button>
                                 <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
                             </div>

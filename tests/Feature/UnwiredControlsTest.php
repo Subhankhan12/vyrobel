@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Livewire\MaintenanceList;
-use App\Livewire\Operator\GuestsList;
 use App\Models\EmailTemplate;
 use App\Models\MaintenanceSetting;
 use App\Services\GuestAccountService;
@@ -85,9 +84,12 @@ it('hides the guest write controls from a role that cannot use them', function (
     expect(substr_count($blade, "@can('guests.manage')"))->toBeGreaterThanOrEqual(2);
 
     // And the manager still sees them.
-    Livewire::actingAs(operatorUser($s))
-        ->test(GuestsList::class)
-        ->assertSee('Add guest');
+    // ⚠️ THROUGH THE REAL ROUTE, and the BUTTON itself (2026-09-29). This used `Livewire::test()`, which skips the web
+    //    middleware that sets the permission team — so `@can` answered a silent FALSE (invariant #30's note) and the
+    //    button never rendered. The assertion passed anyway on the Add guest DIALOG's heading, which was not gated.
+    //    Gating the dialog too (the Guests rebuild) exposed it; a probe confirmed team=NULL → can()=false there.
+    $this->actingAs(operatorUser($s))->get('/app/guests')->assertOk()
+        ->assertSee('@click="addOpen = true"', false);
 });
 
 /**

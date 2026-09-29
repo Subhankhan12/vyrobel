@@ -340,14 +340,33 @@ it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one 
     foreach ($files as $f) {
         $src = (string) file_get_contents(resource_path('views/'.$f));
 
-        // ⚠️ non-vacuity per file: it really does build a scrim modal. (No second argument — Pest's
-        // toContain() takes MULTIPLE NEEDLES, so a "message" there is silently searched for as text and the
-        // guard fails for the wrong reason. It did, once.)
-        expect($src)->toContain('rgba(43,35,32,.4)');
+        // ⚠️ non-vacuity per file: it really does build a scrim modal — with the old inline scrim, or (the two Guests
+        // pages since 2026-09-29) the shared `.vy-modal-backdrop`, because an inline `display` beside x-show is erased
+        // and left their dialogs in the top-left corner. (No second argument to toContain — Pest takes MULTIPLE
+        // NEEDLES, so a "message" there is silently searched for as text and the guard fails for the wrong reason.)
+        expect(str_contains($src, 'rgba(43,35,32,.4)') || str_contains($src, 'vy-modal-backdrop'))->toBeTrue($f);
         $total += substr_count($src, 'vy-modal-card');
     }
 
     expect($total)->toBeGreaterThanOrEqual(11);
+
+    // ⚠️ And on the shared backdrop the card still WINS. `.vy-modal` is the see-through glass and is defined LATER than
+    // `.vy-modal-card`, so on its own the class would silently lose (the §N.21.6 trap again). The two-class rule is
+    // what makes a `.vy-modal` panel that is a modal card near-opaque.
+    // 🖥 Measured 2026-09-29 on the Portfolio's Add dialog, the see-through panel read 3.52:1 (sub-text, --vy-muted) and
+    //    3.25:1 (field labels, --vy-faint); with the card the Guests dialogs read 6.27:1 and 5.28:1.
+    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    expect($shell)->toMatch('/\.vy-modal\.vy-modal-card \{[^}]*background: rgba\(255, 252, 248, 0\.94\)/');
+    foreach (['livewire/operator/guests-list.blade.php', 'livewire/operator/guest-profile.blade.php', 'livewire/operator/portfolio.blade.php'] as $f) {
+        $src = (string) file_get_contents(resource_path('views/'.$f));
+        // Every panel's class list, read whole — a first draft counted `class="vy-modal "` WITH a trailing space and never
+        // saw a panel whose class is exactly `vy-modal` (the mutation harness found it: GL-M21 stayed green).
+        preg_match_all('/class="(vy-modal(?:\s[^"]*)?)"/', $src, $panels);
+        expect($panels[1])->not->toBeEmpty();
+        foreach ($panels[1] as $classes) {
+            expect(str_contains($classes, 'vy-modal-card'))->toBeTrue($f.': the panel "'.$classes.'" is the see-through glass');
+        }
+    }
 });
 
 /*
