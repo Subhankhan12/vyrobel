@@ -23,7 +23,11 @@ use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 /**
  * Operator SETTINGS writes (Wave 4 · Sub-gate 3) — three guarded writers over the CERTIFIED
@@ -154,13 +158,56 @@ class SettingsActionController extends Controller
             'brand_powered_by' => $request->boolean('brand_powered_by'),
         ];
 
+        $old = $property->brand_logo_path;
+        $new = null;
         if ($request->hasFile('logo')) {
-            $attributes['brand_logo_path'] = $request->file('logo')->store('brand-logos', 'public');
+            $new = $request->file('logo')->store('brand-logos', 'public');
+            $attributes['brand_logo_path'] = $new;
         }
 
-        $settings->updateBrand($property, $attributes);
+        try {
+            $settings->updateBrand($property, $attributes);
+        } catch (Throwable $e) {
+            // saved for a change that did not happen — nobody's file. ⚠️ Unless the property row already names it: the
+            // update commits before its audit row is written, so a failure THERE leaves the new logo in use
+            if (is_string($new) && ! DB::table('properties')->where('brand_logo_path', $new)->exists()) {
+                Storage::disk('public')->delete($new);
+            }
+            throw $e;
+        }
+        // ⚠️ ADMIN 06 — the REPLACED logo goes once the new one is saved: before this, every replacement left the old
+        // file on the public disk forever, reachable by its URL, with no row naming it.
+        if (is_string($new) && is_string($old) && $old !== '' && $old !== $new) {
+            $this->removeReplacedLogo($old);
+        }
 
         return $this->back('Guest-facing brand saved.');
+    }
+
+    /**
+     * Remove a logo no property uses any more — never one another property still shows (a demo seed can share one
+     * file between tenants, so the check reads EVERY organisation, not the tenant scope). A disk that will not remove
+     * it is logged with the path, the only record of the file once no row names it; the save itself stands.
+     */
+    private function removeReplacedLogo(string $path): void
+    {
+        try {
+            if (DB::table('properties')->where('brand_logo_path', $path)->exists()) {
+                return;
+            }
+            $disk = Storage::disk('public');
+            if (! $disk->exists($path)) {
+                return;   // already gone
+            }
+            // delete it, then confirm it is gone: a disk that refuses reports false, or leaves the file behind
+            if ($disk->delete($path) && $disk->missing($path)) {
+                return;
+            }
+            Log::warning('ADMIN 06 — a replaced brand logo could not be removed; remove it by hand.', ['disk' => 'public', 'path' => $path]);
+        } catch (Throwable $e) {
+            report($e);
+            Log::warning('ADMIN 06 — a replaced brand logo could not be removed; remove it by hand.', ['disk' => 'public', 'path' => $path, 'why' => $e::class]);
+        }
     }
 
     /**

@@ -14,5 +14,7 @@ final class StripeTransfer
     public function __construct(
         public readonly string $id,
         public readonly string $destination,
+        // ⚠️ ADMIN 06 — Stripe's own livemode for this object (null: not reported)
+        public readonly ?bool $livemode = null,
     ) {}
 }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Support\Webhooks;
 
 use App\Jobs\Sync\ProcessChannexWebhookJob;
+use App\Models\Scopes\OrganizationScope;
 use App\Models\WebhookEvent;
+use App\Support\Tenancy\TenantContext;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Throwable;
@@ -84,6 +86,17 @@ final class WebhookEventClaim
         Closure $apply,
         array $extra = [],
     ): string {
+        // ⚠️⚠️ ADMIN 06 — an event first recorded UNRESOLVED ({@see self::recordUnresolved()}: no organisation, it could
+        //    not be placed) and delivered again once it CAN be placed is ADOPTED by the organisation placing it, then
+        //    claimed as usual. 🔬 Without this the tenant-scoped insert below met the unique index on a row its scope
+        //    cannot see — a 500 on every retry, and the event never applied (found by the ADMIN 06 reclaim test).
+        if (($organizationId = app(TenantContext::class)->id()) !== null) {
+            WebhookEvent::query()->withoutGlobalScopes([OrganizationScope::class])
+                ->where('source', $source)->where('external_event_id', $externalEventId)->whereNull('organization_id')
+                ->whereIn('status', [WebhookEvent::STATUS_RECEIVED, WebhookEvent::STATUS_FAILED, WebhookEvent::STATUS_IGNORED])
+                ->update(['organization_id' => $organizationId]);
+        }
+
         // `createOrFirst` (not `firstOrCreate`): the unique(source, external_event_id) index turns a losing
         // concurrent INSERT into a fetch rather than a 500.
         $row = WebhookEvent::createOrFirst(
@@ -111,7 +124,9 @@ final class WebhookEventClaim
             // ⚠️ RECORD THE FAILURE AND RELEASE THE CLAIM. `failed` lets Stripe's very next retry re-claim
             //    immediately rather than waiting out the stale window — and the row is the ONLY trace that
             //    this event was ever seen, since nothing in this product reconciles against Stripe.
-            WebhookEvent::query()->whereKey($row->getKey())->update([
+            // ⚠️ REVIEW 3 (ADMIN 06) — never over `processed`: if this claim went stale and another delivery took it over
+            //    and FINISHED, a late failure here must not re-open the event (it would be applied twice).
+            WebhookEvent::query()->whereKey($row->getKey())->where('status', '!=', WebhookEvent::STATUS_PROCESSED)->update([
                 'status' => WebhookEvent::STATUS_FAILED,
                 'error' => $e->getMessage(),
             ]);
@@ -156,6 +171,7 @@ final class WebhookEventClaim
         array $payload,
         string $reason,
         array $extra = [],
+        string $status = WebhookEvent::STATUS_FAILED,
     ): void {
         $row = WebhookEvent::createOrFirst(
             ['source' => $source, 'external_event_id' => $externalEventId],
@@ -163,7 +179,7 @@ final class WebhookEventClaim
                 'event_type' => $eventType,
                 'signature_verified' => true,
                 'payload' => $payload,
-                'status' => WebhookEvent::STATUS_FAILED,
+                'status' => $status,
                 'received_at' => now(),
                 'error' => $reason,
             ],
@@ -171,11 +187,22 @@ final class WebhookEventClaim
 
         // A redelivery of an event we already placed must not be downgraded — only an unplaced one is
         // marked unresolved, and a row already `processed` is left exactly as it is.
-        if (! $row->wasRecentlyCreated && $row->status !== WebhookEvent::STATUS_PROCESSED) {
-            WebhookEvent::query()->whereKey($row->getKey())->update([
-                'status' => WebhookEvent::STATUS_FAILED,
-                'error' => $reason,
-            ]);
+        // ⚠️ REVIEW 2 (D-R2-9) — ONE conditional UPDATE, never read-then-write: between the read above and a write,
+        //    another delivery may have claimed the row (`processing`) or finished it (`processed`), and demoting either
+        //    would let the event be applied twice or mark a settled one unsettled. The database decides, as in
+        //    {@see self::reclaim()}; only a claim old enough that its holder is gone may be marked unresolved.
+        if (! $row->wasRecentlyCreated) {
+            WebhookEvent::query()
+                ->whereKey($row->getKey())
+                ->where(fn (Builder $q): Builder => $q
+                    ->whereNotIn('status', [WebhookEvent::STATUS_PROCESSED, WebhookEvent::STATUS_PROCESSING])
+                    ->orWhere(fn (Builder $stale): Builder => $stale
+                        ->where('status', WebhookEvent::STATUS_PROCESSING)
+                        ->where('updated_at', '<', now()->subMinutes(self::STALE_CLAIM_MINUTES))))
+                ->update([
+                    'status' => $status,
+                    'error' => $reason,
+                ]);
         }
     }
 
@@ -192,7 +219,8 @@ final class WebhookEventClaim
             ->whereKey($row->getKey())
             ->where(function (Builder $q): void {
                 // Never worked, or a previous delivery recorded a failure — retryable immediately.
-                $q->whereIn('status', [WebhookEvent::STATUS_RECEIVED, WebhookEvent::STATUS_FAILED])
+                // (`ignored` too — ADMIN 06: a resend that CAN now be placed is applied, as `failed` always was)
+                $q->whereIn('status', [WebhookEvent::STATUS_RECEIVED, WebhookEvent::STATUS_FAILED, WebhookEvent::STATUS_IGNORED])
                     // …or a claim old enough that whoever held it is gone. `updated_at` is the claim clock:
                     // it is refreshed by the claim itself, and nothing else writes these rows.
                     ->orWhere(fn (Builder $stale): Builder => $stale

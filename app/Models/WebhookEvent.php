@@ -24,6 +24,13 @@ class WebhookEvent extends Model
 
     public const STATUS_FAILED = 'failed';
 
+    /**
+     * ⚠️ ADMIN 06 — recorded with its reason, but NOT a failure: a correctly signed event this deployment has nothing to
+     * do with (a subscription invoice's PaymentIntent on the platform plane, an operator account's update, a type the
+     * app does not act on). Kept apart from `failed` so the daily billing reconciliation stays a list of real problems.
+     */
+    public const STATUS_IGNORED = 'ignored';
+
     protected $fillable = [
         'organization_id',
         'source',

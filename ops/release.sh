@@ -61,6 +61,33 @@ stage)
     WORK="$(mktemp -d -t vyrel)"
     git diff --name-only --diff-filter=ACMRT "$FROM" "$TO" > "$WORK/changed"
     git diff --name-only --diff-filter=D "$FROM" "$TO" > "$WORK/deleted"
+
+    # ⚠️⚠️ ADMIN 06 (#6) — DRIFT. The diff above ships what CHANGED between two commits, so a file the host holds in a
+    #    DIFFERENT form — a hand copy, a copy older than the release layout — is never corrected by any later stage.
+    #    🔬 Measured 2026-09-27 on rel_AE: 4 of 1,395 deployable files differed from git at its own commit — the three
+    #    ops check files (hand copies from 2026-09-21) and ops/ps-check.sh (never shipped). So every deployable file
+    #    the LIVE release holds is checked against git at the LIVE commit, and each that differs or is missing ships
+    #    too, at the new commit. The server's copies come from git through the deploy — never a hand copy.
+    mkdir -p "$WORK/tree"
+    git archive "$FROM" -- app bootstrap config database public resources routes ops artisan | tar -x -C "$WORK/tree"
+    (cd "$WORK/tree" && find . -type f ! -path './bootstrap/cache/*' ! -path './public/build/*' ! -path './resources/css/*' ! -path './resources/js/*' -print0 \
+        | xargs -0 shasum -a 256) > "$WORK/manifest"
+    [ "$(wc -l < "$WORK/manifest" | tr -d ' ')" -gt 1000 ] || die "the drift manifest lists too few files to be the application"
+    scp -i "$KEY" -P "$PORT" -q "$WORK/manifest" "$HOST:~/vy-release-drift.manifest"
+    ssh_ "cd ~/$ROOT/releases/$CUR && { sha256sum -c ~/vy-release-drift.manifest 2>/dev/null || true; } | grep -v ': OK\$' | sed -E 's#^\./##; s#: FAILED( open or read)?\$##' || true; rm -f ~/vy-release-drift.manifest" > "$WORK/drift"
+    if [ -s "$WORK/drift" ]; then
+        say "drifted from git on the host (shipped from git now): $(wc -l < "$WORK/drift" | tr -d ' ')"
+        sed 's/^/      · /' "$WORK/drift"
+        # at the NEW commit — only where the path still exists there: a file deleted or RENAMED since is not shipped under
+        # its old name (the diff above already ships the new one; `git archive` would refuse the old path outright)
+        while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            if git cat-file -e "$TO:$f" 2>/dev/null; then echo "$f" >> "$WORK/changed"; else say "      (not at the new commit, not shipped: $f)"; fi
+        done < "$WORK/drift"
+        sort -u "$WORK/changed" -o "$WORK/changed"
+    else
+        say "drifted from git on the host: none"
+    fi
     while IFS= read -r f; do
         case "$f" in composer.json|composer.lock|package.json|package-lock.json|vite.config.*|resources/css/*|resources/js/*)
             die "$f changed — vendor/ or public/build needs a deliberate rebuild step; refusing to copy around it";;

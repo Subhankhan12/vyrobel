@@ -256,7 +256,7 @@ leave an org with **zero** sign-in-able role-managers — **unrecoverable from i
 
 **Delete permanently (ADMIN 05, 2026-09-26)** — the founder's "delete everything, always" replaces "no hard delete" for
 ONE Owner-only action on a suspended or archived, unprotected organisation; archive stays the reversible option and
-nothing deletes on a timer. The console's own records of it are kept. · **Direct charges on the operator's connected account** — the conservative end: whatever a lawyer says about who may
+nothing deletes on a timer. The console's own records of it are kept. · **⚠️ A HOLD, NOT A RULING (ADMIN 06, 2026-09-27)** — delete refuses any organisation with LIVE-mode Stripe money records until his lawyer rules how long they must be kept; test-mode records never block; one method (`OrganizationDeletion::liveMoneyRecords()`), removed when the ruling comes. ⛔ No live Stripe key until ADMIN 06's refusals are live (`STRIPE-PRODUCTION.md`, top). · **Direct charges on the operator's connected account** — the conservative end: whatever a lawyer says about who may
 hold funds, direct charges cannot be wrong on it. · **Standard Connect, not Express** — Express puts dispute
 liability on the platform. · **No statement-descriptor field** — it would claim a control we do not have. · **The
 channels page is stopped**, not deferred; it may make **no** future promise. · **The changelog was refused** — no

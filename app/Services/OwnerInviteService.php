@@ -179,7 +179,19 @@ class OwnerInviteService
             fn (): ?OwnerInvite => OwnerInvite::query()->where('token_hash', hash('sha256', $token))->first(),
         );
 
-        return ($invite !== null && $invite->isRedeemable()) ? $invite : null;
+        return ($invite !== null && $invite->isRedeemable() && ! $this->wouldReplaceAPassword($invite)) ? $invite : null;
+    }
+
+    /**
+     * ⚠️⚠️ ADMIN 06 (#5) — A FOUNDER'S LINK SETS A FIRST PASSWORD; IT NEVER REPLACES ONE. The founder is created with no
+     * password and the link is theirs to set it — but it stays valid for {@see self::EXPIRY_DAYS} days, and in that
+     * time the founder may set one another way (a password reset). Redeeming the link after that would silently
+     * overwrite the password they chose, so a founder's link whose account already has a password is not redeemable.
+     */
+    private function wouldReplaceAPassword(OwnerInvite $invite): bool
+    {
+        return $invite->role === self::FOUNDER_ROLE
+            && User::query()->where('email', $invite->email)->whereNotNull('password')->exists();
     }
 
     /**
@@ -226,6 +238,14 @@ class OwnerInviteService
         return app(TenantContext::class)->forOrganization((string) $invite->organization_id, function () use ($invite, $password): User {
             return DB::transaction(function () use ($invite, $password): User {
                 $user = $this->userForInvite($invite);
+                // ⚠️ ADMIN 06 (#5) — re-checked HERE, under a lock on the account: a password set a moment after the
+                // link was opened is still never overwritten (the page's own check is only the friendly one).
+                // ⚠️ The row is locked by its KEY and the password read AFTER: a `FOR UPDATE` whose WHERE also tests the
+                // password releases a non-matching row at once under READ COMMITTED — the lock would hold nothing
+                if ($invite->role === self::FOUNDER_ROLE
+                    && User::query()->whereKey($user->getKey())->lockForUpdate()->first(['id', 'password'])?->getAuthPassword() !== null) {
+                    throw new InviteNoLongerRedeemable('This set-password link is no longer valid — the account already has a password.');
+                }
 
                 // 'hashed' cast hashes the plaintext once. Activate the login + verify the email.
                 //

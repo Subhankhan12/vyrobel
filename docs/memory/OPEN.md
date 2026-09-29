@@ -1,96 +1,62 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-27, MEMORY 01.** Labels: **V** = Verified in MEMORY 01 · **R** = Reported (source given) · **F** = Founder said.
-This starts from the planning side's list (27 September, 00:10 Baku). **Where this pass verified something different,
-it wins, and the change is said.** Briefs live in `briefs/`.
+**2026-09-29, ADMIN 06 FINISH** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
+change is said.** Briefs live in `briefs/`.
 
 ## Founder
 | ID | What | Waiting on | Brief | Why it matters |
 |---|---|---|---|---|
-| F1 | Change the exposed `contact@` password in hPanel, then put the new one in `.env` as `MAIL_PASSWORD`. **Exposed because** it was pasted into a chat session during the email passes (R: this session; exact date not recorded). It was never used, and must be rotated. (**V:** not set; mailer `log`) | him | `TONIGHT-01.md` Part 2, `MAIL-02.md` | Until then every email is thrown away: invites, resets, verification. |
+| F1 | Change the exposed `contact@` password in hPanel, then put the new one in `.env` as `MAIL_PASSWORD`. **Exposed because** it was pasted into a chat session during the email passes (R: MEMORY 01; exact date not recorded). It was never used, and must be rotated. (**V 2026-09-29:** not set; mailer `log`) | him | `TONIGHT-01.md` Part 2, `MAIL-02.md` | Until then every email is thrown away: invites, resets, verification. |
 | F2 | Copy `APP_KEY` into his password manager, off the server | him | — | It exists in one place. Lose it and encrypted guest data is gone for good. |
-| F3 | PW-SIGNUP PROBE: suspend, then delete, with his password. **V:** still `active`, so not started | him, best after ADMIN 06 is live (A1) | `PW-SIGNUP-DELETE-1.md`, `-2-follow-up.md` | The first real deletion; it proves the delete on production. |
-| F4 | KEYBOARD 01 at the keyboard: (1) rotate the Google secret, proven by a real signup; (2) the four admin checks; (3) the heartbeat alarm (**V:** unarmed); (4) the Stripe dashboard set-up, only after ADMIN 06 is live. **Its own rule: run it after TONIGHT 01 has closed.** | him | `KEYBOARD-01.md` | Proves the secrets and turns the heartbeat on. |
-| F5 | Stripe live: keys, both webhook secrets, Connect verification, the four Price IDs, real prices | him | `docs/STRIPE-PRODUCTION.md` | ⛔ Not before ADMIN 06 is live (A1), B20 is settled (D-B20) **and** payout confirmation is proven with one test-mode transfer (D-TRANSFER). |
+| F3 | PW-SIGNUP PROBE: suspend, then delete, with his password. **V 2026-09-29:** still `active`, so not started | him — ADMIN 06 is now finished (see `STATE.md` for whether it is live) | `PW-SIGNUP-DELETE-1.md`, `-2-follow-up.md` | The first real deletion; it proves the delete on production. The agent retakes the backup and baselines first (A3). |
+| F4 | KEYBOARD 01 at the keyboard: (1) rotate the Google secret, proven by a real signup; (2) the four admin checks; (3) the heartbeat alarm (**V 2026-09-29:** unarmed); (4) the Stripe dashboard set-up, only after ADMIN 06 is live. **Its own rule: run it after TONIGHT 01 has closed.** | him | `KEYBOARD-01.md` | Proves the secrets and turns the heartbeat on. |
+| F5 | Stripe live: keys, both webhook secrets, Connect verification, the four Price IDs, real prices | him | `docs/STRIPE-PRODUCTION.md` | ⛔ Not before ADMIN 06 is live, B20 is settled (D-B20) **and** payout confirmation is proven with one test-mode transfer (D-TRANSFER). |
 | F6 | The lawyer: Article 28 agreements (Hostinger first); who may hold customers' money; how long invoices and payment records must be kept | him | — | The ADMIN 06 hold on deleting live money records waits on the third answer. |
 | F7 | Real tax rates (`tax:set-rate`, replacing the EXAMPLE rates) | him | `docs/TAX-ENGINE-DESIGN.md` | The VAT figures shown are example rates. |
 | F8 | Optional: one email to `sales@` to prove the alias | him | — | **R:** the alias was created 2026-09-26; delivery is not proven. |
+| F9 | Keep `advisor-platform`'s test runs paused while a Vyrobel pass swaps the local database engine (MariaDB gate) — **F 2026-09-29: he paused them for ADMIN 06's finish.** | him, per pass | — | The engine swap stops the shared local MySQL for ~25 min; that project's tests and its Octane dev server use it. |
 
 ## Agent
 | ID | What | Waiting on | Brief | Why it matters |
 |---|---|---|---|---|
-| A1 | **Finish ADMIN 06**: fix the review findings (D-R2-*); rerun every gate, one suite at a time and under `caffeinate` (the Mac sleeps); commit; push; stage `rel_AF`; **time the preview on the host before swapping**; swap; public checks; on the server, run `ops/htaccess-drift-check.sh` and `ops/exposure-battery.sh` (D-OPS3); confirm no stray `.env*` copies (the one shared `.env` stays, mode 600); `chmod 644` the 775 log (D-LOG) | nothing | `ADMIN-06.md` | ⛔ Must be live before any live Stripe key. **The work is uncommitted, on this disk only.** |
+| A1 | **Finish ADMIN 06** — ✅ code, tests, mutations and gates DONE 2026-09-29 (`HISTORY.md`, "ADMIN 06 finish"). The deploy state is in `STATE.md`. | — | `ADMIN-06.md` | ⛔ Must be live before any live Stripe key. |
 | A2 | The email pass (TONIGHT 01 Part 2 / MAIL 02) | F1 | `TONIGHT-01.md`, `MAIL-02.md` | Switches production mail on. |
-| A3 | PW-SIGNUP proof: after his delete, run the proof `after` twice, `compare.py`, read the ledger back, keep the backup, delete the two ids files | F3 | `PW-SIGNUP-DELETE-1.md` | Proves only the probe's rows went, and nothing else moved. |
+| A3 | PW-SIGNUP proof: **retake** the backup and the before-baselines right before his click (the 26 September ones predate ADMIN 06's migration); after his delete, run the proof `after` twice, `compare.py`, read the ledger back, keep the backup, delete the two ids files | F3 | `PW-SIGNUP-DELETE-1.md` | Proves only the probe's rows went, and nothing else moved. |
 | A4 | The whole-day walk on a test hotel | A2 | — (R: planning side) | The first end-to-end use with real email. |
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
-| A6 | Remove two read-only scripts this session left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to act on production | — | Harmless, but tidy. |
+| A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
+| A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
 
 ## Known defects (each its own ID)
-- **D-B19**: delete could not see an open Stripe Checkout page. **Fixed in the working tree (ADMIN 06), not deployed, with two
-  open gaps:** D-R2-2 (a live page paid but not yet reported) and D-R2-4 (the guest-page half is untested).
-- **D-3b**: the delete preview counted 17 of the 232 rows it removes. **Fixed in the working tree, not deployed.** The
-  proof gap is D-R2-6.
+- **D-B19**: delete could not see an open Stripe Checkout page. **Fixed by ADMIN 06**, including the two gaps review 2 found
+  (a live page paid but not yet reported, D-R2-2; the guest page's half, D-R2-4).
+- **D-3b**: the delete preview counted 17 of the 232 rows it removes. **Fixed by ADMIN 06**; the proof gap (D-R2-6) is closed.
 - **D-A10 (F-36)**: waits on Channex. R: `docs/GO-LIVE-REQUIREMENTS.md`.
-- **D-MARIADB3** ("three tests don't run on MariaDB") is **resolved, and this changes the planning side's view.** No test
-  skips by engine. The gap was timing: they were added after the full MariaDB run. The working tree runs 4,018 on both
-  engines. R: ADMIN 06.
-- **D-LOGO**: replaced logo files were never deleted. **Built in the working tree, as the brief asked**, but ruling DEC-f
-  may reverse it: removing an old logo breaks the image in emails already sent.
-- **D-LOGO-Q**: quarantine orphaned logos on production (ADMIN 06 #3). **Nothing to do.** V 2026-09-27: 0 logos are
-  referenced and there is no logo folder on disk.
-- **D-OPS3**: the "three laptop-only check scripts" are two scripts, `ops/exposure-battery.sh` (it probes URLs, so it
-  can run from anywhere) and `ops/htaccess-drift-check.sh` (it runs ON the host), plus the reference file the drift check
-  reads, `ops/reference/public_html.htaccess`. All three are old hand copies on the host, and `ops/ps-check.sh` is
-  missing (V, 10:30 UTC).
-  `ops/release.sh stage` now ships drifted files from git (working tree), so the next deploy fixes them. They still need
-  running once on the server.
+- **D-MARIADB3**: resolved — no test skips by engine (R: ADMIN 06).
+- **D-LOGO**: replaced logo files were never deleted. **Built by ADMIN 06, as the brief asked**, but ruling DEC-f may reverse
+  it: removing an old logo breaks the image in emails already sent.
+- **D-LOGO-Q**: nothing to do. V 2026-09-27: 0 logos are referenced and there is no logo folder on disk.
+- **D-OPS3**: the three check files on the host (`ops/exposure-battery.sh`, `ops/htaccess-drift-check.sh`,
+  `ops/reference/public_html.htaccess`) are old hand copies, and `ops/ps-check.sh` is missing (V 2026-09-29: 1,391 of 1,395
+  deployable files match git). ADMIN 06's `release.sh stage` ships them from git at the next deploy; they then need running
+  once on the server. See `STATE.md` for whether that happened.
 - **D-B20 (pre-existing; read, not run)**: a guest's card payment page cannot open with real Stripe. Under the SDK's
   pinned API version, a payment-mode Checkout page has no PaymentIntent. `docs/KNOWN-LIMITS.md` L20. Verify with one
   test-mode session.
 - **D-TRANSFER (pre-existing; read, not run; review 2 confirmed)**: payouts are confirmed only by the Connect endpoint,
   but a platform-created transfer raises its events on the PLATFORM account. Live payouts could sit `processing`
-  forever. Verify with one test-mode transfer before go-live.
-- **D-LOG**: `storage/logs/laravel-2026-09-20.log` is mode 775 (V). Set it to 644 at the next deploy. The logs return
-  404 from the web (V), and hold no sign-in link (V: counted, never printed).
-- **D-HEARTBEAT**: the heartbeat alarm is unarmed; `OPS_HEARTBEAT_PING_URL` is not set (V). Fixed by F4(3).
-- **D-DISK**: ADMIN 06 is uncommitted and exists only on this laptop. Fixed by A1.
-
-### ADMIN 06 second review (2026-09-27): fix before committing (A1)
-The review had **19 findings**. The 5 most severe went to a skeptic: **4 were confirmed** (D-R2-1, D-R2-2, D-R2-3, and the
-pre-existing D-TRANSFER above) and **1 was refuted**. **The 14 others were not verified by the review:** D-R2-4 to D-R2-16,
-plus the logo-in-sent-emails point, which is ruling DEC-f; both reviews raised that one. MEMORY 01 has since confirmed
-D-R2-12 by reading.
-
-Confirmed by a skeptic:
-- **D-R2-1**: an operator's own Connect `account.updated` carries `metadata.organization_id`, so it is recorded `failed`,
-  and the daily reconciliation goes red once any operator onboards. Fix: `account.updated` is never "ours" in
-  `unresolved()`. Add a test with operator metadata, plus a mutation.
-- **D-R2-2**: a LIVE subscription page paid at Stripe whose webhook has not arrived stops blocking the delete once its
-  `expires_at` passes. Fix: refuse while a live session has no reported outcome.
-- **D-R2-3**: nothing tests or mutates `livemode` being stored on payouts, desk card charges, or deposit holds and
-  captures.
-
-Found but not verified:
-- **D-R2-4**: the guest-page half of B19 (recording and closing the page) has no test and no mutation.
-- **D-R2-5**: the "one dispute closing hides another" mutation (A06-M47) dies on a crash, not on the property it claims to
-  test.
-- **D-R2-6**: "a mutation that drops ANY one table is caught" holds only for tables that have rows in the fixtures. Seed
-  oauth, `llm_usage`, reset tokens and a kept person.
-- **D-R2-7**: an unknown dispute status counts as closed, so the refusal fails open.
-- **D-R2-8**: a dispute whose closing event never arrived blocks the delete forever, with no "resolve it by hand" wording.
-- **D-R2-9**: `recordUnresolved()` is read-then-write, so it can demote a claim that is `processing` or just `processed`.
-- **D-R2-10**: the premise check misses a table cleared directly that is also a cascade child.
-- **D-R2-11**: a dispute on the organisation's own subscription charge is never linked to the organisation.
-  `GO-LIVE B19` overstates this.
-- **D-R2-12** (**confirmed by MEMORY 01 reading**): ADMIN 06's `KNOWN-LIMITS` L19 edit says "two of the three items beside
-  it are closed". Only one is.
-- **D-R2-13**: the #0 refusal table in `DECISIONS` leaves out the written-reason refusal.
-- **D-R2-14**: no test proves the console never shows the founder's link, or never writes it to the ledger.
-- **D-R2-15**: the Connect "unknown type" path and the unrecorded-Checkout path have no mutation, and the first has no
-  test.
-- **D-R2-16**: the top of `STRIPE-PRODUCTION.md` leaves out the cascade-depth refusal and the cross-organisation refusal.
-- Review 1's findings are fixed in the working tree (listed in the ADMIN 06 entry in `docs/DECISIONS.md`, uncommitted).
+  forever. Verify with one test-mode transfer before go-live (needs his Stripe test keys).
+- **D-LOG**: `storage/logs/laravel-2026-09-20.log` is mode 775 (V 2026-09-27). Set it to 644 at the next deploy.
+- **D-HEARTBEAT**: the heartbeat alarm is unarmed; `OPS_HEARTBEAT_PING_URL` is not set (V 2026-09-29). Fixed by F4(3).
+- **D-R3-3 (small, a call for him)**: a TEST-mode Checkout page's `checkout.session.expired`, arriving after its
+  organisation was deleted, is recorded `failed` (its metadata names the organisation), so the daily reconciliation shows
+  one red row for a page that moved no money. A live page cannot reach this state (the delete waits for Stripe's report).
+  The late-webhook test pins `failed` deliberately; changing it is his call, not a quiet edit.
+- **D-HOLD-STUCK (unreachable today)**: a card hold stuck at `authorized` would refuse a delete for ever (nothing releases
+  it) — but nothing in `app/` calls `authorizeDeposit`, so nothing can create one. Recorded by review 3.
+- **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
+  app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
 ## Older open items (Reported; carried here so nothing is only in an old doc)
 - **The ADMIN 05 signed-in live pass**: the redesigned forms on production, signed in. Waits on the founder's sign-in.
@@ -124,3 +90,4 @@ Found but not verified:
 | DEC-d | ADMIN 06: a staff invite to an existing account that is not active sets its password on acceptance (the re-invite design). |
 | DEC-e | ADMIN 06: after a cancellation, an open Stripe invoice can remain at Stripe, unrecorded here. |
 | DEC-f | ADMIN 06: removing a replaced logo breaks the logo in emails **already sent**. Keep old logos for email history instead? |
+| DEC-g | ADMIN 06 finish: D-R3-3 above — should a test-mode page's expiry, arriving after a deletion, be `ignored` rather than `failed`? |

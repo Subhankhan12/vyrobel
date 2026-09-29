@@ -69,14 +69,14 @@ class StripeGateway implements PaymentGateway
         // Capturing an already-captured intent is idempotent — key on the intent id so a retry returns it.
         $intent = $this->stripe->capturePaymentIntent($reference, $amount->amountMinor(), StripeIdempotency::keyFor('folio_capture', $reference));
 
-        return new GatewayResult($intent->status === 'succeeded', $intent->id, 'captured');
+        return new GatewayResult($intent->status === 'succeeded', $intent->id, 'captured', livemode: $intent->livemode);
     }
 
     public function void(string $reference): GatewayResult
     {
         $intent = $this->stripe->cancelPaymentIntent($reference);
 
-        return new GatewayResult($intent->status === 'canceled', $intent->id, 'voided');
+        return new GatewayResult($intent->status === 'canceled', $intent->id, 'voided', livemode: $intent->livemode);
     }
 
     public function refund(string $reference, Money $amount, ?string $idempotencyKey = null, ?string $connectedAccountId = null): GatewayResult
@@ -95,7 +95,7 @@ class StripeGateway implements PaymentGateway
         //    for card transactions … until your Stripe balance becomes sufficient". That is NOT a failure:
         //    Stripe completes it automatically. Reporting it as one is what let a queued refund be filed as
         //    FAILED, vanish from the running total, and invite the desk to issue a second.
-        return new GatewayResult($refund->status === 'succeeded', $refund->id, $refund->status);
+        return new GatewayResult($refund->status === 'succeeded', $refund->id, $refund->status, livemode: $refund->livemode);
     }
 
     /**
@@ -104,20 +104,20 @@ class StripeGateway implements PaymentGateway
     private function intentToResult(StripeIntent $intent, array $successStatuses, string $successLabel): GatewayResult
     {
         if (in_array($intent->status, $successStatuses, true)) {
-            return new GatewayResult(true, $intent->id, $successLabel);
+            return new GatewayResult(true, $intent->id, $successLabel, livemode: $intent->livemode);
         }
 
         if ($intent->status === 'requires_action') {
             // SCA/3DS — not a failure, not yet a success. Hand the client_secret back for the
             // frontend to complete authentication; a webhook settles it later.
-            return new GatewayResult(false, $intent->id, 'requires_action', 'SCA/3DS authentication required', $intent->clientSecret);
+            return new GatewayResult(false, $intent->id, 'requires_action', 'SCA/3DS authentication required', $intent->clientSecret, $intent->livemode);
         }
 
         if ($intent->status === 'processing') {
-            return new GatewayResult(false, $intent->id, 'pending', 'Payment processing');
+            return new GatewayResult(false, $intent->id, 'pending', 'Payment processing', livemode: $intent->livemode);
         }
 
-        return new GatewayResult(false, $intent->id, 'failed', "Stripe intent status: {$intent->status}");
+        return new GatewayResult(false, $intent->id, 'failed', "Stripe intent status: {$intent->status}", livemode: $intent->livemode);
     }
 
     /**

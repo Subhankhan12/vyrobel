@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property string|null $payout_run_id
  * @property Carbon|null $held_at
+ * @property bool|null $livemode ADMIN 06 — Stripe's own, from the transfer; null = the manual rail
  */
 class Payout extends Model
 {
@@ -54,6 +55,7 @@ class Payout extends Model
         'status',
         'external_ref',
         'connect_account_id',
+        'livemode',
         'supersedes_id',
         'payout_run_id',
         'initiated_by',
@@ -70,6 +72,8 @@ class Payout extends Model
     protected function casts(): array
     {
         return [
+            // ⚠️ ADMIN 06 — Stripe's own `livemode`, stored when the record was written (null: not a Stripe record)
+            'livemode' => 'boolean',
             'amount' => MoneyCast::class.':amount_minor,currency',
             'paid_at' => 'datetime',
             'failed_at' => 'datetime',

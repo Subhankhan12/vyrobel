@@ -18217,3 +18217,229 @@ took 124 s to compare). Public checks **12 PASS · 0 FAIL · 0 could not measure
 carries the field system (no script error, no sideways scroll at 390 px). ⚠️ **NOT YET DONE — the signed-in live pass**
 (the redesigned forms on production, and one real deletion of a probe organisation): the console session had
 expired, and a session never types the founder's password or 2FA. `rel_AD` stays staged and was never live.
+
+## 2026-09-27 — ADMIN 06 · what a deletion must never run over, what it must count, and what it leaves behind
+
+**Why.** ADMIN 05's permanent delete "refused while money was moving", but with one known hole (B19). Production runs
+test-mode Stripe only, so nothing was at risk. Once live keys go in, every gap between a deletion and money becomes a
+real one. ⛔ **This must be live before any live Stripe key** (`STRIPE-PRODUCTION.md`, top).
+
+### #0 — what ADMIN 05 built, read before changing it
+
+**B19** was written in three places: `KNOWN-LIMITS` **L19**, `GO-LIVE-REQUIREMENTS` **B19**, and the pin
+`Admin05DeleteOrganisationTest` › *L19 — starting a subscription checkout writes NOTHING*. **PW-SIGNUP PROBE has not been
+deleted.** The before-measurements exist (27 September: backup, per-organisation counts and fingerprints, the preview).
+No after-count was taken, because there has been no deletion, and none is reconstructed here.
+
+**Every refusal the deletion had BEFORE this pass** (A = `Admin05DeleteOrganisationTest`):
+
+| Condition | Where checked | Test | Mutation |
+|---|---|---|---|
+| a protected organisation | console `destroy()` + service `delete()` | A › *the protected organisations can never be deleted…* · *the SERVICE holds its own bounds…* | A05-M17 · A05-M33 |
+| not suspended or archived | console + service | A › *refuses — and deletes NOTHING — without every confirmation…* · *SERVICE holds its own bounds* | A05-M19 · A05-M34 |
+| password · typed name · acknowledgement | console | A › *without every confirmation* | A05-M20 · M18 · M21 |
+| a written reason *(row added by review 2, D-R2-13: the table left it out)* | console (`AdminReason::from`); `PlatformQuery::mutate()` also refuses an empty one | A › *without every confirmation* | ⚠️ none before · now **A06-M77** |
+| only an Owner (`tenants.delete`) | route | A › *protected organisations can never be deleted, and only an Owner…* | A05-M24 · M25 |
+| live Stripe billing | service `refusal()`, read by console first and service again | A › *refuses while money is moving at a third party* | A05-M1 · M3 · M22 |
+| another organisation's rows point in | service | A › *records point into this one* | A05-M2 |
+| a card payment or hold open | service | ⚠️ **none** | ⚠️ **none** |
+| a payout in transit | service | ⚠️ **none** (the test named it, but only planted a subscription) | ⚠️ **none** |
+| a payout run in progress | service | ⚠️ **none** | ⚠️ **none** |
+| a webhook being processed | service | A › *a refusal says whether to wait or to act* (wording only) | ⚠️ **none** |
+| a schema read that misses a table every schema has | service | ⚠️ **none** | ⚠️ **none** |
+| already deleted | service | ⚠️ **none** | ⚠️ **none** |
+| a surviving row (post-condition, rolls back) | service | A › *survives the sweep* | A05-M6 |
+
+Six refusals had no test, or no mutation behind their test. **Every one now has both** (below).
+
+### #1 — every Stripe object an organisation can own, and whether a deletion could run over it
+
+| Object | Recorded here | Could a deletion run while it was live or pending? | Now |
+|---|---|---|---|
+| Customer | `subscriptions.stripe_customer_id` | yes, and it still does: a customer alone charges nothing | reported in the deletion record, to close by hand · ❓ ruling (a) |
+| Subscription | `subscriptions` | refused only in 4 named states | refused in **any state but cancelled** |
+| Saved card | **not stored** (hosted Checkout, SAQ A; `card_token` is a gateway token on a payment row) | — | — |
+| **Checkout Session (B19)** | ⚠️ **was not recorded** | **yes, invisible** | **recorded** (`stripe_checkout_sessions`); refused while open |
+| Payment | `payments` | refused while pending/authorised | same, plus test + mutation |
+| Card hold | `payment_authorizations` | refused | same, plus test + mutation (the authorisation alone refuses) |
+| Refund | `payments` (type refund) | refused, but as "a card payment" | refused **as a refund**, with a test |
+| Dispute | ⚠️ **was not recorded at all** (the event was answered `202 ignored`) | **yes, invisible** | **recorded per Stripe dispute id** (`payment_disputes`), ordered by the event's own time; refused while any is open |
+| Invoice (subscription) | not stored; Stripe holds it (the app sees `invoice.paid` events, pruned after 90 days) | covered only by the subscription | covered by the subscription + the #2 hold |
+| Connect account | `organizations`/`owners`/`payouts`/`payments` account ids | yes: an account alone moves nothing | reported, to close by hand · ❓ ruling (a) |
+| Payout | `payouts` | refused only while `processing` | refused while **processing, pending or held** (and `held` joins the lock) |
+| Transfer | `payouts.external_ref` | covered by `processing` | same |
+
+**Late webhooks.** Every event either endpoint could not place used to be answered `202 ignored` with no trace. That
+covered a dispute or refund for a payment that is gone, a transfer to a payout that is gone, and an account no owner
+holds. Now each one is **recorded** in `webhook_events` with its reason and answered **202**, never dropped. The status
+is `failed` where the event shows it was ours (it names one of our organisations, or it is a dispute) and `ignored`
+where it names none (a subscription invoice's PaymentIntent, an operator account's update), so the daily
+reconciliation stays a list of real problems. Unsigned events still get a 400. Tested on both endpoints with signed
+events, after a real deletion. ⚠️ **A narrow window remains:** an event arriving *while* the deletion commits can hit the
+`webhook_events` foreign key once and get a 500. Stripe's retry then finds the payment gone and records it with a 202.
+
+**B19: why record rather than refuse for 24 hours.** The app creates every Checkout Session itself, and Stripe returns
+the session's own `expires_at` and `livemode` at creation. So the refusal can be exact: it lifts the moment the page is
+paid or expires, not a blanket day later. 📖 Stripe's docs (read 2026-09-27): a session expires 30 minutes to 24 hours
+after creation, 24 by default. A session with no reported expiry counts as open for the full 24.
+
+### #2 — ⚠️⚠️ A HOLD PENDING HIS LAWYER, NOT A POLICY
+
+Until the lawyer rules on how long, and where, money records must be kept, **a deletion refuses any organisation with
+LIVE-mode money records**: a card payment, a refund, a payout, or live Stripe billing (whose invoices Stripe holds).
+**Test-mode records never block.** Non-Stripe records (`livemode` null) don't block either; see ruling (b). Whether a
+record is live comes from **Stripe's own `livemode`**, now stored when the record is written: from the object Stripe
+returned, or from the signed event that settled it. ⚠️ **Stripe's Refund object carries no `livemode`** (the SDK
+declares none), so a refund takes the mode of the payment it refunds. Found by PHPStan while this was built.
+**Existing rows:** 🔬 production held **no** Stripe money record of any kind when measured: no payment, authorisation,
+payout, webhook event or invoice, no Stripe subscription or customer id, no Connect account; 15 subscriptions, all
+trialing with no Stripe id. So no existing row's mode needs proving, and the hold blocks nothing today. **He removes
+this hold when the ruling comes.** It is one method, `OrganizationDeletion::liveMoneyRecords()`.
+
+### #3 / #3b — files, and a preview that counts what actually goes
+
+**Files.** Read first: every file the app stores is named by a `media` row, except an avatar (`users.avatar_path`) and
+a brand logo (`properties.brand_logo_path`). ADMIN 05's deletion removes all three after the commit, and names a file
+it could not remove. 🔬 **Proved locally** on a disposable organisation with a photo, a private upload, a brand logo
+and the founder's avatar on the real disks: the preview said 4 files, the deletion removed 4, and **0 were left**.
+**Replaced logos** are now removed once the new one is saved, never one another property still shows. 🔬 **Production
+held 0 brand logos** (none referenced, none on disk), so there was nothing to quarantine.
+
+**The preview.** 🔬 For PW-SIGNUP PROBE it said **17 records in 5 tables**; the deletion removes **232**. It counted only
+tables with an organisation column. Now the preview and the deletion share **one plan**
+(`OrganizationDeletion::plan()`), which counts every row: the organisation's own, the rows a foreign key cascades away
+(its roles' permissions, an account's Google/X sign-ins), the rows removed through a parent, and the accounts that
+belong nowhere else, with theirs. The screen shows it grouped in plain words, with every table listed. **The test that
+keeps it honest** measures every table in the database before and after a real deletion. For a fresh signup, and for
+an organisation with bookings, guests, staff and every indirect link, the preview equals what went, **table for
+table**. Mutations that drop any one table, a whole group, or the cascades are caught. ⚠️ The plan follows **one**
+level of cascade. That is exact while no cascaded row is itself the parent of a cascade, which is true of today's
+schema. A deeper chain **refuses** rather than confirm a number it cannot count. 🔬 The delete rules live in
+`REFERENTIAL_CONSTRAINTS`, which is read **once**, never per table (the 118-second lesson).
+
+### #4 — the three tests MySQL ran and MariaDB didn't
+
+They were ADMIN 05's last three: the L19 pin, the one-query key read held equal to the framework's, and the
+no-per-table-read pin. They were **added after** the full MariaDB run (3,992), and passed on MariaDB in the targeted
+delete run (81/81). **No test in the suite skips by engine.** 🔬 The only skips are machine-dependent (the session-memory
+index) or route-dependent. This pass runs the full suite on both engines.
+
+### #5 — where a sign-in link goes
+
+The founder's set-password link is **emailed only** (`OwnerInviteMail`). The console notice says it was "handed to the
+mailer" and never shows it. It is stored only as a sha256 hash, is single-use, and lasts **7 days**. Creation is
+**refused while mail is discarded** (`log`/`array`), so a link was never written to a log. 🔬 Production's logs,
+measured 2026-09-27: **no mail body and no link in any file.** The only 5 "/invite/" lines are refusals of
+`/app/owners/invite/preview`. **0 links are still valid.** ⚠️ **Fixed:** the link stayed valid for 7 days even after
+the founder set a password another way (a reset), and redeeming it would have **overwritten** that password. Now it is
+refused, both on the page and under a lock in the service. Test + two mutations.
+
+### #6 — the three laptop-only check files
+
+`ops/exposure-battery.sh`, `ops/htaccess-drift-check.sh` and `ops/reference/public_html.htaccess`. They existed on the
+server only as **hand copies from 2026-09-21**, older than git. `release.sh stage` ships only what changed between two
+commits, and these had not changed since the release layout was built from that hand-copied tree, so no deploy ever
+corrected them. 🔬 Measured: **4 of 1,395** deployable files on `rel_AE` differed from git at its own commit: these three,
+plus `ops/ps-check.sh`, which never shipped. **Fixed in `release.sh stage`:** every deployable file on the live release is
+checked against git at the live commit (sha256), and each one that differs or is missing ships from git. The server's
+copies now come from git, through the deploy.
+
+### 🔍 The adversarial review (9 agents; 16 findings, the 6 most severe verified, every one read)
+
+**Fixed:**
+- **Disputes were last-event-wins on one column per payment.** A late redelivery of an older "open" event re-opened a
+  finished dispute, and the deletion then refused forever. One dispute closing hid another still open on the same
+  payment. 📖 Stripe (read 2026-09-27): a payment can carry more than one dispute; `lost` can later become `won`; events
+  are not delivered in order. Now there is one row per dispute (`payment_disputes`), and an event older than the last
+  one applied changes nothing.
+- **Recording every unplaced event as `failed`** would have turned the reconciliation red with routine events that are
+  not ours. It is now `failed` or `ignored`, as above.
+- 🔬 **Pre-existing, found by the new reclaim test:** an event first recorded unresolved (no organisation) and delivered
+  again once it could be placed met the unique index on a row its tenant scope could not see. Every retry got a 500, and
+  the event was never applied. `once()` now adopts that row for the organisation placing it.
+- **A test-mode event before go-live could pin a reused subscription row to test mode**, hiding live billing from the #2
+  hold. Now live wins.
+- **The count's premise missed two shapes:** a table the plan clears directly as a cascade parent, and one row reachable
+  by two cascades. Both now refuse; neither exists in today's schema.
+- **The founder-link lock held nothing under READ COMMITTED** (a `FOR UPDATE` whose WHERE tests the password releases a
+  non-matching row). The row is now locked by its key and the password read after.
+- **A logo save that failed after the property row named the new logo deleted that logo.** It now stays.
+- **`release.sh` would have refused a drifted file renamed since the live commit.** It is now shipped only where it still
+  exists.
+- **The runbook never subscribed the endpoints to the dispute and checkout events**, so none of this would have received
+  anything. The event lists are fixed.
+
+**Recorded, not built:** 📖 **L20 / GO-LIVE B20** — a guest's card payment page cannot open with real Stripe under the
+SDK's pinned API version. This is pre-existing and was read, not run.
+
+### ❓ For his ruling — written down, not guessed
+
+- **(a)** Should an existing Stripe **customer** or **Connect account**, with no money moving, refuse a deletion? Today
+  they are listed in the deletion record, to close by hand.
+- **(b)** The hotel's own **tax invoices** (`invoices`) and **cash or bank payments** are not Stripe records and carry no
+  `livemode`, so the #2 hold does not cover them. Should it?
+- **(c)** A **failed** payout with no retry means an owner is still owed money, but it is not "pending", so a deletion
+  does not refuse on it.
+- **(d)** A **staff invite** to an existing account that is not active (invited or deactivated) sets that account's
+  password on acceptance. This is pre-existing and is the re-invite design; an active account is refused.
+- **(e)** After a subscription is **cancelled**, an **open Stripe invoice** can remain at Stripe. It is not recorded here.
+- **(f)** Removing a **replaced logo** (as briefed) breaks the logo image in guest emails **already sent** with the old
+  one, once a mail client's image cache lapses. Keep old logos for email history instead?
+- **(g)** *(added 2026-09-29, review 3)* A **test-mode** Checkout page's `checkout.session.expired`, arriving after its
+  organisation was deleted, is recorded `failed` (its metadata names the organisation): one red reconciliation row for a
+  page that moved no money. Should it be `ignored`? (A live page cannot reach this state: the deletion waits for Stripe's report.)
+
+### 🔍 The second adversarial review (2026-09-27; fixed 2026-09-29) — 19 findings, each verified by reading, then fixed with a test that failed first
+
+The review had 19 findings: 4 confirmed by its skeptic, 1 refuted, 14 not verified. The finishing pass (2026-09-29)
+read each one against the code before touching it. **Every finding below was real**; D-TRANSFER is pre-existing and is
+recorded, not built.
+
+| Finding | What was wrong | Fixed by | Test (failed first) | Mutation |
+|---|---|---|---|---|
+| **D-R2-1** | An operator's own Connect account carries `metadata.organization_id`, so its routine `account.updated` found no owner and was recorded `failed` — the daily `billing:reconcile` would go red the day any operator onboarded | an `account.*` event is never "ours"; an operator's account is named in the reason | *R2-1* | A06-M56 |
+| **D-R2-2** | A **live** subscription page paid in its last minute, whose report was still in Stripe's retries, stopped refusing once its expiry passed | a live page with no outcome from Stripe refuses, with a way out named ("resolve it by hand") | *R2-2* | A06-M57 · M58 |
+| **D-R2-3** | Nothing tested or mutated `livemode` stored on a desk card charge, a deposit hold and its authorisation, a capture, or a payout | coverage only — the code was right | *R2-3* | A06-M59…M66 |
+| **D-R2-4** | The guest's half of B19 (a card-payment page recorded, refusing, closed by its Connect event) had no test and no mutation | coverage only | *R2-4* | A06-M67…M69 |
+| **D-R2-5** | Mutation A06-M47 ("one dispute per payment") died on an INSERT crash, not on the property it claimed | M47 re-aimed so the mutant runs and keeps one row per payment; a test isolates the property | *R2-5* | A06-M47 (re-aimed) |
+| **D-R2-6** | "A mutation that drops any one table is caught" held only for tables with fixture rows | the fixture now fills every table the plan clears directly (OAuth tokens, AI usage, reset tokens, notice dismissals) and a kept person; the test asserts it reaches them all | *every indirect link* (extended) | A06-M70…M72 |
+| **D-R2-7** | An unknown dispute status counted as finished, so the refusal failed **open** | the one definition is now the FINISHED statuses; anything else is open | *R2-7* | A06-M73 |
+| **D-R2-8** | A dispute whose closing report never came blocked the delete with no way out named | the refusal names it: "resolve it by hand" | *R2-8* | A06-M74 |
+| **D-R2-9** | `recordUnresolved()` read, then wrote — it could demote a claim another delivery was processing, or had just processed | one conditional UPDATE; only a stale claim may be demoted | *R2-9* | A06-M75 |
+| **D-R2-10** | The count's premise missed a table the plan clears directly that a cascade also reaches (one row counted twice) | premise check 4; today's schema holds it | *R2-10* | A06-M76 |
+| **D-R2-11** | GO-LIVE B19 said the deletion refuses on "any other Stripe object" — a dispute on the organisation's own **subscription** charge cannot be linked to it | the docs say so (recorded, not built): it is recorded `failed` for the founder to answer at Stripe | — | — |
+| **D-R2-12** | `KNOWN-LIMITS` L19 said two of three items beside it were closed; one is | corrected, with a dated note | — | — |
+| **D-R2-13** | The #0 table left out the written-reason refusal | row added, and a mutation behind it | Admin05 › *without every confirmation* | A06-M77 |
+| **D-R2-14** | Nothing proved the console never shows the founder's link or writes it to its ledger | coverage only — the code was right | *R2-14* | A06-M78 · M79 |
+| **D-R2-15** | The Connect plane's unknown-type path had no test; it and the unrecorded-Checkout path had no mutation | coverage | *R2-15* | A06-M80 · M81 |
+| **D-R2-16** | The top of `STRIPE-PRODUCTION.md` left out the cross-organisation and cascade-depth refusals | rows added, with the refusals this pass added | — | — |
+| **D-TRANSFER** *(pre-existing)* | Payouts are confirmed only on the Connect endpoint, but a platform-created transfer raises its events on the PLATFORM account — live payouts could sit `processing` | ⛔ **recorded, not built**: verify with one test-mode transfer before go-live (needs his Stripe test keys) | — | — |
+
+### 🔍 Review 3 (2026-09-29) — a review of the review-2 fixes: no false green, five more points, each verified by reading
+
+An independent read-only review checked every review-2 test fails with its fix reverted and every mutation is caught by an
+assertion, not a crash (M47 now dies on R2-5's row count). It found five more points; the finishing pass verified each by
+reading, then fixed four with a test that failed first. **One of them was a real defect that could have made a delete
+refuse for ever with a false explanation.**
+
+| Point | What was wrong | Fixed by | Test | Mutation |
+|---|---|---|---|---|
+| **R3-1** *(real defect)* | The platform billing path checked `Organization::query()->…->exists()`, which skips an **archived** (soft-deleted) organisation — so Stripe's reports for one (a cancellation, a paid page) were written down and never applied. A delete may only run on a suspended or ARCHIVED organisation, so its refusals could never lift, and the R2-2 wording ("Stripe keeps retrying") was false for a report that had arrived. A second route: `BillingWebhookService::handle()` returned before closing the page when the organisation had no subscription row. | `withTrashed()` on the check; the page closes first; both refusals now name the way out when a report arrived but could not be applied | *R3-1 — Stripe's reports for an ARCHIVED organisation…* · *R3-1 — a paid page closes even for an organisation with no subscription row* | A06-M82 · M83 · M84 |
+| **R3-2** | The R2-1 fix was broader than its defect: it made EVERY account update `ignored`, hiding the one real problem among them — an account update naming an organisation that no longer exists (a deleted customer's Connect account still attached to the platform) | narrowed: only an EXISTING operator's own account is routine | *R2-1* (extended) | A06-M56 (re-aimed) · M85 |
+| **R3-3** | A test-mode page's `checkout.session.expired`, arriving after its organisation was deleted, is recorded `failed` (its metadata names the organisation) — a red reconciliation row for a page that moved no money. The late-webhook test pins `failed` for it deliberately | ❓ **recorded, not changed** — whether an expiry after a deletion is a problem is a small call for the founder; a live page cannot reach this state (R2-2 refuses until Stripe reports it) | — | — |
+| **R3-4** | Premise check 3 counted distinct PARENTS, so a child with two cascading keys to the same reached parent (one row counted twice) was never flagged. `unit_relationships` has that shape; its non-null organisation column keeps it out today | count KEYS, not parents | *R3-4* | A06-M86 (M54 re-aimed) |
+| **R3-5** | `WebhookEventClaim::once()` wrote `failed` unconditionally after a throw — a delivery whose claim went stale, was taken over and FINISHED by another, could re-open the event (applied twice) | the `failed` write never touches a `processed` row | *R3-5* | A06-M87 |
+| *unreachable* | A card hold stuck at `authorized` would refuse a delete for ever (no release caller) — but nothing in `app/` calls `authorizeDeposit`, so nothing can create one | recorded | — | — |
+
+### ✅ The gates, on the finished tree (2026-09-29) — each read from its own output
+
+- **Suite: 4,033/4,033 on MySQL 8.4.10 and 4,033/4,033 on MariaDB 11.8.9**, 29,110 assertions each, 0 skipped — both runs on
+  the same tree (fingerprint `8f8813b4fac362d8`). A first MySQL run (4,028/4,029) failed on this pass's OWN test: a negated
+  `toContain($token, $table)` that always passes, caught by `NegatedVariadicMatcherGuardTest`; fixed before the final runs.
+- **Mutations: 323/323 LANDED · CAUGHT across every set** (0 not caught, 0 did not land; `admin-06` = 87, `admin-05` = 49).
+- **Money gate FULL:** `929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 /
+  9bac428a1b859297` — "✅ MONEY AS SEEDED · FULL — TENANT ONE'S six aggregates unchanged AND its four covered money tables are
+  ROW-IDENTICAL as seeded". Unmoved from ADMIN 06's first gate.
+- **PHPStan L5: 0 errors · Pint: clean.**
+- ⚠️ **The machine is shared.** `advisor-platform` runs suites against the same local MySQL: the harness refused once until a
+  gap, and the MariaDB swap waited for the founder to pause that project (his choice, 2026-09-29).

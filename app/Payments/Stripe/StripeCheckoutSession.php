@@ -18,5 +18,9 @@ final class StripeCheckoutSession
         // pending Payment is pre-created against this id, and the existing payment_intent.succeeded webhook
         // settles it. Null for a subscription-mode session.
         public readonly ?string $paymentIntentId = null,
+        // ⚠️ ADMIN 06 — Stripe's own livemode, and when the page stops accepting payment (unix seconds; 📖 30 minutes to
+        //    24 hours after creation, 24 by default). Recorded so a deletion can see an open payment page (L19).
+        public readonly ?bool $livemode = null,
+        public readonly ?int $expiresAt = null,
     ) {}
 }

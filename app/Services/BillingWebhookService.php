@@ -11,6 +11,7 @@ use App\Models\WebhookEvent;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeEvent;
 use App\Support\Billing\BillingEventOrganization;
+use App\Support\Billing\CheckoutSessions;
 use App\Support\Billing\PurchasedPlan;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Billing\SubscriptionStatus;
@@ -63,11 +64,24 @@ class BillingWebhookService
     /** Apply the event to the org's subscription. The org tenant context is already set by the caller. */
     public function handle(StripeEvent $event): void
     {
+        // ⚠️ REVIEW 3 (ADMIN 06) — the payment page closes FIRST, whatever else the event can do: an organisation with no
+        //    subscription row used to return below before it, and the page stayed "open" for ever
+        if ($event->type === 'checkout.session.completed') {
+            CheckoutSessions::closeFromEvent($event);   // the payment page is no longer open
+        }
+
         $subscription = Subscription::query()->latest()->first();
         if ($subscription === null) {
             return;   // no subscription to update (an org that never trialed) — acknowledged, nothing to do
         }
 
+        // ⚠️ ADMIN 06 — Stripe's own livemode for the relationship: stored the first time an event reports it, and LIVE
+        // WINS — the one row is reused for the organisation's whole life, so a test-mode event before go-live must never
+        // hide the live billing that follows it from the deletion's hold (the fail-safe direction: holding, not deleting)
+        $mode = $event->livemode();
+        if ($mode !== null && ($subscription->livemode === null || ($mode && $subscription->livemode !== true))) {
+            $subscription->update(['livemode' => $mode]);
+        }
         match ($event->type) {
             'checkout.session.completed' => $this->activate($subscription, $event),
             'customer.subscription.created', 'customer.subscription.updated' => $this->sync($subscription, $event),

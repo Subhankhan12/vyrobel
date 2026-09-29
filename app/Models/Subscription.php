@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property ?string $stripe_subscription_id
  * @property ?string $stripe_customer_id
  * @property-read ?Plan $plan
+ * @property bool|null $livemode ADMIN 06 — Stripe's own, from the first billing event that reported it
  */
 class Subscription extends Model
 {
@@ -39,6 +40,7 @@ class Subscription extends Model
         'terms_captured_at',
         'stripe_subscription_id',
         'stripe_customer_id',
+        'livemode',
         'status',
         'trial_ends_at',
         'current_period_end',
@@ -50,6 +52,8 @@ class Subscription extends Model
     protected function casts(): array
     {
         return [
+            // ⚠️ ADMIN 06 — Stripe's own `livemode`, stored when the record was written (null: not a Stripe record)
+            'livemode' => 'boolean',
             'trial_ends_at' => 'datetime',
             'current_period_end' => 'datetime',
             'terms_captured_at' => 'datetime',

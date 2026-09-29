@@ -128,6 +128,7 @@ class OwnerPayoutService
                     'status' => $result->pending ? 'processing' : 'paid',
                     'rail' => $rail->name(),
                     'external_ref' => $result->externalRef,
+                    'livemode' => $result->livemode,
                     'paid_at' => $result->pending ? null : now(),
                 ]);
 
@@ -158,15 +159,16 @@ class OwnerPayoutService
      * its statement to paid. Idempotent: only a `processing` row advances (a re-delivered webhook is a no-op),
      * so real money is confirmed exactly once. Resolved by the transfer id (external_ref).
      */
-    public function confirmTransfer(string $transferId): void
+    public function confirmTransfer(string $transferId, ?bool $livemode = null): void
     {
         $payout = Payout::query()->where('external_ref', $transferId)->where('status', 'processing')->first();
         if ($payout === null) {
             return;   // unknown / already confirmed → no-op
         }
 
-        DB::transaction(function () use ($payout): void {
-            $payout->update(['status' => 'paid', 'paid_at' => now()]);
+        DB::transaction(function () use ($payout, $livemode): void {
+            $payout->update(['status' => 'paid', 'paid_at' => now()]
+                + ($livemode !== null && $payout->livemode === null ? ['livemode' => $livemode] : []));
             OwnerStatement::query()->whereKey($payout->owner_statement_id)->update(['status' => 'paid']);
         });
 

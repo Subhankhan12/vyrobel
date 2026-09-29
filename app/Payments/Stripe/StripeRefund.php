@@ -12,5 +12,7 @@ final class StripeRefund
     public function __construct(
         public readonly string $id,
         public readonly string $status,
+        // ⚠️ ADMIN 06 — null: Stripe's Refund object carries no livemode; the refund takes its payment's
+        public readonly ?bool $livemode = null,
     ) {}
 }

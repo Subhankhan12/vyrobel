@@ -106,12 +106,32 @@
                     $count = fn (string $key, string $noun): string => number_format($deletePreview[$key]).' '.\Illuminate\Support\Str::plural($noun, $deletePreview[$key]);
                     $one = fn (string $key): bool => $deletePreview[$key] === 1;
                 @endphp
+                {{-- ⚠️⚠️ ADMIN 06 (#3b) — EVERY row the deletion removes, counted from the SAME plan it runs. 🔬 It used to
+                     count only the tables with an organisation column: 17 of a signup's 232 rows. --}}
+                <p class="ad-stat-sub" style="margin: 0 0 8px; line-height: 1.6;">
+                    Erases this organisation and <strong>everything it owns — {{ $count('rows', 'record') }} in {{ $count('tables', 'table') }}</strong>:
+                </p>
+                <ul class="ad-stat-sub" style="margin: 0 0 12px; padding-left: 18px; line-height: 1.6;">
+                    <li>{{ $count('own', 'record') }} of its own{{ $deletePreview['own'] > 0 ? ',' : '' }}
+                        @if ($deletePreview['own'] > 0)
+                            including {{ $count('reservations', 'reservation') }}, {{ $count('guests', 'guest') }}, {{ $count('payments', 'payment') }} and {{ $count('invoices', 'invoice') }};
+                        @endif
+                    </li>
+                    <li>{{ $count('linked', 'record') }} linked to those, which go with them — its roles’ permissions, its guests’ sign-ins and messages;</li>
+                    <li>{{ $count('users_deleted', 'account') }} that {{ $one('users_deleted') ? 'belongs' : 'belong' }} to no other organisation, with {{ $count('accounts', 'record') }} in all — the {{ $one('users_deleted') ? 'account' : 'accounts' }}, {{ $one('users_deleted') ? 'its' : 'their' }} sign-ins, sessions and Google or X connections;</li>
+                    <li>and {{ number_format($deletePreview['files']) }} uploaded {{ \Illuminate\Support\Str::plural('file', $deletePreview['files']) }}.</li>
+                </ul>
+                @if ($deletePreview['per_table'] !== [])
+                    <details class="ad-stat-sub" style="margin: 0 0 12px;">
+                        <summary style="cursor: pointer;">Every table it touches ({{ count($deletePreview['per_table']) }})</summary>
+                        <ul style="margin: 8px 0 0; padding-left: 18px; columns: 2; column-gap: 24px; line-height: 1.6;">
+                            @foreach ($deletePreview['per_table'] as $table => $rows)
+                                <li>{{ str_replace('_', ' ', $table) }} — {{ number_format($rows) }}</li>
+                            @endforeach
+                        </ul>
+                    </details>
+                @endif
                 <p class="ad-stat-sub" style="margin: 0 0 12px; line-height: 1.6;">
-                    Erases this organisation and <strong>everything it owns</strong> — {{ $count('rows', 'record') }} in
-                    {{ $count('tables', 'table') }}, including {{ $count('reservations', 'reservation') }},
-                    {{ $count('guests', 'guest') }}, {{ $count('payments', 'payment') }} and
-                    {{ $count('invoices', 'invoice') }}; {{ $count('users_deleted', 'account') }}
-                    that {{ $one('users_deleted') ? 'belongs' : 'belong' }} to no other organisation; and {{ number_format($deletePreview['files']) }} uploaded {{ \Illuminate\Support\Str::plural('file', $deletePreview['files']) }}.
                     @if ($deletePreview['users_kept'] > 0)
                         {{ $count('users_kept', 'person') }} who also {{ $one('users_kept') ? 'belongs elsewhere keeps their account' : 'belong elsewhere keep their accounts' }}.
                     @endif

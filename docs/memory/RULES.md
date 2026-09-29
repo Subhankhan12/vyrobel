@@ -132,8 +132,8 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **L16** On the `file` session driver, "sign out others" and a password reset did nothing, and the audit row said they did → ✅ closed 2026-09-25, rel_W @ 3cd72c26 (git): `database` driver + AuthenticateSession, proven live both ways.
 - **L17** The admin audit ledger is append-only in the app, not in the DB → open; a DB trigger is proposed, founder's call.
 - **L18** Published `sales@` has no mailbox. Mail is rejected, privacy requests included → ruled to stay on privacy/terms (2026-09-26). **Reported 2026-09-26: the alias `sales@` → `contact@` WAS created in hPanel by the session.** Delivery is not proven (`OPEN.md` F8).
-- **L19** A deletion could not see an open Stripe Checkout page → ✅ CLOSED by ADMIN 06 (2026-09-27; **uncommitted in the working tree**) via `stripe_checkout_sessions`, with a 24 h fallback. **Two gaps are open:** `OPEN.md` D-R2-2 and D-R2-4.
-- **L20** The guest card Checkout cannot open with real Stripe: `payment_intent` is null at creation, while the fake returns one → ⛔ OPEN, dormant, GO-LIVE B20. First confirm it with ONE test-mode session (📖, **uncommitted** entry, 2026-09-27).
+- **L19** A deletion could not see an open Stripe Checkout page → ✅ CLOSED by ADMIN 06 (2026-09-27; finished 2026-09-29) via `stripe_checkout_sessions`, with a 24 h fallback. A LIVE page Stripe has not reported on still refuses (D-R2-2), and the guest page's half is tested (D-R2-4).
+- **L20** The guest card Checkout cannot open with real Stripe: `payment_intent` is null at creation, while the fake returns one → ⛔ OPEN, dormant, GO-LIVE B20. First confirm it with ONE test-mode session (📖, entry of 2026-09-27).
 
 ### 2b · The founder's planning-side lessons (short)
 
@@ -186,7 +186,15 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Run long local runs under `caffeinate -i`, and check what else is running first.** The Mac sleeps, and other projects share
   it (`restiox`, `advisor-platform`). A process is identified by its working folder, never by its command line (Verified 2026-09-27).
 - **An adversarial review of your own fixes finds things.** Two rounds on ADMIN 06 found real defects each time, including in the
-  first round's fixes (Reported: 2026-09-27).
+  first round's fixes (Reported: 2026-09-27). ⚠️ **A THIRD round, on the second round's fixes, found a real defect both had missed**
+  (Stripe's reports for an ARCHIVED organisation were never applied, so a delete's refusals could never lift) — and that one
+  of the fixes was broader than its defect and hid a real problem (Verified 2026-09-29).
+- **The negated-`toContain` trap fired again, in a new test of a pass that had written this rule down two days earlier**
+  (`->not->toContain($token, $table)` always passes). The guard test caught it. A rule written down is a note; the guard is
+  the rule (Verified 2026-09-29).
+- **Another project shares this Mac's MySQL.** `advisor-platform`'s suites block the mutation harness (its premise matches any
+  `pest`), and the MariaDB engine swap stops the server its tests and its Octane dev server use: ask him to pause it first
+  (F 2026-09-29). Identify its processes by working folder; never stop them.
 
 ---
 
@@ -199,8 +207,8 @@ disagree, it says so.
 **Suite on MySQL (local).** Prerequisites: a `vyrobel_test` DB and Redis. Run it ALONE:
 `ops/proc-check.sh -q '[p]hpunit|[p]est|artisan [t]est' && php artisan test`
 Pass = the suite is green. The count is whatever the run prints. Last reported for the LIVE commit: 3995/3995 MySQL
-(Reported: DECISIONS ADMIN 05). For the working tree with ADMIN 06: **4,018/4,018 on MySQL 8.4.10 and on MariaDB 11.8.9**
-(Reported: this session's runs, 2026-09-27). ⚠️ **Run it under `caffeinate -i`:** on 2026-09-27 the Mac slept mid-run, and a
+(Reported: DECISIONS ADMIN 05). For ADMIN 06 finished: **4,033/4,033 on MySQL 8.4.10 and on MariaDB 11.8.9**
+(Verified: run outputs, 2026-09-29). ⚠️ **Run it under `caffeinate -i`:** on 2026-09-27 the Mac slept mid-run, and a
 ~17-minute suite took 8½ hours of wall time. `RefreshDatabase` is OFF, so fixtures need unique ids (CLAUDE.md).
 
 **The MariaDB engine swap (both engines are a gate).** The engines SWAP on 3306 and never run side by side: on
@@ -218,8 +226,9 @@ never "the money is unchanged". The constants live in the script (git). The suit
 **Mutation runner.** `php tests/Mutations/run.php --set=admin-06` · `--only=A06-M7,A06-M8` · `--list` · no args = every set.
 Verdicts: `LANDED · CAUGHT` (good) · `LANDED · NOT CAUGHT` (guard unproven) · `DID NOT LAND` (harness error, never a result).
 It refuses to run beside another test run or with cached routes/config. It self-checks every run (git: header).
-Sets: tests/Mutations/sets/*.php (git ls). admin-06 is untracked. Last reported: 238/238 caught before ADMIN 06 (Reported: ADMIN-06 brief
-header); **291/291 on the working tree with ADMIN 06** (Reported: harness run, 2026-09-27).
+Sets: tests/Mutations/sets/*.php (git ls). Last: **323/323 caught across every set, 0 not caught, 0 did not land** (Verified: harness,
+2026-09-29; `admin-06` = 87, `admin-05` = 49). ⚠️ Its "another test run is active" premise matches ANY `pest` on the Mac, another
+project's included (`advisor-platform` runs suites here): wait for a gap, and never weaken the check (`OPEN.md` A7).
 
 **`ops/proc-check.sh`** — is a test run already going? `ops/proc-check.sh -q '<regex>'`; `--kill '<regex>'` kills by PID and confirms.
 Exit **0 = SAFE** (a trusted zero) · 1 = matches found · 3 = BLIND (its positive control failed) · 4 = `--kill` refused.
@@ -268,12 +277,12 @@ drop/rename/change) → `swap rel_X` → `ops/public-checks.sh` → prune by han
 `stage` refuses a dirty tree, an already-live HEAD, and composer/package/vite/resources css/js changes. Its pass lines:
 `✓ every shipped file has its own inode — the live release is untouched`, `.release = <HEAD>`, and
 `.env → ../../public_html/.env · shared file mode 600` (git: script).
-⚠️ **Byte-for-byte live check, UNCOMMITTED (git diff ops/release.sh, +27 lines, ADMIN 06 #6):** `stage` now builds a sha256 manifest
+⚠️ **Byte-for-byte live check (ADMIN 06 #6, committed 2026-09-29):** `stage` now builds a sha256 manifest
 of the deployable files (app bootstrap config database public resources routes ops artisan). It excludes bootstrap/cache, public/build
 and resources/css|js; vendor/, `.env` and storage/ are not in it. The manifest is built at the LIVE commit, and
 `sha256sum -c` runs it inside the live release. Each file that differs or is missing ships from git at the new commit.
-Pass line: `drifted from git on the host: none`. It found 4 of 1,395 drifted on rel_AE (Reported: DECISIONS.md ADMIN 06 #6,
-uncommitted, 2026-09-27). ⚠️ `stage` refuses a dirty tree, so this change cannot ship until it is committed.
+Pass line: `drifted from git on the host: none`. It found 4 of 1,395 drifted on rel_AE (Verified again 2026-09-29, before the
+ADMIN 06 deploy).
 Never use `ops/deploy.sh` on the host: it refuses by design (L12h).
 
 **The PW-SIGNUP delete proof tools** live in `docs/memory/tools/` (saved by MEMORY 01; see its README). **Verified 2026-09-27:
@@ -286,7 +295,7 @@ tables and keys from `information_schema`, independent of `OrganizationDeletion`
 - `php footprint.php before <ids.json> <out.json> <organisation id>` / `after <ids.json> <out.json>` — every row still naming it.
 - `python3 compare.py before.json after.json` — pass = exit 0 (the probe's rows gone, every other org unchanged, volatile tables excepted).
 Status: the before-measurements exist (27 Sept). PW-SIGNUP PROBE was NOT yet deleted, and no after-count exists (Reported: DECISIONS.md
-ADMIN 06 #0, uncommitted). The preview said 17 records; the deletion removes 232 (same source).
+ADMIN 06 #0; V 2026-09-29: still not suspended). ⚠️ Retake the backup and the baselines before his click: these predate ADMIN 06's migration. The preview said 17 records; the deletion removes 232 (same source).
 
 Other `ops/` scripts not covered here (git ls): backup.sh · restore-drill.sh · liveness-drill.sh · runtime-contract.sh ·
 probe-signup.sh · mass-assign-check.php · host/mark-internal.php · deploy.sh (refuses to run). Read each header before use.
@@ -295,15 +304,15 @@ probe-signup.sh · mass-assign-check.php · host/mark-internal.php · deploy.sh 
 
 ## Sources
 
-- docs/KNOWN-LIMITS.md (L1–L20; L19 close + L20 are uncommitted) · docs/MEMORY.md (2026-09-05) · docs/DECISIONS.md
-  (FINISH 01 Part C, SESSIONS 01, ADMIN 06 uncommitted) · CLAUDE.md (Commands, worker-cron correction)
+- docs/KNOWN-LIMITS.md (L1–L20) · docs/MEMORY.md (2026-09-05) · docs/DECISIONS.md
+  (FINISH 01 Part C, SESSIONS 01, ADMIN 06) · CLAUDE.md (Commands, worker-cron correction)
 - docs/DEPLOYMENT.md · docs/STRIPE-PRODUCTION.md · docs/GO-LIVE-REQUIREMENTS.md (B19, B20) · docs/GOOGLE-SIGN-IN.md ·
   docs/OAUTH-DESIGN.md · docs/THE-WALK-2026-09-23.md · docs/STATE.md · docs/AUDIT-SUMMARY.md (rulings §4, untested §5) ·
   docs/INSTRUMENT-ERRORS.md · docs/PHANTOM-PERMISSIONS.md
 - Script headers (git): ops/exposure-battery.sh · ops/ps-check.sh · ops/proc-check.sh · ops/config-inventory.php ·
   ops/htaccess-drift-check.sh · ops/public-checks.sh · ops/release.sh (+ `git diff ops/release.sh`) · ops/secret-scan.sh ·
   ops/references.php · ops/money-as-seeded.sh · tests/Mutations/run.php · tests/TestCase.php:90
-- Untracked: docs/memory/briefs/{ADMIN-06,KEYBOARD-01,MAIL-02,TONIGHT-01,PW-SIGNUP-DELETE-1,-2}.md · docs/memory/tools/*
+- docs/memory/briefs/{ADMIN-06,DNS-01,KEYBOARD-01,MAIL-02,TONIGHT-01,PW-SIGNUP-DELETE-1,-2}.md · docs/memory/tools/* (committed in `58800419`)
 - Auto-memory (outside the repo): `~/.claude/projects/-Applications-XAMPP-xamppfiles-htdocs-vyrobel/memory/` —
   MEMORY.md (index) and audit-method-and-traps.md (Tier 1/2)
 - git: log (91b83801, 975116b2, 3cd72c26, 6a444d09), `git status`, `git diff --stat`

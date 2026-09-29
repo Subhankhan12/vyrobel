@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Platform;
 
+use App\Models\CheckoutSession;
 use App\Models\Organization;
+use App\Models\PaymentDispute;
 use App\Support\Platform\TenantLifecycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -39,10 +41,16 @@ use Throwable;
  * ⚠️ AFTER THE COMMIT the deletion HAS happened, so nothing there may throw — a throw would be reported as a rollback and
  * written to the ledger as a failure. The permission cache, the files and a re-scan each REPORT what they could not do.
  *
- * WHAT MAKES IT REFUSE ({@see self::refusal()}, and {@see OrganizationDeletionRefused}): money actively moving at a third
- * party (live Stripe billing, a card payment or hold at Stripe, a payout in transit, a payout run in progress, a webhook
- * being processed), a row of ANOTHER organisation pointing into this one — a cascade would delete it — or a schema read
- * that cannot see the tables every real schema has.
+ * WHAT MAKES IT REFUSE ({@see self::refusal()}, and {@see OrganizationDeletionRefused}): ⚠️ ADMIN 06 — LIVE-mode money
+ * records (a hold pending the founder's lawyer, never a policy); money that can still move at Stripe or is still owed
+ * (live Stripe billing, an open Checkout page [B19] or a live one Stripe has not reported on, a card payment, refund or
+ * hold still open, a dispute not finished, a payout in transit or still owed, a payout run in progress, a webhook being
+ * processed); a row of ANOTHER organisation pointing into
+ * this one — a cascade would delete it; a cascade chain deeper than the count can follow; or a schema read that cannot
+ * see the tables every real schema has. ⚠️ It NEVER calls Stripe: closing anything there is the founder's, by hand.
+ *
+ * WHAT THE CONFIRMATION SAYS ({@see self::preview()}) is the count of the SAME plan the deletion runs ({@see self::plan()})
+ * — every row it removes, cascades and accounts included.
  * ⚠️ The console checks the lock, the suspension, the password, the typed name and the reason before calling this.
  */
 final class OrganizationDeletion
@@ -65,6 +73,16 @@ final class OrganizationDeletion
         ['schedule_publications', 'published_by'],
     ];
 
+    /**
+     * ⚠️ ADMIN 06 — the tables the plan clears DIRECTLY in phases 1 and 3 (no organisation column; reached through a
+     * parent, or an account's own rows). A cascade FROM one of these would remove rows the count cannot see, so
+     * {@see self::uncountedCascades()} refuses one. A drift test holds the plan's own phase-1/3 tables to this list.
+     */
+    public const REACHED_THROUGH_A_PARENT = [
+        'amenitiables', 'announcement_dismissals', 'guest_password_reset_tokens', 'llm_usage', 'login_activity', 'notifications',
+        'oauth_access_tokens', 'oauth_auth_codes', 'oauth_device_codes', 'oauth_refresh_tokens', 'password_reset_tokens', 'sessions',
+    ];
+
     /** Tables every real schema has. A schema read that misses one is wrong — and would make the post-condition blind. */
     private const MUST_SEE = ['reservations', 'guests', 'properties', 'units', 'payments', 'organization_user', 'audit_events', 'media'];
 
@@ -80,21 +98,67 @@ final class OrganizationDeletion
     /** @var array<string, list<array{name: string, columns: list<string>, foreign_table: string, foreign_columns: list<string>}>>|null */
     private ?array $foreignKeys = null;
 
+    /** @var list<array{0: string, 1: string, 2: string, 3: string}>|null the cascading keys, once per request */
+    private ?array $cascades = null;
+
     /**
      * What stops a deletion, in plain words — or null when it may proceed. Read-only.
+     * ⚠️ ADMIN 06: the order puts the reasons that WAITING cannot fix first — nobody should wait out a payment page only
+     * to be refused by the hold.
      */
     public function refusal(string $organizationId): ?string
     {
+        // ⚠️⚠️ #2 — A HOLD PENDING THE FOUNDER'S LAWYER, NOT A POLICY (docs/DECISIONS.md, ADMIN 06). Live-mode money
+        // records are never deleted until the ruling on how long the law requires them kept. Test-mode ones never block.
+        if (($live = $this->liveMoneyRecords($organizationId)) !== []) {
+            return 'It has live money records ('.implode(', ', $live).'). The law may require them to be kept for years, so deleting them is on hold until the legal ruling on how long — it cannot be deleted before then.';
+        }
+        if (($deeper = self::uncountedCascades($this->cascadeEdges(), $this->organizationTables(), $this->nullableOrganizationTables(), self::REACHED_THROUGH_A_PARENT)) !== []) {
+            return 'The database links records in a way the deletion cannot count exactly ('.implode(', ', array_slice($deeper, 0, 3)).'), so the confirmation could not say what goes. Nothing can be deleted until that is fixed.';
+        }
+        // any subscription Stripe knows about that is not cancelled — an unknown status refuses too, never the reverse
         $live = DB::table('subscriptions')->where('organization_id', $organizationId)
             ->where(fn ($q) => $q->where('status', 'incomplete')
-                ->orWhere(fn ($s) => $s->whereNotNull('stripe_subscription_id')->whereIn('status', ['trialing', 'active', 'past_due', 'paused'])))
+                ->orWhere(fn ($s) => $s->whereNotNull('stripe_subscription_id')->where('status', '!=', 'canceled')))
             ->exists();
         if ($live) {
-            return 'Stripe billing is live for this organisation. Cancel the subscription in Stripe first, or it keeps charging a customer that no longer exists.';
+            return 'Stripe billing is live for this organisation. Cancel the subscription in Stripe first, or it keeps charging a customer that no longer exists.'
+                .' If it is already cancelled there, Stripe’s report of it has not been applied here — resolve it by hand.';
         }
-        if (DB::table('payments')->where('organization_id', $organizationId)->where('gateway', 'stripe')->whereIn('status', ['pending', 'authorized'])->exists()
-            || DB::table('payment_authorizations')->where('organization_id', $organizationId)->where('status', 'authorized')->exists()) {
+        // B19 (KNOWN-LIMITS L19) — a payment page that can still be paid
+        $page = CheckoutSession::whereOpen(DB::table('stripe_checkout_sessions')->where('organization_id', $organizationId))
+            ->orderBy('created_at')->first(['mode', 'created_at', 'expires_at']);
+        if ($page !== null) {
+            $closes = $page->expires_at ?? CarbonImmutable::parse((string) $page->created_at)->addHours(CheckoutSession::LONGEST_LIFETIME_HOURS);
+
+            return 'A Stripe payment page for '.($page->mode === 'subscription' ? 'its subscription' : 'a guest’s card payment').' was opened '.$this->when($page->created_at)
+                .' and can still be paid until '.$this->when($closes).'. Try again once it has been paid or has expired.';
+        }
+        // ⚠️ REVIEW 2 (D-R2-2) — a LIVE page past its expiry that Stripe has not reported on. It may have been paid in its
+        //    last minute with the report still in Stripe's retries, and deleting now would leave a live subscription
+        //    charging a customer nobody here can see. A test-mode page moves no real money, so its expiry is enough.
+        $unreported = CheckoutSession::whereUnreported(DB::table('stripe_checkout_sessions')->where('organization_id', $organizationId))
+            ->orderBy('created_at')->first(['mode', 'created_at', 'expires_at']);
+        if ($unreported !== null) {
+            $closed = $unreported->expires_at ?? CarbonImmutable::parse((string) $unreported->created_at)->addHours(CheckoutSession::LONGEST_LIFETIME_HOURS);
+
+            return 'A live Stripe payment page for '.($unreported->mode === 'subscription' ? 'its subscription' : 'a guest’s card payment').' was opened '.$this->when($unreported->created_at)
+                .' and closed '.$this->when($closed).', but no report of whether it was paid has been applied here. Check the page in Stripe’s dashboard; if it was paid, cancel what it started there first.'
+                .' Stripe retries a report it could not deliver for up to 3 days — try again once it is applied. If Stripe already reported it and the report could not be applied, resolve it by hand.';
+        }
+        $open = DB::table('payments')->where('organization_id', $organizationId)->where('gateway', 'stripe')->whereIn('status', ['pending', 'authorized']);
+        if ((clone $open)->where('type', 'refund')->exists()) {
+            return 'A card refund is still being processed at Stripe. Wait until Stripe confirms it, then try again.';
+        }
+        if ($open->exists() || DB::table('payment_authorizations')->where('organization_id', $organizationId)->where('status', 'authorized')->exists()) {
             return 'A card payment or card hold is still open. Let it settle, or release it, first.';
+        }
+        // any status Stripe does not call finished — an unknown one included (REVIEW 2, D-R2-7)
+        $disputes = DB::table('payment_disputes')->where('organization_id', $organizationId)->whereNotIn('status', PaymentDispute::CLOSED_STATUSES);
+        if ($disputes->exists()) {
+            // ⚠️ REVIEW 2 (D-R2-8) — a dispute can stay open for months, so there is no "stuck" clock; the way out is named
+            return 'A card payment is being disputed at Stripe (since '.$this->when($disputes->min('created_at')).'). Answer it in Stripe, and try again once Stripe reports the dispute closed.'
+                .' If Stripe’s dashboard already shows it closed, the report never arrived — resolve it by hand.';
         }
         $transit = DB::table('payouts')->where('organization_id', $organizationId)->where('status', 'processing');
         if (($n = (clone $transit)->count()) > 0) {
@@ -102,6 +166,10 @@ final class OrganizationDeletion
 
             return ($n === 1 ? 'A payout to an owner is' : $n.' payouts to owners are').' in transit at Stripe (since '.$this->when($since).'). '
                 .($this->stale($since) ? 'That is longer than it should take — resolve it with Stripe by hand first.' : 'Wait until Stripe confirms, then try again.');
+        }
+        // money OWED to an owner and not yet sent — deleting would leave them unpaid, and nothing here would remember it
+        if (($owed = DB::table('payouts')->where('organization_id', $organizationId)->whereIn('status', ['pending', 'held'])->count()) > 0) {
+            return ($owed === 1 ? 'A payout is' : $owed.' payouts are').' still owed to '.($owed === 1 ? 'an owner' : 'owners').' (waiting or on hold). Pay '.($owed === 1 ? 'it' : 'them').' first — deleting would leave the owners unpaid, with no record of it.';
         }
         $run = DB::table('payout_runs')->where('status', 'running')->orderBy('created_at')->first(['started_at', 'created_at']);
         if ($run !== null) {
@@ -126,23 +194,25 @@ final class OrganizationDeletion
     }
 
     /**
-     * What a deletion would remove — counts only, for the confirmation screen. The same count the deletion reports.
+     * What a deletion would remove — for the confirmation screen. ⚠️⚠️ ADMIN 06 (#3b): EVERY row it removes, in every
+     * table — the organisation's own, the rows a foreign key cascades away (a role's 212 permissions), the rows removed
+     * through a parent, and the accounts that belong nowhere else with theirs. 🔬 Before this it counted only the tables
+     * with an organisation column: 17 of the 232 rows a signup's deletion removes (production, 27 September). It is
+     * the SAME plan {@see self::delete()} runs and reports, so the two cannot disagree.
      *
-     * @return array{rows: int, tables: int, reservations: int, guests: int, payments: int, invoices: int, users_deleted: int, users_kept: int, files: int}
+     * @return array{rows: int, tables: int, own: int, linked: int, accounts: int, per_table: array<string, int>, reservations: int, guests: int, payments: int, invoices: int, users_deleted: int, users_kept: int, files: int}
      */
     public function preview(string $organizationId): array
     {
         $tables = $this->organizationTables();
-        $before = $this->rowsPerTable($organizationId, $tables);
         [$sole, $shared] = $this->members($organizationId, $tables);
+        $tally = $this->tally($this->plan($organizationId, $tables, $sole, $shared));
 
-        return [
-            'rows' => array_sum($before),
-            'tables' => count($before),
-            'reservations' => $before['reservations'] ?? 0,
-            'guests' => $before['guests'] ?? 0,
-            'payments' => $before['payments'] ?? 0,
-            'invoices' => $before['invoices'] ?? 0,
+        return $tally + [
+            'reservations' => $this->own($organizationId, 'reservations'),
+            'guests' => $this->own($organizationId, 'guests'),
+            'payments' => $this->own($organizationId, 'payments'),
+            'invoices' => $this->own($organizationId, 'invoices'),
             'users_deleted' => count($sole),
             'users_kept' => count($shared),
             'files' => count($this->files($organizationId, $sole)),
@@ -153,7 +223,7 @@ final class OrganizationDeletion
      * DELETE. Call inside PlatformQuery::mutate() (lifted scopes, the ledger). Throws {@see OrganizationDeletionRefused}
      * — with nothing deleted — when it must not proceed; after the commit it never throws.
      *
-     * @return array{records: int, tables: int, linked: int, users_deleted: int, users_kept: int, files_deleted: int, files_missing: int, files_shared: int, files_failed: list<string>, stripe: array{customers: list<string>, subscriptions: list<string>, connect_accounts: list<string>}, survivors: array<string, int>, warnings: list<string>}
+     * @return array{records: int, tables: int, own: int, linked: int, accounts: int, per_table: array<string, int>, users_deleted: int, users_kept: int, files_deleted: int, files_missing: int, files_shared: int, files_failed: list<string>, stripe: array{customers: list<string>, subscriptions: list<string>, connect_accounts: list<string>}, survivors: array<string, int>, warnings: list<string>}
      */
     public function delete(Organization $org): array
     {
@@ -180,7 +250,7 @@ final class OrganizationDeletion
             // a payout being paid holds its row while the transfer is at Stripe, and says `processing` only when it
             // commits — so the open payouts are LOCKED before the refusal reads them: one mid-transfer is waited for and
             // then seen; one not yet started waits for this deletion, and finds nothing to pay
-            DB::table('payouts')->where('organization_id', $id)->whereIn('status', ['pending', 'processing'])->lockForUpdate()->pluck('id');
+            DB::table('payouts')->where('organization_id', $id)->whereIn('status', ['pending', 'held', 'processing'])->lockForUpdate()->pluck('id');
             if (($refusal = $this->refusal($id)) !== null) {
                 throw new OrganizationDeletionRefused($refusal);
             }
@@ -193,61 +263,37 @@ final class OrganizationDeletion
             [$sole, $shared] = $this->members($id, $tables, $candidates);
             $files = $this->files($id, $sole);
             $stripe = $this->stripeHandles($id);
-            $before = $this->rowsPerTable($id, $tables);   // every one of these goes — the post-condition below proves it
-            $linked = 0;
+            // ⚠️ THE PLAN, counted under the lock BEFORE anything goes — the same plan the preview counted. The count is
+            // what this deletion reports; the post-condition below proves the organisation's own rows are all gone.
+            $plan = $this->plan($id, $tables, $sole, $shared);
+            $tally = $this->tally($plan);
 
-            // ① Rows reachable only through a parent — removed while the parent still says whose they are. SUBQUERIES,
-            //    never a list of every guest bound into the statement: a statement allows 65,535 placeholders, and a
-            //    tenant with more guests than that could otherwise never be deleted.
-            $guestIds = fn ($q) => $q->select('id')->from('guests')->where('organization_id', $id);
-            foreach (self::AMENITY_PARENTS as $type => $table) {
-                $linked += DB::table('amenitiables')->where('amenitiable_type', $type)
-                    ->whereIn('amenitiable_id', fn ($q) => $q->select('id')->from($table)->where('organization_id', $id))->delete();
+            // ① Rows reachable only through a parent — removed while the parent still says whose they are.
+            // ② Every table that carries this organisation's id — read from the schema, never a typed list — then its row.
+            foreach ([1, 2] as $phase) {
+                foreach ($plan as $step) {
+                    if ($step['phase'] === $phase && $step['table'] !== 'organizations') {
+                        DB::table($step['table'])->where($step['where'])->delete();
+                    }
+                }
             }
-            $linked += DB::table('notifications')->where('notifiable_type', 'guest')->whereIn('notifiable_id', $guestIds)->delete();
-            $linked += DB::table('sessions')->whereIn('user_id', $guestIds)->delete();
-            $linked += DB::table('login_activity')->where('subject_type', 'guest')->whereIn('subject_id', $guestIds)->delete();
-            // a reset token is keyed by the address's blind index — one another organisation's guest shares, stays
-            $linked += DB::table('guest_password_reset_tokens')
-                ->whereIn('email', fn ($q) => $q->select('email_hash')->from('guests')->where('organization_id', $id)->whereNotNull('email_hash'))
-                ->whereNotIn('email', fn ($q) => $q->select('email_hash')->from('guests')->where('organization_id', '!=', $id)->whereNotNull('email_hash'))
-                ->delete();
-            // people who are KEPT still read their feed elsewhere: only the notifications about THIS organisation go
-            $linked += $this->deleteNotificationsAbout($id, $shared, $tables);
-
-            // ② Every table that carries this organisation's id — read from the schema, never a typed list.
-            foreach ($tables as $table) {
-                DB::table($table)->where('organization_id', $id)->delete();
-            }
+            // the organisation's own row, last of phase 2 — a LITERAL statement: the guard that there is one way to erase
+            // an organisation, and only one, reads for exactly this (PlatformTenantLifecycleTest)
             DB::table('organizations')->where('id', $id)->delete();
 
-            // The platform's notices may name it among their chosen audience — the dangling id is removed.
+            // The platform's notices may name it among their chosen audience — the dangling id is removed (a change, not
+            // a removal: the notice stays).
             DB::table('platform_announcements')->whereJsonContains('organization_ids', $id)->get(['id', 'organization_ids'])
                 ->each(function ($a) use ($id): void {
                     $ids = array_values(array_filter((array) json_decode((string) $a->organization_ids, true), fn ($v) => $v !== $id));
                     DB::table('platform_announcements')->where('id', $a->id)->update(['organization_ids' => json_encode($ids)]);
                 });
 
-            // ③ People whose ONLY link was this organisation — and their rows no foreign key would reach.
-            foreach (array_chunk($sole, self::CHUNK) as $chunk) {
-                $emails = DB::table('users')->whereIn('id', $chunk)->pluck('email')->map(fn ($v): string => strtolower((string) $v))->all();
-                $linked += DB::table('oauth_refresh_tokens')
-                    ->whereIn('access_token_id', fn ($q) => $q->select('id')->from('oauth_access_tokens')->whereIn('user_id', $chunk))->delete();
-                foreach (['oauth_access_tokens', 'oauth_auth_codes', 'oauth_device_codes'] as $table) {
-                    $linked += DB::table($table)->whereIn('user_id', $chunk)->delete();
+            // ③ People whose ONLY link was this organisation — and their rows no foreign key would reach; the account last.
+            foreach ($plan as $step) {
+                if ($step['phase'] === 3) {
+                    DB::table($step['table'])->where($step['where'])->delete();
                 }
-                $linked += DB::table('sessions')->whereIn('user_id', $chunk)->delete();
-                $linked += DB::table('llm_usage')->whereIn('owner_id', $chunk)->delete();
-                $linked += DB::table('announcement_dismissals')->whereIn('user_id', $chunk)->delete();
-                $linked += DB::table('notifications')->where('notifiable_type', 'user')->whereIn('notifiable_id', $chunk)->delete();
-                $linked += DB::table('password_reset_tokens')->whereIn('email', $emails)->delete();
-                // their own sign-ins, and the failed attempts and lockouts at the TENANT sign-in with their address —
-                // ⚠️ never a platform admin's (guard `admin`) console history, even at the same address
-                $linked += DB::table('login_activity')
-                    ->where(fn ($q) => $q->where('subject_type', 'user')->whereIn('subject_id', $chunk))
-                    ->orWhere(fn ($q) => $q->where('guard', 'web')->whereNull('subject_type')->whereIn('identifier', $emails))
-                    ->delete();
-                DB::table('users')->whereIn('id', $chunk)->delete();
             }
 
             // ④ POST-CONDITION — nothing of this organisation may survive, or everything above is rolled back.
@@ -259,7 +305,7 @@ final class OrganizationDeletion
                 throw new OrganizationDeletionRefused('The organisation or one of its people survived the deletion, so everything was rolled back.');
             }
 
-            return ['before' => $before, 'linked' => $linked, 'sole' => $sole, 'shared' => $shared, 'files' => $files, 'stripe' => $stripe];
+            return ['tally' => $tally, 'sole' => $sole, 'shared' => $shared, 'files' => $files, 'stripe' => $stripe];
         });
 
         // ⑤ AFTER THE COMMIT — the deletion has happened. Nothing below may throw; each step reports instead.
@@ -284,9 +330,12 @@ final class OrganizationDeletion
         }
 
         return [
-            'records' => array_sum($done['before']),
-            'tables' => count($done['before']),
-            'linked' => $done['linked'],
+            'records' => $done['tally']['rows'],
+            'tables' => $done['tally']['tables'],
+            'own' => $done['tally']['own'],
+            'linked' => $done['tally']['linked'],
+            'accounts' => $done['tally']['accounts'],
+            'per_table' => $done['tally']['per_table'],
             'users_deleted' => count($done['sole']),
             'users_kept' => count($done['shared']),
             'files_deleted' => $removed['deleted'],
@@ -297,6 +346,260 @@ final class OrganizationDeletion
             'survivors' => $survivors,
             'warnings' => $warnings,
         ];
+    }
+
+    /**
+     * ⚠️⚠️ ADMIN 06 (#3b) — THE ONE PLAN of what a deletion removes, row set by row set: counted by the preview, counted
+     * AND run by the deletion. Each step is a table, what goes from it, and when:
+     *   phase 1 — rows reachable only through a parent (no foreign key), removed while the parent still says whose;
+     *   phase 2 — every row carrying this organisation's id, then the organisation's own row;
+     *   phase 3 — the accounts that belong nowhere else, with their rows no foreign key reaches, the account last;
+     *   null    — rows a foreign key CASCADES away when a phase-2 or phase-3 row goes: the database removes them, the
+     *             plan only counts them (the organisation's roles' 212 permissions, an account's Google/X sign-ins).
+     * ⚠️ The steps are DISJOINT by construction, so the count is their sum: a cascade into an organisation table counts
+     * only rows NOT carrying this organisation's id (those are already phase 2's), and a person is sole or kept, never both.
+     * ⚠️ It follows ONE level of cascade — exact while no cascaded row is itself the parent of a cascade, which
+     * {@see self::uncountedCascades()} proves of the live schema, and a refusal enforces.
+     *
+     * @param  list<string>  $tables
+     * @param  list<string>  $sole
+     * @param  list<string>  $shared
+     * @return list<array{table: string, kind: string, phase: int|null, where: \Closure}>
+     */
+    private function plan(string $id, array $tables, array $sole, array $shared): array
+    {
+        $steps = [];
+        $add = function (string $table, string $kind, ?int $phase, \Closure $where) use (&$steps): void {
+            $steps[] = ['table' => $table, 'kind' => $kind, 'phase' => $phase, 'where' => $where];
+        };
+
+        // ① SUBQUERIES, never a list of every guest bound into the statement: a statement allows 65,535 placeholders,
+        //   and a tenant with more guests than that could otherwise never be deleted.
+        $guestIds = fn ($q) => $q->select('id')->from('guests')->where('organization_id', $id);
+        foreach (self::AMENITY_PARENTS as $type => $parent) {
+            $add('amenitiables', 'linked', 1, fn ($q) => $q->where('amenitiable_type', $type)
+                ->whereIn('amenitiable_id', fn ($p) => $p->select('id')->from($parent)->where('organization_id', $id)));
+        }
+        $add('notifications', 'linked', 1, fn ($q) => $q->where('notifiable_type', 'guest')->whereIn('notifiable_id', $guestIds));
+        $add('sessions', 'linked', 1, fn ($q) => $q->whereIn('user_id', $guestIds));
+        $add('login_activity', 'linked', 1, fn ($q) => $q->where('subject_type', 'guest')->whereIn('subject_id', $guestIds));
+        // a reset token is keyed by the address's blind index — one another organisation's guest shares, stays
+        $add('guest_password_reset_tokens', 'linked', 1, fn ($q) => $q
+            ->whereIn('email', fn ($g) => $g->select('email_hash')->from('guests')->where('organization_id', $id)->whereNotNull('email_hash'))
+            ->whereNotIn('email', fn ($g) => $g->select('email_hash')->from('guests')->where('organization_id', '!=', $id)->whereNotNull('email_hash')));
+        // people who are KEPT still read their feed elsewhere: only the notifications about THIS organisation go
+        foreach (array_chunk($this->notificationsAbout($id, $shared, $tables), self::CHUNK) as $chunk) {
+            $add('notifications', 'linked', 1, fn ($q) => $q->whereIn('id', $chunk));
+        }
+
+        // ②
+        foreach ($tables as $table) {
+            $add($table, 'own', 2, fn ($q) => $q->where('organization_id', $id));
+        }
+        $add('organizations', 'own', 2, fn ($q) => $q->where('id', $id));
+
+        // ③ chunked: a statement allows 65,535 placeholders
+        foreach (array_chunk($sole, self::CHUNK) as $chunk) {
+            $emails = DB::table('users')->whereIn('id', $chunk)->pluck('email')->map(fn ($v): string => strtolower((string) $v))->all();
+            $add('oauth_refresh_tokens', 'accounts', 3, fn ($q) => $q
+                ->whereIn('access_token_id', fn ($t) => $t->select('id')->from('oauth_access_tokens')->whereIn('user_id', $chunk)));
+            foreach (['oauth_access_tokens', 'oauth_auth_codes', 'oauth_device_codes'] as $table) {
+                $add($table, 'accounts', 3, fn ($q) => $q->whereIn('user_id', $chunk));
+            }
+            $add('sessions', 'accounts', 3, fn ($q) => $q->whereIn('user_id', $chunk));
+            $add('llm_usage', 'accounts', 3, fn ($q) => $q->whereIn('owner_id', $chunk));
+            $add('announcement_dismissals', 'accounts', 3, fn ($q) => $q->whereIn('user_id', $chunk));
+            $add('notifications', 'accounts', 3, fn ($q) => $q->where('notifiable_type', 'user')->whereIn('notifiable_id', $chunk));
+            $add('password_reset_tokens', 'accounts', 3, fn ($q) => $q->whereIn('email', $emails));
+            // their own sign-ins, and the failed attempts and lockouts at the TENANT sign-in with their address —
+            // ⚠️ never a platform admin's (guard `admin`) console history, even at the same address
+            $add('login_activity', 'accounts', 3, fn ($q) => $q
+                ->where(fn ($w) => $w->where('subject_type', 'user')->whereIn('subject_id', $chunk))
+                ->orWhere(fn ($w) => $w->where('guard', 'web')->whereNull('subject_type')->whereIn('identifier', $emails)));
+            $add('users', 'accounts', 3, fn ($q) => $q->whereIn('id', $chunk));
+        }
+
+        // the cascades — read from the schema, never a typed list
+        $withOrg = array_flip($tables);
+        foreach ($this->cascadeEdges() as [$child, $column, $parent, $parentColumn]) {
+            if ($parent === 'organizations' && $column === 'organization_id') {
+                continue;   // these rows carry this organisation's id: phase 2 has them
+            }
+            $parents = match (true) {
+                $parent === 'organizations' => [fn ($p) => $p->select($parentColumn)->from('organizations')->where('id', $id)],
+                $parent === 'users' => array_map(fn (array $chunk): \Closure => fn ($p) => $p->select($parentColumn)->from('users')->whereIn('id', $chunk), array_chunk($sole, self::CHUNK)),
+                isset($withOrg[$parent]) => [fn ($p) => $p->select($parentColumn)->from($parent)->where('organization_id', $id)],
+                default => [],   // a parent no deletion reaches directly (amenities, plans, permissions) — see uncountedCascades()
+            };
+            foreach ($parents as $parentRows) {
+                $add($child, $parent === 'users' ? 'accounts' : 'linked', null, fn ($q) => $q->whereIn($column, $parentRows)
+                    ->when(isset($withOrg[$child]), fn ($w) => $w->where(fn ($n) => $n->whereNull('organization_id')->orWhere('organization_id', '!=', $id)))
+                    ->when($child === 'users', fn ($w) => $w->whereNotIn('id', $sole))
+                    ->when($child === 'organizations', fn ($w) => $w->where('id', '!=', $id)));
+            }
+        }
+
+        return $steps;
+    }
+
+    /**
+     * Count a plan — ONE statement per step, before anything is removed.
+     *
+     * @param  list<array{table: string, kind: string, phase: int|null, where: \Closure}>  $plan
+     * @return array{rows: int, tables: int, own: int, linked: int, accounts: int, per_table: array<string, int>}
+     */
+    private function tally(array $plan): array
+    {
+        $perTable = [];
+        $kinds = ['own' => 0, 'linked' => 0, 'accounts' => 0];
+        foreach ($plan as $step) {
+            $n = DB::table($step['table'])->where($step['where'])->count();
+            if ($n > 0) {
+                $perTable[$step['table']] = ($perTable[$step['table']] ?? 0) + $n;
+                $kinds[$step['kind']] += $n;
+            }
+        }
+        arsort($perTable);
+
+        return ['rows' => array_sum($perTable), 'tables' => count($perTable)] + $kinds + ['per_table' => $perTable];
+    }
+
+    private function own(string $organizationId, string $table): int
+    {
+        return DB::table($table)->where('organization_id', $organizationId)->count();
+    }
+
+    /**
+     * Every single-column foreign key whose rows go when their parent goes: [child, column, parent, parent column].
+     * Read in TWO bulk queries — the delete rule lives in `REFERENTIAL_CONSTRAINTS`, which MariaDB rebuilds on every
+     * read (see {@see self::foreignKeysOf()}): 🔬 7 ms read ONCE on production, 1.1 s read once per table.
+     *
+     * @return list<array{0: string, 1: string, 2: string, 3: string}>
+     */
+    private function cascadeEdges(): array
+    {
+        if ($this->cascades === null) {
+            $rules = [];
+            foreach (DB::select('SELECT TABLE_NAME AS child, CONSTRAINT_NAME AS name, DELETE_RULE AS rule FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE()') as $row) {
+                $rules[(string) $row->child.' '.(string) $row->name] = strtoupper((string) $row->rule);
+            }
+            $this->foreignKeysOf('organizations');   // loads every table's keys in its one query
+            $this->cascades = [];
+            foreach ($this->foreignKeys ?? [] as $child => $keys) {
+                foreach ($keys as $fk) {
+                    if (count($fk['columns']) === 1 && ($rules[$child.' '.$fk['name']] ?? null) === 'CASCADE') {
+                        $this->cascades[] = [(string) $child, $fk['columns'][0], $fk['foreign_table'], $fk['foreign_columns'][0]];
+                    }
+                }
+            }
+        }
+
+        return $this->cascades;
+    }
+
+    /**
+     * Organisation tables whose `organization_id` may be NULL — rows a cascade can remove without carrying the id.
+     *
+     * @return list<string>
+     */
+    private function nullableOrganizationTables(): array
+    {
+        return array_map(fn ($r): string => (string) $r->t, DB::select(
+            "SELECT TABLE_NAME AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND COLUMN_NAME = 'organization_id' AND IS_NULLABLE = 'YES'"
+        ));
+    }
+
+    /**
+     * ⚠️ THE PREMISE THE PLAN'S COUNT RESTS ON, checked against the live schema. The plan counts one row set per step and
+     * sums them, following ONE level of cascade. That is exact while four things hold, and this returns each place
+     * one does not (empty when all hold):
+     *   1. no row a cascade removes (in a table without an organisation column, or one whose column may be null) is
+     *      itself the PARENT of another cascade — "grandparent → parent → child";
+     *   2. no table the plan clears DIRECTLY in phase 1 or 3 is the parent of a cascade — "parent (cleared directly) →
+     *      child";
+     *   3. no such table is the child of TWO cascades from parents the deletion reaches — two parents, or two keys to
+     *      the same one — one row would be counted twice and removed once — "child ← parent, parent";
+     *   4. no table the plan clears DIRECTLY is also the child of a cascade from a parent the deletion reaches — the
+     *      step and the cascade would both count it — "child (cleared directly) ← parent" (REVIEW 2, D-R2-10).
+     * 🔬 All four hold on the schema of 2026-09-29. Pure — a test feeds it graphs that break each one.
+     *
+     * @param  list<array{0: string, 1: string, 2: string, 3: string}>  $edges  [child, column, parent, parent column]
+     * @param  list<string>  $organizationTables
+     * @param  list<string>  $nullable
+     * @param  list<string>  $clearedDirectly
+     * @return list<string>
+     */
+    public static function uncountedCascades(array $edges, array $organizationTables, array $nullable, array $clearedDirectly = []): array
+    {
+        $withOrg = array_flip($organizationTables);
+        $mayBeNull = array_flip($nullable);
+        $direct = array_flip($clearedDirectly);
+        $cascadedInto = [];
+        foreach ($edges as [$child, $column, $parent]) {
+            if ($parent === 'organizations' && $column === 'organization_id') {
+                continue;
+            }
+            // a cascaded row the plan cannot see by an organisation id: no column, or one that may be null
+            if (! isset($withOrg[$child]) || isset($mayBeNull[$child])) {
+                $cascadedInto[$child][] = $parent;
+            }
+        }
+        $reached = fn (string $table): bool => isset($withOrg[$table]) || isset($direct[$table]) || isset($cascadedInto[$table])
+            || $table === 'users' || $table === 'organizations';
+        $problems = [];
+        foreach ($edges as [$child, $column, $parent]) {
+            foreach ($cascadedInto[$parent] ?? [] as $grandparent) {
+                $problems[] = $grandparent.' → '.$parent.' → '.$child;
+            }
+            if (isset($direct[$parent])) {
+                $problems[] = $parent.' (cleared directly) → '.$child;
+            }
+        }
+        foreach ($cascadedInto as $child => $parents) {
+            // ⚠️ REVIEW 3 — count KEYS, not parents: two keys to the same reached parent are two plan steps, and one row
+            //    they both reach would be counted twice
+            $reachedKeys = array_values(array_filter($parents, $reached));
+            $counted = array_values(array_unique($reachedKeys));
+            if (count($reachedKeys) > 1) {
+                $problems[] = $child.' ← '.implode(', ', $counted);
+            }
+            // ⚠️ REVIEW 2 (D-R2-10) — a table the plan clears DIRECTLY that a cascade from a reached parent also removes:
+            //    the direct step and the cascade would each count the same row
+            if (isset($direct[$child]) && $counted !== []) {
+                $problems[] = $child.' (cleared directly) ← '.implode(', ', $counted);
+            }
+        }
+
+        return array_values(array_unique($problems));
+    }
+
+    /**
+     * ⚠️⚠️ #2 — the organisation's LIVE-mode money records, in plain words; empty when there are none. Whether a record is
+     * live comes from Stripe's own `livemode`, stored when it was written — test-mode (false) and non-Stripe (null)
+     * records never count. A HOLD pending the founder's lawyer (docs/DECISIONS.md, ADMIN 06), not a policy.
+     *
+     * @return list<string>
+     */
+    private function liveMoneyRecords(string $organizationId): array
+    {
+        $live = fn (string $table) => DB::table($table)->where('organization_id', $organizationId)->where('livemode', true);
+        $says = fn (int $n, string $one, string $many): string => $n.' '.($n === 1 ? $one : $many);
+        $found = [];
+        if (($n = $live('payments')->where('type', '!=', 'refund')->count()) > 0) {
+            $found[] = $says($n, 'card payment', 'card payments');
+        }
+        if (($n = $live('payments')->where('type', 'refund')->count()) > 0) {
+            $found[] = $says($n, 'refund', 'refunds');
+        }
+        if (($n = $live('payouts')->count()) > 0) {
+            $found[] = $says($n, 'payout', 'payouts');
+        }
+        // the subscription's invoices live at Stripe; a live billing relationship is what says they exist
+        if ($live('subscriptions')->exists()) {
+            $found[] = 'live Stripe billing, with its invoices';
+        }
+
+        return $found;
     }
 
     /**
@@ -439,15 +742,17 @@ final class OrganizationDeletion
 
     /**
      * The notifications of KEPT people that are about this organisation — a payload that names it (stamped since
-     * ADMIN 05) or links to one of its records by id. Their other notifications are left alone.
+     * ADMIN 05) or links to one of its records by id. Their other notifications are left alone. Their ids — the plan
+     * removes them.
      *
      * @param  list<string>  $kept
      * @param  list<string>  $tables
+     * @return list<string>
      */
-    private function deleteNotificationsAbout(string $organizationId, array $kept, array $tables): int
+    private function notificationsAbout(string $organizationId, array $kept, array $tables): array
     {
         if ($kept === []) {
-            return 0;
+            return [];
         }
         $mentions = [];
         foreach (array_chunk($kept, self::CHUNK) as $people) {
@@ -459,7 +764,7 @@ final class OrganizationDeletion
             }
         }
         if ($mentions === []) {
-            return 0;
+            return [];
         }
 
         $all = array_values(array_unique(array_merge(...array_values($mentions))));
@@ -474,14 +779,8 @@ final class OrganizationDeletion
                 }
             }
         }
-        $about = array_keys(array_filter($mentions, fn (array $ids): bool => array_intersect_key(array_flip($ids), $ours) !== []));
 
-        $n = 0;
-        foreach (array_chunk($about, self::CHUNK) as $chunk) {
-            $n += DB::table('notifications')->whereIn('id', $chunk)->delete();
-        }
-
-        return $n;
+        return array_map('strval', array_keys(array_filter($mentions, fn (array $ids): bool => array_intersect_key(array_flip($ids), $ours) !== [])));
     }
 
     /**

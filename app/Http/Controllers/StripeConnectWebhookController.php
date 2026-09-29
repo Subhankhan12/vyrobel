@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesStripeLifecycleEvents;
+use App\Models\Organization;
 use App\Models\Owner;
 use App\Models\Payment;
 use App\Models\Payout;
@@ -32,6 +34,8 @@ use Throwable;
  */
 class StripeConnectWebhookController extends Controller
 {
+    use HandlesStripeLifecycleEvents;
+
     public function __invoke(Request $request, TenantContext $tenant, StripeClientInterface $stripe, OwnerPayoutService $payouts, FolioService $folios): JsonResponse
     {
         try {
@@ -62,7 +66,11 @@ class StripeConnectWebhookController extends Controller
             //    pending-refund pass existed to close.
             in_array($event->type, ['refund.updated', 'refund.failed'], true) => $this->handleRefundSettlement($event, $tenant, $folios),
 
-            default => response()->json(['status' => 'ignored'], 202),
+            // ⚠️ ADMIN 06 — a guest's Checkout page closing, and a card dispute (direct charges live on this plane)
+            in_array($event->type, ['checkout.session.completed', 'checkout.session.expired'], true) => $this->handleCheckoutSession($event, $tenant),
+            str_starts_with($event->type, 'charge.dispute.') => $this->handleDispute($event, $tenant),
+
+            default => $this->unresolved($event, $tenant, 'an event type this deployment does not act on'),
         };
     }
 
@@ -79,7 +87,7 @@ class StripeConnectWebhookController extends Controller
             fn () => Payment::query()->where('gateway_ref', $intentId)->first(),
         );
         if ($payment === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            return $this->unresolved($event, $tenant, 'a payment this deployment has no record of — its organisation may have been deleted');
         }
 
         $to = match ($event->type) {
@@ -88,12 +96,13 @@ class StripeConnectWebhookController extends Controller
             default => null,
         };
         if ($to === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            // unreachable today (only these three types are routed here) — recorded, never dropped, if that changes
+            return $tenant->forOrganization((string) $payment->organization_id, fn (): JsonResponse => $this->once($event, fn () => null));
         }
 
         return $tenant->forOrganization(
             (string) $payment->organization_id,
-            fn (): JsonResponse => $this->once($event, fn () => $folios->settlePayment($payment, $to)),
+            fn (): JsonResponse => $this->once($event, fn () => $folios->settlePayment($payment, $to, $event->livemode())),
         );
     }
 
@@ -112,7 +121,7 @@ class StripeConnectWebhookController extends Controller
             fn () => Payment::query()->where('type', 'refund')->where('gateway_ref', $refundRef)->first(),
         );
         if ($refund === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            return $this->unresolved($event, $tenant, 'a refund this deployment has no record of — its payment or organisation may have been deleted');
         }
 
         $status = (string) ($event->objectField('status') ?? '');
@@ -122,12 +131,13 @@ class StripeConnectWebhookController extends Controller
             default => null,
         };
         if ($to === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            // still pending — nothing to settle yet; recorded as received, never dropped
+            return $tenant->forOrganization((string) $refund->organization_id, fn (): JsonResponse => $this->once($event, fn () => null));
         }
 
         return $tenant->forOrganization(
             (string) $refund->organization_id,
-            fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to)),
+            fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to, $event->livemode())),
         );
     }
 
@@ -165,7 +175,11 @@ class StripeConnectWebhookController extends Controller
             fn () => Owner::query()->where('stripe_connect_account_id', $accountId)->first(),
         );
         if ($owner === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            $operator = $accountId !== null && $tenant->runAsSuperAdmin(fn () => Organization::withTrashed()->where('stripe_connect_account_id', $accountId)->exists());
+
+            return $this->unresolved($event, $tenant, $operator
+                ? 'an operator’s own Connect account — nothing here acts on its updates (a card charge re-reads it from Stripe)'
+                : 'a Connect account no owner here holds — its organisation may have been deleted', routine: $operator);
         }
 
         $claimed = $event->objectBool('payouts_enabled');
@@ -208,12 +222,12 @@ class StripeConnectWebhookController extends Controller
             fn () => Payout::query()->where('external_ref', $transferId)->first(),
         );
         if ($payout === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            return $this->unresolved($event, $tenant, 'a transfer to a payout this deployment has no record of — its organisation may have been deleted');
         }
 
         return $tenant->forOrganization((string) $payout->organization_id, fn (): JsonResponse => $this->once(
             $event,
-            fn () => $payouts->confirmTransfer((string) $transferId),
+            fn () => $payouts->confirmTransfer((string) $transferId, $event->livemode()),
         ));
     }
 

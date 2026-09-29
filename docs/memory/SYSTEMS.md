@@ -2,12 +2,12 @@
 
 Written 2026-09-27 by MEMORY 01. Drafted read-only from the repo; the facts marked **Verified** were read from
 production the same day (booleans and names only). How each fact is known:
-**Verified** = checked 2026-09-27 · **(git)** = read from the repository at HEAD `91b83801` or the working tree ·
+**Verified** = checked 2026-09-27 · **(git)** = read from the repository at HEAD `91b83801` (2026-09-27) or the working tree ·
 **(Reported: doc, date)** = a doc says so, not checked here · **unknown** = not found, with how to find out.
 
-⚠️ The working tree holds **uncommitted ADMIN 06 work** (git status, 2026-09-27): `OrganizationDeletion`, the Stripe
-webhooks, a new migration, and edits to `docs/KNOWN-LIMITS.md` (L19 closed, L20 new), `docs/STRIPE-PRODUCTION.md`
-(new top box), `docs/GO-LIVE-REQUIREMENTS.md` (B19, B20) and `ops/release.sh` (drift check). It is **not deployed**.
+⚠️ **ADMIN 06 was finished and committed on 2026-09-29** (`OrganizationDeletion`, the Stripe webhooks, a migration,
+`ops/release.sh`'s drift check, and `docs/KNOWN-LIMITS.md` L19/L20, `docs/STRIPE-PRODUCTION.md`'s top box, GO-LIVE B19/B20).
+Whether it is live: `STATE.md` — never this line.
 
 ⚠️ **Stale claims to ignore:** `CLAUDE.md`'s older "Current status" text says the site is parked behind `artisan down`
 and a Basic Auth lock.
@@ -123,7 +123,7 @@ releases/rel_<X>/storage  → ../../public_html/storage
 - **Send log:** `mail_send_log` — accepted / suppressed per email type; no address, subject or body (git `f6cd45a4`).
 - **Bounces are invisible to the app:** they come back as email to `contact@`, and "accepted" is not "delivered".
   (Reported: EMAIL-PRODUCTION.md top, 2026-09-25)
-- **Daily limit:** 100 emails a day (Reported: `docs/memory/briefs/TONIGHT-01.md` — a brief, untracked, not measured).
+- **Daily limit:** 100 emails a day (Reported: `docs/memory/briefs/TONIGHT-01.md` — a brief, not measured).
   **When the free mail plan ends: 2 April 2027** (Reported: read in hPanel by the session that ran MAIL 02 / TONIGHT 01,
   2026-09-25; no repo doc records it). Re-check in hPanel → Emails.
 - **`sales@vyrobel.com` has no mailbox**; mail to it is rejected. Ruling 2026-09-26: `sales@` stays on /privacy and
@@ -196,7 +196,7 @@ Roles Owner · Support · Billing · Analyst; every console write needs a writte
   through (Reported: KNOWN-LIMITS L12m).
 - **Before any live key:** read `docs/STRIPE-PRODUCTION.md` from the top. In the working tree its first box is
   "⛔⛔ NO LIVE KEY UNTIL THESE REFUSALS ARE LIVE (ADMIN 06)" — read the live `.release` and confirm it contains
-  ADMIN 06 (uncommitted and undeployed as of 2026-09-27, git). Also GO-LIVE **B20** / KNOWN-LIMITS **L20**: a guest's
+  ADMIN 06 (finished 2026-09-29; whether it is live: `STATE.md`). Also GO-LIVE **B20** / KNOWN-LIMITS **L20**: a guest's
   card page may not open with real Stripe — confirm with one real test-mode session first. Then §3 "THE LIVE-KEY
   FLIP" and §C "THE NUMBERED DASHBOARD LIST". The lawyer items (Article 28, flow of funds) come first:
   `docs/STATE.md` §5. Every key and secret is the founder's to type.
@@ -215,6 +215,14 @@ Roles Owner · Support · Billing · Analyst; every console write needs a writte
   Its tools appear as `mcp__playwright__*`. Needs Node/npx. The official `playwright@claude-plugins-official`
   plugin is a separate server (`mcp__plugin_playwright_playwright__*`) and is not configured by this file.
 - On 2026-09-12 it was headless + `--no-sandbox` (Reported: AUDIT-PHASE-0.md §4a); why it changed: unknown.
+
+## 10 · This Mac is shared
+
+- ⚠️ **`advisor-platform` uses the same local MySQL 8.4 on 3306** — its test database (`advisor_platform_test`) and a long-running
+  Octane/FrankenPHP dev server on `:8347` (Verified 2026-09-29, by working folder). The MariaDB engine swap stops that server
+  for ~25 minutes: ask him to pause that project first (F 2026-09-29). Its `pest` runs also block the mutation harness.
+- `restiox` runs tests here too (Verified 2026-09-27). Identify any process by its working folder; never stop another
+  project's process.
 
 ---
 

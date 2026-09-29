@@ -18,5 +18,7 @@ final class PayoutResult
         // Phase 8: the money movement is INITIATED but not yet confirmed (a Stripe Connect transfer — the
         // Connect webhook flips the payout to `paid`). The manual rail leaves this false (settled offline).
         public readonly bool $pending = false,
+        // ⚠️ ADMIN 06 — Stripe's own livemode for the transfer (null on the manual rail)
+        public readonly ?bool $livemode = null,
     ) {}
 }

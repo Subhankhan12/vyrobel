@@ -44,6 +44,15 @@ class FakeStripeClient implements StripeClientInterface
      */
     public ?string $nextIntentStatus = null;
 
+    /**
+     * ⚠️ ADMIN 06 — the fake answers in TEST mode, as Stripe's own `livemode: false` would; a test flips this to see
+     * what a LIVE-mode object does to a record (the live-money hold on deletion), with no live key anywhere.
+     */
+    public bool $livemode = false;
+
+    /** Seconds until a fake Checkout page expires — 📖 Stripe's default is 24 hours. */
+    public int $checkoutLifetimeSeconds = 86400;
+
     /** @var list<array{id: string, amount_minor: int, currency: string, destination: string, metadata: array<string, string>}> — created transfers, inspectable in tests. */
     public array $transfers = [];
 
@@ -80,7 +89,7 @@ class FakeStripeClient implements StripeClientInterface
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->intents[$this->idempotency[$idempotencyKey]];
 
-            return new StripeIntent((string) $existing['id'], (string) $existing['status'], null, (int) $existing['amount_minor'], (string) $existing['currency']);
+            return new StripeIntent((string) $existing['id'], (string) $existing['status'], null, (int) $existing['amount_minor'], (string) $existing['currency'], $this->livemode);
         }
 
         $id = 'pi_fake_'.Str::lower(Str::random(20));
@@ -106,7 +115,7 @@ class FakeStripeClient implements StripeClientInterface
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeIntent($id, $status, $clientSecret, $amountMinor, $currency);
+        return new StripeIntent($id, $status, $clientSecret, $amountMinor, $currency, $this->livemode);
     }
 
     public function capturePaymentIntent(string $intentId, ?int $amountMinor = null, ?string $idempotencyKey = null): StripeIntent
@@ -120,7 +129,7 @@ class FakeStripeClient implements StripeClientInterface
         $this->intents[$intentId]['status'] = 'succeeded';
         $this->captures[] = ['intent_id' => $intentId, 'amount_minor' => $amountMinor ?? (int) $intent['amount_minor']];
 
-        return new StripeIntent($intentId, 'succeeded', null, $amountMinor ?? (int) $intent['amount_minor'], (string) $intent['currency']);
+        return new StripeIntent($intentId, 'succeeded', null, $amountMinor ?? (int) $intent['amount_minor'], (string) $intent['currency'], $this->livemode);
     }
 
     public function cancelPaymentIntent(string $intentId): StripeIntent
@@ -128,7 +137,7 @@ class FakeStripeClient implements StripeClientInterface
         $this->intents[$intentId]['status'] = 'canceled';
         $this->voids[] = $intentId;
 
-        return new StripeIntent($intentId, 'canceled');
+        return new StripeIntent($intentId, 'canceled', livemode: $this->livemode);
     }
 
     public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeRefund
@@ -136,7 +145,7 @@ class FakeStripeClient implements StripeClientInterface
         $this->refundAccounts[] = $connectedAccountId;
         // A repeated Idempotency-Key returns the ORIGINAL refund — never a double refund.
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
-            return new StripeRefund($this->idempotency[$idempotencyKey], 'succeeded');
+            return new StripeRefund($this->idempotency[$idempotencyKey], 'succeeded', null);   // like Stripe's: a Refund carries no livemode
         }
 
         $id = 're_fake_'.Str::lower(Str::random(20));
@@ -145,7 +154,7 @@ class FakeStripeClient implements StripeClientInterface
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeRefund($id, 'succeeded');
+        return new StripeRefund($id, 'succeeded', null);   // like Stripe's: a Refund carries no livemode
     }
 
     /** @var array<string, array<string, mixed>> — created Checkout sessions, inspectable in tests. */
@@ -186,7 +195,7 @@ class FakeStripeClient implements StripeClientInterface
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->checkoutSessions[$this->idempotency[$idempotencyKey]];
 
-            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url']);
+            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url'], null, $this->livemode, time() + $this->checkoutLifetimeSeconds);
         }
 
         $id = 'cs_fake_'.Str::lower(Str::random(20));
@@ -210,7 +219,7 @@ class FakeStripeClient implements StripeClientInterface
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeCheckoutSession($id, $url);
+        return new StripeCheckoutSession($id, $url, null, $this->livemode, time() + $this->checkoutLifetimeSeconds);
     }
 
     public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
@@ -220,7 +229,7 @@ class FakeStripeClient implements StripeClientInterface
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $existing = $this->checkoutSessions[$this->idempotency[$idempotencyKey]];
 
-            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url'], (string) $existing['payment_intent']);
+            return new StripeCheckoutSession((string) $existing['id'], (string) $existing['url'], (string) $existing['payment_intent'], $this->livemode, time() + $this->checkoutLifetimeSeconds);
         }
 
         $id = 'cs_fake_'.Str::lower(Str::random(20));
@@ -239,7 +248,7 @@ class FakeStripeClient implements StripeClientInterface
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeCheckoutSession($id, $url, $paymentIntent);
+        return new StripeCheckoutSession($id, $url, $paymentIntent, $this->livemode, time() + $this->checkoutLifetimeSeconds);
     }
 
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
@@ -314,7 +323,7 @@ class FakeStripeClient implements StripeClientInterface
         if ($idempotencyKey !== null && isset($this->idempotency[$idempotencyKey])) {
             $id = $this->idempotency[$idempotencyKey];
 
-            return new StripeTransfer($id, $destinationAccountId);
+            return new StripeTransfer($id, $destinationAccountId, $this->livemode);
         }
 
         $id = 'tr_fake_'.Str::lower(Str::random(20));
@@ -323,7 +332,7 @@ class FakeStripeClient implements StripeClientInterface
             $this->idempotency[$idempotencyKey] = $id;
         }
 
-        return new StripeTransfer($id, $destinationAccountId);
+        return new StripeTransfer($id, $destinationAccountId, $this->livemode);
     }
 
     public function constructConnectWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent

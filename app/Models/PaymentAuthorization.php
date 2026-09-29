@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Deposit / incidental hold — authorize vs capture lifecycle.
+ *
+ * @property bool|null $livemode ADMIN 06 — Stripe's own, stored when the hold was placed
  */
 class PaymentAuthorization extends Model
 {
@@ -26,6 +28,7 @@ class PaymentAuthorization extends Model
         'currency',
         'expires_at',
         'status',
+        'livemode',
     ];
 
     /**
@@ -34,6 +37,8 @@ class PaymentAuthorization extends Model
     protected function casts(): array
     {
         return [
+            // ⚠️ ADMIN 06 — Stripe's own `livemode`, stored when the record was written (null: not a Stripe record)
+            'livemode' => 'boolean',
             'authorized' => MoneyCast::class.':authorized_minor,currency',
             'captured' => MoneyCast::class.':captured_minor,currency',
             'expires_at' => 'datetime',

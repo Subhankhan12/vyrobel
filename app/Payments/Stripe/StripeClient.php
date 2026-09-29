@@ -63,6 +63,7 @@ class StripeClient implements StripeClientInterface
             $intent->client_secret !== null ? (string) $intent->client_secret : null,
             (int) $intent->amount,
             strtoupper((string) $intent->currency),
+            (bool) $intent->livemode,
         );
     }
 
@@ -71,14 +72,14 @@ class StripeClient implements StripeClientInterface
         $params = $amountMinor !== null ? ['amount_to_capture' => $amountMinor] : [];
         $intent = $this->sdk->paymentIntents->capture($intentId, $params, $this->options($idempotencyKey));
 
-        return new StripeIntent((string) $intent->id, (string) $intent->status);
+        return new StripeIntent((string) $intent->id, (string) $intent->status, livemode: (bool) $intent->livemode);
     }
 
     public function cancelPaymentIntent(string $intentId): StripeIntent
     {
         $intent = $this->sdk->paymentIntents->cancel($intentId);
 
-        return new StripeIntent((string) $intent->id, (string) $intent->status);
+        return new StripeIntent((string) $intent->id, (string) $intent->status, livemode: (bool) $intent->livemode);
     }
 
     public function refund(string $intentId, int $amountMinor, ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeRefund
@@ -91,7 +92,9 @@ class StripeClient implements StripeClientInterface
             'amount' => $amountMinor,
         ], $this->options($idempotencyKey, $connectedAccountId));
 
-        return new StripeRefund((string) $refund->id, (string) $refund->status);
+        // ⚠️ ADMIN 06 — a Refund is the one Stripe object here that carries NO `livemode` (the SDK declares none): it is
+        //    left unknown, and the refund takes the mode of the payment it refunds (FolioService::refundPayment()).
+        return new StripeRefund((string) $refund->id, (string) $refund->status, null);
     }
 
     /**
@@ -182,7 +185,7 @@ class StripeClient implements StripeClientInterface
 
         $session = $this->sdk->checkout->sessions->create($params, $this->options($idempotencyKey));
 
-        return new StripeCheckoutSession((string) $session->id, (string) $session->url);
+        return new StripeCheckoutSession((string) $session->id, (string) $session->url, null, (bool) $session->livemode, $session->expires_at);
     }
 
     public function createPaymentCheckout(int $amountMinor, string $currency, string $description, string $successUrl, string $cancelUrl, array $metadata = [], ?string $idempotencyKey = null, ?string $connectedAccountId = null): StripeCheckoutSession
@@ -206,7 +209,7 @@ class StripeClient implements StripeClientInterface
 
         $paymentIntent = $session->payment_intent;
 
-        return new StripeCheckoutSession((string) $session->id, (string) $session->url, is_string($paymentIntent) ? $paymentIntent : null);
+        return new StripeCheckoutSession((string) $session->id, (string) $session->url, is_string($paymentIntent) ? $paymentIntent : null, (bool) $session->livemode, $session->expires_at);
     }
 
     public function constructWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent
@@ -290,7 +293,7 @@ class StripeClient implements StripeClientInterface
             'metadata' => $metadata,
         ], $this->options($idempotencyKey));
 
-        return new StripeTransfer((string) $transfer->id, (string) $transfer->destination);
+        return new StripeTransfer((string) $transfer->id, (string) $transfer->destination, (bool) $transfer->livemode);
     }
 
     public function constructConnectWebhookEvent(string $payload, ?string $signatureHeader): StripeEvent

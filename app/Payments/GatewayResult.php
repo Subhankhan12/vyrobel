@@ -20,5 +20,7 @@ final class GatewayResult
         public readonly string $status,
         public readonly ?string $message = null,
         public readonly ?string $clientSecret = null,
+        // ⚠️ ADMIN 06 — Stripe's own livemode for the object behind this result (null: the manual rail, or not reported)
+        public readonly ?bool $livemode = null,
     ) {}
 }

@@ -83,6 +83,7 @@ class GuestFolioPaymentController extends Controller
                 $session->paymentIntentId,
                 ['reservation_id' => (string) $booking->getKey(), 'source' => 'guest_checkout'],
                 $connectedAccountId,
+                $session,
             ));
         } catch (Throwable $e) {
             report($e);

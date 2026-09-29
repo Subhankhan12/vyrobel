@@ -84,7 +84,8 @@ answered*. Its first honest run: APPLICATION-REFUSED=0 (git). The host is **Lite
 
 **DNS 01 — 2026-09-25, pasted together with MAIL 02 (Reported: this session's transcript).** No commit of its own. It
 measured the mail records and found MX, SPF, DKIM and DMARC for Hostinger mail already correct. Nothing was changed; MX
-was never touched (Reported: this session; git `f6cd45a4`). Its brief is done, so it is not in `briefs/`.
+was never touched (Reported: this session; git `f6cd45a4`). Its brief is done; it is kept in `briefs/` only because MAIL 02 cites
+it (corrected 2026-09-29: this line first said it was not there).
 
 **PUBLIC 01 — 2026-09-23 — `5d631d9f`, `c2486ece` (git; the name is in `ops/reference/public_html.htaccess` and
 KNOWN-LIMITS L13).** The founder ruled the site public. Maintenance came off first, then the lock (git). **Found:**
@@ -227,8 +228,8 @@ Stripe Checkout invisible to delete), and the signed-in live pass, which needs t
   - **The first had 16 findings** (6 verified, 1 refuted). The confirmed ones and most of the rest were fixed. One
     pre-existing finding (L20) was recorded, not built. A narrow webhook-versus-deletion race that can give one 500 was
     documented. The logo-in-sent-emails point (raised by both reviews) became ruling (f).
-  - **The second had 19 findings:** 4 confirmed, 1 refuted, 14 not verified. **None are fixed yet**: `OPEN.md` D-R2-*
-    and D-TRANSFER.
+  - **The second had 19 findings:** 4 confirmed, 1 refuted, 14 not verified. **All fixed 2026-09-29** (below), except
+    D-TRANSFER, which is pre-existing and recorded.
   - Rulings (a)–(f) are open. PW-SIGNUP PROBE is **not** deleted, and not suspended (Verified).
 
 **MEMORY 01 — 2026-09-27.** A writing pass with no product work.
@@ -240,6 +241,28 @@ Stripe Checkout invisible to delete), and the signed-in live pass, which needs t
 - Left two of its own read-only scripts on production, in `env-backups/` (`OPEN.md` A6).
 - **Found:** the two Pest runs the founder saw were one run (the final MySQL suite) shown as two processes. A Mac sleep
   had stretched a 17-minute run to 8½ hours.
+
+**MEMORY 02 + ADMIN 06 FINISH — 2026-09-29 — the commit that carries this entry (git log).** Started with the MEMORY 02 check: every production
+read matched `STATE.md` (Verified 2026-09-27 15:55–16:05 Baku, and again 2026-09-29 11:38), and four small mistakes were found in the memory itself (GitHub was at
+`58800419`, not `91b83801`; the DNS 01 brief IS in `briefs/`; the briefs and tools were committed, not untracked;
+`SYSTEMS.md` named an old HEAD). The founder then said to make everything that has to be live, live, and to verify it.
+- **Review 2's findings, each verified by reading, then fixed with a test that failed first** (table in `docs/DECISIONS.md`,
+  ADMIN 06 → "The second adversarial review"). The real defects: an operator's own Connect account update recorded as a
+  failure (D-R2-1); a live page paid in its last minute stopped refusing (D-R2-2); an unknown dispute status counted as
+  finished, failing open (D-R2-7); a dispute refusal with no way out named (D-R2-8); `recordUnresolved()` could demote a
+  claim being processed (D-R2-9); a premise gap (D-R2-10). The rest were coverage or doc gaps.
+- **Review 3 (a review of those fixes) found a real defect review 2 had not:** the billing webhook skipped an ARCHIVED
+  (soft-deleted) organisation, so Stripe's reports for one were written down and never applied — and a delete may only
+  run on a suspended or archived organisation, so its refusals could never lift. Fixed (`withTrashed()`), with three more
+  points (`DECISIONS`, "Review 3").
+- **Found by the suite's own guard, in this pass's own test:** a negated `toContain($token, $table)` — the message became a
+  second needle, so the check always passed. `NegatedVariadicMatcherGuardTest` caught it; the same trap fired on 2026-09-27.
+- **Gates (Verified, this pass's run outputs):** 4,033/4,033 on MySQL 8.4.10 and on MariaDB 11.8.9 (same tree, fingerprint
+  `8f8813b4fac362d8`); 323/323 mutations caught across every set; money gate FULL unmoved; PHPStan 0; Pint clean.
+- **Deploy:** see `STATE.md` and the docs commit that follows this one.
+- **Another project shares the Mac.** `advisor-platform` runs full suites against the same local MySQL; the mutation harness
+  refused once because of it (its guard matches any `pest`, `OPEN.md` A7), and the MariaDB engine swap needed the founder
+  to pause that project (F 2026-09-29).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
@@ -267,12 +290,16 @@ Stripe Checkout invisible to delete), and the signed-in live pass, which needs t
   was not run.
 - **The machine sleeps:** a suite started at 05:40 finished at 14:12, because the Mac slept. Run long work under
   `caffeinate -i`.
+- **A review of the fixes found what the fixes missed** (2026-09-29): an ARCHIVED organisation's Stripe reports were never
+  applied, so a delete's refusals could never lift; and one fix was broader than its defect and hid a real problem.
+- **The same trap, two days after writing it down:** a negated `toContain` with a message, in this pass's own new test. The
+  guard test caught it, not the author.
 
 ## 3 · Still open (as the docs report it; re-check before acting)
 
-Mail password + TONIGHT 01 Part 2 (Verified 2026-09-27: `MAIL_PASSWORD` not set) · proving the `sales@` alias (created
-2026-09-26, Reported) · ADMIN 06: fix review 2, commit, deploy · L20 · ADMIN 06 rulings
-(a)–(f) · ADMIN 05 signed-in live pass · KEYBOARD 01 (needs him; Job 4 needs ADMIN 06 live) · OAuth-token-on-reset
+Mail password + TONIGHT 01 Part 2 (Verified 2026-09-29: `MAIL_PASSWORD` not set) · proving the `sales@` alias (created
+2026-09-26, Reported) · ADMIN 06: finished 2026-09-29 (live state in `STATE.md`) · L20 · D-TRANSFER · ADMIN 06 rulings
+(a)–(g) · ADMIN 05 signed-in live pass · KEYBOARD 01 (needs him; Job 4 needs ADMIN 06 live) · OAuth-token-on-reset
 ruling · Stripe live keys, the lawyer, real tax rates. Where: `docs/GO-LIVE-REQUIREMENTS.md`,
 `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 

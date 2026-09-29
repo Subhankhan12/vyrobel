@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HandlesStripeLifecycleEvents;
 use App\Models\Organization;
 use App\Models\Payment;
 use App\Payments\Stripe\StripeClientInterface;
@@ -34,6 +35,8 @@ use Throwable;
  */
 class StripeWebhookController extends Controller
 {
+    use HandlesStripeLifecycleEvents;
+
     public function __invoke(
         Request $request,
         TenantContext $tenant,
@@ -47,6 +50,14 @@ class StripeWebhookController extends Controller
             return response()->json(['error' => 'invalid_signature'], 400);
         }
 
+        // ── ⚠️ ADMIN 06 — a Checkout page expiring, and a card dispute: recorded, never dropped ──────────────────
+        if ($event->type === 'checkout.session.expired') {
+            return $this->handleCheckoutSession($event, $tenant);
+        }
+        if (str_starts_with($event->type, 'charge.dispute.')) {
+            return $this->handleDispute($event, $tenant);
+        }
+
         // ── SUBSCRIPTION BILLING events → resolve the org from the STRIPE OBJECT ───────────────────────
         //
         // ⚠️⚠️ THIS USED TO RESOLVE FROM `metadata.organization_id` ALONE, AND THAT MADE TWO HANDLERS INERT
@@ -58,8 +69,11 @@ class StripeWebhookController extends Controller
         if (BillingWebhookService::handles($event->type)) {
             $resolution = $billing->organizationFor($event, $tenant);
             $orgId = $resolution->organizationId;
+            // ⚠️ REVIEW 3 (ADMIN 06) — withTrashed: an ARCHIVED organisation is soft-deleted and still exists. Its billing
+            //    reports (a cancellation, a paid page) were written down and never applied, and a permanent deletion may
+            //    only run on a suspended or archived organisation — so its refusals could never lift.
             $orgExists = $orgId !== null && $tenant->runAsSuperAdmin(
-                fn (): bool => Organization::query()->whereKey($orgId)->exists(),
+                fn (): bool => Organization::withTrashed()->whereKey($orgId)->exists(),
             );
 
             if (! $orgExists) {
@@ -111,7 +125,7 @@ class StripeWebhookController extends Controller
                 fn () => Payment::query()->where('type', 'refund')->where('gateway_ref', $refundRef)->first(),
             );
             if ($refund === null) {
-                return response()->json(['status' => 'ignored'], 202);
+                return $this->unresolved($event, $tenant, 'a refund this deployment has no record of — its payment or organisation may have been deleted');
             }
 
             $status = (string) ($event->objectField('status') ?? '');
@@ -121,7 +135,8 @@ class StripeWebhookController extends Controller
                 default => null,   // still pending / requires_action — nothing to settle yet.
             };
             if ($to === null) {
-                return response()->json(['status' => 'ignored'], 202);
+                // still pending — nothing to settle yet; recorded as received, never dropped
+                return $tenant->forOrganization((string) $refund->organization_id, fn (): JsonResponse => $this->once($event, fn () => null));
             }
 
             // ⚠️ ONE idempotency rule, the existing `once()` on the webhook_events unique index — a
@@ -129,21 +144,21 @@ class StripeWebhookController extends Controller
             //    redelivered settlement can never debit an owner twice even if the event row were absent.
             return $tenant->forOrganization(
                 (string) $refund->organization_id,
-                fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to)),
+                fn (): JsonResponse => $this->once($event, fn () => $folios->settleRefund($refund, $to, $event->livemode())),
             );
         }
 
         // ── PAYMENT-INTENT events → resolve the org from the local Payment ─────────────────────────────
         $paymentIntentId = $event->paymentIntentId();
         if ($paymentIntentId === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            return $this->unresolved($event, $tenant, 'an event type this deployment does not act on');
         }
 
         $payment = $tenant->runAsSuperAdmin(
             fn () => Payment::query()->where('gateway_ref', $paymentIntentId)->first(),
         );
         if ($payment === null) {
-            return response()->json(['status' => 'ignored'], 202);
+            return $this->unresolved($event, $tenant, 'a payment this deployment has no record of — its organisation may have been deleted');
         }
 
         return $tenant->forOrganization((string) $payment->organization_id, fn (): JsonResponse => $this->once($event, fn () => $this->applyPayment($event, $payment, $folios)));
@@ -204,8 +219,8 @@ class StripeWebhookController extends Controller
     private function applyPayment(StripeEvent $event, Payment $payment, FolioService $folios): void
     {
         match ($event->type) {
-            'payment_intent.succeeded' => $folios->settlePayment($payment, 'succeeded'),
-            'payment_intent.payment_failed', 'payment_intent.canceled' => $folios->settlePayment($payment, 'failed'),
+            'payment_intent.succeeded' => $folios->settlePayment($payment, 'succeeded', $event->livemode()),
+            'payment_intent.payment_failed', 'payment_intent.canceled' => $folios->settlePayment($payment, 'failed', $event->livemode()),
             default => null, // acknowledged but not acted on
         };
     }

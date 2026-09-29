@@ -18,5 +18,7 @@ final class StripeIntent
         public readonly ?string $clientSecret = null,
         public readonly ?int $amountMinor = null,
         public readonly ?string $currency = null,
+        // ⚠️ ADMIN 06 — Stripe's own livemode for this object (null: not reported)
+        public readonly ?bool $livemode = null,
     ) {}
 }

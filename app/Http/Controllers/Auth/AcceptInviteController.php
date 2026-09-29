@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Owner;
 use App\Models\User;
+use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerInviteService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\View\View;
@@ -77,7 +78,11 @@ class AcceptInviteController extends Controller
         // own `hasPayout` comment records having already fixed once.
         $home = $invite->owner_id !== null ? route('owner.welcome') : route('app.dashboard');
 
-        $user = $this->invites->accept($invite, (string) $request->string('password'));
+        try {
+            $user = $this->invites->accept($invite, (string) $request->string('password'));
+        } catch (InviteNoLongerRedeemable) {
+            return view('auth.invite-invalid');   // ADMIN 06 — a founder who set a password meanwhile keeps it
+        }
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();   // fixation protection on activation

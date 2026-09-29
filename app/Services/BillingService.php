@@ -11,6 +11,7 @@ use App\Models\Subscription;
 use App\Payments\Stripe\StripeCheckoutSession;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Payments\Stripe\StripeIdempotency;
+use App\Support\Billing\CheckoutSessions;
 use App\Support\Billing\StripePriceWiring;
 use App\Support\Billing\SubscriptionStatus;
 use Database\Seeders\BillingPlanSeeder;
@@ -86,7 +87,7 @@ final class BillingService
 
         $subscription = $organization->currentSubscription();
 
-        return app(StripeClientInterface::class)->createSubscriptionCheckout(
+        $session = app(StripeClientInterface::class)->createSubscriptionCheckout(
             priceId: $priceId,
             successUrl: route('app.billing').'?checkout=success',
             cancelUrl: route('app.billing').'?checkout=cancel',
@@ -104,6 +105,12 @@ final class BillingService
             // (€0 for an EU business under reverse charge). A flat tier's price is already the final amount.
             automaticTax: StripePriceWiring::usesStripeTax($plan),
         );
+
+        // ⚠️ ADMIN 06 — the open payment page is recorded (KNOWN-LIMITS L19): a deletion must refuse while it is open,
+        //    or a founder who pays after their organisation was deleted leaves Stripe billing a customer nobody sees.
+        CheckoutSessions::record($session, 'subscription');
+
+        return $session;
     }
 
     /**

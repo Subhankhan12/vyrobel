@@ -62,6 +62,6 @@ class StripeConnectPayoutRail implements PayoutRail
         }
 
         // Initiated — the Connect webhook (transfer.created) confirms it → `paid`.
-        return new PayoutResult(successful: true, externalRef: $transfer->id, pending: true);
+        return new PayoutResult(successful: true, externalRef: $transfer->id, pending: true, livemode: $transfer->livemode);
     }
 }

@@ -76,6 +76,25 @@ final class StripeEvent
         return (bool) ($this->object()[$key] ?? false);
     }
 
+    /**
+     * ⚠️ ADMIN 06 — Stripe's OWN `livemode`: true for a live-mode event, false for test mode, null when the payload
+     * carries neither the event's field nor the object's. Stored on the money records the event settles.
+     */
+    public function livemode(): ?bool
+    {
+        $mode = $this->payload['livemode'] ?? ($this->object()['livemode'] ?? null);
+
+        return is_bool($mode) ? $mode : null;
+    }
+
+    /** ⚠️ ADMIN 06 — when Stripe created the EVENT (unix seconds): what orders two deliveries about the same object. */
+    public function created(): ?int
+    {
+        $created = $this->payload['created'] ?? null;
+
+        return is_int($created) ? $created : null;
+    }
+
     /** The `organization_id` stamped into `data.object.metadata` at Checkout create — resolves the tenant. */
     public function metadataOrganizationId(): ?string
     {

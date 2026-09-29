@@ -18,7 +18,9 @@ use App\Models\Reservation;
 use App\Models\Tax;
 use App\Payments\Contracts\PaymentGateway;
 use App\Payments\GatewayResult;
+use App\Payments\Stripe\StripeCheckoutSession;
 use App\Payments\Stripe\StripeIdempotency;
+use App\Support\Billing\CheckoutSessions;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Money\Money;
@@ -284,6 +286,8 @@ class FolioService
                     // ⚠️ Stamped so a refund can find the account that TOOK the charge. Null on `manual`,
                     //    which is correct: there is no Stripe charge behind it.
                     'stripe_account_id' => $connectedAccountId,
+                    // ⚠️ ADMIN 06 — Stripe's own livemode for the charge (null on the manual rail: no Stripe object)
+                    'livemode' => $result->livemode,
                     'idempotency_key' => $idempotencyKey,
                     'type' => 'payment',
                     'amount' => $amount,
@@ -331,8 +335,13 @@ class FolioService
      *
      * @param  array<string, mixed>  $metadata
      */
-    public function recordCheckoutIntent(Folio $folio, Money $amount, string $paymentIntentId, array $metadata = [], ?string $connectedAccountId = null): Payment
+    public function recordCheckoutIntent(Folio $folio, Money $amount, string $paymentIntentId, array $metadata = [], ?string $connectedAccountId = null, ?StripeCheckoutSession $session = null): Payment
     {
+        // ⚠️ ADMIN 06 — the open payment page itself is recorded (KNOWN-LIMITS L19), so a deletion can see it
+        if ($session !== null) {
+            CheckoutSessions::record($session, 'payment');
+        }
+
         $payment = Payment::query()->firstOrCreate(
             ['gateway_ref' => $paymentIntentId],
             [
@@ -341,6 +350,7 @@ class FolioService
                 'gateway' => 'stripe',
                 // ⚠️ Stamped at CHARGE time so the refund path can find the right account later.
                 'stripe_account_id' => $connectedAccountId,
+                'livemode' => $session?->livemode,
                 'type' => 'payment',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
@@ -366,7 +376,7 @@ class FolioService
      * unsettled one (mirrors the authorize→capture lifecycle), then recomputes so a now-succeeded
      * payment counts as paid.
      */
-    public function settlePayment(Payment $payment, string $toStatus): Payment
+    public function settlePayment(Payment $payment, string $toStatus, ?bool $livemode = null): Payment
     {
         if (! in_array($toStatus, ['succeeded', 'failed'], true)) {
             throw new InvalidArgumentException("settlePayment expects succeeded|failed, got [{$toStatus}].");
@@ -383,8 +393,9 @@ class FolioService
 
         $folio = $payment->folio;
 
-        DB::transaction(function () use ($payment, $toStatus, $folio): void {
-            $payment->update(['status' => $toStatus, 'processed_at' => now()]);
+        DB::transaction(function () use ($payment, $toStatus, $folio, $livemode): void {
+            $payment->update(['status' => $toStatus, 'processed_at' => now()]
+                + ($livemode !== null && $payment->livemode === null ? ['livemode' => $livemode] : []));
 
             if ($folio !== null) {
                 $this->recompute($folio);
@@ -531,6 +542,8 @@ class FolioService
                 'reservation_id' => $locked->reservation_id,
                 'gateway' => $this->gateway->name(),
                 'gateway_ref' => $result->reference,
+                // ⚠️ ADMIN 06 — Stripe's livemode for the refund; a refund lives in the same mode as its charge
+                'livemode' => $result->livemode ?? $locked->livemode,
                 'type' => 'refund',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
@@ -601,13 +614,13 @@ class FolioService
      * ⚠️ IDEMPOTENT BY STATUS: only a row still `pending` transitions, so a redelivered settlement event is
      * a no-op and can never debit an owner twice. The row lock makes the check-and-set atomic.
      */
-    public function settleRefund(Payment $refund, string $toStatus): Payment
+    public function settleRefund(Payment $refund, string $toStatus, ?bool $livemode = null): Payment
     {
         if (! in_array($toStatus, ['succeeded', 'failed'], true)) {
             throw new InvalidArgumentException('A refund settles to succeeded or failed.');
         }
 
-        $settled = DB::transaction(function () use ($refund, $toStatus): ?Payment {
+        $settled = DB::transaction(function () use ($refund, $toStatus, $livemode): ?Payment {
             $locked = Payment::query()->lockForUpdate()->findOrFail($refund->getKey());
 
             // ⚠️ Re-checked INSIDE the lock — the caller's copy is a snapshot, and a redelivered webhook
@@ -616,7 +629,8 @@ class FolioService
                 return null;
             }
 
-            $locked->forceFill(['status' => $toStatus, 'processed_at' => now()])->save();
+            $locked->forceFill(['status' => $toStatus, 'processed_at' => now()]
+                + ($livemode !== null && $locked->livemode === null ? ['livemode' => $livemode] : []))->save();
 
             $folio = $locked->folio;
             if ($folio !== null) {
@@ -775,6 +789,7 @@ class FolioService
                 'reservation_id' => $folio->reservation_id,
                 'gateway' => $this->gateway->name(),
                 'gateway_ref' => $result->reference,
+                'livemode' => $result->livemode,
                 'type' => 'deposit_hold',
                 'amount' => $amount,
                 'currency' => $amount->currency(),
@@ -789,6 +804,7 @@ class FolioService
                 'currency' => $amount->currency(),
                 'expires_at' => $expiresAt,
                 'status' => 'authorized',
+                'livemode' => $result->livemode,
             ]);
 
             $this->recompute($folio); // deposit_hold is excluded from paid
@@ -822,6 +838,7 @@ class FolioService
                 'reservation_id' => $holdPayment->reservation_id,
                 'gateway' => $this->gateway->name(),
                 'gateway_ref' => $result->reference,
+                'livemode' => $result->livemode ?? $holdPayment->livemode,
                 'type' => 'capture',
                 'amount' => $captureAmount,
                 'currency' => $captureAmount->currency(),

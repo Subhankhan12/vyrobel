@@ -304,7 +304,10 @@ it('⚠️⚠️ the one-query foreign-key read is the framework\'s own answer, 
     expect($compared)->toBeGreaterThan(150, 'the comparison must really see the schema\'s keys');
 })->group('security');
 
-it('⚠️⚠️ a preview never reads the one schema view MariaDB rebuilds on every read (118 s on production)', function () {
+it('⚠️⚠️ a preview reads the one schema view MariaDB rebuilds on every read ONCE — never once per table (118 s on production)', function () {
+    // ⚠️ ADMIN 06: the full count needs each key's delete rule, which lives ONLY in REFERENTIAL_CONSTRAINTS. 🔬 On
+    // production one whole-schema read of it takes 7 ms; reading it once per table (as Schema::getForeignKeys does) took
+    // 1.1 s a table. The console's detail page builds ONE service and asks it for the preview and the refusal.
     $w = a05World();
     $slow = [];
     DB::listen(function ($query) use (&$slow): void {
@@ -313,10 +316,12 @@ it('⚠️⚠️ a preview never reads the one schema view MariaDB rebuilds on e
         }
     });
 
-    app(OrganizationDeletion::class)->preview((string) $w['org']->id);
-    app(OrganizationDeletion::class)->refusal((string) $w['org']->id);
+    $service = app(OrganizationDeletion::class);
+    $service->preview((string) $w['org']->id);
+    $service->refusal((string) $w['org']->id);
 
-    expect($slow)->toBe([]);
+    expect($slow)->toHaveCount(1);
+    expect(stripos($slow[0], 'table_name =') === false)->toBeTrue('one read for the whole schema, never a read per table');
 })->group('security');
 
 it('⚠️⚠️ refuses — and rolls EVERYTHING back — if a row of the organisation survives the sweep', function () {
@@ -564,20 +569,6 @@ it('the protected organisations can never be deleted, and only an Owner may dele
     }
 })->group('security');
 
-// ⚠️ KNOWN-LIMITS L19 — PINNED SO THE DOCUMENT CANNOT OUTLIVE IT. Starting a subscription checkout writes nothing, so a
-// deletion cannot see an open Stripe payment page. Whoever closes L19 (persists the open session) turns this red — and
-// must then update docs/KNOWN-LIMITS.md L19 and GO-LIVE B19 in the same change.
-it('⚠️ L19 — starting a subscription checkout writes NOTHING, so a deletion cannot see an open payment page', function () {
-    $s = seedScenario(1);
-    app(BillingService::class)->ensurePlans();
-    $writes = [];
-    DB::listen(function ($query) use (&$writes): void {
-        if (preg_match('/^\s*(insert|update|delete|replace)\b/i', $query->sql) === 1) {
-            $writes[] = $query->sql;
-        }
-    });
-
-    app(TenantContext::class)->forOrganization((string) $s['org']->id, fn () => app(BillingService::class)->startCheckout($s['org'], 'essential', 'monthly'));
-
-    expect($writes)->toBe([], 'the checkout now records something — if it is the open session, L19 may be closable: update the doc');
-})->group('security');
+// ⚠️ KNOWN-LIMITS L19 — CLOSED BY ADMIN 06 (2026-09-27). The pin that said "starting a checkout writes nothing" turned
+// red exactly as it was built to: a checkout now RECORDS its page, and a deletion refuses while one is open — proven in
+// Admin06DeleteMoneyAndCountTest ("B19 — an open Stripe Checkout page refuses the deletion…").

@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * A money movement. Token-only (never raw card). Correct-by-reversal: a refund/void is a NEW
  * offsetting Payment; this row is never mutated to "undo" it.
+ *
+ * @property bool|null $livemode ADMIN 06 — Stripe's own, stored when written; null = not a Stripe record
  */
 class Payment extends Model
 {
@@ -27,6 +29,7 @@ class Payment extends Model
         'method',
         'gateway_ref',
         'stripe_account_id',
+        'livemode',
         'idempotency_key',
         'type',
         'amount',
@@ -70,6 +73,8 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
+            // ⚠️ ADMIN 06 — Stripe's own `livemode`, stored when the record was written (null: not a Stripe record)
+            'livemode' => 'boolean',
             'amount' => MoneyCast::class.':amount_minor,currency',
             'metadata' => 'array',
             'processed_at' => 'datetime',

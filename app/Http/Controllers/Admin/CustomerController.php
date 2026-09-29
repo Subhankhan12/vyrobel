@@ -196,7 +196,9 @@ class CustomerController extends Controller
 
         $meta = [
             'name' => $name, 'slug' => $slug,
-            'records' => $result['records'], 'tables' => $result['tables'], 'linked' => $result['linked'],
+            // ⚠️ ADMIN 06 — every row removed, and where: the same plan the confirmation counted
+            'records' => $result['records'], 'tables' => $result['tables'],
+            'own' => $result['own'], 'linked' => $result['linked'], 'accounts' => $result['accounts'], 'per_table' => $result['per_table'],
             'users_deleted' => $result['users_deleted'], 'users_kept' => $result['users_kept'],
             'files_deleted' => $result['files_deleted'], 'files_missing' => $result['files_missing'], 'files_shared' => $result['files_shared'],
             'files_failed' => count($result['files_failed']), 'files_failed_paths' => array_slice($result['files_failed'], 0, 50),

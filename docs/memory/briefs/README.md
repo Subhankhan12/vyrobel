@@ -11,7 +11,7 @@ founder's separate planning chat.
 | `MAIL-02.md` | 2026-09-25 16:58 | `6c5e23dec44fed5a` | Planned for Postmark, run on Hostinger SMTP. The switch-over waits on `MAIL_PASSWORD` (see `TONIGHT-01.md`). "Finish MAIL 02 exactly as you laid it out" in TONIGHT 01 means the session's Hostinger plan; its outcome is the MAIL 02 entry in `docs/DECISIONS.md`. |
 | `DNS-01.md` | 2026-09-25 16:58 | `e9ff3098b5df9cb6` | **Done** (it found the Hostinger mail DNS already correct and changed nothing). Kept only because `MAIL-02.md` cites it. |
 | `KEYBOARD-01.md` | 2026-09-26 18:35 | `5a0ba1f863a3b139` | Not run. The **later** of two pasted versions; the earlier one (2026-09-25) is superseded. Job 4 (Stripe) waits on ADMIN 06 being live. |
-| `ADMIN-06.md` | 2026-09-26 20:06 | `d2a49b1777020838` | Built locally, not committed or deployed; see `../STATE.md` and `../OPEN.md` A1. The **later** version, with #3b. |
+| `ADMIN-06.md` | 2026-09-26 20:06 | `d2a49b1777020838` | **Finished 2026-09-29** (review 2 and 3 fixed, every gate green, committed). Whether it is live: `../STATE.md`. The **later** version, with #3b. |
 | `PW-SIGNUP-DELETE-1.md` | 2026-09-26 18:35 | `84ff7fadf442df94` | The before/after proof for the first real deletion. Not started: the probe is not suspended (V 2026-09-27). |
 | `PW-SIGNUP-DELETE-2-follow-up.md` | 2026-09-26 19:00 | `660cc5d919b8c6e5` | The founder's follow-up: explain 17 vs ~230 (answered: 232), and search every table after the delete. It began "suspended." but the probe was **not** suspended (V). |
 

@@ -582,7 +582,7 @@ class BookingEngineController extends Controller
         $this->folios->recordCheckoutIntent($folio, Money::of($balanceMinor, $currency), $session->paymentIntentId, [
             'booking_quote_id' => $quote->getKey(),
             'source' => 'storefront',
-        ], $connectedAccountId);
+        ], $connectedAccountId, $session);
 
         return redirect()->away($session->url);
     }

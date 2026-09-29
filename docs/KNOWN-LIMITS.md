@@ -1289,7 +1289,24 @@ that REJECTS mail until the alias below exists.**
 the legal pages; the alias keeps every published address working.) ⚠️ Not done by the session: it changes his mail
 setup, and nothing briefed it.
 
-## ⚠️ L19 — DELETING AN ORGANISATION CANNOT SEE AN OPEN STRIPE CHECKOUT PAGE — DORMANT TODAY, A PREREQUISITE OF THE STRIPE FLIP
+## ✅ L19 — CLOSED BY ADMIN 06 (2026-09-27): a deletion now sees an open Stripe Checkout page, and refuses
+
+✅ **CLOSED.** Every Checkout page the app opens (a subscription, or a guest's card payment) is now RECORDED in
+`stripe_checkout_sessions` with Stripe's own `expires_at` and `livemode`. It is closed by `checkout.session.completed` or
+`.expired` on either webhook. `OrganizationDeletion::refusal()` refuses while one is open. A page whose expiry Stripe did
+not report counts as open for Stripe's longest lifetime, 24 hours (📖 Stripe's docs, read 2026-09-27: 30 minutes to 24
+hours, 24 by default). Proved by `Admin06DeleteMoneyAndCountTest` › *B19 — …* and mutations `A06-M7`…`M11`. The pin that
+said "a checkout writes nothing" turned red as built, and was retired. **One of the three items "beside it" is closed
+too:** (1) a replaced brand logo is now removed once the new one is saved (`SettingsActionController`, test *a REPLACED
+brand logo…*; production held 0 logos when measured); (2) and (3) are unchanged, recorded below. *(Corrected
+2026-09-29 by ADMIN 06's second review, D-R2-12: this line first said "two of the three", and only one is.)*
+**Two gaps the second review found are closed too (2026-09-29):** a **LIVE** page past its expiry that Stripe has not
+reported on still refuses — it may have been paid in its last minute, with the report still in Stripe's retries
+(test *R2-2*, mutations `A06-M57`/`M58`); and the **guest's** half — a card-payment page recorded, refusing, and closed by
+its Connect event — now has its own test and mutations (test *R2-4*, `A06-M67`…`M69`). The text that follows is the
+record as found.
+
+### (as found, 2026-09-26) L19 — DELETING AN ORGANISATION CANNOT SEE AN OPEN STRIPE CHECKOUT PAGE — DORMANT TODAY, A PREREQUISITE OF THE STRIPE FLIP
 
 🔬 **Found 2026-09-26 (ADMIN 05, by the data-safety review; verified by reading `BillingService::startCheckout()`).**
 Starting a subscription checkout writes NOTHING to the database — the Checkout Session lives only at Stripe (up to 24
@@ -1313,3 +1330,25 @@ public brand images. (2) Queued work for a deleted organisation is not removed: 
 harmlessly; an owner's already-queued "email me my statement" still arrives — their own data, to their own inbox.
 (3) A deleted organisation's slug and custom domain become free for a new organisation — an old guest link would then
 reach the new one. The console ledger keeps the old slug.
+
+## ⛔ L20 — A GUEST'S CARD PAYMENT PAGE CANNOT OPEN WITH REAL STRIPE — PRE-EXISTING, FOUND BY THE ADMIN 06 REVIEW, DORMANT TODAY
+
+📖 **Found 2026-09-27 by the ADMIN 06 adversarial review. Read from Stripe's documentation and the code; not run
+against real Stripe.** The SDK (stripe-php v20.3.0) pins API version `2026-06-24.dahlia`, and the app sets no other.
+Since API version 2022-08-01, a Checkout Session in `payment` mode is created **without** a PaymentIntent: it is made
+when the guest confirms. 📖 Stripe's own example session object reads `"mode": "payment"`, `"status": "open"`,
+`"payment_intent": null`. Both guest card paths require one at creation:
+- `BookingEngineController::reserve()` sends the guest to the confirmation page without ever opening the payment page.
+- `GuestFolioPaymentController::pay()` answers "Stripe Checkout returned no PaymentIntent".
+
+Settlement is keyed on the PaymentIntent (`payments.gateway_ref = pi_…`) too, so even a page that did open would never
+settle. **Why every test passes:** `FakeStripeClient::createPaymentCheckout` returns a PaymentIntent at creation, which
+real Stripe no longer does.
+
+🔬 **DORMANT on production:** the fake Stripe client is on and there is no Stripe key (measured 2026-09-27).
+⛔ **Must be settled before the Stripe flip (GO-LIVE B20).** First, confirm it with **one test-mode session against real
+Stripe**. Then build the pending payment on the session id, attach the PaymentIntent and settle on
+`checkout.session.completed` (Connect plane), and make the fake return `null` like Stripe does. Not built in ADMIN 06: it
+is a money-path change the brief did not cover. ⚠️ **Whoever fixes it must keep recording the page**
+(`CheckoutSessions::record()`), or B19 re-opens for guest payments. ADMIN 06's deletion is not exposed meanwhile, because
+a guest page that never opens cannot be paid.
