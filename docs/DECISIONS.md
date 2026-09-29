@@ -18512,3 +18512,10 @@ this request; his call.
 clean · 🖥 walked in a real browser on tenant three (the only-property explanation → Add a property → a new property removed
 right away → a property with a stay scheduled, its card leaving → kept), 0 console errors, no sideways scroll at 390 px.
 
+✅ **LIVE on `rel_AG @ e4117aeb` (2026-09-29, swap 4 ms, 16:34 Baku).** No migration. 🔬 Preflight from the staged release,
+read-only on production: both routes registered behind the full `/app` chain with `can:properties.manage` last; the removal
+read (`outlook()`) over production's 16 properties **median 1.1 ms, max 2.7 ms** per card; 14 of them are their
+organisation's only property (their Remove explains itself), none scheduled. After the swap: public checks **12 PASS · 0
+FAIL · 0 could not measure** (`SERVED=0`), **1,402 of 1,402** deployable files match git at `e4117aeb`, 0 errors since the
+swap, an anonymous `/app/portfolio` redirects to sign-in. ⚠️ **Not done: a signed-in look on production** (his sign-in).
+

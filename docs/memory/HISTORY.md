@@ -277,7 +277,8 @@ date (F-57 extended in its own direction); the page printed every notice twice. 
 `$loop->index` inside tag attributes (the `>` of `->` cut the tags short for two source-reading guards), a bare `1fr` grid,
 and — before any run — a `run@if` glued to a word. Rulings touched: F-58 (DEC-h). Not done: D-EDIT-SCOPE (DEC-i).
 Gates: 4,042/4,042 on both engines; 337/337 mutations; money gate FULL unmoved; browser-walked on tenant three.
-Deploy: see `STATE.md`.
+**Deploy — LIVE `rel_AG @ e4117aeb`, swap 4 ms (Verified 2026-09-29 16:34 Baku);** preflight on production: the removal
+read 1.1 ms median per card; public checks 12/0/0; 1,402/1,402 files match git; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
