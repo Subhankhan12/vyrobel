@@ -18458,3 +18458,57 @@ Production's switches read back unchanged (mail `log`, the fake Stripe client, n
 on). ⚠️ The first pages after the swap took up to 35 s while the shared host's load average sat near 50; the same pages then
 answered in 0.3–0.5 s. ⚠️ **NOT DONE: a signed-in look at the new delete screen on production** — it needs the founder's
 sign-in, which a session never types.
+
+## 2026-09-29 — Remove a property from the Portfolio (the founder's request; design approved the same day)
+
+**Asked:** "on /app/portfolio there must be an option to delete property … works fine … very cool design."
+**Ruled by him, the same day (two questions):** *what delete means* → **safe removal**: the certified archive-not-destroy
+removal (task #98) — bookings, invoices and payments always kept — gone **right away** when nobody is staying and nothing
+is booked ahead, otherwise open until the last checkout and cancellable until then. *The design* → approved as written.
+
+**What was built.**
+- **On each Portfolio card** (only for `properties.manage`): a quiet remove control beside Edit, opening a confirmation
+  rendered from the SAME read the action acts on (`PropertyRemovalService::outlook()`), so the screen can never promise
+  "right away" while the action schedules. It shows the path — *Today → Stays open until the last checkout on X →
+  removed* — or the single step *Removed as soon as you confirm*; what is **kept** (bookings, guest history, invoices,
+  payments, statements) and what **goes** (its storefront page, its channel connections, the card — no restore); and the
+  property's name typed to confirm (checked as typed, and again on the server). A property that is **leaving** shows a
+  warm-grey hatched band, "Leaving 8 Oct", the date and **Keep this property**. Its only property explains itself and
+  offers **Add a property**.
+- **Routes:** `POST /app/portfolio/{property}/remove` and `/keep` — `can:properties.manage`, the property resolved only
+  inside the person's access (the `property_user` allow-list, #38; outside it is a 404), refused in a read-only
+  workspace, audited by the service.
+- **In the service** (so Settings holds them too): **the last remaining property cannot be removed**
+  (`isLastRemaining()` — one already leaving does not count), and **`removeIfClear()`** archives at once only when no
+  guest is checked in, whatever their dates, and no stay ends today or later.
+- ⚠️⚠️ **A GAP IN THE NIGHTLY RULE, FOUND WRITING THE COPY AND CLOSED:** `effectiveDateFor()` saw only stays whose
+  checkout is today or later, so a guest **still checked in past their checkout date** was invisible, and the nightly
+  pass archived the property from under them — what F-57's ruling ("no guest is archived over") forbids. Now a checked-in
+  guest holds it open until tomorrow, re-asked each night. The one definition moved, not a second one (F-57's own rule).
+- **Also fixed on the same page:** the Portfolio printed every notice twice.
+
+**Rulings touched, said plainly.**
+- ⚠️ **F-58 (2026-09-19): "a pending removal visible on its own Settings page is enough — no portfolio-wide list".**
+  Removal now starts from the Portfolio, and the approved design shows a leaving property's state on its card. Read as
+  updated by his approval of 2026-09-29 for this surface; the F-58 pin (Settings still shows the date and the cancel)
+  stays green. If he wants the card silent, it is one block in the view.
+- **F-57** is extended in the direction it ruled (checked-in guests), never reversed.
+- **Fixtures, not rules:** two existing tests removed an organisation's ONLY property; each now gives the organisation a
+  second one (`secondProperty()`), because the service refuses the last one by design.
+
+**Found by the suite's guards, not by the author:** the dialogs' ids were built from `$loop->index`, and the `>` inside
+`->` cut every tag short for the accessible-name census and the dialog-focus contract (they read to the first `>`); a
+bare
+`1fr 1fr` grid; and — before any test ran — a `run@if` glued to a word (the Blade trap in `CLAUDE.md`), now guarded by
+`assertNoRawBlade()` in every rendered state and proved by mutation PR-M14.
+
+**Not done, recorded:** the property Edit action on the same page resolves the property through the tenant scope only,
+not the person's property allow-list (#38) — a staff member scoped to some properties could edit another by id. Outside
+this request; his call.
+
+**Gates (each read from its own output, 2026-09-29):** suite **4,042/4,042 on MySQL 8.4.10 and 4,042/4,042 on MariaDB 11.8.9**
+(29,249 assertions each, 0 skipped, the same tree `4ca423c18225faf8`) · mutations **337/337 LANDED · CAUGHT across every set**
+(new set `portfolio-remove`, 14/14) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0`, same digest) · PHPStan 0 · Pint
+clean · 🖥 walked in a real browser on tenant three (the only-property explanation → Add a property → a new property removed
+right away → a property with a stay scheduled, its card leaving → kept), 0 console errors, no sideways scroll at 390 px.
+

@@ -9,6 +9,7 @@ use App\Models\Channel;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Services\FrontDeskService;
+use App\Services\PropertyRemovalService;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
@@ -87,7 +88,8 @@ class OperatorPortfolio extends Component
         //    ⚠️ Allow-listed by `CurrencyNeverDefaultsTest` WITH THIS REASON — see that test.
         $revenueCurrency = (string) ($properties->first()->currency ?? config('billing.default_currency', 'EUR'));
 
-        $cards = $properties->map(function (Property $property) use ($desk, $today, $monthStart, $monthEnd, $channelByProperty, &$needsAttention, &$revenueMonthMinor): array {
+        $removals = app(PropertyRemovalService::class);
+        $cards = $properties->map(function (Property $property) use ($desk, $today, $monthStart, $monthEnd, $channelByProperty, $removals, &$needsAttention, &$revenueMonthMinor): array {
             $occ = PropertyOccupancy::forProperties([(string) $property->id], $today);
             $unitCount = (int) $property->units_count;
             $roomTypeCount = (int) $property->room_types_count;
@@ -125,6 +127,7 @@ class OperatorPortfolio extends Component
                 'is_current' => (string) $property->id === $this->currentPropertyId,
                 'timezone' => (string) $property->timezone,
                 'type' => (string) $property->type,
+                'removal' => $this->removalFor($property, $removals),
             ];
         })->all();
 
@@ -162,6 +165,28 @@ class OperatorPortfolio extends Component
             'canViewAnalytics' => (bool) auth()->user()?->can('reports.view'),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
+    }
+
+    /**
+     * ⚠️ 2026-09-29 — what REMOVING this property would do now, for its card and its confirmation. Read from
+     * {@see PropertyRemovalService::outlook()} — the SAME read the remove action acts on, so the card can never promise
+     * "right away" while the action schedules, or the reverse.
+     *
+     * @return array{scheduled: bool, leaves_on: string|null, stays: int, in_house: int, last_checkout: string|null, clear: bool, last_remaining: bool}
+     */
+    private function removalFor(Property $property, PropertyRemovalService $removals): array
+    {
+        $o = $removals->outlook($property);
+
+        return [
+            'scheduled' => $property->removal_scheduled_at !== null,
+            'leaves_on' => $property->removal_effective_at?->format('j M Y'),
+            'stays' => $o['stays'],
+            'in_house' => $o['in_house'],
+            'last_checkout' => $o['last_checkout']?->format('j M Y'),
+            'clear' => $o['clear'],
+            'last_remaining' => $o['last_remaining'],
+        ];
     }
 
     /**

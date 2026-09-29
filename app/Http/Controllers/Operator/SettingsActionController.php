@@ -13,6 +13,7 @@ use App\Models\Property;
 use App\Models\Tax;
 use App\Models\User;
 use App\Services\PropertyBookingPauseService;
+use App\Services\PropertyRemovalRefused;
 use App\Services\PropertyRemovalService;
 use App\Services\PropertyScopeService;
 use App\Services\SettingsService;
@@ -313,7 +314,11 @@ class SettingsActionController extends Controller
             return redirect()->to(route('app.settings'))->with('settings_error', 'The name you typed didn’t match — removal was not scheduled.');
         }
 
-        $removals->schedule($property, (string) auth()->id());
+        try {
+            $removals->schedule($property, (string) auth()->id());
+        } catch (PropertyRemovalRefused $e) {
+            return redirect()->to(route('app.settings'))->with('settings_error', 'Removal was not scheduled. '.$e->getMessage());
+        }
 
         return $this->back('Removal scheduled — you can cancel any time before it runs.');
     }

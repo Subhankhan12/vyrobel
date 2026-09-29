@@ -54,6 +54,9 @@ change is said.** Briefs live in `briefs/`.
   The late-webhook test pins `failed` deliberately; changing it is his call, not a quiet edit.
 - **D-HOLD-STUCK (unreachable today)**: a card hold stuck at `authorized` would refuse a delete for ever (nothing releases
   it) — but nothing in `app/` calls `authorizeDeposit`, so nothing can create one. Recorded by review 3.
+- **D-EDIT-SCOPE (found 2026-09-29, not fixed — his call)**: the Portfolio's **Edit** action (`PropertyController::update`)
+  resolves the property through the tenant scope only, not the person's property allow-list (#38): staff scoped to some
+  properties could edit another by its id. The new Remove/Keep actions do check the allow-list (a 404 outside it).
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
@@ -90,3 +93,5 @@ change is said.** Briefs live in `briefs/`.
 | DEC-e | ADMIN 06: after a cancellation, an open Stripe invoice can remain at Stripe, unrecorded here. |
 | DEC-f | ADMIN 06: removing a replaced logo breaks the logo in emails **already sent**. Keep old logos for email history instead? |
 | DEC-g | ADMIN 06 finish: D-R3-3 above — should a test-mode page's expiry, arriving after a deletion, be `ignored` rather than `failed`? |
+| DEC-h | Portfolio remove (2026-09-29): his approval put a leaving property's state on its Portfolio card, which updates ruling **F-58** ("per-property visibility on Settings is enough; no portfolio-wide list"). Confirm, or keep the card silent (one block in the view). |
+| DEC-i | D-EDIT-SCOPE above: should Edit on the Portfolio be limited to the properties a person can access, as Remove is? |

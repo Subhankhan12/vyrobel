@@ -284,6 +284,52 @@
         .vy-prop-actions form { flex: 1; display: flex; }
         .vy-prop-actions form .vy-btn { width: 100%; }
 
+        /* ── Remove a property (2026-09-29) — the archive-not-destroy removal, started from its card. ─────────────
+           Quiet until asked: an icon beside Open/Edit. A property that is LEAVING loses its colour (a warm-grey band,
+           hatched) and says when; the confirmation's one memorable thing is the path — today → last checkout → gone.
+           Ink tones reuse the page's measured ones: #8F3110 (the account menu's danger text), #3d6b3d (status ok). */
+        .vy-prop-actions .vy-prop-remove { flex: none; width: 40px; padding-left: 0; padding-right: 0; justify-content: center; color: var(--vy-muted); }
+        .vy-prop-remove:hover, .vy-prop-remove:focus-visible { color: #8F3110; border-color: rgba(143, 49, 16, 0.32); background: rgba(143, 49, 16, 0.06); }
+        .vy-prop-card.is-leaving .vy-prop-band { background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 7px, transparent 7px 14px), linear-gradient(140deg, #6E625B, #4E443F); }
+        .vy-prop-leaving-badge { margin-left: auto; flex: none; align-self: flex-start; font-size: 11px; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.30); border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+        .vy-prop-leaving { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.45; color: var(--vy-ink); background: rgba(143, 49, 16, 0.05); border: 1px solid rgba(143, 49, 16, 0.16); border-radius: var(--vy-r-sm); padding: 10px 12px; }
+        .vy-prop-leaving svg { flex: none; margin-top: 1px; color: #8F3110; }
+        .vy-prop-leaving strong { display: block; color: #8F3110; font-weight: 600; }
+
+        .vy-modal-ico.is-danger { background: linear-gradient(140deg, #A63A12, #7A2A0C); box-shadow: 0 4px 12px rgba(143, 49, 16, 0.30); }
+        .vy-rm-path { list-style: none; margin: 2px 0 16px; padding: 0; }
+        .vy-rm-step { position: relative; padding: 0 0 14px 28px; }
+        .vy-rm-step:last-child { padding-bottom: 0; }
+        .vy-rm-step::before { content: ""; position: absolute; left: 4px; top: 4px; width: 11px; height: 11px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px var(--vy-accent-3, #E8703A); }
+        .vy-rm-step:not(:last-child)::after { content: ""; position: absolute; left: 9px; top: 18px; bottom: 2px; width: 1px; background: rgba(120, 70, 40, 0.24); }
+        .vy-rm-step.is-end::before { background: #8F3110; box-shadow: 0 0 0 3px rgba(143, 49, 16, 0.14); }
+        .vy-rm-when { display: block; font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-rm-what { display: block; font-size: 12.5px; color: var(--vy-muted); margin-top: 2px; line-height: 1.45; }
+        .vy-rm-ledger { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+        .vy-rm-col { border-radius: var(--vy-r-sm); padding: 10px 12px 11px; font-size: 12.5px; line-height: 1.55; color: var(--vy-ink); }
+        .vy-rm-col h4 { margin: 0 0 3px; font-size: 12.5px; font-weight: 600; }
+        .vy-rm-col ul { margin: 0; padding-left: 16px; }
+        .vy-rm-col.is-kept { background: rgba(61, 107, 61, 0.07); border: 1px solid rgba(61, 107, 61, 0.20); }
+        .vy-rm-col.is-kept h4 { color: #3d6b3d; }
+        .vy-rm-col.is-goes { background: rgba(143, 49, 16, 0.05); border: 1px solid rgba(143, 49, 16, 0.15); }
+        .vy-rm-col.is-goes h4 { color: #8F3110; }
+        .vy-rm-only { font-size: 13px; line-height: 1.55; color: var(--vy-ink); margin: 2px 0 6px; }
+        .vy-rm-only strong { display: block; margin-top: 6px; }
+        .vy-rm-check { display: block; font-size: 11.5px; margin-top: 6px; min-height: 1.35em; color: var(--vy-faint); }
+        .vy-rm-check.is-ok { color: #3d6b3d; }
+        .vy-btn--danger { background: linear-gradient(140deg, #A63A12, #7A2A0C); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(143, 49, 16, 0.28); }
+        .vy-btn--danger:hover { filter: brightness(1.06); }
+        .vy-btn--danger:disabled { opacity: 0.42; cursor: not-allowed; box-shadow: none; filter: none; }
+        .vy-modal-foot .vy-btn--danger { flex: 1; justify-content: center; padding: 12px 16px; }
+        @media (max-width: 520px) { .vy-rm-ledger { grid-template-columns: minmax(0, 1fr); } }
+        /* the one moment of motion: the path draws itself when the confirmation opens */
+        @media (prefers-reduced-motion: no-preference) {
+            .vy-rm-step { animation: vy-rm-in 0.32s ease-out both; }
+            .vy-rm-step:nth-child(2) { animation-delay: 0.07s; }
+            .vy-rm-step:nth-child(3) { animation-delay: 0.14s; }
+        }
+        @keyframes vy-rm-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
         /* Analytics — Insights + Reports (Phase 6b). */
         .vy-ins-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-top: 14px; }
         @media (max-width: 900px) { .vy-ins-grid { grid-template-columns: minmax(0, 1fr); } }

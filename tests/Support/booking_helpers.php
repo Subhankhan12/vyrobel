@@ -60,6 +60,21 @@ if (! function_exists('seedScenario')) {
     }
 }
 
+if (! function_exists('secondProperty')) {
+    /**
+     * A SECOND property in a seedScenario() organisation. ⚠️ An organisation can no longer remove its LAST property
+     * (PropertyRemovalService::isLastRemaining — the back office needs one to work in), so a test that removes the
+     * scenario's property gives the organisation another one first. Call it inside the scenario's tenant context.
+     */
+    function secondProperty(array $scenario, string $name = 'Second House'): Property
+    {
+        return Property::create([
+            'name' => $name.' '.Str::upper(Str::random(4)), 'type' => 'hotel', 'currency' => 'EUR', 'timezone' => 'UTC',
+            'slug' => 'second-'.Str::lower(Str::random(8)), 'status' => 'active',
+        ]);
+    }
+}
+
 if (! function_exists('book')) {
     /**
      * Book a single-line reservation through AssignmentService (default 2 nights).

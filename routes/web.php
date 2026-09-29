@@ -792,6 +792,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::get('/portfolio', OperatorPortfolio::class)->middleware('can:properties.view')->name('portfolio');
     Route::post('/portfolio', [PropertyController::class, 'store'])->middleware('can:properties.manage')->name('portfolio.store');
     Route::post('/portfolio/update', [PropertyController::class, 'update'])->middleware('can:properties.manage')->name('portfolio.update');
+    // ⚠️ 2026-09-29 — remove a property from its Portfolio card (archive-not-destroy), and keep one whose removal is scheduled
+    Route::post('/portfolio/{property}/remove', [PropertyController::class, 'remove'])->middleware('can:properties.manage')->whereUlid('property')->name('portfolio.remove');
+    Route::post('/portfolio/{property}/keep', [PropertyController::class, 'keep'])->middleware('can:properties.manage')->whereUlid('property')->name('portfolio.keep');
 
     // Phase 6b · Analytics — operator Insights + Reports over the SG1 metric layer, scoped by the Phase-6a
     // property context (per-property or the all-properties roll-up). Read-only, gated `can:reports.view` (a

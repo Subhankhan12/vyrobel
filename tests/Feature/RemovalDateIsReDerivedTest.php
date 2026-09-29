@@ -29,6 +29,7 @@ uses(RefreshDatabase::class);
 function rdrDueProperty(array $s): Property
 {
     $property = $s['property'];
+    secondProperty($s);   // ⚠️ 2026-09-29 — an organisation can no longer remove its LAST property; this one gets a second
     app(PropertyRemovalService::class)->schedule($property->fresh(), 'ops@example.test');
 
     $property->fresh()->forceFill(['removal_effective_at' => now()->subHour()])->save();

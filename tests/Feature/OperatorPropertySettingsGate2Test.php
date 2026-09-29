@@ -124,6 +124,7 @@ it('renders the reconciling sample-stay on the settings page', function () {
 // ── ⚠️ REMOVE = archive-not-destroy: scheduled, soft-deleted after effective, records RETAINED ──────
 it('schedules removal then archives (soft-delete) without destroying records', function () {
     $s = seedScenario(1);
+    secondProperty($s);   // ⚠️ 2026-09-29 — an organisation can no longer remove its LAST property; this one gets a second
     $property = $s['property'];
     $reservation = Reservation::create([
         'property_id' => $property->id, 'reference' => 'R-KEEP', 'status' => 'checked_out',
@@ -173,6 +174,7 @@ it('refuses removal when the typed name does not match', function () {
 // ── A scheduled removal is cancellable ──────────────────────────────────────────────────────────────
 it('cancels a scheduled removal', function () {
     $s = seedScenario(1);
+    secondProperty($s);   // ⚠️ 2026-09-29 — an organisation can no longer remove its LAST property; this one gets a second
     app(PropertyRemovalService::class)->schedule($s['property'], 'tester');
     expect($s['property']->fresh()->removal_scheduled_at)->not->toBeNull();
 
@@ -198,6 +200,7 @@ it('cancels a scheduled removal', function () {
  */
 it('⚠️⚠️ RULED 2026-09-19 (F-58) — a pending removal is visible on its own property, and that is enough', function () {
     $s = seedScenario(1);
+    secondProperty($s);   // ⚠️ 2026-09-29 — an organisation can no longer remove its LAST property; this one gets a second
 
     app(PropertyRemovalService::class)->schedule($s['property']->fresh(), 'ops@example.test');
 

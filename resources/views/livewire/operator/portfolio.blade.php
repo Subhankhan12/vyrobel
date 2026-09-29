@@ -4,14 +4,10 @@
      ADR/RevPAR/revenue comparison is REAL via the SG1 metric layer (it was deferred in 6a, built in 6b —
      this docblock said "deferred" long after it shipped). Add/Edit render only for `properties.manage`.
      ⚠️ An average over ZERO room-nights renders "—", not a zero — a computed zero (revenue) still shows. --}}
-<div x-data="{ addOpen: {{ $errors->any() && old('_form') === 'add' ? 'true' : 'false' }}, editOpen: false, editing: {} }">
+<div x-data="{ addOpen: {{ $errors->any() && old('_form') === 'add' ? 'true' : 'false' }}, editOpen: false, editing: {}, removing: null }">
     <x-operator.shell active="portfolio" title="Portfolio"
         :subtitle="$summary['properties'] . ' ' . \Illuminate\Support\Str::plural('property', $summary['properties']) . ' · ' . $summary['units'] . ' ' . \Illuminate\Support\Str::plural('unit', $summary['units'])"
         :viewer="$viewer">
-
-        @if (session('portfolio_notice'))
-            <div class="vy-flash vy-fade" role="status">{{ session('portfolio_notice') }}</div>
-        @endif
 
         {{-- Toolbar: Add property (managers only) --}}
         <div class="vy-rack-toolbar vy-fade">
@@ -33,8 +29,8 @@
             </div>
         </div>
 
-        @if (session('portfolio_notice')) <div class="vy-flash is-ok vy-fade">{{ session('portfolio_notice') }}</div> @endif
-        @if (session('portfolio_error')) <div class="vy-flash is-err vy-fade">{{ session('portfolio_error') }}</div> @endif
+        @if (session('portfolio_notice')) <div class="vy-flash is-ok vy-fade" role="status">{{ session('portfolio_notice') }}</div> @endif
+        @if (session('portfolio_error')) <div class="vy-flash is-err vy-fade" role="alert">{{ session('portfolio_error') }}</div> @endif
 
         {{-- All-properties KPI strip — REAL aggregates over the accessible set (Revenue·month / Occupancy /
              Arrivals / Needs-attention), matching the wireframe. Every figure REAL/DERIVED (#39). --}}
@@ -68,7 +64,7 @@
         @else
             <div class="vy-portfolio-grid vy-fade">
                 @foreach ($cards as $p)
-                    <div class="vy-prop-card vy-card--tappable @if ($p['is_current']) is-current @endif">
+                    <div class="vy-prop-card vy-card--tappable @if ($p['is_current']) is-current @endif @if ($p['removal']['scheduled']) is-leaving @endif">
                         {{-- The design's full-bleed gradient band (deepened for AA — see .vy-prop-band). --}}
                         <div class="vy-prop-band">
                             <span class="vy-prop-mark">{{ $p['initial'] }}</span>
@@ -76,6 +72,9 @@
                                 <span class="vy-prop-name">{{ $p['name'] }}@if ($p['is_current'])<span class="vy-prop-current">Working here</span>@endif</span>
                                 <span class="vy-prop-loc">{{ $p['location'] }} · {{ $p['type_label'] }} · {{ $p['units'] }} {{ \Illuminate\Support\Str::plural('unit', $p['units']) }}</span>
                             </div>
+                            @if ($p['removal']['scheduled'])
+                                <span class="vy-prop-leaving-badge">Leaving {{ \Illuminate\Support\Str::beforeLast((string) $p['removal']['leaves_on'], ' ') }}</span>
+                            @endif
                         </div>
 
                         <div class="vy-prop-body">
@@ -122,6 +121,23 @@
                                 <span class="vy-prop-chip is-static">{{ $p['arrivals'] }} {{ \Illuminate\Support\Str::plural('arrival', $p['arrivals']) }} today</span>
                             </div>
 
+                            {{-- ⚠️ 2026-09-29 — a property that is LEAVING says so, and when. The date is the service's own
+                                 (`removal_effective_at`, re-derived nightly — F-57), never a guess made here. --}}
+                            @if ($p['removal']['scheduled'])
+                                <div class="vy-prop-leaving" role="status">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                                    <span>
+                                        @if ($p['removal']['stays'] > 0 || $p['removal']['in_house'] > 0)
+                                            <strong>Leaving after the last checkout on {{ $p['removal']['leaves_on'] }}.</strong>
+                                            It stays open for its guests until then.
+                                        @else
+                                            <strong>Leaving on {{ $p['removal']['leaves_on'] }}, at the nightly removal.</strong>
+                                        @endif
+                                        Bookings, invoices and payments are kept.
+                                    </span>
+                                </div>
+                            @endif
+
                             <div class="vy-prop-actions">
                                 @if (! $p['is_current'])
                                     <form method="POST" action="{{ route('app.property.switch') }}">
@@ -133,6 +149,23 @@
                                 @if ($canManage)
                                     <button type="button" class="vy-btn vy-btn--ghost"
                                         @click="editing = {{ \Illuminate\Support\Js::from(['id' => $p['id'], 'name' => $p['name'], 'type' => $p['type'], 'timezone' => $p['timezone'], 'status' => ($p['status']['label'] === 'Inactive' ? 'inactive' : 'active')]) }}; editOpen = true">Edit</button>
+                                    @if ($p['removal']['scheduled'])
+                                        @if (! $readOnly)
+                                            <form method="POST" action="{{ route('app.portfolio.keep', $p['id']) }}">
+                                                @csrf
+                                                <button type="submit" class="vy-btn vy-btn--ghost">Keep this property</button>
+                                            </form>
+                                        @endif
+                                    @elseif ($readOnly)
+                                        <button type="button" class="vy-btn vy-btn--ghost vy-prop-remove" disabled aria-disabled="true" title="Your workspace is read-only right now" aria-label="Remove {{ $p['name'] }} (unavailable while the workspace is read-only)">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+                                        </button>
+                                    @else
+                                        <button type="button" class="vy-btn vy-btn--ghost vy-prop-remove" data-remove-property="{{ $p['id'] }}"
+                                            @click="removing = @js($p['id'])" aria-label="Remove {{ $p['name'] }}" title="Remove property">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+                                        </button>
+                                    @endif
                                 @endif
                             </div>
                         </div>
@@ -343,6 +376,112 @@
                     </form>
                 </div>
             </div>
+
+            {{-- ⚠️⚠️ REMOVE A PROPERTY (2026-09-29) — one confirmation per card, rendered on the server from the SAME read the
+                 action acts on (PropertyRemovalService::outlook), so it can never promise "right away" while the action
+                 schedules. The name typed is checked here as you type, and again on the server. --}}
+            @foreach ($cards as $p)
+                @continue($p['removal']['scheduled'] || $readOnly)
+                <div class="vy-modal-backdrop" x-cloak x-show="removing === @js($p['id'])" x-transition.opacity
+                     @keydown.escape.window="removing = null" @click.self="removing = null">
+                    <div class="vy-modal" x-show="removing === @js($p['id'])" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-rm-title-{{ $p['id'] }}" tabindex="-1" x-trap.noscroll="removing === @js($p['id'])" x-data="{ typed: '' }">
+                        @if ($p['removal']['last_remaining'])
+                            <div class="vy-modal-head">
+                                <span class="vy-modal-ico">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
+                                </span>
+                                <div style="flex: 1;">
+                                    <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">{{ $p['name'] }} is your only property</h3>
+                                    <p class="vy-modal-sub">{{ $p['location'] }} · {{ $p['type_label'] }}</p>
+                                </div>
+                                <button type="button" class="vy-modal-x" @click="removing = null" aria-label="Close">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <div class="vy-modal-body">
+                                <p class="vy-rm-only">Vyrobel needs at least one property to work in, and this is the only one that isn’t leaving.
+                                    <strong>Add another property first, then you can remove this one.</strong></p>
+                            </div>
+                            <div class="vy-modal-foot">
+                                <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">Close</button>
+                                <button type="button" class="vy-btn vy-btn--accent" @click="removing = null; addOpen = true">Add a property</button>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('app.portfolio.remove', $p['id']) }}">
+                                @csrf
+                                <div class="vy-modal-head">
+                                    <span class="vy-modal-ico is-danger">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+                                    </span>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <h3 class="vy-modal-title" id="vy-rm-title-{{ $p['id'] }}">Remove {{ $p['name'] }}?</h3>
+                                        <p class="vy-modal-sub">{{ $p['location'] }} · {{ $p['units'] }} {{ \Illuminate\Support\Str::plural('unit', $p['units']) }}</p>
+                                    </div>
+                                    <button type="button" class="vy-modal-x" @click="removing = null" aria-label="Close">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                                    </button>
+                                </div>
+                                <div class="vy-modal-body">
+                                    <ol class="vy-rm-path">
+                                        @if ($p['removal']['clear'])
+                                            <li class="vy-rm-step is-end">
+                                                <span class="vy-rm-when">Removed as soon as you confirm</span>
+                                                <span class="vy-rm-what">Nobody is staying and nothing is booked ahead.{{ $p['units'] > 0 ? ' Owners of its units are told.' : '' }}</span>
+                                            </li>
+                                        @else
+                                            <li class="vy-rm-step">
+                                                <span class="vy-rm-when">Today</span>
+                                                <span class="vy-rm-what">
+                                                    @if ($p['removal']['stays'] > 0)
+                                                        {{ $p['removal']['stays'] }} current or upcoming {{ \Illuminate\Support\Str::plural('stay', $p['removal']['stays']) }}@if ($p['removal']['in_house'] > 0), {{ $p['removal']['in_house'] }} checked in @endif.
+                                                    @else
+                                                        {{ $p['removal']['in_house'] }} {{ \Illuminate\Support\Str::plural('guest', $p['removal']['in_house']) }} still checked in, past the checkout date.
+                                                    @endif
+                                                    It stays open for them, and a new booking moves the date later.
+                                                </span>
+                                            </li>
+                                            <li class="vy-rm-step is-end">
+                                                <span class="vy-rm-when">
+                                                    @if ($p['removal']['last_checkout'] !== null)
+                                                        Stays open until the last checkout on {{ $p['removal']['last_checkout'] }}
+                                                    @else
+                                                        Stays open until they check out
+                                                    @endif
+                                                </span>
+                                                <span class="vy-rm-what">Then it’s removed at the nightly run{{ $p['units'] > 0 ? ', and owners of its units are told' : '' }}. You can keep it any time before.</span>
+                                            </li>
+                                        @endif
+                                    </ol>
+
+                                    <div class="vy-rm-ledger">
+                                        <div class="vy-rm-col is-kept">
+                                            <h4>Kept</h4>
+                                            <ul><li>Bookings and guest history</li><li>Invoices, payments and statements</li></ul>
+                                        </div>
+                                        <div class="vy-rm-col is-goes">
+                                            <h4>Goes</h4>
+                                            <ul><li>Its storefront page</li><li>Its channel connections</li><li>This card — it can’t be restored</li></ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="vy-field" style="margin-bottom: 0;">
+                                        <label class="vy-field-label" for="vy-rm-name-{{ $p['id'] }}">Type “{{ $p['name'] }}” to confirm</label>
+                                        <input type="text" id="vy-rm-name-{{ $p['id'] }}" name="confirm_name" class="vy-input" x-model="typed" autocomplete="off" spellcheck="false" required>
+                                        <span class="vy-rm-check" :class="typed.trim() === @js($p['name']) && 'is-ok'" aria-live="polite"
+                                              x-text="typed.trim() === @js($p['name']) ? 'Name matches' : (typed.trim() === '' ? '' : 'It must match exactly')"></span>
+                                    </div>
+                                </div>
+                                <div class="vy-modal-foot">
+                                    <button type="button" class="vy-btn vy-btn--ghost" @click="removing = null">Cancel</button>
+                                    <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="typed.trim() !== @js($p['name'])">
+                                        {{ $p['removal']['clear'] ? 'Remove property' : 'Remove after last checkout' }}
+                                    </button>
+                                </div>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
         @endif
     </x-operator.shell>
 </div>

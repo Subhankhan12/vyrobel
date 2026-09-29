@@ -16,8 +16,8 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite on the ADMIN 06 finish tree (= the live commit `4c17edd2`'s code) | **4,033/4,033 on MySQL 8.4.10 · 4,033/4,033 on MariaDB 11.8.9** · 29,110 assertions each · 0 skipped | **V** run output 2026-09-29 (MariaDB 12:46–13:03, MySQL 13:04–13:19 Baku), both on tree fingerprint `8f8813b4fac362d8` |
-| Mutations | **323/323 landed and caught across every set**, 0 not caught, 0 did not land (`admin-06` = 87, `admin-05` = 49) | **V** harness output 2026-09-29 |
+| Suite (the Portfolio-remove commit) | **4,042/4,042 on MySQL 8.4.10 · 4,042/4,042 on MariaDB 11.8.9** · 29,249 assertions each · 0 skipped | **V** run output 2026-09-29 (MariaDB 15:56–16:13, MySQL 16:13–16:30 Baku), both on tree `4ca423c18225faf8`. ADMIN 06's own: 4,033/4,033 on both. |
+| Mutations | **337/337 landed and caught across every set**, 0 not caught, 0 did not land (`admin-06` = 87, `admin-05` = 49, `portfolio-remove` = 14) | **V** harness output 2026-09-29 15:56 Baku |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-29. Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-29 |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AF`, 2026-09-29 13:4x Baku; drift check passes, self-test 3/3 | **V** `ops/public-checks.sh` 2026-09-29 |
@@ -41,6 +41,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 `ADMIN-03B PROBE` · `SESSIONS-01 PROBE` · `SESSIONS-01-FD PROBE` · `TONIGHT01 PROBE` · `TONIGHT01B PROBE` · `PW-SIGNUP PROBE`.
 
 ## ⚠️ IN FLIGHT — started, not finished
+0. **Portfolio remove (2026-09-29)** — built, every gate green, committed with this memory; deployed right after as the next
+   release. **The docs commit that follows records whether it went live.** Open for him: DEC-h (F-58) and DEC-i (Edit scope).
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

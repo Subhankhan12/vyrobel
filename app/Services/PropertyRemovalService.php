@@ -15,6 +15,7 @@ use App\Support\Billing\BillableUnits;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 /**
@@ -85,15 +86,94 @@ class PropertyRemovalService
     {
         $today = CarbonImmutable::today();
 
-        $lastCheckout = Reservation::query()
-            ->where('property_id', $property->getKey())
-            ->whereNotIn('status', ['cancelled', 'no_show'])
-            ->whereDate('check_out', '>=', $today->toDateString())
-            ->max('check_out');
+        $lastCheckout = $this->openStays($property)->max('check_out');
 
-        return $lastCheckout !== null
+        $effective = $lastCheckout !== null
             ? CarbonImmutable::parse($lastCheckout)->startOfDay()
             : $today;
+
+        // ⚠️⚠️ 2026-09-29 — A GUEST CHECKED IN HOLDS IT OPEN, WHATEVER THEIR DATES. An overstay's checkout date has passed,
+        //    so the rule above cannot see them, and the nightly pass archived the property from under a guest still in the
+        //    building — what F-57's ruling ("no guest is archived over") forbids. Never before TOMORROW while anyone is
+        //    checked in: the nightly pass then defers, and asks again the next night. Stricter in one direction only.
+        if ($this->inHouse($property) > 0 && $effective->lte($today)) {
+            $effective = $today->addDay();
+        }
+
+        return $effective;
+    }
+
+    /** Guests CHECKED IN at the property right now — whatever their dates (an overstay's checkout has passed). */
+    private function inHouse(Property $property): int
+    {
+        return Reservation::query()->where('property_id', $property->getKey())->where('status', 'checked_in')->count();
+    }
+
+    /**
+     * The stays that hold a property open — {@see effectiveDateFor()}'s rule, MOVED NOT REWRITTEN (2026-09-29), so the
+     * scheduled date and {@see outlook()} can never disagree about which stays count.
+     *
+     * @return Builder<Reservation>
+     */
+    private function openStays(Property $property): Builder
+    {
+        return Reservation::query()
+            ->where('property_id', $property->getKey())
+            ->whereNotIn('status', ['cancelled', 'no_show'])
+            ->whereDate('check_out', '>=', CarbonImmutable::today()->toDateString());
+    }
+
+    /**
+     * ⚠️⚠️ WHAT REMOVING THIS PROPERTY WOULD DO NOW — THE ONE READ the Portfolio card shows and the Portfolio action acts on
+     * (2026-09-29), so the screen can never promise one thing while the action does another.
+     *   · `stays` / `last_checkout` — the stays that hold it open (the nightly rule, {@see openStays()});
+     *   · `in_house` — guests CHECKED IN, whatever their dates: an overstay's checkout date has passed, so the nightly
+     *     rule does not see it, but the guest is still in the building;
+     *   · `clear` — nothing of either: it can go RIGHT AWAY ({@see removeIfClear()});
+     *   · `last_remaining` — it is the organisation's last property that is not already leaving ({@see isLastRemaining()}).
+     *
+     * @return array{stays: int, in_house: int, last_checkout: CarbonImmutable|null, clear: bool, last_remaining: bool}
+     */
+    public function outlook(Property $property): array
+    {
+        $stays = $this->openStays($property)->count();
+        $lastCheckout = $this->openStays($property)->max('check_out');
+        $inHouse = $this->inHouse($property);
+
+        return [
+            'stays' => $stays,
+            'in_house' => $inHouse,
+            'last_checkout' => $lastCheckout !== null ? CarbonImmutable::parse($lastCheckout)->startOfDay() : null,
+            'clear' => $stays === 0 && $inHouse === 0,
+            'last_remaining' => $this->isLastRemaining($property),
+        ];
+    }
+
+    /**
+     * ⚠️ True when every OTHER property of the organisation is gone or already leaving — so removing this one would
+     * leave the back office with no property to work in (every screen that needs a current property would fail).
+     * A property already scheduled for removal does not count as one that remains.
+     */
+    public function isLastRemaining(Property $property): bool
+    {
+        return ! Property::query()->whereKeyNot($property->getKey())->whereNull('removal_scheduled_at')->exists();
+    }
+
+    /**
+     * Archive the property NOW when nothing holds it open ({@see outlook()} `clear`) — the Portfolio's "right away".
+     * ⚠️ Stricter than the nightly rule on purpose: never while a guest is checked in, whatever their dates, and never
+     * while a stay ends today or later (a guest may still be in the building this morning). Otherwise the scheduled
+     * removal stands and the nightly pass acts on it. Returns whether it archived.
+     */
+    public function removeIfClear(Property $property, ChannelConnectionService $channels): bool
+    {
+        if ($property->removal_scheduled_at === null || ! $this->outlook($property)['clear']) {
+            return false;
+        }
+
+        $this->archive($property, $channels);
+
+        return true;
     }
 
     /**
@@ -102,6 +182,12 @@ class PropertyRemovalService
      */
     public function schedule(Property $property, string $requestedBy): void
     {
+        // ⚠️ 2026-09-29 — the organisation keeps at least one property. The guard is HERE, in the service, so every
+        //    caller holds it: the Portfolio, Settings, and anything added later.
+        if ($this->isLastRemaining($property)) {
+            throw new PropertyRemovalRefused('It is your only property that isn’t already leaving — add another property first, then remove this one.');
+        }
+
         $effective = $this->effectiveDateFor($property);
 
         $property->forceFill([

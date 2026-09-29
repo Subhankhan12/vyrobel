@@ -8,7 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Property;
 use App\Models\PropertyAssignment;
+use App\Services\ChannelConnectionService;
+use App\Services\PropertyRemovalRefused;
+use App\Services\PropertyRemovalService;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Property\PropertyContext;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -109,6 +113,70 @@ class PropertyController extends Controller
         ]);
 
         return redirect()->to(route('app.portfolio'))->with('portfolio_notice', $property->name.' updated.');
+    }
+
+    /**
+     * ⚠️⚠️ REMOVE a property from the Portfolio (2026-09-29) — the certified ARCHIVE-NOT-DESTROY removal
+     * ({@see PropertyRemovalService}): bookings, invoices and payments are always kept. Nothing staying and nothing booked
+     * ahead → removed right away; otherwise it stays open until the last checkout and can be kept until then.
+     * `properties.manage` on the route; only a property this person can ACCESS (the property_user allow-list, #38 — an id
+     * outside it is a 404, never a 403 that confirms it exists); never in a read-only workspace; the name typed to confirm.
+     * Every transition is audited by the service.
+     */
+    public function remove(Request $request, string $property, PropertyRemovalService $removals, ChannelConnectionService $channels): RedirectResponse
+    {
+        $target = $this->accessibleProperty($property);
+        if ($refused = $this->refusedWhileReadOnly()) {
+            return $refused;
+        }
+
+        $request->validate(['confirm_name' => ['required', 'string']]);
+        $name = (string) $target->name;
+        if (trim((string) $request->input('confirm_name')) !== trim($name)) {
+            return redirect()->route('app.portfolio')->with('portfolio_error', 'The name you typed didn’t match “'.$name.'” — nothing was removed.');
+        }
+
+        try {
+            $removals->schedule($target, (string) auth()->id());
+        } catch (PropertyRemovalRefused $e) {
+            return redirect()->route('app.portfolio')->with('portfolio_error', $name.' was not removed. '.$e->getMessage());
+        }
+
+        $target->refresh();
+        if ($removals->removeIfClear($target, $channels)) {
+            return redirect()->route('app.portfolio')->with('portfolio_notice', $name.' was removed. Its bookings, invoices and payments are kept.');
+        }
+
+        return redirect()->route('app.portfolio')->with('portfolio_notice', $name.' will be removed after the last checkout on '
+            .$target->removal_effective_at?->format('j M Y').'. It stays open until then — you can keep it any time before.');
+    }
+
+    /** KEEP a property whose removal is scheduled — cancels the schedule; nothing else changes. Same gates as {@see remove()}. */
+    public function keep(string $property, PropertyRemovalService $removals): RedirectResponse
+    {
+        $target = $this->accessibleProperty($property);
+        if ($refused = $this->refusedWhileReadOnly()) {
+            return $refused;
+        }
+
+        $removals->cancel($target);
+
+        return redirect()->route('app.portfolio')->with('portfolio_notice', $target->name.' stays — its removal is cancelled.');
+    }
+
+    /** A property this person can reach — the PropertyContext allow-list (pivot-or-all), then the tenant scope. 404 otherwise. */
+    private function accessibleProperty(string $id): Property
+    {
+        abort_unless(in_array($id, app(PropertyContext::class)->accessibleIds(), true), 404);
+
+        return Property::query()->findOrFail($id);
+    }
+
+    private function refusedWhileReadOnly(): ?RedirectResponse
+    {
+        return app(OperatorWorkspace::class)->isReadOnly()
+            ? redirect()->route('app.portfolio')->with('portfolio_error', 'Your workspace is read-only right now — nothing was changed.')
+            : null;
     }
 
     /** A unique, URL-safe slug for the storefront path, disambiguated within the org if needed. */

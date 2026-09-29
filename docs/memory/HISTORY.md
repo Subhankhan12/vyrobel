@@ -267,6 +267,18 @@ read matched `STATE.md` (Verified 2026-09-27 15:55–16:05 Baku, and again 2026-
   refused once because of it (its guard matches any `pest`, `OPEN.md` A7), and the MariaDB engine swap needed the founder
   to pause that project (F 2026-09-29).
 
+**PORTFOLIO REMOVE — 2026-09-29 — the founder's request ("an option to delete property … very cool design").** Designed with
+him first (brainstorming, two questions: *safe removal*, and the design, both approved). Built test-first on the certified
+archive-not-destroy removal: a remove control on each Portfolio card, a confirmation showing the path (today → last checkout
+→ removed) and what is kept and what goes, the name typed to confirm; gone **right away** when nobody is staying and nothing
+is booked ahead, otherwise scheduled with **Keep this property**; the **last property can never be removed** (in the
+service, so Settings too). **Found and closed:** the nightly rule could archive over a guest checked in past their checkout
+date (F-57 extended in its own direction); the page printed every notice twice. **Found by the suite's own guards:**
+`$loop->index` inside tag attributes (the `>` of `->` cut the tags short for two source-reading guards), a bare `1fr` grid,
+and — before any run — a `run@if` glued to a word. Rulings touched: F-58 (DEC-h). Not done: D-EDIT-SCOPE (DEC-i).
+Gates: 4,042/4,042 on both engines; 337/337 mutations; money gate FULL unmoved; browser-walked on tenant three.
+Deploy: see `STATE.md`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
