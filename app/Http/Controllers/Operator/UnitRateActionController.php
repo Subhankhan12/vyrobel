@@ -12,6 +12,8 @@ use App\Services\PreviewChangedException;
 use App\Services\UnitRateOverrideService;
 use App\Support\Money\MoneyInput;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Rates\RateScope;
+use App\Support\Rates\RatesListParams;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,7 +60,7 @@ class UnitRateActionController extends Controller
                     : 'Choose at least one unit to price.');
             }
 
-            return $this->back($ctx['from'], null)->with('unit_rate_preview', $preview + [
+            return $this->back($ctx['from'], null, refused: false)->with('unit_rate_preview', $preview + [
                 'names' => $ctx['names'],
                 'room_type_id' => $ctx['room_type_id'],
                 'room_type_name' => $ctx['room_type_name'],
@@ -88,7 +90,7 @@ class UnitRateActionController extends Controller
                 return $this->back($ctx['from'], $e->getMessage());
             }
 
-            return $this->back($ctx['from'], $this->summary($result, $ctx['names']));
+            return $this->back($ctx['from'], $this->summary($result, $ctx['names']), refused: false);
         });
     }
 
@@ -140,7 +142,7 @@ class UnitRateActionController extends Controller
         }
 
         /** @var RoomType $roomType — through the global scope, so a cross-org id 404s */
-        $roomType = RoomType::query()->findOrFail($roomTypeId);
+        $roomType = app(RateScope::class)->roomType($roomTypeId);   // DEC-l (2026-09-30) — inside the person's properties
         $plan = $roomType->primaryRatePlan();
         if (! $plan instanceof RatePlan) {
             return $this->back($from, 'That room type has no rate plan, so there is nowhere to store a price.');
@@ -189,10 +191,13 @@ class UnitRateActionController extends Controller
         $label = $units.' '.($units === 1 ? 'unit' : 'units');
 
         if ($result['mode'] === UnitRateOverrideService::MODE_CLEAR) {
-            return 'Cleared the per-unit price for '.$label.' — they now follow the room-type rate again.';
+            return 'Cleared the per-unit price for '.$label.' — '.($units === 1 ? 'it now follows' : 'they now follow').' the room-type rate again.';
         }
 
-        return 'Priced '.$label.' individually across '.$result['applied'].' '.($result['applied'] === 1 ? 'night' : 'nights').'.';
+        // ⚠️ NIGHTS, not rows — this said "across 6 nights" for two units over three nights (2026-10-01).
+        $nights = (int) $result['nights'];
+
+        return 'Priced '.$label.' individually for '.$nights.' '.($nights === 1 ? 'night' : 'nights').'.';
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */
@@ -207,11 +212,15 @@ class UnitRateActionController extends Controller
         return checkdate($m, $d, $y) ? $value : null;
     }
 
-    /** PRG back to the rates grid, preserving the window, using the flash key that view already renders. */
-    private function back(?string $from, ?string $notice): RedirectResponse
+    /**
+     * Back to the Rates page — as the operator had it when the form was started there ({@see RatesListParams}), otherwise
+     * the window starting at `$from`. ⚠️ A REFUSAL is an alert (`rates_error`) — until 2026-09-30 refusals and successes
+     * shared `rates_notice`, so an error never announced itself.
+     */
+    private function back(?string $from, ?string $message, bool $refused = true): RedirectResponse
     {
-        $redirect = redirect()->to(route('app.rates', $from !== null ? ['from' => $from] : []));
+        $redirect = RatesListParams::redirect(request(), $from);
 
-        return $notice === null ? $redirect : $redirect->with('rates_notice', $notice);
+        return $message === null ? $redirect : $redirect->with($refused ? 'rates_error' : 'rates_notice', $message);
     }
 }

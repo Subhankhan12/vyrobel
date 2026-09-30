@@ -104,7 +104,8 @@ it('refuses a rate write when the workspace is read-only', function () {
         'end_date' => $start->toDateString(),
         'set_rate' => '1',
         'rate' => '999',
-    ])->assertRedirect()->assertSessionHas('rates_notice', 'Your workspace is read-only right now — rate changes are paused.');
+        // ⚠️ 2026-10-01 — a refusal is an ALERT (`rates_error`), no longer a notice.
+    ])->assertRedirect()->assertSessionHas('rates_error', 'Your workspace is read-only right now — rate changes are paused.');
 
     expect(rateOn($plan, $start->toDateString()))->toBeNull();   // nothing written
 });

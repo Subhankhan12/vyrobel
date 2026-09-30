@@ -8,6 +8,7 @@ use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
 use App\Models\UnitRateOverride;
+use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyInput;
 use App\Support\Pricing\NightlyRate;
 use Carbon\CarbonImmutable;
@@ -67,6 +68,8 @@ final class UnitRateOverrideService
     public const MAX_SPAN_NIGHTS = 370;
 
     public const MAX_UNITS = 200;
+
+    public function __construct(private AuditEventRecorder $audit) {}
 
     /**
      * Compute exactly what a bulk set/clear WOULD change. ⚠️ WRITES NOTHING — this is the approval gate.
@@ -211,9 +214,24 @@ final class UnitRateOverrideService
                 }
             }
 
-            return [
-                'applied' => $applied,
+            // ⚠️ 2026-09-30 — who priced which units apart, and how. This wrote per unit and night and recorded NOTHING,
+            //    though a per-unit price decides what a guest is charged. In the same transaction as the write, so the
+            //    trail and the prices cannot disagree. Figures only — no person, no guest.
+            $this->audit->record('unit_rate.applied', $plan, null, [
+                'mode' => $mode,
                 'units' => count($preview['units']),
+                'nights' => count($dates),
+                'start' => $start,
+                'end_exclusive' => $endExclusive,
+                'price_minor' => $priceMinor,
+                'currency' => $currency,
+                'rows' => $applied,
+            ]);
+
+            return [
+                'applied' => $applied,   // rows written or removed — one per unit and night
+                'units' => count($preview['units']),
+                'nights' => count($dates),
                 'changing_units' => $preview['changing_units'],
                 'mode' => $mode,
             ];

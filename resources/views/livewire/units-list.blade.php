@@ -312,7 +312,7 @@
                                         :from="now()->toDateString()"
                                         :to="now()->addDays(6)->toDateString()"
                                         heading="Price this unit individually"
-                                        subheading="a price for this unit only — the rest of its room type is unchanged">
+                                        subheading="A price for this unit only — the rest of its room type is unchanged.">
                                         <x-slot:actions>
                                             <button type="button" class="vy-btn vy-btn--ghost" @click="unitPriceFor = null">Cancel</button>
                                         </x-slot:actions>

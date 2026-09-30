@@ -13,6 +13,8 @@ use App\Services\RateDerivationService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyInput;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Rates\RateScope;
+use App\Support\Rates\RatesListParams;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -64,14 +66,14 @@ class RateActionController extends Controller
         $toParam = $this->dateString($request->input('end_date'));
 
         if ($fromParam === null || $toParam === null) {
-            return $this->back($fromParam, 'Choose valid start and end dates.');
+            return $this->refuse($request, $fromParam, 'Choose valid start and end dates.');
         }
 
         $start = CarbonImmutable::parse($fromParam)->startOfDay();
         $endInclusive = CarbonImmutable::parse($toParam)->startOfDay();
 
         if ($endInclusive->lt($start)) {
-            return $this->back($fromParam, 'The end date can’t be before the start date.');
+            return $this->refuse($request, $fromParam, 'The end date can’t be before the start date.');
         }
 
         // The service takes a half-open [start, end) range; the operator's "end" is the last night they mean
@@ -80,7 +82,7 @@ class RateActionController extends Controller
         $nights = (int) $start->diffInDays($endExclusive);
 
         if ($nights > self::MAX_SPAN_NIGHTS) {
-            return $this->back($fromParam, 'That date range is too long — please apply at most a year at a time.');
+            return $this->refuse($request, $fromParam, 'That date range is too long — please apply at most a year at a time.');
         }
 
         $setRate = $request->boolean('set_rate');
@@ -96,8 +98,10 @@ class RateActionController extends Controller
         $setCta = $request->boolean('set_closed_to_arrival');
         $setCtd = $request->boolean('set_closed_to_departure');
 
-        if (! $setRate && ! $setMinStay && ! $setStopSell) {
-            return $this->back($fromParam, 'Choose at least one thing to set — a nightly rate, a minimum stay, or open/close.');
+        // ⚠️ 2026-09-30 — max stay and closed to arrival/departure were written below but could never be set ON THEIR OWN:
+        //    this check ignored them, so a save of just one of those rules was refused. Each rule the grid shows can be set.
+        if (! $setRate && ! $setMinStay && ! $setStopSell && ! $setMaxStay && ! $setCta && ! $setCtd) {
+            return $this->refuse($request, $fromParam, 'Choose at least one thing to set — a nightly rate, a stay rule, or open/closed.');
         }
 
         // Parse money BEFORE touching the gateway of the DB — an invalid price must reject cleanly, never
@@ -106,7 +110,7 @@ class RateActionController extends Controller
         if ($setRate) {
             $priceMinor = MoneyInput::toMinor((string) $request->input('rate', ''), self::MAX_PRICE_MINOR);
             if ($priceMinor === null) {
-                return $this->back($fromParam, 'Enter a valid nightly rate, e.g. 175 or 175.50.');
+                return $this->refuse($request, $fromParam, 'Enter a valid nightly rate, e.g. 175 or 175.50.');
             }
         }
 
@@ -116,7 +120,7 @@ class RateActionController extends Controller
             $raw = trim((string) $request->input('min_stay', ''));
             if ($raw !== '') {
                 if (! ctype_digit($raw) || (int) $raw < 1 || (int) $raw > 365) {
-                    return $this->back($fromParam, 'A minimum stay must be a whole number of nights (1–365), or blank for none.');
+                    return $this->refuse($request, $fromParam, 'A minimum stay must be a whole number of nights (1–365), or blank for none.');
                 }
                 $minStay = (int) $raw;
             }
@@ -129,7 +133,7 @@ class RateActionController extends Controller
             $raw = trim((string) $request->input('max_stay', ''));
             if ($raw !== '') {
                 if (! ctype_digit($raw) || (int) $raw < 1 || (int) $raw > 365) {
-                    return $this->back($fromParam, 'A maximum stay must be a whole number of nights (1–365), or blank for none.');
+                    return $this->refuse($request, $fromParam, 'A maximum stay must be a whole number of nights (1–365), or blank for none.');
                 }
                 $maxStay = (int) $raw;
             }
@@ -138,7 +142,7 @@ class RateActionController extends Controller
         if ($setMinStay && $setMaxStay && $minStay !== null && $maxStay !== null && $maxStay < $minStay) {
             // ⚠️ A maximum below the minimum closes those nights to every possible stay. Refused here
             //    rather than written, because the calendar would look set and sell nothing.
-            return $this->back($fromParam, 'A maximum stay cannot be shorter than the minimum stay.');
+            return $this->refuse($request, $fromParam, 'A maximum stay cannot be shorter than the minimum stay.');
         }
 
         $stopSell = $setStopSell && $request->boolean('stop_sell');
@@ -147,7 +151,25 @@ class RateActionController extends Controller
 
         $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
         if ($roomTypes === []) {
-            return $this->back($fromParam, 'Choose a room type to update.');
+            return $this->refuse($request, $fromParam, 'Choose a room type to update.');
+        }
+
+        // ⚠️ 2026-10-01 — A CHOSEN PLAN. The grid prices each room type's MAIN plan, so a second plan could be added and never
+        //    priced. The editor may now name one: a base plan of the ONE room type chosen, inside the person's properties
+        //    (DEC-l). A derived plan follows its base and is never priced directly.
+        $chosenPlan = null;
+        $planId = $request->input('rate_plan_id');
+        if (is_string($planId) && $planId !== '') {
+            if (count($roomTypes) !== 1 || $request->input('room_type_id') === 'all') {
+                return $this->refuse($request, $fromParam, 'Choose one room type to price a particular plan.');
+            }
+            $chosenPlan = app(RateScope::class)->ratePlan($planId);
+            if ((string) $chosenPlan->room_type_id !== (string) $roomTypes[0]->getKey()) {
+                return $this->refuse($request, $fromParam, 'That plan belongs to another room type.');
+            }
+            if ($chosenPlan->derived_from_rate_plan_id !== null) {
+                return $this->refuse($request, $fromParam, 'A derived plan follows its base plan’s price — set the base plan instead.');
+            }
         }
 
         $updateDerived = $request->boolean('update_derived');
@@ -156,7 +178,7 @@ class RateActionController extends Controller
 
         foreach ($roomTypes as $roomType) {
             if ($setRate) {
-                $plan = $roomType->primaryRatePlan();
+                $plan = $chosenPlan ?? $roomType->primaryRatePlan();
                 if ($plan === null) {
                     // A room type with no rate plan has nowhere to store a price — report it rather than
                     // silently skipping, so the operator knows the rate did not land.
@@ -193,7 +215,11 @@ class RateActionController extends Controller
             $applied++;
         }
 
-        return $this->back($fromParam, $this->summary($applied, $nights, $missingPlan, $setRate, $setMinStay, $setStopSell));
+        return $this->done($request, $fromParam, $this->summary($applied, $nights, $missingPlan, [
+            ($chosenPlan !== null ? 'the nightly price on '.$chosenPlan->name : 'the nightly price') => $setRate,
+            'the minimum stay' => $setMinStay, 'the maximum stay' => $setMaxStay,
+            'whether the nights are open' => $setStopSell, 'the arrival rule' => $setCta, 'the departure rule' => $setCtd,
+        ]));
     }
 
     /**
@@ -210,22 +236,22 @@ class RateActionController extends Controller
         $fromParam = $this->dateString($request->input('start_date'));
         $toParam = $this->dateString($request->input('end_date'));
         if ($fromParam === null || $toParam === null) {
-            return $this->back($fromParam, 'Choose valid start and end dates.');
+            return $this->refuse($request, $fromParam, 'Choose valid start and end dates.');
         }
 
         $start = CarbonImmutable::parse($fromParam)->startOfDay();
         $endInclusive = CarbonImmutable::parse($toParam)->startOfDay();
         if ($endInclusive->lt($start)) {
-            return $this->back($fromParam, 'The end date can’t be before the start date.');
+            return $this->refuse($request, $fromParam, 'The end date can’t be before the start date.');
         }
         $endExclusive = $endInclusive->addDay();
         if ((int) $start->diffInDays($endExclusive) > self::MAX_SPAN_NIGHTS) {
-            return $this->back($fromParam, 'That date range is too long — please apply at most a year at a time.');
+            return $this->refuse($request, $fromParam, 'That date range is too long — please apply at most a year at a time.');
         }
 
         $mode = (string) $request->input('mode');
         if (! in_array($mode, RateBulkService::MODES, true)) {
-            return $this->back($fromParam, 'Choose increase %, decrease %, or set an exact amount.');
+            return $this->refuse($request, $fromParam, 'Choose increase %, decrease %, or set an exact amount.');
         }
         $nights = (string) $request->input('nights', 'whole');
         if (! in_array($nights, RateBulkService::NIGHTS, true)) {
@@ -237,19 +263,24 @@ class RateActionController extends Controller
         if ($mode === 'set_exact') {
             $exactMinor = MoneyInput::toMinor((string) $request->input('amount', ''), self::MAX_PRICE_MINOR);
             if ($exactMinor === null) {
-                return $this->back($fromParam, 'Enter a valid exact rate, e.g. 175 or 175.50.');
+                return $this->refuse($request, $fromParam, 'Enter a valid exact rate, e.g. 175 or 175.50.');
             }
         } else {
             $raw = trim((string) $request->input('amount', ''));
             if (! is_numeric($raw) || (float) $raw <= 0 || (float) $raw > 100) {
-                return $this->back($fromParam, 'Enter a percentage between 0 and 100.');
+                return $this->refuse($request, $fromParam, 'Enter a percentage between 0 and 100.');
+            }
+            // ⚠️⚠️ MONEY (2026-09-30) — a 100% decrease was accepted and wrote €0 nights: a room given away. The single
+            //    editor has always refused a price of zero; the bulk path now refuses the percentage that makes one.
+            if ($mode === 'decrease_pct' && (float) $raw >= 100) {
+                return $this->refuse($request, $fromParam, 'A decrease must be less than 100% — a price can’t go to zero or below.');
             }
             $pct = (float) $raw;
         }
 
         $roomTypes = $this->resolveRoomTypes($request->input('room_type_id'));
         if ($roomTypes === []) {
-            return $this->back($fromParam, 'Choose which units to update.');
+            return $this->refuse($request, $fromParam, 'Choose which room types to update.');
         }
 
         $result = $bulk->apply(
@@ -260,20 +291,26 @@ class RateActionController extends Controller
         $msg = 'Updated '.$result['applied'].' '.($result['applied'] === 1 ? 'night' : 'nights')
             .' across '.$result['room_types'].' '.($result['room_types'] === 1 ? 'room type' : 'room types').'.';
         if ($result['skipped'] > 0) {
-            $msg .= ' '.$result['skipped'].' booked/closed skipped.';
+            $msg .= ' '.$result['skipped'].' fully booked or closed '.($result['skipped'] === 1 ? 'night' : 'nights').' skipped.';
+        }
+        if ($result['too_low'] > 0) {
+            $msg .= ' '.$result['too_low'].' '.($result['too_low'] === 1 ? 'night' : 'nights').' left as they were — the change would have made the price zero.';
+        }
+        if ($result['too_high'] > 0) {
+            $msg .= ' '.$result['too_high'].' '.($result['too_high'] === 1 ? 'night' : 'nights').' left as they were — the change would have passed the 1,000,000 limit.';
         }
         if ($result['derived'] > 0) {
             $msg .= ' '.$result['derived'].' derived plans updated.';
         }
 
-        return $this->back($fromParam, $msg);
+        return $this->done($request, $fromParam, $msg);
     }
 
     /** Read-only guard (task #100 — was missing on the rate write, a gap vs peer controllers). */
     private function guardReadOnly(Request $request): ?RedirectResponse
     {
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->back($this->dateString($request->input('start_date')), 'Your workspace is read-only right now — rate changes are paused.');
+            return $this->refuse($request, $this->dateString($request->input('start_date')), 'Your workspace is read-only right now — rate changes are paused.');
         }
 
         return null;
@@ -288,15 +325,18 @@ class RateActionController extends Controller
      */
     private function resolveRoomTypes(mixed $roomTypeId): array
     {
+        // ⚠️⚠️ DEC-l (2026-09-30) — through the ONE rule: "all" is the room types ON SCREEN, never every room type in the
+        //    organisation (a bulk change made on one property silently repriced the others), and a single id outside the
+        //    person's properties is not found.
         if ($roomTypeId === 'all') {
-            return RoomType::query()->orderBy('name')->get()->all();
+            return app(RateScope::class)->roomTypes()->orderBy('name')->get()->all();
         }
 
         if (! is_string($roomTypeId) || $roomTypeId === '') {
             return [];
         }
 
-        return [RoomType::query()->findOrFail($roomTypeId)];
+        return [app(RateScope::class)->roomType($roomTypeId)];
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */
@@ -311,17 +351,17 @@ class RateActionController extends Controller
         return checkdate($m, $d, $y) ? $value : null;
     }
 
-    private function summary(int $applied, int $nights, int $missingPlan, bool $rate, bool $minStay, bool $stopSell): string
+    /** @param  array<string, bool>  $set  what this save set, by the name the notice uses */
+    private function summary(int $applied, int $nights, int $missingPlan, array $set): string
     {
-        $what = array_filter([
-            $rate ? 'rate' : null,
-            $minStay ? 'minimum stay' : null,
-            $stopSell ? 'availability' : null,
-        ]);
+        $what = array_keys(array_filter($set));
 
         $roomTypes = $applied.' '.($applied === 1 ? 'room type' : 'room types');
         $nightsLabel = $nights.' '.($nights === 1 ? 'night' : 'nights');
-        $message = 'Updated '.implode(' + ', $what).' for '.$roomTypes.' across '.$nightsLabel.'.';
+        // Plain English — "Updated the nightly price and the minimum stay …", never "rate + minimum stay" (2026-10-01).
+        $last = array_pop($what);
+        $list = $what === [] ? (string) $last : implode(', ', $what).' and '.$last;
+        $message = 'Updated '.$list.' for '.$roomTypes.' across '.$nightsLabel.'.';
 
         if ($missingPlan > 0) {
             // ⚠️ P-6 · Gate 1 — this reported the state and offered no remedy, because none existed. There
@@ -332,11 +372,18 @@ class RateActionController extends Controller
         return $message;
     }
 
-    /** PRG back to the rates grid, preserving the window, using the ONLY flash key that view renders. */
-    private function back(?string $from, string $notice): RedirectResponse
+    /**
+     * A refusal — shown on the page as an ALERT (`rates_error`, `role="alert"`). ⚠️ Until 2026-09-30 refusals and
+     * successes shared `rates_notice`, so an error never announced itself.
+     */
+    private function refuse(Request $request, ?string $from, string $message): RedirectResponse
     {
-        $params = $from !== null ? ['from' => $from] : [];
+        return RatesListParams::redirect($request, $from)->with('rates_error', $message);
+    }
 
-        return redirect()->to(route('app.rates', $params))->with('rates_notice', $notice);
+    /** Done — shown as a notice, back on the page as the operator had it ({@see RatesListParams}). */
+    private function done(Request $request, ?string $from, string $message): RedirectResponse
+    {
+        return RatesListParams::redirect($request, $from)->with('rates_notice', $message);
     }
 }

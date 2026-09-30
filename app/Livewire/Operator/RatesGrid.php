@@ -163,17 +163,31 @@ class RatesGrid extends Component
                 ->all(),
             'rtFilter' => $rtFilter,
             'tiles' => $this->tiles($rates, $availability),
-            'window' => $this->windowNav($from, $fromStr, $throughStr),
+            // ⚠️ 2026-09-30 — the window's links keep the room-type filter (they dropped it), and "Jump to rates" looks
+            //    only at the plans on screen (it searched the whole organisation).
+            'window' => $this->windowNav($from, $fromStr, $throughStr, $rtFilter, $planIds),
+            // The editor and both bulk dialogs open on the WHOLE window by default. ⚠️ 2026-09-30 — the bulk dialogs were
+            //    headed with the fortnight but posted the editor's dates, which started as ONE night: "increase 10%" over
+            //    what looked like two weeks changed a single night.
             'formDefaults' => [
                 'from' => $fromStr,
-                'to' => $fromStr,
+                'to' => $throughStr,
             ],
-            'ratePlans' => $this->ratePlanList($roomTypeIds),
+            // The nights ahead, whatever window is on screen — the figure the old "Pacing · next 14 days" card promised
+            // and computed over the window instead.
+            'ahead' => $this->ahead($roomTypeIds),
+            // The REAL derived plans (name + adjustment) — the editor used to print "Non-refundable −10% and Weekly −15%"
+            // whatever plans existed.
+            'derivedPlans' => $this->derivedPlans($roomTypeIds),
+            'ratePlans' => $this->ratePlanList($roomTypeIds, $planIds, $fromStr, $throughStr),
+            // ⚠️ 2026-10-01 — the grid prices each room type's MAIN plan; where a room type has more than one base plan the
+            //    editor offers the choice, so a plan that can be added can also be priced.
+            'planChoices' => $this->planChoices($roomTypes, $primaryPlan),
+            'mainPlans' => array_map(fn (?RatePlan $plan): ?string => $plan?->getKey() !== null ? (string) $plan->getKey() : null, $primaryPlan),
             'seasons' => $this->seasonList($roomTypeIds),
             // ⚠️ THE RULE'S OWN SENTENCE, from the rule — so the copy on the page cannot drift from the code.
             'seasonRule' => SeasonPrecedence::SENTENCE,
             'channels' => $this->channelList(),
-            'pacing' => $this->pacing($availability),
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
         ]);
     }
@@ -271,12 +285,25 @@ class RatesGrid extends Component
      * (#85), so no fabricated "All channels / Direct only" pill — the real distribution is Direct.
      *
      * @param  list<string>  $roomTypeIds
+     * @param  list<string>  $mainPlanIds  the plans the grid prices — one per room type on screen
      * @return list<array{name: string, sub: string, refundable: bool, is_derived: bool, channel: string}>
      */
-    private function ratePlanList(array $roomTypeIds): array
+    private function ratePlanList(array $roomTypeIds, array $mainPlanIds, string $from, string $through): array
     {
         if ($roomTypeIds === []) {
             return [];
+        }
+
+        // What each plan charges in the fortnight on screen — the grid shows only the MAIN plans, so a second plan's prices
+        // are seen here. One grouped read; a plan carries one currency.
+        $nights = self::WINDOW_DAYS;
+        $priced = [];
+        foreach (RateCalendar::query()->whereHas('ratePlan', fn ($q) => $q->whereIn('room_type_id', $roomTypeIds))
+            ->whereBetween('date', [$from, $through])
+            ->selectRaw('rate_plan_id, currency, MIN(price_minor) AS lo, MAX(price_minor) AS hi, COUNT(*) AS n')
+            // `toBase()` — aggregate rows, not models; the tenant scope still applies (Eloquent applies scopes before it hands over)
+            ->groupBy('rate_plan_id', 'currency')->toBase()->get() as $row) {
+            $priced[(string) $row->rate_plan_id] = ['lo' => (int) $row->lo, 'hi' => (int) $row->hi, 'n' => (int) $row->n, 'currency' => (string) $row->currency];
         }
 
         return RatePlan::query()
@@ -291,11 +318,19 @@ class RatesGrid extends Component
             ->orderBy('derived_from_rate_plan_id')   // base plans (null) first
             ->orderBy('created_at')
             ->get()
-            ->map(function (RatePlan $plan): array {
+            ->map(function (RatePlan $plan) use ($mainPlanIds, $priced, $nights): array {
                 $pct = RateDerivationService::adjustmentPct($plan);
+                $isMain = in_array((string) $plan->getKey(), $mainPlanIds, true);
+                // ⚠️ "the grid above" only where it is TRUE — the grid prices each room type's main plan and no other
+                //    (2026-10-01: every refundable plan said it, and a non-refundable one read "Base plan").
                 $sub = $pct !== null
                     ? rtrim(rtrim(number_format($pct, 2), '0'), '.').'% · derived from '.((string) ($plan->derivedFrom->name ?? 'base'))
-                    : ($plan->is_refundable ? 'Free cancellation · the grid above' : 'Base plan');
+                    : ($plan->is_refundable ? 'Free cancellation' : 'Non-refundable').($isMain ? ' · the grid above' : '');
+                $p = $priced[(string) $plan->getKey()] ?? null;
+                $pricedLine = $p === null
+                    ? 'No prices in this fortnight'
+                    : 'Priced on '.$p['n'].' of '.$nights.' nights this fortnight · '.MoneyFormatter::display($p['lo'], $p['currency'])
+                        .($p['hi'] !== $p['lo'] ? ' – '.MoneyFormatter::display($p['hi'], $p['currency']) : '');
 
                 return [
                     // ⚠️ ADDED for the seasonal-pricing panel's plan selector — a season is defined AGAINST a
@@ -312,7 +347,10 @@ class RatesGrid extends Component
                     // list printed the same name and sub-line for each, so an operator could not tell which
                     // one they were reading — on the screen that prices rooms.
                     'room_type' => (string) ($plan->roomType->name ?? ''),
+                    'room_type_id' => (string) $plan->room_type_id,
                     'sub' => $sub,
+                    'is_main' => $isMain,
+                    'priced' => $pricedLine,
                     'refundable' => (bool) $plan->is_refundable,
                     'is_derived' => $pct !== null,
                     'channel' => 'Direct',   // honest — the only live channel (#85)
@@ -360,29 +398,85 @@ class RatesGrid extends Component
     }
 
     /**
-     * Pacing — a REAL derived signal over the window (booked % + open nights). NO fabricated "+9% vs last year"
-     * trend (no prior-year snapshot exists). An honest, real read of on-the-books.
+     * The base plans the editor may price, for each room type on screen that has MORE THAN ONE — the main plan (the one the
+     * grid shows) first. A derived plan follows its base, so it is never offered here.
      *
-     * @param  array<string, array{total: int, sold: int, available: int}>  $availability
-     * @return array{booked_pct: ?int, open_nights: int, insight: string}
+     * @param  Collection<int, RoomType>  $roomTypes
+     * @param  array<string, ?RatePlan>  $primaryPlan
+     * @return array<string, list<array{id: string, label: string}>>
      */
-    private function pacing(array $availability): array
+    private function planChoices(Collection $roomTypes, array $primaryPlan): array
     {
-        $sold = 0;
-        $total = 0;
-        $open = 0;
-        foreach ($availability as $cell) {
+        $choices = [];
+        foreach ($roomTypes as $roomType) {
+            $rtId = (string) $roomType->getKey();
+            $main = $primaryPlan[$rtId]?->getKey();
+            $plans = RatePlan::query()->where('room_type_id', $rtId)->whereNull('derived_from_rate_plan_id')
+                ->orderByDesc('is_active')->orderBy('created_at')->get()
+                ->sortBy(fn (RatePlan $plan): int => (string) $plan->getKey() === (string) $main ? 0 : 1)->values();
+            if ($plans->count() < 2) {
+                continue;
+            }
+            $choices[$rtId] = $plans->map(fn (RatePlan $plan): array => [
+                'id' => (string) $plan->getKey(),
+                'label' => (string) $plan->name.((string) $plan->getKey() === (string) $main ? ' — the plan the grid shows' : '')
+                    .($plan->is_active ? '' : ' (off sale)'),
+            ])->all();
+        }
+
+        return $choices;
+    }
+
+    /**
+     * The next 14 nights from TODAY — booked % and open nights over the room types on screen, whatever window the grid shows.
+     * ⚠️ The old "Pacing · next 14 days" card computed over the WINDOW (so it repeated the figures above it, and on any other
+     * fortnight it was not the next 14 days at all). No "vs last year" — no prior-year snapshot exists (#39).
+     *
+     * @param  list<string>  $roomTypeIds
+     * @return array{booked_pct: ?int, open_nights: int}
+     */
+    private function ahead(array $roomTypeIds): array
+    {
+        if ($roomTypeIds === []) {
+            return ['booked_pct' => null, 'open_nights' => 0];
+        }
+
+        $today = CarbonImmutable::today();
+        $cells = $this->indexAvailability($roomTypeIds, $today->toDateString(), $today->addDays(self::WINDOW_DAYS - 1)->toDateString());
+        [$sold, $total, $open] = [0, 0, 0];
+        foreach ($cells as $cell) {
             $sold += $cell['sold'];
             $total += $cell['total'];
             $open += $cell['available'];
         }
-        $pct = $total > 0 ? (int) round($sold / $total * 100) : null;
 
-        $insight = $pct === null
-            ? 'No inventory published in this window yet.'
-            : ($pct >= 70 ? 'Filling fast — review your open nights.' : ($pct >= 30 ? 'Steady on-the-books for the next two weeks.' : $open.' open nights — consider a promotion.'));
+        return ['booked_pct' => $total > 0 ? (int) round($sold / $total * 100) : null, 'open_nights' => $open];
+    }
 
-        return ['booked_pct' => $pct, 'open_nights' => $open, 'insight' => $insight];
+    /**
+     * The derived plans on screen that follow a base plan's price, each with its real adjustment ({@see RateDerivationService}).
+     *
+     * @param  list<string>  $roomTypeIds
+     * @return list<string> e.g. "Non-refundable −10%"
+     */
+    private function derivedPlans(array $roomTypeIds): array
+    {
+        if ($roomTypeIds === []) {
+            return [];
+        }
+
+        $labels = [];
+        foreach (RatePlan::query()->whereIn('room_type_id', $roomTypeIds)->whereNotNull('derived_from_rate_plan_id')
+            ->where('is_active', true)->orderBy('name')->get() as $plan) {
+            $pct = RateDerivationService::adjustmentPct($plan);
+            if ($pct === null) {
+                continue;
+            }
+            $num = rtrim(rtrim(number_format(abs($pct), 2), '0'), '.');
+            $labels[(string) $plan->name.$pct] = (string) $plan->name.' '.($pct < 0 ? '−' : '+').$num.'%';
+        }
+
+        return array_values($labels);
     }
 
     // ── Request state ────────────────────────────────────────────────────────────────────────────
@@ -579,9 +673,11 @@ class RatesGrid extends Component
             $avail = $availability[$rtId.'|'.$date] ?? null;
             $restriction = $restrictions[$rtId.'|'.$date] ?? null;
 
+            $display = $rate !== null ? $this->money($rate['minor'], $rate['currency']) : null;
             $cells[] = [
                 'date' => $date,
-                'rate' => $rate !== null ? $this->money($rate['minor'], $rate['currency']) : null,
+                'rate' => $display,
+                'rate_fit' => $this->rateFit($display),
                 // The raw decimal (e.g. "175.00") for the editor prefill — derived from integer minor units
                 // via the Money value object, never a float division. The server re-parses authoritatively.
                 'rate_input' => $rate !== null ? Money::of($rate['minor'], $rate['currency'])->toDecimalString() : '',
@@ -589,6 +685,9 @@ class RatesGrid extends Component
                 'sold' => $avail['sold'] ?? null,
                 'total' => $avail['total'] ?? null,
                 'sold_out' => $avail !== null && $avail['available'] === 0,
+                // the thin bar under each price, and the legend's "Last one" — real availability, nothing estimated
+                'booked_pct' => $avail !== null && $avail['total'] > 0 ? (int) round($avail['sold'] / $avail['total'] * 100) : null,
+                'last_one' => $avail !== null && $avail['available'] === 1 && $avail['total'] > 1,
                 'min_stay' => $restriction['min_stay'] ?? null,
                 'max_stay' => $restriction['max_stay'] ?? null,
                 'stop_sell' => $restriction['stop_sell'] ?? false,
@@ -632,7 +731,7 @@ class RatesGrid extends Component
      * would be a second implementation of the precedence and is exactly what §N.8f/D4-1 forbid.
      *
      * @param  list<string>  $dates
-     * @return list<array{id: string, label: string, cells: list<array{date: string, rate: ?string, overridden: bool}>}>
+     * @return list<array{id: string, label: string, cells: list<array{date: string, rate: ?string, rate_fit: string, overridden: bool}>}>
      */
     private function unitRows(RoomType $roomType, string $planId, array $dates): array
     {
@@ -653,16 +752,35 @@ class RatesGrid extends Component
                         // ({@see row()}) had always passed the real `$rate['currency']`. The resolver now answers
                         // both halves together, so the symbol follows the same override→type precedence as the price.
                         $priced = NightlyRate::forUnitWithCurrency($planId, $unitId, $date);
+                        $display = $priced === null ? null : $this->money($priced['minor'], $priced['currency']);
 
                         return [
                             'date' => $date,
-                            'rate' => $priced === null ? null : $this->money($priced['minor'], $priced['currency']),
+                            'rate' => $display,
+                            'rate_fit' => $this->rateFit($display),
                             // Marks the exception so the operator can see WHICH units are priced apart.
                             'overridden' => NightlyRate::hasOverride($planId, $unitId, $date),
                         ];
                     }, $dates),
                 ];
             })->values()->all();
+    }
+
+    /**
+     * A long price steps down a size so it stays inside its night. 🖥 A day column holds about 60 px of text at 1440 px, and
+     * "€1,250.00" set at 13 px is 68 px wide — it ran into the next night (2026-10-01). Counted in characters of the price as
+     * shown, which is what its width follows.
+     */
+    private function rateFit(?string $rate): string
+    {
+        $length = $rate === null ? 0 : mb_strlen($rate);
+
+        return match (true) {
+            $length >= 11 => 'is-longest',
+            $length >= 10 => 'is-longer',
+            $length >= 8 => 'is-long',
+            default => '',
+        };
     }
 
     /**
@@ -677,7 +795,11 @@ class RatesGrid extends Component
             'weekday' => $carbon->format('D'),
             'day' => $carbon->format('j'),
             'month' => $carbon->format('M'),
-            'is_weekend' => $carbon->isWeekend(),
+            // ⚠️ 2026-09-30 — a weekend NIGHT is Friday or Saturday: the nights bulk edit's "Weekends" changes, the nights
+            //    the weekend uplift prices and the nights a season counts as "Fri/Sat". The grid shaded Saturday and Sunday,
+            //    so its colours disagreed with every price rule on the page.
+            'is_weekend' => in_array($carbon->dayOfWeekIso, [5, 6], true),
+            'is_today' => $carbon->isToday(),
         ];
     }
 
@@ -728,24 +850,28 @@ class RatesGrid extends Component
     // ── Window navigation ────────────────────────────────────────────────────────────────────────
 
     /**
-     * @return array{label: string, prev: string, next: string, today: string, jump: ?array{date: string, href: string}}
+     * @param  list<string>  $planIds  the plans the grid shows — the jump looks only at these
+     * @return array{label: string, from: string, through: string, prev: string, next: string, today: string, jump: ?array{date: string, href: string}}
      */
-    private function windowNav(CarbonImmutable $from, string $fromStr, string $throughStr): array
+    private function windowNav(CarbonImmutable $from, string $fromStr, string $throughStr, string $rtFilter, array $planIds): array
     {
         $through = CarbonImmutable::parse($throughStr);
+        // ⚠️ 2026-09-30 — every window link keeps the room-type filter; they used to drop it on the first click.
+        $keep = $rtFilter !== '' ? ['rt' => $rtFilter] : [];
 
-        // If nothing is priced in this window, offer a one-click jump to the next date that IS priced — the
-        // demo's rates live in a future month, and an operator landing on an empty fortnight should be told
-        // where their real rates are, not left guessing.
+        // If nothing is priced in this window, offer a one-click jump to the next date that IS priced — for the plans ON
+        // SCREEN. ⚠️ It used to search every plan in the organisation, so another property's rates could send the operator
+        // to an empty fortnight here.
         $jump = null;
-        $earliest = RateCalendar::query()
+        $earliest = $planIds === [] ? null : RateCalendar::query()
+            ->whereIn('rate_plan_id', $planIds)
             ->whereDate('date', '>=', $fromStr)
             ->orderBy('date')
             ->value('date');
         if ($earliest !== null) {
             $earliestStr = CarbonImmutable::parse($earliest)->toDateString();
             if ($earliestStr > $throughStr) {
-                $jump = ['date' => $earliestStr, 'href' => route('app.rates', ['from' => $earliestStr])];
+                $jump = ['date' => $earliestStr, 'href' => route('app.rates', ['from' => $earliestStr] + $keep)];
             }
         }
 
@@ -755,9 +881,9 @@ class RatesGrid extends Component
             // is actually looking at. (The label above is for humans and cannot be put in a date input.)
             'from' => $fromStr,
             'through' => $throughStr,
-            'prev' => route('app.rates', ['from' => $from->subDays(self::WINDOW_DAYS)->toDateString()]),
-            'next' => route('app.rates', ['from' => $from->addDays(self::WINDOW_DAYS)->toDateString()]),
-            'today' => route('app.rates', ['from' => CarbonImmutable::today()->toDateString()]),
+            'prev' => route('app.rates', ['from' => $from->subDays(self::WINDOW_DAYS)->toDateString()] + $keep),
+            'next' => route('app.rates', ['from' => $from->addDays(self::WINDOW_DAYS)->toDateString()] + $keep),
+            'today' => route('app.rates', ['from' => CarbonImmutable::today()->toDateString()] + $keep),
             'jump' => $jump,
         ];
     }

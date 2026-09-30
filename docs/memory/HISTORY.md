@@ -443,6 +443,37 @@ production: both routes present with their gates, the private disk's folder pres
 after the swap, signed out, both attachment doors answer 302 → `/login`, `/storage/…` and `/media/…` serve no attachment (404),
 his photos still load; public checks 12/0/0; 1,415/1,415 files match git; drift check passes; 0 errors since the swap.
 
+**RATES — 2026-10-01 — his request ("on this page table design must be better, texts must look good … all texts and boxes
+must be well aligned … the kind of work which you have done in the past pages … every single operation should be also working
+fine … test every single thing … ship them live and verify it"); the 9-part plan approved ("Yes, all of it"), DEC-l included.**
+🖥 Measured first (1440×900, tenant three): every dialog opened in the top-left corner; the grid was 1,320 px in a 1,148 px card
+and hid its last two nights; one row mixed 34, 36 and 43 px boxes; the season and add-plan inputs had no visible box; "Add a
+rate plan" had 16 px labels (`vy-label`, no rule). Found underneath, each with a test RED first: bulk edit and per-unit pricing
+posted the editor's ONE-night dates under a two-week heading; a paused workspace could save and APPLY seasons; Refundable off
+still made a refundable plan; "All room types" meant the whole organisation; a 100% decrease wrote €0 nights; max stay and
+arrival/departure could not be set alone; the grid shaded Sat/Sun while every price rule means Fri/Sat; writes dropped the
+window and filter; refusals were plain notices; "Jump to rates" and "Pacing" looked at the wrong nights; per-unit prices and new
+plans left no trail; an applied season's edit refusal was never shown. **DEC-l ruled and fixed:** every rate write goes through
+`RateScope` (the person's properties). Found in the browser walk and fixed: a second plan could be added but never priced (now
+"Set rates" offers the plan, server-checked, and each plan row shows its fortnight's prices and Set prices); long prices ran into
+the next night; the tall editor hid its buttons; phone selects clipped their text; "across 6 nights" counted rows; after a
+drag, the next click on a night did nothing (the drag's click landed on the row and its flag stayed set). The page: one
+Alpine scope, every dialog on the centred backdrop (x-show ceiling 35 → 26), all 14 nights, sticky column and header, today and
+Fri–Sat marked, one cell design with a matching legend, click or drag to edit, bulk edit on its own dates, a fourth figure "Next
+14 days". Tests: `RatesPageFixesTest` (17), `RatesPageRedesignTest` (13); four older tests moved with the behaviour (a refusal is
+now an alert; the ceiling fell). Mutations `rates-page` 47/47 (RP-M12 first survived — its test took ANY refusal; now each
+refusal is named). 🖥 Every operation walked locally at 1440 and 390; 0 console errors. **This pass's own mistakes, each caught
+before shipping:** an inline `@php(…)` above a later `@php … @endphp` block made Blade swallow the grid as raw PHP (the first test
+run: a ParseError); JS comments saying "Bulk edit" leaked the words to view-only roles (a test caught it); a test seeded an error
+bag with `withSession`, which JSON sessions return empty (switched to a real round trip); figures read 300 ms after load were
+mid count-up (€118.73 for €131.49) — the database was read before chasing it; 40 px boxes plus the shared 11 px padding clipped
+text on a phone (the browser caught it); a CSS comment in the shared layout said a dialog "opened", which every operator page
+ships, and the email-templates page's no-engagement-figure check failed on it (the full suite: 4,145/4,146). The independent
+review's one finding was the drag-then-click bug, already found in the walk and fixed; it found tenancy, redirects, money,
+Blade/Alpine and the shared code clean.
+Gates: 4,146/4,146 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `abc822f5672e411a`, the code plus these docs); 486/486
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

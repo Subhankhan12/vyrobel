@@ -13,6 +13,7 @@ use App\Services\AvailabilityService;
 use App\Services\GroupBookingService;
 use App\Support\Money\Money;
 use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -72,6 +73,18 @@ if (! function_exists('secondProperty')) {
             'name' => $name.' '.Str::upper(Str::random(4)), 'type' => 'hotel', 'currency' => 'EUR', 'timezone' => 'UTC',
             'slug' => 'second-'.Str::lower(Str::random(8)), 'status' => 'active',
         ]);
+    }
+}
+
+if (! function_exists('pauseWorkspace')) {
+    /**
+     * Pause a seedScenario() organisation's workspace — the read-only state OperatorWorkspace::isReadOnly() reports. Shared
+     * because two Rates suites need it, and a function declared in one Pest file is missing when a sibling runs alone.
+     */
+    function pauseWorkspace(array $scenario, ?CarbonImmutable $until = null): void
+    {
+        app(TenantContext::class)->runAsSuperAdmin(fn () => Organization::query()->whereKey($scenario['org']->id)
+            ->update(['paused_until' => ($until ?? CarbonImmutable::now()->addDays(3))]));
     }
 }
 

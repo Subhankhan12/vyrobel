@@ -163,7 +163,8 @@ it('refuses to apply when the change set moved after the preview, and writes not
 
     burPost($f, 'app.rates.units.apply', burPayload($f, 'set') + ['digest' => $digest])
         ->assertRedirect()
-        ->assertSessionHas('rates_notice', fn (string $m): bool => str_contains($m, 'changed while you were reviewing'));
+        // ⚠️ 2026-10-01 — a refusal is an ALERT (`rates_error`), no longer a notice shared with successes.
+        ->assertSessionHas('rates_error', fn (string $m): bool => str_contains($m, 'changed while you were reviewing'));
 
     // ⚠️ RAW: NOTHING was written. Not a partial set, not a "corrected" set — nothing.
     expect((int) DB::table('unit_rate_overrides')->count())->toBe(0);

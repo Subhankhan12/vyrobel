@@ -129,7 +129,8 @@ it('rejects an invalid rate and writes nothing', function () {
         'room_type_id' => $s['roomType']->id,
         'start_date' => '2026-09-02', 'end_date' => '2026-09-02',
         'set_rate' => '1', 'rate' => 'not-a-price',
-    ])->assertRedirect()->assertSessionHas('rates_notice');
+        // ⚠️ 2026-10-01 — a refusal is an ALERT (`rates_error`); it used to share `rates_notice` with successes and announced nothing.
+    ])->assertRedirect()->assertSessionHas('rates_error')->assertSessionMissing('rates_notice');
 
     expect(RateCalendar::query()->where('rate_plan_id', $s['ratePlan']->id)->where('date', '2026-09-02')->exists())
         ->toBeFalse();

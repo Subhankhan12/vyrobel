@@ -19035,3 +19035,93 @@ the swap, from outside and signed out: both doors answer **302 → `/login`**; `
 · 0 could not measure** (`SERVED=0`), **1,415 of 1,415** deployable files match git at `761cf2dd`, the `.htaccess` drift check
 passes (self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production — the first real attachment an
 owner sends will be the first one there.
+
+## 2026-10-01 — Rates: the page rebuilt — every dialog centred, all fourteen nights, click or drag to edit, and every operation checked (the founder's request; plan approved, DEC-l included)
+
+**Asked:** "https://vyrobel.com/app/rates — on this page table design must be better, texts must look good. And all texts and
+boxes must be well aligned … the kind of work which you have done in the past three, four pages … every single operation
+should be also working fine. So test every single thing on this page and fix all of them. After completion, ship them live
+and verify it on MCP Playwright." A 9-part plan, with DEC-l (the property allow-list on the rate writes) inside it, was put to
+him; he answered "Yes, all of it (Recommended)".
+
+**What was wrong — measured before anything changed (🖥 1440×900, tenant three).** Every dialog opened in the top-left corner
+(Bulk edit centred at 280,242: `x-show` erased the inline `display` that centred them). The grid was 1,320 px wide in a
+1,148 px card and hid its last two nights. One row of controls mixed 34, 36 and 43 px boxes. The season and add-plan inputs had
+no visible box, and "Add a rate plan" printed 16 px labels (`vy-label`, a class no rule defines). On a phone the figures went
+2 + 1 and a plan row squeezed its buttons.
+
+**What was wrong underneath — each proven by a test that failed first (`RatesPageFixesTest`).**
+- Bulk edit and per-unit pricing were headed with the whole fortnight but posted the editor's dates, which started as ONE
+  night: "raise 10%" over what looked like two weeks changed one night.
+- A paused workspace — which the shell says is read-only — could still save and APPLY a season, and applying writes prices.
+- Switching Refundable off still made a refundable plan (`$data['is_refundable'] ?? true`: an unticked box sends nothing).
+- "All room types" meant every room type in the organisation: a bulk change made while looking at one property repriced the
+  others.
+- A 100% decrease was accepted and wrote €0 nights; bulk edit's `max(0, …)` could price a night at zero.
+- A maximum stay, closed-to-arrival or closed-to-departure could not be set on its own (the "choose at least one thing" check
+  ignored them), though the booking guard enforces all three.
+- The grid shaded Saturday and Sunday; every price rule on the page (bulk "weekends", the weekend uplift, a season's "Fri/Sat
+  nights") means Friday and Saturday nights.
+- Every write jumped to the edited date and dropped the room-type filter; refusals arrived as plain notices, not alerts;
+  "Jump to rates" searched every plan in the organisation; "Pacing · next 14 days" counted the window on screen, not the next
+  14 days; the derived-plan note was a fixed "Non-refundable −10% and Weekly −15%" whatever plans existed.
+- Pricing units individually and creating a rate plan left no audit trail; the paused sentence on the rate-plan writes said
+  "adding inventory … until ." (no date on record printed nothing).
+- The refusal to edit an applied season was set as an error nobody rendered; only a season's price error was ever shown.
+
+**DEC-l — ruled and fixed.** Every rate write finds its room type, plan or season inside the person's properties through ONE
+rule, `App\Support\Rates\RateScope` (the `PropertyContext::readIds()` rule the unit writes use since DEC-k): the grid editor,
+bulk edit, per-unit preview and apply, the four season writes and the three rate-plan writes. Another property's id is a 404,
+and "All room types" is the room types on screen.
+
+**Found in the browser walk, and fixed.** A second rate plan could be added but never priced: the grid prices each room type's
+MAIN plan (STRUCT-1), yet the success message sent the operator to the grid. The storefront skips a plan with an unpriced night
+(`BookingEngineService::cheapestRatePlan`), so it sat unused. Now "Set rates" offers the plan where a room type has more than
+one base plan (server-checked: a base plan of the ONE room type chosen, never a derived plan, never across "All room types";
+stay rules stay room-type-wide), every plan row shows what it charges this fortnight ("Priced on 4 of 14 nights this fortnight ·
+€99.00") and a Set prices button, and the message says so. Also: a long price ("€1,250.00", 68 px) ran into the next night —
+it now steps down a size (`RatesGrid::rateFit`); the tall editor's buttons fell below the fold — the dialog footers now stay in
+view; on a phone the shared 11 px input padding clipped select text; "Priced 2 units individually across 6 nights" counted rows
+(now nights); "Updated rate + minimum stay" (now a sentence); the preview printed raw ISO dates; and after a drag across
+nights the next single click on a night did nothing — a drag that ends on another night sends its click to the row, so the
+"ignore this click" flag stayed set (now cleared once the drag's own events are done; 🖥 re-walked: drag, then click, opens
+that night).
+
+**The page.** One Alpine scope for the page (`vyRates`), the season dialogs in their own declared scope (F-20's shape), and
+every dialog on the shared centred backdrop — the nine inline displays on this page are gone (`XShowInlineDisplayContractTest`
+ceiling 35 → 26, the rates view and the unit price form added to its fixed list). A toolbar of 40 px controls; four figures,
+the fourth "Next 14 days" from today. The grid: all fourteen nights at 1440, a sticky first column and header, today marked,
+Friday and Saturday nights shaded, and one cell design — the price, what is left, a thin booked bar, and every rule the booking
+guard enforces (Min · Max · No arr. · No dep.) — whose four states the legend names with the cells' own classes. Click a night,
+or drag across nights, to open "Set rates & availability" (nightly price, minimum and maximum stay, open or closed, arrivals,
+departures, derived plans) with a live summary. Bulk edit has its own dates (the window by default), change tiles, Every night /
+Fri–Sat / Sun–Thu, and a live sentence of what it will do. The per-unit form (shared with the Units page) always shows its dates.
+Seasons: a styled form whose every refusal is shown in plain words, a status chip per season, and Edit only on a draft; the
+two-step and R-SEASON are unchanged. Rate plans: On sale / Off sale chips, Set prices, Rename and Take off sale as real buttons,
+and an Add rate plan dialog with a working Refundable switch.
+
+**Proof.** `RatesPageFixesTest` (17) and `RatesPageRedesignTest` (13), each RED first. Four older tests changed with the
+behaviour, none weakened: `OperatorRatesTest`, `OperatorRatesGate1Test` and `BulkUnitRateOverrideTest` now expect a refusal as
+an alert (`rates_error`); `XShowInlineDisplayContractTest`'s ceiling fell 35 → 26 and it now holds the rates views at zero.
+`pauseWorkspace()` moved to `tests/Support/booking_helpers.php` (two suites use it). Mutation set `rates-page` (47): money,
+DEC-l, the chosen plan, the sentences, seasons, plans, the grid, the window and the forms — 46 caught on the first run; RP-M12
+(the "All room types" refusal removed) survived because its test accepted ANY refusal and the next guard refuses too — the test
+now names each refusal's own sentence, and all 47 are caught. 🖥 Walked locally on tenant three at 1440 and 390: a single night,
+a four-night drag, every editor rule, bulk refused at 100% and applied at +10% on Fri–Sat nights (€123 → €135.30, €140 →
+€154.00, to the cent), per-unit pricing from both entry points and back to the room-type price, a season saved, applied through
+its confirmation and deleted, a plan added non-refundable, priced through Set prices, renamed, taken off sale and put back, the
+filter kept through the window's links, previous/next/today and the jump, the paused view (no control that would be refused),
+and "add one" for a room type with no plan — every write back on the fortnight and filter it started from; 0 console errors or
+warnings. **An independent review** (a separate agent, read-only, the whole diff) found one defect — the click swallowed after
+a drag, already found in the walk and fixed — and found DEC-l / `RateScope`, the return address, the money guards, the
+Blade/Alpine scopes, the Livewire boundary and the shared code (the Units page's form, `readOnly()`) clean. **The first full
+run** was 4,145/4,146: a comment in the shared layout's CSS said a dialog "opened", every operator page ships that
+stylesheet, and the email-templates page checks it shows no "opened" engagement figure — reworded, and interface words
+taken out of the other new CSS comments.
+
+**Gates (each read from its own output, 2026-10-01):** **4,146/4,146 on MySQL 8.4.10** (30,543 assertions, tree
+`abc822f5672e411a`: this code with the entry and the memory written, before these figures were filled in; 01:16–01:32 Baku) ·
+**4,146/4,146 on MariaDB 11.8.9** (the same tree, 01:50–02:06 Baku; nothing but this project connected to the database, checked
+before the swap) · mutations **486/486 across every set** (`rates-page` 47; baseline 260/260 green; 01:33–01:50 Baku) · the
+money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 /
+2f5598c92aadf105 / 9bac428a1b859297`; reseeded 02:07 Baku) · PHPStan L5 0 errors · Pint clean.

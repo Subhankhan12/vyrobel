@@ -285,6 +285,29 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **The "another run is active" check also sees restiox.** `ops/proc-check.sh` refused because restiox's phpunit was running
   (its own database, port 3310 — not ours). Identify the process by working folder, wait for a gap, and never weaken the check
   (`OPEN.md` A7) (Verified 2026-09-30).
+- **Blade matches `@php … @endphp` across the whole file.** An inline `@php($x = …)` ABOVE a later block form made Blade read
+  everything between them as raw PHP — the Rates grid vanished into a ParseError (🔬 the first test run, 2026-10-01). In a view
+  that has any `@php` block, write every `@php` as a block (Verified 2026-10-01).
+- **Sessions here are JSON, so a seeded error bag comes back empty.** `withSession(['errors' => new ViewErrorBag…])` is emptied
+  by `Store::marshalErrorBag()`, which reads only the stored array shape — the page showed no errors and the test saw nothing.
+  Test what a page shows after a refusal with a real round trip: post, `followingRedirects()`, read the page (Verified
+  2026-10-01).
+- **Figures read straight after a page load may be mid count-up.** 300 ms after load the Rates figures read €118.73 and 38
+  where the data said €131.49 and 42 (`partials.count-up` animates to the real figure). Read the data, or wait for the
+  animation, before chasing a phantom (Verified 2026-10-01).
+- **When two guards can refuse the same request, a test that accepts ANY refusal cannot tell them apart.** Removing the "All
+  room types" refusal stayed green because the next guard refused too (mutation RP-M12). Assert each refusal's own sentence
+  (Verified 2026-10-01).
+- **A fixed height plus inherited vertical padding clips text.** A later `.vy-input` rule gives 11 px padding; a 40 px box kept
+  16 px for 17 px of text and clipped "All room types on this page" on a phone. Where a box's height is fixed, zero its vertical
+  padding (Verified 2026-10-01).
+- **A comment in shipped CSS or JS is page text.** The layout's `<style>` goes to every operator page, so a CSS comment saying
+  a dialog "opened" in the corner failed the email-templates page's check that it shows no "opened" engagement figure (🔬 the
+  full suite, 4,145/4,146); a JS comment naming "Bulk edit" put the words on the page for a role that must not see the
+  control. Keep interface words out of comments that ship; Blade comments (`{{-- --}}`) do not ship (Verified 2026-10-01).
+- **Follow what a create action makes to where it is used.** "Add rate plan" made a second plan that no screen could price (the
+  grid prices each room type's main plan), and its success message sent the operator to the grid anyway; the storefront then
+  skipped it for want of prices (Verified 2026-10-01).
 
 ---
 

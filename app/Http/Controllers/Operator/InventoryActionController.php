@@ -15,6 +15,8 @@ use App\Services\OwnerUnitStatusService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Rates\RateScope;
+use App\Support\Rates\RatesListParams;
 use App\Support\Unit\UnitListParams;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -174,9 +176,9 @@ class InventoryActionController extends Controller
             $unit->code.' added to '.$roomType->name.'. It is bookable for the next year once a rate plan has prices.');
     }
 
-    public function storeRatePlan(Request $request): RedirectResponse
+    public function storeRatePlan(Request $request, AuditEventRecorder $audit): RedirectResponse
     {
-        if ($guard = $this->readOnly('rates')) {
+        if ($guard = $this->readOnly('rates', $request)) {
             return $guard;
         }
 
@@ -186,7 +188,8 @@ class InventoryActionController extends Controller
             'is_refundable' => ['nullable', 'boolean'],
         ]);
 
-        $roomType = RoomType::query()->findOrFail($data['room_type_id']);
+        // ⚠️ DEC-l (2026-09-30) — inside the person's properties, not merely the organisation.
+        $roomType = app(RateScope::class)->roomType($data['room_type_id']);
         $property = Property::query()->findOrFail((string) $roomType->property_id);
 
         // ⚠️ MONEY. The currency is taken from the PROPERTY, never from the request — a rate plan in a
@@ -201,12 +204,23 @@ class InventoryActionController extends Controller
             'name' => $data['name'],
             'code' => $this->uniqueCode(RatePlan::query()->where('room_type_id', $roomType->getKey()), $data['name'], 'RP'),
             'currency' => (string) $property->currency,
-            'is_refundable' => (bool) ($data['is_refundable'] ?? true),
+            // ⚠️ 2026-09-30 — this read `$data['is_refundable'] ?? true`: an UNTICKED box sends nothing, so switching
+            //    Refundable off still made a refundable plan, every time. The form now always sends the switch's value.
+            'is_refundable' => $request->boolean('is_refundable'),
             'is_active' => true,
         ]);
 
-        return redirect()->to(route('app.rates'))->with('rates_notice',
-            $ratePlan->name.' created for '.$roomType->name.'. Set its nightly rates below to start selling.');
+        // Who created which plan, on which terms — a rate plan decides what a guest can be charged, so it leaves a trail.
+        $audit->record('rate_plan.created', $ratePlan, null, [
+            'name' => (string) $ratePlan->name,
+            'room_type_id' => (string) $roomType->getKey(),
+            'currency' => (string) $ratePlan->currency,
+            'is_refundable' => (bool) $ratePlan->is_refundable,
+        ]);
+
+        return RatesListParams::redirect($request)->with('rates_notice',
+            // ⚠️ 2026-10-01 — this said "Set its nightly rates in the grid", which prices only each room type's MAIN plan.
+            $ratePlan->name.' created for '.$roomType->name.'. Use Set prices on its row to give it nightly prices — guests can be offered it once it has them.');
     }
 
     /**
@@ -381,11 +395,11 @@ class InventoryActionController extends Controller
      */
     public function updateRatePlan(Request $request, AuditEventRecorder $audit, string $ratePlan): RedirectResponse
     {
-        if ($guard = $this->readOnly('rates')) {
+        if ($guard = $this->readOnly('rates', $request)) {
             return $guard;
         }
 
-        $model = RatePlan::query()->findOrFail($ratePlan);   // tenant-scoped → cross-org 404
+        $model = app(RateScope::class)->ratePlan($ratePlan);   // DEC-l (2026-09-30) — inside the person's properties
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -400,7 +414,7 @@ class InventoryActionController extends Controller
         // PII-safe: a plan's name and code are neither guest nor contact data.
         $audit->record('rate_plan.updated', $model, $before, ['name' => (string) $model->name, 'code' => $model->code]);
 
-        return redirect()->to(route('app.rates'))->with('rates_notice', "Rate plan “{$model->name}” updated. No prices changed.");
+        return RatesListParams::redirect($request)->with('rates_notice', "Rate plan “{$model->name}” updated. No prices changed.");
     }
 
     /**
@@ -420,11 +434,11 @@ class InventoryActionController extends Controller
      */
     public function setRatePlanActive(Request $request, AuditEventRecorder $audit, string $ratePlan): RedirectResponse
     {
-        if ($guard = $this->readOnly('rates')) {
+        if ($guard = $this->readOnly('rates', $request)) {
             return $guard;
         }
 
-        $model = RatePlan::query()->findOrFail($ratePlan);
+        $model = app(RateScope::class)->ratePlan($ratePlan);   // DEC-l (2026-09-30) — inside the person's properties
         $active = $request->boolean('active');
 
         if (! $active) {
@@ -435,13 +449,13 @@ class InventoryActionController extends Controller
                 ->count();
 
             if ($otherActive === 0) {
-                return redirect()->to(route('app.rates'))->with('rates_error',
+                return RatesListParams::redirect($request)->with('rates_error',
                     "“{$model->name}” is the only rate plan still on sale for this room type. Taking it off sale would leave nothing to quote, so the room type could not be booked at all. Add or reactivate another plan first.");
             }
         }
 
         if ((bool) $model->is_active === $active) {
-            return redirect()->to(route('app.rates'))->with('rates_notice', "Rate plan “{$model->name}” was already ".($active ? 'on sale' : 'off sale').'.');
+            return RatesListParams::redirect($request)->with('rates_notice', "Rate plan “{$model->name}” was already ".($active ? 'on sale' : 'off sale').'.');
         }
 
         $model->update(['is_active' => $active]);
@@ -449,7 +463,7 @@ class InventoryActionController extends Controller
         $audit->record($active ? 'rate_plan.activated' : 'rate_plan.deactivated', $model,
             ['is_active' => ! $active], ['is_active' => $active]);
 
-        return redirect()->to(route('app.rates'))->with('rates_notice', $active
+        return RatesListParams::redirect($request)->with('rates_notice', $active
             ? "Rate plan “{$model->name}” is back on sale."
             : "Rate plan “{$model->name}” is off sale. Existing bookings keep the price they were sold at; no nightly prices were changed.");
     }
@@ -585,12 +599,19 @@ class InventoryActionController extends Controller
             return null;
         }
 
-        $route = $surface === 'rates' ? 'app.rates' : 'app.units';
-        $back = $request !== null && $surface === 'units'
-            ? $this->listReturn($request, redirect()->route($route))
-            : redirect()->route($route);
+        $back = match (true) {
+            $surface === 'rates' && $request !== null => RatesListParams::redirect($request),
+            $surface === 'units' && $request !== null => $this->listReturn($request, redirect()->route('app.units')),
+            default => redirect()->route($surface === 'rates' ? 'app.rates' : 'app.units'),
+        };
+
+        // ⚠️ 2026-09-30 — the rate-plan writes said "adding inventory is read-only" (they add no inventory), and with no
+        //    resume date on record the sentence ended "until ." — both fixed: each surface names what is paused, and an
+        //    unknown date says so rather than printing nothing.
+        $what = $surface === 'rates' ? 'rate changes are' : 'adding inventory is';
+        $until = $workspace->resumeLabel();
 
         return $back->with($surface.'_error',
-            'Workspace paused — adding inventory is read-only until '.$workspace->resumeLabel().'.');
+            'Workspace paused — '.$what.' read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.');
     }
 }

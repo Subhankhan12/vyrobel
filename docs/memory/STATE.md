@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the ATTACHMENTS pass, DEC-m (2026-09-30)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the RATES pass (2026-10-01)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -20,10 +20,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the DEC-m commit) | **4,116/4,116 on MySQL 8.4.10** (tree `ffb0b2200eb4da6d` = the code plus these docs, 2026-09-30 21:09–21:25 Baku) · **4,116/4,116 on MariaDB 11.8.9** (the same tree, 21:41–21:56 Baku) · 30,178 assertions · every test passed (0 skipped) | **V** run output 2026-09-30. |
-| Mutations | **439/439 landed and caught across every set**, 0 not caught, 0 did not land; baseline 230/230 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-09-30 21:25–21:40 Baku, tree `ffb0b2200eb4da6d` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 21:56 Baku (the DEC-m pass; reseeded 21:56). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
+| Suite (the RATES commit) | **4,146/4,146 on MySQL 8.4.10** (tree `abc822f5672e411a` = the code plus these docs, 2026-10-01 01:16–01:32 Baku) · **4,146/4,146 on MariaDB 11.8.9** (the same tree, 01:50–02:06 Baku) · 30,543 assertions · every test passed (0 skipped) | **V** run output 2026-10-01. |
+| Mutations | **486/486 landed and caught across every set**, 0 not caught, 0 did not land; baseline 260/260 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 47, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 01:33–01:50 Baku, tree `abc822f5672e411a` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 02:07 Baku (the RATES pass; reseeded 02:07). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean | **V** 2026-10-01 |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AN`, 2026-09-30, run straight after the 21:59 Baku swap (and on `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 22:05) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -69,6 +69,12 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     open only for the people in that conversation, signed in — and the inbox now shows them (`HISTORY.md`, "ATTACHMENTS");
     ✅ LIVE on `rel_AN` (V 2026-09-30 21:59 Baku): 🔬 signed out, both attachment doors send you to `/login`; no public
     address serves one. Left: a signed-in look (his).
+0g. **Rates rebuilt (2026-10-01)** — his request ("table design must be better, texts must look good … every single
+    operation working … ship it live and verify it"); the 9-part plan approved, DEC-l included (`HISTORY.md`, "RATES").
+    Every dialog centred, all fourteen nights, click or drag to edit, one cell design with a matching legend, bulk edit on its
+    own dates, seasons refused while paused, a second plan that can be priced, refusals as alerts, every write back on the
+    fortnight it started from, and every rate write inside the person's properties (DEC-l ruled and fixed). Left: the
+    deploy, and the live look (his sign-in).
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -93,10 +99,10 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 6. The lawyer: the Article 28 agreements, who may hold customers' money, and how long money records must be kept.
 7. The real tax rates (`tax:set-rate`, replacing the EXAMPLE rates).
 8. Rulings DEC-a to DEC-i (`OPEN.md`). DEC-f decides whether the logo removal that shipped stays.
-8b. Say go (or not) on A8, the x-show sweep of 35 elements on other screens; A9, the other see-through dialogs; and A10,
-    the string `:style` sweep of 10 elements. Rule on DEC-j and DEC-l (the property allow-list on the maintenance writes
-    and on the rate-plan writes; DEC-k, the same on Add unit, was ruled and fixed 2026-09-30). DEC-m (message attachments)
-    was ruled and fixed 2026-09-30.
+8b. Say go (or not) on A8, the x-show sweep of 26 elements on other screens; A9, the other see-through dialogs; and A10,
+    the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes; DEC-k, the
+    same on Add unit, was ruled and fixed 2026-09-30, and DEC-l, on every rate write, 2026-10-01). DEC-m (message
+    attachments) was ruled and fixed 2026-09-30.
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

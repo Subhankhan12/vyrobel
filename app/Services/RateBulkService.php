@@ -26,6 +26,9 @@ class RateBulkService
 
     public const NIGHTS = ['whole', 'weekends', 'midweek'];
 
+    /** The page's own ceiling for a nightly price (minor units) — €1,000,000.00, as every hand-typed price field. */
+    private const MAX_PRICE_MINOR = 100_000_000;
+
     public function __construct(
         private RateAndRestrictionService $rates,
         private RateDerivationService $derivation,
@@ -33,7 +36,7 @@ class RateBulkService
 
     /**
      * @param  list<RoomType>  $roomTypes
-     * @return array{applied: int, skipped: int, nights: int, room_types: int, derived: int, missing_plan: int}
+     * @return array{applied: int, skipped: int, nights: int, room_types: int, derived: int, missing_plan: int, too_low: int, too_high: int}
      */
     public function apply(
         array $roomTypes,
@@ -48,6 +51,8 @@ class RateBulkService
     ): array {
         $applied = 0;
         $skipped = 0;
+        $tooLow = 0;
+        $tooHigh = 0;
         $derivedCount = 0;
         $missingPlan = 0;
         $roomTypeCount = 0;
@@ -90,7 +95,21 @@ class RateBulkService
                         continue;   // no base rate to adjust
                     }
                     $factor = $mode === 'increase_pct' ? (1 + $pct / 100) : (1 - $pct / 100);
-                    $map[$key] = Money::of(max(0, (int) round((int) $row->price_minor * $factor)), $currency);
+                    $minor = (int) round((int) $row->price_minor * $factor);
+                    // ⚠️⚠️ MONEY (2026-09-30) — this wrote `max(0, …)`: a night could be priced €0, a room given away.
+                    //    A price below one cent, or past the page's €1,000,000 limit, is LEFT AS IT WAS and counted, so
+                    //    the notice says which nights did not move and why — never written.
+                    if ($minor < 1) {
+                        $tooLow++;
+
+                        continue;
+                    }
+                    if ($minor > self::MAX_PRICE_MINOR) {
+                        $tooHigh++;
+
+                        continue;
+                    }
+                    $map[$key] = Money::of($minor, $currency);
                 }
             }
 
@@ -112,6 +131,8 @@ class RateBulkService
             'room_types' => $roomTypeCount,
             'derived' => $derivedCount,
             'missing_plan' => $missingPlan,
+            'too_low' => $tooLow,
+            'too_high' => $tooHigh,
         ];
     }
 

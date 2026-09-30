@@ -2045,51 +2045,234 @@
         .vy-pm-btn--danger { color: var(--vy-accent-text); }
         .vy-pm-empty { font-size: 12.5px; color: var(--vy-faint); padding: 6px 2px; }
 
-        /* ---- Rates & availability grid (Wave 4) ------------------------------------------------ */
-        .vyr-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+        /* ---- Rates & availability (rebuilt 2026-10-01) ------------------------------------------------------------------
+           The founder: "table design must be better, texts must look good, all texts and boxes well aligned." Measured before
+           (1440×900): every dialog appeared in the top-left corner, the grid was 1320 px wide and hid its last two days, the
+           controls in one row were 34, 36 and 43 px tall, and the season and add-plan inputs had no visible box.
+           ⚠️ Every display here is a CLASS — x-show erases an inline display. ⚠️ `.vyr-section` belongs to the Roles page (its
+           own inline style); this page's panel parts are `.vyr-panel-*`, so neither page restyles the other.
+           ⚠️ ONE LOOK PER CELL STATE, and the legend swatches read the SAME tokens as the cells, so the key cannot drift from
+           the grid it explains. */
+        .vy-rates {
+            --vyr-h: 40px;
+            --vyr-open: rgba(255, 255, 255, 0.66);
+            --vyr-last: rgba(224, 146, 30, 0.16);
+            --vyr-last-edge: rgba(178, 106, 8, 0.30);
+            --vyr-full: rgba(194, 65, 12, 0.12);
+            --vyr-full-edge: rgba(194, 65, 12, 0.26);
+            --vyr-closed: repeating-linear-gradient(135deg, rgba(120, 70, 40, 0.10) 0 5px, rgba(255, 255, 255, 0.5) 5px 10px);
+            --vyr-weekend: rgba(232, 112, 58, 0.07);
+            display: flex; flex-direction: column; gap: 18px;
+        }
+        .vyr-flash { padding: 12px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); border-color: var(--vy-accent-border); }
+        .vyr-flash.is-error { color: #8F3110; background: rgba(255, 244, 238, 0.86); border-color: rgba(143, 49, 16, 0.26); }
+        .vyr-unitpreview { margin-bottom: 18px; }
+        .vyr-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .vyr-actions-end { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+        /* toolbar — every control in the row is the same height */
+        .vyr-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; }
         .vyr-winnav { display: inline-flex; align-items: center; gap: 6px; }
-        .vyr-winlabel { font-family: var(--vy-display); font-weight: 600; font-size: 14px; padding: 0 8px; min-width: 156px; text-align: center; }
-        .vyr-navbtn { width: 34px; height: 34px; display: inline-grid; place-items: center; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); text-decoration: none; }
-        .vyr-navbtn:hover { background: rgba(255,255,255,.9); }
-        .vyr-jump { font-size: 12.5px; color: var(--vy-accent-text); text-decoration: none; font-weight: 600; }
-        /* Rates legend + bulk action — the design carries both in the CONTROL ROW, not on a separate line
-           below the stat tiles. `margin-left: auto` pushes the pair to the right of the window nav and the
-           room-type filter. Each swatch is followed by its WORD in the markup, so a grid state is never
-           conveyed by colour alone (WCAG 1.4.1). */
-        .vyr-legend { display: flex; gap: 16px; font-size: 12px; color: var(--vy-muted); margin-left: auto; }
-        .vyr-legend > span { display: inline-flex; align-items: center; gap: 6px; }
-        .vyr-legend-sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
-        .vyr-bulk { flex: none; }
-        .vyr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .vyr-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; }
+        .vyr-winlabel { font-family: var(--vy-display); font-weight: 600; font-size: 15px; color: var(--vy-ink); min-width: 168px; padding: 0 4px; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .vyr-navbtn { flex: none; width: var(--vyr-h); height: var(--vyr-h); display: inline-grid; place-items: center; border-radius: 50%; border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.62); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); text-decoration: none; transition: background .15s ease; }
+        .vyr-navbtn:hover { background: rgba(255, 255, 255, 0.92); }
+        .vyr-bar .vy-btn.vyr-tool { height: var(--vyr-h); padding: 0 16px; white-space: nowrap; }
+        .vyr-bar .vy-input.vyr-filter { flex: 0 1 230px; height: var(--vyr-h); padding-top: 0; padding-bottom: 0; }
+        .vyr-jump { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 3px; }
+        .vyr-bar-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+        .vyr-dk-val-2 { font-size: 20px; margin-top: 2px; }
+
+        /* the grid card */
+        .vyr-gridhead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 18px; padding: 14px 18px; border-bottom: 1px solid var(--vy-hairline); }
+        .vyr-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--vy-on-grad); }
+        .vyr-legend > span { display: inline-flex; align-items: center; gap: 7px; }
+        .vyr-sw { flex: none; width: 16px; height: 12px; border-radius: 4px; border: 1px solid var(--vy-hairline); }
+        .vyr-sw.is-open { background: var(--vyr-open); border-color: rgba(120, 70, 40, 0.18); }
+        .vyr-sw.is-last { background: var(--vyr-last); border-color: var(--vyr-last-edge); }
+        .vyr-sw.is-full { background: var(--vyr-full); border-color: var(--vyr-full-edge); }
+        .vyr-sw.is-closed { background: var(--vyr-closed); border-color: rgba(120, 70, 40, 0.18); }
+        .vyr-sw.is-weekend { background: var(--vyr-weekend); border-color: rgba(232, 112, 58, 0.22); }
+        .vyr-hint { font-size: 12px; color: var(--vy-muted); }
+        .vyr-empty { display: grid; gap: 6px; justify-items: center; text-align: center; padding: 42px 20px; font-size: 13px; color: var(--vy-muted); }
+        .vyr-empty strong { font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
+
+        /* the table — all fourteen nights fit a laptop; narrower screens scroll it under a sticky first column and header */
+        .vyr-scroll { overflow: auto; max-height: min(74vh, 820px); -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+        .vyr-grid { width: 100%; min-width: 1040px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+        .vyr-grid col.vyr-col-rt { width: 172px; }
         .vyr-grid th, .vyr-grid td { border-bottom: 1px solid var(--vy-hairline); }
-        .vyr-corner, .vyr-rt { position: sticky; left: 0; z-index: 2; background: var(--vy-glass); backdrop-filter: blur(6px); text-align: left; min-width: 188px; }
-        .vyr-dhead { padding: 8px 6px; text-align: center; min-width: 62px; }
-        .vyr-dhead.is-weekend { background: rgba(232,112,58,.06); }
-        .vyr-dweekday { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-faint); }
-        .vyr-dday { font-family: var(--vy-display); font-weight: 700; font-size: 15px; color: var(--vy-ink); }
-        .vyr-dmonth { font-size: 10px; color: var(--vy-muted); }
-        .vyr-rt { padding: 12px 14px; }
-        .vyr-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
-        .vyr-rt-sub { font-size: 11.5px; color: var(--vy-muted); margin-top: 2px; }
-        .vyr-cell { padding: 6px; text-align: center; vertical-align: top; min-width: 62px; }
-        .vyr-cell.is-weekend { background: rgba(232,112,58,.04); }
-        .vyr-cellbtn { display: block; width: 100%; border: 1px solid transparent; border-radius: var(--vy-r-sm); background: rgba(255,255,255,.5); padding: 7px 4px; cursor: pointer; font-family: inherit; transition: border-color .12s ease, background .12s ease; }
-        .vyr-cellbtn:hover { border-color: var(--vy-accent-border); background: #fff; }
-        .vyr-cellbtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
-        .vyr-cell-static { padding: 7px 4px; }
-        .vyr-rate { font-family: var(--vy-display); font-weight: 600; font-size: 13px; color: var(--vy-ink); }
+        .vyr-grid thead th { position: sticky; top: 0; z-index: 3; background: rgba(255, 250, 246, 0.97); }
+        .vyr-corner { left: 0; z-index: 4 !important; }
+        .vyr-dhead { padding: 9px 2px 8px; text-align: center; line-height: 1.15; }
+        .vyr-dhead > span { display: block; }
+        .vyr-dweekday { font-size: 11px; font-weight: 600; color: var(--vy-muted); }
+        .vyr-dday { font-family: var(--vy-display); font-size: 16px; font-weight: 600; color: var(--vy-ink); margin: 2px auto 1px; width: 28px; height: 28px; line-height: 28px; border-radius: 50%; font-variant-numeric: tabular-nums; }
+        .vyr-dmonth { font-size: 10.5px; color: var(--vy-muted); }
+        .vyr-grid thead th.vyr-dhead.is-weekend { background: linear-gradient(var(--vyr-weekend), var(--vyr-weekend)), rgba(255, 250, 246, 0.97); }
+        .vyr-dhead.is-weekend .vyr-dweekday { color: var(--vy-accent-text); }
+        .vyr-dhead.is-today .vyr-dday { background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vyr-dhead.is-today .vyr-dweekday { color: var(--vy-accent-text); }
+        .vyr-rt { position: sticky; left: 0; z-index: 2; background: rgba(255, 250, 246, 0.97); text-align: left; padding: 10px 14px; vertical-align: middle; border-right: 1px solid var(--vy-hairline); }
+        .vyr-rt > span { display: block; }
+        .vyr-rt-name { font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyr-rt-sub { font-size: 11.5px; line-height: 1.4; color: var(--vy-on-grad); margin-top: 2px; }
+        .vyr-rt-sub.is-warn { color: var(--vy-amber-text); }
+        .vyr-linkbtn { padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+        .vyr-cell { padding: 4px 2px; vertical-align: middle; }
+        .vyr-cell.is-weekend { background: var(--vyr-weekend); }
+        .vyr-cellbtn, .vyr-cell-static { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 100%; min-height: 66px; padding: 7px 2px 6px; border-radius: 10px; border: 1px solid transparent; font-family: inherit; color: var(--vy-ink); text-align: center; }
+        .vyr-cellbtn { background: var(--vyr-open); border-color: rgba(120, 70, 40, 0.10); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: pan-x pan-y; transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease; }
+        .vyr-cellbtn:hover { border-color: var(--vy-accent-border); background-color: #fff; box-shadow: 0 4px 12px rgba(150, 90, 50, 0.12); }
+        .vyr-cellbtn.is-last, .vyr-cell-static.is-last { background: var(--vyr-last); border-color: var(--vyr-last-edge); }
+        .vyr-cellbtn.is-full, .vyr-cell-static.is-full { background: var(--vyr-full); border-color: var(--vyr-full-edge); }
+        .vyr-cellbtn.is-closed, .vyr-cell-static.is-closed { background: var(--vyr-closed); border-color: rgba(120, 70, 40, 0.16); }
+        .vyr-cellbtn.is-selecting { background: rgba(232, 112, 58, 0.22); border-color: var(--vy-accent-3); box-shadow: inset 0 0 0 1px var(--vy-accent-3); }
+        .vyr-rate { font-family: var(--vy-display); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; white-space: nowrap; }
+        /* a long price steps down a size so it stays inside its night (RatesGrid::rateFit) */
+        .vyr-rate.is-long { font-size: 11px; } .vyr-rate.is-longer { font-size: 10px; } .vyr-rate.is-longest { font-size: 9px; }
+        .vyr-urate { white-space: nowrap; } .vyr-urate.is-long { font-size: 10.5px; } .vyr-urate.is-longer { font-size: 9.5px; } .vyr-urate.is-longest { font-size: 8.5px; }
         .vyr-rate.is-empty { color: var(--vy-faint); font-weight: 500; }
-        .vyr-avail { font-size: 10.5px; color: var(--vy-muted); margin-top: 3px; }
+        .is-closed > .vyr-rate { color: var(--vy-muted); }
+        .vyr-avail { font-size: 10.5px; line-height: 1.2; color: var(--vy-on-grad); white-space: nowrap; }
         .vyr-avail.is-out { color: var(--vy-accent-text); font-weight: 600; }
-        .vyr-flags { display: flex; gap: 3px; justify-content: center; margin-top: 4px; min-height: 13px; }
-        .vyr-flag { font-size: 9px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; padding: 1px 5px; border-radius: var(--vy-r-pill); }
-        .vyr-flag--min { background: rgba(178,106,8,.12); color: var(--vy-amber); }
-        .vyr-flag--closed { background: rgba(194,65,12,.12); color: var(--vy-accent); }
-        .vyr-noplan { font-size: 11.5px; color: var(--vy-faint); padding: 10px 6px; text-align: center; }
-        .vyr-editor { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; align-items: end; }
-        .vyr-check { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--vy-ink); font-weight: 500; margin-bottom: 7px; }
-        .vyr-soon-note { font-size: 12px; color: var(--vy-faint); margin-top: 14px; display: flex; align-items: flex-start; gap: 7px; line-height: 1.5; }
+        .vyr-flags { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 3px; }
+        .vyr-flag { font-size: 9.5px; font-weight: 600; line-height: 1.5; padding: 0 5px; border-radius: var(--vy-r-pill); white-space: nowrap; }
+        .vyr-flag--min { background: rgba(178, 106, 8, 0.14); color: var(--vy-amber-text); }
+        .vyr-flag--closed { background: rgba(143, 49, 16, 0.12); color: #8F3110; }
+        .vyr-booked { display: block; width: 72%; height: 3px; margin-top: 2px; border-radius: 3px; background: rgba(120, 70, 40, 0.13); overflow: hidden; }
+        .vyr-booked > i { display: block; height: 100%; border-radius: 3px; background: var(--vy-grad-peach); }
+        .vyr-typerow + .vyr-unitrow > *, .vyr-unitrow + .vyr-unitrow > * { border-top: 0; }
+        .vyr-unitrow > .vyr-rt { padding: 6px 12px 6px 26px; }
+        .vyr-unitrow .vyr-rt-name { font-family: var(--vy-sans); font-size: 12.5px; font-weight: 500; color: var(--vy-on-grad); }
+        .vyr-unitrow .vyr-cell { padding: 2px; }
+        .vyr-cell-static.is-unit { flex-direction: row; gap: 4px; min-height: 30px; padding: 4px 2px; font-size: 11.5px; color: var(--vy-on-grad); font-variant-numeric: tabular-nums; }
+        .vyr-own { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--vy-accent); }
+        .vyr-priceind { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; padding: 0; border: 0; background: none; font: inherit; font-size: 11.5px; font-weight: 600; color: var(--vy-accent-text); cursor: pointer; white-space: nowrap; }
+        .vyr-priceind:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+        /* the panels under the grid */
+        .vyr-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; margin-bottom: 14px; }
+        .vyr-panel-head > div { min-width: 0; flex: 1 1 320px; }
+        .vyr-panel-sub { margin: 5px 0 0; max-width: 80ch; font-size: 12.5px; line-height: 1.55; color: var(--vy-muted); }
+        .vyr-muted { font-size: 12px; line-height: 1.45; color: var(--vy-muted); }
+        .vyr-accent { font-size: 12px; line-height: 1.45; color: var(--vy-accent-text); }
+        .vyr-nowrap { white-space: nowrap; }
+        .vyr-cell-title { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vyr-seasons { min-width: 820px; }
+        .vyr-seasons td { vertical-align: top; }
+        .vyr-row-actions { text-align: right; white-space: nowrap; }
+        .vyr-row-actions .vy-btn + .vy-btn { margin-left: 6px; }
+        .vy-btn.vyr-sm { height: 30px; padding: 0 12px; font-size: 12px; box-shadow: none; }
+        .vy-btn.vyr-sm.is-danger { color: #8F3110; }
+        .vy-btn.vyr-sm.is-danger:hover { background: rgba(143, 49, 16, 0.07); border-color: rgba(143, 49, 16, 0.26); }
+        .vyr-empty-line { margin: 0; font-size: 12.5px; color: var(--vy-muted); }
+        .vyr-season-form { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(0, 0.95fr) minmax(0, 0.8fr) auto; gap: 12px; align-items: end; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--vy-hairline); }
+        .vyr-season-form .vy-field { margin-bottom: 0; min-width: 0; }
+        /* one height for every box on the page; the height sets it, so no vertical padding (🖥 on a phone the shared 11 px
+           padding left 16 px for 17 px of text and clipped a select's words) */
+        .vyr-season-form .vy-input, .vyr-dlg .vy-input, .vyr-upf .vy-input { width: 100%; height: var(--vyr-h, 40px); padding-top: 0; padding-bottom: 0; }
+        .vyr-season-form .vy-btn.vyr-season-save { height: 40px; padding: 0 18px; white-space: nowrap; }
+        .vyr-form-errors { margin: 12px 0 0; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(143, 49, 16, 0.07); border: 1px solid rgba(143, 49, 16, 0.2); font-size: 12.5px; line-height: 1.5; color: #8F3110; }
+        .vyr-plan { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; padding: 12px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyr-plan-main { flex: 1 1 260px; min-width: 0; }
+        .vyr-plan-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vyr-plan-sub { margin-top: 2px; font-size: 12px; line-height: 1.45; color: var(--vy-muted); }
+        .vyr-plan-priced { margin-top: 3px; font-size: 12px; line-height: 1.45; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+        .vyr-planpick { grid-column: 1 / -1; }
+        .vyr-fieldhint { display: block; margin-top: 6px; font-size: 11.5px; line-height: 1.4; color: var(--vy-muted); }
+        .vyr-channel { flex: none; }
+        .vyr-plan-actions { display: flex; gap: 6px; }
+        .vyr-channel-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyr-channel-ico { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-size: 12.5px; font-weight: 600; }
+        .vyr-channel-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); }
+        .vyr-note { margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-tag.tone-ok { background: rgba(20, 84, 62, 0.11); color: var(--vy-green-text); }
+        .vy-tag.tone-muted { background: rgba(120, 70, 40, 0.09); color: var(--vy-on-grad); }
+
+        /* the dialogs — the head, body and foot pad themselves, so the panel adds nothing around them */
+        .vy-modal.vyr-dlg { padding: 0; }
+        /* a tall dialog scrolls inside itself; its Cancel / Apply bar stays in view (🖥 the editor with a plan picker is 870 px) */
+        .vyr-dlg .vy-modal-foot { position: sticky; bottom: 0; z-index: 1; padding-top: 14px; background: rgba(255, 252, 248, 0.97); border-top: 1px solid var(--vy-hairline); }
+        .vy-modal.vyr-dlg.is-padded { padding: 24px 26px 22px; }
+        .vy-modal.vyr-dlg.vy-modal--wide { max-width: 620px; }
+        .vyr-dlg-head { flex: 1; min-width: 0; }
+        .vyr-dlg-sub { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-muted); }
+        /* the room type on its own row (🖥 in a third of the width its longest choice was cut off), the two nights under it */
+        .vyr-dlg-range { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; margin-bottom: 16px; }
+        .vyr-dlg-range > :first-child { grid-column: 1 / -1; }
+        .vyr-dlg-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .vyr-dlg-range .vy-field, .vyr-dlg-grid2 .vy-field { margin-bottom: 0; min-width: 0; }
+        .vy-modal-body.vyr-dlg-grid2 { padding-bottom: 18px; }
+        .vyr-rules { display: grid; gap: 6px; margin-bottom: 12px; }
+        .vyr-rule { display: grid; grid-template-columns: minmax(0, 1fr) 216px; align-items: center; gap: 12px; padding: 8px 12px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.62); border: 1px solid var(--vy-hairline); }
+        .vyr-rule > .vy-gl-switch { padding: 0; border: 0; background: none; }
+        .vyr-money, .vyr-nights { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; transition: opacity .15s ease; }
+        .vyr-money > span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13.5px; color: var(--vy-muted); pointer-events: none; }
+        .vyr-money > .vy-input { padding-left: 28px; }
+        .vyr-money.is-pct > span { left: auto; right: 12px; }
+        .vyr-money.is-pct > .vy-input { padding-left: 12px; padding-right: 30px; }
+        .vyr-nights > .vy-input { flex: 0 0 96px; }
+        .vyr-nights > span { font-size: 12.5px; color: var(--vy-muted); }
+        .vyr-money.is-off, .vyr-nights.is-off, .vyr-seg:disabled { opacity: 0.42; }
+        .vyr-seg { margin: 0; }
+        .vyr-rule .vy-choices--segmented .vy-choice-face { padding: 7px 6px; font-size: 12.5px; }
+        .vyr-rule .vy-choice-text { overflow-wrap: normal; hyphens: manual; white-space: nowrap; }
+        .vyr-derived { margin: 0 0 10px; }
+        .vyr-tiles3 { margin-bottom: 14px; }
+        .vyr-tiles3 .vy-choice-face { flex-direction: row; align-items: center; justify-content: center; text-align: center; gap: 8px; }
+        .vyr-summary { margin: 4px 0 0; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(232, 112, 58, 0.08); font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vyr-prose p { margin: 0 0 10px; font-size: 13px; line-height: 1.55; color: var(--vy-ink); }
+        .vyr-prose p.vyr-muted { font-size: 12px; color: var(--vy-muted); }
+        .vyr-callout { padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(224, 146, 30, 0.12); border: 1px solid rgba(178, 106, 8, 0.22); }
+
+        /* the ONE per-unit price form (shared with the Units page) */
+        .vyr-upf-title { margin: 0; font-family: var(--vy-display); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--vy-ink); }
+        .vyr-upf-sub { margin: 4px 0 18px; font-size: 12.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vyr-upf-dates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .vyr-upf-dates .vy-field { min-width: 0; }
+        .vyr-upf-unit { font-size: 13.5px; color: var(--vy-ink); }
+        .vyr-upf-unit span { color: var(--vy-muted); }
+        .vyr-upf-units-field { min-width: 0; margin: 0 0 15px; padding: 0; border: 0; }
+        .vyr-upf-units { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vyr-upf-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.66); font-size: 12.5px; font-weight: 500; color: var(--vy-ink); cursor: pointer; }
+        .vyr-upf-chip input { margin: 0; accent-color: var(--vy-accent); }
+        .vyr-upf-chip:has(input:checked) { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.10); }
+        .vyr-upf-hint { margin: 0 0 12px; font-size: 12px; line-height: 1.45; color: var(--vy-muted); }
+        .vyr-upf-mode { margin-bottom: 14px; }
+        .vyr-upf-foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+        .vyr-upf-foot .vy-btn { height: 40px; padding: 0 18px; }
+
+        .vyr-navbtn:focus-visible, .vyr-cellbtn:focus-visible, .vyr-linkbtn:focus-visible, .vyr-priceind:focus-visible, .vyr-jump:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .vyr-cellbtn, .vyr-navbtn, .vyr-money, .vyr-nights { transition: none; } }
+        @media (max-width: 1100px) {
+            .vyr-season-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .vyr-season-form .vy-btn.vyr-season-save { justify-self: start; }
+        }
+        @media (max-width: 760px) {
+            .vyr-bar-tools { width: 100%; margin-left: 0; flex-wrap: wrap; }
+            .vyr-bar-tools .vy-btn.vyr-tool { flex: 1 1 auto; justify-content: center; }
+            .vyr-bar .vy-input.vyr-filter { flex: 1 1 100%; }
+            .vyr-winnav { width: 100%; }
+            .vyr-winlabel { flex: 1; min-width: 0; }
+            .vyr-gridhead { padding: 12px 14px; }
+            .vyr-grid col.vyr-col-rt { width: 140px; }
+            .vyr-rt { padding: 8px 10px; }
+            .vyr-unitrow > .vyr-rt { padding-left: 12px; }
+            /* 🖥 at 390 px a four-digit average at 30 px ran past its half-width card */
+            .vy-rates .vy-dk-val { font-size: 22px; }
+            .vy-rates .vyr-dk-val-2 { font-size: 17px; }
+            .vyr-season-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vyr-season-form > .vy-field:first-of-type, .vyr-season-form > .vy-field:nth-of-type(2) { grid-column: 1 / -1; }
+            .vyr-rule { grid-template-columns: minmax(0, 1fr); }
+            .vyr-plan-actions { width: 100%; }
+            .vyr-plan-actions .vy-btn { flex: 1 1 auto; justify-content: center; }
+            .vy-rates .vy-modal-backdrop { padding: 10px; }
+            .vy-modal.vyr-dlg.is-padded { padding: 20px 18px 18px; }
+        }
+        @media (max-width: 420px) {
+            .vyr-dlg-grid2, .vyr-upf-dates { grid-template-columns: minmax(0, 1fr); }
+            .vyr-tiles3 .vy-choice-face { flex-direction: column; gap: 5px; padding: 10px 6px; }
+        }
 
         /* ---- New reservation (Wave 4) ---------------------------------------------------------- */
         .vyn-rt { padding: 13px 0; border-top: 1px solid var(--vy-hairline); }

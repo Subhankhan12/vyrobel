@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
-use App\Models\RatePlan;
 use App\Models\RateSeason;
 use App\Services\SeasonalRateService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyInput;
+use App\Support\Operator\OperatorWorkspace;
+use App\Support\Rates\RateScope;
+use App\Support\Rates\RatesListParams;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * OWNER FIX 4b — defining and APPLYING a seasonal ("peak") price.
@@ -28,7 +31,51 @@ use Illuminate\Http\Request;
  */
 class SeasonActionController extends Controller
 {
+    /** A season price cannot exceed this (minor units) — €1,000,000.00, the ceiling every price field on the page shares. */
+    private const MAX_PRICE_MINOR = 100_000_000;
+
     public function __construct(private AuditEventRecorder $audit) {}
+
+    /**
+     * Plain words for every refusal the two season forms can meet (2026-10-01) — Laravel's defaults read "The ends on field
+     * must be a date after or equal to starts on." Shared by save and edit so the two cannot word one rule two ways.
+     *
+     * @return array<string, string>
+     */
+    private function messages(): array
+    {
+        return [
+            'rate_plan_id.required' => 'Choose a rate plan.',
+            'name.required' => 'Give the season a name.',
+            'name.max' => 'Keep the season name to 80 characters.',
+            'starts_on.required' => 'Choose the first night.',
+            'starts_on.date' => 'Choose the first night.',
+            'ends_on.required' => 'Choose the last night.',
+            'ends_on.date' => 'Choose the last night.',
+            'ends_on.after_or_equal' => 'The last night can’t be before the first night.',
+            'price.required' => 'Enter a nightly price.',
+        ];
+    }
+
+    /**
+     * ⚠️⚠️ THE WORKSPACE PAUSE (2026-09-30). Every other rate write refused a paused workspace; this controller did not, so a
+     * paused workspace — which the shell tells the operator is read-only — could still SAVE and APPLY a season, and applying
+     * writes `rate_calendar`. Now all four season writes refuse it, with the same sentence as the rest of the page.
+     */
+    private function paused(Request $request): ?RedirectResponse
+    {
+        if (! app(OperatorWorkspace::class)->isReadOnly()) {
+            return null;
+        }
+
+        return $this->toPage($request)->with('rates_error', 'Your workspace is read-only right now — rate changes are paused.');
+    }
+
+    /** Back to the Rates page as the operator had it when started there ({@see RatesListParams}); otherwise back. */
+    private function toPage(Request $request): RedirectResponse
+    {
+        return $request->input('return') === 'list' ? RatesListParams::redirect($request) : back();
+    }
 
     /**
      * ⚠️ F-22 — the shape of a season's audit row. Identifiers, dates and an INTEGER minor-unit price:
@@ -52,6 +99,10 @@ class SeasonActionController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($refused = $this->paused($request)) {
+            return $refused;
+        }
+
         $data = $request->validate([
             'rate_plan_id' => ['required', 'string'],
             'name' => ['required', 'string', 'max:80'],
@@ -60,13 +111,14 @@ class SeasonActionController extends Controller
             // and read as "applied" afterwards.
             'ends_on' => ['required', 'date', 'after_or_equal:starts_on'],
             'price' => ['required', 'string'],
-        ]);
+        ], $this->messages());
 
-        $plan = RatePlan::query()->findOrFail($data['rate_plan_id']);   // tenant-scoped → cross-org 404
+        // ⚠️ DEC-l (2026-09-30) — inside the person's properties, not just the organisation.
+        $plan = app(RateScope::class)->ratePlan($data['rate_plan_id']);
 
-        $minor = MoneyInput::toMinor($data['price']);
+        $minor = MoneyInput::toMinor($data['price'], self::MAX_PRICE_MINOR);
         if ($minor === null || $minor <= 0) {
-            return back()->withErrors(['price' => 'Enter a nightly price greater than zero.']);
+            return back()->withErrors(['price' => 'Enter a nightly price greater than zero and no more than 1,000,000.'])->withInput();
         }
 
         $season = RateSeason::create([
@@ -81,7 +133,7 @@ class SeasonActionController extends Controller
         // ⚠️ F-22 — `before` is genuinely null here: the season did not exist. Honest null, not a placeholder.
         $this->audit->record('rate_season.created', $season, null, $this->seasonState($season));
 
-        return back()->with('rates_notice', 'Season saved. Review the blast radius, then apply it to write those nights.');
+        return $this->toPage($request)->with('rates_notice', 'Season saved. Review the blast radius, then apply it to write those nights.');
     }
 
     /**
@@ -103,27 +155,39 @@ class SeasonActionController extends Controller
      */
     public function update(Request $request, string $season): RedirectResponse
     {
-        $model = RateSeason::query()->findOrFail($season);   // tenant-scoped → cross-org 404
+        $model = app(RateScope::class)->season($season);   // DEC-l — inside the person's properties
+
+        if ($refused = $this->paused($request)) {
+            return $refused;
+        }
 
         if ($model->applied_at !== null) {
-            return back()->withErrors([
+            // ⚠️ The error key `season` is the contract (SeasonEditDeleteTest) — and since 2026-10-01 the page SHOWS it, as an
+            //    alert at the top. Until then only `price` was rendered, so this refusal arrived silently.
+            return $this->toPage($request)->withErrors([
                 'season' => 'This season has already been applied, so it cannot be edited — the nightly rates it '
                     .'wrote have replaced whatever was there, and nothing recorded the previous prices. Author a new '
                     .'season over those nights instead.',
             ]);
         }
 
-        $data = $request->validate([
+        // ⚠️ The edit happens in a dialog that is closed again by the redirect, so its refusal is an ALERT at the top of the
+        //    page — as an error bag it would print under the SAVE form, beside fields the operator never touched.
+        $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:80'],
             'starts_on' => ['required', 'date'],
             'ends_on' => ['required', 'date', 'after_or_equal:starts_on'],
             'price' => ['required', 'string'],
-        ]);
+        ], $this->messages());
+        if ($validator->fails()) {
+            return $this->toPage($request)->with('rates_error', (string) $validator->errors()->first());
+        }
+        $data = $validator->validated();
 
-        $minor = MoneyInput::toMinor($data['price']);
+        $minor = MoneyInput::toMinor($data['price'], self::MAX_PRICE_MINOR);
 
         if ($minor === null || $minor <= 0) {
-            return back()->withErrors(['price' => 'Enter a nightly price greater than zero.']);
+            return $this->toPage($request)->with('rates_error', 'Enter a nightly price greater than zero and no more than 1,000,000.');
         }
 
         // ⚠️ CAPTURED BEFORE THE WRITE. Phase 11 found 11 of 11 rate-path call sites passing `before => null`,
@@ -140,7 +204,7 @@ class SeasonActionController extends Controller
 
         $this->audit->record('rate_season.updated', $model, $before, $this->seasonState($model->refresh()));
 
-        return back()->with('rates_notice', 'Season updated. Review the blast radius, then apply it to write those nights.');
+        return $this->toPage($request)->with('rates_notice', 'Season updated. Review the blast radius, then apply it to write those nights.');
     }
 
     /**
@@ -159,9 +223,13 @@ class SeasonActionController extends Controller
      * dropped the soft-delete scope along with the tenant one. A season that is gone must be gone from
      * every query, including any that drops scopes.
      */
-    public function destroy(string $season): RedirectResponse
+    public function destroy(Request $request, string $season): RedirectResponse
     {
-        $model = RateSeason::query()->findOrFail($season);
+        $model = app(RateScope::class)->season($season);   // DEC-l — inside the person's properties
+
+        if ($refused = $this->paused($request)) {
+            return $refused;
+        }
         $wasApplied = $model->applied_at !== null;
         $name = (string) $model->name;
 
@@ -173,7 +241,7 @@ class SeasonActionController extends Controller
 
         $this->audit->record('rate_season.deleted', $model, $before, null);
 
-        return back()->with('rates_notice', $wasApplied
+        return $this->toPage($request)->with('rates_notice', $wasApplied
             ? sprintf('Season "%s" deleted. ⚠️ The nightly rates it already applied are unchanged — deleting a '
                 .'season does not restore the prices it replaced. Set those nights yourself if they are wrong.', $name)
             : sprintf('Season "%s" deleted. It had not been applied, so no rates changed.', $name));
@@ -185,7 +253,11 @@ class SeasonActionController extends Controller
      */
     public function apply(Request $request, SeasonalRateService $seasons, string $season): RedirectResponse
     {
-        $model = RateSeason::query()->findOrFail($season);   // tenant-scoped → cross-org 404
+        $model = app(RateScope::class)->season($season);   // DEC-l — inside the person's properties
+
+        if ($refused = $this->paused($request)) {
+            return $refused;
+        }
 
         $preview = $seasons->preview($model);
 
@@ -216,6 +288,6 @@ class SeasonActionController extends Controller
             );
         }
 
-        return back()->with('rates_notice', $notice);
+        return $this->toPage($request)->with('rates_notice', $notice);
     }
 }

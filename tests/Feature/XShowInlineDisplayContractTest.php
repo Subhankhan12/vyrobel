@@ -18,19 +18,22 @@ declare(strict_types=1);
 // where it was fixed and is not growing elsewhere. That the fixed dialogs now open centred was measured in a browser.
 //
 // ⚠️ A CEILING, NOT A ZERO. 39 more sites carry the same pattern in other screens (rates, units, security, owner pages) —
-// 45 after the Guests pass, 39 after the Maintenance pass fixed its six, 35 after the Units pass fixed its four.
+// 45 after the Guests pass, 39 after the Maintenance pass fixed its six, 35 after the Units pass fixed its four, 26 after the
+// Rates pass fixed its nine.
 // Most are panels whose content happens to lay out acceptably as `block`; each needs looking at in a browser, and that
 // sweep is its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
 
-const VY_XSHOW_INLINE_DISPLAY_CEILING = 35;
+const VY_XSHOW_INLINE_DISPLAY_CEILING = 26;
 
-/** The views the Guests, Maintenance and Units passes fixed — the pattern must be gone from these entirely. */
+/** The views the Guests, Maintenance, Units and Rates passes fixed — the pattern must be gone from these entirely. */
 const VY_XSHOW_FIXED_VIEWS = [
     'livewire/operator/guests-list.blade.php',
     'livewire/operator/guest-profile.blade.php',
     'livewire/maintenance-list.blade.php',            // 2026-09-29, the Maintenance rebuild (4 sites)
     'livewire/maintenance-ticket-detail.blade.php',   // 2026-09-29, the same pass (2 sites)
     'livewire/units-list.blade.php',                  // 2026-09-30, the Units rebuild (4 sites)
+    'livewire/operator/rates-grid.blade.php',         // 2026-10-01, the Rates rebuild (8 sites)
+    'components/rates/unit-price-form.blade.php',     // 2026-10-01, the same pass (1 site)
 ];
 
 /**
@@ -115,7 +118,7 @@ function vyXShowInlineDisplayCensus(): array
     return $hits;
 }
 
-it('⚠️⚠️ leaves no element on the Guests, Maintenance and Units pages whose display x-show would erase', function () {
+it('⚠️⚠️ leaves no element on the Guests, Maintenance, Units and Rates pages whose display x-show would erase', function () {
     $offenders = array_values(array_filter(
         vyXShowInlineDisplayCensus(),
         fn (string $hit): bool => in_array(explode(':', $hit)[0], VY_XSHOW_FIXED_VIEWS, true),
