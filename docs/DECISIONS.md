@@ -18760,3 +18760,11 @@ Baku) · mutations **393/393 across every set**
 `3ac61b96bc916ce4`) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 /
 cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local) · PHPStan 0 · Pint clean · an independent
 read-only review of the whole diff: one finding at its bar (the notify switch), fixed with a test that failed first.
+
+✅ **LIVE on `rel_AJ @ a3604b9c` (2026-09-30, swap 16 ms, 12:22 Baku).** No migration; 11 files shipped. 🔬 Preflight from the
+staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: all five routes present and Edit gated
+`can:maintenance.manage`; the way back rebuilt to `/app/maintenance?filter=urgent&sort=due&page=2` from a query carrying junk,
+and an off-site value stayed on `vyrobel.com`; the board's work-order query ran in 0.7 ms median (8.9 ms max) across the 15
+organisations (1 work order on their boards). After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure**
+(`SERVED=0`), **1,409 of 1,409** deployable files match git at `a3604b9c`, the `.htaccess` drift check passes (self-test 3/3),
+0 errors since the swap. ⚠️ Not done: a signed-in look on production.

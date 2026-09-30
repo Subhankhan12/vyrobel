@@ -5,12 +5,12 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AI` → commit `9f704a3a`** (the Guests rebuild, on top of Portfolio Open + fields, the Portfolio
-  remove and ADMIN 06). **V:** `readlink current` + `cat current/.release` over SSH after the swap, 2026-09-29 22:02 Baku.
-  Rollback targets: `rel_AH @ 3b012e93` (Portfolio Open + fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2`
-  (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
-- **GitHub `origin/main`** carries `9f704a3a` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,407 of 1,407 deployable files match git at `9f704a3a`.** **V** 2026-09-29 22:03,
+- **Live release `rel_AJ` → commit `a3604b9c`** (the Maintenance rebuild, on top of the Guests rebuild, Portfolio Open +
+  fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output + `cat current/.release` over SSH after the
+  swap, 2026-09-30 12:22 Baku. Rollback targets: `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open + fields),
+  `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
+- **GitHub `origin/main`** carries `a3604b9c` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,409 of 1,409 deployable files match git at `a3604b9c`.** **V** 2026-09-30 12:29 Baku,
   sha256 manifest checked inside the live release.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
@@ -22,7 +22,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **393/393 landed and caught across every set**, 0 not caught, 0 did not land; baseline 209/209 green (`admin-06` = 87, `admin-05` = 49, `maintenance-board` = 26, `guests-list` = 24, `portfolio-remove` = 14, `portfolio-fields` = 6) | **V** harness output 2026-09-30 10:24–10:55 Baku, tree `3ac61b96bc916ce4` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 11:33 Baku (the Maintenance pass). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AI`, 2026-09-29 22:03–22:06 Baku (and on `rel_AH`, `rel_AG`, `rel_AF` the same day); drift check passes, self-test 3/3 (V 22:07) | **V** `ops/public-checks.sh` 2026-09-29 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AJ`, 2026-09-30, run straight after the 12:22 Baku swap (and on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 12:29) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -34,7 +34,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AI`: 0 logged since its swap, V 22:06 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AJ`: 0 logged since its swap, V 2026-09-30 12:29 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -50,8 +50,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     ✅ LIVE on `rel_AI` (V 2026-09-29 22:02 Baku). Left: a signed-in look on production; his calls A8 (the x-show sweep) and A9 (the other see-through
     dialogs), `OPEN.md`.
 0d. **Maintenance rebuilt (2026-09-29/30)** — the board like Guests (centred dialogs, a drawer on the right, a sortable table,
-    row Edit and Cancel) and the work order page's two dialogs made real (`HISTORY.md`, "MAINTENANCE"). Gates passed (above);
-    ⏳ deploy next. Left after it: a signed-in look on production; his calls A10 (the string `:style` sweep) and DEC-j.
+    row Edit and Cancel) and the work order page's two dialogs made real (`HISTORY.md`, "MAINTENANCE"). ✅ LIVE on `rel_AJ`
+    (V 2026-09-30 12:22 Baku). Left: a signed-in look on production; his calls A10 (the string `:style` sweep) and DEC-j.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

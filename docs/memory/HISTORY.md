@@ -338,7 +338,10 @@ fault at a human pace). Not changed, reported: creating a work order does not ch
 DEC-j).
 Gates: 4,087/4,087 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `3ac61b96bc916ce4`); the final run 4,087/4,087 on MySQL (tree `4d9f12e34c4bdba0`, the code plus these docs); 393/393 mutations;
 money gate FULL unmoved; browser-walked on tenant three (1440, 1180 and 390 px; 0 console errors).
-**Deploy — not yet; next, as `rel_AJ`.**
+**Deploy — LIVE `rel_AJ @ a3604b9c`, swap 16 ms (Verified 2026-09-30 12:22 Baku);** preflight on production: the board's
+query ran in 0.7 ms median across 15 organisations, the way back rebuilt to the board from a query carrying junk and an
+off-site value stayed on vyrobel.com; public checks 12/0/0; 1,409/1,409 files match git; drift check passes; 0 errors
+since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
