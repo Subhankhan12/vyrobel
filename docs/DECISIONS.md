@@ -18887,3 +18887,33 @@ staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: all eight 
 and no row carried a door code, wifi password or note. After the swap: public checks **12 PASS · 0 FAIL · 0 could not
 measure** (`SERVED=0`), **1,412 of 1,412** deployable files match git at `a4e2b6e5`, the `.htaccess` drift check passes
 (self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
+
+## 2026-09-30 — DEC-k ruled: Add unit finds the room type inside the person's properties, like every other unit write
+
+**Asked:** after the Units report named DEC-k — "Adding a unit doesn't check which properties the person is allowed to
+access, while every other unit action does" — he answered: "Fix this issue too". Ruled; D-UNIT-STORE closed.
+
+**What was wrong.** `InventoryActionController::storeUnit()` looked the room type up through the tenant scope only
+(`RoomType::query()->findOrFail(...)`). The organisation boundary held, but inside it, staff limited to some properties
+(the `property_user` allow-list, #38) could add a unit to another property's room type by posting its id — 🔬 the new test
+got a **302 and a created unit** where a 404 was due. The Units page never offered that room type, and every other unit
+write (Edit, Pause / Resume, bulk Pause / Resume, Arrival info and its reveal) already resolved inside the person's
+properties.
+
+**The fix.** An `accessibleRoomType()` beside `accessibleUnit()`, with the same rule — `PropertyContext::readIds()`: every
+property the person may access when "All properties" is selected, otherwise the one they are working in (the same set the
+Units page reads, so the dialog offers exactly what the write accepts). Another property's room type is **not found** — a
+404, not merely hidden — and nothing is created; the room type's own property still decides where the unit goes.
+
+**Proof.** A new test in `UnitsListRedesignTest` pins it three ways: a manager limited to property A is refused B's room
+type (404, no unit); the same manager still adds to A; a manager allowed everywhere, with "All properties" selected, still
+adds to B — so the rule narrows to the person's properties and locks no one out of their own. Mutation set `units-list`
+now 33: UL-M32 (the helper loses its narrowing) and UL-M33 (Add unit goes back to the plain lookup) both caught.
+
+**Not changed:** DEC-i (Edit on the Portfolio) and DEC-j (creating and working maintenance orders) — the same question on
+other screens — stay his to rule; they were not in the ruling. **Found beside it, reported, not changed:** the same controller's
+three rate-plan writes on the Rates page — add, edit, on/off sale (`storeRatePlan`, `updateRatePlan`, `setRatePlanActive`,
+`can:rates.manage`) — find their room type or rate plan through the tenant scope only (D-RATE-PLAN-SCOPE, DEC-l; read, not
+probed). They are rate writes, outside a ruling about Add unit.
+
+**Gates (each read from its own output, 2026-09-30):** **4,109/4,109 on MySQL 8.4.10** (30,086 assertions, tree `758fe3261f6a5721`: this code with the entry and the memory written, before these figures were filled in; 18:25–18:40 Baku) · **4,109/4,109 on MariaDB 11.8.9** (the same tree, 18:55–19:10 Baku; advisor-platform's dev server still stopped since 16:09, checked at 18:55) · mutations **426/426 across every set** (`units-list` 33/33; baseline 224/224 green; 18:40–18:55 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, 19:10 Baku) · PHPStan 0 · Pint clean. A first MySQL run was stopped a few minutes in, on purpose, so the rate-plan finding could go into the docs before the gates (tests read `docs/`).

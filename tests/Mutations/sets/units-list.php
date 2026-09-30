@@ -268,4 +268,20 @@ return [
         'new' => "                    @unless (\$canWrite)\n                        <p class=\"vy-gl-note\">Adding room types",
         'tests' => [['file' => $t, 'filter' => 'guides a new property through setup']],
     ],
+    [
+        'id' => 'UL-M32',
+        'name' => 'DEC-k — the room type lookup for Add unit forgets the person\'s properties again',
+        'file' => $ctl,
+        'old' => "        return RoomType::query()\n            ->when(\$ids !== [], fn (\$q) => \$q->whereIn('property_id', \$ids))\n            ->findOrFail(\$roomTypeId);",
+        'new' => "        return RoomType::query()\n            ->findOrFail(\$roomTypeId);",
+        'tests' => [['file' => $t, 'filter' => 'adds a unit only to a room type in the properties the person works in']],
+    ],
+    [
+        'id' => 'UL-M33',
+        'name' => 'DEC-k — Add unit goes back to the tenant-scope-only lookup',
+        'file' => $ctl,
+        'old' => "        \$roomType = \$this->accessibleRoomType(\$data['room_type_id']);",
+        'new' => "        \$roomType = RoomType::query()->findOrFail(\$data['room_type_id']);",
+        'tests' => [['file' => $t, 'filter' => 'adds a unit only to a room type in the properties the person works in']],
+    ],
 ];

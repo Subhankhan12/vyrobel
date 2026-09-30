@@ -408,6 +408,35 @@ it('⚠️⚠️ gates bulk pause like the single one — the permission, the wo
     expect($unit->fresh()->is_active)->toBeTrue();
 })->group('security');
 
+it('⚠️⚠️ adds a unit only to a room type in the properties the person works in — as every other unit write (DEC-k)', function () {
+    // DEC-k, ruled 2026-09-30 ("Fix this issue too"): Add unit found the room type through the TENANT scope only, so staff
+    // limited to one property could add a unit to another property's room type by posting its id — while Edit, Pause /
+    // Resume, bulk Pause / Resume, Arrival info and its reveal all resolve inside the person's properties (#38).
+    $s = seedScenario(1);
+    $far = secondProperty($s);
+    $farType = RoomType::create(['property_id' => $far->id, 'name' => 'Far', 'kind' => 'room']);
+    $scoped = operatorUser($s);
+    DB::table('property_user')->insert(['id' => (string) Str::ulid(), 'organization_id' => $s['org']->id, 'user_id' => $scoped->id,
+        'property_id' => $s['property']->id, 'created_at' => now(), 'updated_at' => now()]);
+
+    // another property's room type is not found — not merely hidden — and nothing is created there
+    $this->actingAs($scoped)->post(route('app.inventory.units.store'), ['room_type_id' => $farType->id, 'code' => 'FAR9'])
+        ->assertNotFound();
+    expect(Unit::query()->where('room_type_id', $farType->id)->exists())->toBeFalse();
+
+    // their own property's room type still takes a unit
+    $this->actingAs($scoped)->post(route('app.inventory.units.store'), ['room_type_id' => $s['roomType']->id, 'code' => 'NEAR9'])
+        ->assertRedirect();
+    expect(Unit::query()->where('room_type_id', $s['roomType']->id)->where('code', 'NEAR9')->exists())->toBeTrue();
+
+    // and a manager allowed everywhere, working across all properties, still may add to the far one — the rule narrows to
+    // the person's properties; it does not lock anyone out of their own
+    $this->actingAs(operatorUser($s))->withSession(['current_property_id' => 'all'])
+        ->post(route('app.inventory.units.store'), ['room_type_id' => $farType->id, 'code' => 'FAR9'])
+        ->assertRedirect();
+    expect(Unit::query()->where('room_type_id', $farType->id)->where('code', 'FAR9')->exists())->toBeTrue();
+})->group('security');
+
 // ── Export ───────────────────────────────────────────────────────────────────────────────────────
 
 it('⚠️⚠️ exports what the view shows, or what was selected — no door code, wifi password or note ever', function () {

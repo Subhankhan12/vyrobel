@@ -120,10 +120,12 @@ class InventoryActionController extends Controller
             'max_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
         ]);
 
-        // ⚠️ TENANT-SCOPED, FROM A STRING ID. The global organization scope makes another org's id a 404,
-        // and the property is read off the ROOM TYPE rather than the request — so a unit can never be
-        // attached to a property the room type does not belong to.
-        $roomType = RoomType::query()->findOrFail($data['room_type_id']);
+        // ⚠️ FROM A STRING ID, INSIDE THE ACTOR'S PROPERTIES. The global organization scope makes another org's id a
+        // 404, and the property is read off the ROOM TYPE rather than the request — so a unit can never be attached to a
+        // property the room type does not belong to. ⚠️ 2026-09-30 (DEC-k, his ruling): this lookup used the tenant scope
+        // ONLY, so staff limited to one property could add a unit to another's room type by posting its id, while every
+        // other unit write resolved inside the person's properties. Now the same rule as theirs.
+        $roomType = $this->accessibleRoomType($data['room_type_id']);
 
         // ⚠️ 2026-09-30 — THE DATABASE WAS THE ONLY CHECK. `units` is unique on (property, code), and this action had no
         // rule for it, so a code already used in the property reached the unique index and came back as a 500. Refused
@@ -535,6 +537,16 @@ class InventoryActionController extends Controller
         return Unit::query()
             ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
             ->findOrFail($unitId);
+    }
+
+    /** A room type the CURRENT ACTOR may add to — the same rule as {@see accessibleUnit()} (DEC-k, 2026-09-30). */
+    private function accessibleRoomType(string $roomTypeId): RoomType
+    {
+        $ids = app(PropertyContext::class)->readIds();
+
+        return RoomType::query()
+            ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
+            ->findOrFail($roomTypeId);
     }
 
     /**

@@ -381,6 +381,18 @@ on production: every route present and gated, the bulk service present, the way 
 carrying junk and an off-site value stayed on vyrobel.com, the unit read 0.2 ms median across 15 organisations (3 units), no
 row carrying a secret; public checks 12/0/0; 1,412/1,412 files match git; drift check passes; 0 errors since the swap.
 
+**UNITS · DEC-k — 2026-09-30 — his ruling ("Fix this issue too").** Add unit found the room type through the tenant scope
+only, so staff limited to one property could add a unit to another property's room type by posting its id (🔬 the new test
+was RED first: a 302 where a 404 was due). Now `accessibleRoomType()` — the same `readIds()` rule as `accessibleUnit()`, which
+every other unit write uses: another property's room type is a 404 and nothing is created there; the person's own property
+still takes a unit, and a manager allowed everywhere, working across all properties, still may add anywhere (pinned both
+ways, so the fix cannot lock anyone out). Mutations UL-M32 (the helper loses its narrowing) and UL-M33 (Add unit goes back
+to the plain lookup) caught. DEC-i and DEC-j, the same question elsewhere, stay his. **Found beside it, not fixed:** the
+three rate-plan writes (add, edit, on/off sale) have the same tenant-only lookup (D-RATE-PLAN-SCOPE, DEC-l) — outside his
+ruling, so reported, not changed. A preflight check of my own first matched that rate-plan line instead of Add unit's and
+reported the fix missing; it now reads `storeUnit`'s own body.
+Gates: 4,109/4,109 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `758fe3261f6a5721`, the code plus these docs); 426/426 mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
