@@ -5,16 +5,16 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AO` → commit `cac9e677`** (the Rates rebuild with DEC-l — on top of DEC-m, photos at `/media`, DEC-k,
-  the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio remove and ADMIN 06).
-  **V:** `ops/release.sh swap` output (`.release = cac9e677…`), 2026-10-01 02:10 Baku. A follow-up with the two fixes the live
-  look found is committed next (not yet live when this was written). Rollback targets: `rel_AN @ 761cf2dd` (DEC-m),
+- **Live release `rel_AP` → commit `9b9b80c8`** (the Rates rebuild with DEC-l, `rel_AO @ cac9e677`, plus the two fixes its
+  live look found — on top of DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open +
+  fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 9b9b80c8…`), 2026-10-01
+  03:21 Baku. Rollback targets: `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
-- **GitHub `origin/main`** carried `cac9e677` when it was deployed (**V** `git ls-remote origin`, 2026-10-01 02:09 Baku).
-- **Live code vs git, byte for byte: 1,434 of 1,434 files in the live release match git at `cac9e677`, 0 differ** (the other
-  1,200 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-01 02:14 Baku, sha256 manifest checked
+- **GitHub `origin/main`** carries `9b9b80c8` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,434 of 1,434 files in the live release match git at `9b9b80c8`, 0 differ** (the other
+  1,200 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-01 03:23 Baku, sha256 manifest checked
   inside the live release.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
@@ -26,7 +26,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **488/488 landed and caught across every set**, 0 not caught, 0 did not land; baseline 262/262 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 02:47–03:03 Baku, tree `0f40aa8b2640cd26` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 03:19 Baku (the RATES follow-up; reseeded 03:19; also 02:07 for `cac9e677`). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-10-01 |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AO`, 2026-10-01, run straight after the 02:10 Baku swap (and on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01 02:15) | **V** `ops/public-checks.sh` 2026-10-01 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AP`, 2026-10-01, run straight after the 03:21 Baku swap (and on `rel_AO` at 02:10 the same day, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01 03:23) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -38,7 +38,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AO`: 0 logged since its swap, V 2026-10-01 02:16 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AP`: 0 logged since its swap, V 2026-10-01 03:24 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -77,8 +77,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     own dates, seasons refused while paused, a second plan that can be priced, refusals as alerts, every write back on the
     fortnight it started from, and every rate write inside the person's properties (DEC-l ruled and fixed). ✅ LIVE on
     `rel_AO` (V 2026-10-01 02:10 Baku). The live look is done (he signed in himself; look only): every dialog centred, the
-    drag, the filter, 390 px, 0 console errors. It found two defects, fixed in a follow-up commit: the season form offered
-    with an empty plan picker where no plan is on sale, and a hidden table header widening the page at 390 px.
+    drag, the filter, 390 px, 0 console errors. It found two defects, fixed and ✅ LIVE on `rel_AP` (V 03:21 Baku) and
+    re-checked there: no season form where no plan is on sale (a line says why), and 390 of 390 px at 390 with a season shown.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

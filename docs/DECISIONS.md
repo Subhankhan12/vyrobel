@@ -19148,3 +19148,10 @@ it from sight). Both scroll boxes are now containing blocks (🖥 locally with a
 Baku) and on MariaDB 11.8.9 (03:03–03:18 Baku), 30,552 assertions, tree `0f40aa8b2640cd26` (the code with these lines written,
 before the figures) · mutations 488/488 across every set (baseline 262/262) · the money gate FULL, unmoved (reseeded 03:19 Baku)
 · PHPStan L5 0 errors · Pint clean.
+
+✅ **The follow-up is LIVE on `rel_AP @ 9b9b80c8` (2026-10-01, swap 3 ms, 03:21 Baku).** 2 files shipped, no migration; the same
+read-only preflight (views compile, 11/11 writes gated); public checks **12 PASS · 0 FAIL · 0 could not measure**; **1,434 of
+1,434** files match git at `9b9b80c8`; drift check passes (self-test 3/3); 0 errors since the swap. 🖥 Re-checked on production in
+his session, look only: Villa Azure Lumière at 390 px with its season shown is **390 of 390 px** wide (was 660); Internal Test
+Property offers no season form and says a season needs a plan on sale; 0 console errors. His property view was put back on
+Internal Test Property, where he had it.

@@ -481,6 +481,9 @@ follow-up:** the season form with an empty plan picker where no plan is on sale;
 and widening the document to 660 px at 390 (both scroll boxes are now containing blocks).
 Follow-up gates: 4,148/4,148 on MySQL 8.4.10 and MariaDB 11.8.9 (tree `0f40aa8b2640cd26`); 488/488 mutations; money gate FULL
 unmoved.
+**Deploy — LIVE `rel_AP @ 9b9b80c8`, swap 3 ms (Verified 2026-10-01 03:21 Baku);** 2 files; public checks 12/0/0; 1,434/1,434
+files match git; drift check passes; 0 errors since the swap; both fixes re-checked on production (390 of 390 px; no season form
+without a plan on sale); 0 console errors.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
