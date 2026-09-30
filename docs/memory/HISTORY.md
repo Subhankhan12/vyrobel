@@ -415,6 +415,12 @@ text file named `.jpg` was served — the check now reads the bytes with `finfo`
 now, and the guard was not touched.
 Gates: 4,112/4,112 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `41f113a1016595f1`, the code plus these docs); 432/432
 mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AM @ 9e9b1193`, swap 5 ms (Verified 2026-09-30 20:42 Baku);** 3 files shipped, no migration; preflight on
+production: the route outside the web group, the disk at `https://vyrobel.com/media`, all 5 of his room photos with `/media`
+addresses and served; after the swap 🔬 all 5 answered **200 `image/jpeg`** from outside (real JPEGs, no cookie, `private`),
+`/storage/…` still 404, `/media/message-attachments/…` and a folder 404; his live storefront (`villa-azure-lumiere`) shows its
+2 covers at `/media`, 0 at `/storage`; public checks 12/0/0; 1,413/1,413 files match git; drift check passes; 0 errors
+since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

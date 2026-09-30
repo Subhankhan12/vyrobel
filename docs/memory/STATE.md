@@ -5,13 +5,14 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AL` → commit `8cda8c7f`** (DEC-k: Add unit checks the person's properties — on top of the Units,
-  Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap`
-  output + `cat current/.release` over SSH after the swap, 2026-09-30 19:13 Baku. Rollback targets: `rel_AK @ a4e2b6e5`
-  (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open + fields),
-  `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
-- **GitHub `origin/main`** carries `8cda8c7f` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,412 of 1,412 deployable files match git at `8cda8c7f`.** **V** 2026-09-30 19:19 Baku,
+- **Live release `rel_AM` → commit `9e9b1193`** (photos at `/media` — on top of DEC-k, the Units, Maintenance and Guests
+  rebuilds, Portfolio Open + fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output + `cat
+  current/.release` over SSH after the swap, 2026-09-30 20:42 Baku. Rollback targets: `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @
+  a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
+  fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
+  ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
+- **GitHub `origin/main`** carries `9e9b1193` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,413 of 1,413 deployable files match git at `9e9b1193`.** **V** 2026-09-30 20:48 Baku,
   sha256 manifest checked inside the live release.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
@@ -23,7 +24,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **432/432 landed and caught across every set**, 0 not caught, 0 did not land; baseline 227/227 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `public-media` = 6, and 12 older sets) | **V** harness output 2026-09-30 20:09–20:24 Baku, tree `41f113a1016595f1` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 20:40 Baku (the photos pass; reseeded 20:39–20:40). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AL`, 2026-09-30, run straight after the 19:13 Baku swap (and on `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 19:20) | **V** `ops/public-checks.sh` 2026-09-30 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AM`, 2026-09-30, run straight after the 20:42 Baku swap (and on `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 20:48) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -35,7 +36,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AL`: 0 logged since its swap, V 2026-09-30 19:20 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AM`: 0 logged since its swap, V 2026-09-30 20:48 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -62,8 +63,9 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 0f. **Photos show again (2026-09-30)** — his report: "when I add photo, the preview is not available". 🔬 Production refused
     every `/storage…` address by design (KNOWN-LIMITS L12p), so every uploaded image — room photos, logos, avatars,
     housekeeping and maintenance photos — answered 404 while its file sat on disk. The public disk now answers at `/media`
-    (`PublicMediaController`; `HISTORY.md`, "PHOTOS"). ⏳ Gates, then deploy as `rel_AM` and a look at his five photos.
-    Left: his call DEC-m (message attachments).
+    (`PublicMediaController`; `HISTORY.md`, "PHOTOS"). ✅ LIVE on `rel_AM` (V 2026-09-30 20:42 Baku): 🔬 his five photos
+    answer 200 `image/jpeg` at `/media` from outside, and his live storefront shows its two covers there. Left: a signed-in
+    look at `/app/units` on production; his call DEC-m (message attachments).
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

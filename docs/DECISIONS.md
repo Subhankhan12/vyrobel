@@ -18971,3 +18971,16 @@ locally on tenant three: a photo added on Units showed at once as the card's cov
 its address 200 `image/jpeg`, no `Set-Cookie`), the booking storefront showed it, 0 console errors or warnings.
 
 **Gates (each read from its own output, 2026-09-30):** the first full run **4,111/4,112 on MySQL 8.4.10** (tree `2ed2651b86f1c993`, 19:37–19:52 Baku — the `HtmlIsNeverPubliclyCacheableTest` refusal above, answered with `private`) · **4,112/4,112 on MySQL 8.4.10** (30,122 assertions, tree `41f113a1016595f1`: this code with the entry and the memory written, before these figures were filled in; 19:53–20:08 Baku) · **4,112/4,112 on MariaDB 11.8.9** (the same tree, 20:24–20:39 Baku; advisor-platform's dev server still stopped, checked at 20:24) · mutations **432/432 across every set** (`public-media` 6/6; baseline 227/227 green; 20:09–20:24 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, reseeded 20:39–20:40 and read at 20:40 Baku) · PHPStan 0 · Pint clean.
+
+✅ **LIVE on `rel_AM @ 9e9b1193` (2026-09-30, swap 5 ms, 20:42 Baku).** No migration; 3 files shipped (the controller, the
+disk config, `bootstrap/app.php`; config and route caches rebuilt by the stage). 🔬 Preflight from the staged release on
+production, read-only: `media/{path}` with no middleware (outside the `web` group); the public disk at
+`https://vyrobel.com/media`; **all 5 of his room photos** had `/media` addresses, their files present, and the controller
+would serve each. 🔬 **After the swap, from outside, cache-busted: all 5 answered 200 `image/jpeg`** (real JPEGs, 22–41 KB,
+no `Set-Cookie`, `private, max-age=86400`); `/storage/room-photos/…` still **404** (the server's rule untouched);
+`/media/message-attachments/…` and `/media/room-photos` **404**; `/media/.env` **403** (the host's own rule). His live
+storefront `/book/villa-azure-lumiere` (`no-cache, private`, as the CDN guard requires) references its **2 cover photos at
+`/media`, none at `/storage`**, and both load. Public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`),
+**1,413 of 1,413** deployable files match git at `9e9b1193`, the `.htaccess` drift check passes (self-test 3/3), 0 errors
+since the swap. ⚠️ Not done: a signed-in look at `/app/units` on production (his sign-in). ⚠️ A rollback to `rel_AL` or
+earlier puts every photo back on the refused `/storage` address.
