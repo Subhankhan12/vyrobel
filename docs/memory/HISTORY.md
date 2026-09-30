@@ -376,6 +376,10 @@ Gates: 4,105/4,107 on MySQL on the first run (the loader error above), then 4,10
 `40a51eade6466fc1`; he said "stop advisor and complete vyrobel", so advisor-platform's dev server was stopped with SIGTERM at
 16:09 and left stopped); the final MySQL run 4,108/4,108 (tree `ce2dc2f218e1fac9`, the code plus these docs); 424/424 mutations; money gate FULL unmoved; browser-walked on tenant
 three (1440 and 390 px; 0 console errors).
+**Deploy — LIVE `rel_AK @ a4e2b6e5`, swap 4 ms (Verified 2026-09-30 17:29 Baku);** 10 files shipped, no migration; preflight
+on production: every route present and gated, the bulk service present, the way back rebuilt to the list from a query
+carrying junk and an off-site value stayed on vyrobel.com, the unit read 0.2 ms median across 15 organisations (3 units), no
+row carrying a secret; public checks 12/0/0; 1,412/1,412 files match git; drift check passes; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

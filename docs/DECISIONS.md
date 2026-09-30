@@ -18878,3 +18878,12 @@ MariaDB 11.8.9** (30,078 assertions, tree `40a51eade6466fc1`, 16:10–16:48 Baku
 at his word: "stop advisor and complete vyrobel" — Founder said, 16:08) · the final run on MySQL 8.4.10 **4,108/4,108** (30,078 assertions, tree `ce2dc2f218e1fac9`: this code with the entry and the memory written, before these figures were filled in; 16:49–17:22 Baku) ·
 money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, 17:22 Baku) · PHPStan 0 · Pint clean · an independent read-only review of the whole diff: one finding at its
 bar (the bulk recompute), fixed with a test that failed first.
+
+✅ **LIVE on `rel_AK @ a4e2b6e5` (2026-09-30, swap 4 ms, 17:29 Baku).** No migration; 10 files shipped. 🔬 Preflight from the
+staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: all eight Units routes present, bulk Pause/Resume gated
+`can:units.manage` and both exports `can:units.view`; `setManyByOperator()` present; the way back rebuilt to
+`/app/units?filter=paused&sort=sleeps&dir=asc&per=50&page=2` from a query carrying junk, and an off-site value stayed on
+`vyrobel.com`; the page's unit read ran in 0.2 ms median (10.4 ms max) across the 15 organisations (3 units, 2 room types),
+and no row carried a door code, wifi password or note. After the swap: public checks **12 PASS · 0 FAIL · 0 could not
+measure** (`SERVED=0`), **1,412 of 1,412** deployable files match git at `a4e2b6e5`, the `.htaccess` drift check passes
+(self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
