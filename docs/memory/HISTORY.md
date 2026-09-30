@@ -391,7 +391,12 @@ to the plain lookup) caught. DEC-i and DEC-j, the same question elsewhere, stay 
 three rate-plan writes (add, edit, on/off sale) have the same tenant-only lookup (D-RATE-PLAN-SCOPE, DEC-l) — outside his
 ruling, so reported, not changed. A preflight check of my own first matched that rate-plan line instead of Add unit's and
 reported the fix missing; it now reads `storeUnit`'s own body.
-Gates: 4,109/4,109 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `758fe3261f6a5721`, the code plus these docs); 426/426 mutations; money gate FULL unmoved.
+Gates: 4,109/4,109 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `758fe3261f6a5721`, the code plus these docs); 426/426
+mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AL @ 8cda8c7f`, swap 4 ms (Verified 2026-09-30 19:13 Baku);** 1 file shipped, no migration; preflight on
+production: Add unit still gated `units.manage`, `storeUnit` uses the new lookup and the plain one is gone from it, and 0 people
+are limited to particular properties today (so no one's access changed now — it guards the case once someone is); public
+checks 12/0/0; 1,412/1,412 files match git; drift check passes; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

@@ -18917,3 +18917,11 @@ three rate-plan writes on the Rates page — add, edit, on/off sale (`storeRateP
 probed). They are rate writes, outside a ruling about Add unit.
 
 **Gates (each read from its own output, 2026-09-30):** **4,109/4,109 on MySQL 8.4.10** (30,086 assertions, tree `758fe3261f6a5721`: this code with the entry and the memory written, before these figures were filled in; 18:25–18:40 Baku) · **4,109/4,109 on MariaDB 11.8.9** (the same tree, 18:55–19:10 Baku; advisor-platform's dev server still stopped since 16:09, checked at 18:55) · mutations **426/426 across every set** (`units-list` 33/33; baseline 224/224 green; 18:40–18:55 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, 19:10 Baku) · PHPStan 0 · Pint clean. A first MySQL run was stopped a few minutes in, on purpose, so the rate-plan finding could go into the docs before the gates (tests read `docs/`).
+
+✅ **LIVE on `rel_AL @ 8cda8c7f` (2026-09-30, swap 4 ms, 19:13 Baku).** No migration; 1 file shipped (the controller).
+🔬 Preflight from the staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: Add unit still gated
+`can:units.manage`; `accessibleRoomType()` present, `storeUnit` uses it and no longer holds the plain lookup; **0 people are
+limited to particular properties today** (no `property_user` rows across the 15 organisations), so nobody's access changed
+now — the check guards the case once someone is. After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure**
+(`SERVED=0`), **1,412 of 1,412** deployable files match git at `8cda8c7f`, the `.htaccess` drift check passes (self-test
+3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
