@@ -15,7 +15,7 @@ function mutationSets(): array
 {
     $rows = [];
     foreach (glob(base_path('tests/Mutations/sets/*.php')) ?: [] as $file) {
-        foreach (require $file as $row) {
+        foreach (loadMutationSet($file) as $row) {   // its own scope — a set's variables cannot reach `$rows` here
             $rows[] = $row + ['set' => basename($file, '.php')];
         }
     }
@@ -67,4 +67,23 @@ it('the landing rule refuses what proves nothing — a missing, doubled, empty o
         ->and(landMutation("a\nb\n", '', 'y')['ok'])->toBeFalse()
         ->and(landMutation("a\nb\n", 'a', 'a')['ok'])->toBeFalse()
         ->and(landMutation("a\nb\n", 'a', 'c'))->toBe(['ok' => true, 'why' => '', 'mutated' => "c\nb\n"]);
+});
+
+it('⚠️ loads each set in a scope of its own — a set\'s variables cannot reach the code that loads it', function () {
+    // 2026-09-30: the units-list set's top-level `$rows = '…UnitRows.php'` overwrote mutationSets()'s own `$rows`, and both
+    // tests above errored ("[] operator not supported for strings") — the loader, not the set, was the thing to fix.
+    $probe = (string) tempnam(sys_get_temp_dir(), 'vyset');
+    file_put_contents($probe, "<?php\n\$rows = 'a file path';\n\$row = 7;\n\nreturn [['id' => 'PROBE']];\n");
+
+    try {
+        $rows = ['kept'];
+        $row = 'kept too';
+        $loaded = loadMutationSet($probe);
+    } finally {
+        unlink($probe);
+    }
+
+    expect($loaded)->toBe([['id' => 'PROBE']])
+        ->and($rows)->toBe(['kept'])
+        ->and($row)->toBe('kept too');
 });

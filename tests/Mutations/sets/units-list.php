@@ -1,0 +1,271 @@
+<?php
+
+declare(strict_types=1);
+
+// Mutation set units-list — the Units page rebuilt (2026-09-30): the add forms as aligned dialogs (the founder's report),
+// the list system of Guests and Maintenance, natural unit order, one name for the pause switch, room types as cards, a
+// setup guide, bulk pause/resume through the audited service, an export that never carries a secret, and a duplicate
+// unit code refused with a sentence instead of a 500.
+// Run with `php tests/Mutations/run.php --set=units-list`.
+
+$t = 'tests/Feature/UnitsListRedesignTest.php';
+$x = 'tests/Feature/XShowInlineDisplayContractTest.php';
+$page = 'app/Livewire/UnitsList.php';
+$unitRows = 'app/Support/Unit/UnitRows.php';
+$params = 'app/Support/Unit/UnitListParams.php';
+$ctl = 'app/Http/Controllers/Operator/InventoryActionController.php';
+$export = 'app/Http/Controllers/Operator/UnitExportController.php';
+$routes = 'routes/web.php';
+$svc = 'app/Services/OwnerUnitStatusService.php';
+$view = 'resources/views/livewire/units-list.blade.php';
+
+return [
+    [
+        'id' => 'UL-M1',
+        'name' => 'the sort is not checked against the list (any word reaches the ordering)',
+        'file' => $params,
+        'old' => "        \$sort = is_string(\$sort) && array_key_exists(\$sort, self::SORTS) ? \$sort : 'unit';",
+        'new' => "        \$sort = is_string(\$sort) ? \$sort : 'unit';",
+        'tests' => [['file' => $t, 'filter' => 'sorts by unit in natural order']],
+    ],
+    [
+        'id' => 'UL-M2',
+        'name' => 'units sort as text, so A10 comes before A2',
+        'file' => $unitRows,
+        'old' => "                'unit' => \$sign * strnatcasecmp(\$a['code'], \$b['code']),",
+        'new' => "                'unit' => \$sign * strcmp(\$a['code'], \$b['code']),",
+        'tests' => [['file' => $t, 'filter' => 'sorts by unit in natural order']],
+    ],
+    [
+        'id' => 'UL-M3',
+        'name' => 'the Sleeps column sorts by something other than what it shows',
+        'file' => $unitRows,
+        'old' => "                'sleeps' => \$sign * (\$a['occupancy'] <=> \$b['occupancy']),",
+        'new' => "                'sleeps' => \$sign * strnatcasecmp(\$a['code'], \$b['code']),",
+        'tests' => [['file' => $t, 'filter' => 'sorts by unit in natural order']],
+    ],
+    [
+        'id' => 'UL-M4',
+        'name' => '"Bookable" forgets the maintenance condition (an out-of-order unit counted as sellable)',
+        'file' => $unitRows,
+        'old' => "            'bookable' => \$active && ! in_array((string) \$unit->condition_status, self::OUT_OF_ORDER, true),",
+        'new' => "            'bookable' => \$active,",
+        'tests' => [['file' => $t, 'filter' => 'filters with chips that count'], ['file' => $t, 'filter' => 'room type as a card']],
+    ],
+    [
+        'id' => 'UL-M5',
+        'name' => 'the chip counts ignore the search, so a chip promises more than clicking it shows',
+        'file' => $page,
+        'old' => "                'count' => count(array_filter(\$all, fn (array \$r): bool => \$rowsOf->matches(\$r, \$filter, \$state['q']))),",
+        'new' => "                'count' => count(array_filter(\$all, fn (array \$r): bool => \$rowsOf->matches(\$r, \$filter, ''))),",
+        'tests' => [['file' => $t, 'filter' => 'filters with chips that count']],
+    ],
+    [
+        'id' => 'UL-M6',
+        'name' => 'a paused workspace is still offered edit and pause, which its routes refuse',
+        'file' => $page,
+        'old' => '        $canWrite = $canManageUnits && ! $readOnly;',
+        'new' => '        $canWrite = $canManageUnits;',
+        'tests' => [['file' => $t, 'filter' => 'offers each action only to a role allowed it']],
+    ],
+    [
+        'id' => 'UL-M7',
+        'name' => '"Price individually" is offered to a role without rates.manage',
+        'file' => $page,
+        'old' => '        $canPrice = $canManageRates && ! $readOnly;',
+        'new' => '        $canPrice = ! $readOnly;',
+        'tests' => [['file' => $t, 'filter' => 'offers each action only to a role allowed it']],
+    ],
+    [
+        'id' => 'UL-M8',
+        'name' => 'a duplicate unit code reaches the unique index again (a 500, not a sentence)',
+        'file' => $ctl,
+        'old' => "            ['code' => [Rule::unique('units', 'code')->where('property_id', \$roomType->property_id)]],",
+        'new' => "            ['code' => ['required']],",
+        'tests' => [['file' => $t, 'filter' => 'refuses a duplicate unit code']],
+    ],
+    [
+        'id' => 'UL-M9',
+        'name' => 'a write started from the list lands on the bare page instead of the list as you had it',
+        'file' => $ctl,
+        'old' => "        return \$request->input('return') === 'list'",
+        'new' => "        return \$request->input('return') === 'never'",
+        'tests' => [['file' => $t, 'filter' => 'brings every write started from the list back']],
+    ],
+    [
+        'id' => 'UL-M10',
+        'name' => 'the way back is the posted text itself, not the Units URL rebuilt from an allow-list',
+        'file' => $ctl,
+        'old' => "            ? redirect()->to(UnitListParams::returnUrl(\$request->input('return_query')))",
+        'new' => "            ? redirect()->to((string) \$request->input('return_query'))",
+        'tests' => [['file' => $t, 'filter' => 'brings every write started from the list back']],
+    ],
+    [
+        'id' => 'UL-M11',
+        'name' => 'bulk pause reaches a unit of a property the manager may not access',
+        'file' => $ctl,
+        'old' => "        \$units = Unit::query()\n            ->when(\$readIds !== [], fn (\$q) => \$q->whereIn('property_id', \$readIds))\n            ->whereIn('id', \$data['unit_ids'])",
+        'new' => "        \$units = Unit::query()\n            ->whereIn('id', \$data['unit_ids'])",
+        'tests' => [['file' => $t, 'filter' => 'gates bulk pause like the single one']],
+    ],
+    [
+        'id' => 'UL-M12',
+        'name' => 'bulk pause writes the flag itself — no availability recompute, no audit row',
+        'file' => $ctl,
+        'old' => "        ['changed' => \$done, 'already' => \$already] = \$status->setManyByOperator(\$units, \$active, \$actorId !== null ? (string) \$actorId : null);",
+        'new' => "        [\$done, \$already] = [0, 0];\n        foreach (\$units as \$u) {\n            if ((bool) \$u->is_active === \$active) {\n                \$already++;\n\n                continue;\n            }\n            \$u->forceFill(['is_active' => \$active])->save();\n            \$done++;\n        }",
+        'tests' => [['file' => $t, 'filter' => 'pauses and resumes several units at once']],
+    ],
+    [
+        'id' => 'UL-M13',
+        'name' => 'bulk pause claims units that were already paused',
+        'file' => $svc,
+        'old' => "                if ((bool) \$unit->is_active === \$active) {\n                    \$already++;\n\n                    continue;\n                }\n",
+        'new' => '',
+        'tests' => [['file' => $t, 'filter' => 'pauses and resumes several units at once']],
+    ],
+    [
+        'id' => 'UL-M14',
+        'name' => 'the export carries a door code',
+        'file' => $export,
+        'old' => "                    (string) (\$r['owner'] ?? 'Operator-owned'),",
+        'new' => "                    (string) (\$r['owner'] ?? 'Operator-owned'), (string) \\App\\Models\\Unit::query()->find(\$r['id'])?->door_code,",
+        'tests' => [['file' => $t, 'filter' => 'exports what the view shows']],
+    ],
+    [
+        'id' => 'UL-M15',
+        'name' => 'the export ignores the view it was asked from',
+        'file' => $export,
+        'old' => "        \$shown = array_values(array_filter(\$all, fn (array \$r): bool => \$rows->matches(\$r, \$clean['filter'] ?? null, \$clean['q'] ?? '')));",
+        'new' => '        $shown = $all;',
+        'tests' => [['file' => $t, 'filter' => 'exports what the view shows']],
+    ],
+    [
+        'id' => 'UL-M16',
+        'name' => 'the rows the page script reads carry the door code',
+        'file' => $unitRows,
+        'old' => "                'has_notes' => \$unit->arrival_notes !== null && (string) \$unit->arrival_notes !== '',",
+        'new' => "                'has_notes' => \$unit->arrival_notes !== null && (string) \$unit->arrival_notes !== '',\n                'door' => (string) \$unit->door_code,",
+        'tests' => [['file' => $t, 'filter' => 'keeps every secret out of the rows']],
+    ],
+    [
+        'id' => 'UL-M17',
+        'name' => 'the Edit dialog centres itself with an inline display beside x-show again',
+        'file' => $view,
+        'old' => '<div class="vy-modal-backdrop" x-cloak x-show="editOpen" x-transition.opacity',
+        'new' => '<div x-cloak x-show="editOpen" style="position: fixed; inset: 0; z-index: 50; display: flex;" x-transition.opacity',
+        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests'], ['file' => $t, 'filter' => 'centres every dialog on the page']],
+    ],
+    [
+        'id' => 'UL-M18',
+        'name' => 'a label goes back to the class that styles nothing (16 px body text)',
+        'file' => $view,
+        'old' => '<label class="vy-field-label" for="vy-ul-rt-name">Name</label>',
+        'new' => '<label class="vy-label" for="vy-ul-rt-name">Name</label>',
+        'tests' => [['file' => $t, 'filter' => 'lays the add forms out']],
+    ],
+    [
+        'id' => 'UL-M19',
+        'name' => 'Kind goes back to a native dropdown whose size each browser decides',
+        'file' => $view,
+        'old' => '<x-operator.choices name="kind" label="Kind" :options="$kindChoices" model="rtForm.kind" />',
+        'new' => '<select name="kind" class="vy-input"><option value="room">Room</option></select>',
+        'tests' => [['file' => $t, 'filter' => 'lays the add forms out']],
+    ],
+    [
+        'id' => 'UL-M20',
+        'name' => 'Add room type leaves its footer for a row of fields whose margins it does not share',
+        'file' => $view,
+        'old' => "                            <div class=\"vy-modal-foot\">\n                                <button type=\"button\" class=\"vy-btn vy-btn--ghost\" @click=\"rtOpen = false\">Cancel</button>",
+        'new' => "                            <div class=\"vy-gl-fields\">\n                                <button type=\"button\" class=\"vy-btn vy-btn--ghost\" @click=\"rtOpen = false\">Cancel</button>",
+        'tests' => [['file' => $t, 'filter' => 'lays the add forms out']],
+    ],
+    [
+        'id' => 'UL-M21',
+        'name' => 'the switch is called "Take out of service" again — the maintenance condition\'s name',
+        'file' => $view,
+        'old' => "                        Pause this unit\n",
+        'new' => "                        Take out of service\n",
+        'tests' => [['file' => $t, 'filter' => 'calls the switch Pause']],
+    ],
+    [
+        'id' => 'UL-M22',
+        'name' => 'a room type card counts every unit as bookable',
+        'file' => $page,
+        'old' => "            'bookable' => count(array_filter(\$units, fn (array \$r): bool => \$r['bookable'])),",
+        'new' => "            'bookable' => count(\$units),",
+        'tests' => [['file' => $t, 'filter' => 'room type as a card']],
+    ],
+    [
+        'id' => 'UL-M23',
+        'name' => 'the setup guide stays after both a room type and a unit exist',
+        'file' => $view,
+        'old' => "            @if (\$setup['room_types'] === 0 || \$setup['units'] === 0)",
+        'new' => '            @if (true)',
+        'tests' => [['file' => $t, 'filter' => 'guides a new property through setup']],
+    ],
+    [
+        'id' => 'UL-M24',
+        'name' => 'the export is open to a role without units.view',
+        'file' => $routes,
+        'old' => "    Route::get('/units-export', [UnitExportController::class, 'view'])->middleware('can:units.view')->name('units.export');",
+        'new' => "    Route::get('/units-export', [UnitExportController::class, 'view'])->name('units.export');",
+        'tests' => [['file' => $t, 'filter' => 'exports what the view shows']],
+    ],
+    [
+        'id' => 'UL-M25',
+        'name' => 'bulk pause is open to a role without units.manage',
+        'file' => $routes,
+        'old' => "        ->middleware('can:units.manage')->name('inventory.units.bulk-active');",
+        'new' => "        ->name('inventory.units.bulk-active');",
+        'tests' => [['file' => $t, 'filter' => 'gates bulk pause like the single one']],
+    ],
+    [
+        'id' => 'UL-M26',
+        'name' => 'a refused edit no longer reopens with what was typed',
+        'file' => $page,
+        'old' => "        \$id = old('_unit');",
+        'new' => '        $id = null;',
+        'tests' => [['file' => $t, 'filter' => 'refuses a duplicate unit code']],
+    ],
+    [
+        'id' => 'UL-M27',
+        'name' => 'a refused Add unit no longer reopens with what was typed',
+        'file' => $page,
+        'old' => "        \$form = old('_form');",
+        'new' => '        $form = null;',
+        'tests' => [['file' => $t, 'filter' => 'refuses a duplicate unit code']],
+    ],
+    [
+        'id' => 'UL-M28',
+        'name' => 'the Export control is shown to a role its route refuses',
+        'file' => $view,
+        'old' => "                    @if (\$canExport)\n                        <a class=\"vy-btn vy-btn--ghost\" href=\"{{ \$exportUrl }}\">",
+        'new' => "                    @if (true)\n                        <a class=\"vy-btn vy-btn--ghost\" href=\"{{ \$exportUrl }}\">",
+        'tests' => [['file' => $t, 'filter' => 'exports what the view shows']],
+    ],
+    [
+        'id' => 'UL-M29',
+        'name' => 'a bulk pause recomputes the room type once per unit again (N copies of a year of nights)',
+        'file' => $svc,
+        'old' => '                $roomTypes[(string) $unit->room_type_id] = true;',
+        'new' => '                $this->recompute((string) $unit->room_type_id);',
+        'tests' => [['file' => $t, 'filter' => 'recomputes each room type once for a bulk pause']],
+    ],
+    [
+        'id' => 'UL-M30',
+        'name' => 'a bulk pause runs outside a transaction — a failure leaves part of the selection changed',
+        'file' => $svc,
+        'old' => '        return DB::transaction(function () use ($units, $active, $actorId): array {',
+        'new' => '        return call_user_func(function () use ($units, $active, $actorId): array {',
+        'tests' => [['file' => $t, 'filter' => 'recomputes each room type once for a bulk pause']],
+    ],
+    [
+        'id' => 'UL-M31',
+        'name' => 'a paused workspace tells a manager to ask for a permission they already hold',
+        'file' => $view,
+        'old' => "                    @unless (\$canManageUnits)\n                        <p class=\"vy-gl-note\">Adding room types",
+        'new' => "                    @unless (\$canWrite)\n                        <p class=\"vy-gl-note\">Adding room types",
+        'tests' => [['file' => $t, 'filter' => 'guides a new property through setup']],
+    ],
+];

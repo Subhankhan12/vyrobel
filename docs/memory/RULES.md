@@ -206,8 +206,8 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **`x-show` erases an inline `display`.** It hides by writing `display: none` and shows by REMOVING the inline display, so
   an element styled `x-show="open" style="display: flex"` comes back as `block` after its first hide — every Guests dialog
   opened in the top-left corner (🖥 260,242 instead of 640,450). Put the display in a class (`.vy-modal-backdrop`).
-  `XShowInlineDisplayContractTest` holds the Guests and Maintenance pages at 0 and 39 other sites at a ceiling (45 before the
-  Maintenance pass fixed its six) (Verified 2026-09-29).
+  `XShowInlineDisplayContractTest` holds the Guests, Maintenance and Units pages at 0 and 35 other sites at a ceiling (45 before
+  the Maintenance pass fixed its six, 39 before the Units pass fixed its four) (Verified 2026-09-30, scanned).
 - **`Livewire::test()` skips the web middleware that sets the permission team**, so `@can` there answers a silent FALSE (the
   #30 note). A test asserting a gated control through it can pass on an ungated look-alike — `UnwiredControlsTest` did, on a
   dialog heading. Render gated controls through the real route (🔬 probe: team=NULL → `can()`=false) (Verified 2026-09-29).
@@ -218,7 +218,10 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   test: `->assertSessionHasErrors()` followed by a `get()` saw no old input. Assert a refusal by what the next page renders
   (Verified 2026-09-29, by probe).
 - **Livewire wraps `@foreach`/`@if` output in `<!--[if BLOCK]-->` markers** — a regex over closing tags misses them. Read a
-  block by position (Verified 2026-09-29).
+  block by position (Verified 2026-09-29). ⚠️ **The markers contain `>`** (`<!--[if BLOCK]><![endif]-->`), so a `[^>]*`
+  between two tags stops inside one: skip them as `<!--.*?-->`. And an element whose `@if` rendered nothing still holds the
+  markers and the whitespace around them, so CSS `:empty` never matches it — 🖥 an empty sub-line kept its height and pushed
+  the unit code off centre. Render the element only when it has content (Verified 2026-09-30).
 - **The shared `.vy-modal` panel is see-through glass**; over the scrim, grey text falls below AA (🖥 sampled on the Portfolio's
   Add dialog: 3.52:1 sub-text, 3.25:1 labels). A dialog panel is also a `vy-modal-card` (near-opaque; 6.18 / 5.30 after)
   (Verified 2026-09-29).
@@ -247,6 +250,25 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Padding stacks inside the shared dialog panel.** The older `.vy-modal { padding: 26px }` adds to the head, body and foot's
   own 24 px; on a phone it left 250 px of a 350 px dialog and words broke mid-word. Fixed on the Maintenance board only
   (`OPEN.md` D-MODAL-PAD) (Verified 2026-09-29).
+- **A class that looks right can style nothing.** The old Units forms used `.vy-label` and `.vy-inp`; no stylesheet defines
+  either, so the labels were 16 px body text and the edit fields unstyled — the founder's "Kind is down" came from that plus a
+  15 px field margin that dropped the buttons (🖥 718 vs 703). Before trusting a class, find it in the layout's CSS
+  (`.vy-field-label`, `.vy-input` are the real ones) (Verified 2026-09-30).
+- **A unique index is not a validation rule.** `units` is unique on (property, code); Edit had the rule, Add did not, so a
+  duplicate code on Add reached the index and came back as a 500 (🔬 RED before the fix). When one write path of a column has
+  a rule, check every other path that writes it — the defect sits beside the flagged thing (Verified 2026-09-30).
+- **A required file runs in the scope that requires it.** A mutation set's top-level `$rows = '…'` overwrote the `$rows` of
+  the function that loaded it, and the suite errored on "[] operator not supported for strings" (🔬 4,105/4,107, the
+  first full run of the Units pass). The harness never hit it — its loop used other names. Load such files through
+  `loadMutationSet()` (its own scope), and name a set's helper variables for what they hold (Verified 2026-09-30).
+- **Before looping a service over a selection, read what ONE call costs.** The single unit pause recomputes the unit's whole
+  room type for a year of nights (🔬 ~0.5 s, 1,098 queries); called once per selected unit, a page of 100 would have been
+  ~100 identical recomputes, ~50 s locally, with no transaction around them — found by the independent review, not by the
+  author or the suite. Do the per-item part per item and the group part once per group, in one transaction
+  (Verified 2026-09-30).
+- **The "another run is active" check also sees restiox.** `ops/proc-check.sh` refused because restiox's phpunit was running
+  (its own database, port 3310 — not ours). Identify the process by working folder, wait for a gap, and never weaken the check
+  (`OPEN.md` A7) (Verified 2026-09-30).
 
 ---
 

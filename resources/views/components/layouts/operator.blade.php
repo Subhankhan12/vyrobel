@@ -1785,11 +1785,11 @@
            footer, row menu and bulk bar above are shared, never copied (partials/operator-list-script is the one script).
            What follows is only what a work order needs on top: the rail, the priority marker, the technician picker and
            the drawer on the right. ⚠️ Every display is in a class — never inline beside x-show. ─────────────────── */
-        .vy-mnt .vy-dash-kpi { padding: 15px 18px; }
-        .vy-mnt .vy-dk-val { font-size: 26px; }
-        .vy-mt-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
+        .vy-mnt .vy-dash-kpi, .vy-units .vy-dash-kpi { padding: 15px 18px; }
+        .vy-mnt .vy-dk-val, .vy-units .vy-dk-val { font-size: 26px; }
+        .vy-mt-bar .vy-gl-tools, .vy-ul-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
         /* a link and a button side by side, one height (🖥 the links inherited 1.45 and stood 38.8 px beside 35.5 px) */
-        .vy-mt-bar .vy-gl-tools a.vy-btn { line-height: normal; }
+        .vy-mt-bar .vy-gl-tools a.vy-btn, .vy-ul-bar .vy-gl-tools a.vy-btn { line-height: normal; }
         .vy-mt-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
         .vy-mt-rail { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
         .vy-mt-table { min-width: 940px; }
@@ -1826,9 +1826,9 @@
         /* the dialogs */
         /* five categories across: icon over label, centred, and a label is never split mid-word (🖥 "Plumbin|g" at 82 px) */
         .vy-mt-cats .vy-choice-row { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-        .vy-mt-cats .vy-choice-face { align-items: center; text-align: center; padding: 11px 6px; }
-        .vy-mt-cats .vy-choice-text, .vy-mnt .vy-choices--segmented .vy-choice-text { overflow-wrap: normal; hyphens: manual; }
-        .vy-mnt .vy-gl-textarea { min-height: 84px; }
+        .vy-mt-cats .vy-choice-face, .vy-ul-kinds .vy-choice-face { align-items: center; text-align: center; padding: 11px 6px; }
+        .vy-mt-cats .vy-choice-text, .vy-mnt .vy-choices--segmented .vy-choice-text, .vy-ul-kinds .vy-choice-text { overflow-wrap: normal; hyphens: manual; }
+        .vy-mnt .vy-gl-textarea, .vy-units .vy-gl-textarea { min-height: 84px; }
         .vy-mt-warn { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: #8F3110; }
         .vy-mt-first { margin-top: 0; }
         .vy-mt-sale { margin-top: 14px; }
@@ -1897,21 +1897,85 @@
         }
         @media (max-width: 1100px) {
             /* five figures two across: the fifth takes the whole row rather than sitting alone in half of it */
-            .vy-mnt .vy-dash-kpis--5 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+            .vy-mnt .vy-dash-kpis--5 > :last-child:nth-child(odd), .vy-units .vy-dash-kpis--5 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
         }
         @media (max-width: 900px) {
             .vy-mt-rail { grid-template-columns: minmax(0, 1fr); }
         }
         @media (max-width: 560px) {
             /* each button as wide as its words (🖥 "Costs report" wrapped onto two lines at an equal third of 390 px) */
-            .vy-mt-bar .vy-gl-tools .vy-btn { flex: 1 1 auto; white-space: nowrap; }
+            .vy-mt-bar .vy-gl-tools .vy-btn, .vy-ul-bar .vy-gl-tools .vy-btn { flex: 1 1 auto; white-space: nowrap; }
             /* these dialogs pad their own head, body and foot, so on a phone the panel adds almost nothing around them
                (🖥 its 26 px on top of theirs left 250 px of a 350 px dialog, and "Normal" broke mid-word) */
-            .vy-mnt .vy-modal-backdrop > .vy-modal { padding: 6px; }
+            .vy-mnt .vy-modal-backdrop > .vy-modal, .vy-units .vy-modal-backdrop > .vy-modal { padding: 6px; }
             .vy-mt-drawer-acts { grid-template-columns: minmax(0, 1fr); }
             .vy-mt-cats .vy-choice-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
             .vy-modal.vy-drawer { width: 100vw; border-left: none; border-radius: 0; }
             .vy-mt-window { text-align: center; }
+        }
+
+        /* ── Units (2026-09-30) — rebuilt on the SAME list system as Guests and Maintenance (shared `.vy-gl-*` and the one
+           list script); what follows is only what units need on top: the setup guide, the unit cell, room types as cards,
+           the Pause tag and the dialogs' bits. ⚠️ Every display is in a class — never inline beside x-show. ─────────── */
+        .vy-ul-bar .vy-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
+        .vy-ul-setup { margin: 22px 0 0; padding: 22px 24px; }
+        .vy-ul-setup-title { margin: 0; font-family: var(--vy-display); font-size: 18px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ul-setup-sub { margin: 4px 0 16px; font-size: 13px; color: var(--vy-on-grad); }
+        .vy-ul-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+        .vy-ul-step { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: var(--vy-r-md); border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.55); }
+        .vy-ul-step.is-current { border-color: var(--vy-accent-border); background: #fff; box-shadow: var(--vy-shadow-sm); }
+        .vy-ul-step-n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-family: var(--vy-display); font-size: 13px; font-weight: 700; color: var(--vy-on-grad); background: rgba(120, 70, 40, 0.08); }
+        .vy-ul-step.is-current .vy-ul-step-n { color: #fff; background: var(--vy-grad); }
+        .vy-ul-step.is-done .vy-ul-step-n { color: #fff; background: rgb(52, 140, 90); }
+        .vy-ul-step-text { display: flex; flex-direction: column; gap: 3px; }
+        .vy-ul-step-text strong { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ul-step-text span { font-size: 12px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vy-ul-step .vy-btn { margin-top: auto; }
+
+        .vy-ul-table { min-width: 900px; }
+        .vy-ul-table td.vy-ul-unitcell { min-width: 220px; }
+        .vy-ul-unit { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-ul-thumb { flex: none; width: 46px; height: 34px; border-radius: 8px; object-fit: cover; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
+        .vy-ul-thumb.is-empty { display: block; background: linear-gradient(135deg, #F0A57A, #D9662E); }
+        .vy-ul-who { min-width: 0; }
+        .vy-ul-code { font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ul-table .vy-gl-contact > span + span::before { content: "·"; margin: 0 6px; }
+        .vy-ul-table tr.is-paused .vy-ul-thumb { opacity: .45; }
+        .vy-tag.tone-paused { background: rgba(120, 70, 40, 0.1); color: var(--vy-on-grad); }
+
+        .vy-ul-types { margin-top: 26px; }
+        .vy-ul-types-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 12px; }
+        .vy-ul-types-sub { margin: 0; font-size: 12.5px; color: var(--vy-on-grad); }
+        .vy-ul-types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+        .vy-card.vy-ul-rt { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+        .vy-ul-rt-cover { position: relative; height: 128px; background: center / cover no-repeat; }
+        .vy-ul-rt-cover.is-empty { background: linear-gradient(135deg, #F6C6B4 0%, #E8703A 55%, #C2410C 100%); }
+        .vy-ul-rt-kind { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.92); font-size: 11.5px; font-weight: 600; color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); }
+        .vy-ul-rt-body { display: flex; flex: 1; flex-direction: column; gap: 5px; padding: 16px 18px 18px; }
+        .vy-ul-rt-name { margin: 0; font-family: var(--vy-display); font-size: 16px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-ul-rt-meta, .vy-ul-rt-count { margin: 0; font-size: 12.5px; color: var(--vy-on-grad); }
+        .vy-ul-rt-count strong { font-weight: 600; color: var(--vy-ink); }
+        .vy-ul-rt-add { align-self: flex-start; margin-top: 6px; padding: 7px 13px; font-size: 12.5px; }
+        .vy-ul-rt-photos { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--vy-hairline); }
+        .vy-ul-rt-photos .vy-pm-thumbs { gap: 8px; }
+        .vy-pm-thumb.vy-ul-rt-thumb { width: 92px; height: 66px; }
+        .vy-pm-file:focus-visible + .vy-pm-add { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        .vy-ul-kinds .vy-choice-row { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .vy-ul-narrow { max-width: 150px; }
+        .vy-ul-last { margin-bottom: 0; }
+        .vy-ul-first { margin-top: 0; }
+        .vy-ul-facts { display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-ul-revealed { margin-top: 12px; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(194, 65, 12, 0.08); font-size: 12.5px; line-height: 1.6; color: var(--vy-ink); }
+        .vy-ul-reveal { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 24px 20px; padding-top: 14px; border-top: 1px solid var(--vy-hairline); }
+        .vy-ul-reveal .vy-gl-note { margin: 0; }
+        .vy-ul-price .vy-btn--ghost { padding: 9px 16px; }
+        @media (max-width: 900px) {
+            .vy-ul-steps { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 560px) {
+            .vy-ul-kinds .vy-choice-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vy-ul-reveal { margin: 0 18px 16px; }
         }
 
         @media (max-width: 1100px) {

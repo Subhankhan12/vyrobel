@@ -106,7 +106,7 @@ foreach (glob('tests/Mutations/sets/*.php') ?: [] as $file) {
     if (isset($opts['set']) && $opts['set'] !== $name) {
         continue;
     }
-    foreach (require $file as $row) {
+    foreach (loadMutationSet($file) as $row) {   // its own scope — a set's variables cannot reach this one
         $sets[] = $row + ['set' => $name];
     }
 }

@@ -90,7 +90,8 @@
                 // Once it is on screen: placed again at its real height (a menu's length depends on the row), then focused.
                 this.$nextTick(() => {
                     this.placeMenu();
-                    const first = menuEl.querySelector('.vy-gl-menu-item');
+                    // the first item THIS row shows — an item hidden for this row or this role cannot take focus
+                    const first = Array.from(menuEl.querySelectorAll('.vy-gl-menu-item')).find((el) => el.offsetParent !== null);
                     if (first) first.focus({ preventScroll: true });
                 });
             },

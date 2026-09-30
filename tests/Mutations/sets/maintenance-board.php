@@ -136,7 +136,7 @@ return [
         'file' => $detail,
         'old' => '<div class="vy-modal-backdrop" x-show="mr" x-cloak x-transition.opacity',
         'new' => '<div x-show="mr" x-cloak style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;" x-transition.opacity',
-        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests and Maintenance'], ['file' => $t, 'filter' => 'centres every board dialog']],
+        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests'], ['file' => $t, 'filter' => 'centres every board dialog']],
     ],
     [
         'id' => 'MB-M15',

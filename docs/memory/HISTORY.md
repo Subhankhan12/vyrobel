@@ -343,6 +343,40 @@ query ran in 0.7 ms median across 15 organisations, the way back rebuilt to the 
 off-site value stayed on vyrobel.com; public checks 12/0/0; 1,409/1,409 files match git; drift check passes; 0 errors
 since the swap.
 
+**UNITS — 2026-09-30 — the founder's request** ("on this page in Add inventory sector, text and label is mess, `Kind` word is
+down and its dropdown is small … the same work which you have done with the previous two pages"). An 8-part plan approved
+first ("Yes, all of it"). *The alignment, measured:* the labels used `.vy-label` and the edit fields `.vy-inp`, which no
+stylesheet defines (16 px body text; unstyled boxes), each field carried a 15 px bottom margin that dropped the buttons
+beside them (🖥 718 vs 703), and Kind was a native dropdown whose height the browser picks. *Now:* Add room type and Add unit
+are toolbar buttons opening centred dialogs — styled labels, one box height, buttons in a footer; Kind as four tiles; the
+unit's room type through the searchable picker. The bottom card became a three-step setup guide shown only while a room type
+or a unit is missing. *The page:* the Guests/Maintenance list — five figures, search as you type, chips with counts inside the
+search (All · Bookable · Paused · To clean · Out of order), a table sorting by unit (natural: A2 before A10), room type and
+sleeps, 25 / 50 / 100 per page, a footer, and a real CSV export (the view, or a selection) replacing "Export · Soon" and
+"Filters · Soon". A ⋯ menu per row, each item only where the role and the workspace allow it: Edit unit · Price individually ·
+Arrival info · See its work orders · Pause / Resume. "Take out of service" became **Pause / Resume** with a Paused tag — the
+owner portal's words, and no longer the same words as the maintenance condition beside it. Room types are cards (cover,
+kind, sleeps, units bookable / total, Add unit, photos). Select mode exports the selection and pauses or resumes several
+units through the same audited service. **Found and closed:** a duplicate unit code on Add was a 500 (the database was the
+only check; Edit had the rule) — now a sentence, and the dialog reopens with what was typed; a table sub-line that rendered
+empty pushed the unit code off centre; the setup guide told a manager in a paused workspace to ask for a permission they
+hold; and (**the independent review's one finding**) bulk Pause/Resume recomputed a room type's year of availability once
+per UNIT (🔬 ~0.5 s and 1,098 queries each; a page of 100 ≈ 50 s locally) with nothing around the loop — now once per room
+type, in one transaction, with a test that counts the recomputes and proves a failure changes nothing. **This pass's own mistakes, each caught:** a test regex that could not see through
+Livewire's block markers (they contain `>`), and one that missed a count set in `<strong>`; a Python anchor that matched
+twice (refused by its own count check); the first full MySQL run went **4,105/4,107** — the new mutation set's top-level
+`$rows` (a file path) overwrote the suite loader's own `$rows`, because a required file runs in the scope that requires it
+(both loaders now require each set in a scope of its own, `loadMutationSet()`, with a probe test; the set's variable was
+renamed too); and a test
+title that claimed more than it proved ("nothing that writes in a paused workspace" — Arrival info is still offered there,
+as it always was; the title now says what the test proves). Not changed, reported: Add unit resolves the room type by the
+tenant scope only, while every other unit write checks the property allow-list (D-UNIT-STORE, DEC-k); the single pause is
+not in a transaction (D-UNIT-SINGLE-TXN, shared with the owner portal).
+Gates: 4,105/4,107 on MySQL on the first run (the loader error above), then 4,108/4,108 on MariaDB 11.8.9 (tree
+`40a51eade6466fc1`; he said "stop advisor and complete vyrobel", so advisor-platform's dev server was stopped with SIGTERM at
+16:09 and left stopped); the final MySQL run 4,108/4,108 (tree `ce2dc2f218e1fac9`, the code plus these docs); 424/424 mutations; money gate FULL unmoved; browser-walked on tenant
+three (1440 and 390 px; 0 console errors).
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -380,6 +414,10 @@ since the swap.
   flipped one side of a comparator (MB-M3) stayed green because the comparator became inconsistent, not because the test
   was weak; a browser script faster than a person typed into the button behind a picker. Both were read, not assumed, before
   anything was changed — and neither was fixed by changing the test.
+- **A test's title is a claim too (the Units pass, 2026-09-30):** "offers … nothing that writes in a paused workspace" sat on
+  a test that correctly pinned Arrival info as still offered there. The assertion was right and the title was wrong; caught
+  on re-reading, before commit. And a memory lesson drafted from recall ("the menu swallowed focus") was checked against
+  the transcript, found to be a change made on reading the code — never a measured failure — and not written as one.
 
 ## 3 · Still open (as the docs report it; re-check before acting)
 

@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the MAINTENANCE pass (2026-09-30)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the UNITS pass (2026-09-30)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -18,9 +18,9 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the Maintenance commit) | **4,087/4,087 on MySQL 8.4.10** (tree `3ac61b96bc916ce4`, 2026-09-30 01:14–01:39 Baku) · **4,087/4,087 on MariaDB 11.8.9** (the same tree, 10:57–11:32 Baku) · the final run **4,087/4,087 on MySQL 8.4.10** (tree `4d9f12e34c4bdba0` = that code plus these docs, 11:35–12:16 Baku) · 29,794 assertions · every test passed (0 skipped) | **V** run output 2026-09-30. |
-| Mutations | **393/393 landed and caught across every set**, 0 not caught, 0 did not land; baseline 209/209 green (`admin-06` = 87, `admin-05` = 49, `maintenance-board` = 26, `guests-list` = 24, `portfolio-remove` = 14, `portfolio-fields` = 6) | **V** harness output 2026-09-30 10:24–10:55 Baku, tree `3ac61b96bc916ce4` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 11:33 Baku (the Maintenance pass). Tenant one only; local only. |
+| Suite (the Units commit) | **4,108/4,108 on MariaDB 11.8.9** (tree `40a51eade6466fc1`, 2026-09-30 16:10–16:48 Baku; 30,078 assertions) · the final run **4,108/4,108 on MySQL 8.4.10** (tree `ce2dc2f218e1fac9` = that code plus these docs, 16:49–17:22 Baku; 30,078 assertions) · every test passed (0 skipped). ⚠️ The first MySQL run was **4,105/4,107** (tree `080edf75edae7bda`): the mutation-set loader error, fixed (`HISTORY.md`, "UNITS"). | **V** run output 2026-09-30. |
+| Mutations | **424/424 landed and caught across every set**, 0 not caught, 0 did not land; baseline 223/223 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 31, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, and 12 older sets) | **V** harness output 2026-09-30 14:28–15:06 Baku, tree `40a51eade6466fc1` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 17:22 Baku (the Units pass). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AJ`, 2026-09-30, run straight after the 12:22 Baku swap (and on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 12:29) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
@@ -52,6 +52,10 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 0d. **Maintenance rebuilt (2026-09-29/30)** — the board like Guests (centred dialogs, a drawer on the right, a sortable table,
     row Edit and Cancel) and the work order page's two dialogs made real (`HISTORY.md`, "MAINTENANCE"). ✅ LIVE on `rel_AJ`
     (V 2026-09-30 12:22 Baku). Left: a signed-in look on production; his calls A10 (the string `:style` sweep) and DEC-j.
+0e. **Units rebuilt (2026-09-30)** — the add forms as aligned dialogs (his report: "Kind is down, its dropdown is small"),
+    the Guests/Maintenance list, Pause / Resume, room types as cards, a setup guide, bulk pause and a real export
+    (`HISTORY.md`, "UNITS"). Gates passed (above); ⏳ deploy next as `rel_AK`. Left after it: a signed-in look on
+    production; his call DEC-k. advisor-platform's dev server was stopped for the MariaDB run at his word and left stopped.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -76,8 +80,9 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 6. The lawyer: the Article 28 agreements, who may hold customers' money, and how long money records must be kept.
 7. The real tax rates (`tax:set-rate`, replacing the EXAMPLE rates).
 8. Rulings DEC-a to DEC-i (`OPEN.md`). DEC-f decides whether the logo removal that shipped stays.
-8b. Say go (or not) on A8, the x-show sweep of 39 elements on other screens; A9, the other see-through dialogs; and A10,
-    the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes).
+8b. Say go (or not) on A8, the x-show sweep of 35 elements on other screens; A9, the other see-through dialogs; and A10,
+    the string `:style` sweep of 10 elements. Rule on DEC-j and DEC-k (the property allow-list on the maintenance writes and
+    on Add unit).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

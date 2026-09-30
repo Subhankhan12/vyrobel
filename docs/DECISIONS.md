@@ -18768,3 +18768,113 @@ and an off-site value stayed on `vyrobel.com`; the board's work-order query ran 
 organisations (1 work order on their boards). After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure**
 (`SERVED=0`), **1,409 of 1,409** deployable files match git at `a3604b9c`, the `.htaccess` drift check passes (self-test 3/3),
 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
+
+## 2026-09-30 — Units: the page rebuilt like Guests and Maintenance — aligned add dialogs, a sortable table, Pause / Resume, room types as cards (the founder's request; plan approved)
+
+**Asked:** "https://vyrobel.com/app/units — on this page in Add inventory sector, text and label is mess, `Kind` word is down
+and its dropdown is small. And `Add room type` word is also down. All these text and boxes must be well aligned. Fix it. …
+do the similar sort of advanced work … the same work which you have done with the previous two pages." An 8-part plan was
+put to him; he answered "Yes, all of it".
+
+**Why the form was misaligned — measured, four causes.** (1) The labels used `.vy-label` and the edit dialog's fields
+`.vy-inp`; no stylesheet defines either class, so the labels rendered as 16 px body text and the edit boxes unstyled. (2)
+Each field carried a 15 px bottom margin, so a button placed beside a field sat 15 px lower than it (🖥 718 vs 703 in
+1440×900) — "Add room type is also down". (3) Kind was a native dropdown whose height the browser decides (🖥 43 px beside
+41 px boxes in Chrome; Safari draws it differently again) — "its dropdown is small". (4) The two forms shared one card with
+different column counts, so nothing lined up across them.
+
+**The add forms.** Add room type and Add unit are toolbar buttons that open centred dialogs (the shared
+`.vy-modal-backdrop`; 🖥 centred at 720,450 in 1440×900): styled labels, one box height, paired fields sharing a top edge, and
+the buttons in the dialog's footer. Kind is four tiles (Room · Apartment · Villa · Dorm). Add unit chooses its room type
+through the Portfolio's searchable picker, which shows each type's kind and how many it sleeps; the sleeps field suggests that
+figure. Each room type card has its own Add unit button, which opens the dialog with that type chosen. A refused add
+reopens its dialog with what was typed and says why inside it.
+
+**A setup guide instead of the bottom card.** While a property has no room type or no unit, the page shows three numbered
+steps — add a room type, add a unit, give it prices (a link to Rates) — the done ones ticked. It steps aside once both exist.
+A role that cannot add sees the steps and a line saying which permission it needs.
+
+**The page.** Five figures: Units · Bookable (active and in service — the same test `AvailabilityService` applies) · Paused ·
+To clean · Out of order. One toolbar: search as you type (unit code, name, room type, kind, owner), Export, Select, Add room
+type, Add unit. Chips with the real count of what clicking each shows, inside the current search: All · Bookable · Paused ·
+To clean · Out of order. The table sorts by **unit** (natural order: A2 before A10), **room type** and **sleeps**, through an
+allow-list (`App\Support\Unit\UnitListParams`, like Guests and Maintenance); ties fall back to the unit and then the id, so a
+row can never appear on two pages. Pages of 25, 50 or 100 and a footer outside the table. Every link keeps every other
+setting, and the shared list script changes the view in place. **"Export · Soon" and "Filters · Soon" are gone**: the filters
+are the chips, and Export is real — a CSV of the current view (`GET /app/units-export`, `can:units.view`) or of a selection
+(POST), audited `unit.exported` with the count. Its columns are what the table shows; **it never carries a door code, wifi
+password or arrival note** — the rows the page's script reads carry only whether each exists.
+
+**Row actions (a ⋯ menu).** Edit unit · Price individually (the shared per-unit price form, unchanged) · Arrival info · See
+its work orders (the Maintenance board searched for the unit's code) · Pause / Resume. Each item appears only where its
+route would allow it: edit and pause need `units.manage`, pricing needs `rates.manage`, and neither is offered while the
+workspace is paused (the routes refuse it). Arrival info keeps its own rules, as before: offered to `units.manage` even in a
+paused workspace, because its route has no pause guard. Every action started from the list comes back to the list as it was
+— the address REBUILT from the list's allow-listed settings (`UnitListParams::returnUrl()`), never taken from the request.
+
+**Pause / Resume.** "Take out of service" / "Return to service" are now **Pause** / **Resume**, with a Paused tag on the row —
+the owner portal's words for the same switch (`OwnerUnitStatusService`), and no longer the name of the maintenance
+condition in the next column ("Out of service"). The dialog says what it does: bookings already taken are kept, nothing is
+deleted, it is recorded. **Bulk:** Select mode can export the selection, or pause or resume several units — through the
+same service as the single action (`OwnerUnitStatusService::setManyByOperator()`): the same write and the same audit row
+for each unit, each affected room type's availability recomputed ONCE after all its units have moved, and the whole
+selection in one transaction — all or nothing. Only units in the person's properties; units already in the asked-for state
+are counted and left alone: "Resumed 3 units · 1 already taking bookings." New route `app.inventory.units.bulk-active`,
+`can:units.manage`, refused in a paused workspace.
+
+**Room types as cards:** cover photo, kind, how many it sleeps, "N units · M bookable", Add unit, and the photo strip with
+its existing controls (cover, reorder, remove, add).
+
+**Found on the way, before shipping:**
+- ⚠️ **A duplicate unit code on Add was a 500.** `units` is unique on (property, code); Edit had a validation rule for it and
+  Add did not, so the database was the only check (🔬 the test was RED with a 500 first). Add now refuses it with a sentence,
+  scoped to the room type's property, and reopens the dialog with what was typed.
+- An empty sub-line under each unit code kept its height (CSS `:empty` cannot match an element holding Livewire's block
+  markers and the whitespace around them) and pushed the code off centre; the line now renders only when it has content.
+- ⚠️ **Found by the independent review of the diff (one finding at its bar):** the first bulk Pause/Resume called the single
+  action once per unit, and each call recomputes the unit's WHOLE room type for a year of nights — 🔬 ~0.5 s and 1,098
+  queries each, measured locally on tenant three. A page of 100 selected units meant ~100 identical recomputes (~50 s here,
+  slower on the shared host) with nothing around the loop, so a request cut off part-way would have left some units paused
+  and no notice saying which. Now the service writes and audits every unit, recomputes each affected room type once, in
+  one transaction; a new test counts the recomputes (one per room type) and proves a failure changes nothing — no unit, no
+  audit row. 🖥 Walked after the fix: three units across two room types paused and resumed from Select mode, one audit row
+  per unit per action, tonight's availability equal to the units on sale in both room types.
+- The setup guide told anyone who could not add to "ask an administrator" for the "manage units" permission — including a
+  manager in a paused workspace, who holds it. The line now shows only when the permission is what is missing; a paused
+  workspace has the shell's own "Workspace paused" banner.
+- The shared list script now focuses the first menu item that is showing, not the first in the page's markup — a change made
+  on reading the code (a hidden item cannot take focus), not after a measured failure. 🖥 Checked after it: focus lands on
+  the first visible item on the Units, Guests and Maintenance menus, and returns to the ⋯ button on Escape (measured on
+  Guests and Maintenance).
+
+**Not changed, reported:** Add unit finds the room type through the tenant scope only, not the person's property allow-list
+(#38), while every other unit write checks it (D-UNIT-STORE, DEC-k) — the same question as DEC-i and DEC-j. The SINGLE
+Pause/Resume (shared with the owner portal's pause) is still not in a transaction: if its recompute failed, the unit would
+stay flipped with no audit row (D-UNIT-SINGLE-TXN — read, not seen happen). The per-unit price form keeps its own styling
+(it is shared with Rates).
+
+**Divergence:** there is still no prototype for this screen; `docs/design/DIVERGENCE-REGISTER.md` records the rebuild.
+
+**Proof.** `UnitsListRedesignTest` (18), written to fail first where it could (the review's bulk test and the setup-line
+check were both RED before their fixes); the x-show guard now holds the Units page at zero (ceiling 39 → 35, 🔬 scanned:
+exactly 35 left); the route-gating census gained the two new write/export routes; the contrast guard reads both new panels.
+Mutation set `units-list` (31): 31 landed and caught, 0 not caught, 0 did not land — including a recompute moved back into
+the loop, the transaction removed, and the permission line shown on a pause. ⚠️ **The first full MySQL run was 4,105/4,107:**
+`MutationSetsStillLandTest` errored twice because the new set's top-level `$rows` (a file path) overwrote the `$rows` of
+the function loading it — a required file runs in its caller's scope. The harness and the suite now load each set through
+one shared `loadMutationSet()` (its own scope; a probe test proves a set's variables cannot reach the loader, and the
+guard stays green with the old name put back); the set's variable is renamed as well.
+🖥 Walked in a browser on tenant three (desktop 1440, phone 390): added a room type from a sorted view and came back to it;
+added a unit from its card (type chosen, sleeps suggested); a duplicate code refused with the sentence and the dialog reopened
+with the typed values; edited a name; paused one (the Paused tag and chip), bulk-paused two and bulk-resumed four ("Resumed
+3 units · 1 already taking bookings"); set arrival info (the stored code never appears in the page; Reveal showed it, as
+before); opened Price individually centred; followed See its work orders; exported the CSV (text/csv, the table's columns,
+no secret). At 390 px: no sideways page scroll, the dialog fits, the tiles two by two. 0 console errors or warnings.
+
+**Gates (each read from its own output, 2026-09-30):** the first full run **4,105/4,107 on MySQL 8.4.10** (tree
+`080edf75edae7bda`, 13:55–14:25 Baku — the two `MutationSetsStillLandTest` errors above, fixed) · mutations **424/424 across
+every set** (`units-list` 31/31; baseline 223/223 green; tree `40a51eade6466fc1`, 14:28–15:06 Baku) · **4,108/4,108 on
+MariaDB 11.8.9** (30,078 assertions, tree `40a51eade6466fc1`, 16:10–16:48 Baku; advisor-platform's dev server stopped first,
+at his word: "stop advisor and complete vyrobel" — Founder said, 16:08) · the final run on MySQL 8.4.10 **4,108/4,108** (30,078 assertions, tree `ce2dc2f218e1fac9`: this code with the entry and the memory written, before these figures were filled in; 16:49–17:22 Baku) ·
+money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, 17:22 Baku) · PHPStan 0 · Pint clean · an independent read-only review of the whole diff: one finding at its
+bar (the bulk recompute), fixed with a test that failed first.

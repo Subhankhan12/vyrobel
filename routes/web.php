@@ -102,6 +102,7 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SeasonActionController;
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Http\Controllers\Operator\UnitExportController;
 use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Http\Controllers\Operator\UnitRequestActionController;
 use App\Http\Controllers\Operator\WorkspaceSwitchController;
@@ -935,6 +936,13 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
         ->middleware('can:units.manage')->name('inventory.units.update');
     Route::post('/units/{unit}/active', [InventoryActionController::class, 'setUnitActive'])
         ->middleware('can:units.manage')->name('inventory.units.active');
+    // 2026-09-30 — the Units page rebuilt: pause or resume several units at once (the same audited service, one unit at a
+    // time, the same gate as the single action), and the export that replaced "Export · Soon" (a READ, `units.view`,
+    // offered only to a role holding it). ⚠️ Paths outside `/units/{unit}/…`, so no id is ever captured as a word.
+    Route::post('/units-bulk/active', [InventoryActionController::class, 'bulkSetActive'])
+        ->middleware('can:units.manage')->name('inventory.units.bulk-active');
+    Route::get('/units-export', [UnitExportController::class, 'view'])->middleware('can:units.view')->name('units.export');
+    Route::post('/units-export', [UnitExportController::class, 'selected'])->middleware('can:units.view')->name('units.export-selected');
     // Operator Channels exact-match — the OTA channel-manager surface. Pro-gated (`plan.feature:channels` →
     // an Essential org gets the honest "not in your plan" page). HONEST-GATED: real channel STATE, but live
     // OTA two-way sync/import is account-gated (no real Channex integration) — never a fabricated sync.

@@ -28,3 +28,20 @@ if (! function_exists('landMutation')) {
         return ['ok' => true, 'why' => '', 'mutated' => $mutated];
     }
 }
+
+if (! function_exists('loadMutationSet')) {
+    /**
+     * ONE set file, required in a scope of its OWN — read by the harness and by MutationSetsStillLandTest.
+     *
+     * ⚠️ A required file runs in the scope that requires it, so a set's top-level helper variables (`$t`, `$ctl`, …) used to
+     * land in its caller's: 2026-09-30, the units-list set's `$rows` (a file path) overwrote the list MutationSetsStillLandTest
+     * was building, and the suite errored on "[] operator not supported for strings". Here a set can only overwrite `$path`,
+     * which has already been read.
+     *
+     * @return list<array<string, mixed>>
+     */
+    function loadMutationSet(string $path): array
+    {
+        return require $path;
+    }
+}

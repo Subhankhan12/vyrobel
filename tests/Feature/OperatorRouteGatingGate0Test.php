@@ -27,6 +27,9 @@ dataset('gated ops writes', [
     'maintenance.parts' => ['app.maintenance.parts', 'maintenance.manage', 'Front Desk', 'Maintenance'],
     // 2026-09-29 — the board's Edit (title, description, category, priority), the newest maintenance write.
     'maintenance.update' => ['app.maintenance.update', 'maintenance.manage', 'Accountant', 'Hotel Manager'],
+    // 2026-09-30 — the Units page: pause or resume several at once, and export the selection (a read, units.view).
+    'units.bulk-active' => ['app.inventory.units.bulk-active', 'units.manage', 'Front Desk', 'Hotel Manager'],
+    'units.export-selected' => ['app.units.export-selected', 'units.view', 'Accountant', 'Front Desk'],
     'housekeeping.status' => ['app.housekeeping.status', 'housekeeping.manage', 'Front Desk', 'Housekeeping'],
     'reservations.move' => ['app.reservations.move', 'reservations.assign', 'Reservation Agent', 'Front Desk'],
     'front-desk.check-in' => ['app.front-desk.check-in', 'reservations.checkin', 'Reservation Agent', 'Front Desk'],

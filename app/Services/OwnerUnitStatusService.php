@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Unit;
 use App\Support\Events\AuditEventRecorder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * OWNER UNIT-STATUS control (Wave C · GATE 3 · ⚠️ affects availability). The owner PAUSES (snoozes) or RESUMES
@@ -56,13 +57,54 @@ class OwnerUnitStatusService
      */
     public function deactivateByOperator(Unit $unit, ?string $actorId = null): void
     {
-        $this->setActive($unit, false, 'unit.deactivated', $actorId);
+        $this->setActive($unit, false, self::operatorEvent(false), $actorId);
     }
 
     /** The operator's resume — see {@see deactivateByOperator()}. */
     public function reactivateByOperator(Unit $unit, ?string $actorId = null): void
     {
-        $this->setActive($unit, true, 'unit.reactivated', $actorId);
+        $this->setActive($unit, true, self::operatorEvent(true), $actorId);
+    }
+
+    /**
+     * SEVERAL UNITS AT ONCE — the operator's select mode on the Units page (2026-09-30). Each unit gets exactly what the
+     * single action gives it (the same write, the same audit row, the same event name), and a unit already in the asked-for
+     * state is left alone and counted.
+     *
+     * ⚠️ THE RECOMPUTE RUNS ONCE PER ROOM TYPE, AFTER EVERY UNIT HAS MOVED — not once per unit. It covers the WHOLE room
+     * type for a year of nights and reads its units as they stand, so N units of one type recomputed N times is N copies of
+     * the same work: 🔬 one recompute measured ~0.5 s and 1,098 queries locally, so a page of 100 selected units ran ~100 of
+     * them — long enough to be cut off part-way on the shared host (found by the independent review).
+     *
+     * ⚠️ ALL OR NOTHING: one transaction. A failure — or a request cut off — leaves every unit and the audit trail as they
+     * were, never half the selection paused with no notice saying which half.
+     *
+     * @param  iterable<Unit>  $units  already resolved inside the actor's accessible properties (the caller's job)
+     * @return array{changed: int, already: int}
+     */
+    public function setManyByOperator(iterable $units, bool $active, ?string $actorId = null): array
+    {
+        return DB::transaction(function () use ($units, $active, $actorId): array {
+            [$changed, $already, $roomTypes] = [0, 0, []];
+
+            foreach ($units as $unit) {
+                if ((bool) $unit->is_active === $active) {
+                    $already++;
+
+                    continue;
+                }
+                $unit->forceFill(['is_active' => $active])->save();
+                $this->record($unit, $active, self::operatorEvent($active), $actorId);
+                $roomTypes[(string) $unit->room_type_id] = true;
+                $changed++;
+            }
+
+            foreach (array_keys($roomTypes) as $roomTypeId) {
+                $this->recompute((string) $roomTypeId);
+            }
+
+            return ['changed' => $changed, 'already' => $already];
+        });
     }
 
     private function setActive(Unit $unit, bool $active, string $event, ?string $actorId): void
@@ -72,15 +114,29 @@ class OwnerUnitStatusService
         }
 
         $unit->forceFill(['is_active' => $active])->save();
+        $this->recompute((string) $unit->room_type_id);
+        $this->record($unit, $active, $event, $actorId);
+    }
 
-        // Recompute the room type's availability across the bookable window so `total` reflects the change now.
+    /** The operator realm's event names — one place, so the single and the bulk action cannot drift apart. */
+    private static function operatorEvent(bool $active): string
+    {
+        return $active ? 'unit.reactivated' : 'unit.deactivated';
+    }
+
+    /** Recompute the room type's availability across the bookable window so `total` reflects the change now. */
+    private function recompute(string $roomTypeId): void
+    {
         $today = Carbon::today();
         $this->availability->recompute(
-            (string) $unit->room_type_id,
+            $roomTypeId,
             $today->toDateString(),
             $today->copy()->addDays(self::WINDOW_DAYS)->toDateString(),
         );
+    }
 
+    private function record(Unit $unit, bool $active, string $event, ?string $actorId): void
+    {
         // ⚠️ `$actorId` WAS ACCEPTED AND THEN DROPPED — found while wiring the operator entrance (F-6). The
         // recorder falls back to auth()->user(), which resolves over HTTP, so the trail was correct for both
         // realms' real callers; but a job or console caller passing an actor explicitly would have written a

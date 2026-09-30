@@ -15,6 +15,7 @@ use App\Services\OwnerUnitStatusService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
+use App\Support\Unit\UnitListParams;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -60,12 +61,15 @@ class InventoryActionController extends Controller
     /** The room-type kinds offered. A subset of the `room_types.kind` enum, matching PropertyController's TYPES idiom. */
     private const KINDS = ['room', 'apartment', 'villa', 'dorm'];
 
+    /** One sentence for one refusal: a unit code is unique within its property (the database's own rule). */
+    private const DUPLICATE_CODE = 'That unit code is already used in this property — choose another.';
+
     /** How far forward availability is materialised when a unit is added — the same year OwnerUnitRequestService uses. */
     private const AVAILABILITY_HORIZON_DAYS = 365;
 
     public function storeRoomType(Request $request): RedirectResponse
     {
-        if ($guard = $this->readOnly('units')) {
+        if ($guard = $this->readOnly('units', $request)) {
             return $guard;
         }
 
@@ -99,13 +103,13 @@ class InventoryActionController extends Controller
             'is_virtual' => false,
         ]);
 
-        return redirect()->to(route('app.units'))->with('units_notice',
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice',
             $roomType->name.' added. Next: add a unit to it, then a rate plan, and it can be sold.');
     }
 
     public function storeUnit(Request $request, AvailabilityService $availability): RedirectResponse
     {
-        if ($guard = $this->readOnly('units')) {
+        if ($guard = $this->readOnly('units', $request)) {
             return $guard;
         }
 
@@ -120,6 +124,14 @@ class InventoryActionController extends Controller
         // and the property is read off the ROOM TYPE rather than the request — so a unit can never be
         // attached to a property the room type does not belong to.
         $roomType = RoomType::query()->findOrFail($data['room_type_id']);
+
+        // ⚠️ 2026-09-30 — THE DATABASE WAS THE ONLY CHECK. `units` is unique on (property, code), and this action had no
+        // rule for it, so a code already used in the property reached the unique index and came back as a 500. Refused
+        // here with a sentence instead, scoped to the ROOM TYPE's property (the unit is created there).
+        $request->validate(
+            ['code' => [Rule::unique('units', 'code')->where('property_id', $roomType->property_id)]],
+            ['code.unique' => self::DUPLICATE_CODE],
+        );
 
         // ⚠️ ONE TRANSACTION, AND THE REASON IS SPECIFIC. The unit is written and then availability is
         // recomputed; if the recompute threw in between, the tenant would own a unit that the storefront
@@ -156,7 +168,7 @@ class InventoryActionController extends Controller
             return $unit;
         });
 
-        return redirect()->to(route('app.units'))->with('units_notice',
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice',
             $unit->code.' added to '.$roomType->name.'. It is bookable for the next year once a rate plan has prices.');
     }
 
@@ -224,7 +236,7 @@ class InventoryActionController extends Controller
      */
     public function updateUnit(Request $request, AuditEventRecorder $audit, string $unit): RedirectResponse
     {
-        if ($guard = $this->readOnly('units')) {
+        if ($guard = $this->readOnly('units', $request)) {
             return $guard;
         }
 
@@ -235,7 +247,7 @@ class InventoryActionController extends Controller
                 Rule::unique('units', 'code')->where('property_id', $model->property_id)->ignore($model->getKey())],
             'name' => ['nullable', 'string', 'max:255'],
             'max_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
-        ]);
+        ], ['code.unique' => self::DUPLICATE_CODE]);
 
         // ⚠️ CAPTURED BEFORE THE WRITE. A unit's previous name and code are cheap to record, unlike a rate's
         // previous price — Phase 11 found 11 of 11 rate sites passing a null `before`, and that is why an
@@ -262,7 +274,7 @@ class InventoryActionController extends Controller
         // so this carries no guest or contact data — a unit's code and occupancy are neither.
         $audit->record('unit.updated', $model, $before, $after);
 
-        return redirect()->to(route('app.units'))
+        return $this->listReturn($request, redirect()->to(route('app.units')))
             ->with('units_notice', "Unit {$model->code} updated.");
     }
 
@@ -284,7 +296,7 @@ class InventoryActionController extends Controller
      */
     public function setUnitActive(Request $request, OwnerUnitStatusService $status, string $unit): RedirectResponse
     {
-        if ($guard = $this->readOnly('units')) {
+        if ($guard = $this->readOnly('units', $request)) {
             return $guard;
         }
 
@@ -298,9 +310,50 @@ class InventoryActionController extends Controller
             $status->deactivateByOperator($model, $actorId !== null ? (string) $actorId : null);
         }
 
-        return redirect()->to(route('app.units'))->with('units_notice', $active
-            ? "Unit {$model->code} is back in service and can be booked again."
-            : "Unit {$model->code} is out of service. Existing bookings are unchanged; no new ones can be taken.");
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $active
+            ? "Unit {$model->code} is taking bookings again."
+            : "Unit {$model->code} is paused. Bookings already taken are kept; no new ones can be made.");
+    }
+
+    /**
+     * PAUSE OR RESUME SEVERAL UNITS AT ONCE (2026-09-30, the Units page's select mode) — through the SAME
+     * {@see OwnerUnitStatusService} the single action uses ({@see OwnerUnitStatusService::setManyByOperator()}): every unit
+     * gets its own audit row, each affected room type its availability recompute ONCE, all in one transaction; nothing here
+     * writes `is_active` itself. Gated `can:units.manage` on the route (#30), refused in a paused workspace, and every id
+     * is resolved inside the actor's accessible properties (a unit elsewhere is never touched — not found, not merely
+     * hidden). A unit already in the asked-for state is counted and left alone, and the notice says so rather than
+     * claiming it.
+     */
+    public function bulkSetActive(Request $request, OwnerUnitStatusService $status): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units', $request)) {
+            return $guard;
+        }
+
+        $data = $request->validate([
+            'unit_ids' => ['required', 'array', 'min:1', 'max:500'],
+            'unit_ids.*' => ['string'],
+            'active' => ['required', 'boolean'],
+        ]);
+
+        $active = $request->boolean('active');
+        $actorId = $request->user()?->getAuthIdentifier();
+        $readIds = app(PropertyContext::class)->readIds();
+        $units = Unit::query()
+            ->when($readIds !== [], fn ($q) => $q->whereIn('property_id', $readIds))
+            ->whereIn('id', $data['unit_ids'])
+            ->get();
+
+        ['changed' => $done, 'already' => $already] = $status->setManyByOperator($units, $active, $actorId !== null ? (string) $actorId : null);
+
+        $verb = $active ? 'Resumed' : 'Paused';
+        $notice = $verb.' '.$done.' '.Str::plural('unit', $done);
+        if ($already > 0) {
+            $notice .= ' · '.$already.' already '.($active ? 'taking bookings' : 'paused');
+        }
+
+        return $this->listReturn($request, redirect()->to(route('app.units')))
+            ->with('units_notice', $notice.($active ? '.' : '. Bookings already taken are kept.'));
     }
 
     /**
@@ -449,7 +502,7 @@ class InventoryActionController extends Controller
 
         $changed = $arrival->update($target, $validated);
 
-        return redirect()->to(route('app.units'))->with('units_notice', $changed === []
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $changed === []
             ? 'Nothing changed — a blank field leaves the stored value alone.'
             : 'Arrival info updated for '.($target->name ?? $target->code).'.');
     }
@@ -462,11 +515,11 @@ class InventoryActionController extends Controller
      * screenshot of the units screen, for everyone holding `units.manage`. Reading one is instead an
      * explicit act that writes an audit row — the property that matters if a guest is later let in wrongly.
      */
-    public function revealArrivalInfo(string $unit, ArrivalInfoService $arrival): RedirectResponse
+    public function revealArrivalInfo(Request $request, string $unit, ArrivalInfoService $arrival): RedirectResponse
     {
         $target = $this->accessibleUnit($unit);
 
-        return redirect()->to(route('app.units'))
+        return $this->listReturn($request, redirect()->to(route('app.units')))
             ->with('arrival_reveal', ['unit' => (string) $target->getKey()] + $arrival->reveal($target));
     }
 
@@ -482,6 +535,18 @@ class InventoryActionController extends Controller
         return Unit::query()
             ->when($ids !== [], fn ($q) => $q->whereIn('property_id', $ids))
             ->findOrFail($unitId);
+    }
+
+    /**
+     * Back to the Units page as the operator had it, when the action was started there (`return=list`) — the address is
+     * REBUILT from the page's own allow-listed settings ({@see UnitListParams::returnUrl()}), never taken from the request
+     * as a URL. Anything else keeps its old destination.
+     */
+    private function listReturn(Request $request, RedirectResponse $default): RedirectResponse
+    {
+        return $request->input('return') === 'list'
+            ? redirect()->to(UnitListParams::returnUrl($request->input('return_query')))
+            : $default;
     }
 
     /** A stable, human-ish code that is unique within its parent. Mirrors PropertyController::uniqueSlug. */
@@ -500,7 +565,7 @@ class InventoryActionController extends Controller
     }
 
     /** The workspace pause guard, in PropertyController's shape. */
-    private function readOnly(string $surface): ?RedirectResponse
+    private function readOnly(string $surface, ?Request $request = null): ?RedirectResponse
     {
         $workspace = app(OperatorWorkspace::class);
 
@@ -509,8 +574,11 @@ class InventoryActionController extends Controller
         }
 
         $route = $surface === 'rates' ? 'app.rates' : 'app.units';
+        $back = $request !== null && $surface === 'units'
+            ? $this->listReturn($request, redirect()->route($route))
+            : redirect()->route($route);
 
-        return redirect()->route($route)->with($surface.'_error',
+        return $back->with($surface.'_error',
             'Workspace paused — adding inventory is read-only until '.$workspace->resumeLabel().'.');
     }
 }
