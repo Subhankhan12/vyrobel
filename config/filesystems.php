@@ -41,7 +41,11 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // ⚠️⚠️ /media, NOT Laravel's default /storage (2026-09-30). On production the document root IS the application
+            //    root (KNOWN-LIMITS L12p) and the server refuses every `/storage…` path by design — so every uploaded
+            //    photo, logo and avatar answered 404 at its /storage address. PublicMediaController serves this disk's
+            //    images at /media (registered in bootstrap/app.php); the server's /storage rule stays as it is.
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/media',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

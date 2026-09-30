@@ -1025,11 +1025,17 @@ namespaces:
   ✅ **FIXED 2026-09-21**: `app|` removed from the top-level rule only. `public_html/app` does not exist, and
   the release's real `app/` stays blocked by the `^/current/(app|…)` rule below it. 🔬 Battery unchanged in
   51 of 53 cells; the two that moved went from *Apache refuses* to *Laravel refuses*.
-- **`/storage`** — the public disk's URL (`config/filesystems.php` → `APP_URL.'/storage'`), so **all public
-  media 404s**. ⚠️ **STILL OPEN, AND DELIBERATELY NOT FIXED**: `public_html/storage` is a real directory
-  holding the logs and the bypass secret, so the path cannot simply be unblocked. ⚠️ **It will fail
-  SILENTLY** — the first uploaded property photo will just not appear. No media exists yet, which is the only
-  reason nobody has met it.
+- **`/storage`** — the public disk's URL was Laravel's default `APP_URL.'/storage'`, so **all public media
+  404'd**. ⚠️ `public_html/storage` is a real directory holding the logs and the bypass secret, so the path was
+  not — and still is not — unblocked. ⚠️ **It failed exactly as predicted, SILENTLY:** 🔬 2026-09-30 the founder
+  reported "when I add photo, the preview is not available"; five room photos sat on disk while each address
+  answered 404 (measured from outside, cache-busted). ✅ **WORKED AROUND 2026-09-30 ON THE APP SIDE, the server
+  rule untouched:** the public disk now answers at **`/media`** (`config/filesystems.php`), served by
+  `PublicMediaController` — registered outside the `web` group (no session, no cookie), images only (extension
+  AND the file's own bytes), only from the directories the app writes photos, logos and avatars into; message
+  attachments deliberately not (a founder decision, `OPEN.md` D-MEDIA-ATTACH). `PublicMediaTest` fails if a new
+  upload directory is on neither list. ⚠️ The docroot move below is still the real fix for the REST of this
+  class (the inert `FilesMatch`, the host-rule dependence).
 
 ⛔ **FOUNDER STEP, AND IT IS THE REAL FIX:** establish whether hPanel can point this domain's document root at
 a **subdirectory** (`public_html/current/public`). ⚠️ **This could not be determined from the server** — the

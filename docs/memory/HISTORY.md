@@ -398,6 +398,24 @@ production: Add unit still gated `units.manage`, `storeUnit` uses the new lookup
 are limited to particular properties today (so no one's access changed now — it guards the case once someone is); public
 checks 12/0/0; 1,412/1,412 files match git; drift check passes; 0 errors since the swap.
 
+**PHOTOS — 2026-09-30 — his report: "when I add photo, the preview is not available … verify … if it's not fixed, fix
+it, ship it live".** Not fixed: 🔬 five room photos sat on production's disk and each address (`/storage/room-photos/…`)
+answered 404 from outside, cache-busted. The cause was already written down — KNOWN-LIMITS L12p, "it will fail SILENTLY":
+the document root is the application root, so the server refuses every `/storage…` path to protect the real storage
+folder (logs, the bypass secret). That rule was left exactly as it is. The public disk now answers at **`/media`**
+through `PublicMediaController`, registered outside the `web` group (no session, no cookie): images only, judged by the
+file's own bytes, only from the directories the app writes photos, logos and avatars into. Every surface that shows
+those — Units, the storefront, logos, avatars, housekeeping and maintenance photos — is fixed by the one address change.
+Message attachments were deliberately left out (private documents — D-MEDIA-ATTACH, DEC-m). 🖥 Walked locally: a photo
+added on Units showed at once as the card's cover and its thumbnail (800×520 decoded), the storefront showed it, 0
+console errors. **This pass's own mistakes, each caught by the tests before anything shipped:** `Storage::fake()` drops
+the disk's `url`, so the first test still saw `/storage`; and Flysystem's `mimeType()` falls back to the file name, so a
+text file named `.jpg` was served — the check now reads the bytes with `finfo`; and the first full run was 4,111/4,112:
+`HtmlIsNeverPubliclyCacheableTest` refused my `Cache-Control: public` (production's CDN — L12k/L12m); it is `private`
+now, and the guard was not touched.
+Gates: 4,112/4,112 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `41f113a1016595f1`, the code plus these docs); 432/432
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

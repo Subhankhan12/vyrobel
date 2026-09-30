@@ -125,7 +125,7 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **L12k** The release layout: `releases/rel_X` plus one `current` symlink. Swap 3 ms, 0/220 non-200 at the origin. Prune only ≥180 s after a swap. Compiled caches bake ABSOLUTE PATHS, so rebuild config+route caches in EVERY release. Never `scp` onto a hardlinked file. An `artisan` shim keeps the panel cron alive → ✅ adopted 2026-09-20, live.
 - **L12m** A CDN (`server: hcdn`) nobody owned cached a transient 301 for 2+ hours. `/up` is exempt from it → keeping HTML uncacheable is load-bearing; the webhook passes straight through → open: a purge, or disabling it, is the founder's call.
 - **L12n** Does the alarm bound a park? Yes: detection ≤ 60 s + grace (≤ ~6 min at 5 min). Expand-then-contract is not a prerequisite → but neither the ping nor a `/up/liveness` poller was configured (2026-09-20).
-- **L12p** The document root IS the app root. `.env` is protected by a rewrite plus a host rule; `FilesMatch` is inert → `/app` collision ✅ fixed. `/storage` media 404 is still OPEN and will fail silently. Founder step: move the docroot.
+- **L12p** The document root IS the app root. `.env` is protected by a rewrite plus a host rule; `FilesMatch` is inert → `/app` collision ✅ fixed. `/storage` media 404 did fail silently ("the preview is not available", 2026-09-30) → worked around: the public disk answers at `/media` (`PublicMediaController`); the server's `/storage` block stays. Founder step still: move the docroot.
 - **L13** `/api/owner/*` returned 500 on a mode-775 key → a route nothing can reach is a route nothing has tested. Check the web user before a chmod → ✅ closed 2026-09-23, proven by 500→401.
 - **L14** A raw `env()` returns NULL under cached config, so the heartbeat was never armed. A shell-env test once "proved" it worked → ✅ fixed 2026-09-24 (`config/ops.php`), proven A/B on a cached config. The ping URL is still unset (founder).
 - **L15** "777 `.env`" was the symlink's own mode → read `stat -L` → ✅ closed 2026-09-25, not a defect. The real finding beside it: 9 old config caches at 644, now 600. `stage` re-asserts link+600.
@@ -257,6 +257,15 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **A unique index is not a validation rule.** `units` is unique on (property, code); Edit had the rule, Add did not, so a
   duplicate code on Add reached the index and came back as a 500 (🔬 RED before the fix). When one write path of a column has
   a rule, check every other path that writes it — the defect sits beside the flagged thing (Verified 2026-09-30).
+- **A known limit that says "it will fail silently" is a defect with a date not yet chosen.** L12p predicted the `/storage`
+  photo 404 in September; the founder met it as "the preview is not available" (2026-09-30). When a limit names its
+  own symptom, check whether the symptom is already live (Verified 2026-09-30).
+- **`Storage::fake()` keeps only `throw` from the real disk config** — its `url` is gone, so a faked public disk answers
+  `/storage/…` whatever the config says. When the address is what a test is about, pass it: `Storage::fake('public',
+  ['url' => config('filesystems.disks.public.url')])` (Verified 2026-09-30).
+- **A disk's `mimeType()` is not a content check.** Flysystem falls back to the EXTENSION when the content is inconclusive,
+  so 🔬 a text file named `.jpg` read as `image/jpeg`. To judge a file by its bytes, use `finfo` on its path
+  (Verified 2026-09-30).
 - **A required file runs in the scope that requires it.** A mutation set's top-level `$rows = '…'` overwrote the `$rows` of
   the function that loaded it, and the suite errored on "[] operator not supported for strings" (🔬 4,105/4,107, the
   first full run of the Units pass). The harness never hit it — its loop used other names. Load such files through

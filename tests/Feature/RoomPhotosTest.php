@@ -72,7 +72,8 @@ it('stores the enforced morph alias, not an FQCN', function () {
 it('exposes a public URL accessor for the stored file', function () {
     $photo = attachPhoto(seedScenario(1)['roomType'], 0);
 
-    expect($photo->url)->toContain('/storage/photos/');
+    // /media since 2026-09-30 — production's server refuses /storage… by design (KNOWN-LIMITS L12p; PublicMediaTest)
+    expect($photo->url)->toContain('/media/photos/');
 });
 
 it('generates a real, decodable JPEG for demo placeholders (not a hotlinked URL)', function () {

@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the UNITS pass (DEC-k)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the PHOTOS pass** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -71,6 +71,7 @@ change is said.** Briefs live in `briefs/`.
 - **D-STYLE-STRING (found 2026-09-29)**: see A10. Fixed on both Maintenance pages (14 sites on the work order page).
 - **D-MODAL-PAD (found 2026-09-29)**: the older `.vy-modal { padding: 26px }` stacks with the dialog sections' own 24 px. On a phone it left 250 px of a 350 px dialog on the Maintenance board (fixed there, scoped); the Guests, Portfolio and profile dialogs keep it (they were walked at 390 px in their passes).
 - **D-UNIT-STORE — FIXED 2026-09-30, by his ruling on DEC-k** ("Fix this issue too"): Add unit now finds the room type inside the person's properties — the same `readIds()` rule as every other unit write — so another property's room type is a 404 and nothing is created (V: the test was RED first, a 302 where a 404 was due; mutations UL-M32 and UL-M33 caught). ✅ LIVE on `rel_AL @ 8cda8c7f` (V 2026-09-30 19:13 Baku). The same question on the Portfolio's Edit (DEC-i) and the maintenance writes (DEC-j) is still his.
+- **D-MEDIA-ATTACH (found 2026-09-30 with the photos fix, not changed — his call, DEC-m)**: the files people attach in the owner portal's messages (images, PDFs, Office files, CSV, text) are stored on the PUBLIC disk and linked by address — so on production they answer 404 like every `/storage…` address did (they are not in `/media`'s list, on purpose). They are documents in a private owner–operator conversation: serving them publicly by address, as the photos now are, is a privacy decision, not a presentation one. The alternative is a signed-in route that checks the viewer belongs to that conversation (R: read 2026-09-30; not probed with a real attachment on production — none was looked for).
 - **D-RATE-PLAN-SCOPE (found 2026-09-30 while fixing DEC-k, not fixed — his call)**: the three rate-plan writes on the Rates page — Add rate plan (`InventoryActionController::storeRatePlan`), Edit rate plan (`updateRatePlan`) and on/off sale (`setRatePlanActive`), all `can:rates.manage` — find their room type or rate plan through the tenant scope only, not the person's property allow-list (#38): the same shape DEC-k closed on Add unit. The Rates page itself offers only the person's properties. Other rate writes (the grid, bulk edit, per-unit prices) were not checked (R: read 2026-09-30, not probed).
 - **D-UNIT-SINGLE-TXN (found 2026-09-30 by reading, not seen happen)**: the SINGLE Pause/Resume (`OwnerUnitStatusService::setActive`, shared by the operator's Units page and the owner portal's pause, #69) writes the flag, recomputes availability, then writes the audit row — with no transaction. If the recompute failed, the unit would stay flipped with stale availability and no audit row. The new bulk action is one transaction; the single one was left as it was because the owner portal shares it. Small; a pass that touches the owner pause can close it.
 - **D-MT-COPY (small)**: the older maintenance flash lines say "Ticket …" ("Ticket resolved.", "Ticket cancelled.") where the page now says "work order"; bulk Assign to "No one" reports "Assigned 2 work orders." Left as they were.
@@ -89,7 +90,7 @@ change is said.** Briefs live in `briefs/`.
   - L7: whether to state that the back office is desktop-only;
   - L10: the tentative-hold message;
   - L12m: a CDN purge, or disabling the CDN;
-  - L12p: the `/storage` media 404, and moving the docroot;
+  - L12p: moving the docroot (the `/storage` media 404 is worked around at `/media` since 2026-09-30 — the server rule is unchanged);
   - L17: a database trigger for the ledger.
 
 ## Decisions (his rulings, not ours)
@@ -113,4 +114,5 @@ change is said.** Briefs live in `briefs/`.
 | DEC-h | Portfolio remove (2026-09-29): his approval put a leaving property's state on its Portfolio card, which updates ruling **F-58** ("per-property visibility on Settings is enough; no portfolio-wide list"). Confirm, or keep the card silent (one block in the view). |
 | DEC-i | D-EDIT-SCOPE above: should Edit on the Portfolio be limited to the properties a person can access, as Remove is? |
 | DEC-j | D-MT-STORE above: should creating a work order — and Start, Resolve, Cancel, Assign on one — be limited to the properties a person can access, as the new Edit is? |
+| DEC-m | D-MEDIA-ATTACH above: owner message attachments — served through a signed-in route that checks the viewer is in that conversation (recommended), or publicly by address like the photos? |
 | DEC-l | D-RATE-PLAN-SCOPE above: should adding, editing and switching rate plans be limited to the properties a person can access, as every unit write now is? |

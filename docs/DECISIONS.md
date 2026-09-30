@@ -18925,3 +18925,49 @@ limited to particular properties today** (no `property_user` rows across the 15 
 now — the check guards the case once someone is. After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure**
 (`SERVED=0`), **1,412 of 1,412** deployable files match git at `8cda8c7f`, the `.htaccess` drift check passes (self-test
 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
+
+## 2026-09-30 — Photos: the public disk answers at /media, so an uploaded photo shows (KNOWN-LIMITS L12p's `/storage` 404, worked around)
+
+**Asked:** "https://vyrobel.com/app/units — on this page, when I add photo, the preview is not available. Fix it. … verify
+it if it's fixed. If it's fixed, okay. If it's not fixed, then please fix it, ship it live and make sure that everything is
+working fine."
+
+**Verified first — it was not fixed.** 🔬 On production five room photos sat on disk (`storage/app/public/room-photos/…`),
+and each one's address, `https://vyrobel.com/storage/room-photos/…`, answered **404** from outside (cache-busted, so the
+origin and not the CDN's copy). The cause was already on record as KNOWN-LIMITS **L12p**: the document root IS the
+application root, so `public_html/storage` is the real storage folder — logs and the maintenance bypass secret — and the
+server's `.htaccess` refuses every `/storage…` path (`RedirectMatch 404`) before its rewrite runs. Laravel's public disk
+used exactly that address, so every uploaded image failed — room photos, and equally logos, avatars, housekeeping,
+maintenance and unit-request photos. L12p said it would "fail SILENTLY"; it did.
+
+**The fix — on the app side; the server rule is not touched.** The public disk's address is now **`/media`**
+(`config/filesystems.php`), which no server rule refuses, served by `PublicMediaController`:
+- registered in `bootstrap/app.php` **outside the `web` middleware group** — an image never starts a session (a database
+  write on production) or sets a cookie;
+- **images only**: the extension must be jpg/jpeg/png/webp/gif AND the file's own bytes must say so (`finfo`) — a document,
+  a hidden file, a folder (never a listing) or anything else is a 404;
+- **only the directories the app writes photos, logos and avatars into** (`SERVED_DIRECTORIES`); the path pattern admits
+  no dot segment, so nothing can climb out of a listed directory or the disk;
+- `Cache-Control: private, max-age=86400` — a day in the viewer's browser, never at the CDN: nothing PHP answers is
+  publicly cacheable here (`HtmlIsNeverPubliclyCacheableTest`, L12k/L12m — a `public` first draft of this header went red
+  on the full suite, and edge-caching images is a deployment decision, not this fix's) — and `X-Content-Type-Options: nosniff`.
+Every surface that shows these images is fixed by the one address change — the Units cards, the booking storefront, brand
+logos, avatars, housekeeping and maintenance photos, owners' unit-request photos.
+
+**Deliberately not served: owner message attachments** (images, PDFs, Office files, CSV, text). They are documents in a
+private owner–operator conversation on the same public disk; they 404 on production today and still do. Whether they may be
+public by address like the photos, or should go through a signed-in route that checks the viewer is in that conversation, is
+his decision (`OPEN.md` D-MEDIA-ATTACH, DEC-m).
+
+**Proof.** `PublicMediaTest` (3), RED first (the photo's address was `/storage/…` and `/media` served nothing): an uploaded
+room photo gets a `/media` address that serves its exact bytes as `image/jpeg`, with no cookie, and the Units page shows
+that address; refusals — a text file, a text file named `.jpg`, a real image in `message-attachments`, a hidden file, two
+folders, four climbs out of a directory or the disk (plain and `%2e%2e`), a missing file; and a guard that reads `app/` for
+every upload directory and fails if one is on neither list — a new photo feature can no longer 404 silently. `RoomPhotosTest`'s
+address expectation moved from `/storage/photos/` to `/media/photos/` (the behaviour changed; the check did not weaken).
+Mutation set `public-media` (6): back to `/storage`, any directory served, the disk's extension-based type check, dot
+segments let through, the route inside the `web` group, an upload directory unaccounted for — all 6 caught. 🖥 Walked
+locally on tenant three: a photo added on Units showed at once as the card's cover and its thumbnail (800×520 decoded;
+its address 200 `image/jpeg`, no `Set-Cookie`), the booking storefront showed it, 0 console errors or warnings.
+
+**Gates (each read from its own output, 2026-09-30):** the first full run **4,111/4,112 on MySQL 8.4.10** (tree `2ed2651b86f1c993`, 19:37–19:52 Baku — the `HtmlIsNeverPubliclyCacheableTest` refusal above, answered with `private`) · **4,112/4,112 on MySQL 8.4.10** (30,122 assertions, tree `41f113a1016595f1`: this code with the entry and the memory written, before these figures were filled in; 19:53–20:08 Baku) · **4,112/4,112 on MariaDB 11.8.9** (the same tree, 20:24–20:39 Baku; advisor-platform's dev server still stopped, checked at 20:24) · mutations **432/432 across every set** (`public-media` 6/6; baseline 227/227 green; 20:09–20:24 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, reseeded 20:39–20:40 and read at 20:40 Baku) · PHPStan 0 · Pint clean.

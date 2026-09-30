@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\PlatformWriteRefused;
+use App\Http\Controllers\PublicMediaController;
 use App\Http\Middleware\EndSessionsOnPasswordChange;
 use App\Http\Middleware\EnterBreakGlassSession;
 use App\Http\Middleware\RefuseWritesDuringBreakGlass;
@@ -18,6 +19,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -28,6 +30,12 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // ⚠️⚠️ THE PUBLIC DISK AT /media (2026-09-30) — registered HERE, outside the `web` group, on purpose: an image is
+        //    not a page, so it must not start a session (a database write per image on production) or set a cookie. On
+        //    production `/storage…` is refused by the server by design (KNOWN-LIMITS L12p); see PublicMediaController.
+        then: function (): void {
+            Route::get('/media/{path}', PublicMediaController::class)->where('path', '.+')->name('media.show');
+        },
     )
     // ⚠️⚠️ EVENT DISCOVERY OFF — EXPLICIT REGISTRATION IS THE ONE MECHANISM (F-40, FIX 19, 2026-09-14).
     //

@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the UNITS pass, DEC-k (2026-09-30)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the PHOTOS pass (2026-09-30)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -19,9 +19,9 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the DEC-k commit) | **4,109/4,109 on MySQL 8.4.10** (tree `758fe3261f6a5721` = the code plus these docs, 2026-09-30 18:25–18:40 Baku) · **4,109/4,109 on MariaDB 11.8.9** (the same tree, 18:55–19:10 Baku) · 30,086 assertions · every test passed (0 skipped). The Units commit before it: 4,108/4,108 on both engines. | **V** run output 2026-09-30. |
-| Mutations | **426/426 landed and caught across every set**, 0 not caught, 0 did not land; baseline 224/224 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, and 12 older sets) | **V** harness output 2026-09-30 18:40–18:55 Baku, tree `758fe3261f6a5721` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 19:10 Baku (the DEC-k pass). Tenant one only; local only. |
+| Suite (the photos commit) | **4,112/4,112 on MySQL 8.4.10** (tree `41f113a1016595f1` = the code plus these docs, 2026-09-30 19:53–20:08 Baku) · **4,112/4,112 on MariaDB 11.8.9** (the same tree, 20:24–20:39 Baku) · 30,122 assertions · every test passed (0 skipped). The first run of this pass was 4,111/4,112 (the public-cache guard — answered, not silenced). | **V** run output 2026-09-30. |
+| Mutations | **432/432 landed and caught across every set**, 0 not caught, 0 did not land; baseline 227/227 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `public-media` = 6, and 12 older sets) | **V** harness output 2026-09-30 20:09–20:24 Baku, tree `41f113a1016595f1` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 20:40 Baku (the photos pass; reseeded 20:39–20:40). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AL`, 2026-09-30, run straight after the 19:13 Baku swap (and on `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 19:20) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
@@ -59,6 +59,11 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     fixed** — Add unit now checks the person's properties (`HISTORY.md`, "UNITS · DEC-k"); ✅ LIVE on `rel_AL` (V 2026-09-30
     19:13 Baku). Left: a signed-in look on production; his call DEC-l (the same check on the rate-plan writes).
     advisor-platform's dev server was stopped for the MariaDB run at his word and left stopped.
+0f. **Photos show again (2026-09-30)** — his report: "when I add photo, the preview is not available". 🔬 Production refused
+    every `/storage…` address by design (KNOWN-LIMITS L12p), so every uploaded image — room photos, logos, avatars,
+    housekeeping and maintenance photos — answered 404 while its file sat on disk. The public disk now answers at `/media`
+    (`PublicMediaController`; `HISTORY.md`, "PHOTOS"). ⏳ Gates, then deploy as `rel_AM` and a look at his five photos.
+    Left: his call DEC-m (message attachments).
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -85,7 +90,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 8. Rulings DEC-a to DEC-i (`OPEN.md`). DEC-f decides whether the logo removal that shipped stays.
 8b. Say go (or not) on A8, the x-show sweep of 35 elements on other screens; A9, the other see-through dialogs; and A10,
     the string `:style` sweep of 10 elements. Rule on DEC-j and DEC-l (the property allow-list on the maintenance writes
-    and on the rate-plan writes; DEC-k, the same on Add unit, was ruled and fixed 2026-09-30).
+    and on the rate-plan writes; DEC-k, the same on Add unit, was ruled and fixed 2026-09-30); and DEC-m (how owner
+    message attachments may be reached).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the
