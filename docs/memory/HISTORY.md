@@ -316,6 +316,30 @@ the Livewire boundary guard); 367/367 mutations; money gate FULL unmoved; browse
 ran in ≤ 0.9 ms on MariaDB, and the way back rebuilt to the list from a query carrying junk; public checks 12/0/0; 1,407/1,407
 files match git; drift check passes; 0 errors since the swap.
 
+**MAINTENANCE — 2026-09-29 — the founder's request ("now work the same sort of things on the same page", after Guests).**
+Design approved first. *The dialogs:* the same inline-display bug as Guests — New work order opened at 260,330 and the
+drawer on the LEFT; all now centre by class and the drawer sits on the right by class. The work order page's Reassign and
+Mark resolved are real dialogs now (they had no Escape and no name — the keyboard guard's allow-list had them as "reported,
+not fixed"). *The page:* the Guests treatment — one toolbar, filter chips with counts inside the search, a table that sorts
+by priority · time to target (by the very deadline the column shows) · reported · unit, 25 / 50 / 100 per page, a footer
+that says what the board holds, and a ⋯ menu offering only what the ticket's state and the viewer allow (the old board
+offered Assign on a resolved work order). New: **Edit** (open or in progress only; the audit names fields, never the text;
+the property allow-list checked) and **Cancel** as the honest delete (kept, as cancelled; the room back on sale unless
+another open work order holds it). Every action comes back to the board as it was, rebuilt from an allow-list. One shared
+list script now drives Guests and Maintenance. **Found and closed:** the sticky-header rule clipped the table's last two
+columns at 1180 px (now measured, not assumed — Guests too); Alpine's string `:style` shrank the work order page's switch to
+16×6 px and stripped its dialogs' rows and tabs (14 sites; a new guard holds 10 others at a ceiling); the Mark resolved
+dialog overflowed; category and priority labels split mid-word; "1 units blocked"; Costs report and Settings were offered
+to roles that get a 403; and (**the independent review's one finding**) the board's Mark resolved never told whoever
+reported the work order — it now carries the work order page's switch, on by default. **This pass's own mistakes, each caught:** a one-sided comparator mutation (MB-M3) stayed green —
+the mutation's fault, rewritten, then caught; a test script's `:nth-of-type` clicked Assign instead of Edit; a script that
+typed within ~30 ms of opening the unit picker created a work order on the default unit in tenant three (proven the script's
+fault at a human pace). Not changed, reported: creating a work order does not check the property allow-list (D-MT-STORE,
+DEC-j).
+Gates: 4,087/4,087 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `3ac61b96bc916ce4`); the final run 4,087/4,087 on MySQL (tree `4d9f12e34c4bdba0`, the code plus these docs); 393/393 mutations;
+money gate FULL unmoved; browser-walked on tenant three (1440, 1180 and 390 px; 0 console errors).
+**Deploy — not yet; next, as `rel_AJ`.**
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -349,6 +373,10 @@ files match git; drift check passes; 0 errors since the swap.
   a pre-existing test that had passed on an ungated look-alike under `Livewire::test()`. Each was caught before commit.
 - **The same trap, two days after writing it down:** a negated `toContain` with a message, in this pass's own new test. The
   guard test caught it, not the author.
+- **A check that proves nothing looks exactly like one that passes (the Maintenance pass, 2026-09-29):** a mutation that
+  flipped one side of a comparator (MB-M3) stayed green because the comparator became inconsistent, not because the test
+  was weak; a browser script faster than a person typed into the button behind a picker. Both were read, not assumed, before
+  anything was changed — and neither was fixed by changing the test.
 
 ## 3 · Still open (as the docs report it; re-check before acting)
 

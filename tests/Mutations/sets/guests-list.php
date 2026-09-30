@@ -133,7 +133,7 @@ return [
         'file' => $view,
         'old' => '<div class="vy-modal-backdrop" x-cloak x-show="addOpen" x-transition.opacity',
         'new' => '<div x-cloak x-show="addOpen" style="position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;" x-transition.opacity',
-        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests pages'], ['file' => $t, 'filter' => 'centres every dialog']],
+        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests'], ['file' => $t, 'filter' => 'centres every dialog']],
     ],
     [
         'id' => 'GL-M16',
@@ -197,7 +197,7 @@ return [
         'file' => 'resources/views/livewire/operator/guest-profile.blade.php',
         'old' => '<div class="vy-modal-backdrop" x-cloak x-show="editOpen" x-transition.opacity',
         'new' => '<div x-cloak x-show="editOpen" style="position: fixed; inset: 0; z-index: 50; display: flex;" x-transition.opacity',
-        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests pages']],
+        'tests' => [['file' => $x, 'filter' => 'leaves no element on the Guests']],
     ],
     [
         'id' => 'GL-M24',

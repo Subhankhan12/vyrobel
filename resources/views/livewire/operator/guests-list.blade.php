@@ -566,171 +566,41 @@
         </div>
     </x-operator.shell>
 
-    {{-- The page's controller — selection, the row menu, the dialogs, and the smooth links. Every link and form works without
-         it; this only keeps the page in place: it fetches the SAME GET URL a click would load and swaps the two marked regions
-         (chips, results), so each change is still an ordinary request through every middleware (invariant #20). Anything
-         unexpected — a redirect elsewhere, an error, a missing region — falls back to loading the page normally. --}}
+    {{-- The page's controller — the shared list behaviour (selection, the row menu, search and the smooth links, in
+         partials/operator-list-script) plus this page's own dialogs. Every link and form works without it. --}}
+    @include('partials.operator-list-script')
     <script>
         document.addEventListener('alpine:init', () => {
-            Alpine.data('vyGuests', (boot) => {
-                // ⚠️ DOM handles live HERE, captured once in init(), not behind `this.$root` / `this.$refs`. Those magics
-                //    resolve from whichever element is evaluating, and a swap detaches the old rows while their bindings can
-                //    still run once more — a detached element has no root, and the page threw (🖥 measured on the first swap).
-                let root = null;
-                let menuEl = null;
-                let trigger = null;
+            Alpine.data('vyGuests', (boot) => Object.assign(window.vyListBehaviour(boot, { empty: 'No guests in this view' }), {
+                msgOpen: false, marketing: false, tagOpen: false, delOpen: false, addOpen: false,
+                editOpen: false, eraseOpen: false,
+                edit: {}, erase: { id: '', name: '' }, typed: '', bulkTyped: '',
 
-                return {
-                    selectMode: false, sel: {},
-                    msgOpen: false, marketing: false, tagOpen: false, delOpen: false, addOpen: false,
-                    editOpen: false, eraseOpen: false,
-                    urls: boot.urls, edit: {}, erase: { id: '', name: '' }, typed: '', bulkTyped: '',
-                    menu: { open: false, x: 0, y: 0, up: false, row: null }, menuFor: '',
-                    tip: false, q: boot.q, loading: false, ctrl: null, live: '',
-
-                    init() {
-                        root = this.$el;
-                        menuEl = root.querySelector('.vy-gl-menu');
-                        this.edit = this.blank();
-                        if (boot.retry) {
-                            this.edit = Object.assign(this.blank(), boot.retry);
-                            this.editOpen = true;
-                        }
-                        // The page's own links (filters, sorting, page size, pages) — ordinary links, made smooth here.
-                        root.addEventListener('click', (e) => {
-                            const a = e.target.closest('a[data-gl-key]');
-                            if (! a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-                            e.preventDefault();
-                            this.visit(a.href, 'push', a.dataset.glKey);
-                        });
-                        window.addEventListener('popstate', () => this.visit(location.href, 'none', null));
-                        // The open menu follows its button while anything scrolls — the page, or the table sideways on a phone
-                        // (that scroll does not bubble, hence `capture`). Closing on scroll instead shut it the moment it
-                        // opened whenever a smooth or coasting scroll was still settling (🖥 measured at 390 px).
-                        window.addEventListener('scroll', () => this.placeMenu(), { passive: true, capture: true });
-                        window.addEventListener('resize', () => this.placeMenu());
-                    },
-
-                    blank() {
-                        return { id: '', name: '', first_name: '', last_name: '', email: '', phone: '', city: '', nationality: '',
-                            is_vip: false, risk_flag: false, prefers_email: false, marketing_consent: false };
-                    },
-                    link(template, id) { return template.replace('__ID__', encodeURIComponent(id || '')); },
-
-                    // ── selection
-                    ids() { return Object.keys(this.sel).filter((k) => this.sel[k]); },
-                    count() { return this.ids().length; },
-                    clear() { this.sel = {}; },
-                    toggleMode() { this.selectMode = ! this.selectMode; if (! this.selectMode) this.clear(); },
-                    pageIds() { return root ? Array.from(root.querySelectorAll('[data-gl-id]'), (el) => el.dataset.glId) : []; },
-                    allOnPage() { const ids = this.pageIds(); return ids.length !== 0 && ids.every((id) => this.sel[id]); },
-                    someOnPage() { const ids = this.pageIds(); return ids.some((id) => this.sel[id]) && ! this.allOnPage(); },
-                    selectPage(on) { const next = { ...this.sel }; this.pageIds().forEach((id) => { next[id] = on; }); this.sel = next; },
-
-                    // ── the row menu
-                    openMenu(event, row) {
-                        const button = event.currentTarget;
-                        if (this.menu.open && this.menuFor === row.id) { this.closeMenu(true); return; }
-                        trigger = button;
-                        this.menuFor = row.id;
-                        this.menu = { open: true, row, up: false, x: 0, y: 0 };
-                        this.placeMenu();
-                        this.$nextTick(() => { const first = menuEl.querySelector('.vy-gl-menu-item'); if (first) first.focus({ preventScroll: true }); });
-                    },
-                    // Beside its button: below it, or above when there is no room below; closed once the button has left
-                    // the screen.
-                    placeMenu() {
-                        if (! this.menu.open) return;
-                        if (! trigger || ! trigger.isConnected) { this.closeMenu(false); return; }
-                        const box = trigger.getBoundingClientRect();
-                        if (box.bottom < 0 || box.top > window.innerHeight) { this.closeMenu(false); return; }
-                        const width = 224, room = 176;
-                        const up = box.bottom + room > window.innerHeight && box.top > room;
-                        this.menu = { ...this.menu, up,
-                            x: Math.max(8, Math.min(box.right - width, window.innerWidth - width - 8)),
-                            y: up ? box.top - 6 : box.bottom + 6 };
-                    },
-                    closeMenu(refocus) {
-                        if (! this.menu.open) return;
-                        this.menu = { ...this.menu, open: false };
-                        this.menuFor = '';
-                        if (refocus && trigger && trigger.isConnected) trigger.focus();
-                    },
-                    leaveMenu(event) { if (! menuEl.contains(event.relatedTarget)) this.closeMenu(false); },
-                    startEdit() {
-                        const row = this.menu.row;
-                        this.closeMenu(true);   // focus goes back to the row's button, so closing the dialog returns it there
-                        this.edit = Object.assign(this.blank(), row.edit);
+                start() {
+                    this.edit = this.blank();
+                    if (boot.retry) {
+                        this.edit = Object.assign(this.blank(), boot.retry);
                         this.editOpen = true;
-                    },
-                    startErase() {
-                        const row = this.menu.row;
-                        this.closeMenu(true);
-                        this.erase = { id: row.id, name: row.name };
-                        this.typed = '';
-                        this.eraseOpen = true;
-                    },
-
-                    // ── search and the smooth links
-                    search() {
-                        const url = new URL(location.href);
-                        const q = (this.q || '').trim();
-                        if ((url.searchParams.get('q') || '') === q) return;
-                        if (q === '') url.searchParams.delete('q'); else url.searchParams.set('q', q);
-                        url.searchParams.delete('page');
-                        this.visit(url.toString(), 'replace', null);
-                    },
-                    clearSearch() { this.q = ''; this.search(); root.querySelector('#vy-gl-q').focus(); },
-                    async visit(url, mode, key) {
-                        if (this.ctrl) this.ctrl.abort();
-                        const ctrl = new AbortController();
-                        this.ctrl = ctrl;
-                        this.loading = true;
-                        try {
-                            const response = await fetch(url, { signal: ctrl.signal, credentials: 'same-origin', headers: { Accept: 'text/html' } });
-                            const html = await response.text();
-                            if (ctrl !== this.ctrl) return;
-                            const doc = new DOMParser().parseFromString(html, 'text/html');
-                            const parts = ['chips', 'results'].map((name) => [
-                                root.querySelector('[data-gl-region="' + name + '"]'),
-                                doc.querySelector('[data-gl-region="' + name + '"]'),
-                            ]);
-                            if (! response.ok || new URL(response.url).pathname !== location.pathname || parts.some(([here, there]) => ! here || ! there)) {
-                                window.location.assign(url);
-                                return;
-                            }
-                            this.closeMenu(false);
-                            parts.forEach(([here, there]) => {
-                                // The page-load entrance is for the first view; a filter or a page change just appears.
-                                there.querySelectorAll('.vy-fade').forEach((node) => node.classList.remove('vy-fade'));
-                                here.replaceWith(document.importNode(there, true));
-                            });
-                            // Only AFTER the old rows are gone: a selection is of the rows you could see.
-                            this.sel = {};
-                            if (mode === 'push') history.pushState(null, '', url);
-                            if (mode === 'replace') history.replaceState(null, '', url);
-                            if (mode !== 'replace') this.q = new URL(url, location.href).searchParams.get('q') || '';
-                            const summary = root.querySelector('[data-gl-summary]');
-                            this.live = summary ? summary.textContent.trim() : 'No guests in this view';
-                            if (key) {
-                                this.$nextTick(() => {
-                                    const target = root.querySelector('[data-gl-key="' + key + '"]') || root.querySelector('[data-gl-summary]');
-                                    if (target) target.focus({ preventScroll: true });
-                                    // A new page, or a new page size, starts at its first row — the pager sits below the table.
-                                    const results = root.querySelector('[data-gl-region="results"]');
-                                    if ((key.startsWith('page-') || key.startsWith('per-')) && results && results.getBoundingClientRect().top < 0) {
-                                        results.scrollIntoView({ block: 'start' });
-                                    }
-                                });
-                            }
-                        } catch (error) {
-                            if (error.name !== 'AbortError') window.location.assign(url);
-                        } finally {
-                            if (ctrl === this.ctrl) { this.loading = false; this.ctrl = null; }
-                        }
-                    },
-                };
-            });
+                    }
+                },
+                blank() {
+                    return { id: '', name: '', first_name: '', last_name: '', email: '', phone: '', city: '', nationality: '',
+                        is_vip: false, risk_flag: false, prefers_email: false, marketing_consent: false };
+                },
+                startEdit() {
+                    const row = this.menu.row;
+                    this.closeMenu(true);   // focus goes back to the row's button, so closing the dialog returns it there
+                    this.edit = Object.assign(this.blank(), row.edit);
+                    this.editOpen = true;
+                },
+                startErase() {
+                    const row = this.menu.row;
+                    this.closeMenu(true);
+                    this.erase = { id: row.id, name: row.name };
+                    this.typed = '';
+                    this.eraseOpen = true;
+                },
+            }));
         });
     </script>
 </div>

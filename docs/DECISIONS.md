@@ -18651,3 +18651,112 @@ staged release on production (PHP 8.4.19, MariaDB 11.8.9), read-only: all three 
 six sort orders ran on production's data (15 organisations, 1 guest) in ≤ 0.9 ms. After the swap: public checks **12 PASS
 · 0 FAIL · 0 could not measure** (`SERVED=0`), **1,407 of 1,407** deployable files match git at `9f704a3a`, the
 `.htaccess` drift check passes (self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production.
+
+## 2026-09-29 — Maintenance: the board rebuilt like Guests — centred dialogs, a drawer on the right, a sortable table, row Edit and Cancel (the founder's request; design approved)
+
+**Asked:** "https://vyrobel.com/app/maintenance — now work the same sort of things on the same page" (the Guests rebuild
+the same day), then "Yess go ahead" to the design.
+
+**The dialogs and the drawer — the same root cause as Guests, measured.** New work order, Assign and the detail drawer
+each placed themselves with an INLINE display beside `x-show`, which Alpine erases on the first hide: 🖥 New work order at
+260,330 in 1280×900, and the drawer on the LEFT (x 0–440) although it was drawn to sit on the right. All now use the shared
+`.vy-modal-backdrop`; the drawer is a dialog whose backdrop carries `.vy-drawer-backdrop` (aligned to the end, full
+height). 🖥 After: every dialog centres at 720,450 in 1440×900 (New work order measured on three openings in a row, the
+work order page's two on two each, the rest once); the drawer sits at x 980–1440, full height, on each of two openings. The work order page's **Reassign** and **Mark resolved** had the same inline display and no
+Escape, no role and no name (the keyboard guard's allow-list recorded them "REPORTED, not fixed"): both are now real
+dialogs — centred, named, Escape and a click outside close them — posting exactly what they posted before (the pinned
+`parts` / `time_spent` fields did not move).
+
+**The page.** The five figures stay as figures (Active · Urgent · Awaiting parts · Out of order · Resolved in 7 days).
+One toolbar: search that follows the typing (issue, unit, category, technician), Costs report and Settings (now gated like
+their routes — both are `maintenance.manage`; the old toolbar offered them to every role, a 403), Select, New work order,
+and the filters as chips with the REAL count of what clicking each shows, inside the current search: All · Active · Not
+started · In progress · Urgent · Awaiting parts · Out of order · Resolved. The bare status dropdown is gone. A table:
+work order (with its out-of-order and awaiting-parts marks and category), unit, priority, status, technician, time to
+target, reported. It sorts by **priority** (the order the board always had: urgent first, ties newest first), **time to
+target** (by the very deadline `MaintenanceSla` computes for the column; a closed one, with no target, goes last both
+ways), **reported** and **unit** (A–Z, natural) — through an allow-list in `App\Support\Maintenance\MaintenanceListParams`,
+like Guests. Pages of 25, 50 or 100; a real footer outside the table that says what the board holds — "open, and resolved
+in the last 7 days" (the old line said "from the last 7 days" while listing open work of any age). Every link keeps every
+other setting; the same in-place updates as Guests, from ONE shared script (`partials/operator-list-script`, which the
+Guests page now uses too, so the two cannot drift).
+
+**Row actions (a ⋯ menu).** Open details (the drawer) · Open full record · Edit details · Assign / Change technician ·
+Start work · Mark resolved · Cancel work order — each only where the ticket's state and the viewer allow it: nothing that
+writes on a closed ticket (the old board offered **Assign on a resolved one**, which the service refuses), nothing that
+writes for a role without `maintenance.manage` or while the workspace is read-only; those see the two Open items. Select
+keeps Export, Assign and Resolve for the selection; bulk Resolve now says in a dialog what it does (no cost recorded; each
+unit back on sale unless another open work order holds it) instead of a browser `confirm()`.
+- **Edit is new** (`MaintenanceService::updateDetails`, route `app.maintenance.update`, `can:maintenance.manage`): title,
+  description, category and priority, ONLY while the work is open or in progress — a resolved work order's title is already
+  on the owner's expense line, and a cancelled one is history. Not the unit, not out-of-order: those move a room's
+  availability and keep their own paths. The audit and the event name the fields that changed and record the category and
+  priority values; the title and description are free text and are never copied. The edit and both records land in one
+  transaction. **Edit checks the property allow-list (#38)** — a manager scoped to one property gets a 404 on another's.
+- **"Delete" is Cancel**, the honest one: the work order is kept, as cancelled, with its history; no cost is recorded; the
+  room goes back on sale unless another open work order still holds it. The dialog says exactly that.
+- Every action started from the board comes back to the board as it was — the way back is REBUILT from the board's own
+  allow-listed settings (`MaintenanceListParams::returnUrl()`), never taken from the request as a URL.
+- An edit the server refuses reopens with what was typed, and says why inside the dialog.
+- **New work order** gets the Portfolio's searchable picker for the unit, the category as five tiles, the priority as a
+  segmented choice, and the out-of-order switch with its "check the rack" warning. It still starts on the first unit, as
+  the old dropdown did.
+
+**Found on the way, before shipping:**
+- ⚠️ **A width breakpoint clipped the table.** The shared sticky-header rule turned sideways scrolling off above 1100 px; this
+  table is wider than the Guests one, so at 1180 px its last two columns — Reported and the ⋯ menu — were cut off and
+  unreachable (🖥 995 px of table in an 877 px card, the card clipping). Now sideways scrolling is the default everywhere,
+  and the list script marks the frame `is-roomy` only when the table MEASURES as fitting; only then does the header stick
+  (🖥 1180 px: scrolls, ⋯ reachable; 1440 px: sticky, holds at the top after 700 px of scrolling). The Guests page uses the
+  same rule now.
+- ⚠️ **Alpine's string `:style` erased the work order page's controls.** A `:style` given as a STRING replaces the whole
+  style attribute (an object merges into it). 🖥 The "Notify the front desk" switch rendered 16×6 px (its style read back as
+  the bound background alone); the Reassign dialog's people lost their row layout; the update composer's Note / Progress /
+  Part ordered tabs and its Post update button lost their padding. All 14 sites on that page are now objects with the same
+  values; a new guard (`AlpineStyleBindingContractTest`) holds both Maintenance pages at zero and the **10 other sites**
+  (schedule, notification preferences, owner units and reports, housekeeping, maintenance settings, email previews) at a
+  ceiling. Not fixed there: its own pass, asked for.
+- The Mark resolved dialog's Parts cost field stuck out past the dialog's edge once the panel was the shared card (the
+  panel's padding plus the form's own) — the form no longer pads itself, and the cost row's columns can shrink.
+- Category labels broke mid-word in five tiles ("Plumbin|g"), and on a phone the dialogs' two paddings left 250 px of a
+  350 px dialog (the priority read "Norm|al") — tiles centre their label and never split a word; on a phone the board's
+  dialogs pad themselves once.
+- ⚠️ **Found by the independent review of the diff (one finding at its bar):** the board's Mark resolved never sent
+  `notify`, and the controller reads a missing key as "do not notify" — so a work order resolved from the board never told
+  whoever reported it, silently, while the same action on the work order page does by default (the old board's inline form
+  never sent it either). The dialog now carries the same "Notify the front desk" switch, on unless turned off, where
+  someone reported the work order; bulk Resolve says plainly that nobody is notified. 🖥 Walked: switch on by default,
+  `notify=1` posted, the feed notification stored.
+- "1 units blocked" → "1 unit blocked". A phone toolbar button wrapped; the fifth figure sat alone in half a row; a link
+  and a button in the toolbar stood 38.8 / 35.5 px — each measured, each fixed.
+
+**Not changed, reported:** creating a work order (`store`) resolves the unit through the tenant scope only, not the
+person's property allow-list — the same shape as D-EDIT-SCOPE on the Portfolio (DEC-i); Edit here does check it, and
+every other maintenance write and the work order page itself resolve the ticket by the tenant scope only, as before
+(D-MT-STORE, DEC-j). The
+older flash lines still say "Ticket …" where the page now says "work order".
+
+**Divergence from the #89 exact match** (`docs/design/DIVERGENCE-REGISTER.md`): the wireframe's list had no sorting, no page
+sizes, no row menu, no Edit or Cancel, and KPI tiles that filtered; the founder asked for the Guests treatment, so the
+board is now a deliberate divergence.
+
+**Proof.** `MaintenanceBoardRedesignTest` (18) and `AlpineStyleBindingContractTest` (3), written to fail first where they
+could (the redesign test was RED — 11 failures and 6 errors — before any view or component code); the x-show guard now
+holds both Maintenance pages at zero (ceiling 45 → 39); `KeyboardReachabilityContractTest` lost three allow-list entries
+whose shapes are gone and states the checkbox/title separation for the table; `MaintenanceBoardViewTest` pins "1 unit
+blocked"; mutation set `maintenance-board` (26; MB-M3 first flipped one side of the sorting comparator, which leaves an
+inconsistent comparator that proves nothing — it stayed green; flipped on both sides it is caught). 🖥 Walked in a browser on tenant three (desktop 1440 and 1180, phone 390):
+created a work order from a filtered, sorted view and came back to it; edited it (the audit names `title`, `priority`,
+never the text); assigned, started from the drawer, resolved without a cost, and cancelled an out-of-order one (the room
+stayed off sale — another open work order holds it, as the dialog said); bulk-assigned two and undid it; search, chips,
+sorting, Back; Escape and focus back to the opener; 0 console errors. The Guests page re-walked on the shared script.
+
+**Gates (each read from its own output, 2026-09-30):** suite **4,087/4,087 on MySQL 8.4.10** (29,794 assertions, every test
+passed, tree `3ac61b96bc916ce4`, 01:14–01:39 Baku) · **4,087/4,087 on MariaDB 11.8.9** (the same tree, 10:57–11:32 Baku; he
+agreed to the engine swap with advisor-platform's dev server still up) · the final run **4,087/4,087 on MySQL 8.4.10** (29,794 assertions, tree
+`4d9f12e34c4bdba0`: the same code with this entry and the memory written, before these figures were filled in; 11:35–12:16
+Baku) · mutations **393/393 across every set**
+(`maintenance-board` 26/26 — MB-M3 as first written stayed green and was rewritten, see above; baseline 209/209 green; tree
+`3ac61b96bc916ce4`) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 /
+cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local) · PHPStan 0 · Pint clean · an independent
+read-only review of the whole diff: one finding at its bar (the notify switch), fixed with a test that failed first.

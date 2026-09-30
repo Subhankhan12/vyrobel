@@ -208,7 +208,7 @@
                                     <div style="display:inline-grid;grid-auto-flow:column;gap:4px;padding:4px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:10px;">
                                         @foreach ($noteKinds as $k)
                                             <button type="button" @click="kind = '{{ $k['key'] }}'"
-                                                    :style="kind === '{{ $k['key'] }}' ? 'background:rgba(255,255,255,.9);color:#C2410C;box-shadow:0 2px 8px rgba(150,90,50,.16);font-weight:600' : 'background:transparent;color: var(--vy-muted);font-weight:500'"
+                                                    :style="kind === '{{ $k['key'] }}' ? { background: 'rgba(255,255,255,.9)', color: '#C2410C', boxShadow: '0 2px 8px rgba(150,90,50,.16)', fontWeight: '600' } : { background: 'transparent', color: 'var(--vy-muted)', fontWeight: '500' }"
                                                     style="padding:6px 14px;border-radius:9px;border:none;font-family:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .16s,color .16s;">{{ $k['label'] }}</button>
                                         @endforeach
                                     </div>
@@ -216,7 +216,7 @@
                                     <textarea id="vy-lbl-maintenance-ticket-detail-body" name="body" x-model="body" maxlength="2000" placeholder="Add an update for the team…" required
                                               style="width:100%;min-height:58px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.7);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                                     <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px;">
-                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 18px;font-size:12.5px;" :style="body.trim().length ? '' : 'opacity:.5;'">
+                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 18px;font-size:12.5px;" :style="body.trim().length ? {} : { opacity: '.5' }">
                                             Post update
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
                                         </button>
@@ -355,11 +355,14 @@
                 </div>
             </div>
 
-            {{-- ── Reassign technician modal (real staff + real load; reason/notify added in GATE 2) ────── --}}
+            {{-- ── Reassign technician modal (real staff + real load; reason/notify added in GATE 2) ──────
+                 2026-09-29 — both modals here are real dialogs now: centred by `.vy-modal-backdrop` (they centred with an
+                 inline display beside x-show, which Alpine erases, so they reopened in the top-left corner), named, with
+                 Escape and a click outside to close. What they post is unchanged. --}}
             @if ($ticket['can_assign'] && ! $readOnly)
-                <div x-show="rt" x-cloak style="position:fixed;inset:0;z-index:50;background:rgba(43,35,32,.38);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:24px;" @click="rt = false">
-                    <form method="POST" action="{{ route('app.maintenance.assign', $ticket['id']) }}" x-data="{ sel: '{{ $ticket['assignee_id'] }}', reason: '', notify: true }" @click.stop
-                          class="vy-card" style="width:470px;max-width:100%;max-height:92vh;overflow-y:auto;padding:24px;">
+                <div class="vy-modal-backdrop" x-show="rt" x-cloak x-transition.opacity @keydown.escape.window="rt = false" @click.self="rt = false">
+                    <div class="vy-modal vy-modal-card" x-show="rt" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-mt-rt-t" tabindex="-1" x-trap.noscroll="rt">
+                    <form method="POST" action="{{ route('app.maintenance.assign', $ticket['id']) }}" x-data="{ sel: '{{ $ticket['assignee_id'] }}', reason: '', notify: true }" class="vy-mt-dform">
                         @csrf
                         <input type="hidden" name="origin" value="detail">
                         <input type="hidden" name="user_id" :value="sel">
@@ -371,11 +374,11 @@
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M21 6H9a4 4 0 0 0-4 4v1"/><path d="M7 22l-4-4 4-4"/><path d="M3 18h12a4 4 0 0 0 4-4v-1"/></svg>
                                 </div>
                                 <div>
-                                    <div style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Reassign technician</div>
+                                    <div id="vy-mt-rt-t" style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Reassign technician</div>
                                     <div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px;">Currently with {{ $ticket['assignee'] ?? 'no one' }}</div>
                                 </div>
                             </div>
-                            <button type="button" @click="rt = false" style="width:32px;height:32px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:var(--vy-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <button type="button" @click="rt = false" aria-label="Close" style="width:32px;height:32px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:var(--vy-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
                             </button>
                         </div>
@@ -383,7 +386,7 @@
                         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
                             @foreach ($staff as $person)
                                 <button type="button" @click="sel = '{{ $person['id'] }}'"
-                                        :style="sel === '{{ $person['id'] }}' ? 'background:rgba(217,102,46,.10);border:1px solid rgba(232,112,58,.45)' : 'background:rgba(255,255,255,.5);border:1px solid rgba(120,70,40,.12)'"
+                                        :style="sel === '{{ $person['id'] }}' ? { background: 'rgba(217,102,46,.10)', border: '1px solid rgba(232,112,58,.45)' } : { background: 'rgba(255,255,255,.5)', border: '1px solid rgba(120,70,40,.12)' }"
                                         style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;cursor:pointer;font-family:inherit;transition:background .14s,border-color .14s;">
                                     <span style="width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#F0A57A,#D9662E);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:500;flex-shrink:0;">{{ $person['initials'] }}</span>
                                     <span style="min-width:0;flex:1;">
@@ -393,14 +396,14 @@
                                         </span>
                                         <span style="display:block;font-size:11.5px;color:var(--vy-faint);margin-top:2px;">{{ $person['load'] }}</span>
                                     </span>
-                                    <span :style="sel === '{{ $person['id'] }}' ? 'background:linear-gradient(140deg,#E8703A,#C2410C);border:none' : 'background:rgba(255,255,255,.6);border:2px solid rgba(120,70,40,.22)'"
+                                    <span :style="sel === '{{ $person['id'] }}' ? { background: 'linear-gradient(140deg,#E8703A,#C2410C)', border: 'none' } : { background: 'rgba(255,255,255,.6)', border: '2px solid rgba(120,70,40,.22)' }"
                                           style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" x-show="sel === '{{ $person['id'] }}'"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                     </span>
                                 </button>
                             @endforeach
                             <button type="button" @click="sel = ''"
-                                    :style="sel === '' ? 'background:rgba(217,102,46,.10);border:1px solid rgba(232,112,58,.45)' : 'background:rgba(255,255,255,.5);border:1px solid rgba(120,70,40,.12)'"
+                                    :style="sel === '' ? { background: 'rgba(217,102,46,.10)', border: '1px solid rgba(232,112,58,.45)' } : { background: 'rgba(255,255,255,.5)', border: '1px solid rgba(120,70,40,.12)' }"
                                     style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;cursor:pointer;font-family:inherit;font-size:12.5px;color:var(--vy-muted);">Leave unassigned</button>
                         </div>
                         {{-- reason (optional) — a real recorded field on the assign event, never a chip that persists nothing --}}
@@ -408,7 +411,7 @@
                         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
                             @foreach (['Balancing load', 'Specialty match', 'Unavailable', 'Escalation'] as $r)
                                 <button type="button" @click="reason = (reason === '{{ $r }}' ? '' : '{{ $r }}')"
-                                        :style="reason === '{{ $r }}' ? 'background:rgba(217,102,46,.13);color:#B4400F;border:1px solid rgba(232,112,58,.30)' : 'background:rgba(120,70,40,.05);color: var(--vy-muted);border:1px solid rgba(120,70,40,.12)'"
+                                        :style="reason === '{{ $r }}' ? { background: 'rgba(217,102,46,.13)', color: '#B4400F', border: '1px solid rgba(232,112,58,.30)' } : { background: 'rgba(120,70,40,.05)', color: 'var(--vy-muted)', border: '1px solid rgba(120,70,40,.12)' }"
                                         style="padding:7px 13px;border-radius:30px;font-family:inherit;font-size:11.5px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;">{{ $r }}</button>
                             @endforeach
                         </div>
@@ -418,21 +421,22 @@
                                 <div style="font-size:13px;font-weight:500;">Notify both technicians</div>
                                 <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">The new assignee gets the order; any prior assignee is told they’re off it</div>
                             </div>
-                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
-                                <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                            <button type="button" @click="notify = !notify" :style="{ background: notify ? 'linear-gradient(140deg,#E8703A,#C2410C)' : 'rgba(120,70,40,.18)' }" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                <span :style="{ left: notify ? '19px' : '3px' }" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                             </button>
                         </div>
-                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;" :disabled="sel === '{{ $ticket['assignee_id'] }}'" :style="sel === '{{ $ticket['assignee_id'] }}' ? 'opacity:.45;cursor:default' : ''">Reassign</button>
+                        <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;" :disabled="sel === '{{ $ticket['assignee_id'] }}'" :style="sel === '{{ $ticket['assignee_id'] }}' ? { opacity: '.45', cursor: 'default' } : {}">Reassign</button>
                         <button type="button" @click="rt = false" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px;padding:11px 0;">Cancel</button>
                     </form>
+                    </div>
                 </div>
             @endif
 
             {{-- ── Mark-resolved modal — the full resolution flow (real cost #17 + hours + notes + return-to-sale + notify) ── --}}
             @if ($ticket['can_resolve'] && ! $readOnly)
-                <div x-show="mr" x-cloak style="position:fixed;inset:0;z-index:50;background:rgba(43,35,32,.38);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:24px;" @click="mr = false">
-                    <form method="POST" action="{{ route('app.maintenance.resolve', $ticket['id']) }}" @click.stop x-data="{ ret: true, notify: true }"
-                          class="vy-card" style="width:480px;max-width:100%;max-height:92vh;overflow-y:auto;padding:24px;">
+                <div class="vy-modal-backdrop" x-show="mr" x-cloak x-transition.opacity @keydown.escape.window="mr = false" @click.self="mr = false">
+                    <div class="vy-modal vy-modal-card" x-show="mr" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-mt-mr-t" tabindex="-1" x-trap.noscroll="mr">
+                    <form method="POST" action="{{ route('app.maintenance.resolve', $ticket['id']) }}" x-data="{ ret: true, notify: true }" class="vy-mt-dform">
                         @csrf
                         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;">
                             <div style="display:flex;align-items:center;gap:11px;">
@@ -440,11 +444,11 @@
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>
                                 </div>
                                 <div>
-                                    <div style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Mark resolved</div>
+                                    <div id="vy-mt-mr-t" style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Mark resolved</div>
                                     <div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px;">{{ $ticket['title'] }} · {{ $ticket['unit'] }}</div>
                                 </div>
                             </div>
-                            <button type="button" @click="mr = false" style="width:32px;height:32px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:var(--vy-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <button type="button" @click="mr = false" aria-label="Close" style="width:32px;height:32px;border-radius:50%;background:rgba(120,70,40,.07);border:none;color:var(--vy-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12"/><path d="M18 6 6 18"/></svg>
                             </button>
                         </div>
@@ -454,7 +458,7 @@
                             <textarea id="vy-lbl-maintenance-ticket-detail-resolution" name="resolution" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak." style="width:100%;min-height:66px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                         </div>
                         {{-- time spent (hours, informational) + parts cost (€, bills the owner, #17) --}}
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+                        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px;">
                             <div>
                                 {{-- ⚠️⚠️ D3 · MONEY-ADJACENT. `parts` posts a REAL owner-ledger charge and `time_spent` its labour
                                  counterpart, and both were named only by an adjacent `<div>` — visible, but
@@ -489,11 +493,11 @@
                                     </span>
                                     <div style="min-width:0;">
                                         <div style="font-size:13px;font-weight:500;">Return {{ $ticket['unit'] }} to sale</div>
-                                        <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="ret ? 'color:#B4400F' : 'color: var(--vy-faint)'" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
+                                        <div style="font-size:11px;margin-top:2px;line-height:1.45;" :style="{ color: ret ? '#B4400F' : 'var(--vy-faint)' }" x-text="ret ? 'The unit goes back on sale immediately.' : 'Stays out of order — lift the block later from the rack.'"></div>
                                     </div>
                                 </div>
-                                <button type="button" @click="ret = !ret" :style="ret ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
-                                    <span :style="ret ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                                <button type="button" @click="ret = !ret" :style="{ background: ret ? 'linear-gradient(140deg,#E8703A,#C2410C)' : 'rgba(120,70,40,.18)' }" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                    <span :style="{ left: ret ? '19px' : '3px' }" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                                 </button>
                             </div>
                         @endif
@@ -504,8 +508,8 @@
                                 <div style="font-size:13px;font-weight:500;">Notify the front desk</div>
                                 <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">Lets {{ $ticket['reporter'] ?? 'the reporter' }} know it’s fixed and back online</div>
                             </div>
-                            <button type="button" @click="notify = !notify" :style="notify ? 'background:linear-gradient(140deg,#E8703A,#C2410C)' : 'background:rgba(120,70,40,.18)'" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
-                                <span :style="notify ? 'left:19px' : 'left:3px'" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
+                            <button type="button" @click="notify = !notify" :style="{ background: notify ? 'linear-gradient(140deg,#E8703A,#C2410C)' : 'rgba(120,70,40,.18)' }" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
+                                <span :style="{ left: notify ? '19px' : '3px' }" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                             </button>
                         </div>
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;">
@@ -513,6 +517,7 @@
                         </button>
                         <button type="button" @click="mr = false" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;margin-top:10px;padding:11px 0;">Cancel</button>
                     </form>
+                    </div>
                 </div>
             @endif
         </div>

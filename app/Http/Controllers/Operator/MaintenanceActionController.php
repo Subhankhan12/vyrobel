@@ -14,8 +14,10 @@ use App\Notifications\Operator\MaintenanceReassignedNotification;
 use App\Notifications\Operator\MaintenanceResolvedNotification;
 use App\Services\MaintenanceService;
 use App\Support\Export\CsvSafe;
+use App\Support\Maintenance\MaintenanceListParams;
 use App\Support\Money\Money;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Property\PropertyContext;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -45,19 +47,24 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class MaintenanceActionController extends Controller
 {
+    /** The real category and priority enums — the only values a work order may carry. */
+    private const CATEGORIES = ['plumbing', 'electrical', 'appliance', 'structural', 'other'];
+
+    private const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+
     /** Open a new ticket on one of the org's OWN units. */
     public function store(Request $request, MaintenanceService $maintenance): RedirectResponse
     {
         if ($this->paused()) {
-            return redirect()->route('app.maintenance')->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_error', $this->pausedMessage());
         }
 
         $validated = $request->validate([
             'unit_id' => ['required', 'string'],
             'title' => ['required', 'string', 'max:160'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'category' => ['required', Rule::in(['plumbing', 'electrical', 'appliance', 'structural', 'other'])],
-            'priority' => ['required', Rule::in(['low', 'normal', 'high', 'urgent'])],
+            'category' => ['required', Rule::in(self::CATEGORIES)],
+            'priority' => ['required', Rule::in(self::PRIORITIES)],
             'takes_out_of_service' => ['sometimes', 'boolean'],
         ]);
 
@@ -73,7 +80,7 @@ class MaintenanceActionController extends Controller
             'takes_out_of_service' => (bool) ($validated['takes_out_of_service'] ?? false),
         ]);
 
-        return redirect()->route('app.maintenance')
+        return $this->listReturn($request, redirect()->route('app.maintenance'))
             ->with('mt_notice', "Ticket “{$ticket->title}” opened on unit {$unit->code}.");
     }
 
@@ -131,6 +138,39 @@ class MaintenanceActionController extends Controller
     }
 
     /**
+     * Edit an OPEN or IN-PROGRESS work order's details (2026-09-29, the board's Edit): title, description, category and
+     * priority, through {@see MaintenanceService::updateDetails()}, which refuses a closed ticket (its title is already on
+     * the owner's expense line). Gated `can:maintenance.manage` on the route like every maintenance write; the ticket is
+     * resolved tenant-scoped (cross-org 404) AND through the viewer's property allow-list (#38) — a manager scoped to one
+     * property cannot edit another's. `validate()` because the board renders `$errors` and reopens the dialog on what
+     * was typed.
+     */
+    public function update(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
+    {
+        $model = $this->accessibleTicket($ticket);
+        $default = redirect()->route('app.maintenance.show', $model->id);
+
+        if ($this->paused()) {
+            return $this->listReturn($request, $default)->with('mt_error', $this->pausedMessage());
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:160'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'category' => ['required', Rule::in(self::CATEGORIES)],
+            'priority' => ['required', Rule::in(self::PRIORITIES)],
+        ]);
+
+        try {
+            $maintenance->updateDetails($model, $validated);
+        } catch (RuntimeException) {
+            return $this->listReturn($request, $default)->with('mt_error', 'That work order is closed — its details can’t be changed.');
+        }
+
+        return $this->listReturn($request, $default)->with('mt_notice', 'Work order updated.');
+    }
+
+    /**
      * BULK ASSIGN (#GATE 6.2) — assign (or unassign) the SELECTED tickets to one member, each through the
      * certified {@see MaintenanceService::assign} (never a raw update). Tenant-scoped: a foreign id simply
      * does not resolve (fail-safe isolation — it is never touched). A ticket that can't be reassigned (closed)
@@ -139,7 +179,7 @@ class MaintenanceActionController extends Controller
     public function bulkAssign(Request $request, MaintenanceService $maintenance): RedirectResponse
     {
         if ($this->paused()) {
-            return redirect()->route('app.maintenance')->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_error', $this->pausedMessage());
         }
 
         $validated = $request->validate([
@@ -168,7 +208,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return redirect()->route('app.maintenance')->with('mt_notice', $this->bulkNotice('Assigned', $done, $skipped));
+        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('Assigned', $done, $skipped));
     }
 
     /**
@@ -180,7 +220,7 @@ class MaintenanceActionController extends Controller
     public function bulkResolve(Request $request, MaintenanceService $maintenance): RedirectResponse
     {
         if ($this->paused()) {
-            return redirect()->route('app.maintenance')->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_error', $this->pausedMessage());
         }
 
         $validated = $request->validate([
@@ -207,7 +247,7 @@ class MaintenanceActionController extends Controller
             }
         }
 
-        return redirect()->route('app.maintenance')->with('mt_notice', $this->bulkNotice('Resolved', $done, $skipped));
+        return $this->listReturn($request, redirect()->route('app.maintenance'))->with('mt_notice', $this->bulkNotice('Resolved', $done, $skipped));
     }
 
     /**
@@ -255,22 +295,22 @@ class MaintenanceActionController extends Controller
     }
 
     /** Start work on an OPEN ticket (guarded: illegal from any other state → clean flash). */
-    public function start(MaintenanceService $maintenance, string $ticket): RedirectResponse
+    public function start(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
         $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
 
         if ($this->paused()) {
-            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
         }
 
         try {
             $maintenance->start($model);
         } catch (RuntimeException) {
-            return redirect()->route('app.maintenance.show', $model->id)
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
                 ->with('mt_error', 'That ticket can’t be started — it’s no longer open.');
         }
 
-        return redirect()->route('app.maintenance.show', $model->id)
+        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
             ->with('mt_notice', 'Work started on this ticket.');
     }
 
@@ -295,7 +335,7 @@ class MaintenanceActionController extends Controller
         $model = MaintenanceTicket::query()->with('unit.property', 'reportedBy')->findOrFail($ticket);   // tenant-scoped → 404
 
         if ($this->paused()) {
-            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
         }
 
         $currency = (string) $model->unit->property->currency;
@@ -311,7 +351,7 @@ class MaintenanceActionController extends Controller
         try {
             $maintenance->resolve($model, $cost, $labor, $parts, $laborHours, $validated['resolution'] ?? null, ! $returnToSale);
         } catch (RuntimeException) {
-            return redirect()->route('app.maintenance.show', $model->id)
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
                 ->with('mt_error', 'That ticket can’t be resolved — it isn’t in progress.');
         }
 
@@ -320,27 +360,27 @@ class MaintenanceActionController extends Controller
             $model->reportedBy->notify(new MaintenanceResolvedNotification((string) $model->id, (string) $model->title, (string) $model->unit->code, $returnToSale));
         }
 
-        return redirect()->route('app.maintenance.show', $model->id)
+        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
             ->with('mt_notice', 'Ticket resolved.');
     }
 
     /** Cancel an ACTIVE ticket (guarded: illegal from a terminal state → clean flash). */
-    public function cancel(MaintenanceService $maintenance, string $ticket): RedirectResponse
+    public function cancel(Request $request, MaintenanceService $maintenance, string $ticket): RedirectResponse
     {
         $model = MaintenanceTicket::query()->findOrFail($ticket);   // tenant-scoped → cross-org 404
 
         if ($this->paused()) {
-            return redirect()->route('app.maintenance.show', $model->id)->with('mt_error', $this->pausedMessage());
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_error', $this->pausedMessage());
         }
 
         try {
             $maintenance->cancel($model);
         } catch (RuntimeException) {
-            return redirect()->route('app.maintenance.show', $model->id)
+            return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
                 ->with('mt_error', 'That ticket can’t be cancelled — it’s already closed.');
         }
 
-        return redirect()->route('app.maintenance.show', $model->id)
+        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
             ->with('mt_notice', 'Ticket cancelled.');
     }
 
@@ -452,9 +492,30 @@ class MaintenanceActionController extends Controller
     /** Where an assign returns to: the ticket detail when it came from there, else the board. */
     private function backTo(Request $request, MaintenanceTicket $model): RedirectResponse
     {
-        return $request->input('origin') === 'detail'
+        return $this->listReturn($request, $request->input('origin') === 'detail'
             ? redirect()->route('app.maintenance.show', $model->id)
-            : redirect()->route('app.maintenance');
+            : redirect()->route('app.maintenance'));
+    }
+
+    /**
+     * Where a write started from the BOARD comes back to (2026-09-29): the board as the operator had it — its filter,
+     * sort, page size and page — rebuilt from an allow-list by {@see MaintenanceListParams::returnUrl()}, never taken
+     * from the request as a URL. Anything else keeps the action's own destination.
+     */
+    private function listReturn(Request $request, RedirectResponse $default): RedirectResponse
+    {
+        return $request->input('return') === 'list'
+            ? redirect()->to(MaintenanceListParams::returnUrl($request->input('return_query')))
+            : $default;
+    }
+
+    /** A ticket the viewer may act on: tenant-scoped (a cross-org id 404s) and on a property they can access (#38). */
+    private function accessibleTicket(string $ticket): MaintenanceTicket
+    {
+        $model = MaintenanceTicket::query()->with('unit')->findOrFail($ticket);
+        abort_unless(in_array((string) $model->unit?->property_id, app(PropertyContext::class)->accessibleIds(), true), 404);
+
+        return $model;
     }
 
     /** Parse a numeric major-unit form value into Money, or null when blank/zero. */

@@ -22,27 +22,9 @@ const VY_KEYBOARD_ALLOWED = [
             .'is the Expand/Collapse button inside it, which carries aria-expanded and aria-controls.',
         'requires' => '<button type="button" class="vy-mu-ac-toggle"',
     ],
-    [
-        'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'match' => 'vy-unit-row',
-        'reason' => 'Mouse shortcut. The row keeps its whole-area click; the work order opens from a real '
-            .'button on the title, which mirrors the row in both normal and select mode.',
-        'requires' => 'class="vy-um-name vy-rowopen"',
-    ],
-    [
-        'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'match' => 'x-show="rt"',
-        'reason' => 'Backdrop dismissal. The click closes an overlay a keyboard closes with the round close '
-            .'button inside it. ⚠️ THIS OVERLAY HAS NO ESCAPE HANDLER and carries no role/aria-modal, so it '
-            .'is not one of the 37 contract dialogs — REPORTED, not fixed here (out of this pass\'s scope).',
-        'requires' => '@click="rt = false"',
-    ],
-    [
-        'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'match' => 'x-show="mr"',
-        'reason' => 'Backdrop dismissal, same shape and the same missing Escape as the rt overlay above.',
-        'requires' => '@click="mr = false"',
-    ],
+    // 2026-09-29 — three maintenance entries left this list because the shapes they excused left the views: the board's
+    // rows no longer open on a whole-row click (the table has none), and the work order page's Reassign and Mark resolved
+    // overlays are now real dialogs with Escape (DialogFocusContractTest counts them).
     [
         'file' => 'resources/views/livewire/owner/units.blade.php',
         'match' => 'vy-mu-day',
@@ -162,28 +144,21 @@ it('gives every control it added a focus ring the class-scoped rule actually rea
         "The owner shell's focus rule no longer reaches .vy-mu-ac-toggle — the control is focusable but invisible.");
 });
 
-it('keeps the work-order checkbox independent of the row that opens the work order', function () {
-    // ⚠️⚠️ TICKING MUST NOT OPEN, AND OPENING MUST NOT TICK. The checkbox drives a BULK selection, so an
-    //    accidental activation is a real consequence and not a nuisance. Two things hold that apart, and
-    //    both are asserted because losing either silently re-couples them:
-    //      · the checkbox stops the click reaching the row (which would open the work order), and
-    //      · the title button stops ITS click reaching the row (which would act on it twice).
-    //    Proven by keyboard in a browser: Space on the checkbox selected the row (1 selected, row marked)
-    //    and opened NOTHING; Enter on the title opened the work order and moved focus into its dialog.
-    $view = file_get_contents(base_path('resources/views/livewire/maintenance-list.blade.php'));
+it('keeps the work-order checkbox independent of the title that opens the work order', function () {
+    // ⚠️⚠️ TICKING MUST NOT OPEN, AND OPENING MUST NOT TICK. The checkbox drives a BULK selection, so an accidental
+    //    activation is a real consequence and not a nuisance. Until 2026-09-29 the whole row opened the work order and
+    //    two `.stop`s held the checkbox and the title apart from it. The table that replaced those rows has NO row-wide
+    //    click at all: the checkbox only selects, and the title — a real button — only opens. Asserted, because a row
+    //    handler coming back would silently couple them again.
+    $view = (string) file_get_contents(base_path('resources/views/livewire/maintenance-list.blade.php'));
 
-    $this->assertMatchesRegularExpression(
-        '/<input type="checkbox" class="vy-mt-check"[^>]*@click\.stop/',
-        $view,
-        'The bulk-select checkbox no longer stops its click reaching the row — ticking it would also open the work order.'
-    );
+    preg_match_all('/<tr\b[^>]*>/', $view, $rows);
+    expect($rows[0])->not->toBeEmpty();
+    foreach ($rows[0] as $tr) {
+        expect(preg_match('/@click|x-on:click/', $tr))->toBe(0, 'A table row answers a click again: '.$tr);
+    }
 
-    $this->assertMatchesRegularExpression(
-        '/class="vy-um-name vy-rowopen"[^>]*@click\.stop/s',
-        $view,
-        'The title opener no longer stops its click reaching the row — the row handler would fire on top of it.'
-    );
-
-    // And the checkbox keeps its own accessible name — a row-selection checkbox with none announces nothing.
-    expect($view)->toContain('aria-label="Select {{ $row[\'title\'] }}"');
+    // The checkbox selects and nothing else; the title opens and nothing else.
+    expect($view)->toContain('<input type="checkbox" x-model="sel[\'{{ $row[\'id\'] }}\']" aria-label="Select {{ $row[\'title\'] }}">')
+        ->and($view)->toContain('<button type="button" class="vy-gl-name vy-rowopen" @click="openDetail(\'{{ $row[\'id\'] }}\')">');
 });

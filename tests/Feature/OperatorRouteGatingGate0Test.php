@@ -25,6 +25,8 @@ dataset('gated ops writes', [
     'maintenance.cancel' => ['app.maintenance.cancel', 'maintenance.manage', 'Accountant', 'Maintenance'],
     'maintenance.assign' => ['app.maintenance.assign', 'maintenance.manage', 'Front Desk', 'Hotel Manager'],
     'maintenance.parts' => ['app.maintenance.parts', 'maintenance.manage', 'Front Desk', 'Maintenance'],
+    // 2026-09-29 — the board's Edit (title, description, category, priority), the newest maintenance write.
+    'maintenance.update' => ['app.maintenance.update', 'maintenance.manage', 'Accountant', 'Hotel Manager'],
     'housekeeping.status' => ['app.housekeeping.status', 'housekeeping.manage', 'Front Desk', 'Housekeeping'],
     'reservations.move' => ['app.reservations.move', 'reservations.assign', 'Reservation Agent', 'Front Desk'],
     'front-desk.check-in' => ['app.front-desk.check-in', 'reservations.checkin', 'Reservation Agent', 'Front Desk'],

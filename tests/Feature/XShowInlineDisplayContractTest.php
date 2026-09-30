@@ -17,16 +17,19 @@ declare(strict_types=1);
 // ⚠️ WHAT THIS PROVES, AND WHAT IT CANNOT. It reads the views; it does not run Alpine. It proves the PATTERN is absent
 // where it was fixed and is not growing elsewhere. That the fixed dialogs now open centred was measured in a browser.
 //
-// ⚠️ A CEILING, NOT A ZERO. 45 more sites carry the same pattern in other screens (rates, units, security, owner pages).
+// ⚠️ A CEILING, NOT A ZERO. 39 more sites carry the same pattern in other screens (rates, units, security, owner pages) —
+// 45 after the Guests pass, 39 after the Maintenance pass fixed its six.
 // Most are panels whose content happens to lay out acceptably as `block`; each needs looking at in a browser, and that
 // sweep is its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
 
-const VY_XSHOW_INLINE_DISPLAY_CEILING = 45;
+const VY_XSHOW_INLINE_DISPLAY_CEILING = 39;
 
-/** The views the Guests pass fixed — the pattern must be gone from these entirely. */
+/** The views the Guests and Maintenance passes fixed — the pattern must be gone from these entirely. */
 const VY_XSHOW_FIXED_VIEWS = [
     'livewire/operator/guests-list.blade.php',
     'livewire/operator/guest-profile.blade.php',
+    'livewire/maintenance-list.blade.php',            // 2026-09-29, the Maintenance rebuild (4 sites)
+    'livewire/maintenance-ticket-detail.blade.php',   // 2026-09-29, the same pass (2 sites)
 ];
 
 /**
@@ -111,7 +114,7 @@ function vyXShowInlineDisplayCensus(): array
     return $hits;
 }
 
-it('⚠️⚠️ leaves no element on the Guests pages whose display x-show would erase', function () {
+it('⚠️⚠️ leaves no element on the Guests and Maintenance pages whose display x-show would erase', function () {
     $offenders = array_values(array_filter(
         vyXShowInlineDisplayCensus(),
         fn (string $hit): bool => in_array(explode(':', $hit)[0], VY_XSHOW_FIXED_VIEWS, true),

@@ -224,6 +224,7 @@ class MaintenanceTicketDetail extends Component
                 'maintenance_ticket.cancelled' => 'Cancelled',
                 'maintenance_ticket.parts_updated' => 'Parts updated',
                 'maintenance_ticket.cost_corrected' => 'Cost corrected',
+                'maintenance_ticket.updated' => 'Details edited',
                 default => ucwords(str_replace(['maintenance_ticket.', '_'], ['', ' '], $action)),
             };
 

@@ -206,7 +206,8 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **`x-show` erases an inline `display`.** It hides by writing `display: none` and shows by REMOVING the inline display, so
   an element styled `x-show="open" style="display: flex"` comes back as `block` after its first hide — every Guests dialog
   opened in the top-left corner (🖥 260,242 instead of 640,450). Put the display in a class (`.vy-modal-backdrop`).
-  `XShowInlineDisplayContractTest` holds the Guests pages at 0 and 45 other sites at a ceiling (Verified 2026-09-29).
+  `XShowInlineDisplayContractTest` holds the Guests and Maintenance pages at 0 and 39 other sites at a ceiling (45 before the
+  Maintenance pass fixed its six) (Verified 2026-09-29).
 - **`Livewire::test()` skips the web middleware that sets the permission team**, so `@can` there answers a silent FALSE (the
   #30 note). A test asserting a gated control through it can pass on an ungated look-alike — `UnwiredControlsTest` did, on a
   dialog heading. Render gated controls through the real route (🔬 probe: team=NULL → `can()`=false) (Verified 2026-09-29).
@@ -228,6 +229,24 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   saw a panel whose class is exactly `vy-modal` (GL-M21 stayed green). Run the harness on your own guards (Verified 2026-09-29).
 - **Close-on-scroll menus close themselves** under smooth or coasting scrolls: anchor a popup to its trigger while anything
   scrolls, and close it only when the trigger leaves the screen (🖥 390 px, Verified 2026-09-29).
+- **A string `:style` replaces the whole `style` attribute; an object merges.** `style="width:38px;…"` beside
+  `:style="on ? 'background:…' : '…'"` loses every static property the moment Alpine binds it (🖥 the work order page's
+  Notify switch rendered 16×6 px). Bind an object with the same values. `AlpineStyleBindingContractTest` holds both Maintenance
+  pages at 0 and 10 other sites at a ceiling (Verified 2026-09-29).
+- **A window breakpoint cannot know a table's width.** Sideways scrolling switched off above 1100 px (for a sticky header)
+  clipped the Maintenance table's last two columns at 1180 px (🖥 995 px of table in an 877 px card that clips). Scroll by
+  default; stick only where the table was MEASURED to fit (`is-roomy`, set by the shared list script) (Verified 2026-09-29).
+- **A picker's search box takes focus only after its opening transition** (Alpine holds `$nextTick` until then). A test script
+  that typed within ~30 ms of the click typed into the button behind it, and the work order went to the default unit — the
+  script's fault, proven by re-running at a human pace. Wait for focus before typing (Verified 2026-09-29).
+- **`:nth-of-type` counts tags, not classes:** a script clicked the third `<button>` in a menu ("Assign"), not its third
+  entry ("Edit"). Pick a control by role and name (Verified 2026-09-29).
+- **A mutation must express the regression it names.** Flipping only one of a comparator's two "no deadline" branches made
+  an inconsistent comparator whose result depends on the order the sort compares items; it stayed green (MB-M3). Flipped
+  together, it was caught. A NOT CAUGHT can be the mutation's fault — read it before touching the test (Verified 2026-09-29).
+- **Padding stacks inside the shared dialog panel.** The older `.vy-modal { padding: 26px }` adds to the head, body and foot's
+  own 24 px; on a phone it left 250 px of a 350 px dialog and words broke mid-word. Fixed on the Maintenance board only
+  (`OPEN.md` D-MODAL-PAD) (Verified 2026-09-29).
 
 ---
 

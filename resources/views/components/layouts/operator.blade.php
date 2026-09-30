@@ -1659,10 +1659,14 @@
         .vy-gl-table tbody tr:hover { background: rgba(255, 255, 255, 0.5); }
         .vy-gl-table tbody tr.is-selected { background: rgba(232, 112, 58, 0.09); }
         /* The header stays in view while the rows scroll — only where the table fits without scrolling sideways (a
-           sideways scroller would become the sticky header's frame, and it would not stick to the page). */
+           sideways scroller would become the sticky header's frame, and it would not stick to the page). ⚠️ "Fits" is
+           MEASURED, not assumed from the window: the shared list script marks the frame `is-roomy` when the table's own
+           width fits it. A width breakpoint alone clipped the Maintenance table's last two columns at 1180 px (🖥 995 px
+           of table in an 877 px card, sideways scrolling off, the card clipping) — so sideways scrolling is the default
+           and the sticky header is what has to earn its place. */
         @media (min-width: 1101px) {
-            .vy-gl-scroll { overflow: visible; }
-            .vy-gl-table thead th { position: sticky; top: 0; }
+            .vy-gl-scroll.is-roomy { overflow: visible; }
+            .vy-gl-scroll.is-roomy .vy-gl-table thead th { position: sticky; top: 0; }
         }
         .vy-gl-sort { display: inline-flex; align-items: center; gap: 7px; color: inherit; border-radius: 5px; }
         .vy-gl-sort:hover, .vy-gl-sort.is-on { color: var(--vy-ink); }
@@ -1773,6 +1777,142 @@
         .vy-gl-pref input:checked + span { background: rgba(232, 112, 58, 0.12); border-color: var(--vy-accent-border); color: var(--vy-accent-text); }
         .vy-gl-pref input:checked + span::before { content: "✓"; font-size: 11px; }
         .vy-gl-pref input:focus-visible + span { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* the row menu, shared: a line between reading and changing, and a form whose button is a menu item */
+        .vy-gl-menu-sep { display: block; height: 1px; margin: 4px 6px; background: var(--vy-hairline); }
+        .vy-gl-menu form { display: contents; }
+
+        /* ── Maintenance (2026-09-29) — the board rebuilt on the SAME list system as Guests: the toolbar, chips, table,
+           footer, row menu and bulk bar above are shared, never copied (partials/operator-list-script is the one script).
+           What follows is only what a work order needs on top: the rail, the priority marker, the technician picker and
+           the drawer on the right. ⚠️ Every display is in a class — never inline beside x-show. ─────────────────── */
+        .vy-mnt .vy-dash-kpi { padding: 15px 18px; }
+        .vy-mnt .vy-dk-val { font-size: 26px; }
+        .vy-mt-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
+        /* a link and a button side by side, one height (🖥 the links inherited 1.45 and stood 38.8 px beside 35.5 px) */
+        .vy-mt-bar .vy-gl-tools a.vy-btn { line-height: normal; }
+        .vy-mt-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+        .vy-mt-rail { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .vy-mt-table { min-width: 940px; }
+        .vy-mt-table td.vy-mt-ordercell { min-width: 240px; }
+        .vy-mt-unit { font-family: var(--vy-display); font-weight: 600; white-space: nowrap; }
+        /* priority: the colour is on the marker, the text stays readable (AA) at every level */
+        .vy-mt-prio { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); white-space: nowrap; }
+        .vy-mt-prio::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 3px; background: rgb(150, 128, 114); }
+        .vy-mt-prio.is-urgent { color: #8F3110; }
+        .vy-mt-prio.is-urgent::before { background: #C2410C; box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.16); }
+        .vy-mt-prio.is-high { color: var(--vy-accent-text); }
+        .vy-mt-prio.is-high::before { background: #E8703A; }
+        .vy-mt-prio.is-low::before { background: transparent; box-shadow: inset 0 0 0 1.5px rgb(150, 128, 114); }
+        .vy-mt-due { font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-mt-tech { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .vy-mt-tech .vy-gl-avatar { width: 26px; height: 26px; font-size: 10px; }
+        .vy-mt-window { flex-basis: 100%; margin: 0; font-size: 12px; line-height: 1.5; color: var(--vy-on-grad); }
+
+        .vy-mt-oos { padding: 20px; }
+        .vy-mt-oos-label { color: rgba(255, 255, 255, 0.7); }
+        .vy-mt-oos-count { margin: 6px 0 0; font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, 0.75); }
+        .vy-mt-oos-n { margin-right: 2px; font-size: 30px; font-weight: 700; color: #fff; }
+        .vy-mt-oos-units { margin: 4px 0 0; font-size: 12.5px; color: rgba(255, 255, 255, 0.72); overflow-wrap: anywhere; }
+        .vy-mt-oos-hold { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.14); }
+        .vy-mt-oos-hold strong { font-weight: 700; color: #F6C6B4; }
+        .vy-mt-oos-hold span { font-size: 11.5px; color: rgba(255, 255, 255, 0.66); }
+        .vy-mt-panel .vy-card-title { margin-bottom: 6px; }
+        .vy-mt-panel-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--vy-hairline); }
+        .vy-mt-panel-row:first-of-type { border-top: none; }
+        .vy-mt-panel-name { display: block; font-size: 13px; color: var(--vy-ink); white-space: normal; }
+        .vy-mt-panel-sub { display: block; margin-top: 1px; font-size: 11.5px; color: var(--vy-on-grad); white-space: normal; }
+        .vy-mt-panel-empty { margin: 0; padding: 6px 0 2px; font-size: 12.5px; color: var(--vy-on-grad); }
+
+        /* the dialogs */
+        /* five categories across: icon over label, centred, and a label is never split mid-word (🖥 "Plumbin|g" at 82 px) */
+        .vy-mt-cats .vy-choice-row { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+        .vy-mt-cats .vy-choice-face { align-items: center; text-align: center; padding: 11px 6px; }
+        .vy-mt-cats .vy-choice-text, .vy-mnt .vy-choices--segmented .vy-choice-text { overflow-wrap: normal; hyphens: manual; }
+        .vy-mnt .vy-gl-textarea { min-height: 84px; }
+        .vy-mt-warn { margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: #8F3110; }
+        .vy-mt-first { margin-top: 0; }
+        .vy-mt-sale { margin-top: 14px; }
+        .vy-mt-facts-list { display: grid; gap: 8px; margin: 0; padding: 0 0 0 18px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-mt-people { display: flex; flex-direction: column; gap: 6px; max-height: min(340px, 44vh); overflow-y: auto; padding: 2px; }
+        .vy-mt-person { position: relative; display: block; cursor: pointer; }
+        .vy-mt-person input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+        .vy-mt-person-face { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: var(--vy-r-md); border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.62); transition: border-color .15s ease, background .15s ease; }
+        .vy-mt-person-face::after { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(120, 70, 40, 0.3); }
+        .vy-mt-person:hover .vy-mt-person-face { border-color: var(--vy-accent-border); }
+        .vy-mt-person input:checked + .vy-mt-person-face { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.1); }
+        .vy-mt-person input:checked + .vy-mt-person-face::after { box-shadow: none; background: var(--vy-accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 12px no-repeat; }
+        .vy-mt-person input:focus-visible + .vy-mt-person-face { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-mt-person .vy-gl-avatar { width: 30px; height: 30px; font-size: 11px; }
+        .vy-mt-person-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-mt-person-now { flex: none; padding: 2px 8px; border-radius: 999px; background: rgba(120, 70, 40, 0.09); font-size: 11px; font-weight: 600; color: var(--vy-on-grad); }
+        /* the work order page's two dialogs: the panel is the card and pads the form — a second 24 px inside it pushed the
+           Parts cost field past the edge (🖥 484 px of content in a 478 px panel) */
+        .vy-mt-dform { padding: 0; }
+
+        /* the drawer — a dialog on the RIGHT: the shared backdrop, aligned to the end, full height */
+        .vy-modal-backdrop.vy-drawer-backdrop { padding: 0; place-items: stretch; justify-items: end; }
+        .vy-modal.vy-drawer { display: flex; flex-direction: column; width: min(460px, 100vw); max-width: none; height: 100%; max-height: none; overflow: hidden; border-right: none; border-radius: var(--vy-r-lg) 0 0 var(--vy-r-lg); }
+        .vy-drawer-in { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+        .vy-drawer-in .vy-modal-head { flex: none; }
+        .vy-drawer-in .vy-modal-body { flex: 1; min-height: 0; overflow-y: auto; }
+        .vy-drawer-move { transition: transform .24s cubic-bezier(.2, .8, .2, 1), opacity .2s ease; }
+        .vy-drawer-off { transform: translateX(32px); opacity: 0; }
+        .vy-mt-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }
+        .vy-mt-step { display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 600; text-align: center; color: var(--vy-on-grad); }
+        .vy-mt-step-bar { height: 4px; border-radius: 2px; background: var(--vy-hairline); }
+        .vy-mt-step.is-done { color: var(--vy-ink); }
+        .vy-mt-step.is-done .vy-mt-step-bar { background: var(--vy-grad); }
+        .vy-mt-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 14px; }
+        .vy-mt-facts { margin: 0 0 14px; border-top: 1px solid var(--vy-hairline); }
+        .vy-mt-facts > div { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-mt-facts dt { font-size: 12px; color: var(--vy-on-grad); }
+        .vy-mt-facts dd { margin: 0; font-size: 13px; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-mt-facts dd.is-breached { font-weight: 600; color: var(--vy-accent-text); }
+        .vy-mt-facts dd.is-soon { font-weight: 600; color: var(--vy-amber-text); }
+        .vy-mt-muted { font-size: 12px; color: var(--vy-on-grad); }
+        .vy-mt-desc { margin: 0 0 14px; font-size: 13px; line-height: 1.55; color: var(--vy-ink); white-space: pre-line; overflow-wrap: anywhere; }
+        .vy-mt-part { margin: 0 0 14px; padding: 9px 12px; border-radius: var(--vy-r-sm); background: rgba(51, 160, 172, 0.1); font-size: 12.5px; color: var(--vy-ink); }
+        .vy-mt-h { margin: 4px 0 8px; font-size: 12px; font-weight: 700; color: var(--vy-ink); }
+        .vy-mt-photos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .vy-mt-photo { width: 76px; height: 76px; object-fit: cover; border-radius: 10px; border: 1px solid var(--vy-hairline); }
+        .vy-mt-activity { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--vy-ink); }
+        .vy-mt-drawer-foot { flex: none; display: flex; flex-direction: column; gap: 8px; padding: 14px 24px 20px; border-top: 1px solid var(--vy-hairline); }
+        .vy-mt-drawer-foot .vy-btn { justify-content: center; }
+        .vy-mt-drawer-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .vy-mt-drawer-acts form { display: contents; }
+        .vy-mt-drawer-acts .vy-mt-wide { grid-column: 1 / -1; }
+        .vy-mt-danger { color: #8F3110; }
+        .vy-mt-photo-form { display: contents; }
+        .vy-mt-photo-btn { position: relative; overflow: hidden; }
+        .vy-mt-file { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .vy-mt-photo-btn:focus-within { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            .vy-drawer-move { transition: opacity .12s ease; }
+            .vy-drawer-off { transform: none; }
+        }
+        /* The rail beside the table only where both fit; below that it follows the table, three across, then one. */
+        @media (max-width: 1599px) {
+            .vy-mt-cols { grid-template-columns: minmax(0, 1fr); }
+            .vy-mt-rail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; }
+        }
+        @media (max-width: 1100px) {
+            /* five figures two across: the fifth takes the whole row rather than sitting alone in half of it */
+            .vy-mnt .vy-dash-kpis--5 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+        }
+        @media (max-width: 900px) {
+            .vy-mt-rail { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 560px) {
+            /* each button as wide as its words (🖥 "Costs report" wrapped onto two lines at an equal third of 390 px) */
+            .vy-mt-bar .vy-gl-tools .vy-btn { flex: 1 1 auto; white-space: nowrap; }
+            /* these dialogs pad their own head, body and foot, so on a phone the panel adds almost nothing around them
+               (🖥 its 26 px on top of theirs left 250 px of a 350 px dialog, and "Normal" broke mid-word) */
+            .vy-mnt .vy-modal-backdrop > .vy-modal { padding: 6px; }
+            .vy-mt-drawer-acts { grid-template-columns: minmax(0, 1fr); }
+            .vy-mt-cats .vy-choice-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .vy-modal.vy-drawer { width: 100vw; border-left: none; border-radius: 0; }
+            .vy-mt-window { text-align: center; }
+        }
 
         @media (max-width: 1100px) {
             .vy-gl-search { flex-basis: 100%; }

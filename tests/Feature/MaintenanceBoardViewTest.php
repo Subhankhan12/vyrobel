@@ -70,7 +70,7 @@ it('shows the Unit OOS badge only for a genuinely out-of-service unit', function
     $this->actingAs(boardMember($s))->get('/app/maintenance')
         ->assertOk()
         ->assertSee('Out of order')       // the real OOO badge on the row + the KPI chip
-        ->assertSee('units blocked')      // the real out-of-order hero
+        ->assertSeeText('1 unit blocked') // the real out-of-order hero (one unit: it said "1 units" until 2026-09-29)
         ->assertSee('OOSUNIT');           // the genuinely-blocked unit surfaces in the hero
 });
 

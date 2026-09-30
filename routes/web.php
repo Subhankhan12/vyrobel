@@ -1177,6 +1177,9 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
         Route::post('/maintenance/bulk/resolve', [MaintenanceActionController::class, 'bulkResolve'])->name('maintenance.bulk.resolve');
         Route::post('/maintenance/bulk/export', [MaintenanceActionController::class, 'bulkExport'])->name('maintenance.bulk.export');
         Route::post('/maintenance/{ticket}/assign', [MaintenanceActionController::class, 'assign'])->name('maintenance.assign');
+        // 2026-09-29 — the board's Edit: title, description, category, priority, while the work is open. The ticket is
+        // resolved through the property allow-list too (#38), and the service refuses a closed one.
+        Route::post('/maintenance/{ticket}/edit', [MaintenanceActionController::class, 'update'])->name('maintenance.update');
         // Lifecycle writes from the styled ticket detail — each offered only when the real state allows it;
         // the service is still the authority (illegal transition → clean flash, never 500). Cross-org → 404.
         Route::post('/maintenance/{ticket}/start', [MaintenanceActionController::class, 'start'])->name('maintenance.start');

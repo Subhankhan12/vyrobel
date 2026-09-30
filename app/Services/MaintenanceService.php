@@ -113,6 +113,61 @@ class MaintenanceService
     }
 
     /** Start work: open → in_progress. Idempotent if already in_progress; illegal from a terminal state. */
+    /**
+     * Edit a work order's details (2026-09-29, the board's Edit) — its title, description, category and priority, and
+     * nothing else.
+     *
+     * ⚠️ ONLY WHILE THE WORK IS OPEN (open or in progress). A resolved work order's title is copied onto the owner's
+     *    expense line at resolve ({@see postExpenseIfOwned()}), so renaming it afterwards would make the two records
+     *    disagree; a cancelled one is history. Both throw, like every other transition out of a terminal state.
+     * ⚠️ NOT THE UNIT, NOT OUT-OF-ORDER. Those move a room's availability and keep their own paths.
+     * A priority change moves the SLA target with it (MaintenanceSla reads the priority); a category change does not
+     * re-route the ticket — assignment stays where it is.
+     *
+     * The audit names the fields that changed and records the category and priority values; the title and description
+     * are free text, so they are NAMED, never copied into the audit trail. Nothing changed → nothing recorded.
+     *
+     * @param  array{title?: string, description?: ?string, category?: string, priority?: string}  $data
+     */
+    public function updateDetails(MaintenanceTicket $ticket, array $data): MaintenanceTicket
+    {
+        $this->assertActive($ticket, 'edit');
+
+        $next = array_intersect_key($data, array_flip(['title', 'description', 'category', 'priority']));
+        if (array_key_exists('description', $next) && ($next['description'] === '' || $next['description'] === null)) {
+            $next['description'] = null;
+        }
+
+        $changed = [];
+        foreach (['title', 'description', 'category', 'priority'] as $field) {
+            if (array_key_exists($field, $next) && (string) ($ticket->getAttribute($field) ?? '') !== (string) ($next[$field] ?? '')) {
+                $changed[] = $field;
+            }
+        }
+
+        if ($changed === []) {
+            return $ticket;
+        }
+
+        $before = ['fields' => $changed];
+        $after = ['fields' => $changed];
+        foreach (['category', 'priority'] as $field) {
+            if (in_array($field, $changed, true)) {
+                $before[$field] = (string) $ticket->getAttribute($field);
+                $after[$field] = (string) $next[$field];
+            }
+        }
+
+        // The edit and its two records land together or not at all.
+        DB::transaction(function () use ($ticket, $next, $changed, $before, $after): void {
+            $ticket->update(array_intersect_key($next, array_flip($changed)));
+            $this->domainEvents->record('maintenance_ticket.updated', $ticket, ['fields' => $changed]);
+            $this->audit->record('maintenance_ticket.updated', $ticket, $before, $after);
+        });
+
+        return $ticket->refresh();
+    }
+
     public function start(MaintenanceTicket $ticket): MaintenanceTicket
     {
         if ($ticket->status === 'in_progress') {
