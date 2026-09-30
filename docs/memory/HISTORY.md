@@ -438,6 +438,10 @@ made two content checks vacuous (found by a check that failed on `''`); a remova
 (`php -l` caught it); zsh passed 27 test files as one path.
 Gates: 4,116/4,116 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `ffb0b2200eb4da6d`, the code plus these docs); 439/439
 mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AN @ 761cf2dd`, swap 27 ms (Verified 2026-09-30 21:59 Baku);** 9 files shipped, no migration; preflight on
+production: both routes present with their gates, the private disk's folder present and writable, 0 attachments on production;
+after the swap, signed out, both attachment doors answer 302 → `/login`, `/storage/…` and `/media/…` serve no attachment (404),
+his photos still load; public checks 12/0/0; 1,415/1,415 files match git; drift check passes; 0 errors since the swap.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

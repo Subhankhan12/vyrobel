@@ -5,14 +5,14 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AM` → commit `9e9b1193`** (photos at `/media` — on top of DEC-k, the Units, Maintenance and Guests
-  rebuilds, Portfolio Open + fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output + `cat
-  current/.release` over SSH after the swap, 2026-09-30 20:42 Baku. Rollback targets: `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @
-  a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
+- **Live release `rel_AN` → commit `761cf2dd`** (DEC-m: message attachments private, signed in — on top of photos at
+  `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio remove and ADMIN 06).
+  **V:** `ops/release.sh swap` output + `cat current/.release` over SSH after the swap, 2026-09-30 21:59 Baku. Rollback
+  targets: `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
-- **GitHub `origin/main`** carries `9e9b1193` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,413 of 1,413 deployable files match git at `9e9b1193`.** **V** 2026-09-30 20:48 Baku,
+- **GitHub `origin/main`** carries `761cf2dd` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,415 of 1,415 deployable files match git at `761cf2dd`.** **V** 2026-09-30 22:05 Baku,
   sha256 manifest checked inside the live release.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
@@ -24,7 +24,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **439/439 landed and caught across every set**, 0 not caught, 0 did not land; baseline 230/230 green (`admin-06` = 87, `admin-05` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-09-30 21:25–21:40 Baku, tree `ffb0b2200eb4da6d` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-09-30 21:56 Baku (the DEC-m pass; reseeded 21:56). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean | **V** 2026-09-30 |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AM`, 2026-09-30, run straight after the 20:42 Baku swap (and on `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 20:48) | **V** `ops/public-checks.sh` 2026-09-30 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AN`, 2026-09-30, run straight after the 21:59 Baku swap (and on `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 22:05) | **V** `ops/public-checks.sh` 2026-09-30 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -36,7 +36,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AM`: 0 logged since its swap, V 2026-09-30 20:48 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AN`: 0 logged since its swap, V 2026-09-30 22:05 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -67,7 +67,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     answer 200 `image/jpeg` at `/media` from outside, and his live storefront shows its two covers there. Left: a signed-in
     look at `/app/units` on production. **DEC-m ruled ("Fix this issue as well") and fixed:** owner message attachments
     open only for the people in that conversation, signed in — and the inbox now shows them (`HISTORY.md`, "ATTACHMENTS");
-    ⏳ deploy as `rel_AN`.
+    ✅ LIVE on `rel_AN` (V 2026-09-30 21:59 Baku): 🔬 signed out, both attachment doors send you to `/login`; no public
+    address serves one. Left: a signed-in look (his).
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

@@ -19025,3 +19025,13 @@ conversation and in the inbox, the PDF downloaded as "Plumber invoice.pdf" on bo
 to their dashboard; 0 console errors or warnings.
 
 **Gates (each read from its own output, 2026-09-30):** **4,116/4,116 on MySQL 8.4.10** (30,178 assertions, tree `ffb0b2200eb4da6d`: this code with the entry and the memory written, before these figures were filled in; 21:09–21:25 Baku) · **4,116/4,116 on MariaDB 11.8.9** (the same tree, 21:41–21:56 Baku; advisor-platform's dev server still stopped, checked at 21:41) · mutations **439/439 across every set** (`message-attachments` 7/7; baseline 230/230 green; 21:25–21:40 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, reseeded 21:56 and read at 21:56 Baku) · PHPStan 0 · Pint clean.
+
+✅ **LIVE on `rel_AN @ 761cf2dd` (2026-09-30, swap 27 ms, 21:59 Baku).** No migration; 9 files shipped. 🔬 Preflight from the
+staged release on production, read-only: `owner/messages/attachments/{media}` behind `auth`, the owner portal's access and the
+owner scope; `app/inbox/attachments/{media}` behind `can:guests.view`; attachments on the `local` disk, whose folder exists and
+is writable (under the shared `storage`, so it survives releases); **0 attachments on production** — nothing to move. 🔬 After
+the swap, from outside and signed out: both doors answer **302 → `/login`**; `/storage/message-attachments/…` and
+`/media/message-attachments/…` **404**; his photos still load at `/media` (200 `image/jpeg`). Public checks **12 PASS · 0 FAIL
+· 0 could not measure** (`SERVED=0`), **1,415 of 1,415** deployable files match git at `761cf2dd`, the `.htaccess` drift check
+passes (self-test 3/3), 0 errors since the swap. ⚠️ Not done: a signed-in look on production — the first real attachment an
+owner sends will be the first one there.
