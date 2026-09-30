@@ -18984,3 +18984,44 @@ storefront `/book/villa-azure-lumiere` (`no-cache, private`, as the CDN guard re
 **1,413 of 1,413** deployable files match git at `9e9b1193`, the `.htaccess` drift check passes (self-test 3/3), 0 errors
 since the swap. ⚠️ Not done: a signed-in look at `/app/units` on production (his sign-in). ⚠️ A rollback to `rel_AL` or
 earlier puts every photo back on the refused `/storage` address.
+
+## 2026-09-30 — DEC-m ruled: owner message attachments open only for the people in that conversation, signed in — and the inbox shows them
+
+**Asked:** after the photos report named DEC-m — owner message attachments "don't open on the live site … they're private
+owner–operator documents … my recommendation is to let only people in that conversation open them, after signing in" — he
+answered: "Fix this issue as well". Ruled; D-MEDIA-ATTACH closed.
+
+**What was wrong.** 🔬 `OwnerMessageActionController` stored each attachment on the PUBLIC disk and the owner's conversation
+linked to its public address — which production refuses (`/storage`, KNOWN-LIMITS L12p), so no attachment ever opened; and
+which, had it worked, anyone holding a link could have opened. 🔬 The operator inbox — the side the owner sends them TO —
+never showed attachments at all: its transcript rows had no files.
+
+**The fix.**
+- **Stored on the PRIVATE disk** (`MessageAttachments::DISK = 'local'`); older rows keep the disk they record, and are served
+  the same way. Production held no attachments, so nothing needed moving.
+- **Opened only through two signed-in routes behind one controller** (`MessageAttachmentController`):
+  `owner.messages.attachment` in the owner portal — the portal's own gates, then the **owner scope on the thread**: that owner
+  and the team they added, exactly who can read the conversation — and `app.inbox.attachment` in the back office — the inbox's
+  own permission `can:guests.view`, then the organisation's threads. A thread outside the viewer's conversation is **not found**
+  (404, never a 403 that would confirm the file exists); each realm's door refuses the other realm's people.
+- **A photo shows in place; every other file downloads** under the name it was sent with (made safe for the header — `%`, path
+  separators, control characters); the choice is made by the file's own bytes (`finfo`), never its name. `Cache-Control:
+  private, no-store` and `X-Content-Type-Options: nosniff`.
+- **One definition of an attachment row** (`MessageAttachments::rows()`), used by the owner's conversation and the operator
+  inbox, each linking to its own route; the inbox now shows each file under its message — a photo thumbnail or a file chip
+  with name and size.
+
+**Proof.** `MessageAttachmentAccessTest` (4), RED first (the file landed on `public`; neither route existed): stored privately
+and never publicly; the owner opens both files through the signed-in link (photo inline `image/png`; the PDF a download, its
+real bytes, under its own name with a `%` in it); a teammate of that owner opens it; another owner of the organisation, an
+owner of another organisation and a signed-out visitor do not; inbox staff see and open both; a role without the inbox is
+refused; staff of another organisation get a 404; each realm's door refuses the other realm; another file's id through the
+door is not found. `OwnerMessagesRichTest` now expects the private disk (the behaviour changed by his ruling; the check did not
+weaken). Mutation set `message-attachments` (7): back to the public disk, the conversation check removed, the inbox permission
+removed, every file inline, the links back to the disk address, a browser-cacheable document, the inbox not showing them — all
+7 caught (the `collection` / `mediable_type` filters are left out as equivalent mutants, and the set says why). 🖥 Walked
+locally on tenant three with a test owner: the owner sent a PDF and a photo — the photo showed at 800×520 in the owner's
+conversation and in the inbox, the PDF downloaded as "Plumber invoice.pdf" on both sides, staff at the owner door were bounced
+to their dashboard; 0 console errors or warnings.
+
+**Gates (each read from its own output, 2026-09-30):** **4,116/4,116 on MySQL 8.4.10** (30,178 assertions, tree `ffb0b2200eb4da6d`: this code with the entry and the memory written, before these figures were filled in; 21:09–21:25 Baku) · **4,116/4,116 on MariaDB 11.8.9** (the same tree, 21:41–21:56 Baku; advisor-platform's dev server still stopped, checked at 21:41) · mutations **439/439 across every set** (`message-attachments` 7/7; baseline 230/230 green; 21:25–21:40 Baku) · money gate FULL unmoved (`929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`, tenant one, local, reseeded 21:56 and read at 21:56 Baku) · PHPStan 0 · Pint clean.

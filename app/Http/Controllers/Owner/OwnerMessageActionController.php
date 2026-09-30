@@ -12,6 +12,7 @@ use App\Models\MessageThread;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Inbox\MessageAttachments;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class OwnerMessageActionController extends Controller
 
     private const ATTACH_MAX = 5;
 
-    private const ATTACH_DISK = 'public';
+    /** ⚠️ The PRIVATE disk since 2026-09-30 (DEC-m) — attachments open only through the signed-in routes. */
+    private const ATTACH_DISK = MessageAttachments::DISK;
 
     /**
      * The owner's reply. Posted as `inbound` (into the org) by
@@ -179,7 +181,8 @@ class OwnerMessageActionController extends Controller
     /**
      * Store each uploaded file as a polymorphic `media` row on the message (GATE 2) — the Add-Unit upload
      * security posture: a GENERATED ULID filename (never the client's → no path traversal), the extension
-     * from the validated file, on the `public` disk. organization_id is auto-filled by BelongsToOrganization.
+     * from the validated file — on the PRIVATE disk since 2026-09-30 (DEC-m: only the people in that conversation, signed
+     * in, may open one — {@see MessageAttachments}). organization_id is auto-filled by BelongsToOrganization.
      *
      * @param  array<int, UploadedFile|null>  $files
      */

@@ -13,6 +13,7 @@ use App\Models\MessageThread;
 use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Inbox\MessageAttachments;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -270,28 +271,15 @@ class OwnerMessages extends Component
     }
 
     /**
-     * A message's attachments (GATE 2) — polymorphic Media in the `attachments` collection. Images render
-     * inline; everything else is a download chip with its original name + a human size.
+     * A message's attachments (GATE 2) — images render inline; everything else is a download chip with its original name +
+     * a human size. ⚠️ Each links to the owner portal's SIGNED-IN route (DEC-m, 2026-09-30), never a public address — the
+     * rows come from the one definition the operator inbox shares ({@see MessageAttachments::rows()}).
      *
      * @return list<array{url: string, name: string, is_image: bool, size: string}>
      */
     private function attachmentList(Message $message): array
     {
-        $out = [];
-        foreach ($message->media as $m) {
-            // media() is now typed MorphMany<Media> (shared HasMedia), so $m is a Media — filter by collection.
-            if ($m->collection !== 'attachments') {
-                continue;
-            }
-            $out[] = [
-                'url' => (string) $m->url,
-                'name' => (string) ($m->alt ?: 'Attachment'),
-                'is_image' => str_starts_with((string) $m->mime, 'image/'),
-                'size' => $this->humanSize((int) $m->size),
-            ];
-        }
-
-        return $out;
+        return app(MessageAttachments::class)->rows($message, 'owner.messages.attachment');
     }
 
     /**
@@ -383,19 +371,6 @@ class OwnerMessages extends Component
             })
             ->values()
             ->all();
-    }
-
-    /** A byte count as a compact human size (attachments). */
-    private function humanSize(int $bytes): string
-    {
-        if ($bytes >= 1048576) {
-            return round($bytes / 1048576, 1).' MB';
-        }
-        if ($bytes >= 1024) {
-            return round($bytes / 1024).' KB';
-        }
-
-        return $bytes.' B';
     }
 
     /** "Today" / "Yesterday" / "12 September" — the thread's day separator. */

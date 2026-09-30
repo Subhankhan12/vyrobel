@@ -57,7 +57,7 @@ return [
         'id' => 'PM-M6',
         'name' => 'an upload directory on neither list goes unnoticed (it would 404 silently)',
         'file' => $ctlFile,
-        'old' => "        'message-attachments' => 'documents in a private owner–operator conversation — how they may be reached is the founder\\'s call',\n",
+        'old' => "        'message-attachments' => 'documents in a private owner–operator conversation — on the PRIVATE disk since 2026-09-30, opened only by the people in that conversation, signed in (DEC-m; MessageAttachmentController)',\n",
         'new' => '',
         'tests' => [['file' => $t, 'filter' => 'knows every directory the app uploads into']],
     ],

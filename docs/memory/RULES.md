@@ -266,6 +266,13 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **A disk's `mimeType()` is not a content check.** Flysystem falls back to the EXTENSION when the content is inconclusive,
   so 🔬 a text file named `.jpg` read as `image/jpeg`. To judge a file by its bytes, use `finfo` on its path
   (Verified 2026-09-30).
+- **`UploadedFile::fake()->create()` only REPORTS a size — its file is EMPTY.** A test that compares served bytes with the
+  stored ones then compares `''` with `''` and proves nothing (🔬 the DEC-m test did, until a `not->toContain('')` failed on
+  it). Give a file real bytes with `createWithContent()` whenever content is what is checked (Verified 2026-09-30).
+- **Larastan cannot see the two columns `ulidMorphs()` makes** (`*_type`, `*_id`) — document them on the model with
+  `@property`; never silence the error (Verified 2026-09-30, `Media`).
+- **zsh does not split an unquoted variable into words:** `php artisan test $files` passed ONE path made of 27 and failed
+  with "not found". Use `${=files}` (Verified 2026-09-30).
 - **A required file runs in the scope that requires it.** A mutation set's top-level `$rows = '…'` overwrote the `$rows` of
   the function that loaded it, and the suite errored on "[] operator not supported for strings" (🔬 4,105/4,107, the
   first full run of the Units pass). The harness never hit it — its loop used other names. Load such files through

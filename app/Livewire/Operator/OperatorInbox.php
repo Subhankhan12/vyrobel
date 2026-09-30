@@ -12,6 +12,7 @@ use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Guest\GuestHistory;
+use App\Support\Inbox\MessageAttachments;
 use App\Support\Inbox\MessageTemplate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Reservations\ReservationStage;
@@ -333,7 +334,7 @@ class OperatorInbox extends Component
     private function transcript(MessageThread $thread): array
     {
         return Message::query()
-            ->with('author')
+            ->with(['author', 'media'])
             ->where('thread_id', $thread->getKey())
             ->orderBy('created_at')->orderBy('id')
             ->get()
@@ -469,6 +470,9 @@ class OperatorInbox extends Component
                 ? ($m->author instanceof User ? (string) $m->author->name : ((string) $m->sender_label ?: 'Operator'))
                 : $this->displayName($thread),
             'delivery' => $out ? $this->deliveryMeta((string) $m->delivery_status) : null,
+            // ⚠️ DEC-m (2026-09-30) — what an owner attached, for the staff they sent it to: each file opens through the
+            //    inbox's own signed-in route; the rows are the owner portal's ({@see MessageAttachments::rows()}).
+            'attachments' => app(MessageAttachments::class)->rows($m, 'app.inbox.attachment'),
             'time' => $at?->format('H:i') ?? '',
             'day_label' => $at !== null ? $this->dayLabel($at) : '',
         ];

@@ -65,6 +65,7 @@ use App\Http\Controllers\Guest\MarketingUnsubscribeController;
 use App\Http\Controllers\HousekeepingActionController;
 use App\Http\Controllers\MarketingContactController;
 use App\Http\Controllers\MarketingController;
+use App\Http\Controllers\MessageAttachmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Operator\BillingActionController;
@@ -1138,6 +1139,10 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // IS their job — gating writes on `guests.manage` would lock the role out of its core function while
     // adding nothing (both gates already exclude Housekeeping/Maintenance/Accountant/Revenue Manager).
     Route::get('/inbox', OperatorInbox::class)->middleware('can:guests.view')->name('inbox');
+    // ⚠️⚠️ DEC-m (2026-09-30) — an owner's message attachment, for the inbox staff the owner sent it to: the inbox's own
+    //    permission, then the organisation's threads ({@see MessageAttachments::find()}). The owner portal's door is
+    //    `owner.messages.attachment`.
+    Route::get('/inbox/attachments/{media}', MessageAttachmentController::class)->middleware('can:guests.view')->name('inbox.attachment');
     Route::get('/inbox/{thread}', fn (string $thread) => redirect()->route('app.inbox', ['c' => $thread]))->name('inbox.show');
     // NEW MESSAGE — start a thread with a real guest (current/upcoming stay), optionally seeded from a #83 template.
     Route::post('/inbox/start', [InboxActionController::class, 'start'])->middleware('can:guests.view')->name('inbox.start');
@@ -1458,6 +1463,10 @@ Route::middleware(['auth', RefuseSuspendedOrganization::class, EnsureOwnerPortal
     // The reply is a REAL message via InboxService::postOwnerMessage() (inbound = into the org), never a
     // fake send. {thread} is a plain string resolved in the component/controller (never RMB).
     Route::get('/messages', OwnerMessages::class)->name('messages');
+    // ⚠️⚠️ DEC-m (2026-09-30, his ruling) — a message attachment opens ONLY for someone in that conversation, signed in:
+    //    this group's owner-portal gates, then the owner scope on the thread ({@see MessageAttachments::find()}) — another
+    //    owner's file is a 404. The back office's door is `app.inbox.attachment`.
+    Route::get('/messages/attachments/{media}', MessageAttachmentController::class)->name('messages.attachment');
     // ⚠️⚠️ THIS ROUTE WAS REMOVED ON 2026-09-22 AND RESTORED THE SAME DAY. THE REMOVAL WAS WRONG AND THE
     // REASON IT LOOKED RIGHT IS WORTH MORE THAN THE ROUTE.
     //

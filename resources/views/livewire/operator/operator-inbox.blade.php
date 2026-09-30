@@ -236,7 +236,22 @@
                                 @php $lastDay = $m['day_label']; @endphp
                             @endif
                             <div class="vy-msg {{ $m['out'] ? 'is-out' : 'is-in' }}">
-                                <div class="vy-msg-bubble">{{ $m['body'] }}</div>
+                                @if ($m['body'] !== '')
+                                    <div class="vy-msg-bubble">{{ $m['body'] }}</div>
+                                @endif
+                                {{-- DEC-m (2026-09-30) — what the owner attached. Each file opens through the inbox's own signed-in
+                                     route, for staff who may open this inbox; a photo shows in place, anything else downloads. --}}
+                                @foreach ($m['attachments'] as $att)
+                                    @if ($att['is_image'])
+                                        <a class="vy-msg-att-img-link" href="{{ $att['url'] }}" target="_blank" rel="noopener" title="Open {{ $att['name'] }}"><img class="vy-msg-att-img" src="{{ $att['url'] }}" alt="{{ $att['name'] }}" loading="lazy"></a>
+                                    @else
+                                        <a class="vy-msg-att-file" href="{{ $att['url'] }}" title="Download {{ $att['name'] }}">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+                                            <span class="vy-msg-att-name">{{ $att['name'] }}</span>
+                                            <span class="vy-msg-att-size">{{ $att['size'] }}</span>
+                                        </a>
+                                    @endif
+                                @endforeach
                                 <div class="vy-msg-meta">
                                     <span>{{ $m['author'] }} · {{ $m['time'] }}</span>
                                     @if ($m['delivery'])
@@ -473,6 +488,15 @@
         .vy-msg.is-out .vy-msg-bubble { background: linear-gradient(140deg, #E8703A, #C2410C); color: #fff; border-bottom-right-radius: 4px; }
         .vy-msg-meta { font-size: 10.5px; color: var(--vy-faint); margin-top: 3px; display: flex; gap: 6px; }
         .vy-msg.is-out .vy-msg-meta { justify-content: flex-end; }
+        /* DEC-m — an owner's attachments, under the message they came with */
+        .vy-msg-att-img-link { display: block; margin-top: 6px; line-height: 0; border-radius: 12px; }
+        .vy-msg-att-img { display: block; max-width: 220px; max-height: 180px; border-radius: 12px; border: 1px solid var(--vy-hairline); object-fit: cover; }
+        .vy-msg-att-file { display: inline-flex; align-items: center; gap: 8px; max-width: 280px; margin-top: 6px; padding: 8px 12px; border-radius: 11px; background: rgba(255, 255, 255, .72); border: 1px solid var(--vy-hairline); color: var(--vy-ink); font-size: 12.5px; text-decoration: none; }
+        .vy-msg-att-file svg { flex-shrink: 0; color: var(--vy-accent, #E8703A); }
+        .vy-msg-att-file:hover { border-color: var(--vy-accent, #E8703A); }
+        .vy-msg-att-file:focus-visible, .vy-msg-att-img-link:focus-visible { outline: 2px solid var(--vy-accent, #E8703A); outline-offset: 2px; }
+        .vy-msg-att-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-msg-att-size { flex-shrink: 0; color: var(--vy-faint); font-size: 11px; }
         .vy-msg-delivery.is-failed { color: #B4400F; font-weight: 600; }
         .vy-msg-retry { border: none; background: none; padding: 0; color: var(--vy-accent, #E8703A); font-size: 10.5px; font-weight: 700; cursor: pointer; text-decoration: underline; }
         .vy-thread-composer { border-top: 1px solid var(--vy-hairline); padding: 12px 16px; }

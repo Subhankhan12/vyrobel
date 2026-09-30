@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
  * Polymorphic file/image, reused across every module via the HasMedia concern. Photos are just media in
  * the `photos` collection, with ordering (`sort_order`), a `is_cover` flag, and `alt` text.
  *
+ * @property string $mediable_type
+ * @property string $mediable_id
  * @property string $disk
  * @property string $path
  * @property string $collection

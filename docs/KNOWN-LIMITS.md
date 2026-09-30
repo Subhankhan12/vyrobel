@@ -1032,8 +1032,9 @@ namespaces:
   answered 404 (measured from outside, cache-busted). ✅ **WORKED AROUND 2026-09-30 ON THE APP SIDE, the server
   rule untouched:** the public disk now answers at **`/media`** (`config/filesystems.php`), served by
   `PublicMediaController` — registered outside the `web` group (no session, no cookie), images only (extension
-  AND the file's own bytes), only from the directories the app writes photos, logos and avatars into; message
-  attachments deliberately not (a founder decision, `OPEN.md` D-MEDIA-ATTACH). `PublicMediaTest` fails if a new
+  AND the file's own bytes), only from the directories the app writes photos, logos and avatars into. Message
+  attachments are deliberately not public at all: by his ruling (DEC-m, 2026-09-30) they live on the private disk and
+  open only for the people in that conversation, signed in (`MessageAttachmentController`). `PublicMediaTest` fails if a new
   upload directory is on neither list. ⚠️ The docroot move below is still the real fix for the REST of this
   class (the inert `FilesMatch`, the host-rule dependence).
 

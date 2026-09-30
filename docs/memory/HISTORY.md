@@ -422,6 +422,23 @@ addresses and served; after the swap 🔬 all 5 answered **200 `image/jpeg`** fr
 2 covers at `/media`, 0 at `/storage`; public checks 12/0/0; 1,413/1,413 files match git; drift check passes; 0 errors
 since the swap.
 
+**ATTACHMENTS · DEC-m — 2026-09-30 — his ruling ("Fix this issue as well … let only people in that conversation open them,
+after signing in").** Owner message attachments sat on the PUBLIC disk behind a public address — refused on production
+(`/storage`), and open to anyone holding a link had it worked; the operator inbox, the side the owner sends them TO, never
+showed them at all. Now: stored on the PRIVATE disk (`MessageAttachments::DISK`), opened only through two signed-in routes
+behind one controller — `owner.messages.attachment` (the owner portal's gates, then the owner scope on the thread: that owner
+and their team) and `app.inbox.attachment` (`guests.view`, then the organisation's threads); another owner, another
+organisation, a staff role without the inbox, or a visitor gets a 404 / 403 / sign-in, never the file. A photo shows in place;
+anything else downloads under its own name; `private, no-store`, `nosniff`. The attachment rows are ONE definition shared by
+both conversations (`MessageAttachments::rows()`), and the inbox now shows each file under its message. Production held 0
+attachments, so nothing needed moving. 🖥 Walked locally: an owner in tenant three sent a PDF and a photo; the photo showed at
+800×520 in the owner's conversation AND in the inbox, the PDF downloaded as "Plumber invoice.pdf" on both sides, staff at the
+owner door were bounced; 0 console errors. **This pass's own mistakes, each caught before shipping:** a fake PDF with no bytes
+made two content checks vacuous (found by a check that failed on `''`); a removal cut `humanSize()` at its first inner brace
+(`php -l` caught it); zsh passed 27 test files as one path.
+Gates: 4,116/4,116 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `ffb0b2200eb4da6d`, the code plus these docs); 439/439
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

@@ -21,8 +21,9 @@ use Symfony\Component\HttpFoundation\Response;
  * ⚠️ WHAT IT SERVES, AND ONLY THAT: an IMAGE — by its extension AND by the file's detected type — inside one of the
  * directories the app writes photos, logos and avatars into. Everything else is a 404: a document, a hidden file, a
  * folder (never a listing), a path that leaves the disk (the pattern admits no dot segment at all), and any directory
- * not on the list. ⚠️ Message attachments are deliberately NOT served: they are documents in a private owner–operator
- * conversation, and whether they may be reachable by address is the founder's decision (OPEN.md D-MEDIA-ATTACH).
+ * not on the list. ⚠️ Message attachments are deliberately NOT served here: they are documents in a private owner–operator
+ * conversation — his ruling (DEC-m, 2026-09-30) is that only the people in that conversation, signed in, may open one, so
+ * they live on the private disk and open through MessageAttachmentController.
  */
 final class PublicMediaController
 {
@@ -35,7 +36,7 @@ final class PublicMediaController
 
     /** @var array<string, string> Upload directories deliberately NOT served here, each with its reason. */
     public const NOT_SERVED = [
-        'message-attachments' => 'documents in a private owner–operator conversation — how they may be reached is the founder\'s call',
+        'message-attachments' => 'documents in a private owner–operator conversation — on the PRIVATE disk since 2026-09-30, opened only by the people in that conversation, signed in (DEC-m; MessageAttachmentController)',
     ];
 
     /** The image types served, by extension — and the file's own detected type must agree. */

@@ -57,6 +57,7 @@ it('quotes an earlier message: reply_to persists and renders, and a cross-thread
 
 // ── ATTACHMENTS ──────────────────────────────────────────────────────────────────────────────────
 it('attaches a real file as polymorphic Media on the message and renders it', function () {
+    Storage::fake('local');
     Storage::fake('public');
     $s = seedScenario(2);
     $a = inboxOwner($s, 'Amara Okafor', 0);
@@ -73,7 +74,10 @@ it('attaches a real file as polymorphic Media on the message and renders it', fu
 
     expect((string) $media->collection)->toBe('attachments')
         ->and((string) $media->mime)->toContain('pdf');
-    Storage::disk('public')->assertExists($media->path);
+    // ⚠️ the PRIVATE disk since 2026-09-30 (DEC-m, his ruling) — an attachment opens only for people in that conversation,
+    //    signed in (MessageAttachmentAccessTest); it is never on the public disk
+    Storage::disk('local')->assertExists($media->path);
+    Storage::disk('public')->assertMissing($media->path);
 
     // A message with ONLY a file (no body) is allowed.
     $this->actingAs($a['user'])->post('/owner/messages/'.$thread->id, [
