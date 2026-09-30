@@ -2067,7 +2067,9 @@
         .vyr-flash { padding: 12px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); border-color: var(--vy-accent-border); }
         .vyr-flash.is-error { color: #8F3110; background: rgba(255, 244, 238, 0.86); border-color: rgba(143, 49, 16, 0.26); }
         .vyr-unitpreview { margin-bottom: 18px; }
-        .vyr-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        /* ⚠️ a scroll box is the containing block of what it scrolls — otherwise an absolutely placed label (a `vy-sr-only`
+           header) takes <main> as its block, escapes the box and widens the page (🖥 production, 390 px: 660 px wide) */
+        .vyr-tablewrap { position: relative; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .vyr-actions-end { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
 
         /* toolbar — every control in the row is the same height */
@@ -2097,7 +2099,7 @@
         .vyr-empty strong { font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
 
         /* the table — all fourteen nights fit a laptop; narrower screens scroll it under a sticky first column and header */
-        .vyr-scroll { overflow: auto; max-height: min(74vh, 820px); -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+        .vyr-scroll { position: relative; overflow: auto; max-height: min(74vh, 820px); -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
         .vyr-grid { width: 100%; min-width: 1040px; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
         .vyr-grid col.vyr-col-rt { width: 172px; }
         .vyr-grid th, .vyr-grid td { border-bottom: 1px solid var(--vy-hairline); }

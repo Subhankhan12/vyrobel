@@ -473,6 +473,14 @@ review's one finding was the drag-then-click bug, already found in the walk and 
 Blade/Alpine and the shared code clean.
 Gates: 4,146/4,146 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `abc822f5672e411a`, the code plus these docs); 486/486
 mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AO @ cac9e677`, swap 4 ms (Verified 2026-10-01 02:10 Baku);** 14 files, no migration; preflight read-only
+(every write behind `rates.manage`, views compile, new reads 3.3 ms); public checks 12/0/0; 1,434/1,434 files match git; drift
+check passes; 0 errors since the swap. **The live look (he signed in; look only):** every dialog centred at 720,450 and closed
+with Escape, the drag and the click after it, the filter, 390 px; 0 console errors from the page. **Two found live and fixed in a
+follow-up:** the season form with an empty plan picker where no plan is on sale; a hidden table header escaping its scroll box
+and widening the document to 660 px at 390 (both scroll boxes are now containing blocks).
+Follow-up gates: 4,148/4,148 on MySQL 8.4.10 and MariaDB 11.8.9 (tree `0f40aa8b2640cd26`); 488/488 mutations; money gate FULL
+unmoved.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

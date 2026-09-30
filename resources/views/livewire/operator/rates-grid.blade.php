@@ -16,6 +16,8 @@
     <x-operator.shell active="rates" title="Rates & availability" :subtitle="$subtitle" :viewer="$viewer">
         @php
             $vyCanWrite = $canManage && ! $readOnly;
+            // a season is set on a plan that is on sale — with none, the season form is not offered
+            $vyActivePlans = collect($ratePlans)->where('is_active', true)->count();
             $vyBoot = [
                 'names' => collect($roomTypeOptions)->mapWithKeys(fn (array $o): array => [$o['id'] => $o['name']])->all(),
                 'from' => $formDefaults['from'],
@@ -365,10 +367,14 @@
                                 </table>
                             </div>
                         @else
-                            <p class="vyr-empty-line">{{ $vyCanWrite ? 'No seasons yet — save one below, then apply it when the figures look right.' : 'No seasons yet.' }}</p>
+                            <p class="vyr-empty-line">{{ $vyCanWrite && $vyActivePlans > 0 ? 'No seasons yet — save one below, then apply it when the figures look right.' : 'No seasons yet.' }}</p>
                         @endif
 
-                        @if ($vyCanWrite)
+                        {{-- ⚠️ A season is set on an ACTIVE plan, so with none there is nothing to offer — the form would only be refused
+                             (🖥 production, 2026-10-01: an empty plan picker on a property with no room types). --}}
+                        @if ($vyCanWrite && $vyActivePlans === 0)
+                            <p class="vyr-empty-line">A season is set on a rate plan that is on sale — add a room type and give it a plan first.</p>
+                        @elseif ($vyCanWrite)
                             {{-- ── Save a season. This writes NO prices. ─────────────────────────────────────────────────── --}}
                             <form method="POST" action="{{ route('app.seasons.store') }}" class="vyr-season-form" x-on:submit="stamp($event.target)">
                                 @csrf

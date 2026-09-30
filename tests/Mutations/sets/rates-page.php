@@ -416,4 +416,22 @@ return [
         'new' => '',
         'tests' => [['file' => $look, 'filter' => 'gives every class the Rates views use a rule']],
     ],
+
+    // ── found in the live look on production (2026-10-01) ─────────────────────────────────────────
+    [
+        'id' => 'RP-M48',
+        'name' => 'the season form is offered with an empty plan picker when no plan is on sale',
+        'file' => $view,
+        'old' => '                        @if ($vyCanWrite && $vyActivePlans === 0)',
+        'new' => '                        @if (false)',
+        'tests' => [['file' => $look, 'filter' => 'offers no season form where there is no rate plan']],
+    ],
+    [
+        'id' => 'RP-M49',
+        'name' => 'the grid’s scroll box stops containing its positioned labels (they widen the page)',
+        'file' => $css,
+        'old' => '        .vyr-scroll { position: relative; overflow: auto;',
+        'new' => '        .vyr-scroll { overflow: auto;',
+        'tests' => [['file' => $look, 'filter' => 'keeps every positioned label inside the scroll box']],
+    ],
 ];

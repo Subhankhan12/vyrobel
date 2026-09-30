@@ -332,6 +332,22 @@ it('⚠️ shows every refusal a season save or edit can return, where the opera
         ->and($alerts($html)[0])->toContain('already been applied, so it cannot be edited');
 });
 
+it('offers no season form where there is no rate plan to set a season on — it could only be refused', function () {
+    // 🖥 production, 2026-10-01: a property with no room types showed the season form with an EMPTY plan picker.
+    $s = seedScenario(1);
+    $s['ratePlan']->update(['is_active' => false]);   // the room type's only plan, off sale
+
+    $html = rrdPage($this, $s);
+    $xp = rrdXPath($html);
+    expect($xp->query('//form[@action="'.route('app.seasons.store').'"]')->length)->toBe(0)
+        ->and($html)->toContain('A season is set on a rate plan that is on sale');
+
+    // …and with one on sale, the form is back, its picker offering exactly that plan
+    $s['ratePlan']->update(['is_active' => true]);
+    $options = rrdXPath(rrdPage($this, $s))->query('//form[@action="'.route('app.seasons.store').'"]//select[@name="rate_plan_id"]/option');
+    expect($options->length)->toBe(1);
+});
+
 // ── The stylesheet ───────────────────────────────────────────────────────────────────────────────
 
 it('⚠️⚠️ gives every class the Rates views use a rule in the stylesheet — an unstyled label is how this page broke', function () {
@@ -359,4 +375,14 @@ it('⚠️⚠️ gives every class the Rates views use a rule in the stylesheet 
     }
 
     expect(array_values(array_unique($missing)))->toBe([]);
+});
+
+it('⚠️ keeps every positioned label inside the scroll box it belongs to', function () {
+    // 🖥 production, 390 px: the season table's hidden "Actions" header (`vy-sr-only`, absolutely positioned) took <main> as its
+    // containing block, escaped its scroll box and widened the page to 660 px (the body's clipping hid it). A scroll box must be
+    // the containing block of what it scrolls.
+    $css = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    foreach (['.vyr-scroll', '.vyr-tablewrap'] as $box) {
+        expect(preg_match('/'.preg_quote($box, '/').' \{[^}]*position: relative/', $css))->toBe(1, "{$box} is not a containing block");
+    }
 });

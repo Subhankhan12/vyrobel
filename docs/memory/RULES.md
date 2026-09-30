@@ -305,6 +305,10 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   a dialog "opened" in the corner failed the email-templates page's check that it shows no "opened" engagement figure (🔬 the
   full suite, 4,145/4,146); a JS comment naming "Bulk edit" put the words on the page for a role that must not see the
   control. Keep interface words out of comments that ship; Blade comments (`{{-- --}}`) do not ship (Verified 2026-10-01).
+- **A scroll box must be the containing block of what it scrolls.** An absolutely placed `vy-sr-only` header inside an
+  `overflow-x: auto` table wrapper took `<main>` as its block, escaped the box and made the document 660 px wide at 390 — only
+  production's data (a season) rendered that table, and the body's `overflow-x: hidden` hid it from the eye. Give every scroll
+  box `position: relative`, and measure `scrollWidth` with real data, not just a screenshot (Verified 2026-10-01).
 - **Follow what a create action makes to where it is used.** "Add rate plan" made a second plan that no screen could price (the
   grid prices each room type's main plan), and its success message sent the operator to the grid anyway; the storefront then
   skipped it for want of prices (Verified 2026-10-01).

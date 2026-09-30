@@ -19125,3 +19125,26 @@ taken out of the other new CSS comments.
 before the swap) · mutations **486/486 across every set** (`rates-page` 47; baseline 260/260 green; 01:33–01:50 Baku) · the
 money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 /
 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 02:07 Baku) · PHPStan L5 0 errors · Pint clean.
+
+✅ **LIVE on `rel_AO @ cac9e677` (2026-10-01, swap 4 ms, 02:10:41 Baku).** No migration; 14 files shipped. 🔬 Preflight from the
+staged release on production, read-only: the page behind `rates.view` and all eleven rate writes behind `rates.manage`; both
+new classes present; the bulk ceiling 100,000,000; the return address rebuilt from the allow-list (an outside address comes
+back as vyrobel.com, a false date is dropped); the three views compile to valid PHP; the new reads 3.3 ms and 0.9 ms across 15
+organisations (production holds 2 room types, 2 plans, 1 unapplied season). 🔬 After the swap: public checks **12 PASS · 0 FAIL ·
+0 could not measure** (`SERVED=0`); **1,434 of 1,434** files in the live release match git at `cac9e677` (the other 1,200 git
+files — tests, docs, tools, screenshots — are never deployed); the `.htaccess` drift check passes (self-test 3/3); 0 errors since
+the swap. **The live look — he signed in himself, look only, nothing saved:** 🖥 on Villa Azure Lumière (2 room types) all 14
+nights showed without sideways scroll; the editor from a click, from a four-night drag and from a click after a drag; Bulk edit;
+both per-unit dialogs; the three dialogs of its one season; Set prices, Rename, Take off sale and Add rate plan — every one opened
+at 720,450 with focus inside and closed with Escape; the filter held through next and Today; at 390 the editor fit with its
+buttons in view; 0 console errors from the page (the only entry was the CDN's browser-check 403 on `/login`).
+
+**Found in the live look, fixed in a follow-up.** (1) On Internal Test Property (no room types) the season form was offered with
+an EMPTY plan picker — a save could only be refused. A season is set on a plan that is on sale, so without one the form is not
+offered and a line says so. (2) At 390 px the season table's hidden "Actions" header (a `vy-sr-only`, absolutely placed) took
+`<main>` as its containing block, escaped its scroll box and made the document 660 px wide (the body's `overflow-x: hidden` hid
+it from sight). Both scroll boxes are now containing blocks (🖥 locally with a season: 390 of 390). `RatesPageRedesignTest` +2
+(RED first), mutations RP-M48 and RP-M49 caught. **Gates for the follow-up (2026-10-01):** 4,148/4,148 on MySQL 8.4.10 (02:31–02:46
+Baku) and on MariaDB 11.8.9 (03:03–03:18 Baku), 30,552 assertions, tree `0f40aa8b2640cd26` (the code with these lines written,
+before the figures) · mutations 488/488 across every set (baseline 262/262) · the money gate FULL, unmoved (reseeded 03:19 Baku)
+· PHPStan L5 0 errors · Pint clean.
