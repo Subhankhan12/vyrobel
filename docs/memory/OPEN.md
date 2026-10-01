@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the RATES pass (2026-10-01)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the OWNERS pass (2026-10-01)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -30,6 +30,8 @@ change is said.** Briefs live in `briefs/`.
 | A8 | **The x-show + inline display sweep.** 26 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 11 more across housekeeping, new reservation, roles, unit requests, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, and the Rates page's eight with the unit price form's one 2026-10-01). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 26 (V 2026-10-01, scanned: exactly 26). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
 | A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs, the Calendar's New reservation dialog and Billing's still use the shared `.vy-modal` glass. On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these five were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
 | A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
+| A11 | ⚠️⚠️ **Fix D-PAYRUN-TENANT** (below): "Run payouts now" must touch only the pressing organisation's owners. Small (the controller passes its own organisation's owner ids, or `run()` takes an organisation), with a cross-organisation test RED first — but it is the certified payout engine, so it waits on his go. | his go (asked 2026-10-01) | — | Today it is behind `PAYOUT_ENGINE_ENABLED`; the day that switch goes on, one operator's click pays every organisation's owners. |
+| A12 | **D-UNITS-EXPORT** (below): give the Units page's Export link the view's address at the click, as the Owners page now does. One line plus a test. | his go | — | An export after a filter changed in place is not the view on screen. |
 
 ## Known defects (each its own ID)
 - **D-B19**: delete could not see an open Stripe Checkout page. **Fixed by ADMIN 06**, including the two gaps review 2 found
@@ -75,6 +77,20 @@ change is said.** Briefs live in `briefs/`.
 - **D-RATE-PLAN-SCOPE — FIXED 2026-10-01, by his ruling on DEC-l** (the Rates plan, "Yes, all of it"): EVERY rate write — the grid editor, bulk edit, per-unit preview and apply, the four season writes and the three rate-plan writes — now finds its room type, plan or season inside the person's properties through one rule (`App\Support\Rates\RateScope`, the `readIds()` rule the unit writes use), and "All room types" is the room types on screen (it was every room type in the organisation: a bulk change on one property repriced the others). V: tests RED first (`RatesPageFixesTest`, DEC-l and "All room types"); mutations RP-M5..RP-M8 caught. ✅ LIVE on `rel_AO @ cac9e677` (V 2026-10-01 02:10 Baku).
 - **D-UNIT-SINGLE-TXN (found 2026-09-30 by reading, not seen happen)**: the SINGLE Pause/Resume (`OwnerUnitStatusService::setActive`, shared by the operator's Units page and the owner portal's pause, #69) writes the flag, recomputes availability, then writes the audit row — with no transaction. If the recompute failed, the unit would stay flipped with stale availability and no audit row. The new bulk action is one transaction; the single one was left as it was because the owner portal shares it. Small; a pass that touches the owner pause can close it.
 - **D-MT-COPY (small)**: the older maintenance flash lines say "Ticket …" ("Ticket resolved.", "Ticket cancelled.") where the page now says "work order"; bulk Assign to "No one" reports "Assigned 2 work orders." Left as they were.
+- ⚠️⚠️ **D-PAYRUN-TENANT (found 2026-10-01 by reading the payout run during the Owners pass; 🔬 Verified in the test database,
+  not on production)**: "Run payouts now" (`PayoutRunActionController::runNow`) calls `PayoutRunService::run()` with no owner
+  list, and `owners(null)` selects every owner with payable work **in every organisation**, under super-admin. A throwaway
+  probe (deleted after the run): an operator in organisation A pressed it and a payout was created **and paid** for
+  organisation B's owner ("2 created · 2 paid", test mode). The route refuses unless `PAYOUT_ENGINE_ENABLED` is on; the
+  scheduled run is meant to cover every organisation, the manual button is not. Fix = A11, his go.
+- **D-PAUSE-MANUAL (found 2026-10-01 by reading; not run)**: a payout pause is read only by the AUTOMATIC run
+  (`PayoutRunService::dueOwnerIds`). The payout run page lists a paused owner's statement as ready, and Create payouts /
+  Run payouts now (`owners(null)`) do not skip them. The Owners page now says exactly this in its pause dialog and row
+  reason; the owner detail page still says "Amounts accumulate and carry forward until resumed." Whether a pause should stop
+  the manual run too is DEC-n.
+- **D-UNITS-EXPORT (found 2026-10-01 in the Owners browser walk; read on Units, not run there)**: the Units page's Export link
+  sits outside the regions the list swaps in place, so after a filter, search or sort changed in place it exports the view the
+  page was loaded with. Fixed on Owners; Units is A12.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
@@ -115,3 +131,4 @@ change is said.** Briefs live in `briefs/`.
 | DEC-i | D-EDIT-SCOPE above: should Edit on the Portfolio be limited to the properties a person can access, as Remove is? |
 | DEC-j | D-MT-STORE above: should creating a work order — and Start, Resolve, Cancel, Assign on one — be limited to the properties a person can access, as the new Edit is? |
 | DEC-l | ✅ RULED 2026-10-01 ("Yes, all of it", the Rates plan) and fixed — D-RATE-PLAN-SCOPE above. |
+| DEC-n | D-PAUSE-MANUAL above: should a pause also stop the manual payout run (the payout run page's ready list, Create payouts, Run payouts now), or stay an automatic-run setting, worded as such everywhere? |

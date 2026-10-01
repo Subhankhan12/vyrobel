@@ -51,6 +51,7 @@ use App\Models\OverbookingConflict;
 use App\Models\Owner;
 use App\Models\OwnerAttentionState;
 use App\Models\OwnerExpense;
+use App\Models\OwnerInvite;
 use App\Models\OwnerLedgerEntry;
 use App\Models\OwnerStatement;
 use App\Models\OwnerStatementLine;
@@ -497,6 +498,10 @@ class AppServiceProvider extends ServiceProvider
             'webhook_event' => WebhookEvent::class,
             'booking_quote' => BookingQuote::class,
             'owner' => Owner::class,
+            // Owners page (2026-10-01) — an invite is an audit subject (owner_invite.sent / resent / cancelled call
+            // getMorphClass()). It minted a way into the organisation and recorded nothing; enforceMorphMap THROWS on an
+            // unregistered model, so the trail needs this alias.
+            'owner_invite' => OwnerInvite::class,
             // My Units · GATE 3 — the Add-Unit wizard makes UnitRequest a morph PARENT (photos in `media`,
             // amenities in `amenitiables`) and an audit subject (`owner.unit_requested` calls getMorphClass()),
             // and enforceMorphMap THROWS on an unregistered model — so it needs an alias.

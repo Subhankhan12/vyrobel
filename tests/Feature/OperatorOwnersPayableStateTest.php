@@ -93,7 +93,9 @@ it('still shows the real pending payable when the owner has an older PAID payout
     $this->actingAs(payableStateStaff($s))->get(route('app.owners'))
         ->assertOk()
         ->assertSee('Needs review')     // the real state of an unpaid, unverified statement
-        ->assertSee('1 draft')          // and it counts toward Needs attention
+        // and it counts toward Needs review. ⚠️ 2026-10-01: the figure's label read "1 draft" — the statement is FINALIZED,
+        // with lines the booking channel has not confirmed, so the label now says that; the count it pins is the same.
+        ->assertSee('1 with lines the booking channel hasn’t confirmed')
         ->assertSee(MoneyFormatter::display($net, 'EUR'));
 });
 
@@ -105,11 +107,12 @@ it('reads Paid only when THIS statement’s payout is paid', function () {
     $payout = app(OwnerPayoutService::class)->createFromStatement($ctx['september']);
     $payout?->update(['status' => 'paid', 'paid_at' => now()]);
 
-    // Now "Paid" is the truthful state, and it no longer needs review.
+    // Now "Paid" is the truthful state, and it no longer needs review. ⚠️ Asserted as the ZERO, not as the absence of
+    // the old "1 draft" label — once the label changed, that absence held whatever the count was.
     $this->actingAs(payableStateStaff($s))->get(route('app.owners'))
         ->assertOk()
         ->assertSee('Paid')
-        ->assertDontSee('1 draft');
+        ->assertSee('0 with lines the booking channel hasn’t confirmed');
 });
 
 it('keeps the operator list agreeing with the owner’s own statement figure', function () {
@@ -120,5 +123,5 @@ it('keeps the operator list agreeing with the owner’s own statement figure', f
     $this->actingAs(payableStateStaff($s))->get(route('app.owners'))
         ->assertOk()
         ->assertSee(MoneyFormatter::display((int) $ctx['september']->net_payable_minor, 'EUR'))
-        ->assertSee('1 draft');
+        ->assertSee('1 with lines the booking channel hasn’t confirmed');
 });

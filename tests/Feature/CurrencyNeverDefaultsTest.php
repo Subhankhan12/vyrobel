@@ -35,18 +35,21 @@ uses(DatabaseTransactions::class);
  */
 
 /**
- * ⚠️⚠️ ONE ENTRY, AND IT IS A FALSE POSITIVE OF THE DETECTOR RATHER THAN AN ACCEPTED DEFECT.
+ * ⚠️⚠️ EMPTY, AND IT SHOULD STAY EMPTY (2026-10-01).
  *
- * The line coalesces on `$owner->payout_currency`, and 🔬 `owners.payout_currency` is `char(3)` **NOT NULL** —
- * so that branch is provably dead, exactly as FIX 22 established for forty-five of its siblings. It is matched
- * only because the same line reads `$latest`, which IS assigned from `->first()` two lines above.
+ * It held one entry: a false positive of the detector, not an accepted defect — `OperatorOwners` coalesced on
+ * `$owner->payout_currency` (🔬 `owners.payout_currency` is `char(3)` **NOT NULL**, so that branch was provably dead,
+ * as FIX 22 established for forty-five of its siblings), and was matched only because the same line read `$latest`,
+ * assigned from `->first()` two lines above. The Owners page rebuild rewrote that line with no fallback at all
+ * (`OwnerRows` reads the column as it is), and 🔬 the detector then found nothing — so the entry was removed rather
+ * than left describing a line that no longer exists.
  *
- * ⚠️ IF THIS LIST EVER NEEDS A SECOND ENTRY, READ IT AS A SIGNAL: either a real defect is being waved through,
- * or the detector is asking the wrong question. Do not grow it quietly.
+ * ⚠️ IF THIS LIST EVER NEEDS AN ENTRY, READ IT AS A SIGNAL: either a real defect is being waved through, or the
+ * detector is asking the wrong question. Do not grow it quietly.
+ *
+ * @var array<string, string>
  */
-const VY_CURRENCY_FALLBACK_ALLOWED = [
-    'app/Livewire/Operator/OperatorOwners.php' => 'Coalesces on `owners.payout_currency`, which is char(3) NOT NULL — provably dead (FIX 22). Matched only because `$latest` from ->first() appears on the same line.',
-];
+const VY_CURRENCY_FALLBACK_ALLOWED = [];
 
 // ── 1. ⚠️⚠️ THE CLASS, PINNED ──────────────────────────────────────────────────────────────────────
 it('⚠️⚠️ F-44 — no currency falls back to a literal behind an object that is not there', function () {

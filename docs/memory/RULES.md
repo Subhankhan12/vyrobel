@@ -312,6 +312,24 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Follow what a create action makes to where it is used.** "Add rate plan" made a second plan that no screen could price (the
   grid prices each room type's main plan), and its success message sent the operator to the grid anyway; the storefront then
   skipped it for want of prices (Verified 2026-10-01).
+- **A figure in a "measured" line must come from a measurement in this pass.** The Owners stylesheet comment first said
+  "measured before: 41 and 35 px, padded twice" — never measured, and wrong for the old dialog (its own 24 px panel). Caught
+  on re-reading before the commit and rewritten to what the old source shows. Write "read in the source" or "measured" only
+  for what was (Verified 2026-10-01).
+- **A control outside the swapped regions goes stale when the list changes in place.** The Owners Export link kept the address
+  the page loaded with after an in-place sort; it now takes the view's address when clicked. Anything outside a
+  `data-gl-region` that encodes the view must follow it (Verified 2026-10-01; the Units page has the same shape, `OPEN.md` A12).
+- **A control that sets a preference reads the preference, not a status derived from it.** The row menu offered Pause again to
+  a paused owner with nothing due: it read the pay status, which says "paused" only while money is due (Verified 2026-10-01).
+- **Renaming a label can make a negative assertion vacuous.** `assertDontSee('1 draft')` passes for ANY count once the label
+  changes; assert the zero in the new words (Verified 2026-10-01).
+- **A Livewire page response is not a view response.** `viewData()` throws "The response is not a view"; read the page's own
+  JSON island or markup (Verified 2026-10-01).
+- **A guard read on one path is not a guard on the others.** The payout pause is read by the automatic run only; the manual
+  flow ignores it — and the manual "Run payouts now" reaches every organisation (🔬 a throwaway probe in the test database,
+  `OPEN.md` D-PAYRUN-TENANT). Before a page says what a setting does, read every path that acts on it (Verified 2026-10-01).
+- **Probe a suspected cross-organisation path with a throwaway test, then delete it.** Two organisations in the test database,
+  one request, read the other's rows — and report it as verified in the test database, not on production (Verified 2026-10-01).
 
 ---
 

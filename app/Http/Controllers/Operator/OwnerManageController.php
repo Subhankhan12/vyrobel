@@ -15,6 +15,7 @@ use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Owner\OwnerListParams;
 use App\Support\Owner\OwnerLoginLifecycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -95,7 +96,7 @@ class OwnerManageController extends Controller
     public function pausePayouts(Request $request, string $owner): RedirectResponse
     {
         if ($this->paused()) {
-            return $this->back($owner, 'owners_error', $this->pausedMessage());
+            return $this->back($owner, 'owners_error', $this->pausedMessage(), $request);
         }
 
         $model = Owner::query()->findOrFail($owner);
@@ -104,7 +105,10 @@ class OwnerManageController extends Controller
         OwnerPayoutPreference::query()->updateOrCreate(['owner_id' => $model->id], ['paused' => $paused]);
         $this->audit->record('owner.payouts_paused', $model, null, ['paused' => $paused]);
 
-        return $this->back($owner, 'owners_notice', $paused ? 'Payouts paused — amounts accumulate and carry forward until resumed.' : 'Payouts resumed.');
+        return $this->back($owner, 'owners_notice', $paused
+            // ⚠️ 2026-10-01 — only the AUTOMATIC run reads the pause; a payout created by hand on the payout run page does not
+            ? 'Payouts paused for '.$model->name.' — the automatic payout run skips them until you resume.'
+            : 'Payouts resumed for '.$model->name.'.', $request);
     }
 
     /**
@@ -316,11 +320,17 @@ class OwnerManageController extends Controller
 
     private function pausedMessage(): string
     {
-        return 'Workspace paused — owner changes are read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.';
+        // ⚠️ 2026-10-01 — with no resume date on record this ended "until ." (the same fix as the rate-plan writes)
+        $until = app(OperatorWorkspace::class)->resumeLabel();
+
+        return 'Workspace paused — owner changes are read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.';
     }
 
-    private function back(string $owner, string $key, string $message): RedirectResponse
+    /** Back to the owner — or to the Owners list as the operator had it, when the form was started there (2026-10-01). */
+    private function back(string $owner, string $key, string $message, ?Request $request = null): RedirectResponse
     {
-        return redirect()->route('app.owners.show', $owner)->with($key, $message);
+        $list = $request !== null ? OwnerListParams::redirect($request) : null;
+
+        return ($list ?? redirect()->route('app.owners.show', $owner))->with($key, $message);
     }
 }

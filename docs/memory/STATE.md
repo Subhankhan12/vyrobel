@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the RATES pass (2026-10-01)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the OWNERS pass (2026-10-01)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -22,10 +22,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the RATES follow-up commit) | **4,148/4,148 on MySQL 8.4.10** (tree `0f40aa8b2640cd26` = the code plus these docs, 2026-10-01 02:31–02:46 Baku) · **4,148/4,148 on MariaDB 11.8.9** (the same tree, 03:03–03:18 Baku) · 30,552 assertions · every test passed (0 skipped). The RATES commit before it (`cac9e677`): 4,146/4,146 on both engines, tree `abc822f5672e411a` | **V** run output 2026-10-01. |
-| Mutations | **488/488 landed and caught across every set**, 0 not caught, 0 did not land; baseline 262/262 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 02:47–03:03 Baku, tree `0f40aa8b2640cd26` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 03:19 Baku (the RATES follow-up; reseeded 03:19; also 02:07 for `cac9e677`). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean | **V** 2026-10-01 |
+| Suite (the OWNERS commit) | **4,174/4,174 on MySQL 8.4.10** (tree `201095a330f2e9bb` = the code plus these docs, 2026-10-01 18:13–18:29 Baku) · **4,174/4,174 on MariaDB 11.8.9** (the same tree, 18:47–19:03 Baku) · 30,751 assertions · every test passed (0 skipped). The RATES follow-up before it (`9b9b80c8`): 4,148/4,148 on both engines | **V** run output 2026-10-01. |
+| Mutations | **529/529 landed and caught across every set**, 0 not caught, 0 did not land; baseline 284/284 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 18:29–18:46 Baku, tree `201095a330f2e9bb` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 19:03 Baku (the OWNERS pass; reseeded 19:03). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-01 19:05 Baku |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AP`, 2026-10-01, run straight after the 03:21 Baku swap (and on `rel_AO` at 02:10 the same day, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01 03:23) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -79,6 +79,13 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     `rel_AO` (V 2026-10-01 02:10 Baku). The live look is done (he signed in himself; look only): every dialog centred, the
     drag, the filter, 390 px, 0 console errors. It found two defects, fixed and ✅ LIVE on `rel_AP` (V 03:21 Baku) and
     re-checked there: no season form where no plan is on sale (a line says why), and 390 of 390 px at 390 with a season shown.
+0h. **Owners rebuilt (2026-10-01)** — his request ("on Add owner page, modal design and buttons are mess … confirm with your
+    password and its box is not well aligned … modify the entire design of this page … build a plan and execute it"); the
+    7-part plan posted and executed (`HISTORY.md`, "OWNERS"). Add owner on the shared centred dialog with the password on its
+    own row; the shared list; Invites waiting with Resend and Cancel; statuses that follow the payout run; a unit's owner never
+    changed by an invite. ⚠️⚠️ **Two findings on the payout run, not fixed (his go — `OPEN.md` A11, DEC-n):** "Run payouts now"
+    reaches every organisation's owners (🔬 verified in the test database; it runs only while `PAYOUT_ENGINE_ENABLED` is on),
+    and only the automatic run reads a pause.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -107,6 +114,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes; DEC-k, the
     same on Add unit, was ruled and fixed 2026-09-30, and DEC-l, on every rate write, 2026-10-01). DEC-m (message
     attachments) was ruled and fixed 2026-09-30.
+8c. ⚠️⚠️ Say go on **A11** — "Run payouts now" must stay inside its own organisation (D-PAYRUN-TENANT, found 2026-10-01) —
+    and on A12 (the Units export link); rule on **DEC-n** (should a pause also stop the manual payout run?).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

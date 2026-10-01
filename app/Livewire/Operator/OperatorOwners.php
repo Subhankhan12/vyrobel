@@ -4,223 +4,449 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\ManagementAgreement;
 use App\Models\Owner;
 use App\Models\OwnerInvite;
-use App\Models\OwnerStatement;
-use App\Models\Payout;
-use App\Models\PayoutMethod;
+use App\Models\OwnerPayoutPreference;
 use App\Models\Unit;
+use App\Models\User;
 use App\Services\OwnerInviteService;
 use App\Support\Money\MoneyFormatter;
-use Carbon\CarbonImmutable;
+use App\Support\Operator\OperatorWorkspace;
+use App\Support\Owner\OwnerListParams;
+use App\Support\Owner\OwnerRows;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 /**
- * Operator OWNERS list (#93 exact-match; the operator side of the owner financial system) — the org's owners with
- * their REAL net-payable, statement + pay-status, the payout-run summary, and the statement schedule, on the SAME
- * certified statements/ledger the OWNER sees (anti-drift, reconciling #17). The "Add owner" action REUSES the #80
- * invite flow (POST → InviteOwnerController → OwnerInviteService — NOT a second invite). TENANT-scoped (OwnerScope
- * inactive on /app; reads are explicit).
+ * Operator OWNERS (rebuilt 2026-10-01 — the founder: "on Add owner page, modal design and buttons are mess … confirm with your
+ * password and its box is not well aligned … make it more creative and operational and easy to use and fully functional").
+ * The org's owners on the SAME certified statements/ledger the owner sees (reconciling #17), as a list like Guests and Units:
+ * search, chips that count, sortable columns, a row menu, an export — and the invites waiting, which can be resent or
+ * cancelled. Every row comes from {@see OwnerRows}; every link from {@see OwnerListParams}.
  *
- * ⚠️ COMMISSION is the REAL rate from `ManagementAgreement.commission_pct` (18% in the demo) — NEVER the
- * wireframe's hardcoded 15%. ⚠️ The net-payable + pay-status are the real `owner_statements.net_payable_minor` /
- * `payouts.status`; the payout-run summary counts the real due/held owners. No fabricated figures (#39).
+ * The "Add owner" dialog posts to the #80 invite flow (InviteOwnerController → OwnerInviteService — NOT a second invite).
+ * TENANT-scoped (OwnerScope inactive on /app). ⚠️ COMMISSION is the REAL agreement rate, never a hardcoded 15%.
+ * ⚠️ This component exposes render() only — a public method here is callable over /livewire/update, where no route
+ * middleware runs (OperatorLivewireMutationBoundaryTest).
+ *
+ * @phpstan-import-type OwnerRow from OwnerRows
+ *
+ * @phpstan-type PageState array{filter: ?string, q: string, sort: 'name'|'units'|'net'|'status', dir: 'asc'|'desc', per: int, page: int}
  */
 #[Layout('components.layouts.operator')]
 class OperatorOwners extends Component
 {
     use FormatsOperatorData;
+    use ResolvesCurrentProperty;
+
+    /** The commission presets offered beside the organisation's own rate(s). */
+    private const PRESETS = ['12', '15', '18'];
 
     public function render(): View
     {
-        $owners = Owner::query()->withCount('units')->orderBy('name')->get();
-        $ownerIds = $owners->pluck('id')->all();
+        $state = $this->state();
+        $rowsOf = app(OwnerRows::class);
+        $all = $rowsOf->load();
 
-        // The latest FINALIZED statement per owner (the current period's net) + all payouts + payout methods —
-        // batch-loaded so the list is O(1) queries, not N.
-        $statements = OwnerStatement::query()
-            ->whereIn('owner_id', $ownerIds)
-            ->where('status', '!=', 'draft')
-            ->orderByDesc('period_start')
-            ->get()
-            ->groupBy('owner_id');
-        $payouts = Payout::query()->whereIn('owner_id', $ownerIds)->get()->groupBy('owner_id');
-        $hasMethod = PayoutMethod::query()->whereIn('owner_id', $ownerIds)->pluck('owner_id')->unique()->flip();
+        $user = auth()->user();
+        $canManage = (bool) $user?->can('users.manage');
+        $readOnly = app(OperatorWorkspace::class)->isReadOnly();
+        // A write that would be refused is not offered: the invite, resend, cancel and pause routes all refuse a paused workspace.
+        $canWrite = $canManage && ! $readOnly;
 
-        $rows = [];
-        $netTotals = [];      // currency → minor (net payable, the current period)
-        $needsAttention = 0;
-        $holdCount = 0;
-        $dueCount = 0;
+        $filtered = array_values(array_filter($all, fn (array $r): bool => $rowsOf->matches($r, $state['filter'], $state['q'])));
+        $rows = $this->page(array_map(
+            fn (array $r): array => $r + ['actions' => $this->actions($r, $canWrite)],
+            $rowsOf->sort($filtered, $state['sort'], $state['dir']),
+        ), $state);
 
-        foreach ($owners as $owner) {
-            /** @var Collection<int, OwnerStatement> $ownerStatements */
-            $ownerStatements = $statements->get($owner->id) ?? collect();
-            $latest = $ownerStatements->first();   // most recent finalized (or paid) statement
-            /** @var Collection<int, Payout> $ownerPayouts */
-            $ownerPayouts = $payouts->get($owner->id) ?? collect();
-
-            $net = $latest !== null ? (int) $latest->net_payable_minor : 0;
-            $currency = $latest !== null ? (string) $latest->currency : (string) ($owner->payout_currency ?? 'EUR');
-            $status = $this->payStatus($owner, $latest, $ownerPayouts, $hasMethod->has($owner->id));
-
-            // Net payable = the current period's finalized-but-not-yet-paid net (what a run would send).
-            if ($status['due'] && $net > 0) {
-                $netTotals[$currency] = ($netTotals[$currency] ?? 0) + $net;
-                $dueCount++;
-            }
-            if ($status['key'] === 'hold') {
-                $holdCount++;
-            }
-            if ($status['attention']) {
-                $needsAttention++;
-            }
-
-            $rows[] = [
-                'id' => (string) $owner->id,
-                'name' => (string) $owner->name,
-                'initials' => $this->initials((string) $owner->name),
-                'sub' => (int) $owner->units_count.' '.((int) $owner->units_count === 1 ? 'unit' : 'units').' · '.($owner->status === 'active' ? 'active' : 'inactive'),
-                'stmt' => $latest !== null ? CarbonImmutable::parse($latest->period_start)->format('M Y').' statement' : 'No statement yet',
-                'net' => $latest !== null ? MoneyFormatter::display($net, $currency) : '—',
-                'pay_label' => $status['label'],
-                'pay_key' => $status['key'],
-                'active' => $owner->status === 'active',
-            ];
-        }
+        $rates = $this->orgRates();
 
         return view('livewire.operator.owners', [
             'viewer' => $this->viewer(),
-            'owners' => $rows,
-            'kpis' => [
-                'owners' => $owners->count(),
-                'units' => (int) $owners->sum('units_count'),
-                'net' => $this->moneyLines($netTotals, 'EUR'),
-                'needs_attention' => $needsAttention,
-                'attention_sub' => $holdCount.' hold · '.max(0, $needsAttention - $holdCount).' draft',
+            'rows' => $rows,
+            'rowsById' => collect($rows->items())->keyBy('id')->all(),
+            'total' => count($all),
+            'kpis' => $this->kpis($all, $this->fallbackCurrency($all)),
+            'query' => $state['q'],
+            // What a search keeps when submitted without script — every other setting, and page 1.
+            'keep' => array_diff_key(OwnerListParams::clean($this->params($state)), ['q' => true]),
+            'chips' => $this->chips($all, $state, $rowsOf),
+            'sorts' => $this->sortLinks($state),
+            'sizes' => $this->sizeLinks($state),
+            'pages' => $this->pageLinks($state, $rows),
+            'sortedBy' => $this->sortedBy($state),
+            'exportUrl' => route('app.owners.export', OwnerListParams::clean($this->params($state))),
+            'invites' => $this->invites(),
+            'payout' => $this->payoutCard($all, $this->fallbackCurrency($all)),
+            'howPaid' => $this->howPaid($rates),
+            'portal' => [
+                'active' => count(array_filter($all, fn (array $r): bool => $r['active'])),
+                'total' => count($all),
             ],
-            'payoutSummary' => [
-                'due' => $dueCount,
-                'hold' => $holdCount,
-                'net_total' => $this->moneyLines($netTotals, 'EUR'),
+            'inviteUnits' => $canManage ? $this->inviteUnits() : [],
+            'commissionChoices' => $this->commissionChoices($rates),
+            'commissionDefault' => count($rates) === 1 ? $rates[0] : '18',
+            'canManage' => $canManage,
+            'canWrite' => $canWrite,
+            'readOnly' => $readOnly,
+            'boot' => [
+                'urls' => [
+                    'show' => route('app.owners.show', ['owner' => '__ID__']),
+                    'pause' => route('app.owners.pause-payouts', ['owner' => '__ID__']),
+                    'resend' => route('app.owners.invites.resend', ['invite' => '__ID__']),
+                ],
+                'q' => $state['q'],
             ],
-            'schedule' => [
-                'commission' => $this->orgCommission(),
-                'portal_active' => $owners->where('status', 'active')->count(),
-                'portal_total' => $owners->count(),
-            ],
-            'pending' => $this->pendingInvites(),
-            'units' => $this->assignableUnits(),
-            'commissionDefault' => $this->orgCommission(),
         ]);
     }
 
-    /**
-     * The owner's real pay-status for the current period. hold = the certified TAX-hold OR (honest) no payout
-     * method on file — either way the run can't send. due = finalized-unpaid + payable. paid = a paid payout.
-     *
-     * @param  Collection<int, Payout>  $payouts
-     * @return array{key: string, label: string, due: bool, attention: bool}
-     */
-    private function payStatus(Owner $owner, ?OwnerStatement $latest, $payouts, bool $hasMethod): array
+    // ── The page's settings ──────────────────────────────────────────────────────────────────────
+
+    /** @return PageState */
+    private function state(): array
     {
-        if ($latest === null) {
-            return ['key' => 'none', 'label' => 'No statement', 'due' => false, 'attention' => false];
-        }
-        // ⚠️ Judge THIS statement's payout, not "any payout this owner has ever had". Testing the whole
-        // collection meant one historical PAID payout short-circuited every branch below: a finalized-unpaid
-        // statement read "Paid", `needs_attention` and the net-payable KPI collapsed to 0, and the payout run
-        // reported "0 owners scheduled" — while Owner Detail showed the real pending figure on the same rows.
-        // `payouts.owner_statement_id` is the link that makes this exact.
-        $statementPayouts = $payouts->where('owner_statement_id', $latest->getKey());
+        $clean = OwnerListParams::clean((array) request()->query());
+        $sort = $clean['sort'] ?? 'name';
 
-        if ((string) $latest->status === 'paid' || $statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'paid')) {
-            return ['key' => 'paid', 'label' => 'Paid', 'due' => false, 'attention' => false];
-        }
-        if ($statementPayouts->contains(fn (Payout $p): bool => (string) $p->status === 'held')) {
-            return ['key' => 'hold', 'label' => 'On hold', 'due' => false, 'attention' => true];
-        }
-        // Finalized-unpaid: on hold if the owner can't be paid yet (no tax details, or no payout method on file).
-        if ((int) $latest->net_payable_minor > 0 && (! $owner->hasTaxDetails() || ! $hasMethod)) {
-            return ['key' => 'hold', 'label' => 'On hold', 'due' => false, 'attention' => true];
-        }
-        if ((bool) $latest->has_unverified) {
-            return ['key' => 'draft', 'label' => 'Needs review', 'due' => false, 'attention' => true];
-        }
-        if ((int) $latest->net_payable_minor > 0) {
-            return ['key' => 'due', 'label' => 'Ready', 'due' => true, 'attention' => false];
-        }
-
-        return ['key' => 'zero', 'label' => 'Nothing due', 'due' => false, 'attention' => false];
+        return [
+            'filter' => $clean['filter'] ?? null,
+            'q' => $clean['q'] ?? '',
+            'sort' => $sort,
+            'dir' => $clean['dir'] ?? OwnerListParams::SORTS[$sort],
+            'per' => $clean['per'] ?? OwnerListParams::PER_PAGE,
+            'page' => $clean['page'] ?? 1,
+        ];
     }
 
-    /** The org's REAL management commission (18% in the demo) — the single effective rate, or "varies". Never 15%. */
-    private function orgCommission(): string
+    /**
+     * @param  PageState  $state
+     * @return array<string, string|int|null>
+     */
+    private function params(array $state): array
     {
-        $rates = ManagementAgreement::query()
-            ->where('status', 'active')
-            ->pluck('commission_pct')
-            ->filter(fn ($p): bool => $p !== null)
-            ->map(fn ($p): string => rtrim(rtrim((string) $p, '0'), '.'))
-            ->unique()
-            ->values();
+        return ['filter' => $state['filter'], 'q' => $state['q'], 'sort' => $state['sort'], 'dir' => $state['dir'], 'per' => $state['per']];
+    }
 
-        return match ($rates->count()) {
-            0 => '—',
-            1 => $rates->first().'%',
-            default => 'varies',
+    /**
+     * @param  PageState  $state
+     * @param  array<string, string|int|null>  $changes
+     */
+    private function href(array $state, array $changes): string
+    {
+        return OwnerListParams::url(array_merge($this->params($state), $changes));
+    }
+
+    /**
+     * What this viewer may do to THIS owner, in a fixed order — each only where its route would accept it.
+     *
+     * @param  OwnerRow  $row
+     * @return list<string>
+     */
+    private function actions(array $row, bool $canWrite): array
+    {
+        $actions = ['open', 'email'];
+        if ($canWrite && $row['active']) {
+            // the preference itself — the pay status says "paused" only while money is due
+            $actions[] = $row['paused'] ? 'resume' : 'pause';
+        }
+        if ($canWrite && $row['invite'] !== null && in_array($row['pay_key'], ['invited', 'inactive'], true)) {
+            $actions[] = 'resend';
+        }
+
+        return $actions;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @param  PageState  $state
+     * @return LengthAwarePaginator<int, array<string, mixed>>
+     */
+    private function page(array $rows, array $state): LengthAwarePaginator
+    {
+        $total = count($rows);
+        $page = min($state['page'], max(1, (int) ceil($total / $state['per'])));
+
+        return new LengthAwarePaginator(array_slice($rows, ($page - 1) * $state['per'], $state['per']), $total, $state['per'], $page,
+            ['path' => route('app.owners')]);
+    }
+
+    /**
+     * @param  list<OwnerRow>  $all
+     * @param  PageState  $state
+     * @return list<array{key: string, label: string, count: int, active: bool, href: string}>
+     */
+    private function chips(array $all, array $state, OwnerRows $rowsOf): array
+    {
+        $chips = [];
+        foreach ([[null, 'All'], ['ready', 'Ready to pay'], ['hold', 'On hold'], ['review', 'Needs review'], ['paused', 'Payouts paused'], ['invited', 'Invited']] as [$filter, $label]) {
+            $chips[] = [
+                'key' => $filter ?? 'all',
+                'label' => $label,
+                // the REAL count of what clicking it shows, the search included
+                'count' => count(array_filter($all, fn (array $r): bool => $rowsOf->matches($r, $filter, $state['q']))),
+                'active' => $state['filter'] === $filter,
+                'href' => $this->href($state, ['filter' => $filter]),
+            ];
+        }
+
+        return $chips;
+    }
+
+    /**
+     * @param  PageState  $state
+     * @return array<string, array{href: string, active: bool, dir: string, aria: string}>
+     */
+    private function sortLinks(array $state): array
+    {
+        $links = [];
+        foreach (OwnerListParams::SORTS as $column => $start) {
+            $active = $state['sort'] === $column;
+            $links[$column] = [
+                'href' => $this->href($state, ['sort' => $column, 'dir' => $active ? ($state['dir'] === 'asc' ? 'desc' : 'asc') : $start]),
+                'active' => $active,
+                'dir' => $active ? $state['dir'] : '',
+                'aria' => $active ? ($state['dir'] === 'asc' ? 'ascending' : 'descending') : 'none',
+            ];
+        }
+
+        return $links;
+    }
+
+    /**
+     * @param  PageState  $state
+     * @return list<array{size: int, active: bool, href: string}>
+     */
+    private function sizeLinks(array $state): array
+    {
+        return array_map(fn (int $size): array => ['size' => $size, 'active' => $state['per'] === $size, 'href' => $this->href($state, ['per' => $size])],
+            OwnerListParams::PER_PAGE_OPTIONS);
+    }
+
+    /**
+     * @param  PageState  $state
+     * @param  LengthAwarePaginator<int, array<string, mixed>>  $rows
+     * @return array{prev: ?string, next: ?string}
+     */
+    private function pageLinks(array $state, LengthAwarePaginator $rows): array
+    {
+        $page = $rows->currentPage();
+
+        return [
+            'prev' => $page > 1 ? OwnerListParams::url($this->params($state) + ['page' => $page - 1]) : null,
+            'next' => $rows->hasMorePages() ? OwnerListParams::url($this->params($state) + ['page' => $page + 1]) : null,
+        ];
+    }
+
+    /** @param  PageState  $state */
+    private function sortedBy(array $state): string
+    {
+        return match ($state['sort'].'.'.$state['dir']) {
+            'name.asc' => 'by owner, A–Z',
+            'name.desc' => 'by owner, Z–A',
+            'units.desc' => 'most units first',
+            'units.asc' => 'fewest units first',
+            'net.desc' => 'largest net payable first',
+            'net.asc' => 'smallest net payable first',
+            'status.asc' => 'what needs you first',
+            'status.desc' => 'what needs you last',
         };
     }
 
+    // ── The figures and the panels ───────────────────────────────────────────────────────────────
+
     /**
-     * @return list<array{email: string, expires: ?string}>
+     * Four figures that agree with the rows: active owners, the money ready for the next run, owners on hold (and what they
+     * are waiting for), and statements to review. Money is summed PER CURRENCY, never across (#17).
+     *
+     * @param  list<OwnerRow>  $all
+     * @return array<string, mixed>
      */
-    private function pendingInvites(): array
+    private function kpis(array $all, string $currency): array
     {
-        return OwnerInvite::query()
-            ->where('status', 'pending')
-            // ADMIN 04 — a console-created organisation's FOUNDER link is not an invite this operator sent
-            ->where('role', '!=', OwnerInviteService::FOUNDER_ROLE)
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(fn (OwnerInvite $i): array => ['email' => (string) $i->email, 'expires' => $i->expires_at?->format('j M Y')])
-            ->all();
+        $ready = array_values(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'due'));
+        $hold = array_values(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'hold'));
+        $review = count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'draft'));
+        $invited = count(array_filter($all, fn (array $r): bool => in_array($r['pay_key'], ['invited', 'inactive'], true)));
+        $paused = count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'paused'));
+
+        return [
+            'owners' => count(array_filter($all, fn (array $r): bool => $r['active'])),
+            'owners_sub' => $invited.' invited · '.array_sum(array_column($all, 'units')).' '.(array_sum(array_column($all, 'units')) === 1 ? 'unit' : 'units'),
+            'ready' => $this->sumLines($ready, $currency),
+            'ready_sub' => count($ready).' '.(count($ready) === 1 ? 'owner' : 'owners').' ready'
+                .($paused > 0 ? ' · '.$paused.' paused, not counted' : ''),
+            'hold' => count($hold),
+            'hold_sub' => count($hold) === 0 ? 'nothing waiting' : implode(' · ', $this->sumLines($hold, $currency)).' waiting',
+            'review' => $review,
+            'review_sub' => $review.' with lines the booking channel hasn’t confirmed',
+        ];
     }
 
     /**
-     * @return list<array{id: string, code: string, name: ?string, owned: bool}>
+     * @param  list<OwnerRow>  $all
+     * @return array{ready: list<string>, due: int, hold: int, paused: int}
      */
-    private function assignableUnits(): array
+    private function payoutCard(array $all, string $currency): array
     {
-        return Unit::query()
-            ->where('is_active', true)
-            ->orderBy('code')
-            ->get()
+        $ready = array_values(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'due'));
+
+        return [
+            'ready' => $this->sumLines($ready, $currency),
+            'due' => count($ready),
+            'hold' => count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'hold')),
+            // money due to a paused owner is left out of the figure above — the card says how many, as the KPI does
+            'paused' => count(array_filter($all, fn (array $r): bool => $r['pay_key'] === 'paused')),
+        ];
+    }
+
+    /**
+     * HOW OWNERS ARE PAID — only what the system does. ⚠️ This card said "Statements finalize 1st of the month": nothing does;
+     * a statement closes when someone presses Close period on the owner (`OwnerManageController::closePeriod`, the only
+     * caller of `finalize()`). And "Payouts sent 3rd business day" is true only while the automatic run is ON
+     * (`services.payouts.engine_enabled`, off by default) — otherwise payouts go from the payout run, by hand.
+     *
+     * @param  list<string>  $rates
+     * @return array{engine: bool, schedule: string, own: int, commission: string}
+     */
+    private function howPaid(array $rates): array
+    {
+        $defaults = OwnerPayoutPreference::defaults();
+
+        return [
+            'engine' => (bool) config('services.payouts.engine_enabled', false),
+            'schedule' => $this->ordinal((int) $defaults['payout_day']).' business day of the month',
+            'own' => OwnerPayoutPreference::query()->where(fn ($q) => $q->where('frequency', '!=', $defaults['frequency'])
+                ->orWhere('payout_day', '!=', $defaults['payout_day']))->count(),
+            'commission' => match (count($rates)) {
+                0 => '—',
+                1 => $rates[0].'%',
+                default => 'varies',
+            },
+        ];
+    }
+
+    /**
+     * Every invite still waiting to be accepted — owners AND staff, since this dialog sends both.
+     *
+     * @return list<array{id: string, email: string, name: string, initials: string, role: string, sent: string, expires: ?string, expired: bool, units: int, commission: ?string, cancel: string}>
+     */
+    private function invites(): array
+    {
+        $invites = OwnerInvite::query()->where('status', 'pending')
+            // ADMIN 04 — a console-created organisation's FOUNDER link is not an invite this operator sent
+            ->where('role', '!=', OwnerInviteService::FOUNDER_ROLE)
+            ->orderByDesc('created_at')->get();
+        $owners = Owner::query()->whereIn('id', $invites->pluck('owner_id')->filter())->pluck('name', 'id');
+        $users = User::query()->whereIn('email', $invites->pluck('email'))->pluck('name', 'email');
+
+        return $invites->map(fn (OwnerInvite $i): array => [
+            'id' => (string) $i->id,
+            'email' => (string) $i->email,
+            'name' => $name = (string) ($owners[$i->owner_id] ?? $users[$i->email] ?? $i->email),
+            'initials' => OwnerRows::initials($name),
+            'role' => match ((string) $i->role) {
+                'manager' => 'Property manager',
+                'accountant' => 'Accountant',
+                default => 'Owner',
+            },
+            'sent' => $i->created_at?->format('j M') ?? '',
+            'expires' => $i->expires_at?->format('j M Y'),
+            'expired' => $i->expires_at !== null && $i->expires_at->isPast(),
+            'units' => count($i->assigned_unit_ids ?? []),
+            'commission' => $i->commission_pct !== null ? rtrim(rtrim((string) $i->commission_pct, '0'), '.').'%' : null,
+            'cancel' => route('app.owners.invites.cancel', $i->id),
+        ])->all();
+    }
+
+    /**
+     * The units the dialog may give — inside the person's properties (DEC-k/DEC-l), each with its owner if it has one, so a
+     * taken unit can say whose it is. ⚠️ A unit that has an owner is shown, never offered: its owner decides who is paid.
+     *
+     * @return list<array{id: string, label: string, owner: ?string}>
+     */
+    private function inviteUnits(): array
+    {
+        $units = Unit::query()->where('is_active', true)
+            ->when($this->currentReadIds !== [], fn ($q) => $q->whereIn('property_id', $this->currentReadIds))
+            ->get(['id', 'code', 'name', 'owner_id']);
+        $owners = Owner::query()->whereIn('id', $units->pluck('owner_id')->filter())->pluck('name', 'id');
+
+        return $units->sortBy(fn (Unit $u): string => (string) $u->code, SORT_NATURAL)->values()
             ->map(fn (Unit $u): array => [
                 'id' => (string) $u->id,
-                'code' => (string) $u->code,
-                'name' => $u->name !== null ? (string) $u->name : null,
-                'owned' => $u->owner_id !== null,
+                'label' => (string) ($u->name ?: $u->code),
+                'owner' => $u->owner_id !== null ? (string) ($owners[$u->owner_id] ?? 'another owner') : null,
             ])->all();
     }
 
     /**
-     * @param  array<string, int>  $totals
+     * The rates the dialog offers: the organisation's own beside the presets, in numeric order (its own is preselected).
+     *
+     * @param  list<string>  $rates
      * @return list<string>
      */
-    private function moneyLines(array $totals, string $fallbackCurrency): array
+    private function commissionChoices(array $rates): array
     {
-        if ($totals === []) {
-            return [MoneyFormatter::display(0, $fallbackCurrency)];
-        }
+        $choices = array_values(array_unique(array_merge($rates, self::PRESETS)));
+        usort($choices, fn (string $a, string $b): int => (float) $a <=> (float) $b);
 
+        return $choices;
+    }
+
+    /** @return list<string> the organisation's agreement rates in force, e.g. ["18"] */
+    private function orgRates(): array
+    {
+        return ManagementAgreement::query()->where('status', 'active')->pluck('commission_pct')
+            ->filter(fn ($p): bool => $p !== null)
+            ->map(fn ($p): string => rtrim(rtrim((string) $p, '0'), '.'))
+            ->unique()->sort(SORT_NATURAL)->values()->all();
+    }
+
+    /**
+     * @param  list<OwnerRow>  $rows
+     * @return list<string>
+     */
+    private function sumLines(array $rows, string $currency): array
+    {
+        $totals = [];
+        foreach ($rows as $r) {
+            if ($r['net_minor'] !== null) {
+                $totals[$r['currency']] = ($totals[$r['currency']] ?? 0) + $r['net_minor'];
+            }
+        }
+        if ($totals === []) {
+            return [MoneyFormatter::display(0, $currency)];
+        }
         ksort($totals);
 
         return array_map(fn (int $minor, string $currency): string => MoneyFormatter::display($minor, $currency), array_values($totals), array_keys($totals));
+    }
+
+    /**
+     * The currency a zero is shown in: an owner's own (what they are paid in), or — with no owner at all, so nothing in scope —
+     * the ONE product default (F-44: never a literal repeated per file).
+     *
+     * @param  list<OwnerRow>  $all
+     */
+    private function fallbackCurrency(array $all): string
+    {
+        return $all !== [] ? $all[0]['currency'] : (string) config('billing.default_currency', 'EUR');
+    }
+
+    private function ordinal(int $n): string
+    {
+        return $n.match (true) {
+            $n % 100 >= 11 && $n % 100 <= 13 => 'th',
+            $n % 10 === 1 => 'st',
+            $n % 10 === 2 => 'nd',
+            $n % 10 === 3 => 'rd',
+            default => 'th',
+        };
     }
 }

@@ -6,7 +6,9 @@ use App\Models\Membership;
 use App\Models\MessageThread;
 use App\Models\Owner;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerStatement;
 use App\Models\OwnerUser;
+use App\Models\PayoutMethod;
 use App\Models\Reservation;
 use App\Models\Unit;
 use App\Models\User;
@@ -16,6 +18,8 @@ use App\Support\Folio\FolioTotals;
 use App\Support\Money\Money;
 use App\Support\Owner\OwnerCollection;
 use App\Support\Owner\OwnerTeamRole;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Assert;
 
@@ -321,5 +325,43 @@ if (! function_exists('unitDetailOwner')) {
         $owner->update(['user_id' => $user->id]);   // link the owner record to a portal user
 
         return ['user' => $user, 'owner' => $owner, 'unit' => $unit];
+    }
+}
+
+// ── The operator Owners page (2026-10-01) — fixtures shared by OwnersPageFixesTest and OwnersPageRedesignTest ──────────
+
+if (! function_exists('owpAdmin')) {
+    /** An operator who may invite (the organisation administrator holds `users.manage`); the factory's password is "password". */
+    function owpAdmin(array $scenario): User
+    {
+        return operatorUser($scenario, [], 'Property Owner');
+    }
+}
+
+if (! function_exists('owpOwner')) {
+    /** An active owner with tax details and a payout account on file. */
+    function owpOwner(array $scenario, string $name = 'Amara Okafor', array $extra = []): Owner
+    {
+        $owner = Owner::factory()->create(array_merge(['name' => $name, 'email' => Str::lower(Str::random(8)).'@owner.test',
+            'payout_currency' => 'EUR', 'status' => 'active', 'tax_id' => 'IE1234567X'], $extra));
+        PayoutMethod::create(['owner_id' => $owner->id, 'label' => 'Main', 'account_holder' => $name, 'iban' => 'IE29AIBK93115212344821',
+            'iban_last4' => '4821', 'iban_country' => 'IE', 'currency' => 'EUR', 'is_default' => true]);
+
+        return $owner;
+    }
+}
+
+if (! function_exists('owpStatement')) {
+    /** A finalized statement for a month, written straight to the table — a DISPLAY fixture; the money path is tested elsewhere. */
+    function owpStatement(Owner $owner, string $month, int $net, array $extra = []): OwnerStatement
+    {
+        $start = CarbonImmutable::parse($month.'-01');
+
+        return OwnerStatement::create(array_merge([
+            'owner_id' => $owner->id, 'period_start' => $start->toDateString(), 'period_end' => $start->endOfMonth()->toDateString(),
+            'currency' => 'EUR', 'source_currency' => 'EUR', 'status' => 'finalized', 'locked' => true,
+            'gross_minor' => $net, 'net_source_minor' => $net, 'net_payable_minor' => $net, 'has_unverified' => false,
+            'sequence_no' => 1, 'finalized_at' => now(),
+        ], $extra));
     }
 }

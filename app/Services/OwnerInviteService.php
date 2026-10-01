@@ -12,6 +12,7 @@ use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Models\Unit;
 use App\Models\User;
+use App\Support\Events\AuditEventRecorder;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -78,9 +79,10 @@ class OwnerInviteService
      * (for the email + tests); it is never persisted.
      *
      * @param  list<string>  $unitIds  owner-only — units to assign on acceptance (ignored for staff)
+     * @param  string  $trail  the audit action this send is recorded as (`owner_invite.sent`, or `.resent` from {@see resend()})
      * @return array{invite: OwnerInvite, token: string}
      */
-    public function invite(string $name, string $email, array $unitIds = [], ?float $commissionPct = null, string $role = 'owner'): array
+    public function invite(string $name, string $email, array $unitIds = [], ?float $commissionPct = null, string $role = 'owner', string $trail = 'owner_invite.sent'): array
     {
         if (! in_array($role, self::ROLE_SLUGS, true)) {
             throw new RuntimeException("Role [{$role}] invites are not available.");
@@ -105,7 +107,7 @@ class OwnerInviteService
             throw new RuntimeException('A user with this email already exists.');
         }
 
-        [$invite, $token] = DB::transaction(function () use ($name, $email, $orgId, $unitIds, $commissionPct, $role, $isOwner, $existing): array {
+        [$invite, $token] = DB::transaction(function () use ($name, $email, $orgId, $unitIds, $commissionPct, $role, $isOwner, $existing, $trail): array {
             // Inactive login (status=invited → cannot pass the active-only login) with an UNUSABLE
             // random placeholder password until the invitee sets their own on acceptance.
             $user = $existing ?? User::create([
@@ -154,6 +156,10 @@ class OwnerInviteService
                 'expires_at' => now()->addDays(self::EXPIRY_DAYS),
                 'accepted_at' => null,
             ])->save();
+
+            // ⚠️ 2026-10-01 — an invite mints a principal and recorded NOTHING. Figures and ids only: the address stays off
+            //    the trail (it is personal data, and the invite row already holds it).
+            app(AuditEventRecorder::class)->record($trail, $invite, null, $this->inviteState($invite));
 
             return [$invite, $plain];
         });
@@ -288,6 +294,72 @@ class OwnerInviteService
     }
 
     /**
+     * Send a waiting (or expired) invite again — a fresh link, the same person, role, units and rate (2026-10-01). It goes
+     * through {@see invite()}, so the token discipline, the active-account refusal and the email are the same ones; units
+     * that have gained an owner since are left out (an invite never moves a unit's owner).
+     *
+     * @return array{invite: OwnerInvite, token: string}
+     */
+    public function resend(OwnerInvite $invite): array
+    {
+        if (! in_array($invite->status, ['pending', 'expired'], true) || $invite->role === self::FOUNDER_ROLE) {
+            throw new InviteNoLongerRedeemable('That invite has already been used or cancelled.');
+        }
+
+        $owner = $invite->owner_id !== null ? Owner::withTrashed()->find($invite->owner_id) : null;
+        $name = (string) ($owner->name ?? User::query()->where('email', $invite->email)->value('name') ?? $invite->email);
+        $unitIds = Unit::query()->whereIn('id', $invite->assigned_unit_ids ?? [])->whereNull('owner_id')
+            ->pluck('id')->map(fn ($id): string => (string) $id)->all();
+
+        // recorded ONCE, as a resend — invite() writes the trail inside its own transaction
+        return $this->invite($name, (string) $invite->email, $unitIds, $invite->commission_pct !== null ? (float) $invite->commission_pct : null,
+            (string) $invite->role, 'owner_invite.resent');
+    }
+
+    /**
+     * Cancel a waiting invite (2026-10-01): the link stops working, and an owner record made for it that was never activated
+     * leaves the list — the same conservative cleanup {@see pruneExpired()} applies to an expired one. Returns false for an
+     * invite that is no longer waiting (used, cancelled or expired).
+     */
+    public function cancel(OwnerInvite $invite): bool
+    {
+        if ($invite->status !== 'pending' || $invite->role === self::FOUNDER_ROLE) {
+            return false;
+        }
+
+        DB::transaction(function () use ($invite): void {
+            $invite->update(['status' => 'revoked']);
+
+            $owner = $invite->owner_id !== null ? Owner::query()->find($invite->owner_id) : null;
+            $login = $owner?->user_id !== null ? User::query()->find($owner->user_id) : null;
+            // never remove an owner who is active, or whose login is (an inconsistency — leave it alone)
+            if ($owner !== null && $owner->status === 'inactive' && ($login === null || $login->status !== 'active')) {
+                $owner->delete();
+            }
+
+            app(AuditEventRecorder::class)->record('owner_invite.cancelled', $invite, ['status' => 'pending'], ['status' => 'revoked']);
+        });
+
+        return true;
+    }
+
+    /**
+     * An invite's audit shape — ids and figures, never the address.
+     *
+     * @return array<string, mixed>
+     */
+    private function inviteState(OwnerInvite $invite): array
+    {
+        return [
+            'role' => (string) $invite->role,
+            'owner_id' => $invite->owner_id !== null ? (string) $invite->owner_id : null,
+            'units' => count($invite->assigned_unit_ids ?? []),
+            'commission_pct' => $invite->commission_pct !== null ? (float) $invite->commission_pct : null,
+            'expires_at' => $invite->expires_at?->toDateTimeString(),
+        ];
+    }
+
+    /**
      * Prune genuinely EXPIRED, NEVER-ACCEPTED invites and their never-activated artifacts. CONSERVATIVE
      * by design — over-cleanup is the only real risk, so every guard errs toward LEAVING things alone:
      *
@@ -382,7 +454,10 @@ class OwnerInviteService
 
         $unitIds = $invite->assigned_unit_ids ?? [];
         if ($unitIds !== []) {
-            Unit::query()->whereIn('id', $unitIds)->update(['owner_id' => $owner->getKey()]);
+            // ⚠️⚠️ ONLY A UNIT WITH NO OWNER (2026-10-01). A unit's owner decides who is paid for it; this wrote the new
+            //    owner over whoever owned the unit when the invite was ACCEPTED — the invite dialog even offered owned units —
+            //    so an invite silently moved another owner's income. A unit that gained an owner meanwhile keeps it.
+            Unit::query()->whereIn('id', $unitIds)->whereNull('owner_id')->update(['owner_id' => $owner->getKey()]);
         }
 
         if ($invite->commission_pct !== null && ! ManagementAgreement::query()->where('owner_id', $owner->getKey())->where('status', 'active')->exists()) {

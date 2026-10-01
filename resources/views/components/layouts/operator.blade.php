@@ -2423,6 +2423,158 @@
             }
         }
 
+        /* ---- Owners (rebuilt 2026-10-01) --------------------------------------------------------------------------------
+           The founder's report on the invite dialog (2026-10-01). Read in the old source: ONE flex row held both of its
+           buttons, the password's label, its box and its error side by side, in a panel of its own outside the shared
+           dialog. Now the password has its own full-width row and the two buttons share the foot at one height. The list is
+           the shared one (Guests, Units, Maintenance); what follows is only what an owner row, the invites and the dialogs
+           need on top. ⚠️ Every display is a CLASS — x-show erases an inline display. ⚠️ Secondary text inside rows is
+           --vy-on-grad, never --vy-muted (DO-A11Y-5). ⚠️ `.vy-modal` carries its own 26 px padding, and the head, body and
+           foot pad themselves: these dialogs set the panel's to 0. */
+        .vyo-root { position: relative; }
+        .vyo-root .vy-dash-kpi { padding: 15px 18px; }
+        .vyo-root .vy-dk-val { font-size: 26px; }
+        .vyo-root .vy-gl-sorted { color: var(--vy-on-grad); }
+        .vyo-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
+        .vyo-bar .vy-gl-tools a.vy-btn { line-height: normal; }
+        .vyo-chips { max-width: 100%; }
+        .vy-flash.vyo-flash { flex-direction: column; align-items: flex-start; gap: 4px; }
+        .vyo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
+        .vyo-main, .vyo-rail { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+        /* the table: who, what they own, what they are owed, and why not yet */
+        .vyo-table { min-width: 740px; }
+        .vyo-table td.vyo-ownercell { min-width: 220px; }
+        .vyo-owner { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vyo-avatar { width: 34px; height: 34px; font-size: 12px; letter-spacing: .02em; }
+        .vyo-table tr.is-invited .vyo-avatar { background: transparent; color: var(--vy-on-grad); box-shadow: inset 0 0 0 1.5px rgba(120, 70, 40, 0.3); }
+        .vyo-who { min-width: 0; }
+        .vyo-units { max-width: 180px; margin: 3px 0 0 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 11.5px; color: var(--vy-on-grad); }
+        .vyo-net { font-size: 14px; white-space: nowrap; }
+        .vyo-period { margin-top: 3px; font-size: 11.5px; color: var(--vy-on-grad); white-space: nowrap; }
+        .vyo-table td.vyo-statuscell { min-width: 190px; }
+        .vyo-reason { max-width: 230px; margin-top: 5px; font-size: 11.5px; line-height: 1.4; color: var(--vy-on-grad); }
+
+        /* the invite list */
+        .vyo-invites { padding: 20px 22px 8px; }
+        .vyo-section-head { margin-bottom: 6px; }
+        .vyo-section-sub { margin: 5px 0 0; max-width: 620px; font-size: 12.5px; line-height: 1.5; color: var(--vy-on-grad); }
+        .vyo-count { display: inline-grid; place-items: center; min-width: 22px; height: 20px; margin-left: 6px; padding: 0 7px; border-radius: 999px; vertical-align: 2px; font-family: var(--vy-sans); font-size: 11px; font-weight: 700; background: rgba(232, 112, 58, 0.14); color: var(--vy-accent-text); }
+        .vyo-invite { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyo-invite .vyo-avatar { background: transparent; color: var(--vy-on-grad); box-shadow: inset 0 0 0 1.5px rgba(120, 70, 40, 0.3); }
+        .vyo-invite-main { flex: 1; min-width: 0; }
+        .vyo-invite-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyo-role { padding: 1px 8px; border-radius: 999px; font-family: var(--vy-sans); font-size: 10.5px; font-weight: 700; background: rgba(120, 70, 40, 0.08); color: var(--vy-on-grad); }
+        .vyo-invite-meta { display: flex; flex-wrap: wrap; gap: 3px 14px; margin-top: 4px; font-size: 11.5px; color: var(--vy-on-grad); }
+        .vyo-invite-meta span { overflow-wrap: anywhere; }
+        .vyo-invite-meta .is-late { font-weight: 600; color: var(--vy-accent-text); }
+        .vyo-invite-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 6px; flex: none; margin: 0; }
+        .vyo-confirmcancel { gap: 8px; }
+        .vyo-ask { margin-right: 2px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-btn.vyo-sm { height: 32px; padding: 0 13px; font-size: 12.5px; line-height: normal; }
+        .vy-btn--ghost.vyo-sm.is-danger { color: #8F3110; }
+
+        /* the rail */
+        .vyo-payout { position: relative; overflow: hidden; }
+        .vyo-payout::after { content: ""; position: absolute; right: -40px; top: -50px; width: 170px; height: 170px; border-radius: 50%; background: radial-gradient(circle, rgba(232, 112, 58, 0.35), transparent 70%); pointer-events: none; }
+        .vy-dk-label.vyo-payout-label { color: rgba(255, 255, 255, 0.6); }
+        .vyo-payout-val { margin-top: 12px; font-family: var(--vy-display); font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+        .vyo-payout-sub { margin-top: 6px; font-size: 12px; color: rgba(255, 255, 255, 0.68); }
+        .vyo-payout-link { position: relative; z-index: 1; display: inline-flex; align-items: center; height: 34px; margin-top: 16px; padding: 0 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.18); font-size: 12.5px; font-weight: 600; color: #fff; transition: background .15s ease; }
+        .vyo-payout-link:hover { background: rgba(255, 255, 255, 0.2); }
+        .vyo-payout-link:focus-visible, .vyo-portal-link:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyo-howpaid { padding: 18px 20px; }
+        .vyo-facts { margin: 12px 0 0; }
+        .vyo-facts > div { padding: 10px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyo-facts > div:first-child { border-top: none; padding-top: 0; }
+        .vyo-facts dt { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vyo-facts dd { margin: 4px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--vy-ink); }
+        .vyo-portal { padding: 18px 20px; }
+        .vyo-portal .vy-dk-label { margin: 0; }
+        .vyo-portal-figure { display: flex; align-items: baseline; gap: 7px; margin-top: 10px; }
+        .vyo-portal-figure strong { font-family: var(--vy-display); font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--vy-ink); }
+        .vyo-portal-figure span { font-size: 12.5px; color: var(--vy-muted); }
+        .vyo-portal-track { height: 6px; margin-top: 12px; overflow: hidden; border-radius: 6px; background: var(--vy-hairline); }
+        .vyo-portal-fill { display: block; height: 100%; border-radius: 6px; background: var(--vy-grad); }
+        .vyo-portal-sub { margin: 9px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vyo-portal-link { display: inline-block; margin-top: 10px; border-radius: 4px; font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); }
+        .vyo-portal-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+        .vyo-copied { position: fixed; z-index: 45; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); margin: 0; padding: 10px 16px; border-radius: 12px; background: rgba(38, 29, 24, 0.95); color: #fff; font-size: 12.5px; font-weight: 500; box-shadow: 0 14px 34px rgba(40, 20, 8, 0.28); overflow-wrap: anywhere; }
+
+        /* the dialogs — the head, body and foot pad themselves, so the panel adds nothing around them */
+        .vy-modal.vyo-dlg { padding: 0; }
+        .vy-modal.vyo-dlg.vy-modal--wide { max-width: 620px; }
+        .vyo-dlg-head { flex: 1; min-width: 0; }
+        .vyo-dlg-head .vy-modal-title { overflow-wrap: anywhere; }
+        .vyo-dlg-sub { margin: 4px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vy-modal-ico.is-danger { background: linear-gradient(140deg, #A63A12, #7A2A0C); box-shadow: 0 4px 12px rgba(143, 49, 16, 0.28); }
+        /* the two foot buttons: one height, one baseline, the action the wider of the two; the bar stays in view while a
+           long dialog scrolls */
+        .vyo-dlg .vy-modal-foot { position: sticky; bottom: 0; z-index: 1; align-items: center; padding: 14px 24px 20px; background: rgba(255, 252, 248, 0.97); border-top: 1px solid var(--vy-hairline); }
+        .vyo-dlg .vy-modal-foot .vy-btn { height: 42px; padding: 0 18px; justify-content: center; line-height: normal; }
+        .vyo-dlg .vy-modal-foot .vy-btn--ghost { flex: 0 0 auto; min-width: 116px; }
+        .vyo-dlg .vy-modal-foot .vy-btn--accent, .vyo-dlg .vy-modal-foot .vy-btn--danger { flex: 1; padding: 0 18px; }
+        .vyo-errors { margin: 0 0 16px; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(143, 49, 16, 0.07); border: 1px solid rgba(143, 49, 16, 0.2); font-size: 12.5px; line-height: 1.5; color: #8F3110; }
+        .vyo-errors div + div { margin-top: 4px; }
+        .vyo-roles .vy-choice-face { height: 100%; gap: 5px; }
+        .vyo-roles .vy-choice-text { font-weight: 600; }
+        .vyo-choice-sub { font-size: 11.5px; font-weight: 500; line-height: 1.35; color: var(--vy-on-grad); }
+        .vy-choice input:checked + .vy-choice-face .vyo-choice-sub { color: rgba(255, 255, 255, 0.88); }
+        .vyo-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+        .vyo-pair .vy-field { min-width: 0; }
+        .vyo-dlg .vy-input { width: 100%; height: 42px; padding-top: 0; padding-bottom: 0; }
+        .vyo-unitfield { min-width: 0; margin: 0 0 15px; padding: 0; border: none; }
+        .vyo-unitfield legend { padding: 0; }
+        .vyo-optional { margin-left: 4px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--vy-faint); }
+        .vyo-units-pick { display: flex; flex-wrap: wrap; gap: 6px; max-height: 150px; overflow-y: auto; padding: 2px; }
+        .vyo-unitchip { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 5px 12px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.66); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+        .vyo-unitchip input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; }
+        .vyo-unitchip:hover { border-color: var(--vy-accent-border); }
+        .vyo-unitchip:has(input:checked) { background: rgba(232, 112, 58, 0.12); border-color: var(--vy-accent-border); color: var(--vy-accent-text); }
+        .vyo-unitchip:has(input:checked) .vyo-unitchip-label::before { content: "✓ "; }
+        .vyo-unitchip:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyo-unitchip.is-taken { cursor: not-allowed; border-style: dashed; background: transparent; }
+        .vyo-unitchip.is-taken:hover { border-color: var(--vy-glass-border); }
+        .vyo-unitchip-label { color: inherit; }
+        .vyo-unitchip-owner { font-size: 11px; font-weight: 500; color: var(--vy-on-grad); }
+        .vyo-commission { margin-bottom: 8px; }
+        .vyo-commission .vy-choice-text { white-space: nowrap; }
+        .vyo-other { display: flex; align-items: center; gap: 8px; max-width: 160px; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--vy-on-grad); }
+        .vyo-hint { margin: 6px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vyo-fielderr { margin-top: 6px; font-size: 12px; font-weight: 600; line-height: 1.4; color: #8F3110; }
+        .vyo-access { display: flex; flex-direction: column; gap: 3px; margin: 0 0 15px; padding: 11px 13px; border-radius: var(--vy-r-sm); background: rgba(120, 70, 40, 0.06); border: 1px solid rgba(120, 70, 40, 0.1); font-size: 12.5px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vyo-access strong { font-size: 13px; color: var(--vy-ink); }
+        /* the password: its own row, the full width, with what it is for under it */
+        .vyo-confirm { margin-top: 18px; padding: 14px 14px 13px; border-radius: var(--vy-r-md); background: rgba(232, 112, 58, 0.06); border: 1px solid rgba(232, 112, 58, 0.18); }
+        .vy-modal-body > .vyo-confirm:first-child { margin-top: 4px; }
+        .vyo-confirm .vy-input { background: #fff; }
+        .vyo-confirm .vyo-hint { margin-top: 8px; }
+        .vyo-sent { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 30px 28px 16px; text-align: center; }
+        .vyo-sent-ico { width: 56px; height: 56px; margin-bottom: 6px; border-radius: 50%; display: grid; place-items: center; background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vyo-sent-sub { max-width: 380px; margin: 0; font-size: 13px; line-height: 1.55; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyo-sent-note { max-width: 380px; margin: 0; font-size: 12px; line-height: 1.5; color: var(--vy-muted); }
+        .vyo-factlist { margin: 0; padding: 0 0 0 18px; font-size: 12.5px; line-height: 1.6; color: var(--vy-ink); }
+
+        @media (max-width: 1180px) {
+            .vyo-layout { grid-template-columns: minmax(0, 1fr); }
+            .vyo-rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
+        }
+        @media (max-width: 760px) {
+            .vyo-root .vy-dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            /* the row menu stays at the right edge while the table scrolls sideways — the work-order table's treatment */
+            .vyo-table th.vy-gl-actcol, .vyo-table td.vy-gl-actcol { position: sticky; right: 0; z-index: 1; background: rgba(255, 251, 247, 0.96); box-shadow: -10px 0 12px -10px rgba(120, 70, 40, 0.3); }
+            .vyo-table thead th.vy-gl-actcol { z-index: 3; }
+            .vyo-bar .vy-gl-tools .vy-btn { flex: 1 1 auto; justify-content: center; white-space: nowrap; }
+            .vyo-invite { flex-wrap: wrap; }
+            .vyo-invite-actions { width: 100%; justify-content: flex-start; padding-left: 46px; }
+            .vyo-pair { grid-template-columns: minmax(0, 1fr); }
+            .vyo-roles .vy-choice-row { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); }
+            .vyo-roles .vy-choice-face { flex-direction: row; align-items: center; flex-wrap: wrap; column-gap: 10px; }
+            .vyo-roles .vyo-choice-sub { flex-basis: 100%; padding-left: 28px; }
+            .vyo-dlg .vy-modal-foot { padding: 12px 16px 16px; }
+            .vyo-dlg .vy-modal-foot .vy-btn--ghost { min-width: 96px; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
             .vy-fade { opacity: 1; }

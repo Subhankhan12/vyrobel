@@ -485,6 +485,36 @@ unmoved.
 files match git; drift check passes; 0 errors since the swap; both fixes re-checked on production (390 of 390 px; no season form
 without a plan on sale); 0 console errors.
 
+**OWNERS — 2026-10-01 — his request ("on Add owner page, modal design and buttons are mess, cancel and send invite buttons look
+bad, confirm with your password and its box is not well aligned … modify the entire design of this page like previous page …
+fully functional … build a plan for this page and execute it"); a 7-part plan posted and executed as asked.** Read in the old
+source: one flex row held Cancel, the password's label, its box, its error and Send invite. Now the shared centred dialog, the
+password on its own row, Cancel and Send invite together at one height (🖥 42 px each, at 1440 and 390); refusals beside their
+field, focus where the person has to act. Found underneath, each with a test RED first: ⚠️⚠️ an invite could move a unit
+away from its owner (offered owned units; acceptance overwrote the owner) — refused at the invite, kept at acceptance, dropped
+on a resend; invite units came from every property (now `readIds()`); "resend it any time from the owner's row" with no resend
+anywhere (Resend with your password, Cancel; a founder's link left alone); invites recorded nothing (now three trail actions,
+never the address; `OwnerInvite` needed a morph alias); a paused owner read Ready and counted in "ready to pay"; the side panel
+claimed a monthly close and an automatic payout day that do not happen. Found in the browser walk and fixed: the table scrolled
+sideways at 1440 and cut the hold reason (Statement merged into Net payable); a paused owner with nothing due was offered Pause
+again (the menu read the pay status, not the preference — test RED first); Export kept the address the page loaded with after an
+in-place sort; the invites showed one initial where rows showed two; the "Invite sent" dialog focused Preview, not Done; the
+commission line read "— of gross" with no agreement. ⚠️⚠️ **Found by reading the payout run, not fixed (money path, another
+page; OPEN A11, DEC-n):** "Run payouts now" selects every organisation's owners — 🔬 a throwaway probe in the test database
+had organisation A's operator create and pay organisation B's owner's payout (D-PAYRUN-TENANT); and only the automatic run
+reads a pause (D-PAUSE-MANUAL), which the Owners page now says. **This pass's own mistake, caught before commit:** the new CSS
+comment first said "measured before: 41 and 35 px, padded twice" — numbers never measured (the old dialog had its own 24 px
+panel); rewritten to what the old source shows. Tests `OwnersPageFixesTest` (17), `OwnersPageRedesignTest` (9); three
+`OperatorOwnersPayableStateTest` label checks moved to the new label with the same counts (one negative check would have passed
+vacuously — it now asserts the zero); `CurrencyNeverDefaultsTest`'s only allow-list entry removed (its line is gone; the
+detector finds nothing). Mutations `owners-page` 41/41. 🖥 Walked locally on tenant three at 1440 and 390: invite (wrong
+password, then sent), resend (wrong password, then sent), accept, pause and resume from the row menu, search, the no-match state,
+chips, sort, export, a staff invite, cancel; console clean but for Chrome's password-manager hint, answered with the hidden
+username field the security page uses. The independent review found no defect; its one observation (the payout card did not
+say paused owners are left out) was made consistent, with a test.
+Gates: 4,174/4,174 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `201095a330f2e9bb`, the code plus these docs); 529/529
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

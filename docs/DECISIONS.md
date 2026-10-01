@@ -19155,3 +19155,74 @@ read-only preflight (views compile, 11/11 writes gated); public checks **12 PASS
 his session, look only: Villa Azure Lumière at 390 px with its season shown is **390 of 390 px** wide (was 660); Internal Test
 Property offers no season form and says a season needs a plan on sale; 0 console errors. His property view was put back on
 Internal Test Property, where he had it.
+
+## 2026-10-01 — Owners: the page rebuilt — Add owner as a centred dialog with the password on its own row, a list like Guests and Units, invites resent and cancelled, and a unit's owner never changed by an invite (the founder's request; plan posted and executed)
+
+**Asked:** "https://vyrobel.com/app/owners — on Add owner page, modal design and buttons are mess, cancel and send invite
+buttons look bad, confirm with your password and its box is not well aligned. Fix all of these problems, these are the few
+issue, also modify the entire design of this page like previous page and make it more creative and operational and easy to use
+and fully functional the same way we worked on last 4 pages. build a plan for this page and execute it." A 7-part plan was
+posted and executed as he asked, without a further question.
+
+**What was wrong in the dialog — read in the old source.** One flex row held Cancel, the "Confirm with your password" label, the
+password box, its error and Send invite side by side, in a panel of its own (`vy-inv-*`) rather than the shared dialog. Now:
+the shared centred dialog (`.vy-modal-backdrop` › `.vy-modal.vy-modal-card`, focus trapped, Escape closes), role tiles,
+name and email side by side, the units as chips, the commission as one segmented choice, the password on its own full-width
+row ("Confirm it's you") with what it is for under it, and Cancel and Send invite together in the foot at one height (🖥 42 px
+each, same top, at 1440 and 390). A refusal reopens the dialog with what was typed and says it beside the field; the box at
+the top carries only refusals with no field; focus lands where the person has to act.
+
+**What was wrong underneath — each with a test that failed first (`OwnersPageFixesTest`).**
+- ⚠️⚠️ **An invite could move a unit away from its owner.** The dialog offered units that already had an owner, and
+  acceptance wrote the new owner over whoever owned the unit then — and a unit's owner decides who is paid for it. Now the
+  invite refuses such a unit with a sentence naming it and its owner, acceptance only assigns units that still have no owner,
+  and a resend drops a unit that gained an owner meanwhile (each layer has its own test).
+- The units offered came from every property in the organisation; they are now inside the person's properties (the
+  `readIds()` rule of DEC-k and DEC-l).
+- The "Invite sent" screen said "You can resend it any time from the owner's row" and there was no resend anywhere. Invites now
+  have **Resend** (a fresh link; asks for your password, as sending does) and **Cancel** (the link stops working; the owner
+  record made for the invite and never activated leaves the list; an active one is never removed). A founder's set-password
+  link (ADMIN 04) is not this page's to touch: a 404 here, and the service refuses it too.
+- An invite made a way into the organisation and recorded nothing. `owner_invite.sent`, `.resent` and `.cancelled` are now on
+  the trail — which invite, its role, unit count, rate and expiry, **never the address** (the PII rule for `audit_events`).
+  `OwnerInvite` needed a morph alias to be recorded at all.
+- A paused owner read **Ready** and was counted in "ready to pay". Statuses now follow what the payout run does: a held payout,
+  missing tax details or a missing payout account → **On hold, with the reason**; lines the booking channel has not confirmed
+  → **Needs review** (the KPI said "draft statements"; the statement is closed — the label now says what it is); a pause →
+  **Payouts paused**, left out of Ready to pay with the figure saying so. The menu offers Pause or Resume from the preference
+  itself (it read it off the pay status, which says "paused" only while money is due).
+- The side panel said "Statements finalize 1st of the month" — nothing does; a statement closes when someone presses Close
+  period — and "Payouts sent 3rd business day", true only while the automatic run is on. It now says each of those as it is.
+
+**The page.** Four figures that agree with the rows (Owners · Ready to pay · On hold with its amount · Needs review); the shared
+list (search, chips that count what clicking them shows, sortable columns, pages, a row menu: Open owner · Copy email · Pause or
+Resume payouts · Send the invite again); **Invites waiting** with Resend and Cancel; a CSV of the owners in view (formula-safe,
+recorded, `reports.view`) whose link takes the view's address when clicked (it sits outside the regions the list swaps in place);
+the rail: the payout run's money (its link only for `payouts.manage`), how owners are paid, the owner portal's adoption. Every
+write comes back to the list as it was. At 390 px the row menu stays pinned at the right edge while the table scrolls.
+
+**Found by reading, NOT fixed here — outside this page and on a money path, so his call (`docs/memory/OPEN.md`):**
+- ⚠️⚠️ **D-PAYRUN-TENANT.** "Run payouts now" (`PayoutRunActionController::runNow` → `PayoutRunService::run()` with no owner
+  list) selects owners with payable work in **every** organisation, under super-admin. 🔬 Verified in the test database with a
+  throwaway probe (deleted after): an operator in organisation A pressing it created **and paid** a payout for organisation
+  B's owner ("2 created · 2 paid"). It runs only while `PAYOUT_ENGINE_ENABLED` is on.
+- **D-PAUSE-MANUAL.** Only the automatic run reads a pause (`dueOwnerIds`); the payout run page lists a paused owner as ready
+  and creates their payout by hand. The Owners page says exactly that in the pause dialog; the owner detail page's "Amounts
+  accumulate and carry forward until resumed." is unchanged.
+- **D-UNITS-EXPORT.** The Units page's Export link has the same stale-address shape fixed here.
+
+**Tests.** `OwnersPageFixesTest` (17) and `OwnersPageRedesignTest` (9), new. Moved with the behaviour, never to make a check
+pass: `OperatorOwnersPayableStateTest`'s three "1 draft" label checks now read the new label with the same counts (one was a
+"does not see" that the new label would have passed whatever the count — it now asserts the zero); `CurrencyNeverDefaultsTest`'s
+one allow-list entry was a false positive on a line this rewrite removed, and the detector now finds nothing, so the entry went.
+Mutations `owners-page` **41/41 landed and caught** (OW-M1..OW-M41). **The independent review** (read-only, the whole diff)
+found no defect: tenancy, the founder's link, the way back, unit ownership, the statuses against the real payout run, the list
+logic and the Blade/Alpine all clean. Its one observation — the side panel's payout card did not say that paused owners are left
+out, as the Ready to pay figure does — was made consistent ("· 1 paused"), with a test.
+
+**Gates (each read from its own output, 2026-10-01):** **4,174/4,174 on MySQL 8.4.10** (30,751 assertions, tree
+`201095a330f2e9bb`: this code with the entry and the memory written, before these figures were filled in; 18:13–18:29 Baku) ·
+**4,174/4,174 on MariaDB 11.8.9** (the same tree, 18:47–19:03 Baku; nothing but this project connected to the database, checked
+before the swap) · mutations **529/529 across every set** (`owners-page` 41; baseline 284/284 green; 18:29–18:46 Baku) · the
+money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 /
+2f5598c92aadf105 / 9bac428a1b859297`; reseeded 19:03 Baku) · PHPStan L5 0 errors and Pint clean, both on the whole codebase.

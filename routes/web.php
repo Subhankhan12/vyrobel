@@ -91,6 +91,8 @@ use App\Http\Controllers\Operator\OperatorReportsExportController;
 use App\Http\Controllers\Operator\OperatorReviewsController;
 use App\Http\Controllers\Operator\OperatorSecurityController;
 use App\Http\Controllers\Operator\OperatorTaskStateController;
+use App\Http\Controllers\Operator\OwnerExportController;
+use App\Http\Controllers\Operator\OwnerInviteActionController;
 use App\Http\Controllers\Operator\OwnerManageController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
@@ -856,6 +858,14 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     // invite, placeholder token; never sends/writes). Operator-admin gated, exactly like the invite write.
     Route::get('/owners/invite/preview', [InviteOwnerPreviewController::class, 'show'])
         ->middleware('can:users.manage')->name('owners.invite.preview');
+    // 2026-10-01 — a waiting invite can be sent again (a fresh link; your password, as sending was) or cancelled, and the
+    // owners in view can be taken away as a CSV. ⚠️ Registered BEFORE `/owners/{owner}`, which would otherwise read
+    // "export" as an owner's id.
+    Route::post('/owners/invites/{invite}/resend', [OwnerInviteActionController::class, 'resend'])
+        ->middleware(['throttle:10,1', 'can:users.manage'])->name('owners.invites.resend');
+    Route::post('/owners/invites/{invite}/cancel', [OwnerInviteActionController::class, 'cancel'])
+        ->middleware('can:users.manage')->name('owners.invites.cancel');
+    Route::get('/owners/export', [OwnerExportController::class, 'download'])->middleware('can:reports.view')->name('owners.export');
     // Wave 1 · Sub-gate 3 — the operator's TENANT-scoped lens on ONE owner (units/agreement/
     // statements/payouts/balance). NOT owner-scoped: OwnerScope is inactive off-portal, so this
     // deliberately reads the whole owner relationship the operator manages, within their own org
