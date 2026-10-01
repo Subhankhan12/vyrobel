@@ -19226,3 +19226,18 @@ out, as the Ready to pay figure does — was made consistent ("· 1 paused"), wi
 before the swap) · mutations **529/529 across every set** (`owners-page` 41; baseline 284/284 green; 18:29–18:46 Baku) · the
 money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 /
 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 19:03 Baku) · PHPStan L5 0 errors and Pint clean, both on the whole codebase.
+
+✅ **LIVE on `rel_AQ @ 5d391dbe` (2026-10-01, swap 5 ms, 19:08:12 Baku).** No migration; 12 files shipped. 🔬 Preflight from the
+staged release on production, read-only: the page and the export behind `reports.view`; invite, resend, cancel and pause behind
+`users.manage` (invite and resend also throttled); the payout run behind `payouts.manage`; `/app/owners/export` resolves to the
+export, not to an owner's id; the `owner_invite` alias present; the way back rebuilt from the allow-list (an outside address
+comes back as vyrobel.com); the view compiles to valid PHP; **`PAYOUT_ENGINE_ENABLED` off** (so D-PAYRUN-TENANT cannot fire on
+production today); 15 organisations hold 0 owners and 0 waiting invites; the page's read 0.5 ms median, 4.2 ms at most. 🔬 After
+the swap: public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,438 of 1,438** files in the live release
+match git at `5d391dbe` (the other 1,203 git files are never deployed); the `.htaccess` drift check passes (self-test 3/3); 0
+errors logged since the swap. **The live look — he signed in himself, look only, nothing sent:** 🖥 on his workspace (0 owners)
+the empty state, the four figures, the chips and the side panel ("the automatic run is off" — true there); Add owner centred at
+720,450, Cancel and Send invite both 42 px on one line, the password row above them, focus on Name, Escape closes it; at 390 px
+the page is 390 of 390 px wide and the dialog fits with its buttons in view; no console message from the page (the session's two
+older entries were a local sign-in and the CDN's one-time browser check on `/login`). He was signed out and the automated browser
+closed.

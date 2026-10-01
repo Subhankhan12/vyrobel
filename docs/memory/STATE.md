@@ -5,17 +5,19 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AP` → commit `9b9b80c8`** (the Rates rebuild with DEC-l, `rel_AO @ cac9e677`, plus the two fixes its
-  live look found — on top of DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open +
-  fields, the Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 9b9b80c8…`), 2026-10-01
-  03:21 Baku. Rollback targets: `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+- **Live release `rel_AQ` → commit `5d391dbe`** (the Owners rebuild — on top of the Rates rebuild with DEC-l and its two
+  live fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the
+  Portfolio remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 5d391dbe…`), 2026-10-01 19:08 Baku.
+  Rollback targets: `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
-- **GitHub `origin/main`** carries `9b9b80c8` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,434 of 1,434 files in the live release match git at `9b9b80c8`, 0 differ** (the other
-  1,200 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-01 03:23 Baku, sha256 manifest checked
+- **GitHub `origin/main`** carries `5d391dbe` and the docs commit that records this deploy (**V** `git ls-remote origin`).
+- **Live code vs git, byte for byte: 1,438 of 1,438 files in the live release match git at `5d391dbe`, 0 differ** (the other
+  1,203 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-01, after the 19:08 Baku swap, sha256 manifest checked
   inside the live release.
+- **`PAYOUT_ENGINE_ENABLED` is OFF on production** (**V** 2026-10-01, the read-only preflight from `rel_AQ`: `false`), so
+  D-PAYRUN-TENANT (`OPEN.md`) cannot fire there today — "Run payouts now" refuses while it is off.
 - **ADMIN 06's refusals are LIVE** — the first of the three conditions before any live Stripe key (`OPEN.md` F5).
 - **The memory is not on the host:** `docs/` and `CLAUDE.md` are not deployed.
 
@@ -26,7 +28,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **529/529 landed and caught across every set**, 0 not caught, 0 did not land; baseline 284/284 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 18:29–18:46 Baku, tree `201095a330f2e9bb` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 19:03 Baku (the OWNERS pass; reseeded 19:03). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-01 19:05 Baku |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AP`, 2026-10-01, run straight after the 03:21 Baku swap (and on `rel_AO` at 02:10 the same day, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01 03:23) | **V** `ops/public-checks.sh` 2026-10-01 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AQ`, 2026-10-01, run straight after the 19:08 Baku swap (and on `rel_AP` at 03:21 the same day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01, after the 19:08 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -38,7 +40,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AP`: 0 logged since its swap, V 2026-10-01 03:24 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AQ`: 0 logged since its swap, V 2026-10-01, read after the 19:08 Baku swap):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -85,7 +87,10 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     own row; the shared list; Invites waiting with Resend and Cancel; statuses that follow the payout run; a unit's owner never
     changed by an invite. ⚠️⚠️ **Two findings on the payout run, not fixed (his go — `OPEN.md` A11, DEC-n):** "Run payouts now"
     reaches every organisation's owners (🔬 verified in the test database; it runs only while `PAYOUT_ENGINE_ENABLED` is on),
-    and only the automatic run reads a pause.
+    and only the automatic run reads a pause. ✅ LIVE on `rel_AQ` (V 2026-10-01 19:08 Baku). **The live look is done** (he
+    signed in himself; look only, nothing sent): the page, the dialog centred at 720,450 with Cancel and Send invite both
+    42 px on one line, focus on Name, Escape closes it; at 390 px the page is 390 of 390 px wide and the dialog fits with its
+    buttons in view; no console message from the page. He was signed out and the automated browser closed.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

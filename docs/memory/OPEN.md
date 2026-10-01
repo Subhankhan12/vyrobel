@@ -82,7 +82,8 @@ change is said.** Briefs live in `briefs/`.
   list, and `owners(null)` selects every owner with payable work **in every organisation**, under super-admin. A throwaway
   probe (deleted after the run): an operator in organisation A pressed it and a payout was created **and paid** for
   organisation B's owner ("2 created · 2 paid", test mode). The route refuses unless `PAYOUT_ENGINE_ENABLED` is on; the
-  scheduled run is meant to cover every organisation, the manual button is not. Fix = A11, his go.
+  scheduled run is meant to cover every organisation, the manual button is not. **On production the switch is OFF (V
+  2026-10-01, the read-only preflight from `rel_AQ`), so it cannot fire there today.** Fix = A11, his go.
 - **D-PAUSE-MANUAL (found 2026-10-01 by reading; not run)**: a payout pause is read only by the AUTOMATIC run
   (`PayoutRunService::dueOwnerIds`). The payout run page lists a paused owner's statement as ready, and Create payouts /
   Run payouts now (`owners(null)`) do not skip them. The Owners page now says exactly this in its pause dialog and row

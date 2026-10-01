@@ -514,6 +514,11 @@ username field the security page uses. The independent review found no defect; i
 say paused owners are left out) was made consistent, with a test.
 Gates: 4,174/4,174 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `201095a330f2e9bb`, the code plus these docs); 529/529
 mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AQ @ 5d391dbe`, swap 5 ms (Verified 2026-10-01 19:08 Baku);** 12 files, no migration; preflight read-only
+(every write gated, the export path resolves, views compile, `PAYOUT_ENGINE_ENABLED` off, 0 owners on production, the read
+0.5 ms); public checks 12/0/0; 1,438/1,438 files match git; drift check passes; 0 errors since the swap. The live look (he
+signed in; look only): the dialog centred, both buttons 42 px on one line, 390 of 390 px on a phone, no console message from
+the page; signed out and the browser closed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
