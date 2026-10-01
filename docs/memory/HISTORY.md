@@ -520,6 +520,14 @@ mutations; money gate FULL unmoved.
 signed in; look only): the dialog centred, both buttons 42 px on one line, 390 of 390 px on a phone, no console message from
 the page; signed out and the browser closed.
 
+**MEMORY — 2026-10-01 — his request ("Update the entire memory of every work you have done so far").** No code. `SYSTEMS.md`
+brought up to date (it last changed 2026-09-29): the live release, the read-only preflight and the byte check as standing
+practice, the live-look procedure in the browser window, the shared Mac (advisor-platform's server stopped since
+2026-09-30), and three new sections — the operator back office's shared kit (§11), photos at `/media` and private message
+attachments (§12), owners, invites and the payout engine (§13). The Owners preflight saved as a template
+(`tools/preflight-owners.php.txt`). §3 below brought up to date. Outside the repo: the session memory index and its files,
+and the `.remember` logs.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -562,13 +570,16 @@ the page; signed out and the browser closed.
   on re-reading, before commit. And a memory lesson drafted from recall ("the menu swallowed focus") was checked against
   the transcript, found to be a change made on reading the code — never a measured failure — and not written as one.
 
-## 3 · Still open (as the docs report it; re-check before acting)
+## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 
 Mail password + TONIGHT 01 Part 2 (Verified 2026-09-29: `MAIL_PASSWORD` not set) · proving the `sales@` alias (created
-2026-09-26, Reported) · ADMIN 06: finished 2026-09-29 (live state in `STATE.md`) · L20 · D-TRANSFER · ADMIN 06 rulings
-(a)–(g) · ADMIN 05 signed-in live pass · KEYBOARD 01 (needs him; Job 4 needs ADMIN 06 live) · OAuth-token-on-reset
-ruling · Stripe live keys, the lawyer, real tax rates. Where: `docs/GO-LIVE-REQUIREMENTS.md`,
-`docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
+2026-09-26, Reported) · ADMIN 06: live since 2026-09-29 · L20 · D-TRANSFER · ADMIN 06 rulings (a)–(g) · ADMIN 05 signed-in
+live pass · KEYBOARD 01 (needs him) · OAuth-token-on-reset ruling · Stripe live keys, the lawyer, real tax rates.
+**Raised 2026-09-29 → 10-01, waiting on him:** ⚠️⚠️ A11 — "Run payouts now" reaches every organisation's owners
+(D-PAYRUN-TENANT; the switch is off on production) · DEC-n — should a pause stop the manual payout run · A12 — the Units
+export link · A8 / A9 / A10 — the x-show, see-through-dialog and string `:style` sweeps · DEC-h (F-58 and the Portfolio card)
+· DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · the signed-in looks still owed on earlier passes. Where:
+`OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 
 ## Sources used
 

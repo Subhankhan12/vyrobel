@@ -19,6 +19,7 @@ artisan exits 255 under it.
 | `proof.php.txt` | The full before/after proof of one deletion: premises, controls, per-organisation counts with content fingerprints, orphan checks, the footprint and the people | `php proof.php before <organisation id> <dir>` (saves the ids), then `php proof.php after <dir>` (run it twice), then compare the two |
 | `compare.py` | Judges a before and an after proof; prints every difference and exits 1 on any it cannot explain | Local: `python3 compare.py before.json after.json` |
 | `prodstate.php.txt` | Runtime switches (yes/no only), the kill switches, organisations and their status, customer count | Inside `php artisan tinker`. This is how `../STATE.md` was read. |
+| `preflight-owners.php.txt` | Saved 2026-10-01 as the template for a pass's preflight: from the STAGED release, read-only (`SET SESSION TRANSACTION READ ONLY`) — the new routes' permission gates, the changed view compiled in memory, the new reads timed on production's own data, a switch as yes/no | `ssh … "cd ~/domains/vyrobel.com/releases/rel_<X> && /opt/alt/php84/usr/bin/php" < preflight.php` — piped over stdin, nothing written on the host; adapt it to each pass |
 
 ⚠️ **The two `*-ids.json` files on the server hold the probe's address. They are not copied here, and are deleted after
 the final after-run** (`../OPEN.md` A3). Treat anything these tools write as private: keep it in the 700 folder, mode

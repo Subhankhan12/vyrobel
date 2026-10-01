@@ -1,0 +1,92 @@
+<?php
+// ⚠️ SAVED 2026-10-01 AS A TEMPLATE (docs/memory/tools/README.md). The Owners pass's read-only preflight, run from the STAGED release
+//    before the swap: ssh … "cd ~/domains/vyrobel.com/releases/rel_<X> && /opt/alt/php84/usr/bin/php" < preflight.php
+//    Adapt the routes, views and timed reads to the pass. It prints yes/no, names, counts and timings — never a value.
+// Owners rebuild — READ-ONLY preflight from the STAGED release (stdin; writes nothing). Names, counts, yes/no and timings only.
+use App\Models\Organization;
+use App\Models\Owner;
+use App\Models\OwnerInvite;
+use App\Models\OwnerPayoutPreference;
+use App\Models\Unit;
+use App\Services\OwnerInviteService;
+use App\Support\Owner\OwnerListParams;
+use App\Support\Owner\OwnerRows;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+// the routes, and the permission each one sits behind
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['gates'] = [
+    'app.owners needs reports.view' => in_array('can:reports.view', $mw('app.owners'), true),
+    'invite needs users.manage + throttle' => in_array('can:users.manage', $mw('app.owners.invite'), true) && in_array('throttle:10,1', $mw('app.owners.invite'), true),
+    'resend needs users.manage + throttle' => in_array('can:users.manage', $mw('app.owners.invites.resend'), true) && in_array('throttle:10,1', $mw('app.owners.invites.resend'), true),
+    'cancel needs users.manage' => in_array('can:users.manage', $mw('app.owners.invites.cancel'), true),
+    'export needs reports.view' => in_array('can:reports.view', $mw('app.owners.export'), true),
+    'pause needs users.manage' => in_array('can:users.manage', $mw('app.owners.pause-payouts'), true),
+    'payout run needs payouts.manage' => in_array('can:payouts.manage', $mw('app.payouts.run'), true),
+];
+// "/owners/export" must reach the export, not be read as an owner's id
+$out['export_path_resolves_to'] = Route::getRoutes()->match(Request::create('/app/owners/export', 'GET'))->getName();
+$out['owner_invite_morph'] = Relation::getMorphedModel('owner_invite') === OwnerInvite::class;
+$out['classes'] = collect([OwnerRows::class, OwnerListParams::class, App\Http\Controllers\Operator\OwnerInviteActionController::class,
+    App\Http\Controllers\Operator\OwnerExportController::class])->mapWithKeys(fn ($c) => [class_basename($c) => class_exists($c)])->all();
+
+// the way back is rebuilt from the allow-list only — never an outside address
+$out['return_url'] = parse_url(OwnerListParams::returnUrl('filter=hold&q=x&next=https://evil.example'), PHP_URL_QUERY);
+$out['return_url_offsite_host'] = parse_url(OwnerListParams::returnUrl('//evil.example/x'), PHP_URL_HOST);
+
+// the view compiles to valid PHP — in memory, nothing written
+try {
+    token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/livewire/operator/owners.blade.php'))), TOKEN_PARSE);
+    $out['view_compiles'] = true;
+} catch (\Throwable $e) {
+    $out['view_compiles'] = 'FAILED: '.$e->getMessage();
+}
+
+// ⚠️ the switch that decides how serious the manual payout run finding is (D-PAYRUN-TENANT): yes/no only
+$out['payout_engine_enabled'] = (bool) config('services.payouts.engine_enabled', false);
+
+// the page's read, timed on production's own data, per organisation — and what it finds
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->pluck('id'));
+$ms = [];
+$counts = ['owners' => 0, 'active' => 0, 'paused' => 0, 'pending_invites' => 0, 'founder_links_pending' => 0,
+    'pending_invites_giving_an_owned_unit' => 0, 'pay_keys' => []];
+foreach ($orgs as $orgId) {
+    $tenant->forOrganization((string) $orgId, function () use (&$ms, &$counts) {
+        $t = microtime(true);
+        $rows = app(OwnerRows::class)->load();
+        $ms[] = (microtime(true) - $t) * 1000;
+        $counts['owners'] += count($rows);
+        $counts['active'] += count(array_filter($rows, fn ($r) => $r['active']));
+        $counts['paused'] += count(array_filter($rows, fn ($r) => $r['paused']));
+        foreach ($rows as $r) {
+            $counts['pay_keys'][$r['pay_key']] = ($counts['pay_keys'][$r['pay_key']] ?? 0) + 1;
+        }
+        $pending = OwnerInvite::query()->where('status', 'pending')->get(['role', 'assigned_unit_ids']);
+        $counts['founder_links_pending'] += $pending->where('role', OwnerInviteService::FOUNDER_ROLE)->count();
+        $mine = $pending->where('role', '!=', OwnerInviteService::FOUNDER_ROLE);
+        $counts['pending_invites'] += $mine->count();
+        foreach ($mine as $i) {
+            if (($i->assigned_unit_ids ?? []) !== [] && Unit::query()->whereIn('id', $i->assigned_unit_ids)->whereNotNull('owner_id')->exists()) {
+                $counts['pending_invites_giving_an_owned_unit']++;
+            }
+        }
+    });
+}
+$median = function (array $v): float { sort($v); return round($v[intdiv(count($v), 2)] ?? 0, 1); };
+$out['organisations'] = count($orgs);
+$out['counts'] = $counts;
+$out['owner_rows_ms'] = ['median' => $median($ms), 'max' => round(max($ms ?: [0]), 1)];
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), "\n";

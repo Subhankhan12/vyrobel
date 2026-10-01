@@ -1,7 +1,8 @@
 # SYSTEMS — the map of what runs where
 
-Written 2026-09-27 by MEMORY 01. Drafted read-only from the repo; the facts marked **Verified** were read from
-production the same day (booleans and names only). How each fact is known:
+Written 2026-09-27 by MEMORY 01; **updated 2026-10-01** (§2, §9, §10 brought up to date; §11–§13 added for the operator
+page rebuilds of 2026-09-29 → 10-01). Drafted read-only from the repo; the facts marked **Verified** were read from
+production on the date given (booleans and names only). How each fact is known:
 **Verified** = checked 2026-09-27 · **(git)** = read from the repository at HEAD `91b83801` (2026-09-27) or the working tree ·
 **(Reported: doc, date)** = a doc says so, not checked here · **unknown** = not found, with how to find out.
 
@@ -55,7 +56,7 @@ releases/rel_<X>/storage  → ../../public_html/storage
 - **Script:** `ops/release.sh` — `status · stage · recache · migrate · swap · rollback` (git). Full procedure and
   traps: `docs/KNOWN-LIMITS.md` L12k "HOW TO DEPLOY INTO THIS LAYOUT"; older runbook `docs/DEPLOYMENT.md`.
 - **Which commit is live:** read `public_html/current/.release` (`ops/release.sh status` does this). Never type a
-  hash. **Verified 2026-09-29 (Portfolio Open + fields deploy): `rel_AH @ 3b012e93`**; read it again before relying on it.
+  hash. **Verified 2026-10-01 19:08 Baku (the Owners deploy): `rel_AQ @ 5d391dbe`**; read it again before relying on it.
 - **`stage`** (git): refuses a dirty tree; `cp -al` of the live release (hardlinks); ships only files changed
   between the live commit and HEAD, each written as a **new inode** (never `scp` onto a hardlinked file); writes
   `.release`; rebuilds `config:cache` + `route:cache` **in the new release every time** (the config cache bakes
@@ -69,7 +70,16 @@ releases/rel_<X>/storage  → ../../public_html/storage
   serves, and refuses any `up()` that drops, renames or changes (git). A schema change that is not additive still
   needs a park (Reported: KNOWN-LIMITS L12k "SCOPE IT HONESTLY").
 - **Boot check:** a by-hand read on the host, through the staged release's own `artisan`, of what the change should
-  make true (e.g. a config value) — before the swap. Not a script. (Reported: DECISIONS "ADMIN 01 Phase 3", 2026-09-24)
+  make true (e.g. a config value) — before the swap. (Reported: DECISIONS "ADMIN 01 Phase 3", 2026-09-24)
+- **The read-only preflight (every pass since 2026-09-29):** a PHP script piped over stdin into the STAGED release —
+  `ssh … "cd ~/domains/vyrobel.com/releases/rel_<X> && /opt/alt/php84/usr/bin/php" < preflight.php` — that first sets
+  `SET SESSION TRANSACTION READ ONLY`, then checks the new routes' permission gates, compiles the changed views in memory,
+  times the new reads on production's own data, and prints yes/no, names, counts and timings only. A template:
+  `tools/preflight-owners.php.txt` (the Owners pass's). (Reported: the DECISIONS deploy records 2026-09-29 → 10-01; each
+  pass kept its script in its session's scratchpad. Verified for `rel_AQ`, 2026-10-01)
+- **After the swap, the byte check:** a sha256 manifest of `git archive <live commit>` streamed to `sha256sum -c -` inside
+  `public_html/current` — "OK" for every deployable file, "FAILED open or read" for files never deployed (tests, docs,
+  tools). Count both; a content FAILED is a stop. (Verified 2026-10-01: 1,438 OK, 0 differ, 1,203 never deployed)
 - **After the swap:** run `ops/public-checks.sh` (PASS / FAIL / COULD NOT MEASURE; any FAIL → roll back first).
   A 200 does not prove the new code landed — diff a marker only the new code emits. (git; KNOWN-LIMITS L12k step 3)
 - **Rollback:** `ops/release.sh rollback rel_<previous>` — repoints the symlink; the old release is never modified (git).
@@ -215,21 +225,108 @@ Roles Owner · Support · Billing · Analyst; every console write needs a writte
   Its tools appear as `mcp__playwright__*`. Needs Node/npx. The official `playwright@claude-plugins-official`
   plugin is a separate server (`mcp__plugin_playwright_playwright__*`) and is not configured by this file.
 - On 2026-09-12 it was headless + `--no-sandbox` (Reported: AUDIT-PHASE-0.md §4a); why it changed: unknown.
+- **The live look (each page pass since 2026-09-29):** open `https://vyrobel.com/login` in the `mcp__playwright__*` window
+  (the CDN's browser check answers 403 once, then the page), ask him to sign in himself, then READ the window's URL before
+  navigating — on 2026-10-01 it was still on `/login` when he answered and reached `/app/dashboard` seconds later. Look
+  only (his workspace is a protected organisation); at the end submit the logout form, confirm `/app/…` redirects to
+  sign-in, and close the browser. (Verified 2026-10-01)
+- ⚠️ **Within one session the profile keeps its cookies.** A local walk on 2026-10-01 found the window still signed in as
+  tenant one's Hotel Manager from an earlier look — read WHO is signed in (the top-right name) before any write.
+- **Local walks sign in at `http://localhost:8000`** (the app's URL): a sign-in form opened at `127.0.0.1:8000` posts to
+  `localhost`, and Chrome's CSP blocks it (Verified 2026-10-01, the console). Tenant three (`demo-harbour@harbourpoint-demo.test`)
+  is the only local tenant to write in; reseeding resets `email_verified_at`, so set it again after `migrate:fresh --seed`.
+  Mailpit catches local mail (UI `:8025`, SMTP `:1025`); never print an invite token — accept a probe invite through
+  `OwnerInviteService::accept()` in tinker instead.
 
 ## 10 · This Mac is shared
 
 - ⚠️ **`advisor-platform` uses the same local MySQL 8.4 on 3306** — its test database (`advisor_platform_test`) and a long-running
   Octane/FrankenPHP dev server on `:8347` (Verified 2026-09-29, by working folder). The MariaDB engine swap stops that server
   for ~25 minutes: ask him to pause that project first (F 2026-09-29). Its `pest` runs also block the mutation harness.
+  **F 2026-09-30: "stop advisor and complete vyrobel" — its dev server was stopped and left stopped** (Verified 2026-10-01
+  18:46 Baku, `ps`: no Octane or FrankenPHP process). To restart it, in its own folder:
+  `php artisan octane:start --server=frankenphp --host=127.0.0.1 --port=8347`.
+- Other projects' long-running `php -S` servers (Iftihar, Gul Heights, G&S Builders) hold no database connection — the
+  MySQL processlist was empty before each MariaDB swap (Verified 2026-10-01). Never stop them.
 - `restiox` runs tests here too (Verified 2026-09-27). Identify any process by its working folder; never stop another
   project's process.
+
+## 11 · The operator back office — the shared kit (2026-09-29 → 10-01)
+
+Seven passes rebuilt operator pages on one kit — Guests, Maintenance, Units, Rates, Owners, plus the Portfolio's remove and
+Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
+- **List pages** (`/app/guests`, `/app/maintenance`, `/app/units`, `/app/owners`): `resources/views/partials/operator-list-script.blade.php`
+  defines `window.vyListBehaviour` — search that follows typing, filter/sort/page links swapped in place (it fetches the SAME
+  URL and swaps `[data-gl-region="chips"]` and `"results"`; anything unexpected loads the page normally), the one row menu,
+  select mode. Every link and form works without it. Each page reads its query through one allow-list class —
+  `App\Support\Guest\GuestListParams`, `…\Maintenance\MaintenanceListParams`, `…\Unit\UnitListParams`,
+  `…\Rates\RatesListParams`, `…\Owner\OwnerListParams` — which also rebuilds the way back (`return=list` +
+  `return_query`, parsed and rebuilt, never used as a URL). Units and Owners have a rows class (`UnitRows`, `OwnerRows`)
+  read by both the page and its CSV export, so the two cannot disagree. ⚠️ A control OUTSIDE the swapped regions goes stale
+  after an in-place change: the Owners Export link takes `location.search` at the click; the Units one does not yet
+  (`OPEN.md` A12).
+- **Dialogs:** `.vy-modal-backdrop` (carries the display and centres) › `.vy-modal.vy-modal-card` (near-opaque, so muted
+  text clears AA), with `role=dialog`, `aria-modal`, `aria-labelledby`, `tabindex=-1`, `x-trap.noscroll` and Escape.
+  ⚠️ `x-show` erases an inline `display`, so every display is a class — `XShowInlineDisplayContractTest` holds the other
+  screens at a ceiling of 26 (`OPEN.md` A8); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
+  ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
+- **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
+  shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners).
+  ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
+- **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
+  (`OperatorLivewireMutationBoundaryTest`). While the workspace is paused (`OperatorWorkspace::isReadOnly()`) every write
+  refuses and the page offers none.
+- **The property allow-list on writes** (`PropertyContext::readIds()`, #38): every unit write including Add unit (DEC-k),
+  every rate write through `App\Support\Rates\RateScope` (DEC-l), and the units an owner invite may give (Owners).
+  ⚠️ NOT yet: the Portfolio's Edit (DEC-i) and the maintenance writes (DEC-j) — `OPEN.md`.
+- **Shared partials:** `partials.submit-guard` (`data-guard-submit`: one submit per click) and `partials.count-up` (figures
+  animate up on load — read the data, not a screenshot taken mid-count).
+- **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
+  shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
+  `units-list`, `rates-page`, `owners-page`) run by `php tests/Mutations/run.php`.
+
+## 12 · Photos and message attachments
+
+- **Public uploads answer at `/media/{path}`** (`App\Http\Controllers\PublicMediaController`, route `media.show`,
+  registered in `bootstrap/app.php` outside the web group; live since `rel_AM`, 2026-09-30). Production refuses every
+  `/storage…` address by design (KNOWN-LIMITS L12p), so room photos, logos, avatars and work-order photos had answered 404.
+  ⚠️ A rollback to `rel_AL` or earlier puts the addresses back on `/storage` — every photo 404s again. (git; Verified on
+  production 2026-09-30: his photos answer 200 `image/jpeg` at `/media`)
+- **Owner message attachments are private** (DEC-m, live since `rel_AN`): stored on the private disk and opened only through
+  two signed-in routes — `owner.messages.attachment` (the owner scope: that owner and their team) and `app.inbox.attachment`
+  (`guests.view`, that organisation) — both through `App\Support\Inbox\MessageAttachments`. Signed out, both send you to
+  sign-in; no public address serves one. (git; Verified on production 2026-09-30)
+
+## 13 · Owners, invites and the payout engine
+
+- **Invites** — one writer, `App\Services\OwnerInviteService`: `invite()` (owner or staff: `manager` → Hotel Manager,
+  `accountant` → Accountant), `resend()` (a fresh link; asks the operator's password at the route), `cancel()` (the link stops
+  working; a never-activated owner record leaves the list, an active one never), `accept()`, `pruneExpired()`.
+  `owner_invite.sent` / `.resent` / `.cancelled` go on the audit trail with ids and figures, never the address (the
+  `owner_invite` morph alias makes an invite recordable). A founder's set-password link (`FOUNDER_ROLE`, ADMIN 04) is never
+  the Owners page's: a 404 there, and the service refuses it. ⚠️ An invite never changes a unit's owner: refused at the
+  invite, kept at acceptance (`whereNull('owner_id')`), dropped on a resend. (git, 2026-10-01)
+- **The Owners list's statuses** come from `App\Support\Owner\OwnerRows::status()`, in order: not activated → Invited /
+  Not activated; no closed statement → No statement; paid; a held payout → On hold; money due with no tax details or no
+  payout account → On hold with the reason; lines the booking channel has not confirmed → Needs review; paused with money
+  due → Payouts paused; Ready; Nothing due. A statement closes only when someone presses Close period on an owner
+  (`OwnerManageController::closePeriod`, the only caller of `finalize()`).
+- **The payout engine:** `PayoutRunService::runScheduled()` (the daily `payouts:run`, inert unless `PAYOUT_ENGINE_ENABLED`)
+  picks the owners due through `dueOwnerIds()`, which skips a paused owner and one below their minimum. ⚠️⚠️ The manual
+  "Run payouts now" (`PayoutRunActionController::runNow` → `run()` with no owner list) selects owners with payable work in
+  EVERY organisation, under super-admin, and does not read a pause (D-PAYRUN-TENANT, D-PAUSE-MANUAL — `OPEN.md` A11,
+  DEC-n). 🔬 Verified in the test database 2026-10-01 (organisation A's click created and paid organisation B's payout).
+  **`PAYOUT_ENGINE_ENABLED` is OFF on production** (Verified 2026-10-01, the read-only preflight), and the route refuses
+  while it is off. The payout run page's Create payouts / Pay record by hand (`ManualPayoutRail`) and do not read a pause.
 
 ---
 
 ## Sources
 
 - **git:** commits `91b83801` `5d631d9f` `f6cd45a4` `6747d128` `8fb16054` `c31ea8c2` `9d33eee5` `a85a1b27`; status +
-  diff (2026-09-27); `routes/web.php`, `routes/console.php`, `ops/release.sh`, `ops/public-checks.sh`, `config/`,
+  diff (2026-09-27); for §11–§13 (2026-10-01): the working tree at `38ba2a0d` — `app/Support/{Guest,Maintenance,Unit,Rates,Owner,Inbox}/`,
+  `app/Services/{OwnerInviteService,PayoutRunService}.php`, `app/Http/Controllers/{PublicMediaController,Operator/*}.php`,
+  `bootstrap/app.php`, `routes/web.php`, `tests/Mutations/sets/`; `routes/web.php`, `routes/console.php`, `ops/release.sh`, `ops/public-checks.sh`, `config/`,
   `composer.json`, `.gitignore`, `.env.example` (names only), `app/Support/{Platform,Mail,Auth,Webhooks}/`; `.mcp.json` (shape).
 - **docs:** `CLAUDE.md` · `docs/DEPLOYMENT.md` · `docs/KNOWN-LIMITS.md` (L12g/h/k/m/p, L13–L20) · `docs/DECISIONS.md`
   (ADMIN 01 P1–P5, TONIGHT 01, ADMIN 04/05/06) · `docs/EMAIL-PRODUCTION.md` · `docs/GOOGLE-SIGN-IN.md` ·
