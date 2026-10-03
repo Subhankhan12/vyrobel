@@ -9,6 +9,7 @@ use App\Models\AgreementAmendmentAcknowledgment;
 use App\Models\ManagementAgreement;
 use App\Models\User;
 use App\Support\Events\AuditEventRecorder;
+use App\Support\Owner\CommissionChange;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,8 +34,12 @@ use Illuminate\Support\Facades\DB;
  */
 class AgreementAmendmentService
 {
-    /** The agreement fields an amendment's `new_terms` may change. */
-    private const TERM_KEYS = [
+    /**
+     * The agreement fields an amendment's `new_terms` may change — and the terms a superseding agreement carries forward.
+     * ⚠️ Public since 2026-10-03: the owner page's commission change ({@see CommissionChange}) carries the
+     * same list forward, and a second copy of it is how the management fee went missing there.
+     */
+    public const TERM_KEYS = [
         'commission_pct',
         'management_fee_minor',
         'management_fee_currency',

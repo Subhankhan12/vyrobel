@@ -89,6 +89,30 @@ it('⚠️⚠️ offers a unit only while it has no owner — a taken unit says 
         ->and($free)->not->toBeNull()->and($free->hasAttribute('disabled'))->toBeFalse();
 });
 
+it('⚠️ says so in one line when every unit already has an owner, instead of a row of units that cannot be picked (2026-10-03)', function () {
+    $s = seedScenario(2);
+    $amara = owpOwner($s);
+    foreach ($s['units'] as $unit) {
+        $unit->update(['owner_id' => $amara->id]);
+    }
+
+    $html = ordPage($this, owpAdmin($s));
+    $xp = ordXPath($html);
+
+    expect($xp->query('//*[@role="dialog"]//input[@name="unit_ids[]"]')->length)->toBe(0)
+        ->and($html)->toContain('Every unit here already has an owner');
+});
+
+it('⚠️⚠️ never says units can be given to an owner later — only their invite gives an owner existing units (2026-10-03)', function () {
+    // 🔬 the hint read "None chosen — you can give units later from the owner’s page", and no screen does that: a unit's
+    //    owner is written only when an invite is accepted (OwnerInviteService) or a requested unit is approved, and cleared
+    //    only when the owner is removed.
+    $source = (string) file_get_contents(resource_path('views/livewire/operator/owners.blade.php'));
+
+    expect($source)->not->toContain('give units later')
+        ->and($source)->toContain('an owner is given existing units only in their invite');
+});
+
 // ── The page ─────────────────────────────────────────────────────────────────────────────────────
 
 it('shows four figures that agree with the rows — owners, ready to pay, on hold and needs review', function () {

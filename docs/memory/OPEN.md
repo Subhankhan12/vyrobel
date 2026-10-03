@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the PAYOUTS pass (2026-10-02, A11 · DEC-n · A12)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the OWNER MODULE pass (2026-10-03: the owner's page, the payout run, unit requests)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -27,7 +27,7 @@ change is said.** Briefs live in `briefs/`.
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
 | A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
 | A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
-| A8 | **The x-show + inline display sweep.** 26 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 11 more across housekeeping, new reservation, roles, unit requests, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, and the Rates page's eight with the unit price form's one 2026-10-01). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 26 (V 2026-10-01, scanned: exactly 26). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
+| A8 | **The x-show + inline display sweep.** 24 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 9 more across housekeeping, new reservation, roles, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, and the unit requests page's two 2026-10-03). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 24 (V 2026-10-03, scanned: exactly 24). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
 | A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs, the Calendar's New reservation dialog and Billing's still use the shared `.vy-modal` glass. On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these five were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
 | A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
 | A11 | ✅ **FIXED 2026-10-02 (his go, "Yes, all of it")** — D-PAYRUN-TENANT: "Run payouts now" names its own organisation's owners, its run key carries the organisation, and "Last run" shows only this organisation (`HISTORY.md`, "PAYOUTS"). Live state: `STATE.md`. | — | — | — |
@@ -100,9 +100,29 @@ change is said.** Briefs live in `briefs/`.
   unique across the platform and a run whose key exists is handed back as it is, so two organisations' runs in one instant were
   one run — the second did nothing and reported the first's figures (🔬 under the suite's frozen clock). The key now carries the
   organisation.
-- **D-PAYRUN-BUTTON (noted 2026-10-02, pre-existing, not changed)**: the payout run offers "Run payout (test mode)" while
-  `PAYOUT_ENGINE_ENABLED` is off — the click can only refuse (it says why). The same on production, where the engine is off.
-  Small: show it disabled with the reason, or not at all.
+- ✅ **D-PAYRUN-BUTTON — FIXED 2026-10-03 (the owners module pass, 🔬 RED first):** "Run payouts now" is shown disabled with
+  the reason while `PAYOUT_ENGINE_ENABLED` is off, instead of a button that could only refuse; and every money write on the
+  payout run now asks first (`HISTORY.md`, "OWNER MODULE").
+- ✅ **D-OWNER-COMMISSION — FIXED 2026-10-03 (found by reading, 🔬 RED first):** the owner page's commission change decided
+  against today's agreement — two changes in a month left two open-ended owner-wide agreements on one day (the payout maths
+  takes whichever the database returns), and an undo wrote nothing — and the new agreement dropped the management fee, the term
+  and the attribution rules. One rule now: `App\Support\Owner\CommissionChange`. Agreements an older write may already have
+  stacked are not rewritten; production holds none (V, the preflight).
+- ✅ **D-OWNER-PORTAL — FIXED 2026-10-03 (🔬 RED first):** Edit owner's portal-access field could never switch access off from
+  the form, while a hand-made request switched any linked login off (bypassing `OwnerLoginLifecycle`, which spares a person who
+  also works here) or opened an invited one. The field is no longer read. DEC-o asks whether it should be switchable at all.
+- ✅ **D-OWNER-SILENT — FIXED 2026-10-03 (🔬 RED first):** every refused write on the owner's page closed its dialog and showed
+  no message; each dialog now reopens with the reason beside its field and what was typed.
+- ✅ **D-UR-SCOPE — FIXED 2026-10-03 under DEC-k (🔬 RED first):** approving a unit request created the unit in any property of
+  the organisation; it now resolves inside the person's properties (another is a 404, nothing written) — the rule he ruled for
+  every unit write on 2026-09-30, stated to him so he can object.
+- **D-AMEND-PLANNED (found by the 2026-10-03 review, pre-existing, not changed):** an amendment the owner acknowledges
+  (`AgreementAmendmentService::applyTerms`) is written open-ended, with no bound at a change already planned for later — the
+  overlap the owner page's commission rule now prevents on its own side. Per-unit agreements are outside that rule too (nothing
+  creates them today).
+- ✅ **D-OWNER-HINT — FIXED 2026-10-03:** the Add owner unit hint said units could be given later from the owner's page (my own
+  sentence of 2026-10-01); no screen does — a unit's owner is written only by an accepted invite or an approved request. DEC-p
+  asks whether one should.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
@@ -144,3 +164,6 @@ change is said.** Briefs live in `briefs/`.
 | DEC-j | D-MT-STORE above: should creating a work order — and Start, Resolve, Cancel, Assign on one — be limited to the properties a person can access, as the new Edit is? |
 | DEC-l | ✅ RULED 2026-10-01 ("Yes, all of it", the Rates plan) and fixed — D-RATE-PLAN-SCOPE above. |
 | DEC-n | ✅ RULED 2026-10-02 ("Yes, a pause stops every payout") and built — D-PAUSE-MANUAL above. |
+| DEC-o | The owner's page (2026-10-03): should an operator be able to switch an owner's portal access off and on from their page? If yes: does their team go with them, and does someone who also works for you keep their login (the removal rule)? Not offered today — the old checkbox could not switch it off, and its server side was unsafe (D-OWNER-PORTAL). |
+| DEC-p | The owner's page (2026-10-03): should an existing owner be given units later? Today only their invite gives an owner existing units. It touches money: a unit's owner decides who is paid for its stays. |
+| DEC-q | Rate proposals (found by the 2026-10-03 review, pre-existing): proposing a rate to an owner — and accepting their counter, which applies the rate — does not check the person's properties, while every other rate and unit write does (DEC-k, DEC-l). Should it, as those do? |

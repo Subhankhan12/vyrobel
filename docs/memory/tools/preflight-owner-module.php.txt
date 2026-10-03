@@ -1,0 +1,107 @@
+<?php
+// Owners module pass (2026-10-03) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names, counts and timings only — never a value.
+use App\Models\ManagementAgreement;
+use App\Models\Organization;
+use App\Models\Owner;
+use App\Models\Payout;
+use App\Models\UnitRequest;
+use App\Services\AgreementAmendmentService;
+use App\Support\Owner\CommissionChange;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'owner page needs reports.view' => $has('app.owners.show', 'can:reports.view'),
+    'commission needs users.manage' => $has('app.owners.update', 'can:users.manage'),
+    'pause needs users.manage' => $has('app.owners.pause-payouts', 'can:users.manage'),
+    'note needs users.manage' => $has('app.owners.note', 'can:users.manage'),
+    'remove needs users.manage' => $has('app.owners.remove', 'can:users.manage'),
+    'close period needs payouts.manage' => $has('app.owners.close-period', 'can:payouts.manage'),
+    'invite resend needs users.manage' => $has('app.owners.invites.resend', 'can:users.manage'),
+    'invite cancel needs users.manage' => $has('app.owners.invites.cancel', 'can:users.manage'),
+    'proposal needs rates.manage' => $has('app.rate-proposals.store', 'can:rates.manage'),
+    'payout run page needs payouts.manage' => $has('app.payouts.run', 'can:payouts.manage'),
+    'run now needs payouts.manage' => $has('app.payouts.run-now', 'can:payouts.manage'),
+    'create needs payouts.manage' => $has('app.payouts.create', 'can:payouts.manage'),
+    'pay needs payouts.manage' => $has('app.payouts.pay', 'can:payouts.manage'),
+    'unit requests page needs units.view' => $has('app.unit-requests', 'can:units.view'),
+    'approve needs units.manage' => $has('app.unit-requests.approve', 'can:units.manage'),
+    'decline needs units.manage' => $has('app.unit-requests.decline', 'can:units.manage'),
+];
+$out['pieces'] = [
+    'CommissionChange' => class_exists(CommissionChange::class),
+    'TERM_KEYS public' => defined(AgreementAmendmentService::class.'::TERM_KEYS'),
+];
+
+foreach (['livewire/operator/owner-detail.blade.php', 'livewire/operator/owners.blade.php', 'livewire/operator/payout-run.blade.php',
+    'livewire/operator/unit-requests.blade.php', 'components/layouts/operator.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+$out['payout_engine_enabled'] = (bool) config('services.payouts.engine_enabled', false);
+
+// What production holds that this pass touches — counts only. ⚠️ Overlap: two ACTIVE owner-wide agreements of one owner covering
+// a common day (what the old commission write could leave) — the pass stops new ones; any existing pair needs his look.
+$tenant = app(TenantContext::class);
+$out['platform'] = $tenant->runAsSuperAdmin(function (): array {
+    $overlapOwners = 0;
+    foreach (ManagementAgreement::query()->whereNull('unit_id')->where('status', 'active')->get()->groupBy('owner_id') as $set) {
+        $rows = $set->values();
+        $found = false;
+        for ($i = 0; $i < $rows->count() && ! $found; $i++) {
+            for ($j = $i + 1; $j < $rows->count() && ! $found; $j++) {
+                $a = $rows[$i];
+                $b = $rows[$j];
+                $aTo = $a->effective_to?->toDateString() ?? '9999-12-31';
+                $bTo = $b->effective_to?->toDateString() ?? '9999-12-31';
+                $found = $a->effective_from->toDateString() <= $bTo && $b->effective_from->toDateString() <= $aTo
+                    && $a->effective_from->toDateString() <= $aTo && $b->effective_from->toDateString() <= $bTo;
+            }
+        }
+        $overlapOwners += $found ? 1 : 0;
+    }
+
+    return [
+        'owners' => Owner::query()->count(),
+        'agreements' => ManagementAgreement::query()->count(),
+        'owners_with_overlapping_owner_wide_agreements' => $overlapOwners,
+        'unit_requests_by_status' => UnitRequest::query()->selectRaw('status, COUNT(*) AS n')->groupBy('status')->pluck('n', 'status')->all(),
+        'payouts' => Payout::query()->count(),
+    ];
+});
+
+// the new read on the owner page, timed per organisation (it runs once per page view)
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->pluck('id'));
+$ms = [];
+foreach ($orgs as $orgId) {
+    $tenant->forOrganization((string) $orgId, function () use (&$ms) {
+        $owner = Owner::query()->first();
+        $t = microtime(true);
+        if ($owner !== null) {
+            CommissionChange::governing((string) $owner->id, now());
+            CommissionChange::plannedAfter((string) $owner->id, now());
+        }
+        $ms[] = (microtime(true) - $t) * 1000;
+    });
+}
+$median = function (array $v): float { sort($v); return round($v[intdiv(count($v), 2)] ?? 0, 1); };
+$out['organisations'] = count($orgs);
+$out['commission_reads_ms'] = ['median' => $median($ms), 'max' => round(max($ms ?: [0]), 1)];
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), "\n";

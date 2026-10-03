@@ -27,6 +27,9 @@
      as ordinary text, invisible to assertSee. Every `@` below follows a space, a newline or a tag. --}}
 <div>
     <x-operator.shell active="payout-run" title="Payout run" :subtitle="$subtitle" :viewer="$viewer">
+        {{-- 2026-10-03: every write below records money owed or paid, so each asks first — what it records, and that it moves
+             no money (`data-confirm` on the form, the one dialog at the end). The forms still post without the script. --}}
+        <div class="vyo-root vyo-pr" x-data="vyPayoutRun()">
 
         @if (session('payout_notice'))
             <div class="vy-flash is-ok vy-fade" role="status">
@@ -50,17 +53,17 @@
              work-order detail rather than writing a second breadcrumb rule (anti-drift). The design's
              period tail ("· Sep 2025") is NOT reproduced: a payout run here is not scoped to a month, and
              stamping one on would state a period this page does not actually filter by (#39). --}}
-        <div class="vy-fade" style="display:flex;align-items:center;gap:6px;font-size:12.5px;margin-bottom:10px;">
-            <a href="{{ route('app.owners') }}" style="display:inline-flex;align-items:center;gap:4px;color:var(--vy-muted);text-decoration:none;font-weight:500;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+        <nav class="vyo-pr-crumbs vy-fade" aria-label="Breadcrumb">
+            <a class="vyo-pr-crumb" href="{{ route('app.owners') }}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
                 Owners
             </a>
-            <span style="color:var(--vy-faint);">/</span>
-            <span style="color:var(--vy-faint);">Payout run</span>
-        </div>
+            <span class="vyo-pr-sep" aria-hidden="true">/</span>
+            <span class="vyo-pr-here" aria-current="page">Payout run</span>
+        </nav>
 
         {{-- Run header + the REAL persisted run + the run action (certified PayoutRunService, test-mode) --}}
-        <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 12px;">
+        <div class="vy-rack-toolbar vyo-pr-bar vy-fade">
             <div class="vy-left">
                 {{-- ⚠️ THIS organisation's figures only (2026-10-02): a run row carries no organisation, so the latest run could be
                      another's — the component reads what this organisation's own payouts record instead. --}}
@@ -70,18 +73,33 @@
                     <span class="vy-range">No payout run yet here</span>
                 @endif
             </div>
-            <div class="vy-right" style="gap: 8px;">
+            <div class="vy-right vyo-pr-actions">
                 {{-- Export SEPA — HONEST-DISABLED: no SEPA generator exists; the real disbursement is the test-mode
                      rail. Never a fabricated bank file (#39). --}}
                 <span class="vy-pill is-soon" aria-disabled="true" title="No SEPA export yet — the disbursement rail is test-mode">Export SEPA · Soon</span>
-                @if ($canPayout)
-                    <form method="POST" action="{{ route('app.payouts.run-now') }}" style="margin: 0;">
+                @if ($canPayout && $engineOn)
+                    <form method="POST" action="{{ route('app.payouts.run-now') }}" class="vyo-inline-form" x-on:submit="ask($event)" data-guard-submit
+                          data-confirm="{{ json_encode(['title' => 'Run payouts now?', 'sub' => 'In '.$mode.' mode.', 'button' => 'Run payouts', 'facts' => array_values(array_filter([
+                              'Creates a payout for every owner here with a statement ready to pay, and pays each one by '.mb_strtolower($rail['label']).'.',
+                              $rail['name'] === 'manual' ? 'A bank transfer is recorded, not sent: each payout is marked paid — make the transfers from your own bank.' : null,
+                              'An owner with no tax details on file is held until they add them. Owners whose payouts are paused are skipped.',
+                              'Recorded as a payout run.',
+                          ]))], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                         @csrf
-                        <button type="submit" class="vy-btn vy-btn--accent">Run payout ({{ $mode }} mode)</button>
+                        <button type="submit" class="vy-btn vy-btn--accent">Run payouts now</button>
                     </form>
+                @elseif ($canPayout)
+                    {{-- ⚠️ D-PAYRUN-BUTTON (2026-10-03): offered while the engine was off, the button could only be refused. --}}
+                    <button type="button" class="vy-btn vy-btn--accent" disabled aria-describedby="vyo-pr-off">Run payouts now</button>
                 @endif
             </div>
         </div>
+        @if ($canPayout && ! $engineOn)
+            <p class="vyo-pr-off vy-fade" id="vyo-pr-off">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                The automatic payout engine is switched off, so payouts are not run in one go — create them and mark them paid below.
+            </p>
+        @endif
 
         {{-- ── Stat strip — DERIVED per currency. An empty bucket is "—": a zero must be a zero of SOME
              currency, and this page spans every owner in the tenant, so there is none to pick. ──────── --}}
@@ -95,7 +113,7 @@
             <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Ready to pay</div>
                 @forelse ($kpis['ready']['lines'] as $line)
-                    <div class="vy-dk-val" @if (! $loop->first) style="font-size: 22px;" @endif>{{ $line }}</div>
+                    <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
@@ -107,7 +125,7 @@
             <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Pending transfers</div>
                 @forelse ($kpis['pending']['lines'] as $line)
-                    <div class="vy-dk-val" @if (! $loop->first) style="font-size: 20px;" @endif>{{ $line }}</div>
+                    <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
@@ -116,7 +134,7 @@
             <div class="vy-dash-kpi">
                 <div class="vy-dk-label">Paid</div>
                 @forelse ($kpis['paid']['lines'] as $line)
-                    <div class="vy-dk-val" @if (! $loop->first) style="font-size: 20px;" @endif>{{ $line }}</div>
+                    <div class="vy-dk-val {{ $loop->first ? '' : 'vyo-kpi-extra' }}">{{ $line }}</div>
                 @empty
                     <div class="vy-dk-val">—</div>
                 @endforelse
@@ -124,7 +142,7 @@
             </div>
         </div>
 
-        <div class="vy-detail-cols" style="margin-top: 22px;">
+        <div class="vy-detail-cols vyo-pr-cols">
             {{-- ═══════════════ LEFT: ready to pay · pending transfers · recent transfers ═════════ --}}
             <div class="vy-stack">
 
@@ -135,7 +153,16 @@
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Ready to pay</h2>
                         @if (count($ready) > 0 && auth()->user()?->can('payouts.manage'))
-                            <form method="POST" action="{{ route('app.payouts.create') }}">
+                            <form method="POST" action="{{ route('app.payouts.create') }}" x-on:submit="ask($event)" data-guard-submit
+                                  data-confirm="{{ json_encode(['title' => 'Create '.count($ready).' '.\Illuminate\Support\Str::plural('payout', count($ready)).'?',
+                                      'sub' => 'One for each finalised statement ready to pay.',
+                                      'button' => 'Create '.count($ready).' '.\Illuminate\Support\Str::plural('payout', count($ready)),
+                                      'facts' => array_values(array_filter([
+                                          'Each records what you owe that owner — it moves no money.',
+                                          $engineOn ? 'Each waits under Pending transfers until it is paid — by you, or by the next automatic run.' : 'Each waits under Pending transfers until you mark it paid.',
+                                          count($pausedReady) > 0 ? 'Owners whose payouts are paused are skipped.' : null,
+                                          'Recorded in the audit log.',
+                                      ]))], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
                                     Create {{ count($ready) }} {{ \Illuminate\Support\Str::plural('payout', count($ready)) }}
@@ -183,7 +210,11 @@
                                                 {{-- payouts.manage (2026-07-17): money OUT. Held by Property
                                                      Owner / Group Admin / Accountant, not Hotel Manager. --}}
                                                 @can('payouts.manage')
-                                                <form method="POST" action="{{ route('app.payouts.create') }}">
+                                                <form method="POST" action="{{ route('app.payouts.create') }}" x-on:submit="ask($event)" data-guard-submit
+                                                      data-confirm="{{ json_encode(['title' => 'Create a payout for '.$row['owner_name'].'?',
+                                                          'sub' => ($row['sequence_no'] !== null ? 'Statement #'.$row['sequence_no'].' · ' : '').$row['period'].' · '.$row['net'],
+                                                          'button' => 'Create payout',
+                                                          'facts' => ['It records what you owe them — it moves no money.', $engineOn ? 'It waits under Pending transfers until it is paid — by you, or by the next automatic run.' : 'It waits under Pending transfers until you mark it paid.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                                     @csrf
                                                     <input type="hidden" name="statement_id" value="{{ $row['statement_id'] }}">
                                                     <button type="submit" class="vy-act vy-act--accent">Create payout</button>
@@ -208,7 +239,7 @@
                             <h2 class="vy-card-title">Payouts paused</h2>
                             <span class="vy-eyebrow">{{ count($pausedReady) }}</span>
                         </div>
-                        <div class="vy-deferred-note" style="margin: 0 0 12px;">No payout is created or sent for these owners — not by the automatic run, not by hand — until their payouts are resumed on the owner’s page.</div>
+                        <div class="vy-deferred-note vyo-pr-note">No payout is created or sent for these owners — not by the automatic run, not by hand — until their payouts are resumed on the owner’s page.</div>
                         <div class="vy-utable-wrap">
                             <table class="vy-utable vy-utable--stick-action">
                                 <thead>
@@ -251,7 +282,11 @@
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Pending transfers</h2>
                         @if ($pendingPayable > 0 && $rail['can_send'] && auth()->user()?->can('payouts.manage'))
-                            <form method="POST" action="{{ route('app.payouts.pay') }}">
+                            <form method="POST" action="{{ route('app.payouts.pay') }}" x-on:submit="ask($event)" data-guard-submit
+                                  data-confirm="{{ json_encode(['title' => 'Mark '.$pendingPayable.' '.\Illuminate\Support\Str::plural('payout', $pendingPayable).' paid?',
+                                      'sub' => 'Do this once every one of these transfers has left your own bank.',
+                                      'button' => 'Mark '.$pendingPayable.' paid',
+                                      'facts' => ['Vyrobel records each payout and its statement as paid — it does not send money.', 'Owners whose payouts are paused are skipped.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
                                     Mark {{ $pendingPayable }} paid
@@ -302,14 +337,18 @@
                                                 </div>
                                             </td>
                                             <td class="vy-u-code">{{ $row['sequence_no'] !== null ? '#' . $row['sequence_no'] : '—' }}</td>
-                                            <td>{{ $row['method'] }}@if ($row['owner_id'] && ($ibanByOwner[$row['owner_id']] ?? null))<div class="vy-u-sub" style="font-variant-numeric: tabular-nums;">{{ $ibanByOwner[$row['owner_id']] }}</div>@endif</td>
+                                            <td>{{ $row['method'] }}@if ($row['owner_id'] && ($ibanByOwner[$row['owner_id']] ?? null))<div class="vy-u-sub vyo-num">{{ $ibanByOwner[$row['owner_id']] }}</div>@endif</td>
                                             <td class="vy-u-code">{{ $row['amount'] }}</td>
                                             <td>
                                                 @if ($row['paused'])
                                                     {{-- DEC-n — the service refuses it; resuming the owner makes it payable again --}}
                                                     <span class="vy-act is-soon" aria-disabled="true" title="Payouts to this owner are paused — resume them on the owner’s page">Paused</span>
                                                 @elseif ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
-                                                    <form method="POST" action="{{ route('app.payouts.pay') }}">
+                                                    <form method="POST" action="{{ route('app.payouts.pay') }}" x-on:submit="ask($event)" data-guard-submit
+                                                          data-confirm="{{ json_encode(['title' => 'Mark '.$row['amount'].' to '.$row['owner_name'].' as paid?',
+                                                              'sub' => 'Do this once the transfer has left your own bank.',
+                                                              'button' => 'Mark paid',
+                                                              'facts' => ['Vyrobel records the payout and its statement as paid — it does not send money.', 'Recorded in the audit log.']], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) }}">
                                                         @csrf
                                                         <input type="hidden" name="payout_id" value="{{ $row['payout_id'] }}">
                                                         <button type="submit" class="vy-act vy-act--accent">Mark paid</button>
@@ -441,23 +480,23 @@
                     </div>
 
                     @if ($rail['name'] === 'manual')
-                        <div class="vy-deferred-note" style="margin-top: 14px;">
+                        <div class="vy-deferred-note vyo-pr-note--top">
                             Vyrobel does not move this money. Marking a transfer paid RECORDS a bank transfer you
                             have already made from your own bank — it does not send one.
                         </div>
                     @else
-                        <div class="vy-deferred-note" style="margin-top: 14px;">
+                        <div class="vy-deferred-note vyo-pr-note--top">
                             This rail cannot disburse, so the Mark-paid controls are disabled rather than offered
                             as a guaranteed failure.
                         </div>
                     @endif
 
                     {{-- DEFERRED — true whichever rail is bound: Connect has never been connected. --}}
-                    <div style="margin-top: 14px; display: flex; align-items: center; gap: 8px;">
+                    <div class="vyo-pr-soon">
                         <span class="vy-btn is-soon" aria-disabled="true">Pay via Stripe Connect</span>
                         <span class="vy-soon-tag">Soon</span>
                     </div>
-                    <div class="vy-deferred-note" style="margin-top: 10px;">
+                    <div class="vy-deferred-note vyo-pr-note--tight">
                         Stripe Connect disbursement is not connected — connected-account onboarding and KYC are an
                         unverified live checkpoint, so no money can leave Vyrobel through it.
                     </div>
@@ -467,7 +506,7 @@
                      positive-net ready statement but NO payout method on file (can't be sent). The masked IBAN
                      shows where one is on file; "Request IBAN" is a real prompt. NO fabricated "verified IBAN". --}}
                 @if (count($heldRows) > 0 || count($noMethodRows) > 0)
-                    <div class="vy-card vy-fade" style="margin-bottom: 16px;">
+                    <div class="vy-card vy-fade">
                         <div class="vy-detail-head">
                             <h2 class="vy-card-title">On hold</h2>
                             <span class="vy-eyebrow">{{ count($heldRows) + count($noMethodRows) }}</span>
@@ -487,10 +526,10 @@
                                     <div class="vy-um-name">@if ($row['owner_id'])<a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>@else {{ $row['owner_name'] }} @endif</div>
                                     <div class="vy-um-sub">No payout method on file — the owner adds their IBAN in the portal, verified before the first payout.</div>
                                 </div>
-                                <div style="text-align: right;"><div class="vy-u-code">{{ $row['amount'] }}</div><span class="vy-act is-soon" aria-disabled="true">Request IBAN</span></div>
+                                <div class="vyo-pr-end"><div class="vy-u-code">{{ $row['amount'] }}</div><span class="vy-act is-soon" aria-disabled="true">Request IBAN</span></div>
                             </div>
                         @endforeach
-                        <div class="vy-empty" style="padding: 8px 0 0; font-size: 11.5px;">Held amounts stay in the owner's ledger and carry forward until the block clears (#P2-1).</div>
+                        <div class="vyo-pr-holdnote">Held amounts stay in the owner's ledger and carry forward until the block clears (#P2-1).</div>
                     </div>
                 @endif
 
@@ -533,5 +572,59 @@
                 </div>
             </div>
         </div>
+
+            {{-- ══ THE CONFIRM — one dialog for every write on the page; the form it came from says what to show ══════════════ --}}
+            <div class="vy-modal-backdrop" x-cloak x-show="confirmOpen" x-transition.opacity x-on:click.self="confirmOpen = false" x-on:keydown.escape.window="confirmOpen = false">
+                <div class="vy-modal vy-modal-card vyo-dlg" x-show="confirmOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyo-pr-confirm-t" tabindex="-1" x-trap.noscroll="confirmOpen">
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5v5M18 9.5v5"/></svg></span>
+                        <div class="vyo-dlg-head">
+                            <h3 class="vy-modal-title" id="vyo-pr-confirm-t" x-text="sure.title"></h3>
+                            <p class="vyo-dlg-sub" x-text="sure.sub"></p>
+                        </div>
+                        <button type="button" class="vy-modal-x" x-on:click="confirmOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                    </div>
+                    <div class="vy-modal-body">
+                        <ul class="vyo-factlist">
+                            <template x-for="fact in sure.facts" x-bind:key="fact"><li x-text="fact"></li></template>
+                        </ul>
+                    </div>
+                    <div class="vy-modal-foot">
+                        {{-- the focus lands on Cancel: an Enter pressed twice must not record money as owed or paid --}}
+                        <button type="button" class="vy-btn vy-btn--ghost" x-on:click="confirmOpen = false" autofocus>Cancel</button>
+                        <button type="button" class="vy-btn vy-btn--accent" x-on:click="go()" x-text="sure.button"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </x-operator.shell>
+
+    {{-- The confirm step: a form posts only once its own dialog is answered; without the script it posts as it always did. --}}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('vyPayoutRun', () => ({
+                confirmOpen: false,
+                form: null,
+                sure: { title: '', sub: '', facts: [], button: '' },
+                ask(event) {
+                    const form = event.target;
+                    if (form.dataset.vySure === '1') return;   // answered — let it post; the submit guard takes it from here
+                    // ⚠️ never fails open (the review): text that cannot be read still asks, in plain words
+                    let sure;
+                    try { sure = JSON.parse(form.dataset.confirm || ''); } catch (e) { sure = { title: 'Go ahead?', button: 'Go ahead', facts: [] }; }
+                    event.preventDefault();
+                    this.sure = Object.assign({ sub: '', facts: [] }, sure);
+                    this.form = form;
+                    this.confirmOpen = true;
+                },
+                go() {
+                    const form = this.form;
+                    if (! form) return;
+                    form.dataset.vySure = '1';
+                    this.confirmOpen = false;
+                    if (typeof form.requestSubmit === 'function') { form.requestSubmit(); } else { form.submit(); }
+                },
+            }));
+        });
+    </script>
 </div>

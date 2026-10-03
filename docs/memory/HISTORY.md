@@ -555,6 +555,44 @@ mutations; money gate FULL unmoved.
 files match git; drift check passes; 0 errors since the swap. The live look (he signed in; look only): the payout run, Owners
 and Units pages render, no console message; signed out and the browser closed.
 
+**OWNER MODULE — 2026-10-03 — his "on Add owner page, modal design and buttons are mess … confirm with your password and its
+box is not well aligned. Fix all of these problems … all the sort of work you have done in the previous pages … in this module
+… make sure everything works very well … test everything with MCP playwright … ship everything live".** The plan posted (five
+parts) and executed; no migration. The Add owner dialog (rebuilt 2026-10-01) was measured unchanged; the dialog he described is
+**Remove owner** on the owner's page — now the shared centred dialog with "Confirm it's you" on its own row and Keep owner /
+Remove owner both 42 px (🖥 measured, centred at 720,450 in 1440×900; 350 px wide at 390). **The owner's page rebuilt:** the
+owner and every action in one bar (each only for the role its route accepts), seven dialogs, dates in words, the waiting
+invite's actions on the page, 80 inline styles gone. **Four faults behind it, each 🔬 RED first and fixed:** ⚠️⚠️ the
+commission change decided against today's agreement — two changes in a month stacked two open-ended agreements on one day (the
+payout maths takes whichever the database returns) and an undo wrote nothing; ⚠️⚠️ it dropped the management fee, the term and
+the attribution rules; ⚠️⚠️ Edit owner's "portal access" box could never switch access off, while a hand-made request switched
+any linked login off (even a colleague's) or opened an invited one — the field is no longer read (DEC-o, his); and every refusal
+closed its dialog and said nothing. One rule now, `CommissionChange`. **The payout run:** D-PAYRUN-BUTTON fixed (disabled, with
+the reason, while the engine is off); every money write asks first and says Vyrobel moves no money; focus on Cancel; 20 inline
+styles gone. **Unit requests:** chips that count, cards with photos, Approve/Decline in dialogs; ⚠️ DEC-k applied to approving
+(🔬 RED first: a manager limited to one property created a unit in another); A8 26 → 24. **Owners list:** one line when every
+unit has an owner; ⚠️ a false hint of my own (2026-10-01, "you can give units later from the owner's page") corrected — no
+screen does that (DEC-p, his). A Remove-owner bullet no code backs was dropped ("any scheduled final payout is honored": the
+engine never selects a removed owner). Tests: `OwnerPageFixesTest` (19), `OwnerPageRedesignTest` (5), `PayoutRunPageTest`
+(6), `UnitRequestsPageTest` (9), +2 on the Owners list; one gate test's two needles re-pointed to the new markup (the gate
+unchanged); mutations `owner-module` 41/41 — three survived the first run (OM-M12, M19, M22: a page-wide search satisfied by
+the script, an address the dialogs also carry, an outer guard hiding an inner one) and the tests were scoped. 🖥 Walked locally
+on tenant three at 1440 and 390: every dialog; a commission change, its undo ("Replaced before it started · Never applied"); a
+wrong password reopening Remove owner; a payout created and marked paid through the confirms (Cancel first: nothing posted);
+"Alfama Loft" approved into the one property, the chips moving to Waiting 0 · Approved 1; no console messages. **This pass's
+own mistakes, each caught before commit:** the page root reused `vyo-owner` (the Owners list's flex-row cell) and the page laid
+out sideways — the browser; the header glow made the header scrollable by 14 px — the browser; the disabled run button looked
+pressable; the confirm's focus on the money button; the notice said "changes to 18%" while 18% was the rate; three weak tests
+(the mutation run). **The independent review** (read-only): nothing critical or high; fixed from it — the rule ended only the
+newest covering agreement (now every one, collapsing an old stack), an owner with no agreement waited for the 1st (now today),
+the portal tests were refused by validation before the code they named (now they reach it), "bookings already made keep their
+rate" (now "worked out"), plus a save lock, a kept end date, a payout confirm that cannot fail open, honest notification
+wording, a removed owner's request (decline only) and the statement's own rate on the net card. Recorded for him: DEC-q (rate
+proposals skip the property limit, pre-existing). Mutations `owner-module` 48/48 after it (OM-M5 needed a sharper test).
+Gates: 4,229/4,229 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `17253d581ca575a5`, the code plus these docs; the committed
+tree adds the no-agreement dialog sentence and its assertion, the 11 affected files re-run on it 75/75); 603/603 mutations;
+money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -602,10 +640,11 @@ and Units pages render, no console message; signed out and the browser closed.
 Mail password + TONIGHT 01 Part 2 (Verified 2026-09-29: `MAIL_PASSWORD` not set) · proving the `sales@` alias (created
 2026-09-26, Reported) · ADMIN 06: live since 2026-09-29 · L20 · D-TRANSFER · ADMIN 06 rulings (a)–(g) · ADMIN 05 signed-in
 live pass · KEYBOARD 01 (needs him) · OAuth-token-on-reset ruling · Stripe live keys, the lawyer, real tax rates.
-**Raised 2026-09-29 → 10-01, waiting on him:** ⚠️⚠️ A11 — "Run payouts now" reaches every organisation's owners
-(D-PAYRUN-TENANT; the switch is off on production) · DEC-n — should a pause stop the manual payout run · A12 — the Units
-export link · A8 / A9 / A10 — the x-show, see-through-dialog and string `:style` sweeps · DEC-h (F-58 and the Portfolio card)
-· DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · the signed-in looks still owed on earlier passes. Where:
+**Raised 2026-09-29 → 10-03, waiting on him:** A8 / A9 / A10 — the x-show, see-through-dialog and string `:style` sweeps ·
+DEC-h (F-58 and the Portfolio card) · DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · DEC-o (portal access
+from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate proposals and the property limit) · the
+signed-in looks still owed on earlier passes. (A11, A12
+and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) Where:
 `OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 
 ## Sources used

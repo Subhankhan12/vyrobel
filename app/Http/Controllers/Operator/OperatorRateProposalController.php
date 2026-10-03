@@ -39,6 +39,20 @@ class OperatorRateProposalController extends Controller
             'from_date' => ['required', 'date'],
             'to_date' => ['required', 'date', 'after_or_equal:from_date'],
             'note' => ['nullable', 'string', 'max:500'],
+        ], [
+            // ⚠️ 2026-10-03 — the owner's page reopens its dialog with these beside the fields; before, a refused proposal
+            //    closed the form and the page said nothing.
+            'rate.required' => 'Enter the nightly rate you propose.',
+            'weekend_uplift.numeric' => 'The weekend uplift is a percentage between 0 and 200.',
+            'weekend_uplift.min' => 'The weekend uplift is a percentage between 0 and 200.',
+            'weekend_uplift.max' => 'The weekend uplift is a percentage between 0 and 200.',
+            'min_stay.integer' => 'The minimum stay is a whole number of nights, 1 to 365.',
+            'min_stay.min' => 'The minimum stay is a whole number of nights, 1 to 365.',
+            'min_stay.max' => 'The minimum stay is a whole number of nights, 1 to 365.',
+            'from_date.required' => 'Choose the first night.',
+            'to_date.required' => 'Choose the last night.',
+            'to_date.after_or_equal' => 'The last night has to be on or after the first.',
+            'note.max' => 'A note to the owner can be up to 500 characters.',
         ]);
 
         // The owner must belong to the operator's tenant (Owner is BelongsToOrganization → org-scoped).
@@ -46,7 +60,7 @@ class OperatorRateProposalController extends Controller
 
         $priceMinor = MoneyInput::toMinor((string) $data['rate'], self::MAX_PRICE_MINOR);
         if ($priceMinor === null) {
-            return back()->with('rate_error', 'Enter a valid nightly rate, e.g. 175 or 175.50.');
+            return back()->withInput()->withErrors(['rate' => 'Enter a valid nightly rate, e.g. 175 or 175.50.']);
         }
 
         $back = route('app.owners.show', $owner->getKey());
@@ -64,7 +78,7 @@ class OperatorRateProposalController extends Controller
                 $data['note'] ?? null,
             );
         } catch (InvalidArgumentException $e) {
-            return redirect()->to($back)->with('rate_error', $e->getMessage());
+            return redirect()->to($back)->withInput()->with('rate_error', $e->getMessage());
         }
 
         return redirect()->to($back)->with('rate_notice', 'Rate proposal sent to the owner for approval.');

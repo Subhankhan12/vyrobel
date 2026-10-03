@@ -15,6 +15,8 @@ use App\Services\OwnerStatementService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Owner\CommissionChange;
+use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerListParams;
 use App\Support\Owner\OwnerLoginLifecycle;
 use Carbon\CarbonImmutable;
@@ -34,9 +36,14 @@ class OwnerManageController extends Controller
     public function __construct(private AuditEventRecorder $audit) {}
 
     /**
-     * Edit owner: the management COMMISSION (a NEW effective-dated {@see ManagementAgreement} that starts next
-     * month — "applies from the next statement", never a silent rewrite of history) + portal access. The real 18%
-     * changes only forward; past statements keep the rate they were finalized at.
+     * Change the owner's COMMISSION — a new effective-dated {@see ManagementAgreement} from the first of next month, by the ONE
+     * rule in {@see CommissionChange} (the latest change wins; every other term carries forward; history is never rewritten).
+     *
+     * ⚠️⚠️ PORTAL ACCESS IS NO LONGER WRITTEN HERE (2026-10-03). The dialog's "Owner portal access" checkbox posted
+     * `portal_active`, and this method set the linked login's status from it: 🔬 an unticked box posts nothing, so the box
+     * could never switch access off — while a hand-made `portal_active=0` switched ANY linked login off (bypassing
+     * {@see OwnerLoginLifecycle}, which spares a person who also works here), and `portal_active=1` opened an invited login
+     * nobody had set a password for. The field is now ignored; whether access should be switchable here is DEC-o, his.
      */
     public function update(Request $request, string $owner): RedirectResponse
     {
@@ -46,47 +53,46 @@ class OwnerManageController extends Controller
 
         $model = Owner::query()->findOrFail($owner);
         $validated = $request->validate([
-            'commission_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'portal_active' => ['nullable', 'boolean'],
+            'commission_pct' => ['required', 'numeric', 'min:0', 'max:100'],
+        ], [
+            'commission_pct.required' => 'Enter the commission, in percent.',
+            'commission_pct.numeric' => 'The commission must be a number between 0 and 100.',
+            'commission_pct.min' => 'The commission must be a number between 0 and 100.',
+            'commission_pct.max' => 'The commission must be a number between 0 and 100.',
         ]);
 
-        $changed = [];
+        $pct = round((float) $validated['commission_pct'], 2);
+        $display = OwnerCommissionRate::display($pct) ?? $pct.'%';
+        $ownerId = (string) $model->getKey();
 
-        if (array_key_exists('commission_pct', $validated) && $validated['commission_pct'] !== null) {
-            $newPct = round((float) $validated['commission_pct'], 2);
-            $current = ManagementAgreement::query()->where('owner_id', $model->id)->effectiveOn(CarbonImmutable::today())->whereNull('unit_id')->first();
+        // What the save will do, read BEFORE it: once an agreement exists today, a later save starts next month instead.
+        $today = CommissionChange::governing($ownerId, CarbonImmutable::today());
+        $startsOn = CommissionChange::startsOn($ownerId);
+        $waiting = CommissionChange::governing($ownerId, $startsOn);
+        $wasWaiting = $today !== null && $waiting !== null && (string) $waiting->getKey() !== (string) $today->getKey();
 
-            if ($current === null || (float) $current->commission_pct !== $newPct) {
-                $nextMonth = CarbonImmutable::today()->startOfMonth()->addMonth();
-                DB::transaction(function () use ($model, $current, $newPct, $nextMonth): void {
-                    // Close the current portfolio agreement at the end of this month; open the new one next month.
-                    if ($current !== null) {
-                        $current->forceFill(['effective_to' => $nextMonth->subDay()->toDateString()])->save();
-                    }
-                    ManagementAgreement::create([
-                        'owner_id' => $model->id,
-                        'unit_id' => null,
-                        'commission_pct' => $newPct,
-                        'payout_schedule' => $current->payout_schedule ?? 'monthly',
-                        'payout_currency' => $current->payout_currency ?? $model->payout_currency,
-                        'effective_from' => $nextMonth->toDateString(),
-                        'effective_to' => null,
-                        'status' => 'active',
-                    ]);
-                });
-                $changed[] = 'commission_pct';
-            }
+        if (! CommissionChange::apply($model, $pct)) {
+            return $this->back($owner, 'owners_notice', 'Nothing changed — '.$display.' is already '.$model->name.'’s commission from '
+                .$startsOn->format('j M Y').'.');
         }
 
-        if (array_key_exists('portal_active', $validated)) {
-            $active = (bool) $validated['portal_active'];
-            $model->user?->forceFill(['status' => $active ? 'active' : 'inactive'])->save();
-            $changed[] = 'portal_active';
+        // ⚠️ A field list, never the figures — an audit row is not a second copy of the money.
+        $this->audit->record('owner.updated', $model, null, ['fields' => ['commission_pct']]);
+
+        if ($today === null) {
+            return $this->back($owner, 'owners_notice', $model->name.'’s commission is '.$display.' from today — they had no agreement in effect.');
         }
 
-        $this->audit->record('owner.updated', $model, null, ['fields' => $changed]);
+        // back to today's rate while a change was waiting: the waiting change is what moved, so that is what the notice says
+        if ($wasWaiting && $today->commission_pct !== null && round((float) $today->commission_pct, 2) === $pct) {
+            return $this->back($owner, 'owners_notice', $model->name.' stays on '.$display.' — the change waiting for '
+                .$startsOn->format('j M Y').' won’t happen.');
+        }
 
-        return $this->back($owner, 'owners_notice', 'Owner updated. Commission changes apply from the next statement.');
+        // ⚠️ "Worked out", not "booked": earnings are worked out when a booking is made — or later, for one imported without
+        //    them, and again when a booking moves to another owner's unit (the review) — so that is the honest unit.
+        return $this->back($owner, 'owners_notice', $model->name.'’s commission is '.$display.' from '.$startsOn->format('j M Y')
+            .' — for bookings worked out from now on. Bookings already worked out keep their rate.');
     }
 
     /**
@@ -146,6 +152,10 @@ class OwnerManageController extends Controller
         $data = $request->validate([
             'period_start' => ['required', 'date'],
             'period_end' => ['required', 'date', 'after_or_equal:period_start'],
+        ], [
+            'period_start.required' => 'Choose the first day of the period.',
+            'period_end.required' => 'Choose the last day of the period.',
+            'period_end.after_or_equal' => 'The period has to end on or after the day it starts.',
         ]);
 
         $model = Owner::query()->findOrFail($owner);
@@ -160,9 +170,10 @@ class OwnerManageController extends Controller
                 $statements->generateDraft($model->id, $data['period_start'], $data['period_end'])
             );
         } catch (RuntimeException $e) {
+            // the dates come back with the refusal, so the dialog reopens with them and says why (2026-10-03)
             return $this->back($owner, 'owners_error',
                 'That period could not be closed: '.$e->getMessage()
-                .' Pick a period that starts after the last sealed one.');
+                .' Pick a period that starts after the last sealed one.')->withInput($request->only('_form', 'period_start', 'period_end'));
         }
 
         // ⚠️ Recorded as a field list, never the figures — an audit row is not a second copy of the money.
@@ -188,7 +199,10 @@ class OwnerManageController extends Controller
         }
 
         $model = Owner::query()->findOrFail($owner);
-        $validated = $request->validate(['body' => ['required', 'string', 'max:2000']]);
+        $validated = $request->validate(['body' => ['required', 'string', 'max:2000']], [
+            'body.required' => 'Write the note first.',
+            'body.max' => 'A note can be up to 2,000 characters.',
+        ]);
 
         $model->noteEntries()->create([
             'body' => $validated['body'],
@@ -228,10 +242,16 @@ class OwnerManageController extends Controller
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'confirm_name' => ['required', 'string'],
+        ], [
+            'current_password.required' => 'Enter your password to remove this owner.',
+            'current_password.current_password' => 'That password isn’t right — enter the one you sign in with.',
+            'confirm_name.required' => 'Type the owner’s name to confirm.',
         ]);
 
         if (trim((string) $validated['confirm_name']) !== trim((string) $model->name)) {
-            return $this->back($owner, 'owners_error', 'The name you typed doesn’t match — the owner was not removed.');
+            // what was typed comes back with the refusal, so the dialog reopens with it (2026-10-03)
+            return $this->back($owner, 'owners_error', 'The name you typed doesn’t match — the owner was not removed.')
+                ->withInput($request->only('_form', 'confirm_name'));
         }
 
         DB::transaction(function () use ($model): void {

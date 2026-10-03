@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property;
 use App\Models\UnitRequest;
 use App\Services\OwnerUnitRequestService;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -36,10 +38,21 @@ class UnitRequestActionController extends Controller
             'property_id' => ['required', 'string'],
             'room_type_id' => ['required', 'string'],
             'note' => ['nullable', 'string', 'max:500'],
+        ], [
+            'property_id.required' => 'Choose the property the unit joins.',
+            'room_type_id.required' => 'Choose the room type the unit joins.',
+            'note.max' => 'A note to the owner can be up to 500 characters.',
         ]);
 
+        // ⚠️⚠️ DEC-k (2026-10-03, the rule he ruled for every unit write on 2026-09-30): the unit is created only in a property
+        //    the person works in — `PropertyContext::readIds()`, the set the page offers. 🔬 It was found through the tenant
+        //    alone, so staff limited to one property could create a unit in another by posting its id (UnitRequestsPageTest).
+        //    Another property is NOT FOUND — a 404, not merely hidden — and nothing is written.
+        $ids = app(PropertyContext::class)->readIds();
+        $property = Property::query()->when($ids !== [], fn ($q) => $q->whereIn('id', $ids))->findOrFail($data['property_id']);
+
         try {
-            $unit = $service->approve($model, $request->user(), $data['property_id'], $data['room_type_id'], $data['note'] ?? null);
+            $unit = $service->approve($model, $request->user(), (string) $property->getKey(), $data['room_type_id'], $data['note'] ?? null);
         } catch (RuntimeException $e) {
             return $this->back('error', $e->getMessage());
         }
@@ -57,6 +70,8 @@ class UnitRequestActionController extends Controller
 
         $data = $request->validate([
             'note' => ['nullable', 'string', 'max:500'],
+        ], [
+            'note.max' => 'A reason to the owner can be up to 500 characters.',
         ]);
 
         try {
@@ -65,7 +80,9 @@ class UnitRequestActionController extends Controller
             return $this->back('error', $e->getMessage());
         }
 
-        return $this->back('notice', 'Request declined — the owner has been notified.');
+        // ⚠️ (2026-10-03) it said "the owner has been notified" — untrue for an owner with no portal login, or one who has
+        //    turned these notices off; the dialog says which before it is sent
+        return $this->back('notice', 'Request for “'.$model->requested_name.'” declined.');
     }
 
     private function guardReadOnly(): ?RedirectResponse

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Operator;
 
+use App\Http\Controllers\Operator\OwnerManageController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Livewire\Owner\OwnerAgreement;
 use App\Models\ManagementAgreement;
@@ -23,6 +24,7 @@ use App\Services\OwnerInviteService;
 use App\Services\PeriodLockGuard;
 use App\Support\Analytics\PerformanceMetrics;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Owner\CommissionChange;
 use App\Support\Owner\OwnerCommissionRate;
 use App\Support\Owner\OwnerLedgerAttribution;
 use App\Support\Payouts\Iban;
@@ -98,27 +100,17 @@ use Livewire\Component;
  *                OWNER-scoped route (`/owner/statements/{id}`), which an operator's session cannot pass —
  *                it would resolve to an empty owner scope and 404. A link that always 404s is worse than
  *                no link, so the rows render as facts only.
- *   • OMITTED (no backend — reported, not greyed out):
- *       – the design's "Edit owner" modal: the commission stepper is a WRITE to a certified agreement
- *         (out of scope for a presentation gate), and its three toggles — "Owner portal access",
- *         "Statement PDF by email", "Pause payouts" — have NO columns and no backend at all. The whole
- *         modal is omitted. (The design's own modal is also broken: it opens on the destructive REMOVE
- *         view and its "Remove owner permanently" button has no handler.)
- *       – "Remove owner" + its type-to-confirm: no backend, and the design's button is inert.
- *       – IBAN / "Revolut Business · IBAN ····4821" / "verified": NO bank-account field exists anywhere
- *         in the schema. Never rendered.
- *       – "Next payout · est. 3 Nov" / any estimated payout date: no such column. A payout date is real
- *         only once the payout is genuinely paid (`paid_at`).
- *       – the "Workspace paused — read-only until 5 Oct" billing banner: subscription/billing has no
- *         backend; porting it would fabricate a system status.
- *       – "Scheduled" as a statement/payout status: NOT in either real enum ('draft','finalized','paid' /
- *         'pending','paid','failed','reversed'). Only the real words are rendered.
- *       – the design's "Add note" write (no path exists) — `owners.notes` IS a real nullable text column,
- *         so the real note is rendered READ-ONLY when set; the design's invented note CHIPS are not.
- *       – the design's Email/Message buttons (no operator→owner messaging surface exists), its demo
- *         figures (€10,370 / 74,830 / "owner since 2023") and its localStorage refund netting.
- *       – a re-invite WRITE: the real invite POST lives on the Owners list screen (a new write is out of
- *         scope for this gate), so this screen reports invite state and links back to that list.
+ *   • WRITES (each a controller POST through every middleware, #20 — this component still only renders):
+ *       – change the commission ({@see OwnerManageController::update()} by the ONE rule in
+ *         {@see CommissionChange}) · pause / resume payouts · close a period · add a note · remove the owner (an archive,
+ *         with your password and the owner's name) — `users.manage`, closing a period `payouts.manage`;
+ *       – send a waiting invite again (your password) or cancel it — the Owners list's own writes, coming back here;
+ *       – propose a rate change / withdraw / accept a counter — `rates.manage`.
+ *     ⚠️ Since 2026-10-03 each dialog reopens with its refusal beside the field (`_form` names the dialog) — before, a refused
+ *     write closed its dialog and the page said nothing.
+ *   • NOT OFFERED: switching the owner's portal access on or off (the old checkbox could not do the first and, by a
+ *     hand-made request, did the second to any login — DEC-o, his); any estimated next-payout DATE; "Scheduled" as a status
+ *     (neither real enum holds it); the design's demo figures. A statement row carries no link (see NOT LINKED above).
  */
 #[Layout('components.layouts.operator')]
 class OperatorOwnerDetail extends Component
@@ -219,6 +211,9 @@ class OperatorOwnerDetail extends Component
             $netToOwner = $breakdown[0] ?? null;
             if ($netToOwner !== null) {
                 $netToOwner['period'] = CarbonImmutable::parse($latestFinal->period_start)->format('M Y');
+                // ⚠️ the rate of the agreement that covered THAT period — today's rate mislabels a past statement once a change
+                //    has taken effect (the review, 2026-10-03)
+                $netToOwner['commission_pct'] = OwnerCommissionRate::trim(CommissionChange::governing($ownerId, CarbonImmutable::parse($latestFinal->period_start))?->commission_pct);
             }
         }
 
@@ -242,6 +237,22 @@ class OperatorOwnerDetail extends Component
 
         // Real payout-pause state + the operator note timeline.
         $payoutPaused = (bool) OwnerPayoutPreference::query()->where('owner_id', $ownerId)->value('paused');
+
+        // The commission now, the change waiting to start, and where a save would start — the write's own rule (2026-10-03).
+        $startsOn = CommissionChange::startsOn($ownerId, $today);
+        $nowRate = CommissionChange::governing($ownerId, $today);
+        $waiting = CommissionChange::plannedAfter($ownerId, $today);
+        $commission = [
+            'now' => OwnerCommissionRate::display($nowRate?->commission_pct),
+            'next' => $waiting !== null && OwnerCommissionRate::trim($waiting->commission_pct) !== OwnerCommissionRate::trim($nowRate?->commission_pct)
+                ? ['display' => OwnerCommissionRate::display($waiting->commission_pct) ?? 'no rate', 'from' => $waiting->effective_from->format('j M Y'),
+                    'replaced_by_save' => $waiting->effective_from->toDateString() === $startsOn->toDateString()]
+                : null,
+            'starts_on' => $startsOn->format('j M Y'),
+            // no agreement in effect today → a change starts today, not on the 1st (CommissionChange::startsOn)
+            'starts_today' => $nowRate === null,
+            'prefill' => CommissionChange::rateOn($ownerId, $startsOn) ?? OwnerCommissionRate::trim($nowRate?->commission_pct) ?? '',
+        ];
         $noteEntries = $record->noteEntries()->with('author')->latest()->limit(20)->get()->map(fn ($n): array => [
             'body' => (string) $n->body,
             'author' => $n->author instanceof User ? (string) $n->author->name : 'Operator',
@@ -270,13 +281,22 @@ class OperatorOwnerDetail extends Component
             'canPayout' => $canPayout,
             'payoutPaused' => $payoutPaused,
             'noteEntries' => $noteEntries,
-            'commissionPct' => $primary instanceof ManagementAgreement && $primary->commission_pct !== null ? rtrim(rtrim((string) $primary->commission_pct, '0'), '.') : null,
             'canManage' => (bool) auth()->user()?->can('users.manage'),
             'removeUnitNames' => $units->map(fn (Unit $u): string => (string) ($u->name ?? $u->code))->values()->all(),
             // ⚠️ How many people go with the owner — the modal states it because removal now cascades to
             //    the owner's team, and an operator should see the size of what they are about to close.
             'removeTeamCount' => OwnerUser::query()->where('owner_id', $ownerId)->where('status', 'active')->count(),
             'portal' => $this->portalAccess($record, $invite),
+            // A waiting invite can be sent again (pending or expired) or cancelled (pending) from here — the Owners list's writes.
+            'invite' => $invite !== null && in_array((string) $invite->status, ['pending', 'expired'], true) && (string) $invite->role !== OwnerInviteService::FOUNDER_ROLE
+                ? ['id' => (string) $invite->id, 'email' => (string) $invite->email, 'cancellable' => (string) $invite->status === 'pending']
+                : null,
+            'commission' => $commission,
+            // Cancelling a waiting invite also removes an owner who never activated — the service's own condition, said in
+            // the dialog before it happens ({@see OwnerInviteService::cancel()}).
+            'inviteCancelRemoves' => (string) $record->status === 'inactive' && ! ($record->user instanceof User && (string) $record->user->status === 'active'),
+            // Whether the automatic payout run is switched on — the resume dialog only promises the next automatic run if so.
+            'engineOn' => (bool) config('services.payouts.engine_enabled', false),
             'kpis' => [
                 // Per currency, NEVER summed across currencies (invariant #17).
                 'balance' => $this->moneyLines($balance, $payoutCurrency),
@@ -329,7 +349,7 @@ class OperatorOwnerDetail extends Component
      * `lockedThrough` comes from {@see PeriodLockGuard} — the SAME guard the attribution and expense
      * services consult — so the control can never disagree with the services about what is sealed.
      *
-     * @return array{start: string, end: string, lockedThrough: ?string, minStart: ?string}
+     * @return array{start: string, end: string, lockedThrough: ?string, lockedThroughWords: ?string, minStart: ?string}
      */
     private function closePeriodDefaults(Carbon $today): array
     {
@@ -343,6 +363,8 @@ class OperatorOwnerDetail extends Component
             'start' => $start->toDateString(),
             'end' => $start->copy()->endOfMonth()->toDateString(),
             'lockedThrough' => $lockedThrough,
+            // ⚠️ the dialog printed the database date ("2026-09-30"); people read "30 Sep 2026" (2026-10-03)
+            'lockedThroughWords' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->format('j M Y') : null,
             // Bounds the picker so a sealed date cannot be chosen in the first place.
             'minStart' => $lockedThrough !== null ? Carbon::parse($lockedThrough)->addDay()->toDateString() : null,
         ];
@@ -549,6 +571,8 @@ class OperatorOwnerDetail extends Component
             'to_display' => $this->dateDisplay($a->effective_to),
             'in_effect' => in_array((string) $a->id, $currentIds, true),
             'timing_note' => $this->timingNote($a, $today),
+            // replaced before its first day (CommissionChange) — its dates run backwards, so the view says so in words
+            'never_applied' => $this->timingNote($a, $today) === 'Replaced before it started',
             'status_meta' => $this->agreementStatusMeta((string) $a->status),
         ])->values()->all();
     }
@@ -633,6 +657,11 @@ class OperatorOwnerDetail extends Component
     {
         $from = $this->asDate($a->effective_from);
         $to = $this->asDate($a->effective_to);
+
+        // ⚠️ A change replaced before its first day ends the day before it starts (CommissionChange) — say so in words.
+        if ($from !== null && $to !== null && $to->lt($from)) {
+            return 'Replaced before it started';
+        }
 
         if ($from !== null && $from->gt($today)) {
             return 'Starts '.$from->format('j M Y');

@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the PAYOUTS pass (2026-10-02)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the OWNER MODULE pass (2026-10-03)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -24,10 +24,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the PAYOUTS commit) | **4,188/4,188 on MySQL 8.4.10** (tree `758751245566c93d` = the code plus these docs, 2026-10-03 16:08–16:24 Baku) · **4,188/4,188 on MariaDB 11.8.9** (the same tree, 16:51–17:22 Baku) · 30,845 assertions · every test passed (0 skipped). The OWNERS commit before it (`5d391dbe`): 4,174/4,174 on both engines | **V** run output 2026-10-03. |
-| Mutations | **555/555 landed and caught across every set**, 0 not caught, 0 did not land; baseline 297/297 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ The first full run that day was 554/555 — OW-M32 survived because a new sentence repeated the words its test searched for; the test was scoped, then 555/555 | **V** harness output 2026-10-03 16:24–16:50 Baku, tree `758751245566c93d` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-03 17:23 Baku (the PAYOUTS pass; reseeded 17:23). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-03 17:24 Baku |
+| Suite (the OWNER MODULE commit) | **4,229/4,229 on MySQL 8.4.10** (tree `17253d581ca575a5` = the code plus these docs, 2026-10-03 19:35–20:06 Baku) · **4,229/4,229 on MariaDB 11.8.9** (the same tree, 20:40–21:23 Baku) · 31,153 assertions · every test passed (0 skipped). ⚠️ The committed tree adds one dialog sentence after those runs (the no-agreement wording) and its assertion: the 11 affected files re-run on the final tree, 75/75 (21:3x Baku). The PAYOUTS commit before it (`d90f40ca`): 4,188/4,188 on both engines | **V** run output 2026-10-03. |
+| Mutations | **603/603 landed and caught across every set**, 0 not caught, 0 did not land; baseline 327/327 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `owner-module`'s first run was 37/40: three tests passed for the wrong reason and were scoped; after the review 47/48, OM-M5 needed a sharper test | **V** harness output 2026-10-03 20:10–20:38 Baku, tree `17253d581ca575a5` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-03 21:24 Baku (the OWNER MODULE pass; reseeded 21:24). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-03 (the OWNER MODULE pass, before the suite runs; Pint re-checked after its last fix) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AR`, 2026-10-03, run straight after the 17:26 Baku swap (and on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-03, after the 17:26 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -99,6 +99,15 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     done** (he signed in himself; look only, no payout button pressed): the payout run reads "No payout run yet here" with its
     honest empty states, the Owners page and the Units page render (the Units Export link carries the new behaviour), no
     console message from any page. He was signed out and the automated browser closed.
+0j. **The owners module (2026-10-03)** — his request ("on Add owner page, modal design and buttons are mess … confirm with your
+    password and its box is not well aligned … all the sort of work you have done in the previous pages … in this module …
+    ship everything live"); the 5-part plan posted and executed (`HISTORY.md`, "OWNER MODULE"). The owner's page rebuilt
+    (Remove owner with "Confirm it's you" on its own row, Keep / Remove at one height); four faults behind it fixed — the
+    commission change (stacked agreements, a dropped fee), the portal-access field, the silent refusals; the payout run asks
+    before every money write and shows Run payouts now disabled while the engine is off (D-PAYRUN-BUTTON); unit requests
+    reviewed in dialogs, approving inside the person's properties (DEC-k); the Owners list's false unit hint corrected.
+    **Asked of him: DEC-o (portal access from the owner's page), DEC-p (giving an existing owner units) and DEC-q (rate
+    proposals and the property limit — found by the independent review, pre-existing).**
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -123,12 +132,15 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 6. The lawyer: the Article 28 agreements, who may hold customers' money, and how long money records must be kept.
 7. The real tax rates (`tax:set-rate`, replacing the EXAMPLE rates).
 8. Rulings DEC-a to DEC-i (`OPEN.md`). DEC-f decides whether the logo removal that shipped stays.
-8b. Say go (or not) on A8, the x-show sweep of 26 elements on other screens; A9, the other see-through dialogs; and A10,
+8b. Say go (or not) on A8, the x-show sweep of 24 elements on other screens (26 until the unit requests page's two went, 2026-10-03); A9, the other see-through dialogs; and A10,
     the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes; DEC-k, the
     same on Add unit, was ruled and fixed 2026-09-30, and DEC-l, on every rate write, 2026-10-01). DEC-m (message
     attachments) was ruled and fixed 2026-09-30.
-8c. ✅ Done 2026-10-02: A11 and A12 fixed, DEC-n ruled ("a pause stops every payout") and built. Still open from that area:
-    D-PAYRUN-BUTTON (the "Run payout" button offered while the engine is off) — small, his call.
+8c. ✅ Done 2026-10-02: A11 and A12 fixed, DEC-n ruled ("a pause stops every payout") and built. D-PAYRUN-BUTTON fixed
+    2026-10-03 (the owners module pass).
+8d. Rule on DEC-o (switching an owner's portal access from their page — and if so, does their team go too, and does someone
+    who also works here keep their login?), DEC-p (giving an existing owner units later; today only their invite does) and
+    DEC-q (should rate proposals check the person's properties, as every other rate and unit write does?).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

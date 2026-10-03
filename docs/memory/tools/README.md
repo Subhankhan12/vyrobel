@@ -20,6 +20,7 @@ artisan exits 255 under it.
 | `compare.py` | Judges a before and an after proof; prints every difference and exits 1 on any it cannot explain | Local: `python3 compare.py before.json after.json` |
 | `prodstate.php.txt` | Runtime switches (yes/no only), the kill switches, organisations and their status, customer count | Inside `php artisan tinker`. This is how `../STATE.md` was read. |
 | `preflight-owners.php.txt` | Saved 2026-10-01 as the template for a pass's preflight: from the STAGED release, read-only (`SET SESSION TRANSACTION READ ONLY`) — the new routes' permission gates, the changed view compiled in memory, the new reads timed on production's own data, a switch as yes/no | `ssh … "cd ~/domains/vyrobel.com/releases/rel_<X> && /opt/alt/php84/usr/bin/php" < preflight.php` — piped over stdin, nothing written on the host; adapt it to each pass |
+| `preflight-owner-module.php.txt` | Saved 2026-10-03 (the owners module pass): the same shape, plus a platform-wide count of owners holding two ACTIVE owner-wide agreements that cover a common day — what the old commission write could leave (`OPEN.md` D-OWNER-COMMISSION) — answered as a number, never the rows | the same stdin pipe from the staged release; read-only |
 
 ⚠️ **The two `*-ids.json` files on the server hold the probe's address. They are not copied here, and are deleted after
 the final after-run** (`../OPEN.md` A3). Treat anything these tools write as private: keep it in the 700 folder, mode

@@ -349,6 +349,38 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   pass — that is what caught it (Verified 2026-10-02).
 - **Count in the unit the sentence names.** "2 paused, skipped" counted statements for one paused owner; the page listed one.
   The browser walk caught it; a test now gives the paused owner two statements (Verified 2026-10-02).
+- **Decide a dated change against the row that will govern its start day, not today's.** The commission write compared with
+  the agreement in effect TODAY, so a second change in a month stacked a second open-ended agreement on the same day, and an
+  undo matched today's rate and wrote nothing while the waiting change still came into force. When a change starts later, read
+  what will govern THAT day — and make the "which row governs" read return one row, not the database's choice (Verified
+  2026-10-03, `OwnerPageFixesTest`).
+- **A second copy of a field list drops fields.** The commission write rebuilt the agreement from two named fields; the fee, the
+  term and the attribution rules were lost. Carry the one list the other writer already uses (`AgreementAmendmentService::
+  TERM_KEYS`) — never a hand-picked subset (Verified 2026-10-03).
+- **An unticked checkbox posts nothing.** "Owner portal access" could only ever switch access ON from the form, while the server
+  trusted a hand-made OFF for any login. A toggle needs a hidden 0 — and a field that can switch a login off needs the same
+  sparing rule as every other path that does (`OwnerLoginLifecycle`), or it should not be read at all (Verified 2026-10-03).
+- **A refused dialog that closes says nothing.** Every write on the owner's page refused by redirecting to a page that showed
+  no error: a validation bag nobody rendered, a flash under a closed dialog. Name the form (`_form`), send its input back, and
+  reopen that dialog with the reason beside the field (Verified 2026-10-03).
+- **A class already used elsewhere styles your new element.** The owner page's root took `vyo-owner` — the Owners list's
+  owner-cell class, `display: flex` — and the whole page laid out in a row. The class check only finds a class WITHOUT a rule;
+  check every new name for an existing one before using it (Verified 2026-10-03, the browser).
+- **A hint can promise an action no screen offers.** "You can give units later from the owner's page" — no screen sets a unit's
+  owner after the invite. Before a sentence says something can be done later, find the write that does it (Verified 2026-10-03,
+  every writer of `units.owner_id` read; this pass's own earlier sentence).
+- **A test's search can be satisfied by the page's own script or by a second copy of the same address.** "The period has to end
+  on or after the day it starts" is also the script's live hint, and the resend address sits in the dialog as well as on the
+  card's button — so both tests passed without what they named (OM-M12, OM-M19). Assert the element that carries it (the
+  field's error box, the button) (Verified 2026-10-03, the mutation run).
+- **A test refused by validation tests nothing past it.** The portal tests posted no commission, so the new `required` rule
+  refused them before the code they named — green whatever that code did, and the mutation (inserted before validation)
+  agreed. Send a valid request so it reaches the line under test (Verified 2026-10-03, the independent review).
+- **Close every row that covers the day, not just the one you read.** The first rule ended only the newest agreement on the
+  start day; rows an older write had stacked stayed active beside the new one (Verified 2026-10-03, the review).
+- **An outer guard hides an inner one from a test.** The header's buttons sit inside "can manage OR can pay", so removing the
+  inner "can pay" changed nothing for a role holding neither (OM-M22). Test the role that splits them — one permission without
+  the other (Verified 2026-10-03).
 
 ---
 

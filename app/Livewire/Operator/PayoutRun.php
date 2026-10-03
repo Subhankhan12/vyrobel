@@ -187,6 +187,9 @@ class PayoutRun extends Component
             'subtitle' => $this->subtitle($ready->count(), $pending->count()),
             'rail' => $this->rail(),
             'mode' => PayoutEngineMode::current(),
+            // ⚠️ D-PAYRUN-BUTTON (2026-10-03): "Run payouts now" was offered with the engine off, and pressing it could
+            //    only be refused by the controller's own flag check — the page now reads the same flag.
+            'engineOn' => (bool) config('services.payouts.engine_enabled', false),
             'canPayout' => $canPayout,
             'latestRun' => $latestRun,
             'heldRows' => $this->heldRows($held, $ibanByOwner),

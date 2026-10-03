@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Owner;
 use App\Models\OwnerInvite;
 use App\Services\InviteNoLongerRedeemable;
 use App\Services\OwnerInviteService;
@@ -27,7 +28,7 @@ class OwnerInviteActionController extends Controller
     public function resend(Request $request, OwnerInviteService $invites, string $invite): RedirectResponse
     {
         $model = $this->find($invite);
-        if ($refused = $this->paused($request)) {
+        if ($refused = $this->paused($request, $model)) {
             return $refused;
         }
 
@@ -42,27 +43,27 @@ class OwnerInviteActionController extends Controller
         try {
             $result = $invites->resend($model);
         } catch (InviteNoLongerRedeemable $e) {
-            return $this->back($request)->with('owners_error', $e->getMessage());   // used or cancelled — its own sentence
+            return $this->back($request, $model)->with('owners_error', $e->getMessage());   // used or cancelled — its own sentence
         } catch (RuntimeException) {
-            return $this->back($request)->with('owners_error', 'That invite can’t be sent again — the email may already have a Vyrobel account.');
+            return $this->back($request, $model)->with('owners_error', 'That invite can’t be sent again — the email may already have a Vyrobel account.');
         }
 
-        return $this->back($request)->with('owners_notice', 'Invite sent again to '.$model->email.' — a fresh link, valid until '
+        return $this->back($request, $model)->with('owners_notice', 'Invite sent again to '.$model->email.' — a fresh link, valid until '
             .($result['invite']->expires_at?->format('j M Y') ?? 'in 7 days').'.');
     }
 
     public function cancel(Request $request, OwnerInviteService $invites, string $invite): RedirectResponse
     {
         $model = $this->find($invite);
-        if ($refused = $this->paused($request)) {
+        if ($refused = $this->paused($request, $model)) {
             return $refused;
         }
 
         if (! $invites->cancel($model)) {
-            return $this->back($request)->with('owners_error', 'That invite has already been used or cancelled.');
+            return $this->back($request, $model)->with('owners_error', 'That invite has already been used or cancelled.');
         }
 
-        return $this->back($request)->with('owners_notice', 'Invite to '.$model->email.' cancelled — the link no longer works.');
+        return $this->back($request, $model)->with('owners_notice', 'Invite to '.$model->email.' cancelled — the link no longer works.');
     }
 
     /** This organisation's invite (the tenant scope makes another's a 404) — never a founder's link. */
@@ -71,15 +72,23 @@ class OwnerInviteActionController extends Controller
         return OwnerInvite::query()->where('role', '!=', OwnerInviteService::FOUNDER_ROLE)->findOrFail($invite);
     }
 
-    private function paused(Request $request): ?RedirectResponse
+    private function paused(Request $request, OwnerInvite $invite): ?RedirectResponse
     {
         return app(OperatorWorkspace::class)->isReadOnly()
-            ? $this->back($request)->with('owners_error', 'Workspace paused — invites can’t be sent or cancelled for now.')
+            ? $this->back($request, $invite)->with('owners_error', 'Workspace paused — invites can’t be sent or cancelled for now.')
             : null;
     }
 
-    private function back(Request $request): RedirectResponse
+    /**
+     * Back where the form was: the Owners list as the operator had it, or (2026-10-03) the page of the invite's own owner —
+     * the owner is read off the INVITE, never the request, and a cancel that removed a never-activated owner goes to the list.
+     */
+    private function back(Request $request, OwnerInvite $invite): RedirectResponse
     {
+        if ($request->input('return') === 'owner' && $invite->owner_id !== null && Owner::query()->whereKey($invite->owner_id)->exists()) {
+            return redirect()->route('app.owners.show', (string) $invite->owner_id);
+        }
+
         return OwnerListParams::redirect($request) ?? redirect()->route('app.owners');
     }
 }

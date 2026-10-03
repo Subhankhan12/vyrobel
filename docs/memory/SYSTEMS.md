@@ -268,10 +268,10 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **Dialogs:** `.vy-modal-backdrop` (carries the display and centres) › `.vy-modal.vy-modal-card` (near-opaque, so muted
   text clears AA), with `role=dialog`, `aria-modal`, `aria-labelledby`, `tabindex=-1`, `x-trap.noscroll` and Escape.
   ⚠️ `x-show` erases an inline `display`, so every display is a class — `XShowInlineDisplayContractTest` holds the other
-  screens at a ceiling of 26 (`OPEN.md` A8); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
+  screens at a ceiling of 24 (`OPEN.md` A8; 26 until 2026-10-03); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
   ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
-  shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners).
+  shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
   ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
 - **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
   (`OperatorLivewireMutationBoundaryTest`). While the workspace is paused (`OperatorWorkspace::isReadOnly()`) every write
@@ -322,9 +322,36 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   `OwnerPayoutService` throws `PayoutsPausedException` in `createFromStatement()`, in `pay()` (inside the row lock, before the
   rail, beside the tax hold) and in `retry()`; `PayoutRunService::owners()` never selects a paused owner; the payout run lists
   paused owners under "Payouts paused" and its batch buttons skip and count them (in owners). (git)
-- **`PAYOUT_ENGINE_ENABLED` is OFF on production** (Verified 2026-10-01, the read-only preflight). The payout run page's
-  Create payouts / Mark paid record by hand (`ManualPayoutRail`); its "Run payout" button refuses while the engine is off
-  (D-PAYRUN-BUTTON, `OPEN.md`).
+- **`PAYOUT_ENGINE_ENABLED` is OFF on production** (Verified 2026-10-03, the read-only preflight). The payout run page's
+  Create payouts / Mark paid record by hand (`ManualPayoutRail`); since 2026-10-03 its "Run payouts now" is shown disabled with
+  the reason while the engine is off (D-PAYRUN-BUTTON fixed).
+- **A commission change (2026-10-03) — ONE rule, `App\Support\Owner\CommissionChange`**, read by the owner's page and run by
+  `OwnerManageController::update()`: a change starts on the first of next month — or TODAY for an owner with no agreement in
+  effect (`startsOn()`); EVERY active owner-wide agreement covering that day is bounded the day before (ENDED if it would only
+  have started that day — "Replaced before it started"), so a save also collapses rows an older write stacked; the new one
+  carries the newest covering row's terms (`AgreementAmendmentService::TERM_KEYS`), keeps that row's end date, and ends the day
+  before any change already planned for later (`plannedAfter()`); the owner row is locked for the save. `governing()` = the
+  latest to start, then the latest made — one row, never the database's choice. Owner earnings are worked out from the agreement
+  covering the stay's date when a booking is made (later for one imported without them; again when it moves to another owner's
+  unit), so a change applies to bookings worked out after it is saved. ⚠️ Edit owner no longer reads
+  `portal_active` — portal access is not switched from that page (DEC-o, his). (git; 🔬 `OwnerPageFixesTest`)
+- **A unit's owner is written in two places only** — an accepted invite (`OwnerInviteService`, unowned units only) and an
+  approved unit request (a new unit, `OwnerUnitRequestService::approve()`) — and cleared only when the owner is removed
+  (`OwnerManageController::remove()`). No screen gives an existing owner a unit (DEC-p, his). (git, every writer read 2026-10-03)
+- **The owner's page dialogs** (`owner-detail.blade.php`): each form posts `_form` (commission · close · remove · resend ·
+  propose · note); a refused write comes back with its input, and the page reopens THAT dialog with the reason beside its field.
+  Resend and Cancel of a waiting invite post `return=owner` — `OwnerInviteActionController` sends the operator back to the
+  invite's own owner (read off the invite, never the request; a cancel that removed a never-activated owner goes to the list).
+- **The payout run asks first (2026-10-03):** each money form carries `x-on:submit="ask($event)"` and `data-confirm` (title, sub,
+  facts, button); `ask()` stops the submit and opens the one shared dialog; `go()` marks the form answered and calls
+  `requestSubmit()`, so the submit event runs again, passes `ask()`, and the double-submit guard (`partials/submit-guard`) takes
+  it. Without the script the forms post as before. The focus lands on Cancel. "Run payouts now" is shown disabled, with the
+  reason, while `PAYOUT_ENGINE_ENABLED` is off (`PayoutRun` passes `engineOn`; D-PAYRUN-BUTTON fixed).
+- **Unit requests (2026-10-03):** a request whose owner was removed can only be declined (`OwnerUnitRequestService::approve()`
+  refuses it). `UnitRequestActionController::approve()` finds the property inside
+  `PropertyContext::readIds()` (DEC-k — a property the person does not work in is a 404, nothing written); the page
+  (`OperatorUnitRequests`) offers the same set. Each pending card carries `data-review` (its own approve and decline addresses,
+  for `units.manage` only); the two dialogs read it.
 
 ---
 

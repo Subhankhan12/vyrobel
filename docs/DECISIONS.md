@@ -19315,3 +19315,106 @@ deployed); the `.htaccess` drift check passes (self-test 3/3); 0 errors logged s
 himself, look only, no payout button pressed:** 🖥 the payout run reads "No payout run yet here" with its empty states (no paused
 owner, so no Payouts paused card); the Owners page and its side panel; the Units page with the export link's new behaviour; no
 console message from any page. He was signed out and the automated browser closed.
+
+## 2026-10-03 — The owners module: the owner's page rebuilt, four faults behind its dialogs fixed, the payout run asks first, unit requests reviewed in dialogs
+
+**Asked:** "https://vyrobel.com/app/owners — on Add owner page, modal design and buttons are mess, cancel and send invite
+buttons look bad, confirm with your password and its box is not well aligned. Fix all of these problems … all the sort of work
+you have done in the previous pages … in this module … make a proper plan … maybe there are some creativity enhancement
+advancement you can do … make sure everything works very well … test everything with MCP playwright … ship everything live."
+The Add owner dialog was rebuilt on 2026-10-01 and measured unchanged (V, a screenshot this pass); what he described — the
+password box under a shouted label with no border, Keep and Remove at two sizes — is the **Remove owner** dialog on the owner's
+page (`/app/owners/{owner}`), measured in the browser before any change. The 5-part plan was posted and executed.
+
+**1 · The owner's page, rebuilt.** The owner and every action on them in one bar under their name (Change commission · Pause or
+Resume payouts · Close a period · Remove owner — each only for the role its route accepts); the figures; net to owner,
+statements, payouts, the agreement, units and rate proposals; and a rail with how they're paid (the commission now and any
+change waiting to start, the pause, the schedule, the masked payout account), the owner portal (a waiting invite sent again or
+cancelled from here — the Owners list's own writes, coming back to this page) and the team's notes. Seven dialogs, all the
+shared centred one: Change the commission · Pause/Resume · Close a period (dates in words — "Closed up to 30 Sep 2026", and a
+live "1 Oct – 31 Oct 2026 · 31 days" line) · **Remove owner — "Confirm it's you" with the password on its own full-width row,
+Keep owner and Remove owner at one height (both 42 px, measured)** · Propose a rate change · Send the invite again · Cancel the
+invite. 80 inline styles are gone — every display is a class.
+
+**2 · Four faults found behind those dialogs, each verified RED first and fixed:**
+- ⚠️⚠️ **The commission change decided against TODAY's agreement, not the one that governs its start day.** Two changes in one
+  month left two open-ended owner-wide agreements starting on the same day, and the payout maths (`ManagementAgreement::
+  resolveFor()`) takes whichever row the database returns first; setting the rate back to today's wrote nothing, so the waiting
+  change still came into force. Now ONE rule, `App\Support\Owner\CommissionChange`, read by the page and run by the write: a
+  change starts on the first of next month (today, for an owner with no agreement in effect — see the review below); the latest
+  change wins; one that would only have started that day is ended ("Replaced before it started", "Never applied" in the
+  history); it never overlaps a change already planned for later (it ends the day before).
+- ⚠️⚠️ **A commission change dropped the management fee.** The new agreement copied only the payout schedule and currency, so a
+  fixed fee, the contract term and any attribution rules ended with the old agreement. Every term in
+  `AgreementAmendmentService::TERM_KEYS` (made public — the list the amendments already use) now carries forward.
+- ⚠️⚠️ **"Owner portal access" in Edit owner.** An unticked checkbox posts nothing, so the box could never switch access off; and
+  the write set the linked login's status from the field, so a hand-made `portal_active=0` switched off ANY linked login —
+  including someone who also works for the organisation, the case `OwnerLoginLifecycle` spares on removal — and `portal_active=1`
+  opened an invited login nobody had set a password for. The field is no longer read; the checkbox is gone. **Whether access
+  should be switchable here is his: DEC-o.**
+- **Every refusal on the page closed its dialog and said nothing** (a wrong password or name in Remove owner, a period ending
+  before it starts, a commission out of range, a proposal's dates the wrong way round). Each dialog now reopens with the reason
+  beside its field and what was typed (`_form` names the dialog).
+
+**3 · The payout run.** D-PAYRUN-BUTTON fixed: with `PAYOUT_ENGINE_ENABLED` off, "Run payouts now" is shown disabled with the
+reason underneath ("The automatic payout engine is switched off …") instead of a button that could only be refused. Every write
+on the page now asks first in the shared dialog — Create payout(s), Mark paid, Mark all paid, Run payouts now — saying what it
+records and that Vyrobel moves no money ("Vyrobel records the payout and its statement as paid — it does not send money"); the
+focus lands on Cancel, so an Enter pressed twice cannot record money. The forms still post without the script (the confirm sits
+in front of the real form, and the double-submit guard still takes the confirmed post). 20 inline styles are gone.
+
+**4 · Unit requests, rebuilt.** Chips that count what clicking them shows (Waiting · Approved · Declined · All — Withdrawn only
+when there is one; the waiting ones first), each request a card with its photos and everything the owner filed, and Approve and
+Decline in the shared dialog — saying what happens (the unit, the owner, that their proposed rate is not applied, whether they
+will be told). ⚠️ **DEC-k applied to approving:** the unit is created only in a property the person works in
+(`PropertyContext::readIds()`, the set the dialog offers) — 🔬 RED first, a manager limited to one property created a unit in
+another by posting its id (302 and a unit); now a 404 and nothing is written. Applied as the rule he ruled for every unit write on
+2026-09-30 and stated in the report so he can object. A8: the page's two x-show + inline-display forms are gone (26 → 24).
+
+**5 · The Owners list.** When every unit already has an owner, Add owner says so in one line instead of a row of units that
+cannot be picked. ⚠️ **A false sentence of mine (2026-10-01) corrected:** the unit picker's hint said "you can give units later
+from the owner's page" — no screen does: a unit's owner is written only when an invite is accepted (or a requested unit is
+approved) and cleared only when the owner is removed (V, every writer read). It now says "an owner is given existing units only
+in their invite". **Whether an existing owner should be given units from their page is his: DEC-p** (it touches money —
+attribution keys off a unit's owner).
+
+**Asked of him (not decided here):** DEC-o (portal access switched from the owner's page — and if so, does their team go with
+them, and does someone who also works here keep their login?) · DEC-p (giving an existing owner units later).
+
+**The independent review** (read-only, the whole diff) found nothing critical or high; its medium findings, each checked in the
+code and fixed or recorded:
+- **Fixed — the rule ended only the newest agreement covering the start day**, so rows an older write had stacked stayed active
+  beside the new one. Every active owner-wide agreement covering that day is now closed (a save also collapses an old stack —
+  carrying the NEWEST row's other terms).
+- **Fixed — an owner with no agreement in effect** (an invited one, say) got a change from the 1st only, and stays before then
+  were worked out with no agreement — a zero for the owner, kept for good. A change for such an owner now starts **today**.
+- **Fixed — the portal tests passed for the wrong reason:** posted without a commission, they were refused by validation before
+  any write. They now send a valid commission; the mutation puts the old block back after validation, where it sat.
+- **Fixed — "bookings already made keep their rate" was not always true:** earnings are worked out when a booking is made, later
+  for one imported without them, and again when a booking moves to another owner's unit. The words now say "worked out".
+- **Recorded, not changed — DEC-q:** rate proposals (propose, and accepting an owner's counter, which applies the rate) do not
+  check the person's properties, while every other rate and unit write does (DEC-k, DEC-l) — a manager limited to one property
+  can propose for another's room type. Pre-existing; his ruling, like DEC-i and DEC-j.
+Also from the review, fixed: a lock so two saves at once cannot stack agreements; a fixed end date kept, not dropped; the
+payout confirm can no longer fail open (unreadable text still asks); "waits until you mark it paid" says "or the next automatic
+run" when the engine is on; the decline notice no longer claims the owner was notified; "is told in their portal" says
+"unless they've turned these notices off"; a removed owner's unit request can only be declined (it created a unit owned by an
+archived owner — pre-existing); the net-to-owner card's "incl. X% commission" names the rate of that statement's period, not
+today's; two comments that overstated what works without JavaScript. Recorded, not changed: per-unit agreements are outside
+the owner page's commission rule (nothing creates them today), and an amendment the owner acknowledges is written open-ended
+without a "planned later" bound (`AgreementAmendmentService`, pre-existing). Three of the review's tests were written with
+their fix rather than before it (the collapse, start-today and fixed-end cases); each is proven instead by a mutation that puts
+the old behaviour back (OM-M42–M45).
+
+**Tests.** `OwnerPageFixesTest` (19), `OwnerPageRedesignTest` (5), `PayoutRunPageTest` (6), `UnitRequestsPageTest` (9), +2 on
+the Owners list; two needles in `OperatorControlGateTest` re-pointed to the new markup (the gate itself unchanged); the x-show
+ceiling lowered 26 → 24. Mutations `owner-module` 48/48.
+
+**Gates (each read from its own output, 2026-10-03):** **4,229/4,229 on MySQL 8.4.10** (31,153 assertions, tree
+`17253d581ca575a5`: this code with the entry and the memory written; 19:35–20:06 Baku) · **4,229/4,229 on MariaDB 11.8.9** (the
+same tree, 20:40–21:23 Baku; no other connection to the database before the swap — restiox's own test run had finished) ·
+mutations **603/603 across every set** (baseline 327/327 green; 20:10–20:38 Baku) · the money gate **FULL, unmoved** (`929 /
+10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 21:24
+Baku) · PHPStan L5 0 errors and Pint clean on the whole codebase. ⚠️ After those runs the final browser walk changed one dialog
+sentence (an owner with no agreement read "every other term stays as it is"; it now says it is a new agreement, paid monthly in
+their currency) and added its assertion; the 11 affected test files were re-run on the committed tree, 75/75.

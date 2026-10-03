@@ -2575,6 +2575,159 @@
             .vyo-dlg .vy-modal-foot .vy-btn--ghost { min-width: 96px; }
         }
 
+        /* ---- The owner's page (rebuilt 2026-10-03) ----------------------------------------------------------------------
+           The founder's report on its dialogs: the password box sat under a shouted label with no border, and Keep and
+           Remove were two different sizes, in panels of the page's own. They are now the Owners list's dialogs above (the
+           password on its own row, both buttons in the foot at one height); what follows is the page around them — the owner
+           and every action on them in one bar, the cards, and the rail. ⚠️ Every display is a CLASS — x-show erases an inline
+           display. ⚠️ Secondary text on cards is --vy-on-grad, never --vy-muted on a row (DO-A11Y-5). */
+        .vyo-back { margin: 0 0 12px; border-radius: 4px; }
+        .vyo-back:focus-visible, .vyo-hero-link:focus-visible, .vyo-card-link:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyo-hero { position: relative; overflow: hidden; overflow: clip; display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 18px 24px; margin-bottom: 18px; padding: 22px 24px; }
+        .vyo-hero::after { content: ""; position: absolute; right: -70px; top: -90px; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, rgba(232, 112, 58, 0.16), transparent 70%); pointer-events: none; }
+        .vyo-hero-id { position: relative; z-index: 1; display: flex; align-items: flex-start; gap: 16px; flex: 1 1 360px; min-width: 0; }
+        .vyo-hero-avatar { width: 56px; height: 56px; font-size: 18px; font-weight: 700; letter-spacing: .02em; background: var(--vy-grad); color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vyo-hero-who { min-width: 0; }
+        .vyo-hero-name { margin: 2px 0 0; font-family: var(--vy-display); font-size: 24px; font-weight: 600; line-height: 1.15; letter-spacing: -0.015em; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyo-hero-legal { margin-top: 3px; font-size: 12.5px; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vyo-hero-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 10px; }
+        .vyo-hero-fact { font-size: 12px; font-weight: 600; color: var(--vy-on-grad); }
+        .vyo-tag-paused { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; background: rgba(224, 146, 30, 0.16); color: var(--vy-amber-text); }
+        .vyo-hero-contact { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 12px; }
+        .vyo-hero-link { display: inline-flex; align-items: center; gap: 7px; min-width: 0; border-radius: 4px; font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+        .vyo-hero-link svg { flex: none; color: var(--vy-accent-text); }
+        .vyo-hero-link span { overflow-wrap: anywhere; }
+        .vyo-hero-link:hover span { text-decoration: underline; text-underline-offset: 2px; }
+        .vyo-hero-none { font-size: 12.5px; color: var(--vy-on-grad); }
+        .vyo-hero-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 100%; }
+        .vyo-hero-actions .vy-btn { gap: 7px; }
+        .vyo-kpis { margin-bottom: 22px; }
+        .vyo-root .vy-dk-val.vyo-kpi-extra { margin-top: 2px; font-size: 19px; }
+        .vyo-ownerpage .vyo-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+        .vyo-card { padding: 20px 22px; }
+        .vyo-card-head { flex-wrap: wrap; margin-bottom: 12px; }
+        .vyo-card-head .vy-card-title { display: inline-flex; align-items: center; }
+        .vyo-card-link { border-radius: 4px; font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); }
+        .vyo-card-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+        .vyo-card-sub { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vyo-empty { padding: 26px 16px; }
+        .vyo-empty-sub { margin: 6px 0 0; font-size: 12.5px; }
+        .vyo-sublabel { margin: 0 0 12px; }
+        .vyo-sublabel.is-spaced { margin: 22px 0 8px; }
+        .vyo-flags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .vyo-num { font-variant-numeric: tabular-nums; }
+        .vyo-fact-note { margin-top: 2px; font-size: 11.5px; color: var(--vy-on-grad); }
+        .vyo-terms-table { min-width: 0; }
+        .vyo-inline-form { flex: none; margin: 0; }
+        .vyo-inline-note { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--vy-r-sm); font-size: 12.5px; line-height: 1.5; }
+        .vyo-inline-note.is-ok { background: rgba(31, 110, 75, 0.08); border: 1px solid rgba(31, 110, 75, 0.2); color: #1F6E4B; }
+        .vyo-inline-note.is-err { background: rgba(143, 49, 16, 0.07); border: 1px solid rgba(143, 49, 16, 0.2); color: #8F3110; }
+        /* net to owner — credited beside deducted, the net beneath both */
+        .vyo-net-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 28px; }
+        .vyo-net-label { margin-bottom: 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-muted); }
+        .vyo-net-note { margin-left: 4px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+        .vyo-net-row { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12.5px; color: var(--vy-ink); }
+        .vyo-net-row.is-sum { margin-top: 2px; border-top: 1px solid var(--vy-hairline); font-weight: 700; }
+        .vyo-net-total { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 2px solid var(--vy-ink); font-family: var(--vy-display); font-size: 15px; font-weight: 700; }
+        /* the rail — how they're paid, the portal, the team's notes */
+        .vyo-terms, .vyo-portalcard, .vyo-notes { padding: 18px 20px; }
+        .vyo-terms-big { font-family: var(--vy-display); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: var(--vy-ink); }
+        .vyo-terms-next { display: block; margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--vy-accent-text); }
+        .vyo-paused-word { color: var(--vy-amber-text); }
+        .vyo-dd-note { margin-left: 4px; color: var(--vy-on-grad); }
+        .vyo-portal-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .vyo-note { padding: 10px 0; border-top: 1px solid var(--vy-hairline); font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vyo-notes .vy-card-title + .vyo-note { margin-top: 8px; }
+        .vyo-note-legacy, .vyo-note-body { white-space: pre-line; overflow-wrap: anywhere; }
+        .vyo-note-meta { margin-top: 3px; font-size: 11px; color: var(--vy-on-grad); }
+        .vyo-note-form { margin-top: 12px; }
+        .vyo-note-form textarea.vy-input { width: 100%; min-height: 64px; resize: vertical; }
+        .vyo-note-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+        .vyo-note-foot .vyo-hint { margin: 0; }
+        /* the dialogs' own pieces — the rate box, the period line, three fields in a row */
+        .vyo-rate { display: flex; align-items: center; gap: 8px; max-width: 180px; }
+        .vyo-rate-unit { font-size: 15px; font-weight: 600; color: var(--vy-on-grad); }
+        .vyo-factlist--spaced { margin-bottom: 18px; }
+        .vyo-closed-upto { margin: 0 0 14px; padding: 9px 12px; border-radius: var(--vy-r-sm); background: rgba(120, 70, 40, 0.06); border: 1px solid rgba(120, 70, 40, 0.1); font-size: 12.5px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vyo-span { min-height: 18px; margin: -6px 0 14px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+        .vyo-trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 12px; }
+        .vyo-trio .vy-field { min-width: 0; }
+        .vyo-field-last { margin-bottom: 4px; }
+
+        /* the payout run page (2026-10-03) — its breadcrumb, the bar, and the notes that sat in inline styles */
+        .vyo-pr { position: relative; }
+        .vyo-pr-crumbs { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 12.5px; }
+        .vyo-pr-crumb { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; font-weight: 500; color: var(--vy-on-grad); }
+        .vyo-pr-crumb:hover { text-decoration: underline; text-underline-offset: 2px; }
+        .vyo-pr-crumb:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyo-pr-sep, .vyo-pr-here { color: var(--vy-on-grad); }
+        .vyo-pr-bar { margin-bottom: 12px; }
+        .vyo-pr-actions { gap: 8px; }
+        .vyo-pr-actions .vy-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
+        .vyo-pr-off { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 16px; padding: 10px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); font-size: 12.5px; line-height: 1.5; color: var(--vy-ink); }
+        .vyo-pr-off svg { flex: none; margin-top: 2px; color: var(--vy-accent-text); }
+        .vyo-pr-cols { margin-top: 22px; }
+        .vyo-pr-note { margin: 0 0 12px; }
+        .vyo-pr-note--top { margin-top: 14px; }
+        .vyo-pr-note--tight { margin-top: 10px; }
+        .vyo-pr-soon { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+        .vyo-pr-end { text-align: right; }
+        .vyo-pr-holdnote { padding: 8px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--vy-on-grad); }
+
+        /* the unit requests page (2026-10-03) — a request is a card with its photos; Approve and Decline open the dialogs */
+        .vyo-ur { position: relative; }
+        .vyo-ur-intro { max-width: 720px; margin: 0 0 14px; font-size: 13px; line-height: 1.55; color: var(--vy-on-grad); }
+        .vyo-ur-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .vyo-ur-chip { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; border-radius: var(--vy-r-pill); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.6); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); transition: background .15s ease, border-color .15s ease; }
+        .vyo-ur-chip:hover { border-color: var(--vy-accent-border); }
+        .vyo-ur-chip:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vyo-ur-chip.is-on { background: var(--vy-grad); border-color: transparent; color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vyo-ur-chipcount { display: inline-grid; place-items: center; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgba(120, 70, 40, 0.1); color: var(--vy-ink); }
+        .vyo-ur-chip.is-on .vyo-ur-chipcount { background: rgba(255, 255, 255, 0.25); color: #fff; }
+        .vyo-ur-list { padding: 6px 22px; }
+        .vyo-ur-item { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 16px; align-items: start; padding: 18px 0; border-top: 1px solid var(--vy-hairline); }
+        .vyo-ur-item:first-child { border-top: none; }
+        .vyo-ur-media { width: 96px; height: 72px; overflow: hidden; border-radius: var(--vy-r-md); background: rgba(120, 70, 40, 0.06); border: 1px solid var(--vy-hairline); }
+        .vyo-ur-cover { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .vyo-ur-noimg { display: grid; place-items: center; width: 100%; height: 100%; color: var(--vy-on-grad); }
+        .vyo-ur-body { min-width: 0; }
+        .vyo-ur-top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+        .vyo-ur-name { margin: 0; font-family: var(--vy-display); font-size: 16px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyo-ur-status { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; line-height: 1.5; background: var(--vy-hairline); color: var(--vy-on-grad); }
+        .vyo-ur-status.is-pending { background: rgba(224, 146, 30, 0.16); color: var(--vy-amber-text); }
+        .vyo-ur-status.is-approved { background: rgba(31, 110, 75, 0.14); color: #1F6E4B; }
+        .vyo-ur-meta { margin-top: 4px; font-size: 12px; font-weight: 600; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vyo-ur-details { margin: 6px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vyo-ur-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+        .vyo-ur-thumb { display: block; width: 48px; height: 36px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline); }
+        .vyo-ur-more { font-size: 12px; font-weight: 600; color: var(--vy-on-grad); }
+        .vyo-ur-outcome { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: #1F6E4B; }
+        .vyo-ur-outcome.is-quiet { color: var(--vy-on-grad); }
+        .vyo-ur-note { margin: 6px 0 0; font-size: 12.5px; font-style: italic; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vyo-ur-removed { margin: 8px 0 0; font-size: 12px; font-weight: 600; color: var(--vy-amber-text); }
+        .vyo-ur-actions { display: flex; gap: 8px; flex: none; }
+        .vyo-ur-empty { padding: 34px 16px; }
+        .vyo-ur-empty-sub { margin: 6px 0 0; font-size: 12.5px; }
+
+        @media (max-width: 1180px) {
+            .vyo-ownerpage .vyo-layout { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 760px) {
+            .vyo-hero { padding: 18px 16px; }
+            .vyo-hero-name { font-size: 21px; }
+            .vyo-hero-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+            .vyo-hero-actions .vy-btn { justify-content: center; white-space: nowrap; }
+            .vyo-hero-actions .vy-btn svg { display: none; }
+            .vyo-card { padding: 16px; }
+            .vyo-net-grid, .vyo-trio { grid-template-columns: minmax(0, 1fr); }
+            .vyo-ur-list { padding: 4px 16px; }
+            .vyo-ur-item { grid-template-columns: 72px minmax(0, 1fr); gap: 12px; }
+            .vyo-ur-media { width: 72px; height: 56px; }
+            .vyo-ur-actions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vyo-ur-actions .vy-btn { justify-content: center; }
+            .vyo-note-foot { flex-wrap: wrap; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after { animation: none !important; transition: none !important; }
             .vy-fade { opacity: 1; }

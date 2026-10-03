@@ -504,7 +504,16 @@
 
                                 {{-- OWNER ONLY: the units (a unit that has an owner is shown, never offered) and the agreement --}}
                                 <div x-show="role === 'owner'">
-                                    @if (count($inviteUnits) > 0)
+                                    @php
+                                        // 2026-10-03 — when every unit already has an owner there is nothing to pick, so one line says so
+                                        $vyFreeUnits = count(array_filter($inviteUnits, fn (array $u): bool => $u['owner'] === null));
+                                    @endphp
+                                    @if (count($inviteUnits) > 0 && $vyFreeUnits === 0)
+                                        <div class="vyo-access">
+                                            <strong>Every unit here already has an owner</strong>
+                                            <span>So there are none to give them. Once they join, they can ask for a new unit from their portal.</span>
+                                        </div>
+                                    @elseif (count($inviteUnits) > 0)
                                         <fieldset class="vyo-unitfield">
                                             <legend class="vy-inv-lbl">Their units <span class="vyo-optional">optional</span></legend>
                                             <div class="vyo-units-pick">
@@ -518,7 +527,7 @@
                                                     </label>
                                                 @endforeach
                                             </div>
-                                            <p class="vyo-hint" x-text="units.length === 0 ? 'None chosen — you can give units later from the owner’s page.' : units.length + (units.length === 1 ? ' unit' : ' units') + ' — they become this owner’s when the invite is accepted.'"></p>
+                                            <p class="vyo-hint" x-text="units.length === 0 ? 'None chosen — an owner is given existing units only in their invite.' : units.length + (units.length === 1 ? ' unit' : ' units') + ' — they become this owner’s when the invite is accepted.'"></p>
                                             @error('unit_ids')<div class="vyo-fielderr">{{ $message }}</div>@enderror
                                         </fieldset>
                                     @endif

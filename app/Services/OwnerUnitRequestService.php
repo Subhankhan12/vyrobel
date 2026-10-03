@@ -207,6 +207,13 @@ class OwnerUnitRequestService
                 // pending re-check so the failure ORDER is unchanged (a non-pending request still refuses for
                 // being non-pending, not for a bad property id) and so nothing is resolved for a request that
                 // is about to be refused.
+                // ⚠️ (2026-10-03, the owners module review) — an owner removed after asking is archived (soft-deleted): the
+                //    unit would be created owned by them, an owner no screen shows and the payout engine never selects. Only a
+                //    decline is left for such a request; the page offers just that.
+                if (! Owner::query()->whereKey($locked->owner_id)->exists()) {
+                    throw new RuntimeException('This request’s owner has been removed — it can only be declined.');
+                }
+
                 $property = Property::query()->findOrFail($propertyId);
                 $roomType = RoomType::query()->where('property_id', $property->id)->findOrFail($roomTypeId);
 

@@ -165,10 +165,11 @@ it('offers unit-request Approve and Decline only to a role holding units.manage'
     $manager = operatorUser($s, [], 'Hotel Manager');
     $managerHtml = $this->actingAs($manager)->get(route('app.unit-requests'))->assertOk()->getContent();
     expect($managerHtml)->toContain('Casa Onda 2B')
-        // ⚠️ BOTH guards on this page are covered: the review <td> (the buttons) and the form block (the
-        // routes). A mutation removing only one of them must still red — proven for each separately.
-        ->and($managerHtml)->toContain('>Review<')                    // the review column header (guard A)
-        ->and($managerHtml)->toContain("mode = 'approve'")            // the Approve button itself (guard B)
+        // ⚠️ BOTH guards on this page are covered: the review buttons and the request's own addresses. A mutation removing
+        // only one of them must still red — proven for each separately. (2026-10-03: the page was rebuilt — the review
+        // column and the old `mode = 'approve'` button are gone, so the needles name the new markup; the gate is unchanged.)
+        ->and($managerHtml)->toContain("review('approve', \$el)")      // the Approve button itself (guard A)
+        ->and($managerHtml)->toContain('data-review=')                  // the request's review addresses (guard B)
         ->and($managerHtml)->toContain(route('app.unit-requests.approve', $request->id))
         ->and($managerHtml)->toContain(route('app.unit-requests.decline', $request->id));
 
@@ -181,8 +182,8 @@ it('offers unit-request Approve and Decline only to a role holding units.manage'
     // page also renders, so a bare-string absence check fails for the wrong reason — over-broad reads were
     // the audit's most frequent instrument error, and this is the same one.
     expect($deskHtml)->toContain('Casa Onda 2B')          // the row renders — not an empty-table false pass
-        ->and($deskHtml)->not->toContain('>Review<')
-        ->and($deskHtml)->not->toContain("mode = 'approve'")
+        ->and($deskHtml)->not->toContain("review('approve', \$el)")
+        ->and($deskHtml)->not->toContain('data-review=')
         ->and($deskHtml)->not->toContain(route('app.unit-requests.approve', $request->id))
         ->and($deskHtml)->not->toContain(route('app.unit-requests.decline', $request->id));
 
