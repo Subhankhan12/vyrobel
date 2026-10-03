@@ -19304,3 +19304,14 @@ other project's `phpunit` was briefly running on the Mac and had exited when che
 set** (`payout-run-scope` 26; baseline 297/297 green; 16:24–16:50 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 /
 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 17:23 Baku) ·
 PHPStan L5 0 errors and Pint clean, both on the whole codebase.
+
+✅ **LIVE on `rel_AR @ d90f40ca` (2026-10-03, swap 4 ms, 17:26:24 Baku).** No migration; 16 files shipped. 🔬 Preflight from the
+staged release on production, read-only: the payout run page and all three payout writes behind `payouts.manage`, the pause
+behind `users.manage`; the new exception and `isPaused()` present; the payout run, Owners, owner, Units and owner-portal payouts
+views compile; **`PAYOUT_ENGINE_ENABLED` off**; production holds 0 payout runs, 0 paused preferences and 0 payouts; the new
+reads 0.5 ms median, 2.3 ms at most across 15 organisations. 🔬 After the swap: public checks **12 PASS · 0 FAIL · 0 could not
+measure** (`SERVED=0`); **1,439 of 1,439** files in the live release match git at `d90f40ca` (the other 1,206 git files are never
+deployed); the `.htaccess` drift check passes (self-test 3/3); 0 errors logged since the swap. **The live look — he signed in
+himself, look only, no payout button pressed:** 🖥 the payout run reads "No payout run yet here" with its empty states (no paused
+owner, so no Payouts paused card); the Owners page and its side panel; the Units page with the export link's new behaviour; no
+console message from any page. He was signed out and the automated browser closed.

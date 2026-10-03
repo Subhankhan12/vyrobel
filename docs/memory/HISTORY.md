@@ -550,6 +550,10 @@ retry rule (`PayoutRecovery::isRetryable`) had not learned the new refusal (🔬
 test searched the whole page for, so OW-M32 survived; the test now reads the panel only.
 Gates: 4,188/4,188 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `758751245566c93d`, the code plus these docs); 555/555
 mutations; money gate FULL unmoved.
+**Deploy — LIVE `rel_AR @ d90f40ca`, swap 4 ms (Verified 2026-10-03 17:26 Baku);** 16 files, no migration; preflight read-only
+(every payout write gated, the views compile, the engine off, production holds no payouts); public checks 12/0/0; 1,439/1,439
+files match git; drift check passes; 0 errors since the swap. The live look (he signed in; look only): the payout run, Owners
+and Units pages render, no console message; signed out and the browser closed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
