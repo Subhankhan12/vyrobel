@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the OWNERS pass and the MEMORY update (2026-10-01)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the PAYOUTS pass (2026-10-02)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -24,10 +24,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the OWNERS commit) | **4,174/4,174 on MySQL 8.4.10** (tree `201095a330f2e9bb` = the code plus these docs, 2026-10-01 18:13–18:29 Baku) · **4,174/4,174 on MariaDB 11.8.9** (the same tree, 18:47–19:03 Baku) · 30,751 assertions · every test passed (0 skipped). The RATES follow-up before it (`9b9b80c8`): 4,148/4,148 on both engines | **V** run output 2026-10-01. |
-| Mutations | **529/529 landed and caught across every set**, 0 not caught, 0 did not land; baseline 284/284 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets) | **V** harness output 2026-10-01 18:29–18:46 Baku, tree `201095a330f2e9bb` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-01 19:03 Baku (the OWNERS pass; reseeded 19:03). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-01 19:05 Baku |
+| Suite (the PAYOUTS commit) | **4,188/4,188 on MySQL 8.4.10** (tree `758751245566c93d` = the code plus these docs, 2026-10-03 16:08–16:24 Baku) · **4,188/4,188 on MariaDB 11.8.9** (the same tree, 16:51–17:22 Baku) · 30,845 assertions · every test passed (0 skipped). The OWNERS commit before it (`5d391dbe`): 4,174/4,174 on both engines | **V** run output 2026-10-03. |
+| Mutations | **555/555 landed and caught across every set**, 0 not caught, 0 did not land; baseline 297/297 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ The first full run that day was 554/555 — OW-M32 survived because a new sentence repeated the words its test searched for; the test was scoped, then 555/555 | **V** harness output 2026-10-03 16:24–16:50 Baku, tree `758751245566c93d` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-03 17:23 Baku (the PAYOUTS pass; reseeded 17:23). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-03 17:24 Baku |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AQ`, 2026-10-01, run straight after the 19:08 Baku swap (and on `rel_AP` at 03:21 the same day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-01, after the 19:08 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -91,6 +91,11 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     signed in himself; look only, nothing sent): the page, the dialog centred at 720,450 with Cancel and Send invite both
     42 px on one line, focus on Name, Escape closes it; at 390 px the page is 390 of 390 px wide and the dialog fits with its
     buttons in view; no console message from the page. He was signed out and the automated browser closed.
+0i. **Payouts (2026-10-02)** — his "Lets work on next steps"; the plan approved ("Yes, all of it") and **DEC-n ruled: a pause
+    stops every payout** (`HISTORY.md`, "PAYOUTS"). A11 fixed ("Run payouts now" names its own organisation's owners; its
+    run key carries the organisation); "Last run" shows only this organisation (another's counts were shown); the payout
+    service refuses a paused owner on create, pay and retry, the engine never selects one, the payout run lists them apart;
+    the "until ." wording; A12 (the Units export link). Deploy and live look: below, once done.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -119,8 +124,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes; DEC-k, the
     same on Add unit, was ruled and fixed 2026-09-30, and DEC-l, on every rate write, 2026-10-01). DEC-m (message
     attachments) was ruled and fixed 2026-09-30.
-8c. ⚠️⚠️ Say go on **A11** — "Run payouts now" must stay inside its own organisation (D-PAYRUN-TENANT, found 2026-10-01) —
-    and on A12 (the Units export link); rule on **DEC-n** (should a pause also stop the manual payout run?).
+8c. ✅ Done 2026-10-02: A11 and A12 fixed, DEC-n ruled ("a pause stops every payout") and built. Still open from that area:
+    D-PAYRUN-BUTTON (the "Run payout" button offered while the engine is off) — small, his call.
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

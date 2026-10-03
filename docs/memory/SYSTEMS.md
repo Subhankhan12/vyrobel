@@ -1,6 +1,6 @@
 # SYSTEMS — the map of what runs where
 
-Written 2026-09-27 by MEMORY 01; **updated 2026-10-01** (§2, §9, §10 brought up to date; §11–§13 added for the operator
+Written 2026-09-27 by MEMORY 01; **updated 2026-10-01, and §13 on 2026-10-02 (the payout run)** (§2, §9, §10 brought up to date; §11–§13 added for the operator
 page rebuilds of 2026-09-29 → 10-01). Drafted read-only from the repo; the facts marked **Verified** were read from
 production on the date given (booleans and names only). How each fact is known:
 **Verified** = checked 2026-09-27 · **(git)** = read from the repository at HEAD `91b83801` (2026-09-27) or the working tree ·
@@ -309,15 +309,22 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **The Owners list's statuses** come from `App\Support\Owner\OwnerRows::status()`, in order: not activated → Invited /
   Not activated; no closed statement → No statement; paid; a held payout → On hold; money due with no tax details or no
   payout account → On hold with the reason; lines the booking channel has not confirmed → Needs review; paused with money
-  due → Payouts paused; Ready; Nothing due. A statement closes only when someone presses Close period on an owner
+  due → Payouts paused ("no payout goes out until resumed"); Ready; Nothing due. A statement closes only when someone presses Close period on an owner
   (`OwnerManageController::closePeriod`, the only caller of `finalize()`).
 - **The payout engine:** `PayoutRunService::runScheduled()` (the daily `payouts:run`, inert unless `PAYOUT_ENGINE_ENABLED`)
-  picks the owners due through `dueOwnerIds()`, which skips a paused owner and one below their minimum. ⚠️⚠️ The manual
-  "Run payouts now" (`PayoutRunActionController::runNow` → `run()` with no owner list) selects owners with payable work in
-  EVERY organisation, under super-admin, and does not read a pause (D-PAYRUN-TENANT, D-PAUSE-MANUAL — `OPEN.md` A11,
-  DEC-n). 🔬 Verified in the test database 2026-10-01 (organisation A's click created and paid organisation B's payout).
-  **`PAYOUT_ENGINE_ENABLED` is OFF on production** (Verified 2026-10-01, the read-only preflight), and the route refuses
-  while it is off. The payout run page's Create payouts / Pay record by hand (`ManualPayoutRail`) and do not read a pause.
+  picks the owners due through `dueOwnerIds()`, which skips a paused owner and one below their minimum. `run()` with NO owner
+  list selects every organisation, under super-admin — the platform's mode, for the daily run and the engine's own tests.
+  **Since 2026-10-02 (A11) "Run payouts now" names its own organisation's owners** (`PayoutRunActionController::runNow`,
+  through the tenant scope) and its run key carries the organisation (keys are unique platform-wide; an existing key is
+  handed back as it is). The payout run page's **"Last run here"** is read from this organisation's own payouts — run rows
+  carry no organisation. (git; 🔬 `PayoutRunScopeAndPauseTest`)
+- **A pause stops every payout (DEC-n, ruled 2026-10-02):** `OwnerPayoutPreference::isPaused()` is the one read;
+  `OwnerPayoutService` throws `PayoutsPausedException` in `createFromStatement()`, in `pay()` (inside the row lock, before the
+  rail, beside the tax hold) and in `retry()`; `PayoutRunService::owners()` never selects a paused owner; the payout run lists
+  paused owners under "Payouts paused" and its batch buttons skip and count them (in owners). (git)
+- **`PAYOUT_ENGINE_ENABLED` is OFF on production** (Verified 2026-10-01, the read-only preflight). The payout run page's
+  Create payouts / Mark paid record by hand (`ManualPayoutRail`); its "Run payout" button refuses while the engine is off
+  (D-PAYRUN-BUTTON, `OPEN.md`).
 
 ---
 

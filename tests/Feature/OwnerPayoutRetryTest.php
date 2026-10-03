@@ -3,6 +3,7 @@
 use App\Models\ManagementAgreement;
 use App\Models\Membership;
 use App\Models\Owner;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerUser;
 use App\Models\Payout;
 use App\Models\User;
@@ -361,4 +362,35 @@ it('does not tell the owner a failed payout will be retried automatically', func
         ->assertOk()
         ->assertDontSee('it will be retried')          // the old, false promise
         ->assertSee('Retrying queues a new payout');   // what is actually true
+});
+
+// ── DEC-n (2026-10-02) — a pause stops every payout, a retry included ────────────────────────────────
+it('refuses a retry while the owner’s payouts are paused — and says so, never "no longer failed" (DEC-n)', function () {
+    $s = seedScenario(1);
+    $a = failedPayoutOwner($s);
+    OwnerPayoutPreference::query()->updateOrCreate(['owner_id' => $a['owner']->id], ['paused' => true]);
+
+    $this->actingAs($a['user'])
+        ->post(route('owner.payouts.retry', ['payout' => $a['payout']->id]))
+        ->assertRedirect()
+        ->assertSessionHas('payout_retry_outcome', 'refused')
+        ->assertSessionHas('payout_retry_notice', fn (string $m): bool => str_contains($m, 'paused'));
+
+    expect(rawPayoutCount($a['statement']->id))->toBe(1);   // nothing re-queued
+});
+
+it('hides Retry payout while the owner’s payouts are paused — and says how to undo it (DEC-n)', function () {
+    $s = seedScenario(1);
+    $a = failedPayoutOwner($s);
+    OwnerPayoutPreference::query()->updateOrCreate(['owner_id' => $a['owner']->id], ['paused' => true]);
+
+    // 🔬 the review, 2026-10-02: the button was offered and the service then refused it — the broken promise
+    //    PayoutRecovery exists to prevent (its one rule is read by the button and the write alike)
+    $this->actingAs($a['user'])->get('/owner/payouts')
+        ->assertOk()
+        ->assertSee('payout couldn’t be sent', false)
+        ->assertDontSee('Retry payout')
+        ->assertSee('Your payouts are paused');
+
+    expect(PayoutRecovery::isRetryable($a['payout']->fresh(), $a['owner']))->toBeFalse();
 });

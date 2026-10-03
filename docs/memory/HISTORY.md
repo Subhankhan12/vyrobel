@@ -528,6 +528,29 @@ attachments (§12), owners, invites and the payout engine (§13). The Owners pre
 (`tools/preflight-owners.php.txt`). §3 below brought up to date. Outside the repo: the session memory index and its files,
 and the `.remember` logs.
 
+**PAYOUTS — 2026-10-02 — his "Lets work on next steps"; the plan approved ("Yes, all of it") and DEC-n ruled ("Yes, a pause
+stops every payout").** No migration. ⚠️⚠️ **A11 fixed:** "Run payouts now" passed the engine no owner list, and the engine
+then selects every organisation — 🔬 RED first, organisation A's click created and paid organisation B's owner; the button now
+names its own organisation's owners and starts nothing when none are due. **Found and fixed on the way:** the manual run key
+was unique only by timestamp, so two organisations' runs in one instant were one run (🔬 the suite's frozen clock); and the
+payout run page's "Last run" read the newest run row platform-wide — another organisation's counts (🔬 RED first) — it now
+reads only this organisation's payouts. **DEC-n built:** one refusal in `OwnerPayoutService` (create, pay inside the lock,
+retry), the engine never selects a paused owner, the payout run lists them under "Payouts paused", its buttons skip them and
+count them, the owner portal's retry says so honestly, and the Owners and owner pages say a pause stops every payout. Also the
+"until ." sentence and A12 (Units export). Tests `PayoutRunScopeAndPauseTest` (11) +3 elsewhere; mutations `payout-run-scope`
+26/26; one older mutation (UL-M28) re-anchored. 🖥 Walked locally on tenant three: Create payouts → "1 payout created · 1
+paused owner skipped", Mark paid → "1 payout marked paid · 1 paused owner skipped", the paused card and the waiting row, both
+owner pages' wording, the Units export after an in-place sort, 390 px; no console messages. **This pass's own mistakes, each
+caught before commit:** the first skip count counted statements ("2 paused" for one owner — the walk); my mutation ids reused
+the Portfolio set's `PR-` prefix (the harness's own test); defensive `owner_id !== null` and `?->` checks the model types make
+dead (PHPStan); a test that switched users in one session read the other user's flash message (fixed with `flushSession`).
+**The independent review's one finding, fixed:** the owner portal still offered "Retry payout" to a paused owner — the shared
+retry rule (`PayoutRecovery::isRetryable`) had not learned the new refusal (🔬 RED first); it now has, and the banner says why.
+**And the full mutation run caught one more of mine:** the new pause-dialog sentence repeated the words an Owners side-panel
+test searched the whole page for, so OW-M32 survived; the test now reads the panel only.
+Gates: 4,188/4,188 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `758751245566c93d`, the code plus these docs); 555/555
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

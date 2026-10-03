@@ -7,6 +7,7 @@ namespace App\Livewire\Operator;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Owner;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\PayoutMethod;
@@ -128,7 +129,13 @@ class PayoutRun extends Component
             fn (OwnerStatement $s): bool => in_array((string) $s->getKey(), $claimed, true)
         );
 
-        $ready = $unclaimed->filter(fn (OwnerStatement $s): bool => (int) $s->net_payable_minor > 0)->values();
+        // ⚠️ DEC-n (2026-10-02) — a paused owner's statement is not ready to pay: the service refuses it on every path. It is
+        //    listed on its own, with the way to resume, rather than offered a button that can only be refused.
+        $pausedIds = OwnerPayoutPreference::query()->where('paused', true)->pluck('owner_id')
+            ->map(fn ($id): string => (string) $id)->flip();
+        $payable = $unclaimed->filter(fn (OwnerStatement $s): bool => (int) $s->net_payable_minor > 0)->values();
+        $ready = $payable->reject(fn (OwnerStatement $s): bool => $pausedIds->has((string) $s->owner_id))->values();
+        $pausedReady = $payable->filter(fn (OwnerStatement $s): bool => $pausedIds->has((string) $s->owner_id))->values();
         $notPayable = $unclaimed->filter(fn (OwnerStatement $s): bool => (int) $s->net_payable_minor <= 0)->values();
 
         $pending = $payouts->where('status', 'pending')->values();
@@ -150,8 +157,25 @@ class PayoutRun extends Component
             }
         }
 
-        // The last persisted RUN (the real header/lock/status) + the certified engine MODE (test/live).
-        $latestRun = PayoutRunModel::query()->latest('created_at')->first();
+        // ⚠️⚠️ THIS ORGANISATION'S LAST RUN ONLY (2026-10-02). A run row is platform-level — it carries no organisation — so
+        //    "the latest run" could be another organisation's, and its counts were shown here (🔬 PayoutRunScopeAndPauseTest).
+        //    What this organisation may see is what its OWN payouts record: the newest payout a run created here, and the
+        //    payouts that run created here. The run row gives only its time and mode. (A later run that only PAID older
+        //    payouts does not move that time — a payout is stamped with the run that created it.)
+        $lastRunPayout = Payout::query()->whereNotNull('payout_run_id')->latest('created_at')->first();
+        $latestRun = null;
+        if ($lastRunPayout !== null) {
+            $run = PayoutRunModel::query()->find($lastRunPayout->payout_run_id);
+            $here = Payout::query()->where('payout_run_id', $lastRunPayout->payout_run_id)->pluck('status');
+            $latestRun = [
+                'mode' => (string) ($run->mode ?? PayoutEngineMode::current()),
+                'created' => $here->count(),
+                'paid' => $here->filter(fn ($status): bool => in_array((string) $status, ['paid', 'processing'], true))->count(),
+                'held' => $here->filter(fn ($status): bool => (string) $status === 'held')->count(),
+                'when' => ($run->created_at ?? $lastRunPayout->created_at) !== null
+                    ? CarbonImmutable::parse($run->created_at ?? $lastRunPayout->created_at)->diffForHumans() : '',
+            ];
+        }
 
         // ON HOLD (honest): the certified tax-held payouts + owners with a positive-net ready statement but NO
         // payout method on file (can't be sent). "Request IBAN" is a real notification, not a fabricated verify.
@@ -164,14 +188,7 @@ class PayoutRun extends Component
             'rail' => $this->rail(),
             'mode' => PayoutEngineMode::current(),
             'canPayout' => $canPayout,
-            'latestRun' => $latestRun !== null ? [
-                'status' => (string) $latestRun->status,
-                'mode' => (string) $latestRun->mode,
-                'created' => (int) $latestRun->payouts_created,
-                'paid' => (int) $latestRun->payouts_paid,
-                'held' => (int) $latestRun->payouts_held,
-                'when' => $latestRun->created_at !== null ? CarbonImmutable::parse($latestRun->created_at)->diffForHumans() : '',
-            ] : null,
+            'latestRun' => $latestRun,
             'heldRows' => $this->heldRows($held, $ibanByOwner),
             'noMethodRows' => $this->noMethodRows($noMethod),
             'ibanByOwner' => $ibanByOwner,
@@ -190,7 +207,9 @@ class PayoutRun extends Component
                 ],
             ],
             'ready' => $this->readyRows($ready),
-            'pending' => $this->pendingRows($pending),
+            'pausedReady' => $this->readyRows($pausedReady),
+            'pending' => $this->pendingRows($pending, $pausedIds->all()),
+            'pendingPayable' => $pending->reject(fn (Payout $p): bool => $pausedIds->has((string) $p->owner_id))->count(),
             'recent' => $this->recentRows($recent),
             'notPayable' => $this->notPayableRows($notPayable),
         ]);
@@ -302,12 +321,14 @@ class PayoutRun extends Component
 
     /**
      * @param  Collection<int, Payout>  $payouts
+     * @param  array<string, int>  $pausedIds  owners whose payouts are paused (DEC-n) — their waiting payout is shown, never offered
      * @return list<array<string, mixed>>
      */
-    private function pendingRows(Collection $payouts): array
+    private function pendingRows(Collection $payouts, array $pausedIds): array
     {
         return $payouts->map(fn (Payout $p): array => [
             'payout_id' => (string) $p->getKey(),
+            'paused' => isset($pausedIds[(string) $p->owner_id]),
             'owner_id' => $this->ownerId($p->owner),
             'owner_name' => $this->ownerName($p->owner),
             'amount' => $this->money((int) $p->amount_minor, (string) $p->currency),

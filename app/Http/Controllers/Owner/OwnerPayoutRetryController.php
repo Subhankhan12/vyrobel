@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Owner;
 
+use App\Exceptions\Owner\PayoutsPausedException;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\SetOwnerScopeForPortal;
 use App\Models\Owner;
@@ -85,6 +86,10 @@ class OwnerPayoutRetryController extends Controller
 
         try {
             $result = $payouts->retry($row);
+        } catch (PayoutsPausedException) {
+            // ⚠️ DEC-n (2026-10-02) — a pause stops every payout, a retry included. Said as what it is, with the way back;
+            //    the catch below would have called it "no longer in a failed state".
+            return $this->notice('Your payouts are paused in your payout preferences — resume them, then try again.', 'refused');
         } catch (RuntimeException) {
             // The row moved on between the read and the lock (a webhook landing mid-request) — the guard
             // did its job; say so plainly rather than reporting a queue that did not happen.

@@ -240,8 +240,9 @@ return [
         'id' => 'UL-M28',
         'name' => 'the Export control is shown to a role its route refuses',
         'file' => $view,
-        'old' => "                    @if (\$canExport)\n                        <a class=\"vy-btn vy-btn--ghost\" href=\"{{ \$exportUrl }}\">",
-        'new' => "                    @if (true)\n                        <a class=\"vy-btn vy-btn--ghost\" href=\"{{ \$exportUrl }}\">",
+        // re-anchored 2026-10-02 (A12): the link now carries the view's address at the click; only the guard changes here
+        'old' => "                    @if (\$canExport)\n                        {{-- ⚠️ outside the swapped regions",
+        'new' => "                    @if (true)\n                        {{-- ⚠️ outside the swapped regions",
         'tests' => [['file' => $t, 'filter' => 'exports what the view shows']],
     ],
     [

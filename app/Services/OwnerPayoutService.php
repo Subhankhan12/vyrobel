@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Exceptions\Owner\PayoutHeldException;
 use App\Exceptions\Owner\PayoutReversalQuarantinedException;
+use App\Exceptions\Owner\PayoutsPausedException;
 use App\Models\OwnerLedgerEntry;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Payouts\Contracts\PayoutRail;
@@ -59,6 +61,12 @@ class OwnerPayoutService
             return $existing;
         }
 
+        // ⚠️⚠️ DEC-n (2026-10-02) — a PAUSED owner gets no payout, on any path. Refused HERE, after the idempotent return
+        //    above (handing back an existing payout changes nothing) and before anything is written or carried forward.
+        if (OwnerPayoutPreference::isPaused((string) $statement->owner_id)) {
+            throw PayoutsPausedException::forOwner((string) ($statement->owner->name ?? 'this owner'));
+        }
+
         $net = (int) $statement->net_payable_minor;
 
         if ($net < 0) {
@@ -111,6 +119,12 @@ class OwnerPayoutService
             // Re-check INSIDE the lock — a second caller now sees a non-pending row and refuses (no 2nd transfer).
             if ($locked->status !== 'pending') {
                 throw new RuntimeException("Only a pending payout can be paid (status: {$locked->status}).");
+            }
+
+            // ⚠️⚠️ DEC-n — PAUSED: refused inside the lock and before any rail is touched, beside the tax-hold below. The row is
+            //    left exactly as it was, so resuming makes it payable again.
+            if (OwnerPayoutPreference::isPaused((string) $locked->owner_id)) {
+                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? 'this owner'));
             }
 
             // HELD until tax details are on file (Sub-gate 4) — BEFORE the transfer, so no money moves for a
@@ -249,6 +263,11 @@ class OwnerPayoutService
             // Re-check INSIDE the lock — never trust the passed-in (or displayed) status.
             if ($locked->status !== 'failed') {
                 throw new RuntimeException("Only a failed payout can be retried (status: {$locked->status}).");
+            }
+
+            // ⚠️ DEC-n — a paused owner's payout is not re-queued either (no payout is created while paused).
+            if (OwnerPayoutPreference::isPaused((string) $locked->owner_id)) {
+                throw PayoutsPausedException::forOwner((string) ($locked->owner->name ?? 'this owner'));
             }
 
             // 🔒 One live payout per statement — the createFromStatement invariant, enforced here too.

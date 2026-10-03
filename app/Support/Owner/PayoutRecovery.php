@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Owner;
 
 use App\Models\Owner;
+use App\Models\OwnerPayoutPreference;
 use App\Models\Payout;
 use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
@@ -97,9 +98,10 @@ final class PayoutRecovery
     }
 
     /**
-     * Whether the owner may ask for another attempt at THIS payout. All three conditions are real state:
-     * the payout genuinely failed, nothing live already claims its statement, and nothing in the account
-     * would make the next attempt fail again.
+     * Whether the owner may ask for another attempt at THIS payout. All four conditions are real state:
+     * the payout genuinely failed, nothing live already claims its statement, nothing in the account
+     * would make the next attempt fail again, and the owner's payouts are not paused (DEC-n, 2026-10-02:
+     * a pause stops every payout, a retry included — the service refuses it, so the button must not offer it).
      *
      * ⚠️ This is the DISPLAY/PRE-FLIGHT answer, and it is deliberately not the last word — the service
      * re-decides under a row lock, because everything read here is a snapshot.
@@ -108,6 +110,7 @@ final class PayoutRecovery
     {
         return (string) $payout->status === 'failed'
             && self::liveReplacement($payout) === null
-            && self::blockers($owner) === [];
+            && self::blockers($owner) === []
+            && ! OwnerPayoutPreference::isPaused((string) $owner->getKey());
     }
 }

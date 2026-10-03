@@ -330,6 +330,25 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   `OPEN.md` D-PAYRUN-TENANT). Before a page says what a setting does, read every path that acts on it (Verified 2026-10-01).
 - **Probe a suspected cross-organisation path with a throwaway test, then delete it.** Two organisations in the test database,
   one request, read the other's rows — and report it as verified in the test database, not on production (Verified 2026-10-01).
+- **A platform-level record shown on a tenant page is a leak, even read-only.** Payout run rows carry no organisation; the
+  payout run page showed the newest one — another organisation's counts. Derive what a tenant sees from the tenant's own rows
+  (Verified 2026-10-02).
+- **A key unique across the platform, built only from a timestamp, collides across tenants.** Two organisations' manual runs in
+  one instant shared `manual:<timestamp>`, and the second was handed the first's finished run. The suite's frozen clock made it
+  certain; production would make it rare and silent. Put the tenant in the key (Verified 2026-10-02).
+- **One test session switching users carries the first user's flash into the second's page.** A "not shown to B" assertion read
+  A's own success message. Call `flushSession()` between users (Verified 2026-10-02).
+- **A new refusal in a service must reach every "can this happen?" rule that mirrors it.** DEC-n taught `OwnerPayoutService`
+  to refuse a paused owner, but `PayoutRecovery::isRetryable()` — the rule the owner portal's Retry button reads — did not
+  learn it, so the button was offered and then refused. When a service gains a refusal, search for the predicates that
+  pre-flight it (`isRetryable`, `can_*`, `*Rows` statuses) and teach them in the same change (Verified 2026-10-02, the
+  independent review).
+- **A page-wide search can be satisfied by new text anywhere on the page.** The Owners side-panel test looked for "from the
+  payout run" in the whole page; a new pause-dialog sentence said it too, so the test passed whatever the panel claimed and
+  OW-M32 survived the full run. Scope an assertion to its section, assert what must NOT be there too, and run every set each
+  pass — that is what caught it (Verified 2026-10-02).
+- **Count in the unit the sentence names.** "2 paused, skipped" counted statements for one paused owner; the page listed one.
+  The browser walk caught it; a test now gives the paused owner two statements (Verified 2026-10-02).
 
 ---
 

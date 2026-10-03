@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganization;
 use App\Models\Concerns\BelongsToOwner;
 use App\Payouts\PayoutSchedule;
+use App\Services\OwnerPayoutService;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,6 +60,16 @@ class OwnerPayoutPreference extends Model
     public static function defaults(): array
     {
         return ['frequency' => 'monthly', 'payout_day' => 3, 'minimum_minor' => 0, 'paused' => false];
+    }
+
+    /**
+     * Are this owner's payouts paused? (DEC-n, ruled 2026-10-02: a pause stops EVERY payout — the automatic run, Run
+     * payouts now, Create payouts and Pay.) The ONE read of the flag behind {@see OwnerPayoutService}; an
+     * owner with no row is not paused (the defaults above).
+     */
+    public static function isPaused(string $ownerId): bool
+    {
+        return static::query()->where('owner_id', $ownerId)->where('paused', true)->exists();
     }
 
     /**

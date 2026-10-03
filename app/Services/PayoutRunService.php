@@ -60,7 +60,9 @@ class PayoutRunService
 
     /**
      * Execute a run. Creates + disburses payouts for `$ownerIds` (or every owner with payable work when
-     * null). `$runKey` is the idempotency anchor (default a fresh per-invocation key; scheduled runs pass
+     * null). ⚠️⚠️ NULL MEANS EVERY ORGANISATION — it runs under super-admin, for the daily automatic run. An operator's
+     * request must name its own organisation's owners (A11, 2026-10-02: "Run payouts now" passed null, and one
+     * organisation's click created and paid another's owners). `$runKey` is the idempotency anchor (default a fresh per-invocation key; scheduled runs pass
      * `scheduled:YYYY-MM-DD`). Returns the completed {@see PayoutRun}.
      *
      * @param  list<string>|null  $ownerIds
@@ -187,8 +189,13 @@ class PayoutRunService
      */
     private function owners(?array $ownerIds): Collection
     {
+        // ⚠️⚠️ DEC-n (2026-10-02) — a PAUSED owner is never selected, named or not: a pause stops every payout. (The payout
+        //    service refuses them too, so a pause set mid-run is still honoured — two layers, each tested on its own.)
+        $paused = OwnerPayoutPreference::query()->where('paused', true)->pluck('owner_id')
+            ->map(fn ($id): string => (string) $id)->all();
+
         if ($ownerIds !== null) {
-            return Owner::query()->whereIn('id', $ownerIds)->get();
+            return Owner::query()->whereIn('id', $ownerIds)->whereNotIn('id', $paused)->get();
         }
 
         $payable = OwnerStatement::query()
@@ -197,7 +204,8 @@ class PayoutRunService
 
         $heldOwners = Payout::query()->where('status', 'held')->distinct()->pluck('owner_id');
 
-        $ids = $payable->merge($heldOwners)->filter()->unique()->values()->all();
+        $ids = $payable->merge($heldOwners)->filter()->unique()
+            ->reject(fn ($id): bool => in_array((string) $id, $paused, true))->values()->all();
 
         return $ids === [] ? new Collection : Owner::query()->whereIn('id', $ids)->get();
     }

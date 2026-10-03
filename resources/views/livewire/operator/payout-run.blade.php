@@ -62,10 +62,12 @@
         {{-- Run header + the REAL persisted run + the run action (certified PayoutRunService, test-mode) --}}
         <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 12px;">
             <div class="vy-left">
+                {{-- ⚠️ THIS organisation's figures only (2026-10-02): a run row carries no organisation, so the latest run could be
+                     another's — the component reads what this organisation's own payouts record instead. --}}
                 @if ($latestRun)
-                    <span class="vy-range">Last run · {{ ucfirst($latestRun['status']) }} <span class="vy-muted">· {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held · {{ $latestRun['when'] }}</span></span>
+                    <span class="vy-range">Last run here <span class="vy-muted">· {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held · {{ $latestRun['when'] }}</span></span>
                 @else
-                    <span class="vy-range">No payout run yet this period</span>
+                    <span class="vy-range">No payout run yet here</span>
                 @endif
             </div>
             <div class="vy-right" style="gap: 8px;">
@@ -198,15 +200,61 @@
                     @endif
                 </div>
 
+                {{-- Payouts paused (DEC-n, 2026-10-02) — a pause stops every payout, so these statements are not offered a
+                     button that could only be refused; the way to pay them is to resume the owner. --}}
+                @if (count($pausedReady) > 0)
+                    <div class="vy-card vy-fade">
+                        <div class="vy-detail-head">
+                            <h2 class="vy-card-title">Payouts paused</h2>
+                            <span class="vy-eyebrow">{{ count($pausedReady) }}</span>
+                        </div>
+                        <div class="vy-deferred-note" style="margin: 0 0 12px;">No payout is created or sent for these owners — not by the automatic run, not by hand — until their payouts are resumed on the owner’s page.</div>
+                        <div class="vy-utable-wrap">
+                            <table class="vy-utable vy-utable--stick-action">
+                                <thead>
+                                    <tr>
+                                        <th>Owner</th>
+                                        <th>Statement</th>
+                                        <th>Period</th>
+                                        <th>Net payable</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($pausedReady as $row)
+                                        <tr>
+                                            <td>
+                                                @if ($row['owner_id'])
+                                                    <a class="vy-assign-link" href="{{ route('app.owners.show', $row['owner_id']) }}">{{ $row['owner_name'] }}</a>
+                                                @else
+                                                    {{ $row['owner_name'] }}
+                                                @endif
+                                            </td>
+                                            <td class="vy-u-code">{{ $row['sequence_no'] !== null ? '#' . $row['sequence_no'] : '—' }}</td>
+                                            <td>{{ $row['period'] }}</td>
+                                            <td class="vy-u-code">{{ $row['net'] }}</td>
+                                            <td>
+                                                @if ($row['owner_id'])
+                                                    <a class="vy-act" href="{{ route('app.owners.show', $row['owner_id']) }}">Open owner</a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Pending transfers — REAL payout rows awaiting the rail. --}}
                 <div class="vy-card vy-fade">
                     <div class="vy-detail-head">
                         <h2 class="vy-card-title">Pending transfers</h2>
-                        @if (count($pending) > 0 && $rail['can_send'] && auth()->user()?->can('payouts.manage'))
+                        @if ($pendingPayable > 0 && $rail['can_send'] && auth()->user()?->can('payouts.manage'))
                             <form method="POST" action="{{ route('app.payouts.pay') }}">
                                 @csrf
                                 <button type="submit" class="vy-btn vy-btn--accent">
-                                    Mark {{ count($pending) }} paid
+                                    Mark {{ $pendingPayable }} paid
                                 </button>
                             </form>
                         @else
@@ -257,7 +305,10 @@
                                             <td>{{ $row['method'] }}@if ($row['owner_id'] && ($ibanByOwner[$row['owner_id']] ?? null))<div class="vy-u-sub" style="font-variant-numeric: tabular-nums;">{{ $ibanByOwner[$row['owner_id']] }}</div>@endif</td>
                                             <td class="vy-u-code">{{ $row['amount'] }}</td>
                                             <td>
-                                                @if ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
+                                                @if ($row['paused'])
+                                                    {{-- DEC-n — the service refuses it; resuming the owner makes it payable again --}}
+                                                    <span class="vy-act is-soon" aria-disabled="true" title="Payouts to this owner are paused — resume them on the owner’s page">Paused</span>
+                                                @elseif ($rail['can_send'] && auth()->user()?->can('payouts.manage'))
                                                     <form method="POST" action="{{ route('app.payouts.pay') }}">
                                                         @csrf
                                                         <input type="hidden" name="payout_id" value="{{ $row['payout_id'] }}">
@@ -343,7 +394,7 @@
                     <div class="vy-runsum-label">Run summary</div>
 
                     @if ($latestRun)
-                        <div class="vy-runsum-head">{{ ucfirst($latestRun['status']) }}</div>
+                        <div class="vy-runsum-head">Last run here</div>
                         <div class="vy-runsum-sub">
                             {{ $latestRun['created'] }} created · {{ $latestRun['paid'] }} paid · {{ $latestRun['held'] }} held
                             @if ($latestRun['when'])

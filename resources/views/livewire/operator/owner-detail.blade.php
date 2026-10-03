@@ -534,12 +534,13 @@
                         <button type="submit" class="vy-btn vy-btn--accent">Save changes</button>
                     </div>
                 </form>
-                {{-- Pause payouts — REAL (OwnerPayoutPreference.paused; the engine skips a paused owner). --}}
+                {{-- Pause payouts — REAL (OwnerPayoutPreference.paused). DEC-n (2026-10-02): a pause stops EVERY payout — the
+                     automatic run, Run payouts now, Create payouts and Pay (OwnerPayoutService refuses a paused owner). --}}
                 <form method="POST" action="{{ route('app.owners.pause-payouts', $ownerId) }}" style="border-top: 1px solid var(--vy-hairline); margin-top: 16px; padding-top: 14px;">
                     @csrf
                     <input type="hidden" name="paused" value="{{ $payoutPaused ? '0' : '1' }}">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div><strong style="font-size: 13.5px;">{{ $payoutPaused ? 'Payouts are paused' : 'Pause payouts' }}</strong><br><span class="vy-muted" style="font-size: 12px;">Amounts accumulate and carry forward until resumed.</span></div>
+                        <div><strong style="font-size: 13.5px;">{{ $payoutPaused ? 'Payouts are paused' : 'Pause payouts' }}</strong><br><span class="vy-muted" style="font-size: 12px;">No payout is created or sent until resumed — closed statements stay owed.</span></div>
                         <button type="submit" class="vy-btn vy-btn--ghost">{{ $payoutPaused ? 'Resume' : 'Pause' }}</button>
                     </div>
                 </form>

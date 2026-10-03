@@ -524,3 +524,16 @@ it('keeps the page a read view: no public method but render on the component', f
 
     expect($publics)->toBe(['render']);
 });
+
+it('⚠️ exports the view on screen — the Export link takes the address of a filter or sort changed in place (A12)', function () {
+    $s = seedScenario(1);
+    $html = (string) $this->actingAs(operatorUser($s, [], 'Hotel Manager'))->get(route('app.units', ['sort' => 'room_type']))
+        ->assertOk()->getContent();
+    preg_match('/<a\b[^>]*href="[^"]*\/units-export[^"]*"[^>]*>/s', $html, $tag);
+
+    // without script the link the server wrote is this view's own; with it, the view's address at the moment of the click
+    // (🖥 on Owners, 2026-10-01: sorting in place left the link on the address the page was loaded with — Units had the same shape)
+    expect($tag[0] ?? '')->toContain('href="'.e(route('app.units.export', ['sort' => 'room_type'])).'"')
+        ->toContain('data-export-base="'.e(route('app.units.export')).'"')
+        ->toContain('location.search');
+});

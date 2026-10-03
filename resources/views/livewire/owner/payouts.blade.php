@@ -137,6 +137,11 @@
                             </a>
                         @endif
                     @endforeach
+                @elseif ($recovery['paused'])
+                    {{-- DEC-n (2026-10-02) — a pause stops every payout, a retry included: say so, and how to undo it --}}
+                    <div class="vy-po-hold-sub" style="margin-top:8px">
+                        Your payouts are paused in your payout preferences below — resume them to try this payout again.
+                    </div>
                 @elseif ($recovery['can_act'] && $recovery['can_retry'])
                     <div class="vy-po-hold-sub" style="margin-top:8px">
                         Retrying queues a new payout for this statement — your manager sends it on the next payout run.

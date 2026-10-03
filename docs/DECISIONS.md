@@ -19241,3 +19241,66 @@ the empty state, the four figures, the chips and the side panel ("the automatic 
 the page is 390 of 390 px wide and the dialog fits with its buttons in view; no console message from the page (the session's two
 older entries were a local sign-in and the CDN's one-time browser check on `/login`). He was signed out and the automated browser
 closed.
+
+## 2026-10-02 — Payouts: "Run payouts now" stays inside its organisation (A11), "Last run" shows only this organisation, and a pause stops every payout (DEC-n ruled); the Units export follows the view (A12)
+
+**Asked:** "Lets work on next steps." The plan put to him — Part 1 A11 with the "Last run" leak and the "until ." wording,
+Part 2 DEC-n, Part 3 A12 — was answered "Yes, all of it (Recommended)", and **DEC-n was ruled "Yes, a pause stops every
+payout (Recommended)"**.
+
+**A11 — fixed.** "Run payouts now" called `PayoutRunService::run()` with no owner list, and `run()` with none selects owners
+with payable work in EVERY organisation, under super-admin (the daily automatic run's mode). 🔬 `PayoutRunScopeAndPauseTest`,
+RED first: organisation A's click created and paid organisation B's owner. Now the button names its own organisation's owners
+(the engine's selection read through the tenant scope), starts no run when there are none and says so, and the engine's
+every-organisation mode stays for the daily run (its tests call it so on purpose). **Found while fixing it, and fixed:** the
+manual run key was `manual:<timestamp>`, unique across the platform, and a run whose key exists is handed back as it is — two
+organisations' runs in the same instant would have been ONE run, the second doing nothing and reporting the first one's
+figures (🔬 under the suite's frozen clock). The key now carries the organisation.
+
+**The "Last run" leak — found by reading, fixed.** Run rows carry no organisation, and the payout run page showed the newest
+one — another organisation's created/paid/held counts (🔬 RED first: A's page read B's "2 created"). It now reads only what
+this organisation's own payouts record: the newest payout a run created here, and the payouts that run created here ("Last
+run here"); the platform-level run status is no longer shown on a tenant page.
+
+**DEC-n — ruled and built: a pause stops every payout.** One definition (`OwnerPayoutPreference::isPaused()`), one refusal
+(`PayoutsPausedException`) in `OwnerPayoutService`: `createFromStatement()` (after the idempotent return, before anything is
+written or carried forward), `pay()` (inside the row lock, before the rail, beside the tax hold — the row is left exactly as it
+was) and `retry()`. The engine never selects a paused owner (`PayoutRunService::owners()`, named or not) — two layers, each
+mutation-proven on its own. The payout run page lists a paused owner's statements under **Payouts paused** with the way to
+resume; a paused owner's waiting payout shows "Paused" instead of Mark paid; Create payouts, Mark paid and Run payouts now skip
+them and say how many **owners** (the walk caught the first version counting statements: "2 paused" for one owner). The
+owner portal's retry says "Your payouts are paused in your payout preferences — resume them, then try again." instead of "no
+longer in a failed state". The words: the Owners page's pause dialog, its row reason and notice, and the owner page ("No payout
+is created or sent until resumed — closed statements stay owed.", replacing "Amounts accumulate and carry forward until
+resumed."). The owner portal's own pause already said "pausing stops your payouts entirely" — now true; unchanged.
+
+**Also fixed:** the payout run's read-only refusal ended "…read-only until ." for a cancelled workspace (no resume date).
+**A12 — fixed:** the Units Export link takes the view's address at the click, as on Owners.
+
+**Not changed, noted:** the payout run offers "Run payout (test mode)" while `PAYOUT_ENGINE_ENABLED` is off, a button that can
+only refuse (it says why) — pre-existing, the same on production (D-PAYRUN-BUTTON).
+
+**The independent review** (read-only, the whole diff) found the cross-organisation paths, the money paths (the pause check
+sits inside the payout lock without touching the double-transfer guard), the skip counts and the Blade clean — and **one real
+gap, fixed:** the owner portal's "Retry payout" button is decided by `PayoutRecovery::isRetryable()`, the ONE rule read by the
+button and the write alike, and it did not know about pauses — so a paused owner was offered a button the service then refused
+(🔬 RED first). The rule now includes the pause, and the banner says "Your payouts are paused in your payout preferences below —
+resume them to try this payout again." Its one sub-threshold note is recorded, not changed: "Last run here" takes its time from
+the newest run that CREATED a payout here, so a later run that only paid older payouts does not move that time (no tenant or
+money effect).
+
+**Tests.** `PayoutRunScopeAndPauseTest` (11, new), `OwnerPayoutRetryTest` +2, `UnitsListRedesignTest` +1 — each RED first
+except two added after the code to give each layer its own test, both proven by the mutation set. One existing mutation
+(UL-M28) re-anchored to the moved Units link; no test was loosened. Mutations `payout-run-scope` 26/26. ⚠️ **The full
+run of every set caught a weakening this pass caused elsewhere:** OW-M32 (the Owners side panel claiming automatic payouts)
+survived, because the new pause-dialog sentence "…paid again from the payout run…" contained the words the panel's test
+searched the whole page for. The test now reads the panel only (and asserts both what it says and what it must not); OW-M32 is
+caught again.
+
+**Gates (each read from its own output, 2026-10-02/03):** **4,188/4,188 on MySQL 8.4.10** (30,845 assertions, tree
+`758751245566c93d`: this code with the entry and the memory written, before these figures were filled in; 16:08–16:24 Baku) ·
+**4,188/4,188 on MariaDB 11.8.9** (the same tree, 16:51–17:22 Baku; nothing connected to the database before the swap — one
+other project's `phpunit` was briefly running on the Mac and had exited when checked) · mutations **555/555 across every
+set** (`payout-run-scope` 26; baseline 297/297 green; 16:24–16:50 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 /
+0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 17:23 Baku) ·
+PHPStan L5 0 errors and Pint clean, both on the whole codebase.

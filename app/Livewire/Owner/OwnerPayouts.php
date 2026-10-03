@@ -210,6 +210,8 @@ class OwnerPayouts extends Component
             'blockers' => $blockers,
             'can_act' => $ctx->can(OwnerTeamRole::CAP_PAYOUT),
             'can_retry' => $owner instanceof Owner && PayoutRecovery::isRetryable($failed, $owner),
+            // DEC-n — a pause stops every payout, a retry included; the banner says so instead of offering a refused button
+            'paused' => $owner instanceof Owner && OwnerPayoutPreference::isPaused((string) $owner->getKey()),
             'retry_route' => route('owner.payouts.retry', ['payout' => $failed->id]),
         ];
     }

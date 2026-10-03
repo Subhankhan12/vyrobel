@@ -280,16 +280,25 @@ it('⚠️ says how statements close and how payouts go out — and nothing the 
     $s = seedScenario(1);
     $admin = owpAdmin($s);
 
+    // ⚠️ read the PANEL, not the page (2026-10-02): the pause dialog's own sentence "…paid again from the payout run…" made a
+    //    page-wide search pass whatever the panel said — mutation OW-M32 survived the full run until this was scoped
+    $panel = function (string $html): string {
+        preg_match('/<section class="vy-card vyo-howpaid[^"]*"[^>]*>(.*?)<\/section>/s', $html, $m);
+
+        return $m[1] ?? '';
+    };
+
     config(['services.payouts.engine_enabled' => false]);
-    $off = (string) $this->actingAs($admin)->get(route('app.owners'))->assertOk()->getContent();
+    $off = $panel((string) $this->actingAs($admin)->get(route('app.owners'))->assertOk()->getContent());
     // 🔬 nothing closes a statement on the 1st: OwnerManageController::closePeriod is the only caller of finalize()
     expect($off)->not->toContain('1st of the month')
         ->and($off)->toContain('Close period')
-        ->and($off)->toContain('from the payout run');
+        ->and($off)->toContain('Sent by your team from the payout run')
+        ->and($off)->not->toContain('Sent automatically');
 
     config(['services.payouts.engine_enabled' => true]);
-    $on = (string) $this->actingAs($admin)->get(route('app.owners'))->assertOk()->getContent();
-    expect($on)->toContain('3rd business day');
+    $on = $panel((string) $this->actingAs($admin)->get(route('app.owners'))->assertOk()->getContent());
+    expect($on)->toContain('Sent automatically')->toContain('3rd business day');
 });
 
 // ── The list's address, its export, and the way back ─────────────────────────────────────────────

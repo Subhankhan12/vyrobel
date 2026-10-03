@@ -24,9 +24,9 @@ use Illuminate\Support\Collection;
  *
  * ⚠️ THE STATUS FOLLOWS WHAT THE PAYOUT RUN WILL DO. A held payout, missing tax details or a missing payout account keep an
  * owner on hold; a statement with unverified lines needs review; payouts paused by the team are paused — ⚠️ until 2026-10-01
- * a paused owner read "Ready" and was counted in the money "ready to pay", though the AUTOMATIC run skips a paused owner
- * ({@see PayoutRunService} `dueOwnerIds`). ⚠️ Only the automatic run reads the pause: a payout created by hand on the payout
- * run page does not (docs/memory/OPEN.md). Judged on THIS statement's payout only (`owner_statement_id`) — one historical
+ * a paused owner read "Ready" and was counted in the money "ready to pay". Since DEC-n (2026-10-02) a pause stops EVERY
+ * payout — the automatic run, Run payouts now, Create payouts and Pay ({@see PayoutRunService}, and the payout service
+ * itself). Judged on THIS statement's payout only (`owner_statement_id`) — one historical
  * paid payout once made every later statement read "Paid" (OperatorOwnersPayableStateTest).
  * `paused` is its own field: the pay status says "paused" only while money is due, and the row menu and the "Payouts
  * paused" chip need the preference itself.
@@ -199,8 +199,8 @@ final class OwnerRows
             return ['draft', 'Needs review', 'Some lines still wait for the booking channel to confirm them'];
         }
         if ($net > 0 && $paused) {
-            // ⚠️ only the AUTOMATIC run reads the pause (PayoutRunService::dueOwnerIds) — the reason says so, and no more
-            return ['paused', 'Payouts paused', 'Paused by your team — the automatic payout run skips them'];
+            // DEC-n (2026-10-02) — a pause stops every payout, by the automatic run or by hand
+            return ['paused', 'Payouts paused', 'Paused by your team — no payout goes out until resumed'];
         }
         if ($net > 0) {
             return ['due', 'Ready', null];

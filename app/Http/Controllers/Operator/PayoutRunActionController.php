@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Livewire\Operator\PayoutRun;
+use App\Models\OwnerPayoutPreference;
 use App\Models\OwnerStatement;
 use App\Models\Payout;
 use App\Models\PayoutRun as PayoutRunModel;
@@ -14,6 +15,7 @@ use App\Payouts\Rails\StripeConnectPayoutRail;
 use App\Services\OwnerPayoutService;
 use App\Services\PayoutRunService;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -72,12 +74,27 @@ class PayoutRunActionController extends Controller
             return $this->back('payout_error', $this->pausedMessage());
         }
 
-        $run = $runs->run(PayoutRunModel::TRIGGER_MANUAL);
+        // ⚠️⚠️ A11 (2026-10-02) — THIS organisation's owners, named. `run()` with no list selects owners in EVERY organisation
+        //    (it runs under super-admin, for the daily automatic run); 🔬 this button passed none, and organisation A's
+        //    click created and paid organisation B's owner (PayoutRunScopeAndPauseTest). A paused owner is left out (DEC-n).
+        [$ownerIds, $paused] = $this->ownersWithWork();
+
+        if ($ownerIds === []) {
+            return $this->back('payout_notice', 'Nothing to run — no owner here has a payable statement or a held payout'
+                .$this->pausedNote($paused).'.');
+        }
+
+        // ⚠️ The run key carries the organisation: keys are unique across the platform, and a run whose key exists is handed
+        //    back as it is — so two organisations' runs in the same instant would have been ONE run, the second doing nothing
+        //    and reporting the first one's figures (🔬 under the suite's frozen clock).
+        $run = $runs->run(PayoutRunModel::TRIGGER_MANUAL, $ownerIds,
+            PayoutRunModel::TRIGGER_MANUAL.':'.app(TenantContext::class)->id().':'.now()->format('U-u'));
         $created = (int) ($run->payouts_created ?? 0);
         $paid = (int) ($run->payouts_paid ?? 0);
         $held = (int) ($run->payouts_held ?? 0);
 
-        return $this->back('payout_notice', 'Payout run complete ('.$run->mode.' mode) — '.$created.' created · '.$paid.' paid · '.$held.' held.');
+        return $this->back('payout_notice', 'Payout run complete ('.$run->mode.' mode) — '.$created.' created · '.$paid.' paid · '.$held.' held'
+            .$this->pausedNote($paused).'.');
     }
 
     public function create(Request $request, OwnerPayoutService $payouts): RedirectResponse
@@ -171,11 +188,16 @@ class PayoutRunActionController extends Controller
      */
     private function createAllReady(OwnerPayoutService $payouts): RedirectResponse
     {
-        $ready = OwnerStatement::query()   // tenant-scoped by BelongsToOrganization
+        $payable = OwnerStatement::query()   // tenant-scoped by BelongsToOrganization
             ->where('status', 'finalized')
             ->where('locked', true)
             ->where('net_payable_minor', '>', 0)
             ->get();
+        // ⚠️ DEC-n — a paused owner's statement is left for when they are resumed, and counted so the sentence says so
+        $pausedIds = $this->pausedOwnerIds();
+        $ready = $payable->reject(fn (OwnerStatement $s): bool => isset($pausedIds[(string) $s->owner_id]))->values();
+        // counted in OWNERS, as the sentence says — one paused owner can hold several statements
+        $paused = $payable->filter(fn (OwnerStatement $s): bool => isset($pausedIds[(string) $s->owner_id]))->pluck('owner_id')->unique()->count();
 
         $created = 0;
         $error = null;
@@ -199,12 +221,16 @@ class PayoutRunActionController extends Controller
                 return $this->back('payout_error', 'Couldn’t create payouts — '.$error);
             }
 
-            return $this->back('payout_notice', $ready->isEmpty()
-                ? 'Nothing is ready to pay — no finalized statement has a positive net payable.'
-                : 'No new payouts — every ready statement already has one.');
+            if ($ready->isEmpty() && $paused > 0) {
+                return $this->back('payout_notice', 'No payout created'.$this->pausedNote($paused).' — resume them on the owner’s page.');
+            }
+
+            return $this->back('payout_notice', ($ready->isEmpty()
+                ? 'Nothing is ready to pay — no finalized statement has a positive net payable'
+                : 'No new payouts — every ready statement already has one').$this->pausedNote($paused).'.');
         }
 
-        $message = $created.' '.Str::plural('payout', $created).' created.';
+        $message = $created.' '.Str::plural('payout', $created).' created'.$this->pausedNote($paused).'.';
 
         if ($error !== null) {
             return $this->back('payout_error', $message.' Some could not be created — '.$error);
@@ -216,7 +242,11 @@ class PayoutRunActionController extends Controller
     /** The batch pay. Every real outcome is counted separately and reported — paid, failed, and refused. */
     private function payAllPending(OwnerPayoutService $payouts): RedirectResponse
     {
-        $pending = Payout::query()->where('status', 'pending')->get();   // tenant-scoped
+        $waiting = Payout::query()->where('status', 'pending')->get();   // tenant-scoped
+        // ⚠️ DEC-n — a paused owner's payout waits for them to be resumed, and is counted so the sentence says so
+        $pausedIds = $this->pausedOwnerIds();
+        $pending = $waiting->reject(fn (Payout $p): bool => isset($pausedIds[(string) $p->owner_id]))->values();
+        $skipped = $waiting->filter(fn (Payout $p): bool => isset($pausedIds[(string) $p->owner_id]))->pluck('owner_id')->unique()->count();
 
         $paid = 0;
         $failed = 0;
@@ -254,10 +284,12 @@ class PayoutRunActionController extends Controller
                 return $this->back('payout_error', 'Couldn’t pay — '.$error);
             }
 
-            return $this->back('payout_notice', 'No pending payouts to pay.');
+            return $this->back('payout_notice', $skipped > 0
+                ? 'Nothing paid'.$this->pausedNote($skipped).' — resume them on the owner’s page.'
+                : 'No pending payouts to pay.');
         }
 
-        $message = implode(' · ', $parts).'.';
+        $message = implode(' · ', $parts).$this->pausedNote($skipped).'.';
 
         // A partial success is NOT a success flash — the failures lead the sentence they are part of.
         if ($failed > 0 || $error !== null) {
@@ -286,7 +318,42 @@ class PayoutRunActionController extends Controller
 
     private function pausedMessage(): string
     {
-        return 'Workspace paused — payouts are read-only until '.app(OperatorWorkspace::class)->resumeLabel().'.';
+        // ⚠️ 2026-10-02 — a cancelled workspace is read-only with NO resume date, and this ended "until ." (the same fix as the
+        //    owner and rate-plan writes)
+        $until = app(OperatorWorkspace::class)->resumeLabel();
+
+        return 'Workspace paused — payouts are read-only '.($until !== null && $until !== '' ? 'until '.$until : 'for now').'.';
+    }
+
+    /**
+     * This organisation's owners with payable work — the engine's own selection (a finalized, locked statement with a
+     * positive net, or a held payout), read through the TENANT scope here — less the paused ones, and how many those were.
+     *
+     * @return array{0: list<string>, 1: int}
+     */
+    private function ownersWithWork(): array
+    {
+        $ids = OwnerStatement::query()->where('status', 'finalized')->where('locked', true)->where('net_payable_minor', '>', 0)
+            ->pluck('owner_id')
+            ->merge(Payout::query()->where('status', 'held')->pluck('owner_id'))
+            ->filter()->map(fn ($id): string => (string) $id)->unique()->values();
+        $pausedIds = $this->pausedOwnerIds();
+        $active = $ids->reject(fn (string $id): bool => isset($pausedIds[$id]))->values()->all();
+
+        return [$active, $ids->count() - count($active)];
+    }
+
+    /** @return array<string, int> this organisation's owners whose payouts are paused, as a lookup */
+    private function pausedOwnerIds(): array
+    {
+        return OwnerPayoutPreference::query()->where('paused', true)->pluck('owner_id')
+            ->map(fn ($id): string => (string) $id)->flip()->all();
+    }
+
+    /** " · 2 paused owners skipped" — or nothing, when no paused owner was left out. */
+    private function pausedNote(int $paused): string
+    {
+        return $paused > 0 ? ' · '.$paused.' paused '.Str::plural('owner', $paused).' skipped' : '';
     }
 
     private function back(string $key, string $message): RedirectResponse

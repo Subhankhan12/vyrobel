@@ -119,7 +119,10 @@
                 <div class="vy-gl-tools">
                     {{-- WAVE 2 · #18 — each control gated on the permission its route requires ("never invite a 403"). --}}
                     @if ($canExport)
-                        <a class="vy-btn vy-btn--ghost" href="{{ $exportUrl }}">
+                        {{-- ⚠️ outside the swapped regions, so it takes the view's address when clicked — a filter or sort changed in
+                             place would otherwise export the view the page was LOADED with (A12, 2026-10-02; as on Owners) --}}
+                        <a class="vy-btn vy-btn--ghost" href="{{ $exportUrl }}" data-export-base="{{ route('app.units.export') }}"
+                           x-on:click="$el.href = $el.dataset.exportBase + location.search">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
                             Export
                         </a>

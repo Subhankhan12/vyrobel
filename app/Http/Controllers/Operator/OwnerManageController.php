@@ -106,8 +106,8 @@ class OwnerManageController extends Controller
         $this->audit->record('owner.payouts_paused', $model, null, ['paused' => $paused]);
 
         return $this->back($owner, 'owners_notice', $paused
-            // ⚠️ 2026-10-01 — only the AUTOMATIC run reads the pause; a payout created by hand on the payout run page does not
-            ? 'Payouts paused for '.$model->name.' — the automatic payout run skips them until you resume.'
+            // DEC-n (2026-10-02) — a pause stops every payout, by the automatic run or by hand on the payout run page
+            ? 'Payouts paused for '.$model->name.' — no payout goes out to them until you resume.'
             : 'Payouts resumed for '.$model->name.'.', $request);
     }
 

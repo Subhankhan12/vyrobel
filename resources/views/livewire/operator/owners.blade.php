@@ -630,8 +630,8 @@
                 </div>
 
                 {{-- ══ PAUSE / RESUME PAYOUTS ══════════════════════════════════════════════════════════════════════════════
-                     ⚠️ ONLY THE AUTOMATIC RUN READS A PAUSE (PayoutRunService::dueOwnerIds). A payout created by hand on the payout
-                     run page is not stopped by it — so the dialog says exactly that, and never "the payout run skips them". --}}
+                     DEC-n (2026-10-02): a pause stops EVERY payout — the automatic run, Run payouts now, Create payouts and Pay;
+                     the payout service refuses a paused owner, so the dialog can say so plainly. --}}
                 <div class="vy-modal-backdrop" x-cloak x-show="pauseOpen" x-transition.opacity x-on:click.self="pauseOpen = false" x-on:keydown.escape.window="pauseOpen = false">
                     <div class="vy-modal vy-modal-card vyo-dlg" x-show="pauseOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vyo-pause-t" tabindex="-1" x-trap.noscroll="pauseOpen">
                         <form method="POST" x-bind:action="link(urls.pause, pause.id)" x-on:submit="stamp($event.target)" data-guard-submit>
@@ -643,20 +643,16 @@
                                 <span class="vy-modal-ico" x-bind:class="! pause.resume && 'is-danger'" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></svg></span>
                                 <div class="vyo-dlg-head">
                                     <h3 class="vy-modal-title" id="vyo-pause-t" x-text="(pause.resume ? 'Resume payouts to ' : 'Pause payouts to ') + pause.name + '?'">Pause payouts?</h3>
-                                    <p class="vyo-dlg-sub" x-text="pause.resume ? 'The automatic payout run includes them again.' : 'The automatic payout run skips them until you resume.'"></p>
+                                    <p class="vyo-dlg-sub" x-text="pause.resume ? 'Their payouts can go out again.' : 'No payout goes out to them until you resume.'"></p>
                                 </div>
                                 <button type="button" class="vy-modal-x" x-on:click="pauseOpen = false" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                             </div>
                             <div class="vy-modal-body">
                                 <ul class="vyo-factlist">
+                                    <li x-show="! pause.resume">No payout is created or sent to them — not by the automatic run, not by hand on the payout run page.</li>
                                     <li x-show="! pause.resume">Nothing they are owed is lost — each closed statement stays owed until it is paid.</li>
                                     <li x-show="! pause.resume">Statements still close as usual.</li>
-                                    @if ($howPaid['engine'])
-                                        <li x-show="pause.resume">The next automatic run pays every closed statement still owed.</li>
-                                    @else
-                                        <li>The automatic payout run is off, so this takes effect when it is turned on.</li>
-                                    @endif
-                                    <li>A payout created by hand on the payout run page is not stopped by a pause.</li>
+                                    <li x-show="pause.resume">Every closed statement still owed can be paid again from the payout run{{ $howPaid['engine'] ? ', and by the next automatic run' : '' }}.</li>
                                     <li>Recorded in the audit log.</li>
                                 </ul>
                             </div>
