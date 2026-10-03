@@ -592,6 +592,12 @@ proposals skip the property limit, pre-existing). Mutations `owner-module` 48/48
 Gates: 4,229/4,229 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `17253d581ca575a5`, the code plus these docs; the committed
 tree adds the no-agreement dialog sentence and its assertion, the 11 affected files re-run on it 75/75); 603/603 mutations;
 money gate FULL unmoved.
+**Deploy — LIVE `rel_AS @ 4751d2c9`, swap 4 ms (Verified 2026-10-03 21:32 Baku);** 15 files, no migration; preflight read-only
+(every changed write gated as its control is, the views compile, the engine off, production holds no owner, agreement, unit
+request or payout — so nothing stacked to collapse); public checks 12/0/0; 1,440/1,440 files match git; drift check passes; 0
+errors since the swap. The live look (he signed in; look only): Owners and Add owner, the payout run's disabled run button and its
+reason, unit requests' empty state; signed out and the browser closed. The owner's page has no owner to show on production — it
+was walked locally.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

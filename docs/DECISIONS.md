@@ -19418,3 +19418,17 @@ mutations **603/603 across every set** (baseline 327/327 green; 20:10–20:38 Ba
 Baku) · PHPStan L5 0 errors and Pint clean on the whole codebase. ⚠️ After those runs the final browser walk changed one dialog
 sentence (an owner with no agreement read "every other term stays as it is"; it now says it is a new agreement, paid monthly in
 their currency) and added its assertion; the 11 affected test files were re-run on the committed tree, 75/75.
+
+✅ **LIVE on `rel_AS @ 4751d2c9` (2026-10-03, swap 4 ms, 21:32:40 Baku).** No migration; 15 files shipped. 🔬 Preflight from the
+staged release on production, read-only: every changed write behind the permission its control is gated on (commission, pause,
+note and remove `users.manage`; close a period and the payout writes `payouts.manage`; invite resend and cancel `users.manage`;
+the proposal `rates.manage`; approve and decline `units.manage`); `CommissionChange` present and `TERM_KEYS` public; the owner,
+Owners, payout run, unit requests and layout views compile; **`PAYOUT_ENGINE_ENABLED` off**; production holds 0 owners, 0
+management agreements (so 0 owners with stacked agreements), 0 unit requests and 0 payouts across 15 organisations. 🔬 After the
+swap: public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,440 of 1,440** files in the live release match
+git at `4751d2c9` (the other 1,212 git files are never deployed); the `.htaccess` drift check passes (self-test 3/3); 0 errors
+logged since the swap. **The live look — he signed in himself, look only:** 🖥 the Owners page ("No owners yet") with Add owner
+centred at 720,450, Cancel and Send invite both 42 px, Escape closing it; the payout run with "Run payouts now" disabled
+(opacity 0.45) and "The automatic payout engine is switched off …" beneath it, no run form on the page; unit requests' chips and
+empty state; no console message from those pages. Production holds no owner, so the owner's page was walked locally only. He was
+signed out and the automated browser closed.
