@@ -381,6 +381,25 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **An outer guard hides an inner one from a test.** The header's buttons sit inside "can manage OR can pay", so removing the
   inner "can pay" changed nothing for a role holding neither (OM-M22). Test the role that splits them — one permission without
   the other (Verified 2026-10-03).
+- **A dead end is not an error.** "It is not possible to do reservation" logged nothing: the page rendered, offered nothing, and
+  said "No units are free". Read the data the page is given on production (read-only, names and counts) before reading code —
+  it named both causes in one run (Verified 2026-10-04, `HISTORY.md`, "NEW RESERVATION").
+- **A focused screen loses the shell's context.** The wizard has no app shell, so no property switcher: under "All properties"
+  it quietly booked into the first one. A screen that drops the shell must show — and let you change — what the shell carried
+  (Verified 2026-10-04).
+- **Create the dependent row last, or undo it on every refusal — and never undo what something else now points at.** The write
+  created the guest before trying the booking, so each refusal left a guest with their contact details. The clean-up, first
+  written as "no reservation variable", would also have removed the guest of a booking SAVED before a later failure (the
+  service records its events after the commit), nulling that booking's guest. Check the rows, not the variable (Verified
+  2026-10-04, the independent review).
+- **A browser draft must not outlive the booking it belongs to.** A localStorage draft filled the next booking — another day,
+  another operator — with its extras, credit and deposit. Keep a draft per tab, restore only what the current screen shows
+  across a change, and never restore money (Verified 2026-10-04, the independent review).
+- **A message computed from a field the framework does not watch never re-renders.** "That email doesn't look right" read the
+  email box directly; Alpine re-rendered nothing when it changed, so a refused Next said nothing. Make the message state, set
+  when the step refuses (Verified 2026-10-04, the browser).
+- **A shared parser's habit is a page's bug.** `MoneyInput` reads "150,50" as 15,050.00 — 100× a European amount. A page can
+  refuse the ambiguous shape before it is sent; the shared rule is the founder's call (D-MONEY-COMMA, Verified 2026-10-04).
 
 ---
 

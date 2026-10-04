@@ -22,6 +22,7 @@ use App\Services\FrontDeskService;
 use App\Services\GuestWalletService;
 use App\Services\OwnerAttributionService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Booking\RestrictionOverrideReason;
 use App\Support\Folio\PropertyCharges;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\Money;
@@ -67,6 +68,9 @@ class ReservationCreateController extends Controller
     /** The `reservations.source` values an operator may create here — NOT `ota` (imported) or `group` (out of scope). */
     private const SOURCES = ['direct', 'walk_in', 'corporate', 'agent'];
 
+    /** What a refusal never sends back to the page ({@see back()}). */
+    private const NEVER_ECHOED = ['_token', 'guest_email', 'guest_phone', 'restriction_override_reason', 'restriction_override_note', 'restriction_override_seen'];
+
     public function store(
         Request $request,
         AssignmentService $assignments,
@@ -86,9 +90,12 @@ class ReservationCreateController extends Controller
         if ($checkIn === null || $checkOut === null || $checkOut <= $checkIn) {
             return $this->back($request, 'Choose valid check-in and check-out dates.');
         }
+        if (CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut)) > UnitAvailabilityService::MAX_NIGHTS) {
+            return $this->back($request, 'A booking can be at most '.UnitAvailabilityService::MAX_NIGHTS.' nights — pick a shorter stay.');
+        }
 
-        $roomTypeId = trim((string) $request->input('room_type_id'));
-        $unitId = trim((string) $request->input('unit_id'));
+        $roomTypeId = $this->text($request, 'room_type_id');
+        $unitId = $this->text($request, 'unit_id');
 
         if ($roomTypeId === '' || $unitId === '') {
             return $this->back($request, 'Choose a room and a specific unit for the stay.');
@@ -114,18 +121,18 @@ class ReservationCreateController extends Controller
             ->firstWhere('room_type_id', $roomTypeId);
 
         if (! is_array($offered) || $offered['priced'] !== true) {
-            return $this->back($request, 'That room isn’t available or priced for those dates. Re-check availability.');
+            return $this->back($request, 'That room isn’t free, or has no price for every night of these dates. Pick a unit from the list again.');
         }
 
         if (Collection::make($offered['units'])->firstWhere('id', $unitId) === null) {
-            return $this->back($request, 'That unit is no longer free for those dates. Re-check availability.');
+            return $this->back($request, 'That unit is no longer free for these dates — pick another one.');
         }
 
         $currency = (string) $offered['currency'];
         // Rate-plan selector — honor a chosen plan ONLY if it is a REAL, priced active plan of this room type
         // for these dates (its price is re-derived server-side by the availability read; a client-sent price or
         // plan is never trusted). Otherwise the default primary plan. No fabricated discount plans (#39).
-        $chosenPlan = collect($offered['plans'])->firstWhere('id', trim((string) $request->input('rate_plan_id', '')));
+        $chosenPlan = collect($offered['plans'])->firstWhere('id', $this->text($request, 'rate_plan_id'));
         $ratePlanId = is_array($chosenPlan) ? (string) $chosenPlan['id'] : (string) $offered['rate_plan_id'];
         $roomChargeMinor = is_array($chosenPlan) ? (int) $chosenPlan['price_minor'] : (int) $offered['price_minor'];
 
@@ -149,23 +156,49 @@ class ReservationCreateController extends Controller
 
         // Payment intent — validated + permission-gated BEFORE any write. Card is refused (deferred), never
         // a PAN. A manual payment may not exceed the room charge at creation time.
-        $method = (string) $request->input('payment_method', 'later');
+        $method = $this->text($request, 'payment_method', 'later');
         $paymentMinor = null;
 
         if ($method === 'card') {
-            return $this->back($request, 'Card payments are coming soon — take cash or bank transfer now, or record it later from the folio.');
+            return $this->back($request, 'Card payments are coming soon — take cash or bank transfer now, or record it later from the folio.', 7);
         }
 
         if (in_array($method, ['cash', 'bank'], true)) {
             if ($request->user()?->cannot('payments.record')) {
-                return $this->back($request, 'You don’t have permission to record a payment.');
+                return $this->back($request, 'You don’t have permission to record a payment.', 7);
             }
             // GATE 1 B.2 — deposit split: validate a positive amount here; it is CAPPED at the real folio
             // balance when recorded (below), so a deposit/full up to the whole stay cost is allowed but the
             // operator can never collect more than is owed. (Was capped at the room charge only.)
-            $paymentMinor = MoneyInput::toMinor((string) $request->input('payment_amount', ''));
+            $paymentMinor = MoneyInput::toMinor($this->text($request, 'payment_amount'));
             if ($paymentMinor === null) {
-                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.');
+                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.', 7);
+            }
+        }
+
+        // ⚠️ THE OVERRIDE RIDES THE RESUBMIT ONLY. There is no override field on a first attempt: the reason is supplied
+        //    together with the breach list the operator was just shown, and the service re-evaluates and refuses again if
+        //    that set has changed since.
+        $overrideLine = [];
+        $overrideReason = $this->text($request, 'restriction_override_reason');
+        if ($overrideReason !== '') {
+            $overrideLine = [
+                'restriction_override_reason' => $overrideReason,
+                'restriction_override_note' => $this->text($request, 'restriction_override_note') ?: null,
+                'restriction_override_seen' => $this->seenBreaches($request),
+            ];
+        }
+
+        // ⚠️ 2026-10-04 — the reason and its note are checked HERE, before anything is written: the service refuses an
+        //    unknown reason, or "Other" with no note, with an exception nothing here caught — a server error page for the
+        //    person who had just been told to choose a reason. Only for someone who may override; for anyone else the
+        //    service's own refusal ({@see RestrictionOverrideForbiddenException}) answers first, as before.
+        if ($overrideReason !== '' && $request->user()?->can('reservations.restriction_override') === true) {
+            if (! RestrictionOverrideReason::isValid($overrideReason)) {
+                return $this->backToOverride($request, 'Choose a reason from the list to book anyway.');
+            }
+            if ($overrideReason === RestrictionOverrideReason::OTHER && ($overrideLine['restriction_override_note'] ?? null) === null) {
+                return $this->backToOverride($request, 'Say why in the note — it’s needed when you choose Other.');
             }
         }
 
@@ -182,19 +215,6 @@ class ReservationCreateController extends Controller
         }
 
         // THE CERTIFIED WRITE. createBooking guards inventory under a row lock; a race is rejected here (the
-        // ⚠️ THE OVERRIDE RIDES THE RESUBMIT ONLY. There is no override field on a first attempt: the
-        //    reason is supplied together with the breach list the operator was just shown, and the service
-        //    re-evaluates and refuses again if that set has changed since.
-        $overrideLine = [];
-        $overrideReason = trim((string) $request->input('restriction_override_reason', ''));
-        if ($overrideReason !== '') {
-            $overrideLine = [
-                'restriction_override_reason' => $overrideReason,
-                'restriction_override_note' => trim((string) $request->input('restriction_override_note', '')) ?: null,
-                'restriction_override_seen' => json_decode((string) $request->input('restriction_override_seen', '[]'), true) ?: [],
-            ];
-        }
-
         // whole transaction rolls back), never a double book. An expected rejection must never 500.
         try {
             $reservation = $assignments->createBooking(
@@ -223,7 +243,7 @@ class ReservationCreateController extends Controller
         } catch (RestrictionOverrideForbiddenException $e) {
             // ⚠️ Should be unreachable — the refusal only OFFERS the override to someone who can use it.
             //    Surfaced rather than 500ing if a request is crafted.
-            return $this->back($request, $e->getMessage());
+            return $this->back($request, $e->getMessage(), 7);
         } catch (RestrictionsViolationException $e) {
             // ⚠️⚠️ THE OVERRIDE IS OFFERED ONLY HERE — AFTER A REFUSAL, never as a checkbox on the form. A
             //    pre-tickable option gets ticked out of habit, the block stops firing at all, and the
@@ -231,20 +251,40 @@ class ReservationCreateController extends Controller
             //    meaningless. ⚠️ The full breach list travels back with the form, so the reason is always
             //    chosen against a list the operator has just read — and `restriction_override_seen` carries
             //    it forward so the service can prove the set did not change in between.
-            return $this->back($request, $e->getMessage())
+            //    ⚠️ 2026-10-04 — and the booking travels back WITH it ({@see back()}): the override used to appear over an
+            //    empty wizard, so choosing a reason resubmitted no unit and no guest and could never succeed.
+            //    ⚠️ The banner says what happened in plain words; the list below it names each rule. The engine's own
+            //    sentence ("5 night(s) … 2026-10-20") is kept only for a resubmit, where it says the rules CHANGED.
+            $notice = $overrideReason !== ''
+                ? $e->getMessage()
+                : 'This booking wasn’t made — these dates are restricted. Book anyway with a reason below, or change the dates in step 1.';
+
+            return $this->back($request, $notice, 7)
                 ->with('restriction_breaches', $e->asRecords())
-                ->with('restriction_can_override', $request->user()?->can('reservations.restriction_override') === true)
-                ->withInput();
+                ->with('restriction_can_override', $request->user()?->can('reservations.restriction_override') === true);
         } catch (BookingException) {
-            return $this->back($request, 'That unit was just taken for those dates — nothing was created. Re-check availability.');
+            return $this->back($request, 'That unit was just taken for these dates — nothing was booked. Pick another one.');
+        } finally {
+            // ⚠️⚠️ 2026-10-04 — A REFUSED BOOKING LEAVES NO GUEST BEHIND. The new guest is created just above, before the
+            //    booking is tried, and every refusal used to leave that record — a name, and the email and phone in their
+            //    encrypted columns — with no stay at all (🔬 measured on the walk: two "Lena Walk"s, "no stays"). It was
+            //    created here a moment ago with a plain insert: no booking, no folio, no audit row points at it, so it is
+            //    removed outright (never soft-deleted with its details kept, #28). An existing guest is never touched.
+            //    ⚠️ ONLY IF NO BOOKING POINTS AT IT (the independent review): createBooking() commits, THEN records its events
+            //    and audit row — a failure there leaves a saved booking and no `$reservation` here, and deleting its guest
+            //    would set that booking's lead guest to NULL (nullOnDelete).
+            if (! isset($reservation) && $guest->wasRecentlyCreated
+                && ! Reservation::withTrashed()->where('lead_guest_id', $guest->getKey())->exists()) {
+                $guest->forceDelete();
+            }
         }
 
         // Persist the fields the wizard collected and previously DROPPED — a post-create update on the
         // returned reservation (the certified createBooking contract is untouched). Estimated arrival (#104),
         // plus GATE 1: the internal team note, the house-rules acknowledgement, and the guest's stay note.
-        $arrivalWindow = trim((string) $request->input('arrival_window', ''));
-        $teamNote = trim((string) $request->input('team_note', ''));
-        $guestNote = trim((string) $request->input('guest_note', ''));   // guest free-text (#28 — in anonymize())
+        $arrivalWindow = $this->text($request, 'arrival_window');
+        $teamNote = $this->text($request, 'team_note');
+        $guestNote = $this->text($request, 'guest_note');   // guest free-text (#28 — in anonymize())
         $reservationUpdate = array_filter([
             'expected_arrival' => $arrivalWindow !== '' ? mb_substr($arrivalWindow, 0, 60) : null,
             'notes_internal' => $teamNote !== '' ? mb_substr($teamNote, 0, 2000) : null,
@@ -419,27 +459,27 @@ class ReservationCreateController extends Controller
         if (is_string($existingId) && $existingId !== '') {
             $guest = Guest::query()->find($existingId);   // tenant-scoped
             if ($guest === null) {
-                return $this->back($request, 'That guest could not be found.');
+                return $this->back($request, 'That guest could not be found — search for them again.', 2);
             }
 
             return $guest;
         }
 
-        $first = trim((string) $request->input('guest_first_name', ''));
-        $last = trim((string) $request->input('guest_last_name', ''));
+        $first = $this->text($request, 'guest_first_name');
+        $last = $this->text($request, 'guest_last_name');
 
         if ($first === '' && $last === '') {
-            return $this->back($request, 'Choose an existing guest, or enter a name for a new one.');
+            return $this->back($request, 'Choose an existing guest, or enter a name for a new one.', 2);
         }
 
-        $email = trim((string) $request->input('guest_email', ''));
+        $email = $this->text($request, 'guest_email');
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return $this->back($request, 'That guest email address isn’t valid.');
+            return $this->back($request, 'That guest email address isn’t valid.', 2);
         }
-        $phone = trim((string) $request->input('guest_phone', ''));
+        $phone = $this->text($request, 'guest_phone');
         // GATE 1 — the guest's Country (ISO-3166 alpha-2, e.g. "PT") → the guest's nationality. Bounded + upper;
         // an invalid/blank value is simply not set (never a fabricated country).
-        $country = strtoupper(trim((string) $request->input('guest_country', '')));
+        $country = strtoupper($this->text($request, 'guest_country'));
         $country = preg_match('/^[A-Z]{2}$/', $country) === 1 ? $country : null;
 
         return Guest::create([
@@ -451,6 +491,53 @@ class ReservationCreateController extends Controller
             'is_vip' => $request->boolean('guest_vip'),
             'marketing_consent' => $request->boolean('guest_marketing_consent'),
         ]);
+    }
+
+    /**
+     * Back to the override, its breach list still on screen: the list the operator was shown travels in the form, so it is
+     * re-shown from there — each entry checked for shape first, since it came back from the browser. The service still
+     * compares it with the live rules on the next submit.
+     */
+    private function backToOverride(Request $request, string $notice): RedirectResponse
+    {
+        $breaches = $this->seenBreaches($request);
+        if ($breaches === []) {
+            return $this->back($request, $notice, 7);   // nothing usable came back: the next submit is refused afresh, with its list
+        }
+
+        return $this->back($request, $notice, 7)
+            ->with('restriction_breaches', $breaches)
+            ->with('restriction_can_override', true);
+    }
+
+    /**
+     * The breach list the operator was shown, as the form carried it back — each entry checked for shape, since it came from
+     * the browser (a hand-made list of the wrong shape was a 500 inside the service's comparison). The service still compares
+     * it with the live rules before anything is waived.
+     *
+     * @return list<array{restriction: string, date: string, value: int|null}>
+     */
+    private function seenBreaches(Request $request): array
+    {
+        $seen = json_decode($this->text($request, 'restriction_override_seen', '[]'), true);
+        $breaches = [];
+        foreach (is_array($seen) ? $seen : [] as $b) {
+            if (is_array($b) && in_array($b['restriction'] ?? null, ['min_stay', 'max_stay', 'closed_to_arrival', 'closed_to_departure', 'stop_sell'], true)
+                && $this->dateString($b['date'] ?? null) !== null) {
+                $breaches[] = ['restriction' => (string) $b['restriction'], 'date' => (string) $b['date'],
+                    'value' => is_int($b['value'] ?? null) ? $b['value'] : null];
+            }
+        }
+
+        return $breaches;
+    }
+
+    /** A text field, trimmed — or the default when it is missing or not text (a hand-made array was a 500, "Array to string"). */
+    private function text(Request $request, string $key, string $default = ''): string
+    {
+        $value = $request->input($key, $default);
+
+        return is_scalar($value) ? trim((string) $value) : $default;
     }
 
     /** A Y-m-d string from request input, or null if it is not a real calendar date. */
@@ -465,14 +552,32 @@ class ReservationCreateController extends Controller
         return checkdate($m, $d, $y) ? $value : null;
     }
 
-    /** PRG back to the create screen, preserving the dates so the operator doesn't lose the availability view. */
-    private function back(Request $request, string $notice): RedirectResponse
+    /**
+     * PRG back to the wizard on the same dates, with the reason, the step that needs fixing, and EVERYTHING the operator
+     * entered. ⚠️ 2026-10-04 — it used to keep only the dates: a refusal at the last step (a mistyped amount) emptied every
+     * step, and the restriction override — offered only after a refusal — reappeared over an empty wizard.
+     *
+     * ⚠️⚠️ EXCEPT A NEW GUEST'S EMAIL AND PHONE (#28). They are written to encrypted columns and shown nowhere outside the
+     * Guests pages, so they are neither flashed nor rendered back; the wizard says they were not kept and asks for them
+     * again. Nor the override's own fields: a reason is chosen fresh against the breaches on screen, never pre-chosen.
+     */
+    private function back(Request $request, string $notice, int $step = 1): RedirectResponse
     {
         $params = array_filter([
             'check_in' => $this->dateString($request->input('check_in')),
             'check_out' => $this->dateString($request->input('check_out')),
         ], fn (?string $v): bool => $v !== null);
 
-        return redirect()->to(route('app.reservations.create', $params))->with('new_reservation_notice', $notice);
+        $redirect = redirect()->to(route('app.reservations.create', $params))
+            ->with('new_reservation_notice', $notice)
+            ->with('new_reservation_step', $step)
+            ->withInput($request->except(self::NEVER_ECHOED));
+
+        $typedContact = $this->text($request, 'guest_email') !== '' || $this->text($request, 'guest_phone') !== '';
+        if ($typedContact && $this->text($request, 'existing_guest_id') === '') {
+            $redirect->with('new_reservation_contact_cleared', true);
+        }
+
+        return $redirect;
     }
 }

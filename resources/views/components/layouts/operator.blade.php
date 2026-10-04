@@ -1358,6 +1358,249 @@
         .vy-wiz-node-label { font-size: 12px; font-weight: 500; color: var(--vy-faint); white-space: nowrap; }
         .vy-wiz-node.is-on .vy-wiz-node-label, .vy-wiz-node.is-done .vy-wiz-node-label { color: var(--vy-ink); }
         @media (max-width: 760px) { .vy-wiz-node-label { display: none; } }
+        /* the connector before the first step and after the last — drawn invisible so every node keeps its width */
+        .vy-wiz-bar.is-edge { visibility: hidden; }
+        .vy-wiz-circle:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 3px; }
+
+        /* ---- New reservation wizard (2026-10-04) ----------------------------------------------------------------
+           The focused booking screen and its done card. ⚠️ Its own `vy-nr-` namespace: the older `vyn-` rules further
+           down are shared with other screens (notifications, preferences) and must not be restyled from here. */
+        .vy-nr-standalone { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 24px 30px 60px; box-sizing: border-box; }
+        .vy-nr-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+        .vy-nr-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .vy-nr-brand-id { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .vy-nr-logo { width: 36px; height: 36px; border-radius: 10px; background: var(--vy-grad); color: #fff; font-family: var(--vy-display); font-weight: 600; font-size: 18px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); flex: none; }
+        .vy-nr-brand-title { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; line-height: 1.2; color: var(--vy-ink); }
+        .vy-nr-brand-sub { font-size: 12.5px; color: var(--vy-muted); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vy-nr-propform { display: flex; align-items: center; gap: 7px; min-width: 0; }
+        .vy-nr-proplabel { font-size: 12.5px; color: var(--vy-muted); white-space: nowrap; }
+        .vy-nr-propselect { min-width: 0; max-width: 280px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.62); font: 600 12.5px/1.3 var(--vy-sans); color: var(--vy-ink); cursor: pointer; }
+        .vy-nr-propselect:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-topright { display: flex; align-items: center; gap: 12px; flex: none; }
+        .vy-nr-stepcount { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-nr-close { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); display: grid; place-items: center; text-decoration: none; transition: background 0.14s; flex: none; }
+        .vy-nr-close:hover { background: rgba(255, 255, 255, 0.9); color: var(--vy-ink); }
+        .vy-nr-close:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-flash { margin-bottom: 16px; }
+        .vy-nr-ro { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px; background: rgba(217, 154, 61, 0.16); border: 1px solid rgba(217, 154, 61, 0.4); color: var(--vy-amber-text); font-size: 13px; margin-bottom: 16px; }
+        .vy-nr-draft { display: flex; align-items: center; gap: 8px; margin: -6px 0 12px; font-size: 13px; color: var(--vy-muted); }
+        .vy-nr-body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+        .vy-nr-main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+        .vy-nr-card { background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); border-radius: 20px; padding: 24px 26px; box-shadow: var(--vy-shadow); min-width: 0; }
+        .vy-nr-h { margin: 0; font-family: var(--vy-display); font-weight: 600; font-size: 19px; letter-spacing: -0.02em; line-height: 1.25; color: var(--vy-ink); }
+        .vy-nr-lede { margin: 5px 0 18px; font-size: 13px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-nr-h3 { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--vy-ink); }
+        .vy-nr-label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-label--gap { margin-top: 20px; }
+        .vy-nr-opt { font-weight: 400; color: var(--vy-faint); }
+        .vy-nr-field { margin-bottom: 14px; min-width: 0; }
+        .vy-nr-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+        .vy-nr-input { width: 100%; box-sizing: border-box; padding: 10px 13px; border-radius: 11px; border: 1px solid rgba(120, 70, 40, 0.18); background: rgba(255, 255, 255, 0.7); font: 13.5px/1.4 var(--vy-sans); color: var(--vy-ink); }
+        .vy-nr-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.18); background: #fff; }
+        .vy-nr-input:disabled { opacity: 0.55; }
+        .vy-nr-input--short { max-width: 96px; text-transform: uppercase; }
+        .vy-nr-textarea { resize: vertical; min-height: 66px; }
+        .vy-nr-link { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; white-space: nowrap; }
+        .vy-nr-link:hover { text-decoration: underline; }
+        .vy-nr-link:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
+        .vy-nr-textbtn { border: 0; background: none; padding: 2px 4px; font: 600 12.5px/1.3 var(--vy-sans); color: var(--vy-accent-text); cursor: pointer; border-radius: 6px; white-space: nowrap; }
+        .vy-nr-textbtn:hover { text-decoration: underline; }
+        .vy-nr-textbtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-fine { margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-faint); }
+        .vy-nr-note { margin: 2px 0 14px; padding: 10px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.5; background: rgba(217, 154, 61, 0.13); border: 1px solid rgba(217, 154, 61, 0.32); color: var(--vy-amber-text); }
+        .vy-nr-note.is-calm { margin-top: 14px; background: rgba(31, 110, 75, 0.07); border-color: rgba(31, 110, 75, 0.16); color: var(--vy-muted); }
+        /* the "what's missing" line — the same warm red as every refusal in the operator app (the group wizard's line) */
+        .vy-nr-miss { margin: 12px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.45; color: #8F3110; }
+        .vy-nr-miss--tight { margin: 0 0 10px; }
+        .vy-nr-empty { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-nr-empty.is-block { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 14px; padding: 18px; border-radius: 14px; border: 1px dashed rgba(120, 70, 40, 0.22); background: rgba(255, 255, 255, 0.45); }
+        .vy-nr-empty.is-block strong { font-size: 14.5px; color: var(--vy-ink); }
+        /* the two-month calendar */
+        .vy-nr-cal { border: 1px solid var(--vy-hairline); border-radius: 16px; background: rgba(255, 255, 255, 0.45); padding: 14px 16px; }
+        .vy-nr-cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .vy-nr-cal-nav { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.75); color: var(--vy-accent-text); display: grid; place-items: center; cursor: pointer; flex: none; transition: background 0.14s; }
+        .vy-nr-cal-nav:hover { background: rgba(232, 112, 58, 0.1); }
+        .vy-nr-cal-nav:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-cal-labels { flex: 1; display: grid; grid-template-columns: 1fr 1fr; }
+        .vy-nr-cal-labels span { text-align: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-ink); }
+        .vy-nr-cal-grids { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .vy-nr-cal-month { min-width: 0; }
+        .vy-nr-cal-mlabel { display: none; margin-bottom: 6px; text-align: center; font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-ink); }
+        .vy-nr-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .vy-nr-cal-dow span { text-align: center; font-size: 11px; font-weight: 600; color: var(--vy-faint); padding: 4px 0; }
+        .vy-nr-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
+        .vy-nr-cal-day { height: 38px; border: 0; background: transparent; font: 13px/1 var(--vy-sans); color: var(--vy-ink); cursor: pointer; border-radius: 9px; display: grid; place-items: center; transition: background 0.12s; font-variant-numeric: tabular-nums; }
+        .vy-nr-cal-day:hover:not(:disabled):not(.is-start):not(.is-end) { background: rgba(232, 112, 58, 0.12); }
+        .vy-nr-cal-day:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; position: relative; z-index: 1; }
+        .vy-nr-cal-day.is-pad { visibility: hidden; cursor: default; }
+        .vy-nr-cal-day.is-past { color: var(--vy-faint); opacity: 0.4; cursor: default; }
+        .vy-nr-cal-day.is-weekend:not(.is-start):not(.is-end):not(.is-in) { color: var(--vy-accent-text); }
+        .vy-nr-cal-day.is-in { background: rgba(232, 112, 58, 0.14); border-radius: 0; }
+        .vy-nr-cal-day.is-start, .vy-nr-cal-day.is-end { background: var(--vy-grad); color: #fff; font-weight: 600; }
+        .vy-nr-cal-day.is-start { border-radius: 9px 0 0 9px; }
+        .vy-nr-cal-day.is-end { border-radius: 0 9px 9px 0; }
+        .vy-nr-cal-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--vy-hairline); }
+        .vy-nr-cal-sel { font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+        /* party size */
+        .vy-nr-party { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-top: 18px; }
+        .vy-nr-count { display: flex; flex-direction: column; }
+        .vy-nr-counter { display: inline-flex; align-items: center; gap: 14px; padding: 5px 8px; border: 1px solid var(--vy-hairline); border-radius: 12px; background: rgba(255, 255, 255, 0.55); }
+        .vy-nr-counter button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.8); color: var(--vy-accent-text); font-size: 18px; line-height: 1; cursor: pointer; display: grid; place-items: center; transition: background 0.14s; }
+        .vy-nr-counter button:hover:not(:disabled) { background: rgba(232, 112, 58, 0.1); }
+        .vy-nr-counter button:disabled { opacity: 0.4; cursor: default; }
+        .vy-nr-counter button:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-counter output { min-width: 22px; text-align: center; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        /* what's free */
+        .vy-nr-availhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 24px 0 6px; }
+        .vy-nr-rt { margin-top: 10px; padding: 14px 16px; border: 1px solid var(--vy-hairline); border-radius: 14px; background: rgba(255, 255, 255, 0.42); }
+        .vy-nr-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; margin-bottom: 10px; }
+        .vy-nr-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14.5px; color: var(--vy-ink); }
+        .vy-nr-rt-price { font-size: 12.5px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-nr-rt-price strong { font-size: 13.5px; font-weight: 600; color: var(--vy-accent-text); }
+        .vy-nr-rt-free { font-size: 12.5px; color: var(--vy-faint); }
+        .vy-nr-units { display: flex; flex-wrap: wrap; gap: 8px; }
+        .vy-nr-unit { position: relative; display: flex; flex-direction: column; gap: 2px; min-width: 104px; padding: 10px 30px 10px 12px; border-radius: 12px; border: 1px solid rgba(120, 70, 40, 0.16); background: rgba(255, 255, 255, 0.7); cursor: pointer; transition: background 0.14s, border-color 0.14s, box-shadow 0.14s; }
+        .vy-nr-unit:hover { background: #fff; border-color: var(--vy-accent-border); }
+        .vy-nr-unit:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-unit.is-on { background: var(--vy-grad); border-color: transparent; color: #fff; box-shadow: var(--vy-shadow-accent); }
+        .vy-nr-unit-code { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
+        .vy-nr-unit-meta { font-size: 11.5px; color: var(--vy-muted); }
+        .vy-nr-unit.is-on .vy-nr-unit-meta { color: rgba(255, 255, 255, 0.9); }
+        .vy-nr-unit-tick { position: absolute; top: 10px; right: 10px; opacity: 0; transition: opacity 0.14s; }
+        .vy-nr-unit.is-on .vy-nr-unit-tick { opacity: 1; }
+        .vy-nr-noprice { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--vy-muted); }
+        /* a missing price, set from here */
+        .vy-nr-setprice { padding: 14px 15px; border-radius: 12px; background: rgba(232, 112, 58, 0.07); border: 1px dashed rgba(232, 112, 58, 0.4); }
+        .vy-nr-setprice-why { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-nr-setprice-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .vy-nr-setprice-row .vy-nr-label { margin: 0; }
+        .vy-nr-money { position: relative; display: inline-flex; align-items: center; min-width: 0; }
+        .vy-nr-money-sym { position: absolute; left: 12px; font-size: 13.5px; color: var(--vy-muted); pointer-events: none; }
+        .vy-nr-money .vy-nr-input { padding-left: 27px; }
+        .vy-nr-setprice .vy-nr-money .vy-nr-input { width: 140px; }
+        .vy-nr-priceform { display: none; }
+        /* who's staying */
+        .vy-nr-seg { display: inline-flex; gap: 4px; padding: 4px; margin-bottom: 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.45); border: 1px solid var(--vy-glass-border); }
+        .vy-nr-seg-i { padding: 7px 14px; border: 0; border-radius: 9px; background: none; font: 600 12.5px/1.2 var(--vy-sans); color: var(--vy-muted); cursor: pointer; }
+        .vy-nr-seg-i.is-on { background: #fff; color: var(--vy-accent-text); box-shadow: var(--vy-shadow-sm); }
+        .vy-nr-seg-i:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-search { display: flex; gap: 8px; margin-bottom: 12px; }
+        .vy-nr-chosen { margin: 0 0 10px; font-size: 13px; color: var(--vy-muted); }
+        .vy-nr-guests { display: grid; gap: 6px; }
+        .vy-nr-guest { display: flex; align-items: center; gap: 11px; padding: 9px 12px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.62); cursor: pointer; }
+        .vy-nr-guest:hover { background: #fff; }
+        .vy-nr-guest.is-on { background: #fff; border-color: var(--vy-accent-border); box-shadow: 0 0 0 1px var(--vy-accent-border); }
+        .vy-nr-guest:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-guest-av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; flex: none; }
+        .vy-nr-guest-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .vy-nr-guest-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-guest-meta { font-size: 12px; color: var(--vy-muted); }
+        .vy-nr-checks { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+        .vy-nr-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); cursor: pointer; }
+        .vy-nr-check input { width: 16px; height: 16px; margin: 0; accent-color: var(--vy-accent); }
+        .vy-nr-check--gap { margin-top: 16px; }
+        /* rate & extras */
+        .vy-nr-plans { display: flex; flex-wrap: wrap; gap: 10px; }
+        .vy-nr-plan { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.55); cursor: pointer; }
+        .vy-nr-plan.is-on { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.08); box-shadow: 0 0 0 1px var(--vy-accent-border); }
+        .vy-nr-plan:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-plan-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-plan-price { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-nr-planone { margin: 0; font-size: 13px; color: var(--vy-muted); }
+        .vy-nr-extra { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 11px 13px; border: 1px solid var(--vy-hairline); border-radius: 12px; background: rgba(255, 255, 255, 0.5); font-size: 13px; cursor: pointer; }
+        .vy-nr-extra-text { flex: 1; min-width: 0; color: var(--vy-ink); }
+        .vy-nr-extra-basis { color: var(--vy-muted); }
+        .vy-nr-extra-price { color: var(--vy-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-nr-switch { appearance: none; -webkit-appearance: none; position: relative; width: 38px; height: 22px; margin: 0; border: 0; border-radius: 22px; background: rgba(120, 70, 40, 0.2); cursor: pointer; flex: none; transition: background 0.18s; }
+        .vy-nr-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28); transition: left 0.18s; }
+        .vy-nr-switch:checked { background: var(--vy-grad); }
+        .vy-nr-switch:checked::after { left: 19px; }
+        .vy-nr-switch:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-trip { display: flex; gap: 18px; margin: 8px 0 2px 14px; }
+        /* house rules + review */
+        .vy-nr-rules > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+        .vy-nr-rules > div span { color: var(--vy-muted); }
+        .vy-nr-rules > div strong { font-weight: 600; color: var(--vy-ink); text-align: right; }
+        .vy-nr-review { margin: 0 0 16px; }
+        .vy-nr-review > div { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; align-items: baseline; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--vy-hairline); font-size: 13px; }
+        .vy-nr-review dt { color: var(--vy-muted); }
+        .vy-nr-review dd { margin: 0; font-weight: 600; color: var(--vy-ink); min-width: 0; overflow-wrap: anywhere; }
+        /* payment */
+        .vy-nr-deposit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+        .vy-nr-dep { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.55); font-size: 13.5px; color: var(--vy-ink); cursor: pointer; }
+        .vy-nr-dep span { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
+        .vy-nr-dep.is-on { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.08); box-shadow: 0 0 0 1px var(--vy-accent-border); }
+        .vy-nr-dep:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* a refused restriction */
+        .vy-nr-restrict { padding: 16px 18px 6px; border-radius: 16px; background: rgba(255, 252, 248, 0.86); border: 1px solid rgba(217, 154, 61, 0.42); border-left: 4px solid rgb(217, 154, 61); box-shadow: var(--vy-shadow-sm); }
+        .vy-nr-restrict-h { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--vy-amber-text); }
+        .vy-nr-restrict-list { margin: 0 0 12px; padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--vy-ink); }
+        .vy-nr-restrict .vy-nr-fine { margin: 0 0 12px; color: var(--vy-muted); }
+        .vy-nr-nav { display: flex; align-items: center; gap: 10px; padding-top: 2px; }
+        .vy-nr-nav-gap { flex: 1; }
+        /* the summary */
+        .vy-nr-summary { position: sticky; top: 16px; padding: 20px 20px 18px; border-radius: 20px; background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); }
+        .vy-nr-sum-h { margin: 0 0 10px; font-family: var(--vy-display); font-weight: 600; font-size: 15px; color: var(--vy-ink); }
+        .vy-nr-facts { margin: 0 0 12px; }
+        .vy-nr-facts > div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 12.5px; }
+        .vy-nr-facts dt { color: var(--vy-muted); flex: none; }
+        .vy-nr-facts dd { margin: 0; text-align: right; font-weight: 500; color: var(--vy-ink); min-width: 0; overflow-wrap: anywhere; }
+        .vy-nr-lines { padding-top: 8px; border-top: 1px solid var(--vy-hairline); }
+        .vy-nr-line { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+        .vy-nr-line.is-total { margin-top: 6px; padding-top: 10px; border-top: 2px solid var(--vy-ink); font-size: 14px; font-weight: 700; }
+        .vy-nr-line-note { font-size: 12px; color: var(--vy-green-text); }
+        /* which property */
+        .vy-nr-choose, .vy-nr-blank { max-width: 620px; margin: 10px auto 0; }
+        .vy-nr-blank-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .vy-nr-blank-actions .vy-nr-fine { margin: 0; }
+        .vy-nr-choose-list { display: grid; gap: 8px; }
+        .vy-nr-choose-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.66); font: 600 14px/1.3 var(--vy-sans); color: var(--vy-ink); text-align: left; cursor: pointer; transition: background 0.14s, border-color 0.14s; }
+        .vy-nr-choose-item:hover { background: #fff; border-color: var(--vy-accent-border); }
+        .vy-nr-choose-item:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-choose-ico { color: var(--vy-accent-text); flex: none; }
+        .vy-nr-choose-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+        .vy-nr-choose-rooms { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); white-space: nowrap; }
+        .vy-nr-choose-go { color: var(--vy-faint); flex: none; }
+        /* the done card */
+        .vy-nr-donewrap { max-width: 460px; margin: 22px auto 0; padding: 40px 34px 34px; text-align: center; border-radius: 22px; background: rgba(255, 252, 248, 0.72); backdrop-filter: blur(26px) saturate(1.2); -webkit-backdrop-filter: blur(26px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: 0 22px 60px -24px rgba(60, 40, 24, 0.32); }
+        .vy-nr-donecheck { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%; background: var(--vy-grad); color: #fff; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
+        .vy-nr-donetitle { font-family: var(--vy-display); font-weight: 600; font-size: 22px; letter-spacing: -0.02em; color: var(--vy-ink); }
+        .vy-nr-doneref { margin-top: 6px; font-size: 13.5px; color: var(--vy-muted); }
+        .vy-nr-doneref .vy-u-code { font-weight: 600; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
+        .vy-nr-qr { width: 190px; height: 190px; margin: 26px auto 12px; padding: 12px; background: #fff; border-radius: 16px; border: 1px solid var(--vy-hairline); box-shadow: 0 8px 24px -12px rgba(60, 40, 24, 0.28); }
+        .vy-nr-qr svg { width: 100%; height: 100%; display: block; }
+        .vy-nr-qrlabel { font-size: 13px; font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-qrsub { margin: 5px auto 0; max-width: 340px; font-size: 12px; line-height: 1.5; color: var(--vy-faint); }
+        .vy-nr-doneactions { display: flex; gap: 10px; margin-top: 26px; }
+        .vy-nr-donebtn { flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--vy-hairline); background: rgba(255, 255, 255, 0.6); color: var(--vy-ink); font: 600 13.5px/1.3 var(--vy-sans); text-decoration: none; text-align: center; transition: background 0.14s; }
+        .vy-nr-donebtn:hover { background: rgba(255, 255, 255, 0.9); }
+        .vy-nr-donebtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-donebtn.is-primary { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
+        @media (max-width: 900px) {
+            .vy-nr-body { grid-template-columns: minmax(0, 1fr); }
+            .vy-nr-summary { position: static; }
+        }
+        @media (max-width: 760px) {
+            .vy-nr-standalone { padding: 16px 16px 48px; }
+            .vy-nr-topbar { margin-bottom: 14px; }
+            .vy-nr-stepcount { display: none; }
+            .vy-nr-propselect { max-width: 190px; }
+            .vy-nr-card { padding: 18px 16px; border-radius: 18px; }
+            .vy-nr-grid2, .vy-nr-deposit { grid-template-columns: minmax(0, 1fr); }
+            .vy-nr-nav .vy-btn { flex: 1 1 auto; justify-content: center; }
+            .vy-nr-nav-gap { display: none; }
+            .vy-nr-review > div { grid-template-columns: minmax(0, 1fr) auto; }
+            .vy-nr-review dt { grid-column: 1 / -1; }
+            .vy-nr-search .vy-nr-input { min-width: 0; }
+            .vy-nr-donewrap { padding: 32px 20px 24px; }
+        }
+        @media (max-width: 560px) {
+            .vy-nr-cal { padding: 12px; }
+            .vy-nr-cal-grids { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+            .vy-nr-cal-labels { visibility: hidden; }
+            .vy-nr-cal-mlabel { display: block; }
+            .vy-nr-unit { flex: 1 1 calc(50% - 4px); min-width: 0; }
+        }
 
         /* Operator Billing — the design's plan-card header (name + status pill left, price right), its
            next-invoice strip, and the subdued rail "Cancel subscription" card. */
@@ -2276,25 +2519,8 @@
             .vyr-tiles3 .vy-choice-face { flex-direction: column; gap: 5px; padding: 10px 6px; }
         }
 
-        /* ---- New reservation (Wave 4) ---------------------------------------------------------- */
-        .vyn-rt { padding: 13px 0; border-top: 1px solid var(--vy-hairline); }
-        .vyn-rt:first-child { border-top: none; padding-top: 2px; }
-        .vyn-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
-        .vyn-rt-name { font-family: var(--vy-display); font-weight: 600; font-size: 14px; }
-        .vyn-rt-price { font-family: var(--vy-display); font-weight: 600; font-size: 14px; color: var(--vy-accent-text); white-space: nowrap; }
-        .vyn-units { display: flex; flex-wrap: wrap; gap: 8px; }
-        .vyn-unit { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); font-size: 13px; cursor: pointer; transition: border-color .12s ease, background .12s ease; }
-        .vyn-unit:has(input:checked) { border-color: var(--vy-accent); box-shadow: var(--vy-shadow-accent); background: #fff; }
-        .vyn-unit input { accent-color: var(--vy-accent); }
-        .vyn-unpriced { font-size: 12px; color: var(--vy-faint); font-style: italic; }
-        .vyn-guest { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); cursor: pointer; margin-bottom: 6px; }
-        .vyn-guest:has(input:checked) { border-color: var(--vy-accent); background: #fff; }
-        .vyn-guest input { accent-color: var(--vy-accent); }
-        .vyn-guest-av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--vy-grad); color: #fff; font-size: 11px; font-weight: 700; flex: none; }
-        .vyn-empty { font-size: 12.5px; color: var(--vy-muted); padding: 8px 0; }
-        .vyn-tabs { display: inline-flex; gap: 4px; padding: 4px; background: rgba(255,255,255,.45); border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-md); margin-bottom: 12px; }
-        .vyn-tab { padding: 7px 14px; border-radius: var(--vy-r-sm); font-size: 12.5px; font-weight: 600; color: var(--vy-muted); cursor: pointer; border: none; background: none; }
-        .vyn-tab.is-on { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
+        /* ---- A three-up form grid — Settings and Notification preferences. (The rest of this block styled the old
+           New reservation page; it moved to its own `vy-nr-` rules on 2026-10-04 and nothing else used it.) ---- */
         .vyn-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
 
         /* ---- Responsive ------------------------------------------------------------------------ */

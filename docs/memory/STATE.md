@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the OWNER MODULE pass (2026-10-03)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the NEW RESERVATION pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -26,10 +26,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the OWNER MODULE commit) | **4,229/4,229 on MySQL 8.4.10** (tree `17253d581ca575a5` = the code plus these docs, 2026-10-03 19:35–20:06 Baku) · **4,229/4,229 on MariaDB 11.8.9** (the same tree, 20:40–21:23 Baku) · 31,153 assertions · every test passed (0 skipped). ⚠️ The committed tree adds one dialog sentence after those runs (the no-agreement wording) and its assertion: the 11 affected files re-run on the final tree, 75/75 (21:3x Baku). The PAYOUTS commit before it (`d90f40ca`): 4,188/4,188 on both engines | **V** run output 2026-10-03. |
-| Mutations | **603/603 landed and caught across every set**, 0 not caught, 0 did not land; baseline 327/327 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `owner-module`'s first run was 37/40: three tests passed for the wrong reason and were scoped; after the review 47/48, OM-M5 needed a sharper test | **V** harness output 2026-10-03 20:10–20:38 Baku, tree `17253d581ca575a5` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-03 21:24 Baku (the OWNER MODULE pass; reseeded 21:24). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-03 (the OWNER MODULE pass, before the suite runs; Pint re-checked after its last fix) |
+| Suite (the NEW RESERVATION commit) | **4,256/4,256 on MySQL 8.4.10** (tree `633895cac1ed8024` = the code plus these docs, 2026-10-04 02:18–02:56 Baku) · **4,256/4,256 on MariaDB 11.8.9** (the same tree, 04:18–04:36 Baku) · 31,315 assertions · every test passed (0 skipped). The committed tree adds only these figures to the docs; the 54 doc-reading files re-run on it. The OWNER MODULE commit before it (`4751d2c9`): 4,229/4,229 on both engines | **V** run output 2026-10-04. |
+| Mutations | **637/637 landed and caught across every set**, 0 not caught, 0 did not land; baseline 353/353 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `new-reservation`'s first run was 30/34: two needles stale after the review's changes and two tests passing for the wrong reason, sharpened | **V** harness output 2026-10-04 03:12–04:17 Baku, tree `633895cac1ed8024` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-04 04:36 Baku (the NEW RESERVATION pass; reseeded 04:36). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-04 (the NEW RESERVATION pass, before the suite runs) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AS`, 2026-10-03, run straight after the 21:32 Baku swap (and on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-03, after the 17:26 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -115,6 +115,15 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     unit requests' empty state and chips; no console message from those pages (the one entry was the CDN's first-load 403 on the
     sign-in page). Production holds no owner, so the owner's page itself was walked locally, not live. He was signed out and the
     automated browser closed.
+0k. **New reservation (2026-10-04)** — his report ("it is not possible to do reservation … fix everything … ship everything
+    live and then verify it"); the plan posted and executed (`HISTORY.md`, "NEW RESERVATION"). 🔬 Why (read-only on production):
+    his workspace's first property has no rooms, the other has no price on any of the next 60 nights, and the wizard — with no
+    property switcher — used the first and said "No units are free", or offered only a link that threw the booking away. Now: it
+    asks which property, says when one has no rooms, lets `rates.manage` set the stay's price in place (the Rates write itself),
+    keeps a refused booking (never a new guest's email or phone, #28) and reopens at the step to fix, checks each step, and shows
+    the money as the folio charges it. Found and fixed: "Other" without a note was a 500; a refused booking left its new guest
+    behind; the done screen showed other properties' bookings (the review). **Asked of him: DEC-r (an existing guest's email on a
+    new guest) and a go on D-MONEY-COMMA ("150,50" is read as €15,050.00 by every money field but this page's).**
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -139,7 +148,7 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 6. The lawyer: the Article 28 agreements, who may hold customers' money, and how long money records must be kept.
 7. The real tax rates (`tax:set-rate`, replacing the EXAMPLE rates).
 8. Rulings DEC-a to DEC-i (`OPEN.md`). DEC-f decides whether the logo removal that shipped stays.
-8b. Say go (or not) on A8, the x-show sweep of 24 elements on other screens (26 until the unit requests page's two went, 2026-10-03); A9, the other see-through dialogs; and A10,
+8b. Say go (or not) on A8, the x-show sweep of 22 elements on other screens (24 until the new reservation page's two went, 2026-10-04); A9, the other see-through dialogs; and A10,
     the string `:style` sweep of 10 elements. Rule on DEC-j (the property allow-list on the maintenance writes; DEC-k, the
     same on Add unit, was ruled and fixed 2026-09-30, and DEC-l, on every rate write, 2026-10-01). DEC-m (message
     attachments) was ruled and fixed 2026-09-30.
@@ -148,6 +157,9 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 8d. Rule on DEC-o (switching an owner's portal access from their page — and if so, does their team go too, and does someone
     who also works here keep their login?), DEC-p (giving an existing owner units later; today only their invite does) and
     DEC-q (should rate proposals check the person's properties, as every other rate and unit write does?).
+8e. Rule on DEC-r (offer the existing guest when a new guest's email matches one) and say go (or not) on D-MONEY-COMMA (refuse
+    "150,50"-style amounts in every money field, not only the booking wizard's). Smaller, recorded: D-STOREFRONT-ORPHAN-GUEST,
+    D-GB-SYMBOL, D-RATE-DERIVED-PRIMARY (`OPEN.md`).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

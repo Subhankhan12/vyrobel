@@ -599,6 +599,36 @@ errors since the swap. The live look (he signed in; look only): Owners and Add o
 reason, unit requests' empty state; signed out and the browser closed. The owner's page has no owner to show on production — it
 was walked locally.
 
+**NEW RESERVATION — 2026-10-04 — his "on this page there is functionality issues. it is not possible to do reservation. Fix it …
+do the same sort of things [as the last five or six pages] … play it with MCP playwright … find out more issues on this page and
+fix everything … ship everything live and then verify it via MCP playwright on the server".** The plan posted (eight parts) and
+executed; no migration. **Why (🔬 read-only on production):** his workspace's first property has no rooms and the other has no
+price on any of the next 60 nights; the wizard — a focused screen with no property switcher — booked into the first and said "No
+units are free", or offered only "Set a rate first →", a link that threw the booking away. No error was logged: a dead end, not a
+crash. **Built:** "Which property is this booking for?" under All properties (with each property's rooms) and a "Booking into"
+picker; one card for a property with no rooms; a "Price a night" box for `rates.manage` that posts the Rates write itself for
+exactly the stay's nights and comes back ready to book; every refusal returns the whole booking and reopens at the step to fix —
+⚠️ never a new guest's email or phone (#28), which the page asks for again; the override over the whole booking, its rules in
+words; steps that refuse to pass and say what is missing; check-out loads what's free; every figure from the server's minor units
+in the stay's currency (the unit's price had been parsed out of the displayed text, the symbol hardcoded "€"); a unit's own price
+shown; the estimate on the folio's own taxes and fees (it added an included VAT twice and no cleaning fee); keyboard-pickable
+unit cards; returning guests told apart by their stays; 0 inline styles (A8 24 → 22). **Found on the walk, each 🔬 RED first:**
+⚠️⚠️ "Other" without a note was a 500 (an uncaught exception in the service); ⚠️⚠️ every refused booking left its new guest — name,
+email, phone — behind (two "Lena Walk"s with no stay). **The independent review** (read-only, nothing high) — fixed: ⚠️ the
+clean-up could strip a booking saved just before a later failure of its guest (now only a guest nothing points at); ⚠️ a browser
+draft filled the NEXT booking with its extras, credit and deposit (now this tab only, never payment, the rest only for the same
+stay); taxes by the property's currency, not the stay's; the shared submit guard disabling a hidden "Set price" instead of Confirm;
+a looser email test than the server's; "No rooms yet" for a property whose rooms are closed; hand-made arrays as 500s; "nothing is
+free" for a stay over 90 nights; ⚠️ the done screen showing other properties' bookings by id (pre-existing). Recorded for him:
+DEC-r (an existing guest's email on a new guest), D-MONEY-COMMA (🔬 "150,50" read as €15,050.00 by the shared parser — this page
+now stops it, 19 other inputs do not), D-STOREFRONT-ORPHAN-GUEST, D-GB-SYMBOL, D-RATE-DERIVED-PRIMARY. Tests:
+`NewReservationWizardTest` (27); the inline-display ceiling 22; mutations `new-reservation` 34 — first run 30 caught, two stale
+needles (mine) and two tests that passed for the wrong reason (sharpened), then 34/34. 🖥 Walked on tenant three at 1440 and 390:
+the no-rooms card, the picker, a price set (a comma refused first), a unit by keyboard, a refusal reopening at Payment with
+everything kept, a booking with an override and a €126 deposit (R-VL5P4JZX), the chooser, a returning guest; 0 console messages.
+Gates: 4,256/4,256 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `633895cac1ed8024`, the code plus these docs); 637/637 mutations;
+money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -636,6 +666,11 @@ was walked locally.
   flipped one side of a comparator (MB-M3) stayed green because the comparator became inconsistent, not because the test
   was weak; a browser script faster than a person typed into the button behind a picker. Both were read, not assumed, before
   anything was changed — and neither was fixed by changing the test.
+- **A test that reads the wrong copy of the thing (the New reservation pass, 2026-10-04):** the "set a price" test asserted the
+  form's address and hidden fields — which a second, hidden copy of the form still carried when the visible field was removed;
+  and a list of hand-made inputs that a first check (the date) dropped never reached the second check (the shape) it was written
+  for. Both stayed green under their mutation and were sharpened. And a step message computed live from a field Alpine does not
+  watch (an email box) never re-rendered — caught by the browser, not by a test: the message is now state.
 - **A test's title is a claim too (the Units pass, 2026-09-30):** "offers … nothing that writes in a paused workspace" sat on
   a test that correctly pinned Arrival info as still offered there. The assertion was right and the title was wrong; caught
   on re-reading, before commit. And a memory lesson drafted from recall ("the menu swallowed focus") was checked against
@@ -648,8 +683,9 @@ Mail password + TONIGHT 01 Part 2 (Verified 2026-09-29: `MAIL_PASSWORD` not set)
 live pass · KEYBOARD 01 (needs him) · OAuth-token-on-reset ruling · Stripe live keys, the lawyer, real tax rates.
 **Raised 2026-09-29 → 10-03, waiting on him:** A8 / A9 / A10 — the x-show, see-through-dialog and string `:style` sweeps ·
 DEC-h (F-58 and the Portfolio card) · DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · DEC-o (portal access
-from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate proposals and the property limit) · the
-signed-in looks still owed on earlier passes. (A11, A12
+from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate proposals and the property limit) · DEC-r (an
+existing guest's email on a new guest) · D-MONEY-COMMA (a comma read as thousands in every money field) · the signed-in looks
+still owed on earlier passes. (A11, A12
 and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) Where:
 `OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 

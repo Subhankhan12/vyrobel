@@ -268,10 +268,11 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **Dialogs:** `.vy-modal-backdrop` (carries the display and centres) › `.vy-modal.vy-modal-card` (near-opaque, so muted
   text clears AA), with `role=dialog`, `aria-modal`, `aria-labelledby`, `tabindex=-1`, `x-trap.noscroll` and Escape.
   ⚠️ `x-show` erases an inline `display`, so every display is a class — `XShowInlineDisplayContractTest` holds the other
-  screens at a ceiling of 24 (`OPEN.md` A8; 26 until 2026-10-03); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
+  screens at a ceiling of 22 (`OPEN.md` A8; 24 until 2026-10-04); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
   ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
-  shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
+  shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests; since
+  2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
   ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
 - **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
   (`OperatorLivewireMutationBoundaryTest`). While the workspace is paused (`OperatorWorkspace::isReadOnly()`) every write
@@ -283,7 +284,7 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   animate up on load — read the data, not a screenshot taken mid-count).
 - **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
   shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
-  `units-list`, `rates-page`, `owners-page`) run by `php tests/Mutations/run.php`.
+  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`) run by `php tests/Mutations/run.php`.
 
 ## 12 · Photos and message attachments
 
@@ -352,6 +353,31 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   `PropertyContext::readIds()` (DEC-k — a property the person does not work in is a 404, nothing written); the page
   (`OperatorUnitRequests`) offers the same set. Each pending card carries `data-review` (its own approve and decline addresses,
   for `units.manage` only); the two dialogs read it.
+
+
+## 14 · The New reservation wizard (`/app/reservations/create`, 2026-10-04)
+
+- **The page** (`App\Livewire\Operator\NewReservation`, render only) reads; **the booking** posts to
+  `ReservationCreateController::store()` → `AssignmentService::createBooking()` (the one inventory write, row lock). Seven steps
+  are client-side Alpine (`newReservationWizard()`), fed by ONE JSON block (`<script type="application/json" id="vy-nr-boot">`):
+  bookable room types keyed by id (units, plans, per-unit prices), extras, and the taxes and fees per stay currency. The page
+  never parses a figure back out of its own text.
+- **The property:** a booking needs one. Under "All properties" the page asks (the app's own switcher, `app.property.switch`,
+  which comes back to the page by Referer); with several, the top bar has a "Booking into" picker. A property with no bookable
+  unit gets one card, not the wizard.
+- **A missing price** is set by the Rates write itself (`RateActionController::apply`, `can:rates.manage`, `RateScope`) from
+  hidden forms OUTSIDE the booking form (`id="vy-nr-price-N"`), joined to the visible field by `form=`; `return=new-reservation`
+  + `return_check_in/out` send the answer back (`toWizard()`). "Pick a unit" only when the price went on the main plan.
+- **A refusal** comes back through `back()`: the reason (`new_reservation_notice`), the step (`new_reservation_step`) and the
+  input — never `guest_email`, `guest_phone` or the override's fields (`NEVER_ECHOED`, #28); `restored()` re-checks each value
+  against what the page offers now. A new guest the write just created is removed when the booking is refused — only when no
+  booking points at it. The override reason and note are checked before anything is written.
+- **The money** the summary shows uses the write's own rules: plan price, or the unit's own (`NightlyRate::stayTotalForUnit`),
+  extras in the stay's currency, `FolioService`'s tax and fee formulas over the taxes and fees `StayEstimator` says the folio
+  posts. ⚠️ The shared `MoneyInput` reads a comma as thousands (D-MONEY-COMMA); the wizard refuses "150,50" before it is sent.
+- **The draft:** sessionStorage, this tab only, `vyrobel:new-reservation:draft` v3 — ids and counts, never a guest name, never
+  payment, credit or the rules answer; the party size across a date change; the rest only for the same stay. The done screen
+  clears it.
 
 ---
 

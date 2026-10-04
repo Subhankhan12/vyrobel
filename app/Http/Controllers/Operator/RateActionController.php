@@ -11,6 +11,7 @@ use App\Services\RateAndRestrictionService;
 use App\Services\RateBulkService;
 use App\Services\RateDerivationService;
 use App\Support\Money\Money;
+use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Rates\RateScope;
@@ -51,6 +52,9 @@ class RateActionController extends Controller
 
     /** Longest span a single apply may cover, in nights — a guard on the per-night upsert loop. */
     private const MAX_SPAN_NIGHTS = 370;
+
+    /** `return` when the price is set from the New reservation wizard ({@see toWizard()}). */
+    private const RETURN_WIZARD = 'new-reservation';
 
     /**
      * Apply a rate and/or restriction change over a date range, to ONE room type or to ALL of the tenant's
@@ -213,6 +217,23 @@ class RateActionController extends Controller
             }
 
             $applied++;
+        }
+
+        // ⚠️ 2026-10-04 — THE NEW RESERVATION WIZARD SETS A MISSING PRICE HERE, through these same rules, and goes back to the
+        //    booking it came from: "Set a rate first →" used to leave the wizard and lose the booking. It sends one room type,
+        //    the stay's nights and a nightly price — so the answer names exactly that.
+        //    ⚠️ "Pick a unit" only when the price went on the plan the wizard prices a stay with (the room type's main plan) —
+        //    a hand-made request naming another plan gets the plain summary below, still back in the wizard.
+        if ($this->returnsToWizard($request) && $setRate && count($roomTypes) === 1) {
+            $primary = $roomTypes[0]->primaryRatePlan();
+            $plan = $chosenPlan ?? $primary;
+            if ($plan === null) {
+                return $this->refuse($request, $fromParam, $roomTypes[0]->name.' has no rate plan yet, so a price has nowhere to go. Add one on the Rates page first.');
+            }
+            if ($primary !== null && (string) $plan->getKey() === (string) $primary->getKey()) {
+                return $this->toWizard($request)->with('new_reservation_ok', 'Price set — '.MoneyFormatter::display($priceMinor, (string) $plan->currency)
+                    .' a night for these '.$nights.' '.($nights === 1 ? 'night' : 'nights').'. Pick a unit to continue.');
+            }
         }
 
         return $this->done($request, $fromParam, $this->summary($applied, $nights, $missingPlan, [
@@ -378,12 +399,37 @@ class RateActionController extends Controller
      */
     private function refuse(Request $request, ?string $from, string $message): RedirectResponse
     {
+        if ($this->returnsToWizard($request)) {
+            return $this->toWizard($request)->with('new_reservation_notice', $message);
+        }
+
         return RatesListParams::redirect($request, $from)->with('rates_error', $message);
     }
 
     /** Done — shown as a notice, back on the page as the operator had it ({@see RatesListParams}). */
     private function done(Request $request, ?string $from, string $message): RedirectResponse
     {
+        if ($this->returnsToWizard($request)) {
+            return $this->toWizard($request)->with('new_reservation_ok', $message);
+        }
+
         return RatesListParams::redirect($request, $from)->with('rates_notice', $message);
+    }
+
+    /** The price was set from inside the New reservation wizard — a fixed value, never a URL (an open redirect). */
+    private function returnsToWizard(Request $request): bool
+    {
+        return $request->input('return') === self::RETURN_WIZARD;
+    }
+
+    /** Back to the wizard on the same dates — each one a real calendar date or left out. */
+    private function toWizard(Request $request): RedirectResponse
+    {
+        $dates = array_filter([
+            'check_in' => $this->dateString($request->input('return_check_in')),
+            'check_out' => $this->dateString($request->input('return_check_out')),
+        ], fn (?string $v): bool => $v !== null);
+
+        return redirect()->to(route('app.reservations.create', $dates));
     }
 }

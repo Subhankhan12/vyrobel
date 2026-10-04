@@ -39,8 +39,9 @@ use Illuminate\Support\Collection;
  */
 class UnitAvailabilityService
 {
-    /** A guard on the per-night loops — no operator books a stay longer than this from one screen. */
-    private const MAX_NIGHTS = 90;
+    /** A guard on the per-night loops — no operator books a stay longer than this from one screen. Public: the New reservation
+     *  wizard and its write name this limit when they refuse a longer stay (2026-10-04). */
+    public const MAX_NIGHTS = 90;
 
     /**
      * The room types with at least one genuinely-free unit for the whole stay, each with its free units and

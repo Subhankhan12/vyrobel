@@ -1,0 +1,96 @@
+<?php
+// New reservation pass (2026-10-04) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names, counts and timings only — never a value, never a guest's details.
+use App\Models\Guest;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\RoomType;
+use App\Models\Unit;
+use App\Services\UnitAvailabilityService;
+use App\Support\Booking\RestrictionOverrideReason;
+use App\Support\Folio\StayEstimator;
+use App\Support\Guest\GuestHistory;
+use App\Support\Money\MoneyFormatter;
+use App\Support\Pricing\NightlyRate;
+use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'wizard needs reservations.create' => $has('app.reservations.create', 'can:reservations.create'),
+    'booking write needs reservations.create' => $has('app.reservations.store', 'can:reservations.create'),
+    'set price needs rates.manage' => $has('app.rates.update', 'can:rates.manage'),
+    'property switch exists' => Route::has('app.property.switch'),
+    'units page exists' => Route::has('app.units'),
+];
+$out['pieces'] = [
+    'RestrictionOverrideReason::isValid' => method_exists(RestrictionOverrideReason::class, 'isValid'),
+    'StayEstimator taxApplies/feeApplies' => method_exists(StayEstimator::class, 'taxApplies') && method_exists(StayEstimator::class, 'feeApplies'),
+    'NightlyRate::stayTotalForUnit' => method_exists(NightlyRate::class, 'stayTotalForUnit'),
+    'GuestHistory::for' => method_exists(GuestHistory::class, 'for'),
+    'MoneyFormatter::symbol' => method_exists(MoneyFormatter::class, 'symbol'),
+];
+
+foreach (['livewire/operator/new-reservation.blade.php', 'components/layouts/operator.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// What the page will offer, per organisation that has properties — names of PROPERTIES and ROOM TYPES, counts, yes/no only.
+// Two sample stays: 7–10 and 30–33 nights from today in each property's own timezone. Timed, because the page runs it.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+$started = microtime(true);
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, &$out): void {
+        $props = Property::query()->orderBy('name')->get();
+        if ($props->isEmpty()) {
+            return;
+        }
+        $row = [];
+        foreach ($props as $p) {
+            $today = CarbonImmutable::now($p->timezone ?: 'UTC')->startOfDay();
+            $offers = [];
+            foreach ([[7, 10], [30, 33]] as [$a, $b]) {
+                $in = $today->addDays($a)->toDateString();
+                $outDay = $today->addDays($b)->toDateString();
+                $t = microtime(true);
+                $offer = app(UnitAvailabilityService::class)->availableRoomTypes((string) $p->id, $in, $outDay);
+                $offers[$in.' → '.$outDay] = [
+                    'ms' => (int) round((microtime(true) - $t) * 1000),
+                    'room types offered' => count($offer),
+                    'priced (bookable)' => count(array_filter($offer, fn ($o) => $o['priced'])),
+                    'unpriced (set-price box)' => count(array_filter($offer, fn ($o) => ! $o['priced'] && $o['rate_plan_id'] !== null)),
+                    'no rate plan' => count(array_filter($offer, fn ($o) => $o['rate_plan_id'] === null)),
+                ];
+            }
+            $row[$p->name] = [
+                'currency' => $p->currency,
+                'room types' => RoomType::query()->where('property_id', $p->id)->count(),
+                'units' => Unit::query()->where('property_id', $p->id)->count(),
+                'bookable units' => Unit::query()->bookable()->where('property_id', $p->id)->count(),
+                'offers' => $offers,
+            ];
+        }
+        $out['orgs'][$org->name] = ['properties' => $row, 'guests' => Guest::query()->count(),
+            'guests with no booking' => Guest::query()->whereDoesntHave('reservations')->count()];
+    });
+}
+$out['offers_total_ms'] = (int) round((microtime(true) - $started) * 1000);
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

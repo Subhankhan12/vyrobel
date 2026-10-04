@@ -19432,3 +19432,108 @@ centred at 720,450, Cancel and Send invite both 42 px, Escape closing it; the pa
 (opacity 0.45) and "The automatic payout engine is switched off …" beneath it, no run form on the page; unit requests' chips and
 empty state; no console message from those pages. Production holds no owner, so the owner's page was walked locally only. He was
 signed out and the automated browser closed.
+
+## 2026-10-04 — New reservation: a booking can be made again — the property asked for, a missing price set from inside the booking, a refusal that keeps the booking, and the money shown as the folio charges it
+
+**Asked:** "https://vyrobel.com/app/reservations/create — on this page there is functionality issues. it is not possible to do
+reservation. Fix it … I'm sure there are many more issues on this page in terms of design functionality and everything else …
+do the same sort of things [as the last five or six pages] … understand this page, play it with MCP playwright … find out more
+issues on this page and fix everything … ship everything live and then verify it via MCP playwright on the server."
+
+**Why no booking could be made (🔬 read-only on production, 2026-10-04, his workspace "Vyrobel Internal — TEST TENANT").** Its
+first property ("Internal Test Property") has **no rooms**; the other ("Villa Azure Lumière") has rooms with a rate plan and
+**no price on any of the next 60 nights**. The wizard is a focused screen without the app's shell, so it has no property
+switcher; under "All properties" it quietly used the first property and said "No units are free for those dates". On the
+second property every room type showed "no rate set. Set a rate first →" — a link to the Rates page that threw the booking
+away. No server error was logged: the page was not broken, it was a dead end. 🔬 Reproduced locally on tenant three (a second
+property with no rooms, a room type with no price): the same two dead ends.
+
+**1 · Which property.** Under "All properties" (a READ roll-up — a booking belongs to one property) the wizard asks "Which
+property is this booking for?", each choice with its rooms ("5 rooms", "No rooms yet", "No rooms open for booking"), through
+the app's own switcher (`app.property.switch`), saying the rest of the app follows. With more than one property the top bar
+shows "Booking into [property]" as a picker. A property with no rooms — or none open for booking — gets one card that says so
+and links to Units, instead of the whole wizard and "no units are free".
+
+**2 · A missing price, set here.** For a person who holds `rates.manage`, a room type with no price for the stay shows "No
+price for these nights yet" and a "Price a night" field: it posts **the Rates write itself** (`app.rates.update`, the same
+rules, `RateScope`/DEC-l, the read-only guard) for exactly the stay's nights on the room type's main plan, and comes back to
+the wizard on the same dates — "Price set — €140.00 a night for these 3 nights. Pick a unit to continue." (`return=new-reservation`
+is a fixed token; the way back is built from two checked dates, never a URL). Anyone else is told "No price is set for these
+nights … ask someone who manages rates". A room type with no rate plan says so (with a link to Rates for those who can).
+
+**3 · A refusal keeps the booking.** Every refusal of the booking write now returns everything entered (unit, plan, party,
+guest name, extras, arrival, rules, source, note, payment) and reopens at the step to fix (dates and units → 1, guest → 2,
+payment and restrictions → 7). ⚠️⚠️ **Never a new guest's email or phone (#28):** they are neither flashed nor rendered; the
+page says they were not kept and asks for them again, and Confirm says so once more if they are still empty. The restriction
+override now appears over the WHOLE booking (it used to appear over an empty wizard, so choosing a reason resubmitted no unit
+and no guest), with each rule in words ("Arriving Tue 20 Oct, a stay must be at least 5 nights" — not `min_stay on 2026-10-20`)
+and a banner in words. Each value restored is re-checked against what the page offers now (a unit no longer free, another
+property's unit, an extra that is not this property's: dropped).
+
+**4 · Steps that check themselves.** Picking check-out loads what's free straight away (no "Check availability" button). Next
+— and the stepper — refuse to pass an unfinished step and say what is missing beside it ("Pick a unit for these dates to
+continue.", "Enter the guest's first or last name.", "That email address doesn't look right …" by the server's own test,
+"Use a dot for cents …", "Say why in the note …"). Enter in a field moves to the next step; it never books.
+
+**5 · The money as the folio charges it.** The unit's price came out of the DISPLAYED text (`preg_replace('/[^0-9]/', …)`) and
+was printed with a hardcoded "€"; every figure is now the server's minor units, in the stay's own currency, through
+`MoneyFormatter`'s symbol. A unit's own price (D18-5's per-unit override, which the write charges) is shown on its card ("Own
+price · €350.00") and used by the estimate. The estimate now uses **the folio's taxes and fees** (`StayEstimator::taxApplies` /
+`feeApplies`, per the stay's currency): it used to add an included VAT a second time and leave out the cleaning fee. A deposit
+or "Full amount" follows the total while nobody has typed over it (it kept the figure of the moment it was chosen).
+
+**6 · Design.** The room types as cards ("€123.00 a night · €369.00 for 3 nights"), units as keyboard-pickable cards (a real
+radio, `vy-sr-only`, with a focus ring — it was `display:none`) showing "Sleeps 2"; a summary with dates, party, unit and guest;
+a review step with "Change" on every line; returning guests with their stays ("1 stay · guest since 2026" / "No stays yet" —
+two "Lena Walk"s were identical rows); sentence-case labels; one card per state; phone layout (one month per block, its own
+label, units two across, full-width Next). Every inline style is gone (the two `x-show` + inline display sites with them: A8
+24 → 22); the page's CSS moved into the layout as its own `vy-nr-` block, and the dead `vyn-` rules it used went (only
+`.vyn-grid3`, used by Settings and Notification preferences, stays). The draft: this tab only (sessionStorage), never a guest
+name, never payment, credit or the rules answer; across a date change only the party size; the rest only for the same stay,
+with "Picked up where you left off".
+
+**Found while walking the page, each RED first and fixed:**
+- ⚠️⚠️ **"Other" without a note — or an unknown reason — was a server error page.** The service throws an
+  `InvalidArgumentException` the write never caught. The reason and note are now checked first, and a missing note comes back
+  to the override with its list.
+- ⚠️⚠️ **A refused booking left the new guest behind** — name, email and phone in their encrypted columns, with no stay
+  (🔬 two "Lena Walk"s on the walk). The write creates the guest before trying the booking; a refusal now removes a guest it
+  created a moment ago — and ⚠️ only if no booking points at it (the review below).
+- The done screen never showed the "€126.00 recorded as paid" line it was given.
+
+**The independent review** (read-only): nothing high. Fixed from it: ⚠️ the clean-up could remove the guest of a booking saved
+just before a failure after the commit (the service records its events after the commit; the reservation's guest would have
+gone to NULL) — now only a guest nothing points at; ⚠️ an old browser draft filled the next booking (another day, another
+operator) with its extras, credit and deposit — now the rules above; taxes chosen by the property's currency, not the stay's;
+the shared double-submit guard disabled a hidden "Set price" button instead of Confirm (the price button is no longer a submit
+button); the browser's email test was looser than the server's; "No rooms yet" for a property whose rooms are all closed; hand-
+made arrays and breach lists that were 500s; a stay over 90 nights said "nothing is free" (it now names the limit, here and in
+the write); ⚠️ the done screen showed any booking of the organisation by its id to staff limited to other properties — now only
+inside the person's properties (pre-existing); "Pick a unit" only when the price went on the plan the wizard books.
+
+**Recorded for him, not changed:** ⚠️ **D-MONEY-COMMA** — the shared money parser (`MoneyInput::toMinor`, 19 call sites) reads
+"150,50" as **€15,050.00** and "120,5" as **€1,205.00** (🔬 measured): the wizard's two fields now stop a comma-cents amount,
+the app's other money fields do not. **D-STOREFRONT-ORPHAN-GUEST** — the public storefront's booking creates its guest before
+the booking and leaves it when the unit was just taken. **D-GB-SYMBOL** — the Group booking wizard prints "GBP 90.00" where the
+rest of the app prints "£90.00". **DEC-r** — a new guest whose email matches an existing guest is created again (the walk's
+"Lena Walk" ×4): offer the existing guest instead? **D-RATE-DERIVED-PRIMARY** (the review, pre-existing) — when a room type's
+main plan is a derived plan, the Rates editor (and so the wizard) writes a price straight onto it, which the chosen-plan path
+refuses.
+
+**Tests:** `NewReservationWizardTest` (27, each RED first except the two guards that passed before and must keep passing — the
+email/phone never echoed, and another property's unit never restored); `XShowInlineDisplayContractTest` ceiling 24 → 22 with
+the page among the fixed views. Mutations `new-reservation`: 34 — the first run 30 caught, 2 needles stale after the review's
+changes (mine), 2 tests that passed for the wrong reason (the price-form test read the hidden form, not the visible field; the
+crafted breach lists were all dropped by the date check before the shape check) — sharpened, 34/34. The wizard's own checks
+(each step's message, the stepper, the comma guard, the draft, the deposit following the total) are JavaScript: 🖥 verified in
+the browser on tenant three, not by mutation. 🖥 Walked at 1440 and 390 on tenant three: the no-rooms card, the picker, a price
+set (a comma refused first), a unit picked by keyboard, a refusal on a 5-night minimum reopening at Payment with everything kept,
+"Other" without a note stopped in the page, a booking made with an override and a €126 cash deposit (R-VL5P4JZX: total €420,
+€294 left, one override audit row), the chooser, a returning guest found by name; 0 console messages.
+
+**Gates (Verified 2026-10-04):** **4,256/4,256 on MySQL 8.4.10** (31,315 assertions, tree `633895cac1ed8024`: this code with the
+entry and the memory written, before these figures; 02:18–02:56 Baku) · **4,256/4,256 on MariaDB 11.8.9** (the same tree,
+04:18–04:36 Baku; no other connection to the database before the swap) · mutations **637/637 across every set** (`new-reservation`
+34; baseline 353/353 green; 03:12–04:17 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest
+`a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 04:36 Baku) · PHPStan L5 0 errors and Pint
+clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.

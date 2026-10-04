@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the OWNER MODULE pass (2026-10-03: the owner's page, the payout run, unit requests)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the NEW RESERVATION pass (2026-10-04: a booking can be made again)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -27,7 +27,7 @@ change is said.** Briefs live in `briefs/`.
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
 | A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
 | A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
-| A8 | **The x-show + inline display sweep.** 24 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 9 more across housekeeping, new reservation, roles, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, and the unit requests page's two 2026-10-03). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 24 (V 2026-10-03, scanned: exactly 24). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
+| A8 | **The x-show + inline display sweep.** 22 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 7 more across housekeeping, roles, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, the unit requests page's two 2026-10-03 and the new reservation page's two 2026-10-04). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 22 (V 2026-10-04, scanned: exactly 22 — and re-counted by the independent review). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
 | A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs, the Calendar's New reservation dialog and Billing's still use the shared `.vy-modal` glass. On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these five were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
 | A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
 | A11 | ✅ **FIXED 2026-10-02 (his go, "Yes, all of it")** — D-PAYRUN-TENANT: "Run payouts now" names its own organisation's owners, its run key carries the organisation, and "Last run" shows only this organisation (`HISTORY.md`, "PAYOUTS"). Live state: `STATE.md`. | — | — | — |
@@ -123,6 +123,30 @@ change is said.** Briefs live in `briefs/`.
 - ✅ **D-OWNER-HINT — FIXED 2026-10-03:** the Add owner unit hint said units could be given later from the owner's page (my own
   sentence of 2026-10-01); no screen does — a unit's owner is written only by an accepted invite or an approved request. DEC-p
   asks whether one should.
+- ✅ **D-NEWRES-DEADEND — FIXED 2026-10-04 (his report: "it is not possible to do reservation"; 🔬 RED first).** On production his
+  workspace's first property has no rooms and the other has no price on any of the next 60 nights (V, read-only, 2026-10-04); the
+  wizard has no shell switcher, so under "All properties" it used the first property and said "No units are free", and the only
+  way past an unpriced room type was a link that threw the booking away. It now asks which property, says when one has no rooms,
+  and lets `rates.manage` set the stay's price in place through the Rates write (`HISTORY.md`, "NEW RESERVATION").
+- ✅ **D-NEWRES-OVERRIDE-500 — FIXED 2026-10-04 (found on the walk, 🔬 RED first):** choosing "Other" as the reason to book over a
+  restriction, with no note — or a reason not on the list — was a server error page (an uncaught `InvalidArgumentException`).
+- ✅ **D-NEWRES-ORPHAN-GUEST — FIXED 2026-10-04 (found on the walk, 🔬 RED first):** every refused booking left the new guest it
+  had just created — name, email and phone — with no stay. Removed now on a refusal, and only when no booking points at it.
+- ✅ **D-NEWRES-DONE-SCOPE — FIXED 2026-10-04 (the independent review, pre-existing):** the done screen showed any booking of the
+  organisation — guest name, reference, check-in code — by its id to staff limited to other properties.
+- **D-MONEY-COMMA (found 2026-10-04, 🔬 measured; not changed — his call):** the shared money parser `MoneyInput::toMinor` (19 call
+  sites: rates, payments, deposits, refunds, prices) drops commas as thousands separators, so **"150,50" is read as €15,050.00
+  and "120,5" as €1,205.00**. A European habit becomes a 100× amount. The New reservation wizard now stops a comma-cents amount
+  in its two fields; every other money field still accepts it (a payment is capped at the balance, a rate is not). The likely
+  fix — refuse a comma followed by one or two digits at the end, everywhere — changes 19 inputs, so it is his go.
+- **D-STOREFRONT-ORPHAN-GUEST (found 2026-10-04 by reading, not changed):** the public storefront's booking
+  (`BookingEngineService::book`) creates the guest before the booking and keeps it when the unit was just taken ("unavailable") —
+  the same orphan as D-NEWRES-ORPHAN-GUEST, from a guest's own form. Its own pass.
+- **D-GB-SYMBOL (small, found 2026-10-04):** the Group booking wizard prints "GBP 90.00" where `MoneyFormatter` (and the rest of
+  the app) prints "£90.00" — its script maps only EUR and USD.
+- **D-RATE-DERIVED-PRIMARY (the 2026-10-04 review, pre-existing, not changed):** when a room type's main plan is a derived plan,
+  the Rates editor's main-plan path (and so the wizard's price box) writes a price straight onto it, which the chosen-plan path
+  refuses ("set the base plan instead").
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
@@ -167,3 +191,4 @@ change is said.** Briefs live in `briefs/`.
 | DEC-o | The owner's page (2026-10-03): should an operator be able to switch an owner's portal access off and on from their page? If yes: does their team go with them, and does someone who also works for you keep their login (the removal rule)? Not offered today — the old checkbox could not switch it off, and its server side was unsafe (D-OWNER-PORTAL). |
 | DEC-p | The owner's page (2026-10-03): should an existing owner be given units later? Today only their invite gives an owner existing units. It touches money: a unit's owner decides who is paid for its stays. |
 | DEC-q | Rate proposals (found by the 2026-10-03 review, pre-existing): proposing a rate to an owner — and accepting their counter, which applies the rate — does not check the person's properties, while every other rate and unit write does (DEC-k, DEC-l). Should it, as those do? |
+| DEC-r | The New reservation wizard (2026-10-04): a new guest whose email matches an existing guest is created again — the walk made four "Lena Walk"s. Offer the existing guest instead (by the email's blind index, never showing the email back), or keep creating a new one? |
