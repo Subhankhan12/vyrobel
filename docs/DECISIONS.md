@@ -19657,3 +19657,19 @@ counted, and the gate is now read from a JUnit log (`RULES.md` Part 3) · mutati
 (`calendar-new-reservation` 33; baseline 378/378 green; 17:33–18:13 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0
 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 18:39 Baku) ·
 PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.
+
+✅ **LIVE on `rel_AU @ 7819226d` (2026-10-04, swap 3 ms; the clock read 18:45:56 Baku straight after it).** No migration; 5 files shipped. 🔬 Preflight from the
+staged release on production, read-only: the booking write and the full form behind `reservations.create` (the calendar page
+itself carries no permission gate, as before); the dialog's pieces present; the four views compile; his workspace's "Internal
+Test Property" 0 rooms, "Villa Azure Lumière" (Europe/Paris) 3 bookable units with 28 room-type nights to sell in the next
+14 and both room types without a price for the default stay; the probes and the Test Workspace hold no rooms; the dialog's
+reads 10 ms at most. 🔬 After the swap: public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,441 of 1,441**
+files in the live release match git at `7819226d` (the other 1,218 git files are never deployed); the `.htaccess` drift check
+passes (self-test 3/3); 0 errors logged since the swap. **The live look — he signed in himself (the first sign-in went to his
+own browser; the second, in the automated window, was confirmed by a read-only request), look only, nothing booked:** 🖥
+"Internal Test Property has no rooms yet" with Go to Units, on the solid card; on Villa Azure Lumière 42 "+" links (3 units ×
+14 nights) and Sun 4 Oct marked today; a "+" opened the dialog with each label over its own box (First name 435/435, Last
+name 726/726, Check-in 435/435, Check-out 652/652 px at 1440; every box 42 px), focus on First name, both room types listed
+"No price for these nights yet · Set a price in the full form", no Confirm (nothing priced); 390 of 390 px at 390 with the
+foot in view; Escape closed it and dropped `new=1`; no console message. The working property was put back to "Internal Test
+Property" as he had it; he was signed out and the automated browser closed.

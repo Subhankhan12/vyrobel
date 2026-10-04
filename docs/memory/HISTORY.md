@@ -659,6 +659,11 @@ each label's left edge on its box's); a booking made from the dialog (R-PRSAG8AH
 Gates: 4,280/4,280 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `2224515895cd0245`, the code plus these docs; read from JUnit
 logs — ⚠️ a first MySQL run printed nothing, `laravel/pao` failing at shutdown, and was not counted); 670/670 mutations; money
 gate FULL unmoved.
+**Deploy — LIVE `rel_AU @ 7819226d`, swap 3 ms (Verified 2026-10-04 18:45 Baku);** 5 files, no migration; preflight read-only
+(the gates, the views, his workspace: one property with no rooms, one with 3 units and no price tonight); public checks 12/0/0;
+1,441/1,441 files match git; drift check passes; 0 errors since the swap. The live look (he signed in — the second time in the
+automated window; look only): the no-rooms card, 42 "+" links on Villa Azure, the dialog with each label over its own box, both
+room types said to have no price, 390 px, Escape; signed out and the browser closed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
