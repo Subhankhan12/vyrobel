@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the NEW RESERVATION pass (2026-10-04: a booking can be made again)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the CALENDAR NEW RESERVATION pass (2026-10-04: the dialog rebuilt)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -28,7 +28,7 @@ change is said.** Briefs live in `briefs/`.
 | A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
 | A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
 | A8 | **The x-show + inline display sweep.** 22 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 7 more across housekeeping, roles, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, the unit requests page's two 2026-10-03 and the new reservation page's two 2026-10-04). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 22 (V 2026-10-04, scanned: exactly 22 — and re-counted by the independent review). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
-| A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs, the Calendar's New reservation dialog and Billing's still use the shared `.vy-modal` glass. On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these five were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
+| A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs and Billing's still use the shared `.vy-modal` glass (the Calendar's New reservation dialog moved to the solid card 2026-10-04, with its rebuild). On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these four were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
 | A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
 | A11 | ✅ **FIXED 2026-10-02 (his go, "Yes, all of it")** — D-PAYRUN-TENANT: "Run payouts now" names its own organisation's owners, its run key carries the organisation, and "Last run" shows only this organisation (`HISTORY.md`, "PAYOUTS"). Live state: `STATE.md`. | — | — | — |
 | A12 | ✅ **FIXED 2026-10-02** — D-UNITS-EXPORT: the Units Export link takes the view's address at the click, as on Owners. | — | — | — |
@@ -147,6 +147,23 @@ change is said.** Briefs live in `briefs/`.
 - **D-RATE-DERIVED-PRIMARY (the 2026-10-04 review, pre-existing, not changed):** when a room type's main plan is a derived plan,
   the Rates editor's main-plan path (and so the wizard's price box) writes a price straight onto it, which the chosen-plan path
   refuses ("set the base plan instead").
+- ✅ **D-CAL-NAMES — FIXED 2026-10-04 (his report: "guest first name, last name, and their boxes are not well aligned"):** the
+  Calendar dialog's name row was one grid of three columns holding five pieces, so "Last name" ended one line and its box began
+  the next. Each label now sits above its own box (`HISTORY.md`, "CALENDAR NEW RESERVATION").
+- ✅ **D-CAL-GUEST-GET — FIXED 2026-10-04 (found by reading, pre-existing; #28):** the dialog's "Check rack" was a GET carrying the
+  guest's first and last name (`gf`, `gl`) into the browser's history and the server's access logs, which no erase reaches. The
+  name now stays in the tab and travels only in the booking's POST.
+- ✅ **D-CAL-DEADEND — FIXED 2026-10-04 (pre-existing):** a room type with free units and no price vanished from the dialog ("No
+  units are free (and priced)") — the dead end of D-NEWRES-DEADEND, on the Calendar. Now listed with the reason and where to fix it.
+- ✅ **D-CAL-UNIT-PRICE — FIXED 2026-10-04 (pre-existing):** the dialog showed the room type's price, while the booking write charges a
+  unit's own price where it has one (D18-5): the total shown could differ from the total charged.
+- ✅ **D-CAL-PAST — FIXED 2026-10-04 (pre-existing; Confirm's half found by the review):** check-in defaulted to the calendar's first
+  day even when that was in the past, and Confirm could book a past check-in (the box's `min` guards only the GET).
+- ✅ **D-CAL-CLAIMS — FIXED 2026-10-04 (pre-existing, copied from the wireframe):** the dialog said it matched an existing guest's
+  profile and that the guest got a confirmation email; it does neither (a new guest every time, and no email is asked for).
+- **D-RACK-START-TZ (found 2026-10-04 by reading; not changed — shared with the Front Desk):** when the address names no week, the
+  Calendar and the Front Desk start on the app's day (`BoardDate`, `CarbonImmutable::today()`), not the property's. Far from UTC the
+  default week can start a day off the property's own today. The marked "today" column and the "+" links follow the property.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

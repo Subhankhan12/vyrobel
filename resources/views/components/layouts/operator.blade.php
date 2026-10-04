@@ -717,18 +717,6 @@
         .vy-rack-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
         .vy-rack-toolbar .vy-left, .vy-rack-toolbar .vy-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-        /* Operator Calendar exact-match — the inline New-reservation panel */
-        .vy-newres-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-        .vy-newres .vy-field { margin-bottom: 0; display: flex; flex-direction: column; gap: 6px; }
-        .vy-newres .vy-field > span { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); }
-        .vy-newres-rt { border: 1px solid var(--vy-hairline); border-radius: var(--vy-r-md, 12px); padding: 12px 14px; margin-bottom: 10px; }
-        .vy-newres-rt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-        .vy-newres-rt-name { font-family: var(--vy-display); font-size: 14px; font-weight: 600; }
-        .vy-newres-rt-rate { font-family: var(--vy-display); font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .vy-newres-units { display: flex; flex-wrap: wrap; gap: 8px; }
-        .vy-newres-unit { margin: 0; }
-        .vy-newres-confirm { cursor: pointer; border: 1px solid var(--vy-accent-border); color: var(--vy-accent); background: rgba(194, 65, 12, 0.06); font-weight: 600; }
-        .vy-newres-confirm:hover { background: rgba(194, 65, 12, 0.12); }
         .vy-range { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.7); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); font-weight: 600; font-size: 13px; }
 
         .vy-rack-scroll { overflow-x: auto; }
@@ -845,9 +833,6 @@
         .vy-cal .vy-bar .vy-bar-guest { display: block; font-size: 12px; font-weight: 500; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; }
         .vy-cal .vy-bar .vy-bar-sub { display: block; font-size: 9.5px; font-weight: 500; opacity: .75; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
 
-        /* New-reservation modal — the design's round glyph on each unit row. */
-        .vy-cal .vy-newres-room-ico { width: 34px; height: 34px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent); }
-        .vy-cal .vy-newres-room.is-sel .vy-newres-room-ico { background: var(--vy-grad); color: #fff; }
         .vy-unit-row--unassigned .vy-unit-code { color: var(--vy-accent-text); }
 
         /* Out-of-order / block bars — a muted hatch UNDER the bookings (real inventory_blocks, never faked). */
@@ -895,43 +880,77 @@
         .vy-unit-row.is-sel { background: rgba(232, 112, 58, 0.07); }
         .vy-mt-check { width: 16px; height: 16px; accent-color: var(--vy-accent); cursor: pointer; }
 
-        /* GATE 5.2 — the New-reservation MODAL (two-phase: Check rack → pick a unit → Confirm). Reuses the
-           shared .vy-modal chrome; these are the modal-specific controls. */
-        .vy-newres-modal { max-width: 480px; }
-        .vy-newres-p1 { display: block; }
-        .vy-newres-guest { display: grid; grid-template-columns: 1fr 1fr 116px; gap: 9px; }
+        /* The adults stepper and the source pills — used by the Calendar's New reservation dialog (its own rules are the
+           `vy-rnr-` block further down, 2026-10-04). */
         .vy-stepper { display: flex; align-items: center; border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.7); border-radius: var(--vy-r-md); overflow: hidden; }
         .vy-stepper button { width: 30px; padding: 10px 0; border: none; background: transparent; color: var(--vy-muted); font-size: 15px; line-height: 1; cursor: pointer; transition: background .14s; }
         .vy-stepper button:hover { background: rgba(232,112,58,.08); color: var(--vy-accent); }
         .vy-stepper span { flex: 1; text-align: center; font-size: 12px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .vy-newres-dates { display: grid; grid-template-columns: 1fr 1fr auto; gap: 9px; align-items: center; }
-        .vy-newres-nights { font-size: 12px; font-weight: 600; color: var(--vy-muted); white-space: nowrap; padding-right: 2px; }
-        .vy-newres-check { width: 100%; justify-content: center; margin-top: 14px; padding: 11px 16px; }
 
-        .vy-newres-rooms { display: flex; flex-direction: column; gap: 8px; }
-        .vy-newres-room { display: flex; align-items: center; gap: 12px; text-align: left; padding: 11px 13px; border-radius: var(--vy-r-md); background: rgba(255,255,255,.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: transform .12s ease, border-color .14s, background .14s; }
-        .vy-newres-room:hover { transform: translateY(-1px); }
-        .vy-newres-room.is-sel { border-color: var(--vy-accent-border); background: rgba(232,112,58,.09); }
-        .vy-newres-room-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-        .vy-newres-room-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vy-newres-room-sub { font-size: 11px; color: var(--vy-muted); }
-        .vy-newres-room-rate { font-size: 13px; font-weight: 600; color: var(--vy-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .vy-newres-radio { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--vy-faint); flex: none; position: relative; transition: all .14s; }
-        .vy-newres-radio.on { border-color: transparent; background: var(--vy-grad); box-shadow: var(--vy-shadow-accent); }
-        .vy-newres-radio.on::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
-        .vy-newres-hidden { display: none; }
 
-        .vy-newres-sources { display: flex; flex-wrap: wrap; gap: 7px; }
         .vy-source-pill { padding: 8px 15px; border-radius: var(--vy-r-pill); font-size: 12.5px; font-weight: 500; color: var(--vy-muted); background: rgba(255,255,255,.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: transform .12s ease, all .14s; }
         .vy-source-pill:hover { transform: translateY(-1px); }
         .vy-source-pill.on { color: var(--vy-accent); background: rgba(232,112,58,.10); border-color: var(--vy-accent-border); font-weight: 600; }
-        .vy-newres-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 13px 15px; border-radius: var(--vy-r-md); background: rgba(232,112,58,.07); border: 1px solid var(--vy-accent-border); }
-        .vy-newres-total-lbl { font-size: 12.5px; font-weight: 500; color: var(--vy-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .vy-newres-total-amt { font-family: var(--vy-display); font-size: 18px; font-weight: 700; color: var(--vy-accent-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .vy-newres-foot .vy-btn--accent[disabled] { opacity: .5; cursor: not-allowed; }
-        .vy-newres-cancel { background: rgba(255,255,255,.6); border: 1px solid var(--vy-glass-border); color: var(--vy-muted); }
-        .vy-newres-note { padding: 0 24px 22px; font-size: 11.5px; color: var(--vy-faint); line-height: 1.5; }
-        .vy-newres-note a { color: var(--vy-accent-text); font-weight: 600; text-decoration: none; }
+        .vy-source-pill:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        /* ---- The Calendar's New reservation dialog + its click-a-night layer (2026-10-04) ---------------------------------
+           The founder's report: the names and their boxes were not aligned (a three-column grid holding five pieces). Now the
+           Owners dialogs' structure (`.vyo-dlg`, `.vyo-pair`, the shared `.vy-field`), with these for its own parts. */
+        .vy-rnr-stay { display: block; }
+        .vy-rnr-when { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 136px; gap: 0 12px; }
+        .vy-rnr-when .vy-field { min-width: 0; }
+        .vy-rnr-stepper { height: 42px; }
+        .vy-rnr-stepper button { height: 100%; width: 38px; padding: 0; }
+        .vy-rnr-stepper button:disabled { opacity: .35; cursor: default; }
+        .vy-rnr-stepper button:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: -2px; }
+        .vy-rnr-stepper span { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-rnr-problem { margin: 0 0 12px; font-size: 12.5px; font-weight: 600; line-height: 1.45; color: #8F3110; }
+        .vy-rnr-check { width: 100%; height: 42px; justify-content: center; }
+        .vy-rnr-free { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--vy-hairline); }
+        .vy-rnr-free > .vy-field-label { margin-bottom: 2px; }
+        .vy-rnr-units { display: flex; flex-direction: column; gap: 8px; }
+        .vy-rnr-unit { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 13px; border-radius: var(--vy-r-md); border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.72); font: inherit; color: var(--vy-ink); text-align: left; cursor: pointer; transition: border-color .14s, background .14s; }
+        .vy-rnr-unit:hover { border-color: var(--vy-accent-border); background: #fff; }
+        .vy-rnr-unit:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-rnr-unit.is-sel { border-color: var(--vy-accent-border); background: rgba(232, 112, 58, 0.09); box-shadow: 0 0 0 1px var(--vy-accent-border); }
+        .vy-rnr-unit-ico { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent-text); }
+        .vy-rnr-unit.is-sel .vy-rnr-unit-ico { background: var(--vy-grad); color: #fff; }
+        .vy-rnr-unit-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .vy-rnr-unit-name { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-rnr-unit-sub { font-size: 11.5px; color: var(--vy-muted); overflow-wrap: anywhere; }
+        .vy-rnr-unit-rate { font-size: 13.5px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .vy-rnr-radio { position: relative; width: 18px; height: 18px; flex: none; border-radius: 50%; border: 1.5px solid var(--vy-faint); }
+        .vy-rnr-unit.is-sel .vy-rnr-radio { border-color: transparent; background: var(--vy-grad); box-shadow: var(--vy-shadow-accent); }
+        .vy-rnr-unit.is-sel .vy-rnr-radio::after { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #fff; }
+        .vy-rnr-hidden { display: none; }
+        .vy-rnr-waiting { display: flex; flex-direction: column; gap: 3px; padding: 11px 13px; border-radius: var(--vy-r-md); border: 1px dashed rgba(232, 112, 58, 0.4); background: rgba(232, 112, 58, 0.05); font-size: 12.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vy-rnr-waiting strong { font-size: 13.5px; color: var(--vy-ink); }
+        .vy-rnr-link { border-radius: 4px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; }
+        .vy-rnr-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+        .vy-rnr-link:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-rnr-empty { margin: 0; font-size: 13px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-rnr-empty.is-block { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: var(--vy-r-md); border: 1px dashed rgba(120, 70, 40, 0.22); background: rgba(255, 255, 255, 0.5); }
+        .vy-rnr-empty.is-block strong { font-size: 14.5px; color: var(--vy-ink); }
+        .vy-rnr-sources { min-width: 0; margin: 18px 0 0; padding: 0; border: 0; }
+        .vy-rnr-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+        .vy-rnr-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 13px 15px; border-radius: var(--vy-r-md); background: rgba(232, 112, 58, 0.07); border: 1px solid var(--vy-accent-border); }
+        .vy-rnr-total-lbl { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 500; color: var(--vy-muted); }
+        .vy-rnr-total-amt { white-space: nowrap; font-family: var(--vy-display); font-size: 18px; font-weight: 700; color: var(--vy-accent-text); font-variant-numeric: tabular-nums; }
+        .vy-rnr-fine { margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-faint); }
+        .vy-rnr .vy-modal-foot .vy-btn--accent:disabled { opacity: .5; cursor: not-allowed; }
+        /* the click-a-night layer: under the bars (which stay clickable and draggable) and the blocks */
+        .vy-lane-book { position: absolute; inset: 0; z-index: 0; display: grid; grid-template-columns: var(--night-cols); }
+        .vy-lane-book-cell { display: grid; place-items: center; margin: 5px 3px; border-radius: 8px; color: transparent; font-size: 16px; font-weight: 600; text-decoration: none; transition: background .12s, color .12s; }
+        a.vy-lane-book-cell:hover { background: rgba(232, 112, 58, 0.12); color: var(--vy-accent-text); }
+        .vy-cal .vy-unit-row .vy-lane-bars, .vy-cal .vy-unit-row .vy-lane-ooo { pointer-events: none; }
+        .vy-cal .vy-unit-row .vy-lane-bars .vy-bar, .vy-cal .vy-unit-row .vy-lane-ooo .vy-ooo { pointer-events: auto; }
+        .vy-rack-notice { margin-bottom: 14px; }
+        .vy-rack-hint { max-width: 110ch; margin: 14px 0 0; font-size: 12px; line-height: 1.55; color: var(--vy-on-grad); }
+        .vy-rack-hint strong { color: var(--vy-ink); }
+        @media (max-width: 560px) {
+            .vy-rnr-when { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .vy-rnr-when .vy-field:last-child { grid-column: 1 / -1; }
+        }
 
         /* Warm status tones (no green/red) — mapped ONLY to real reservation statuses */
         .vy-bar.tone-confirmed { background: var(--vy-grad); }

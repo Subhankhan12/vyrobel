@@ -7,15 +7,21 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Fee;
 use App\Models\InventoryBlock;
+use App\Models\Property;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
+use App\Models\Tax;
 use App\Models\Unit;
+use App\Models\UnitRateOverride;
 use App\Services\AssignmentService;
 use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Folio\StayEstimator;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Pricing\NightlyRate;
 use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -69,6 +75,9 @@ class ReservationRack extends Component
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
 
+    /** The sources a booking from here may carry — named as the full form names them. */
+    private const SOURCES = ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Travel agent'];
+
     /** How many nights the rack shows at once. */
     public int $days = 14;
 
@@ -84,7 +93,8 @@ class ReservationRack extends Component
             : new Collection;
 
         // Room-type FILTER (real GET param) — the toolbar's "Filters" is now a real room-type narrow.
-        $filterRt = trim((string) request()->query('rt', ''));
+        $rtParam = request()->query('rt');
+        $filterRt = is_string($rtParam) ? trim($rtParam) : '';   // a hand-made `rt[]=` was a 500 ("Array to string")
         $roomTypes = $filterRt !== ''
             ? $allRoomTypes->filter(fn (RoomType $rt): bool => (string) $rt->id === $filterRt)->values()
             : $allRoomTypes;
@@ -98,12 +108,17 @@ class ReservationRack extends Component
 
         $dates = $this->buildDates($start, $end);
         $roomTypeIds = $roomTypes->pluck('id')->all();
+        // The property's own today — the first night a new booking may start (guest-facing day logic, in its timezone).
+        $bookFrom = CarbonImmutable::now((string) ($property?->timezone ?: config('app.timezone')))->toDateString();
+        // ⚠️ the click-a-night links and the dialog share this one rule (the toolbar button's): the permission its write needs
+        $canBook = ! app(OperatorWorkspace::class)->isReadOnly() && (bool) auth()->user()?->can('reservations.create');
         $barsByType = $this->loadBars($roomTypeIds, $start, $end);
         $blocksByUnit = $this->loadBlocks($roomTypeIds, $start, $end);   // OOO / owner / manual blocks per unit
 
         $rows = [];
         foreach ($roomTypes as $roomType) {
             $rtLines = $barsByType->get($roomType->id, new Collection);
+            $rtAvailability = $availability->availabilityRange($roomType->id, $start, $end);
             $linesByUnit = $rtLines->groupBy('unit_id');
 
             /** @var Collection<int, Unit> $activeUnits */
@@ -160,6 +175,10 @@ class ReservationRack extends Component
                     'bars' => $this->buildUnitBars($linesByUnit->get($unit->getKey(), new Collection), $start),
                     'ooo' => $this->buildOooBars($blocksByUnit->get((string) $unit->getKey(), new Collection), $start),
                 ];
+                $last = count($unitRows) - 1;
+                $unitRows[$last]['free_nights'] = $state === 'active'
+                    ? $this->freeNights($dates, $bookFrom, array_merge($unitRows[$last]['bars'], $unitRows[$last]['ooo']), $rtAvailability)
+                    : [];
             }
 
             $rows[] = [
@@ -167,7 +186,7 @@ class ReservationRack extends Component
                 'room_type' => $roomType->name,
                 'kind' => (string) $roomType->kind,
                 'units' => $activeUnits->count(),
-                'availability' => $availability->availabilityRange($roomType->id, $start, $end),
+                'availability' => $rtAvailability,
                 'unit_rows' => $unitRows,
                 // Reservations with no unit yet (they consume room-type inventory but no unit row) — a real
                 // "Unassigned" track so the operator can see + seat them; lane-packed (they can overlap).
@@ -190,7 +209,8 @@ class ReservationRack extends Component
                 'selected_days' => $this->days,   // the chosen 7/14/30 (for the range switcher + to preserve across nav)
                 'prev' => $start->subDays(max(1, $this->days))->toDateString(),
                 'next' => $end->toDateString(),
-                'today' => CarbonImmutable::today()->toDateString(),
+                // ⚠️ the property's own today — the column marked "today" and the first night a booking can start agree
+                'today' => $bookFrom,
             ],
             'dates' => $dates,
             'rows' => $rows,
@@ -199,75 +219,205 @@ class ReservationRack extends Component
             'roomTypeOptions' => $allRoomTypes->map(fn (RoomType $rt): array => ['id' => (string) $rt->id, 'name' => (string) $rt->name])->all(),
             'filterRt' => $filterRt,
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
-            'newRes' => $this->newReservation($property?->id, $start),
+            'canBook' => $canBook,
+            'newRes' => $this->newReservation($property, $start, $bookFrom, $canBook),
         ]);
     }
 
     /**
-     * The NEW-RESERVATION MODAL payload — a two-phase, RMB-safe flow (invariant #20): the operator enters
-     * guest + dates (a GET "Check rack"); when the dates are valid we compute the REAL bookable units via the
-     * certified {@see UnitAvailabilityService} (the SAME read the full form + the write path use), the operator
-     * picks one, and Confirm is a POST to the certified {@see ReservationCreateController}
-     * → {@see AssignmentService::createBooking} (row-lock non-overlap). Nothing here writes; the modal never
-     * sends a price (the server re-derives the stay total).
+     * The nights of the window a NEW booking could start on this unit's row: from the property's today, not under one of its
+     * bookings or blocks. The dialog then checks the real availability and the price — this only decides where a click may
+     * start one (a night that looks free here may still be held by an unassigned booking; the dialog says so).
      *
-     * @return array<string, mixed>
+     * ⚠️ AND ONLY WHERE THE ROOM TYPE HAS A ROOM TO SELL (the independent review): an unassigned booking or an unpublished
+     * night leaves this unit's row empty while the header says 0 — and the dialog, which checks the room type, then dropped
+     * it without a word. Every link is a one-night stay, so the night's own count is the whole check.
+     *
+     * @param  list<array{date: string}>  $dates
+     * @param  list<array<string, mixed>>  $spans  the row's bars and blocks, each with a window offset and span
+     * @param  array<string, int>  $available  the room type's rooms to sell, per night (the header strip)
+     * @return array<string, string> night => the next day (a one-night stay's check-out)
      */
-    private function newReservation(?string $propertyId, CarbonImmutable $windowStart): array
+    private function freeNights(array $dates, string $bookFrom, array $spans, array $available): array
     {
-        $q = request();
-        $open = $q->query('new') === '1';
-
-        $form = [
-            'guest_first' => trim((string) $q->query('gf', '')),
-            'guest_last' => trim((string) $q->query('gl', '')),
-            'adults' => max(1, min(12, (int) $q->query('adults', '2'))),
-            'check_in' => $this->validDate($q->query('ci')) ?? $windowStart->toDateString(),
-            'check_out' => $this->validDate($q->query('co')) ?? $windowStart->addDay()->toDateString(),
-            'source' => in_array($q->query('source'), ['direct', 'walk_in', 'corporate', 'agent'], true) ? (string) $q->query('source') : 'direct',
-        ];
-
-        $nights = 0;
-        $units = [];
-        if ($open && $propertyId !== null && $form['check_out'] > $form['check_in']) {
-            $nights = (int) CarbonImmutable::parse($form['check_in'])->diffInDays(CarbonImmutable::parse($form['check_out']));
-
-            // Flatten to a single radio list of bookable UNITS (the modal's room list), each carrying the REAL
-            // server-derived stay total (price_minor is the sum over the nights — never a client-supplied price).
-            foreach (app(UnitAvailabilityService::class)->availableRoomTypes($propertyId, $form['check_in'], $form['check_out']) as $rt) {
-                if ($rt['priced'] !== true || $rt['units'] === []) {
-                    continue;   // only offer genuinely bookable + priced room types
-                }
-                $totalMinor = (int) $rt['price_minor'];
-                $currency = (string) $rt['currency'];
-                foreach ($rt['units'] as $u) {
-                    $units[] = [
-                        'room_type_id' => (string) $rt['room_type_id'],
-                        'room_type_name' => (string) $rt['room_type_name'],
-                        'unit_id' => (string) $u['id'],
-                        'unit_label' => (string) $u['code'],
-                        'total_minor' => $totalMinor,
-                        'total_display' => MoneyFormatter::display($totalMinor, $currency),
-                    ];
-                }
+        $covered = [];
+        foreach ($spans as $span) {
+            for ($i = max(0, (int) $span['offset']); $i < (int) $span['offset'] + (int) $span['span']; $i++) {
+                $covered[$i] = true;
             }
         }
 
-        return [
-            'open' => $open,
-            'form' => $form,
-            'nights' => $nights,
-            'units' => $units,
-            'checked' => $open && $form['check_out'] > $form['check_in'],
-            'sources' => ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Agent'],
+        $free = [];
+        foreach ($dates as $i => $d) {
+            if (! isset($covered[$i]) && $d['date'] >= $bookFrom && ($available[$d['date']] ?? 0) >= 1) {
+                $free[$d['date']] = CarbonImmutable::parse($d['date'])->addDay()->toDateString();
+            }
+        }
+
+        return $free;
+    }
+
+    /**
+     * The NEW-RESERVATION MODAL payload — a two-phase, RMB-safe flow (invariant #20): the operator enters
+     * the dates and party (a GET "Check rack" — the guest's name stays in the tab); when the dates are valid we compute the
+     * REAL bookable units via the certified {@see UnitAvailabilityService} (the SAME read the full form + the write path
+     * use), the operator picks one, and Confirm is a POST to the certified {@see ReservationCreateController}
+     * → {@see AssignmentService::createBooking} (row-lock non-overlap). Nothing here writes; the modal never
+     * sends a price (the server re-derives the stay total). A night clicked on a unit's row opens it with that unit
+     * picked (`unit`, honoured only when it is free for the dates).
+     *
+     * @return array<string, mixed>
+     */
+    private function newReservation(?Property $property, CarbonImmutable $windowStart, string $bookFrom, bool $canBook): array
+    {
+        $q = request();
+        // Closed unless asked for by someone who may book — the dialog's reads (availability, prices, taxes) run only then.
+        if ($q->query('new') !== '1' || ! $canBook || $property === null) {
+            return ['open' => false];
+        }
+        $propertyId = (string) $property->getKey();
+
+        // ⚠️⚠️ NO GUEST NAME IN THE ADDRESS (2026-10-04). "Check rack" is a GET, and it used to carry `gf`/`gl` — the guest's
+        //    names in browser history and the server's access logs, which no erase reaches (#28). The names now stay in the
+        //    browser tab (sessionStorage) and only travel in the booking's POST; `gf`/`gl` are not read at all.
+        // ⚠️ Never a check-in in the past by default: the calendar can show an earlier week, and its first night was the default.
+        $checkIn = $this->validDate($q->query('ci')) ?? max($windowStart->toDateString(), $bookFrom);
+        $source = $q->query('source');
+        $form = [
+            'adults' => max(1, min(12, (int) $q->query('adults', '2'))),
+            'check_in' => $checkIn,
+            'check_out' => $this->validDate($q->query('co')) ?? CarbonImmutable::parse($checkIn)->addDay()->toDateString(),
+            'source' => is_string($source) && array_key_exists($source, self::SOURCES) ? $source : 'direct',
         ];
+
+        $nights = $form['check_out'] > $form['check_in']
+            ? (int) CarbonImmutable::parse($form['check_in'])->diffInDays(CarbonImmutable::parse($form['check_out']))
+            : 0;
+        $dateProblem = match (true) {
+            $nights === 0 => 'Check-out must be after check-in.',
+            // ⚠️ `min` only guards the GET; Confirm posts its own form — so a past day is refused here, by name (the review)
+            $form['check_in'] < $bookFrom => 'Check-in can’t be in the past — pick today or later.',
+            $nights > UnitAvailabilityService::MAX_NIGHTS => 'A booking can be at most '.UnitAvailabilityService::MAX_NIGHTS.' nights — pick a shorter stay.',
+            default => null,
+        };
+
+        $offered = $dateProblem === null
+            ? app(UnitAvailabilityService::class)->availableRoomTypes($propertyId, $form['check_in'], $form['check_out'])
+            : [];
+        $priced = array_values(array_filter($offered, fn (array $rt): bool => $rt['priced'] === true && $rt['units'] !== []));
+        $ownPrices = $this->unitPrices($priced, $form['check_in'], $form['check_out']);
+
+        $units = [];
+        foreach ($priced as $rt) {
+            $planId = (string) $rt['rate_plan_id'];
+            foreach ($rt['units'] as $u) {
+                // ⚠️ the unit's own price where it has one — exactly what the booking write charges (D18-5)
+                $totalMinor = $ownPrices[$planId][(string) $u['id']] ?? (int) $rt['price_minor'];
+                $units[] = [
+                    'room_type_id' => (string) $rt['room_type_id'],
+                    'room_type_name' => (string) $rt['room_type_name'],
+                    'unit_id' => (string) $u['id'],
+                    'unit_label' => (string) $u['code'],
+                    'sleeps' => (int) $u['sleeps'],
+                    'currency' => (string) $rt['currency'],
+                    'total_minor' => $totalMinor,
+                    'total_display' => MoneyFormatter::display($totalMinor, (string) $rt['currency']),
+                ];
+            }
+        }
+
+        // ⚠️ Said, never skipped: a room type with free units and no price for these nights used to vanish, and the dialog said
+        //    "No units are free" — the dead end the founder hit on the full form (2026-10-04). One with no rate plan at all is
+        //    named as such: the full form cannot price it either (the review).
+        $waiting = [];
+        foreach ($offered as $rt) {
+            if ($rt['priced'] !== true && $rt['units'] !== []) {
+                $waiting[] = ['name' => (string) $rt['room_type_name'], 'units' => count($rt['units']), 'has_plan' => $rt['rate_plan_id'] !== null];
+            }
+        }
+
+        $unitParam = $q->query('unit');
+        $preselect = is_string($unitParam) ? $unitParam : '';   // a hand-made `unit[]=` was a 500 ("Array to string")
+
+        // ⚠️ The total shown is the room's; say so when the folio will add taxes or fees — judged in the STAY's currency (each
+        //    offered plan's), which is what the write posts by, not the property's.
+        $currencies = $units !== [] ? array_values(array_unique(array_column($units, 'currency'))) : [strtoupper((string) ($property->currency ?: 'EUR'))];
+        $taxes = Tax::query()->where('property_id', $propertyId)->get();
+        $fees = Fee::query()->where('property_id', $propertyId)->get();
+        $addsCharges = false;
+        foreach ($currencies as $currency) {
+            $addsCharges = $addsCharges
+                || $taxes->contains(fn (Tax $t): bool => StayEstimator::taxApplies($t, $currency))
+                || $fees->contains(fn (Fee $f): bool => StayEstimator::feeApplies($f, $currency));
+        }
+
+        return [
+            'open' => true,
+            'form' => $form,
+            'today' => $bookFrom,
+            'nights' => $nights,
+            'date_problem' => $dateProblem,
+            'units' => $units,
+            'waiting' => $waiting,
+            'preselect' => collect($units)->contains('unit_id', $preselect) ? $preselect : '',
+            'rooms' => Unit::query()->bookable()->where('property_id', $propertyId)->count(),
+            'rooms_all' => Unit::query()->where('property_id', $propertyId)->count(),
+            'checked' => $dateProblem === null,
+            'sources' => self::SOURCES,
+            'can_set_price' => (bool) auth()->user()?->can('rates.manage'),
+            'adds_charges' => $addsCharges,
+            'full_form_url' => route('app.reservations.create', ['check_in' => $form['check_in'], 'check_out' => $form['check_out']]),
+        ];
+    }
+
+    /**
+     * Per-unit stay prices for the offered room types' plans, keyed plan → unit — one query finds the pairs that carry a
+     * per-unit price in the stay, then the booking write's own function prices each (the full form's way). A unit without
+     * one is absent and costs its plan's price.
+     *
+     * @param  list<array<string, mixed>>  $roomTypes  priced room types from {@see UnitAvailabilityService::availableRoomTypes()}
+     * @return array<string, array<string, int>>
+     */
+    private function unitPrices(array $roomTypes, string $checkIn, string $checkOut): array
+    {
+        $planIds = array_values(array_filter(array_map(fn (array $rt): string => (string) $rt['rate_plan_id'], $roomTypes)));
+        $unitIds = [];
+        foreach ($roomTypes as $rt) {
+            foreach ($rt['units'] as $u) {
+                $unitIds[] = (string) $u['id'];
+            }
+        }
+        if ($planIds === [] || $unitIds === []) {
+            return [];
+        }
+
+        $pairs = UnitRateOverride::query()
+            ->whereIn('rate_plan_id', $planIds)
+            ->whereIn('unit_id', $unitIds)
+            ->whereDate('date', '>=', $checkIn)
+            ->whereDate('date', '<', $checkOut)
+            ->distinct()
+            ->get(['rate_plan_id', 'unit_id']);
+
+        $prices = [];
+        foreach ($pairs as $pair) {
+            $total = NightlyRate::stayTotalForUnit((string) $pair->rate_plan_id, (string) $pair->unit_id, $checkIn, $checkOut);
+            if ($total !== null) {
+                $prices[(string) $pair->rate_plan_id][(string) $pair->unit_id] = $total;
+            }
+        }
+
+        return $prices;
     }
 
     private function validDate(mixed $value): ?string
     {
-        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1
-            ? CarbonImmutable::parse($value)->toDateString()
-            : null;
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+        [$y, $m, $d] = array_map('intval', explode('-', $value));
+
+        return checkdate($m, $d, $y) ? $value : null;   // "2026-02-31" is not a date, not 3 March
     }
 
     /**

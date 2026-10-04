@@ -633,6 +633,33 @@ money gate FULL unmoved.
 checks 12/0/0; 1,440/1,440 files match git; drift check passes; 0 errors since the swap. The live look (he signed in; look only):
 the no-rooms card, the price box on both Villa Azure room types, Next's message, 390 px; signed out and the browser closed.
 
+**CALENDAR NEW RESERVATION — 2026-10-04 — his "on `+New reservation~ page, the design is messed, guest first name, last name, and
+their boxes are not well aligned" and "also do additional works the way you did for previous pages".** The plan posted (ten parts)
+and executed; no migration. **Why (read from the code):** the wireframe has one "Name or existing guest" box beside the adults; the
+build split it into two labelled names inside a grid of three columns, so five pieces wrapped: "Last name" ended line one and
+its box began line two. **Built:** the Owners dialogs' structure on the shared solid card (A9 for this dialog) — each label above
+its box, the dates and adults labelled on their own line, the foot in view, Escape closing it cleanly (it left `new=1` behind);
+⚠️⚠️ the guest's name out of the address (#28 — "Check rack" was a GET carrying `gf`/`gl` into history and access logs; now the tab
+keeps it, only across its own Check rack and only for the person who typed it); the false "Matches an existing profile" and
+"the guest gets a confirmation email" removed; room types with no price or no plan listed with the reason (they vanished: "No
+units are free"), a property with no rooms one card; the unit's own price (what the write charges); a taxes-and-fees line; check-in
+never in the past by default (his link defaulted to 28 Sep), a past check-in, a reversed stay and >90 nights named and a past
+check-in refused on Confirm; impossible dates dropped; **NEW: a "+" on each empty night of a unit's row** opening the dialog with
+that unit picked; "Travel agent"; a radio group; "today" in the property's timezone; the hint one sentence; 0 inline styles in
+the dialog (the rack view 19 → 8). **Found on the walk, mine:** ⚠️⚠️ a `"` in a comment inside `x-data` ended the attribute — 38
+console errors, every server-side test green; fixed and guarded by a test. **The independent review** (read-only, nothing high,
+3 medium, 10 low — all fixed): "+" on nights with nothing to sell; a name coming back in the next dialog; "set a price in the full
+form" for a room type with no plan; `unit[]`/`rt[]` 500s; the "+" layer over the blocks' tooltips; a past check-in bookable; two
+todays; restored date boxes booking other dates; Back stuck at "Booking…"; the taxes note's currency; two over-claiming lines;
+wasted queries; accessibility. And `OperatorControlGateTest`'s "write surface" check matched the full form's link — now the panel.
+The view's second permission check went: behind the component's, no test could prove it (CN-M26). Recorded: D-RACK-START-TZ.
+Tests: `CalendarNewReservationTest` (24 — 🔬 22 fail on the old code; the 2 that pass are guards); mutations
+`calendar-new-reservation` 33 — first run 31/32, then 33/33. 🖥 Walked on tenant three at 1440 and 390 (the alignment measured:
+each label's left edge on its box's); a booking made from the dialog (R-PRSAG8AH); 0 console messages.
+Gates: 4,280/4,280 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `2224515895cd0245`, the code plus these docs; read from JUnit
+logs — ⚠️ a first MySQL run printed nothing, `laravel/pao` failing at shutdown, and was not counted); 670/670 mutations; money
+gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -675,6 +702,10 @@ the no-rooms card, the price box on both Villa Azure room types, Next's message,
   and a list of hand-made inputs that a first check (the date) dropped never reached the second check (the shape) it was written
   for. Both stayed green under their mutation and were sharpened. And a step message computed live from a field Alpine does not
   watch (an email box) never re-rendered — caught by the browser, not by a test: the message is now state.
+- **My own quote broke a whole dialog (the Calendar pass, 2026-10-04):** a `"` written in a comment inside `x-data` ended the
+  attribute; every binding failed in the browser while every server-side test stayed green. Caught on the walk, before commit,
+  and now refused by a test. And a guard I had doubled (the view behind the component) was caught by the mutation harness as
+  unprovable, not by reading.
 - **A test's title is a claim too (the Units pass, 2026-09-30):** "offers … nothing that writes in a paused workspace" sat on
   a test that correctly pinned Arrival info as still offered there. The assertion was right and the title was wrong; caught
   on re-reading, before commit. And a memory lesson drafted from recall ("the menu swallowed focus") was checked against
@@ -688,8 +719,8 @@ live pass · KEYBOARD 01 (needs him) · OAuth-token-on-reset ruling · Stripe li
 **Raised 2026-09-29 → 10-03, waiting on him:** A8 / A9 / A10 — the x-show, see-through-dialog and string `:style` sweeps ·
 DEC-h (F-58 and the Portfolio card) · DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · DEC-o (portal access
 from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate proposals and the property limit) · DEC-r (an
-existing guest's email on a new guest) · D-MONEY-COMMA (a comma read as thousands in every money field) · the signed-in looks
-still owed on earlier passes. (A11, A12
+existing guest's email on a new guest) · D-MONEY-COMMA (a comma read as thousands in every money field) · D-RACK-START-TZ (the
+calendar's default week on the app's day) · the signed-in looks still owed on earlier passes. (A11, A12
 and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) Where:
 `OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 

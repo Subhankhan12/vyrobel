@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the NEW RESERVATION pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the CALENDAR NEW RESERVATION pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -26,10 +26,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the NEW RESERVATION commit) | **4,256/4,256 on MySQL 8.4.10** (tree `633895cac1ed8024` = the code plus these docs, 2026-10-04 02:18–02:56 Baku) · **4,256/4,256 on MariaDB 11.8.9** (the same tree, 04:18–04:36 Baku) · 31,315 assertions · every test passed (0 skipped). The committed tree adds only these figures to the docs; the 54 doc-reading files re-run on it. The OWNER MODULE commit before it (`4751d2c9`): 4,229/4,229 on both engines | **V** run output 2026-10-04. |
-| Mutations | **637/637 landed and caught across every set**, 0 not caught, 0 did not land; baseline 353/353 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `new-reservation`'s first run was 30/34: two needles stale after the review's changes and two tests passing for the wrong reason, sharpened | **V** harness output 2026-10-04 03:12–04:17 Baku, tree `633895cac1ed8024` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-04 04:36 Baku (the NEW RESERVATION pass; reseeded 04:36). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-04 (the NEW RESERVATION pass, before the suite runs) |
+| Suite (the CALENDAR NEW RESERVATION commit) | **4,280/4,280 on MySQL 8.4.10** (tree `2224515895cd0245` = the code plus these docs, 2026-10-04 17:04–17:32 Baku) · **4,280/4,280 on MariaDB 11.8.9** (the same tree, 18:18–18:39 Baku) · 31,450 assertions · every test passed (0 failed, 0 errors, 0 skipped — read from each run's JUnit log). ⚠️ A first MySQL run (16:53–17:02) printed no result: `laravel/pao` failed at shutdown (`RULES.md` Part 3); it is not counted. The committed tree adds only these figures to the docs; the 54 doc-reading files re-run on it. The NEW RESERVATION commit before it (`282109e4`): 4,256/4,256 on both engines | **V** run outputs and JUnit logs 2026-10-04. |
+| Mutations | **670/670 landed and caught across every set**, 0 not caught, 0 did not land; baseline 378/378 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `calendar-new-reservation`'s first run was 31/32: the view's second permission check could not be proven and was removed; CN-M33 was added for the review's caveat | **V** harness output 2026-10-04 17:33–18:13 Baku, tree `2224515895cd0245` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-04 18:39 Baku (the CALENDAR NEW RESERVATION pass; reseeded 18:39). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-04 (the CALENDAR NEW RESERVATION pass, before the suite runs) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AT`, 2026-10-04, run straight after the 04:41 Baku swap (and on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-04, after the 04:41 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -133,6 +133,13 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     "350" and "Normal" plans named); Next answering "Pick a unit for these dates to continue."; 390 of 390 px at 390; no console
     message. The working property was switched back to "Internal Test Property" as he had it; he was signed out and the
     automated browser closed.
+0l. **Calendar New reservation (2026-10-04)** — his report ("guest first name, last name, and their boxes are not well aligned"
+    … "also do additional works the way you did for previous pages"); the plan posted and executed (`HISTORY.md`, "CALENDAR NEW
+    RESERVATION"). Why (read from the code): the wireframe's one name box was split into two labelled names inside a grid sized
+    for three pieces. Now: each label above its own box on the shared solid card; ⚠️ the guest's name out of the address (#28,
+    D-CAL-GUEST-GET); rooms with no price or plan listed with the reason; the unit's own price; dates never in the past; a "+" on
+    each empty night of a unit's row that opens the dialog with that unit picked. The review's 13 findings fixed. Recorded:
+    D-RACK-START-TZ. **Not yet live** — this line is updated by the deploy.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,
@@ -168,7 +175,7 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     DEC-q (should rate proposals check the person's properties, as every other rate and unit write does?).
 8e. Rule on DEC-r (offer the existing guest when a new guest's email matches one) and say go (or not) on D-MONEY-COMMA (refuse
     "150,50"-style amounts in every money field, not only the booking wizard's). Smaller, recorded: D-STOREFRONT-ORPHAN-GUEST,
-    D-GB-SYMBOL, D-RATE-DERIVED-PRIMARY (`OPEN.md`).
+    D-GB-SYMBOL, D-RATE-DERIVED-PRIMARY, D-RACK-START-TZ (`OPEN.md`).
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the

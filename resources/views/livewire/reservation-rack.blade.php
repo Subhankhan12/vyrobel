@@ -61,142 +61,15 @@
 
         @php $notice = session('new_reservation_notice') ?? session('folio_notice') ?? session('group_notice'); @endphp
         @if ($notice)
-            <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:14px"><div style="font-size:13.5px;color:var(--vy-ink)">{{ $notice }}</div></div>
+            <div class="vy-flash vy-rack-notice vy-fade" role="status">{{ $notice }}</div>
         @endif
 
-        {{-- NEW RESERVATION MODAL (exact-match) — a frosted overlay, two-phase + #20-safe: enter guest + stay
-             (GET "Check rack") → the REAL available units (UnitAvailabilityService) → pick one → Confirm = a POST
-             to the certified ReservationCreateController → AssignmentService::createBooking (row-lock non-overlap)
-             + the real confirmation email. The client NEVER sends a price (the server re-derives the total). --}}
-        {{-- ⚠️ OPERATOR FIX 1 (audit Finding 2, extended) — the MODAL is the real write surface: it holds a
-             form posting to `app.reservations.store`, which requires `reservations.create`. Gating only the
-             button left `?new=1` open to any role, so the permission is checked here too, not just on the
-             affordance that reveals it. --}}
-        @if (! $readOnly && $newRes['open'] && $property !== null && auth()->user()?->can('reservations.create'))
-            <div x-data="{ open: true, dirty: false, gf: @js($newRes['form']['guest_first']), gl: @js($newRes['form']['guest_last']), adults: {{ (int) $newRes['form']['adults'] }}, source: '{{ $newRes['form']['source'] }}', sel: '', selTotal: '', selLabel: '', close() { this.open = false; history.replaceState({}, '', location.pathname + '?start={{ $window['start'] }}&days={{ $window['selected_days'] }}'); } }" x-cloak>
-                <div class="vy-modal-backdrop" x-show="open" @click="close()" style="z-index:60"
-                     x-transition.opacity @keydown.escape.window="open = false">
-                    <div class="vy-modal vy-newres-modal" @click.stop role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="open" aria-labelledby="vy-dlg-reservation-rack-open-1">
-                        {{-- header --}}
-                        <div class="vy-modal-head">
-                            <div style="flex:1">
-                                <h2 class="vy-modal-title" id="vy-dlg-reservation-rack-open-1">New reservation</h2>
-                                <div class="vy-modal-sub">{{ $property['name'] }} · direct entry</div>
-                            </div>
-                            <button type="button" class="vy-modal-x" @click="close()" aria-label="Close">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
-                            </button>
-                        </div>
-
-                        <div class="vy-modal-body">
-                            {{-- Phase 1: guest + adults stepper + stay (GET → re-checks availability) --}}
-                            <form method="GET" class="vy-newres-p1">
-                                <input type="hidden" name="start" value="{{ $window['start'] }}">
-                                <input type="hidden" name="days" value="{{ $window['selected_days'] }}">
-                                <input type="hidden" name="new" value="1">
-                                <input type="hidden" name="adults" :value="adults">
-                                {{-- source round-trips through the re-check so a picked channel survives a 'Check rack' --}}
-                                <input type="hidden" name="source" :value="source">
-
-                                <div class="vy-field-label">Guest</div>
-                                <div class="vy-newres-guest">
-                                    <label class="vy-field-label" for="vy-lbl-reservation-rack-gf">First name</label>
-                                    <input id="vy-lbl-reservation-rack-gf" type="text" name="gf" x-model="gf" placeholder="First name" class="vy-input">
-                                    <label class="vy-field-label" for="vy-lbl-reservation-rack-gl">Last name</label>
-                                    <input id="vy-lbl-reservation-rack-gl" type="text" name="gl" x-model="gl" placeholder="Last name" class="vy-input">
-                                    <div class="vy-stepper" role="group" aria-label="Adults">
-                                        <button type="button" @click="adults = Math.max(1, adults - 1)" aria-label="Fewer adults">&minus;</button>
-                                        <span x-text="adults + (adults === 1 ? ' adult' : ' adults')"></span>
-                                        <button type="button" @click="adults = Math.min(12, adults + 1)" aria-label="More adults">+</button>
-                                    </div>
-                                </div>
-                                <div class="vy-help">Matches an existing profile if the guest has stayed before.</div>
-
-                                <div class="vy-field-label" style="margin-top:16px">Stay</div>
-                                <div class="vy-newres-dates">
-                                    <input type="date" name="ci" value="{{ $newRes['form']['check_in'] }}" class="vy-input" @change="dirty = true">
-                                    <input type="date" name="co" value="{{ $newRes['form']['check_out'] }}" class="vy-input" @change="dirty = true">
-                                    @if ($newRes['checked'])<span class="vy-newres-nights">{{ $newRes['nights'] }} {{ \Illuminate\Support\Str::plural('night', $newRes['nights']) }}</span>@endif
-                                </div>
-                                {{-- edited dates invalidate the checked availability below → must re-check before Confirm --}}
-                                <div class="vy-help vy-newres-dirty" x-show="dirty" x-cloak style="color:var(--vy-accent)">Dates changed — click “Check rack” to refresh availability.</div>
-
-                                <button type="submit" class="vy-btn vy-btn--accent vy-newres-check">Check rack</button>
-                            </form>
-
-                            {{-- Phase 2: the REAL available units → pick → Source → running total → Confirm (certified POST) --}}
-                            @if ($newRes['checked'])
-                                <div class="vy-field-label" style="margin-top:20px">Unit · available {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_in'])->format('j M') }} – {{ \Illuminate\Support\Carbon::parse($newRes['form']['check_out'])->format('j M') }}</div>
-                                <div class="vy-newres-rooms">
-                                    @forelse ($newRes['units'] as $u)
-                                        {{-- data-* carries the (possibly apostrophe'd) room name safely into Alpine, never into a JS literal --}}
-                                        <button type="button" class="vy-newres-room"
-                                                data-unit="{{ $u['unit_id'] }}"
-                                                data-total="{{ $u['total_display'] }}"
-                                                data-label="{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}"
-                                                :class="sel === '{{ $u['unit_id'] }}' ? 'is-sel' : ''"
-                                                @click="sel = $event.currentTarget.dataset.unit; selTotal = $event.currentTarget.dataset.total; selLabel = $event.currentTarget.dataset.label">
-                                            {{-- The design leads each unit row with a round glyph. Decorative. --}}
-                                            <span class="vy-newres-room-ico" aria-hidden="true">
-                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
-                                            </span>
-                                            <span class="vy-newres-room-info">
-                                                <span class="vy-newres-room-name">{{ $u['room_type_name'] }} · {{ $u['unit_label'] }}</span>
-                                                <span class="vy-newres-room-sub">{{ $newRes['nights'] }}-night stay</span>
-                                            </span>
-                                            <span class="vy-newres-room-rate">{{ $u['total_display'] }}</span>
-                                            <span class="vy-newres-radio" :class="sel === '{{ $u['unit_id'] }}' ? 'on' : ''"></span>
-                                        </button>
-                                        {{-- the certified per-unit POST form (hidden); the total is NOT sent — the server re-derives it --}}
-                                        <form method="POST" action="{{ route('app.reservations.store') }}" id="resf-{{ $u['unit_id'] }}" class="vy-newres-hidden">
-                                            @csrf
-                                            <input type="hidden" name="check_in" value="{{ $newRes['form']['check_in'] }}">
-                                            <input type="hidden" name="check_out" value="{{ $newRes['form']['check_out'] }}">
-                                            <input type="hidden" name="room_type_id" value="{{ $u['room_type_id'] }}">
-                                            <input type="hidden" name="unit_id" value="{{ $u['unit_id'] }}">
-                                            <input type="hidden" name="adults" :value="adults">
-                                            <input type="hidden" name="source" :value="source">
-                                            <input type="hidden" name="guest_first_name" :value="gf">
-                                            <input type="hidden" name="guest_last_name" :value="gl">
-                                        </form>
-                                    @empty
-                                        <div class="vy-empty" style="padding:16px 12px">No units are free (and priced) for those dates — try other dates.</div>
-                                    @endforelse
-                                </div>
-
-                                @if (count($newRes['units']) > 0)
-                                    <div class="vy-field-label" style="margin-top:16px">Source</div>
-                                    <div class="vy-newres-sources">
-                                        @foreach ($newRes['sources'] as $val => $label)
-                                            <button type="button" class="vy-source-pill" :class="source === '{{ $val }}' ? 'on' : ''" @click="source = '{{ $val }}'">{{ $label }}</button>
-                                        @endforeach
-                                    </div>
-
-                                    <div class="vy-newres-total">
-                                        <span class="vy-newres-total-lbl" x-text="sel ? selLabel : 'Pick a unit above'"></span>
-                                        <span class="vy-newres-total-amt" x-text="sel ? selTotal : '—'"></span>
-                                    </div>
-                                @endif
-                            @endif
-                        </div>
-
-                        {{-- footer actions --}}
-                        <div class="vy-modal-foot vy-newres-foot">
-                            @if ($newRes['checked'] && count($newRes['units']) > 0)
-                                {{-- one Confirm: submit the SELECTED unit's certified form. The :value bindings above
-                                     are flushed by the time this later click fires (no same-tick set+submit race). --}}
-                                <button type="button" class="vy-btn vy-btn--accent" :disabled="! sel || dirty"
-                                        @click="sel && ! dirty && document.getElementById('resf-' + sel).requestSubmit()">Confirm reservation</button>
-                            @endif
-                            <button type="button" class="vy-btn vy-newres-cancel" @click="close()">Cancel</button>
-                        </div>
-                        <div class="vy-newres-note">
-                            Creates a real booking on the certified engine · the guest gets a confirmation email · you land on the confirmation (with a self-check-in QR).
-                            <a href="{{ route('app.reservations.create', ['check_in' => $newRes['form']['check_in'], 'check_out' => $newRes['form']['check_out']]) }}">Need rate plans, extras &amp; payment? Open the full form →</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {{-- NEW RESERVATION — the dialog (rebuilt 2026-10-04: `partials/rack-new-reservation`). ⚠️ OPERATOR FIX 1 (audit Finding
+             2, extended): the dialog is the real write surface, so it opens only for someone who may book (`reservations.create`,
+             the permission its POST requires) in a workspace that is not paused — `?new=1` alone opens nothing. ⚠️ ONE guard, in
+             `ReservationRack::newReservation()`: a second `$canBook` here could never change anything, so no test could prove it. --}}
+        @if ($newRes['open'])
+            @include('livewire.operator.partials.rack-new-reservation')
         @endif
 
         @if ($property === null || count($rows) === 0)
@@ -325,6 +198,22 @@
                                                 </div>
                                             @endif
 
+                                            {{-- ⚠️ 2026-10-04 — CLICK AN EMPTY NIGHT TO BOOK IT: one link per night a new booking could start on this
+                                                 unit (from the property's today, not under a booking or a block), opening the dialog with this
+                                                 unit picked. Under the bars (which stay clickable and draggable); out of the tab order — the
+                                                 toolbar's New reservation is the keyboard's way in. Only for someone who may book. --}}
+                                            @if ($canBook && $unit['state'] === 'active')
+                                                <div class="vy-lane-book" aria-hidden="true">
+                                                    @foreach ($dates as $d)
+                                                        @if (isset($unit['free_nights'][$d['date']]))
+                                                            <a class="vy-lane-book-cell" tabindex="-1" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}&new=1&ci={{ $d['date'] }}&co={{ $unit['free_nights'][$d['date']] }}&unit={{ $unit['unit_id'] }}" title="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}" aria-label="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}"><span aria-hidden="true">+</span></a>
+                                                        @else
+                                                            <span class="vy-lane-book-cell is-off" aria-hidden="true"></span>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
                                             {{-- Drop targets — one per night, only on a BOOKABLE (active) unit row, click-through
                                                  except while a drag is in flight. The date is server-rendered (no client date math). --}}
                                             @if (! $readOnly && $unit['state'] === 'active')
@@ -410,16 +299,12 @@
                     </div>
                     {{-- Drag-to-reschedule is LIVE (→ the certified AssignmentService::reschedule, availability
                          locked, no-overlap). Each row is a physical unit; hatched bars are real blocks. --}}
-                    <div class="vy-deferred-note" style="margin-top: 14px;">
-                        @if (! $readOnly)
-                            <strong style="color:var(--vy-ink)">Drag a booking</strong> to a new date or unit to reschedule it — the stay
-                            length is kept and availability is re-checked. Hatched bars are real out-of-order / owner blocks; the
-                            header strip shows units available per night. Use “New reservation” to book.
-                        @else
-                            Each row is a physical unit; hatched bars are real out-of-order / owner blocks; the header
-                            strip shows units available per night. (The workspace is paused — moves are off.)
-                        @endif
-                    </div>
+                    {{-- ⚠️ one sentence: inside the old inline-flex note "Drag a booking" sat in one column and the rest in another --}}
+                    @if (! $readOnly)
+                        <p class="vy-rack-hint"><strong>Drag a booking</strong> to a new date or unit to reschedule it — the stay length is kept and availability is re-checked.@if ($canBook) Click an empty night on a unit’s row to book it there.@endif Hatched bars are real out-of-order / owner blocks; the header strip shows units available per night.</p>
+                    @else
+                        <p class="vy-rack-hint">Each row is a physical unit; hatched bars are real out-of-order / owner blocks; the header strip shows units available per night. (The workspace is paused — moves are off.)</p>
+                    @endif
                 </div>
             </div>
         @endif

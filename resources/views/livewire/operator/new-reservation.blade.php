@@ -52,7 +52,8 @@
             </div>
             {{-- ⚠️ THE DRAFT DIES WITH THE BOOKING IT BECAME — otherwise "New reservation" would open pre-filled with the
                  booking just made. Cleared here, on success, not on the Confirm click: a refused booking keeps it. --}}
-            <script>try { sessionStorage.removeItem('vyrobel:new-reservation:draft'); localStorage.removeItem('vyrobel:new-reservation:draft'); } catch (e) {}</script>
+            {{-- …and the Calendar dialog's guest name, kept in the tab only across its "Check rack" (it books through here too). --}}
+            <script>try { sessionStorage.removeItem('vyrobel:new-reservation:draft'); localStorage.removeItem('vyrobel:new-reservation:draft'); sessionStorage.removeItem('vyrobel:rack-new-reservation:guest'); } catch (e) {}</script>
         </div>
     </div>
 @else

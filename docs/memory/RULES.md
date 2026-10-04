@@ -400,6 +400,25 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   when the step refuses (Verified 2026-10-04, the browser).
 - **A shared parser's habit is a page's bug.** `MoneyInput` reads "150,50" as 15,050.00 — 100× a European amount. A page can
   refuse the ambiguous shape before it is sent; the shared rule is the founder's call (D-MONEY-COMMA, Verified 2026-10-04).
+- **A double quote inside an `x-data="…"` ends the attribute — even inside a comment.** The Calendar dialog's script said "Check
+  rack" in a comment: Alpine got half an object, every binding failed (38 console errors), and every server-side test stayed
+  green. Only the browser's console showed it. Keep `"` out of attribute scripts; a test can refuse it (Verified 2026-10-04).
+- **A guard behind another guard cannot be proven — keep one.** The view re-checked the permission after the component had
+  already refused to open the dialog; removing it changed nothing, so its mutation was NOT CAUGHT. Keep the one that also saves
+  the work, and prove it (Verified 2026-10-04, CN-M26).
+- **A GET form puts everything it holds in the history and the access logs.** The dialog's "Check rack" carried the guest's
+  name. Give personal fields no `name` in a GET form, keep them in the tab, and send them only in the POST (#28, Verified
+  2026-10-04).
+- **A value kept in the browser must know whose it is.** sessionStorage outlives a sign-out in the same tab. Mark it with the
+  person and restore it only for them, only on the way back from the form that kept it (Verified 2026-10-04, the browser).
+- **An address in a test can match the wrong link.** "The write surface opens" was `toContain(route('app.reservations.store'))`
+  — the same path as the full form's GET link inside the dialog. Assert what only the thing under test renders (Verified
+  2026-10-04, the review).
+- **A run that prints nothing has not passed.** The first full MySQL run of 2026-10-04 ended with an empty output file: the
+  agent-output package had failed at shutdown and taken the result with it. Read the counts from a file the run writes itself
+  (Part 3, the suite; Verified 2026-10-04).
+- **A design's sentence is a promise.** "Matches an existing profile" and "Confirmation email sent" came from the wireframe and
+  were never true here. Check every sentence a design hands over against what the code does (Verified 2026-10-04, read).
 
 ---
 
@@ -415,6 +434,11 @@ Pass = the suite is green. The count is whatever the run prints. Last reported f
 (Reported: DECISIONS ADMIN 05). After the Portfolio Open + fields (2026-09-29): **4,047/4,047 on MySQL 8.4.10 and on MariaDB 11.8.9**
 (Verified: run outputs). ⚠️ **Run it under `caffeinate -i`:** on 2026-09-27 the Mac slept mid-run, and a
 ~17-minute suite took 8½ hours of wall time. `RefreshDatabase` is OFF, so fixtures need unique ids (CLAUDE.md).
+⚠️⚠️ **Read a gate's result from a JUnit log, not from the printed line.** `laravel/pao` (installed with the tools) swaps Pest's
+output for one JSON line when it detects an agent. On 2026-10-04 it failed at shutdown (`stream_filter_remove(): Unable to
+flush filter`, in the app log) and a full run printed NOTHING, exit 1 — a run with no result, not a pass. Run a gate as
+`PAO_DISABLE=1 php artisan test --log-junit=<file>` (its own switch) and count `tests`/`failures`/`errors`/`skipped` from the
+file (Verified 2026-10-04: the re-run, 4,280/4,280).
 
 **The MariaDB engine swap (both engines are a gate).** The engines SWAP on 3306 and never run side by side: on
 another port the concurrency workers still hit 3306. Steps: `brew services stop mysql@8.4`, then

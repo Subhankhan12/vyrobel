@@ -19551,3 +19551,109 @@ Test Property has no rooms yet" and Go to Units; on Villa Azure Lumière (11–1
 night · Set price" on both room types, each naming its main plan; Next answering "Pick a unit for these dates to continue."; 390
 of 390 px at 390; no console message. The working property was put back as he had it; he was signed out and the automated
 browser closed. He chose not to set a price or make a test booking on production; the full booking was walked locally.
+
+## 2026-10-04 — Calendar: the New reservation dialog rebuilt — each name with its own box, the guest's name kept out of the address, rooms with no price said, and an empty night that starts a booking
+
+**Asked:** "Now fix these issues "https://vyrobel.com/app/calendar?start=2026-09-28&days=14 — on `+New reservation~ page, the
+design is messed, guest first name, last name, and their boxes are not well aligned." and also do additional works the way you
+did for previous pages."
+
+**Why the names and boxes did not line up (read from the code; the same view was live).** The guest row was one CSS grid of
+three columns (`1fr 1fr 116px`) holding five pieces: the "First name" label, its box, the "Last name" label, its box and the
+adults stepper. So the first line read "First name · [box] · Last name" and the second "[box] · stepper": the "Last name" label
+sat at the end of one line and its box at the start of the next, under "First name". The dates had no labels at all. How it
+came about: the wireframe (`docs/design/raw/Operator Calendar.html`) has ONE box, "Name or existing guest", beside the adults;
+the build split it into two names and gave each a label, inside a grid sized for three pieces.
+
+**1 · Each name with its own box.** The Owners dialogs' structure: First name and Last name side by side, each label directly
+above its box, both boxes 42 px; Check-in, Check-out and Adults on the next line, each labelled; the adults count announced
+when it changes. 🖥 Measured after: each label's left edge equals its box's (435/435 and 719/719 px at 1440).
+**Correction to the plan:** it said the labels would no longer be all in capitals. They kept the app's small capital dialog
+labels (`.vy-field-label`), as the Owners, Guests and Units dialogs show them, so the dialogs read alike.
+
+**2 · The shared solid dialog.** The see-through glass panel (one of A9's five) is now the shared card: the Owners dialogs'
+head (an icon, "New reservation", the property and what this dialog is for), the foot always in view, focus on First name,
+the trap, and Escape or the backdrop closing it cleanly — Escape used to leave `new=1` in the address, so a reload reopened it.
+
+**3 · ⚠️⚠️ The guest's name kept out of the address (#28).** "Check rack" is a GET and carried `gf`/`gl`: the guest's names went
+into the browser's history and the server's access logs, which no erase reaches. They now stay in this browser tab
+(sessionStorage) and travel only in the booking's POST; they come back only across the dialog's own "Check rack" (a `kept=1`
+marker, never the name), only for the person who typed them, and any other way in starts empty and clears them.
+
+**4 · Nothing it does not do.** It said "Matches an existing profile if the guest has stayed before" — every booking from here
+creates a new guest — and that "the guest gets a confirmation email" — it asks for no email, so none is sent. Both are gone;
+the fine print says what it does: books straight away as a new guest, no extras, payment or email, and a stay rule such as a
+minimum stay sends you to the full form, with the booking kept.
+
+**5 · No dead ends.** A room type with free units and no price for the dates was dropped without a word ("No units are free
+(and priced)") — the dead end he hit on the full form this morning. Now it is listed: "No price for these nights yet", with
+"Set a price in the full form" for someone who manages rates (the full form's price box) or "Ask someone who manages rates";
+a room type with no rate plan says so, with the Rates page for those who can add one. A property with no rooms gets one card
+and "Go to Units" — or, when it has rooms that are all paused or out of service, says that.
+
+**6 · The money as the booking charges it.** The dialog showed the room type's price; a unit with its own price (D18-5) is
+charged that price by the booking write, so the figure shown could differ from the figure charged. Each unit now shows its
+own (one query for all of them). When the folio will add the property's taxes or fees (judged in the stay's currency, as the
+write does), it says "Room only — the property's taxes and fees are added on the folio."
+
+**7 · Dates.** Check-in defaulted to the calendar's first day — on his link, 28 September, six days back. It is now today in
+the property's timezone, or the week's first day when that is later; the date boxes refuse earlier days. Check-out on or
+before check-in, a past check-in and a stay over 90 nights are each named (each used to say nothing was free). A past
+check-in is refused by the server too: Confirm posts its own form, which a box's `min` never checks. An impossible date such
+as "2026-02-31" is dropped, not read as 3 March.
+
+**8 · NEW — click an empty night to book it.** On a unit's row, a "+" on each night a booking could start (from the property's
+today, not under one of its bookings or blocks, and only where the room type has a room to sell) opens the dialog for that
+night with that unit picked. The bars stay clickable and draggable above it; the blocks keep their tooltips. Out of the tab
+order and hidden from screen readers — the toolbar's New reservation is their way in. Only for someone who may book, never in
+a paused workspace.
+
+**9 · Smaller.** "Agent" is now "Travel agent", as the full form names it; the units are a radio group (one choice, said as
+one); "today" on the calendar is the property's own day, so the marked column and the first bookable night agree; the drag
+hint is one sentence (inside the old note "Drag a booking" sat in one column and the rest in another); the notice is a
+`vy-flash`. The dialog has no inline style (the rack view 19 → 8: what remains is mostly the bars' grid positions), and the
+41 dead `.vy-newres-*` rules are gone.
+
+**Found on the walk, mine:** ⚠️⚠️ a comment inside the dialog's `x-data` said "Check rack" in double quotes. The first quote
+ended the HTML attribute, Alpine received half an object, and every binding in the dialog failed — 38 console errors — while
+every server-side test stayed green. Caught in the browser before commit; a test now refuses a double quote inside it.
+
+**The independent review** (read-only): nothing high; 3 medium and 10 low findings, all fixed. Medium: a "+" on a night the room
+type had nothing to sell (the dialog then dropped the unit without a word); a guest's name could come back in the NEXT dialog
+(every way out but Cancel, Escape and Confirm kept it); "Set a price in the full form" for a room type with no rate plan, which
+the full form cannot price either. Low: `unit[]` or `rt[]` in the address was a server error (`rt` before this pass too); the
+"+" layer covered the blocks' tooltips; a past check-in could be booked; two different "todays" on one screen; a date box
+restored by the browser on reload let Confirm book dates other than those shown; Back after Confirm left it stuck at
+"Booking…"; the taxes note judged by the property's currency, not the stay's; "has no rooms yet" for rooms that are closed, and
+"books it straight away" not mentioning stay rules; queries a closed dialog did not need, and one per unit for prices;
+accessibility (the adults count, the radio group, the "+" layer read out). And a caveat on `OperatorControlGateTest`: its "the
+write surface opens" check matched the full form's link inside the dialog — the same address as the booking write — so it
+showed the dialog opened, not what it held; it now asserts the panel (mutation CN-M33).
+
+**One guard, not two.** The view checked the permission a second time after the component had already refused to open the
+dialog; no change to it could alter anything, so no test could prove it (the first mutation run: CN-M26 not caught, 31/32).
+The check now lives once, in `ReservationRack::newReservation()`, which also skips the dialog's reads for anyone who cannot book.
+
+**Recorded, not changed:** **D-RACK-START-TZ** — when the address names no week, the calendar (and the Front Desk, through
+the shared `BoardDate`) starts on the app's day, not the property's; far from UTC the default week can start a day off. The
+marked "today" and the "+" follow the property's day.
+
+**Tests:** `CalendarNewReservationTest` (24) — 🔬 on the old code 22 of them fail; the two that pass are guards (no dialog and
+no links in a paused workspace, which the old view already refused; and the quote guard, which reads the new file).
+`OperatorControlGateTest`'s calendar check now asserts the panel (it fails on the old code too). Mutations
+`calendar-new-reservation`: 33 — the first run 31/32 (CN-M26, the view's second guard, above), then 32/32, then 33/33 with
+CN-M33. The dialog's script (the name across its own Check rack and only for the same person, the name check before Confirm,
+the dates-changed line, the reload after Back) is JavaScript: 🖥 verified in the browser on tenant three, not by mutation.
+🖥 Walked on tenant three at 1440 and 390: the names, dates and adults aligned; a property with no rooms; a room type with no
+price; a "+" opening the dialog with its unit picked; a booking made from the dialog (R-PRSAG8AH); the name restored across
+Check rack, absent on a fresh open, and not restored for another person's entry; 0 console messages.
+
+**Gates (Verified 2026-10-04):** **4,280/4,280 on MySQL 8.4.10** (31,450 assertions, tree `2224515895cd0245`: this code with the
+entry and the memory written, before these figures; 17:04–17:32 Baku) · **4,280/4,280 on MariaDB 11.8.9** (the same tree,
+18:18–18:39 Baku; no other connection to the database at the swap; restiox runs its own server on 3310) — both read from the
+runs' JUnit logs: 0 failed, 0 errors, 0 skipped. ⚠️ A first MySQL run printed no result at all: `laravel/pao`, the package that
+turns test output into one line for an agent, failed at shutdown (`stream_filter_remove(): Unable to flush filter`); it is not
+counted, and the gate is now read from a JUnit log (`RULES.md` Part 3) · mutations **670/670 across every set**
+(`calendar-new-reservation` 33; baseline 378/378 green; 17:33–18:13 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0
+/ 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 18:39 Baku) ·
+PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.

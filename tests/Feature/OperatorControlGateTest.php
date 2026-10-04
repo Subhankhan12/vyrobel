@@ -45,19 +45,21 @@ it('offers New reservation on the calendar only to a role that may create one', 
     $managerHtml = $this->actingAs($manager)->get(route('app.calendar'))->assertOk()->getContent();
     expect($managerHtml)->toContain('new=1');                    // the control's href
     $managerModal = $this->actingAs($manager)->get(route('app.calendar').'?new=1')->assertOk()->getContent();
-    expect($managerModal)->toContain(route('app.reservations.store'));   // the write surface really opens
+    // the write surface really opens — its PANEL (2026-10-04): the store route's address is also the full form's, linked from
+    // inside the dialog, so it showed the dialog opened but not what it holds (the calendar pass's review); the panel says it
+    expect($managerModal)->toContain('aria-labelledby="vy-rnr-title"');
 
     // ⚠️ Housekeeping holds no `reservations.create` — the control must not be offered at all.
     $housekeeper = operatorUser($s, [], 'Housekeeping');
     $deskHtml = $this->actingAs($housekeeper)->get(route('app.calendar'))->assertOk()->getContent();
-    // ⚠️ Scoped to the CONTROL, not the bare words: "New reservation" also appears in the page's own help
-    // text ("Use \u201cNew reservation\u201d to book"), which is prose, not an affordance. Asserting the raw
+    // ⚠️ Scoped to the CONTROL, not the bare words: "New reservation" appeared in the page's own help text
+    // ("Use \u201cNew reservation\u201d to book" until 2026-10-04), which is prose, not an affordance. Asserting the raw
     // string would have failed for the wrong reason — the same over-broad read the audit kept catching.
     expect($deskHtml)->not->toContain('new=1');
 
     // ⚠️ AND THE MODAL — the real write surface — stays shut even when asked for directly.
     $modalHtml = $this->actingAs($housekeeper)->get(route('app.calendar').'?new=1')->assertOk()->getContent();
-    expect($modalHtml)->not->toContain(route('app.reservations.store'));
+    expect($modalHtml)->not->toContain(route('app.reservations.store'))->not->toContain('aria-labelledby="vy-rnr-title"');
 
     // …and the route it pointed at genuinely refuses that role (the 403 the control used to invite).
     $this->actingAs($housekeeper)->get(route('app.reservations.create'))->assertForbidden();

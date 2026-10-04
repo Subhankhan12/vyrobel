@@ -272,7 +272,7 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
   shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests; since
-  2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
+  2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays — and `.vy-rnr-*` the Calendar's New reservation dialog, which replaced `.vy-newres-*`). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
   ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
 - **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
   (`OperatorLivewireMutationBoundaryTest`). While the workspace is paused (`OperatorWorkspace::isReadOnly()`) every write
@@ -284,7 +284,7 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   animate up on load — read the data, not a screenshot taken mid-count).
 - **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
   shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
-  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`) run by `php tests/Mutations/run.php`.
+  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `calendar-new-reservation`) run by `php tests/Mutations/run.php`.
 
 ## 12 · Photos and message attachments
 
@@ -378,6 +378,34 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **The draft:** sessionStorage, this tab only, `vyrobel:new-reservation:draft` v3 — ids and counts, never a guest name, never
   payment, credit or the rules answer; the party size across a date change; the rest only for the same stay. The done screen
   clears it.
+
+## 15 · The Calendar's New reservation dialog and its empty nights (`/app/calendar?new=1`, 2026-10-04)
+
+- **The page** (`App\Livewire\ReservationRack`, render only) builds the dialog's data in `newReservation()` and the view
+  includes `livewire/operator/partials/rack-new-reservation.blade.php` when it is open. ⚠️ **ONE guard:** it opens only for
+  someone who may book (`reservations.create`) in a workspace that is not paused (`$canBook`, the toolbar button's own rule);
+  `?new=1` alone opens nothing, and the dialog's reads run only when it is open.
+- **Two phases, #20-safe:** "Check rack" is a GET (dates, adults, source, the picked unit, `kept=1`) → the free units from
+  `UnitAvailabilityService::availableRoomTypes()` → Confirm submits the picked unit's hidden POST form to
+  `ReservationCreateController::store()` → `AssignmentService::createBooking()`. No price is sent; the server re-derives it. A
+  refusal (a stay rule, a unit just taken) lands on the full form with the booking kept (`back()`, §14).
+- ⚠️⚠️ **The guest's name never rides the GET (#28).** The name boxes have no `name`; the dialog keeps them in this tab's
+  sessionStorage (`vyrobel:rack-new-reservation:guest`, with a short fingerprint of the signed-in user) and restores them only
+  when the address carries `kept=1` and the fingerprint matches; any other way in clears them. The done screen clears it too.
+- **What it offers:** priced room types' free units, each at its OWN price when it has one (`NightlyRate::stayTotalForUnit`, one
+  `UnitRateOverride` query for all) — what the write charges; room types with free units and no price (`waiting`, with
+  `has_plan`) said, never dropped; a property with no rooms (`rooms`, `rooms_all`) one card. "Room only — the property's taxes
+  and fees are added on the folio" when `StayEstimator` says the folio adds one in the stay's currency.
+- **Dates:** the property's own today (`$bookFrom`, its timezone) is the first night offered and the column marked today. A
+  check-out on or before check-in, a check-in before today, or more than `UnitAvailabilityService::MAX_NIGHTS` nights is named
+  (`date_problem`) and nothing is offered.
+- **The empty nights:** `freeNights()` gives each active unit row the nights a booking could start — from today, not under one
+  of its bars or blocks, and only where the room type has a room to sell that night (the header strip's count). Each is a
+  one-night `?new=1&ci=…&co=…&unit=…` link in a layer UNDER the bars (`.vy-lane-book`, z-index 0; the bars and blocks take
+  pointer events, so drag and tooltips still work), out of the tab order and `aria-hidden`; the toolbar button is the keyboard
+  way in. `unit` is honoured only when that unit is in the free list.
+- ⚠️ **A double quote anywhere inside the dialog's `x-data` ends the HTML attribute** — comments included — and every binding
+  fails while server-side tests stay green; `CalendarNewReservationTest` refuses one.
 
 ---
 

@@ -1,0 +1,118 @@
+<?php
+// Calendar New reservation pass (2026-10-04) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names, counts and timings only — never a value, never a guest's details.
+use App\Models\Fee;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\RoomType;
+use App\Models\Tax;
+use App\Models\Unit;
+use App\Models\UnitRateOverride;
+use App\Services\AvailabilityService;
+use App\Services\UnitAvailabilityService;
+use App\Support\Folio\StayEstimator;
+use App\Support\Pricing\NightlyRate;
+use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['gates'] = [
+    'calendar route gates' => array_values(array_filter($mw('app.calendar'), fn ($m) => is_string($m) && str_starts_with($m, 'can:'))),
+    'booking write needs reservations.create' => in_array('can:reservations.create', $mw('app.reservations.store'), true),
+    'full form needs reservations.create' => in_array('can:reservations.create', $mw('app.reservations.create'), true),
+    'rates page exists' => Route::has('app.rates'),
+    'units page exists' => Route::has('app.units'),
+];
+$out['pieces'] = [
+    'UnitAvailabilityService::MAX_NIGHTS public' => (new ReflectionClassConstant(UnitAvailabilityService::class, 'MAX_NIGHTS'))->isPublic(),
+    'AvailabilityService::availabilityRange' => method_exists(AvailabilityService::class, 'availabilityRange'),
+    'NightlyRate::stayTotalForUnit' => method_exists(NightlyRate::class, 'stayTotalForUnit'),
+    'StayEstimator taxApplies/feeApplies' => method_exists(StayEstimator::class, 'taxApplies') && method_exists(StayEstimator::class, 'feeApplies'),
+    'dialog partial shipped' => is_file(resource_path('views/livewire/operator/partials/rack-new-reservation.blade.php')),
+];
+
+foreach ([
+    'livewire/reservation-rack.blade.php',
+    'livewire/operator/partials/rack-new-reservation.blade.php',
+    'livewire/operator/new-reservation.blade.php',
+    'components/layouts/operator.blade.php',
+] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// What the Calendar will show, per organisation that has properties — names of PROPERTIES only, counts, yes/no.
+// The 14 nights from each property's own today: how many nights per room type have a room to sell (the click-a-night
+// links' upper bound), and the dialog's default stay (today → tomorrow): priced / waiting for a price / no plan, the
+// per-unit price pairs, the taxes and fees that would add the note. Timed, because the page runs them.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+$started = microtime(true);
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, &$out): void {
+        $props = Property::query()->orderBy('name')->get();
+        if ($props->isEmpty()) {
+            return;
+        }
+        $row = [];
+        foreach ($props as $p) {
+            $today = CarbonImmutable::now($p->timezone ?: 'UTC')->startOfDay();
+            $t = microtime(true);
+            $sellable = 0;
+            foreach (RoomType::query()->where('property_id', $p->id)->pluck('id') as $rtId) {
+                $range = app(AvailabilityService::class)->availabilityRange((string) $rtId, $today, $today->addDays(14));
+                $sellable += count(array_filter($range, fn ($n) => (int) $n >= 1));
+            }
+            $rangeMs = (int) round((microtime(true) - $t) * 1000);
+
+            $in = $today->toDateString();
+            $outDay = $today->addDay()->toDateString();
+            $t = microtime(true);
+            $offer = app(UnitAvailabilityService::class)->availableRoomTypes((string) $p->id, $in, $outDay);
+            $priced = array_values(array_filter($offer, fn ($o) => $o['priced'] === true && $o['units'] !== []));
+            $pairs = $priced === [] ? 0 : UnitRateOverride::query()
+                ->whereIn('rate_plan_id', array_map(fn ($o) => (string) $o['rate_plan_id'], $priced))
+                ->whereDate('date', '>=', $in)->whereDate('date', '<', $outDay)
+                ->distinct()->count('unit_id');
+            $currency = strtoupper((string) ($p->currency ?: 'EUR'));
+            $note = Tax::query()->where('property_id', $p->id)->get()->contains(fn (Tax $x) => StayEstimator::taxApplies($x, $currency))
+                || Fee::query()->where('property_id', $p->id)->get()->contains(fn (Fee $x) => StayEstimator::feeApplies($x, $currency));
+            $dialogMs = (int) round((microtime(true) - $t) * 1000);
+
+            $row[$p->name] = [
+                'timezone' => $p->timezone ?: '(none — the app timezone)',
+                'today there' => $in,
+                'units' => Unit::query()->where('property_id', $p->id)->count(),
+                'bookable units' => Unit::query()->bookable()->where('property_id', $p->id)->count(),
+                'room-type nights with a room to sell (next 14)' => $sellable,
+                'availability read ms' => $rangeMs,
+                'dialog default stay' => [
+                    'priced room types' => count($priced),
+                    'waiting for a price' => count(array_filter($offer, fn ($o) => $o['priced'] !== true && $o['units'] !== [] && $o['rate_plan_id'] !== null)),
+                    'no rate plan' => count(array_filter($offer, fn ($o) => $o['priced'] !== true && $o['units'] !== [] && $o['rate_plan_id'] === null)),
+                    'units with their own price' => $pairs,
+                    'taxes or fees note' => $note,
+                    'ms' => $dialogMs,
+                ],
+            ];
+        }
+        $out['orgs'][$org->name] = $row;
+    });
+}
+$out['total_ms'] = (int) round((microtime(true) - $started) * 1000);
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";
