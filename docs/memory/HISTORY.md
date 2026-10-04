@@ -683,6 +683,11 @@ of his production setup in tenant three at 1440 and 390: the no-rooms card, Wint
 dialog), a booking with a deposit (R-NGHV2TCX), the four-step path with an extra, a returning guest; 0 console messages.
 Gates: 4,300/4,300 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `b0fdbb9d224d3508`; JUnit logs; ⚠️ the run before the last fix
 had one failure, the boundary guard on a public `steps()` — fixed, re-run); 699/699 mutations; money gate FULL unmoved.
+**Live 2026-10-04 22:14 Baku: `rel_AV @ bac3997b`, committed locally and NOT pushed — his new rule (push only at the very end).**
+Preflight read-only from the staged release; public checks 12/0/0; 1,443/1,443 files match git; drift + self-test pass; 0 errors.
+His live look (signed in himself at the second ask): no-rooms card → Villa Azure; Winter offered for 10→13 Oct, its dialog opened
+and cancelled (nothing sent); Next refused; 390 px clean; 0 console messages; signed out, browser closed. Seen: his suite's plan
+is named "350" (his data); two wordings for his go (D-NR2-NEXT-NOPRICE, D-NR2-SCOPE-WORDING).
 
 ## 2 · Mistakes to learn from (each one cited above)
 

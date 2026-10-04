@@ -5,17 +5,20 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AU` → commit `7819226d`** (the Calendar New reservation pass: the dialog rebuilt — on top of the New
-  reservation pass, the owners module pass, the payouts pass, the Owners rebuild, the Rates rebuild with DEC-l and its two live
+- **Live release `rel_AV` → commit `bac3997b`** (the New reservation second pass: a booking can be made from his workspace again —
+  on top of the Calendar New reservation pass, the New reservation pass, the owners module pass, the payouts pass, the Owners rebuild, the Rates rebuild with DEC-l and its two live
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
-  remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 7819226d…`), 2026-10-04 18:45 Baku. Rollback targets:
-  `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = bac3997b…`, 4 ms), 2026-10-04 22:14 Baku. Rollback targets:
+  `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
-- **GitHub `origin/main`** carries `7819226d` and the docs commit that records this deploy (**V** `git ls-remote origin`).
-- **Live code vs git, byte for byte: 1,441 of 1,441 files in the live release match git at `7819226d`, 0 differ** (the other
-  1,218 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-04, after the 18:45 Baku swap, sha256
+- **GitHub `origin/main` is at `fc1ee357`** (the Calendar pass's docs; **V** `git ls-remote origin`, 2026-10-04 22:2x Baku). **The
+  commits since — `bac3997b` and the docs commit that records its deploy — are local only, by his choice** (F 2026-10-04: no
+  push per task; push at the very end when he says, under the four hard stops — `RULES.md` Part 1). `ops/release.sh` ships
+  the local HEAD, so production can be ahead of GitHub.
+- **Live code vs git, byte for byte: 1,443 of 1,443 files in the live release match git at `bac3997b`, 0 differ** (the other
+  1,221 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-04, after the 22:14 Baku swap, sha256
   manifest checked inside the live release.
 - **`PAYOUT_ENGINE_ENABLED` is OFF on production** (**V** 2026-10-03, the read-only preflight from `rel_AS`: `false`;
   production holds 0 owners, 0 management agreements, 0 unit requests, 0 payouts). D-PAYRUN-TENANT is fixed live since `rel_AR`;
@@ -30,7 +33,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 | Mutations | **699/699 landed and caught across every set**, 0 not caught, 0 did not land; baseline 398/398 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `new-reservation-bookable` caught 28/29 at first after the review's additions (NB-M11 — a test whose "no false claim" check ran only where the sentence could not appear; sharpened); four `new-reservation` needles repointed | **V** harness output 2026-10-04 21:29–21:50 Baku, tree `b0fdbb9d224d3508` |
 | Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-04 22:08 Baku (the NEW RESERVATION SECOND pass; reseeded 22:08). Tenant one only; local only. |
 | PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-04 (the NEW RESERVATION SECOND pass, before the suite runs) |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AU`, 2026-10-04, run straight after the 18:45 Baku swap (and on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-04, after the 18:45 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AV`, 2026-10-04, run straight after the 22:14 Baku swap (and on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-04, after the 22:14 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -42,7 +45,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AU`: 0 logged since its swap, V 2026-10-04, read after the 18:45 Baku swap):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AV`: 0 logged since its swap — 11 warnings, all `security.refusal`, written in the 4 seconds the exposure battery ran — V 2026-10-04, read at 22:20 Baku):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -153,8 +156,15 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     on production): his working property has no rooms, and his other property never had a price — the €200 "Winter" season he
     saved on 28 Sep was never applied. Now: the no-rooms card offers the properties that can book; a saved season is applied from
     the booking through the Rates page's own disclosure; four steps; each night's price on the calendar; only true sentences
-    (`HISTORY.md`, "NEW RESERVATION, SECOND PASS"). The review's 20 findings fixed. **Not yet live** — this line is updated by
-    the deploy. ⚠️ His "Winter" season stays unapplied until HE applies it (his protected workspace: look only for the agent).
+    (`HISTORY.md`, "NEW RESERVATION, SECOND PASS"). The review's 20 findings fixed. ✅ **LIVE on `rel_AV` @ `bac3997b`** (V swap
+    22:14 Baku; public checks 12/0/0; 1,443/1,443 files match git; 0 errors). **His live look done** (V 2026-10-04 22:5x Baku; he
+    signed in himself in the automated window — at the second ask; at the first, that window was still signed out): the no-rooms
+    card offers Villa Azure Lumière; 3 steps (no extras); "—" under every night; 10→13 Oct offers Winter on the Double room; the
+    dialog opened with the Rates disclosure + "it prices 3 of the 3 nights", and was cancelled (nothing sent); Next refused; 390 px
+    with no sideways scroll; email box off with its reason; house rules "Not set" + Settings; 0 console messages; signed out, browser
+    closed. ⚠️ His "Winter" season stays unapplied until HE applies it (his protected workspace: look only for the agent).
+    ⚠️ His Deluxe Sea View Suite's rate plan is **named "350"** (V read-only, made 28 Sep), so the page says "on the 350 plan" —
+    his data, renamed on the Rates page if he meant a price. Two wordings for his go: `OPEN.md` D-NR2-NEXT-NOPRICE, D-NR2-SCOPE-WORDING.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

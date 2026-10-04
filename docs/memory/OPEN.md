@@ -177,6 +177,14 @@ change is said.** Briefs live in `briefs/`.
   with no address. Each now says what is true, including that email isn't being sent from Vyrobel yet where it isn't.
 - ✅ **D-NR2-SEASON-ONECLICK — FIXED 2026-10-04 (mine, caught by the independent review before commit):** the first version of
   Apply posted on the first click, without the Rates page's "Apply this season?" disclosure. Never shipped.
+- **D-NR2-NEXT-NOPRICE (seen in his live look 2026-10-04; small; not changed — his go):** when no unit has a price for the dates,
+  Next says "Pick a unit for these dates to continue." though there is no unit to pick; the cards above it say how to get one
+  (Set price, or the saved season). A sentence for that case — "No unit has a price for these dates yet — set one above." — is a
+  one-line change to the Stay step's check.
+- **D-NR2-SCOPE-WORDING (seen in his live look 2026-10-04; RULED text, not changed — his call):** the season disclosure always
+  shows "That count sees only rates agreed through a proposal…" (F-21: its scope is stated even at zero, on purpose), but when no
+  owner-agreed count is shown above it, "That count" reads as if it meant "34 of 34 nights". Same text on the Rates page since
+  `rel_AO`. A wording that keeps F-21 — "Owner-agreed nights are counted only when agreed through a proposal…" — is his call.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

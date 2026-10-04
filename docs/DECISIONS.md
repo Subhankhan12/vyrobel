@@ -19760,3 +19760,20 @@ and the whole suite re-run · mutations **699/699 across every set** (`new-reser
 21:29–21:50 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 /
 cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 22:08 Baku) · PHPStan L5 0 errors and Pint clean on the whole
 codebase · the 54 test files that read the docs re-run on the final tree.
+
+**LIVE (Verified 2026-10-04):** `rel_AV @ bac3997b` — committed LOCALLY and shipped from the local HEAD; **not pushed to GitHub,
+by his choice** (`origin/main` stays at `fc1ee357` until he says). Staged 22:13–22:14 Baku (13 files, no migration); the read-only
+preflight from the staged release (`docs/memory/tools/preflight-new-reservation-2.php.txt`): every route gate held, 249 countries
+named by ICU, both views compile; his workspace — "Internal Test Property" 0 rooms, "Villa Azure Lumière" 3 units with no price on
+any of its 359 nights and Winter (28 Sep → 31 Oct) unapplied, no policy row; the calendar read in 7 ms. Swap 22:14:30 Baku (4 ms).
+Public checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,443 of 1,443** deployed files match git at `bac3997b`;
+drift check passes, self-test 3/3; **0 errors** logged since the swap (11 warnings, all `security.refusal`, written in the four
+seconds the exposure battery ran). **His live look** (he signed in himself in the automated window, at the second ask — at the
+first, a read-only check from that window was still sent to sign-in): the no-rooms card offered Villa Azure Lumière; its page had
+3 steps (no extras) and "—" under every night; 10 → 13 Oct offered Winter on the Double room and Set price on both rooms; the
+dialog opened with the Rates page's disclosure ("34 of 34 nights across 2 units" · "cannot be undone" · "For this booking: it
+prices 3 of the 3 nights"), focus inside it, and Cancel closed it with nothing sent; Next refused ("Pick a unit…"); 390 px with
+no sideways scroll; read from the page without moving: 250 country options, the arrival line and the greyed email box saying
+email isn't sent from Vyrobel yet, house rules "Not set" with the Settings link; 0 console messages; signed out (a read-only
+check then went to sign-in), the automated browser closed. Seen and left for him: his suite's rate plan is named "350" (his
+data); two wordings, `OPEN.md` D-NR2-NEXT-NOPRICE and D-NR2-SCOPE-WORDING (ruled text, F-21).
