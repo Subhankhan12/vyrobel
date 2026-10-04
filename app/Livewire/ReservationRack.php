@@ -10,6 +10,9 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Fee;
 use App\Models\InventoryBlock;
 use App\Models\Property;
+use App\Models\RateCalendar;
+use App\Models\RatePlan;
+use App\Models\RateSeason;
 use App\Models\ReservationUnit;
 use App\Models\RoomType;
 use App\Models\Tax;
@@ -20,8 +23,11 @@ use App\Services\AvailabilityService;
 use App\Services\UnitAvailabilityService;
 use App\Support\Folio\StayEstimator;
 use App\Support\Money\MoneyFormatter;
+use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Pricing\NightlyRate;
+use App\Support\Property\BookableProperties;
+use App\Support\Rates\SavedSeasonOffer;
 use App\Support\Schedule\BoardDate;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -75,8 +81,8 @@ class ReservationRack extends Component
     use FormatsOperatorData;
     use ResolvesCurrentProperty;
 
-    /** The sources a booking from here may carry — named as the full form names them. */
-    private const SOURCES = ['direct' => 'Direct', 'walk_in' => 'Walk-in', 'corporate' => 'Corporate', 'agent' => 'Travel agent'];
+    /** The sources a booking from here may carry — named as the full form names them ({@see CalendarReturn}, the one list). */
+    private const SOURCES = CalendarReturn::SOURCES;
 
     /** How many nights the rack shows at once. */
     public int $days = 14;
@@ -89,12 +95,20 @@ class ReservationRack extends Component
 
         /** @var Collection<int, RoomType> $allRoomTypes */
         $allRoomTypes = $property !== null
-            ? RoomType::query()->where('property_id', $property->id)->orderBy('name')->get()
+            // with each one's MAIN plan — the plan a stay is priced on, which the grid reads for the nights with no price
+            ? RoomType::query()->where('property_id', $property->id)
+                ->with(['defaultRatePlan', 'ratePlans' => fn ($q) => $q->where('is_active', true)->orderBy('created_at')])
+                ->orderBy('name')->get()
             : new Collection;
 
         // Room-type FILTER (real GET param) — the toolbar's "Filters" is now a real room-type narrow.
         $rtParam = request()->query('rt');
         $filterRt = is_string($rtParam) ? trim($rtParam) : '';   // a hand-made `rt[]=` was a 500 ("Array to string")
+        // ⚠️ 2026-10-04 — only a room type of THIS property. A stale filter, or another property's (it rides along when the property
+        //    is switched), emptied the grid and said "No room types on … yet."; it now shows them all.
+        if (! $allRoomTypes->contains(fn (RoomType $rt): bool => (string) $rt->id === $filterRt)) {
+            $filterRt = '';
+        }
         $roomTypes = $filterRt !== ''
             ? $allRoomTypes->filter(fn (RoomType $rt): bool => (string) $rt->id === $filterRt)->values()
             : $allRoomTypes;
@@ -106,12 +120,18 @@ class ReservationRack extends Component
         $start = $this->resolveStart($roomTypes->isEmpty() ? $allRoomTypes : $roomTypes);
         $end = $start->addDays(max(1, $this->days));
 
-        $dates = $this->buildDates($start, $end);
-        $roomTypeIds = $roomTypes->pluck('id')->all();
         // The property's own today — the first night a new booking may start (guest-facing day logic, in its timezone).
         $bookFrom = CarbonImmutable::now((string) ($property?->timezone ?: config('app.timezone')))->toDateString();
+        $dates = $this->buildDates($start, $end, $bookFrom);
+        $roomTypeIds = $roomTypes->pluck('id')->all();
         // ⚠️ the click-a-night links and the dialog share this one rule (the toolbar button's): the permission its write needs
         $canBook = ! app(OperatorWorkspace::class)->isReadOnly() && (bool) auth()->user()?->can('reservations.create');
+        // ⚠️ 2026-10-04 — drag-to-move only for whoever may move a booking. Its write needs `reservations.assign`, which seven of the
+        //    eleven back-office roles do not hold — and the bars were draggable for all of them, the drop then refused (#30: gate
+        //    the control too).
+        $canMove = ! app(OperatorWorkspace::class)->isReadOnly() && (bool) auth()->user()?->can('reservations.assign');
+        $pricedNights = $this->pricedNights($roomTypes, $start, $end);
+        $noRooms = $property !== null ? $this->noRooms($property) : null;
         $barsByType = $this->loadBars($roomTypeIds, $start, $end);
         $blocksByUnit = $this->loadBlocks($roomTypeIds, $start, $end);   // OOO / owner / manual blocks per unit
 
@@ -181,12 +201,23 @@ class ReservationRack extends Component
                     : [];
             }
 
+            // ⚠️⚠️ 2026-10-04 (his report: "it is not possible to do reservation") — a night with rooms free and NO PRICE on the
+            //    room type's main plan cannot be booked, and the strip said "2" either way. Marked from the property's today on.
+            $priced = $pricedNights[(string) $roomType->id] ?? [];
+            $noPrice = [];
+            foreach ($dates as $d) {
+                if (! $d['past'] && ($rtAvailability[$d['date']] ?? 0) >= 1 && ! isset($priced[$d['date']])) {
+                    $noPrice[$d['date']] = true;
+                }
+            }
+
             $rows[] = [
                 'room_type_id' => $roomType->id,
                 'room_type' => $roomType->name,
                 'kind' => (string) $roomType->kind,
                 'units' => $activeUnits->count(),
                 'availability' => $rtAvailability,
+                'no_price' => $noPrice,
                 'unit_rows' => $unitRows,
                 // Reservations with no unit yet (they consume room-type inventory but no unit row) — a real
                 // "Unassigned" track so the operator can see + seat them; lane-packed (they can overlap).
@@ -211,6 +242,11 @@ class ReservationRack extends Component
                 'next' => $end->toDateString(),
                 // ⚠️ the property's own today — the column marked "today" and the first night a booking can start agree
                 'today' => $bookFrom,
+                // the room-type filter, kept on every way round the page (2026-10-04: the arrows, Today, 7/14/30, New reservation
+                // and a dragged booking all dropped it)
+                'rt' => $filterRt,
+                'rt_q' => $filterRt !== '' ? '&rt='.$filterRt : '',
+                'ranges' => CalendarReturn::RANGES,
             ],
             'dates' => $dates,
             'rows' => $rows,
@@ -220,7 +256,20 @@ class ReservationRack extends Component
             'filterRt' => $filterRt,
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
             'canBook' => $canBook,
+            'canMove' => $canMove,
+            'canSetPrice' => (bool) auth()->user()?->can('rates.manage'),
+            'priceNote' => $this->priceNote($rows, $roomTypes),
+            // the way forward from a property with no room that can take a booking — none added, or all paused or out of service —
+            // the ones that can (2026-10-04, his workspace; the review, L6: room types with no bookable unit had no offer)
+            'noRooms' => $noRooms,
+            'elsewhere' => $noRooms !== null ? BookableProperties::elsewhere((string) $property->getKey()) : [],
             'newRes' => $this->newReservation($property, $start, $bookFrom, $canBook),
+            // what a write sent from the dialog said, when the dialog is not open to say it (a paused workspace closes it)
+            'dialogOk' => is_string(session('calendar_dialog_ok')) ? session('calendar_dialog_ok') : null,
+            'dialogError' => is_string(session('calendar_dialog_error')) ? session('calendar_dialog_error') : null,
+            // a booking made from the dialog — its reference is in the notice, and this opens it
+            'created' => is_string(session('calendar_created')) ? session('calendar_created') : null,
+            'refused' => session('calendar_refused') === true,
         ]);
     }
 
@@ -328,16 +377,22 @@ class ReservationRack extends Component
 
         // ⚠️ Said, never skipped: a room type with free units and no price for these nights used to vanish, and the dialog said
         //    "No units are free" — the dead end the founder hit on the full form (2026-10-04). One with no rate plan at all is
-        //    named as such: the full form cannot price it either (the review).
+        //    named as such: the full form cannot price it either (the review). ⚠️⚠️ And since his next report the same day ("it is
+        //    not possible to do reservation" on the Calendar), it carries what fixes it from inside the dialog.
+        $canSetPrice = (bool) auth()->user()?->can('rates.manage');
+        $planNames = RatePlan::query()->whereIn('id', array_values(array_filter(array_column($offered, 'rate_plan_id'))))->pluck('name', 'id')->all();
         $waiting = [];
         foreach ($offered as $rt) {
             if ($rt['priced'] !== true && $rt['units'] !== []) {
-                $waiting[] = ['name' => (string) $rt['room_type_name'], 'units' => count($rt['units']), 'has_plan' => $rt['rate_plan_id'] !== null];
+                $waiting[] = $this->waitingRoomType($rt, $form['check_in'], $form['check_out'], $planNames, $canSetPrice);
             }
         }
 
         $unitParam = $q->query('unit');
         $preselect = is_string($unitParam) ? $unitParam : '';   // a hand-made `unit[]=` was a 500 ("Array to string")
+        // the room type of the unit clicked on the grid first — it is the one being booked (its fix was below the fold)
+        usort($waiting, fn (array $a, array $b): int => (int) in_array($preselect, $b['unit_ids'], true) <=> (int) in_array($preselect, $a['unit_ids'], true));
+        $rooms = Unit::query()->bookable()->where('property_id', $propertyId)->count();
 
         // ⚠️ The total shown is the room's; say so when the folio will add taxes or fees — judged in the STAY's currency (each
         //    offered plan's), which is what the write posts by, not the property's.
@@ -360,14 +415,152 @@ class ReservationRack extends Component
             'units' => $units,
             'waiting' => $waiting,
             'preselect' => collect($units)->contains('unit_id', $preselect) ? $preselect : '',
-            'rooms' => Unit::query()->bookable()->where('property_id', $propertyId)->count(),
+            // the unit clicked on the grid while its room type still waits for a price: kept through Set price / Apply, so it
+            // comes back picked
+            'clicked' => collect($waiting)->contains(fn (array $w): bool => in_array($preselect, $w['unit_ids'], true)) ? $preselect : '',
+            'rooms' => $rooms,
             'rooms_all' => Unit::query()->where('property_id', $propertyId)->count(),
+            // ⚠️⚠️ his workspace (2026-10-04): a property with no rooms named only "Go to Units" while his other one had three
+            'others' => $rooms === 0 ? BookableProperties::elsewhere($propertyId) : [],
+            'last_night' => $nights > 0 ? CarbonImmutable::parse($form['check_out'])->subDay()->toDateString() : null,
+            // the "Apply this season?" view's facts (SeasonApplyFacts), for whoever may apply one
+            'seasons' => $canSetPrice ? collect($waiting)->flatMap(fn (array $w): array => $w['seasons'])->keyBy('id')->all() : [],
+            // what a price set or a season applied from here said, back inside the dialog
+            'ok' => is_string(session('calendar_dialog_ok')) ? session('calendar_dialog_ok') : null,
+            'error' => is_string(session('calendar_dialog_error')) ? session('calendar_dialog_error') : null,
             'checked' => $dateProblem === null,
             'sources' => self::SOURCES,
             'can_set_price' => (bool) auth()->user()?->can('rates.manage'),
             'adds_charges' => $addsCharges,
             'full_form_url' => route('app.reservations.create', ['check_in' => $form['check_in'], 'check_out' => $form['check_out']]),
         ];
+    }
+
+    /**
+     * A room type with free units and NO PRICE for these nights, and what fixes it from inside the dialog (2026-10-04, the founder:
+     * "it is not possible to do reservation" — on production his rooms had never had a price): for whoever manages rates, a price
+     * for exactly these nights on its main plan (the Rates write's own rules, then back into the dialog), or a saved season that
+     * was never applied ({@see SavedSeasonOffer}, the New reservation page's own rule, behind the Rates page's disclosure).
+     *
+     * ⚠️ The season's "Apply this season?" facts (a preview each) only for whoever may apply it — everyone else is told its name,
+     * price and dates (the review, L7).
+     *
+     * @param  array<string, mixed>  $rt  a room type from {@see UnitAvailabilityService::availableRoomTypes()}
+     * @param  array<string, string>  $planNames  plan id → name, read once for the dialog
+     * @return array{name: string, units: int, unit_ids: list<string>, has_plan: bool, room_type_id: string, plan_name: string, symbol: string, unpriced: int, seasons: list<array<string, mixed>>}
+     */
+    private function waitingRoomType(array $rt, string $checkIn, string $checkOut, array $planNames, bool $canSetPrice): array
+    {
+        $planId = $rt['rate_plan_id'] !== null ? (string) $rt['rate_plan_id'] : '';
+        $nights = (int) CarbonImmutable::parse($checkIn)->diffInDays(CarbonImmutable::parse($checkOut));
+        $priced = $planId !== '' ? RateCalendar::query()->where('rate_plan_id', $planId)->where('date', '>=', $checkIn)->where('date', '<', $checkOut)->count() : 0;
+
+        return [
+            'name' => (string) $rt['room_type_name'],
+            'units' => count($rt['units']),
+            'unit_ids' => array_values(array_map(fn (array $u): string => (string) $u['id'], $rt['units'])),
+            'has_plan' => $planId !== '',
+            'room_type_id' => (string) $rt['room_type_id'],
+            'plan_name' => (string) ($planNames[$planId] ?? ''),
+            'symbol' => MoneyFormatter::symbol((string) $rt['currency']),
+            'unpriced' => max(0, $nights - $priced),
+            'seasons' => $planId !== '' ? SavedSeasonOffer::forStay($planId, $checkIn, $checkOut, withFacts: $canSetPrice) : [],
+        ];
+    }
+
+    /**
+     * Whether this property has a unit that can take a booking — and if not, what the Calendar says instead of an empty grid of
+     * "0 units" (2026-10-04, his workspace: a property with no rooms; the review, L6: room types whose units are all paused or out
+     * of service, or with no units, had no way on). The same two sentences as the dialog's.
+     *
+     * @return array{title: string, line: string}|null null when at least one unit can take a booking
+     */
+    private function noRooms(Property $property): ?array
+    {
+        if (Unit::query()->bookable()->where('property_id', $property->getKey())->exists()) {
+            return null;
+        }
+
+        return Unit::query()->where('property_id', $property->getKey())->exists()
+            ? ['title' => 'None of '.$property->name.'’s units can take a booking', 'line' => 'They’re all paused or out of service — reopen one on the Units page to book it here.']
+            : ['title' => $property->name.' has no rooms yet', 'line' => 'Its rooms show here once its units are added.'];
+    }
+
+    /**
+     * The nights in view that carry a price on each room type's MAIN plan — the plan a stay is priced on
+     * ({@see RoomType::primaryRatePlan()}; {@see UnitAvailabilityService} prices a stay only when every night has a rate there).
+     * A room type with no plan has none. One read for the window.
+     *
+     * @param  Collection<int, RoomType>  $roomTypes
+     * @return array<string, array<string, true>> room type id → date → true
+     */
+    private function pricedNights(Collection $roomTypes, CarbonImmutable $start, CarbonImmutable $end): array
+    {
+        $out = [];
+        $typeOf = [];
+        foreach ($roomTypes as $roomType) {
+            $out[(string) $roomType->id] = [];
+            $plan = $roomType->primaryRatePlan();
+            if ($plan !== null) {
+                $typeOf[(string) $plan->getKey()] = (string) $roomType->id;
+            }
+        }
+        if ($typeOf === []) {
+            return $out;
+        }
+
+        foreach (RateCalendar::query()->whereIn('rate_plan_id', array_keys($typeOf))->where('date', '>=', $start->toDateString())
+            ->where('date', '<', $end->toDateString())->toBase()->get(['rate_plan_id', 'date']) as $row) {
+            $out[$typeOf[(string) $row->rate_plan_id]][CarbonImmutable::parse((string) $row->date)->toDateString()] = true;
+        }
+
+        return $out;
+    }
+
+    /**
+     * What the grid says above itself when some nights in view cannot be booked for want of a price: which room types, and a
+     * saved season that would price them but was never applied (his "Winter", 28 Sep → 31 Oct, on production). Null when every
+     * night that has a room to sell has a price.
+     *
+     * @param  list<array<string, mixed>>  $rows
+     * @param  Collection<int, RoomType>  $roomTypes
+     * @return array{names: string, seasons: list<string>}|null
+     */
+    private function priceNote(array $rows, Collection $roomTypes): ?array
+    {
+        $marked = array_values(array_filter($rows, fn (array $r): bool => $r['no_price'] !== []));
+        if ($marked === []) {
+            return null;
+        }
+
+        // each marked room type's main plan → its marked nights; then ONE read of the unapplied seasons over them (the review, L7)
+        $nightsOf = [];
+        foreach ($marked as $row) {
+            $plan = $roomTypes->first(fn (RoomType $rt): bool => (string) $rt->id === (string) $row['room_type_id'])?->primaryRatePlan();
+            if ($plan !== null) {
+                $nightsOf[(string) $plan->getKey()] = array_keys($row['no_price']);
+            }
+        }
+        $all = array_merge(...array_values($nightsOf ?: [[]]));
+        $candidates = $nightsOf === [] ? [] : RateSeason::query()->whereIn('rate_plan_id', array_keys($nightsOf))->whereNull('applied_at')
+            ->where('starts_on', '<=', max($all))->where('ends_on', '>=', min($all))->orderBy('starts_on')->get();
+
+        $seasons = [];
+        foreach ($candidates as $season) {
+            $nights = $nightsOf[(string) $season->rate_plan_id] ?? [];
+            $from = $season->starts_on->toDateString();
+            $to = $season->ends_on->toDateString();
+            if (array_filter($nights, fn (string $d): bool => $d >= $from && $d <= $to) === []) {
+                continue;   // it covers none of its room type's marked nights — not the reason they have no price
+            }
+            $seasons[(string) $season->getKey()] = $season->name.' ('.MoneyFormatter::display((int) $season->price_minor, (string) $season->currency)
+                .' a night, '.$season->starts_on->format('j M').' → '.$season->ends_on->format('j M').')';
+        }
+
+        $names = array_map(fn (array $r): string => (string) $r['room_type'], $marked);
+        $last = array_pop($names);
+
+        return ['names' => $names === [] ? (string) $last : implode(', ', $names).' and '.$last, 'seasons' => array_values($seasons)];
     }
 
     /**
@@ -432,7 +625,7 @@ class ReservationRack extends Component
     {
         $days = (int) request()->query('days', '14');
 
-        return in_array($days, [7, 14, 30], true) ? $days : 14;
+        return in_array($days, CalendarReturn::RANGES, true) ? $days : 14;   // the one list (the review, L8)
     }
 
     private function resolveStart(Collection $roomTypes): CarbonImmutable
@@ -456,9 +649,9 @@ class ReservationRack extends Component
     }
 
     /**
-     * @return list<array{date: string, dow: string, day: string, mon: string, weekend: bool}>
+     * @return list<array{date: string, dow: string, day: string, mon: string, weekend: bool, past: bool}>
      */
-    private function buildDates(CarbonImmutable $start, CarbonImmutable $end): array
+    private function buildDates(CarbonImmutable $start, CarbonImmutable $end, string $today): array
     {
         $dates = [];
         for ($date = $start; $date->lessThan($end); $date = $date->addDay()) {
@@ -468,6 +661,8 @@ class ReservationRack extends Component
                 'day' => $date->format('j'),
                 'mon' => $date->format('M'),
                 'weekend' => $date->isWeekend(),
+                // before the property's today — greyed, and never offered for a new booking (2026-10-04)
+                'past' => $date->toDateString() < $today,
             ];
         }
 

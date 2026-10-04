@@ -91,12 +91,16 @@ it('⚠️⚠️ says a room type has no price yet, and where to set it, instead
     $s = crnScenario(2, null);
     $html = crnPage(operatorUser($s, [], 'Hotel Manager'), CRN_STAY);
 
+    // ⚠️ 2026-10-04, his next report ("it is not possible to do reservation"): the price is now set INSIDE the dialog — this pinned
+    //    the old "Set a price in the full form" link, the way out that left the booking behind (CalendarBookableTest has the rest)
     expect($html)->toContain('No price for these nights yet')
-        ->toContain('href="'.e(route('app.reservations.create', ['check_in' => '2026-09-02', 'check_out' => '2026-09-05'])).'">Set a price in the full form')
+        ->toContain('action="'.e(route('app.rates.update')).'"')->not->toContain('Set a price in the full form')
         ->not->toContain('No units are free (and priced)');
 
     $desk = crnPage(operatorUser($s, [], 'Front Desk'), CRN_STAY);
-    expect($desk)->toContain('No price for these nights yet')->toContain('someone who manages rates')
+    // (the dialog's own sentence — since the second pass the grid's note also says "someone who manages rates": CN-M9 stayed green)
+    expect($desk)->toContain('No price for these nights yet')->toContain('Ask someone who manages rates to set one.')
+        ->not->toContain('action="'.e(route('app.rates.update')).'"')
         ->not->toContain('Set a price in the full form');
 });
 
@@ -106,7 +110,8 @@ it('says when the property has no rooms', function () {
 
     $html = crnPage(operatorUser($s, [], 'Hotel Manager'), '?new=1', ['current_property_id' => (string) $far->id]);
 
-    expect($html)->toContain(e($far->name).' has no rooms yet');
+    // (the dialog's own card — since the second pass the Calendar's empty card says "has no rooms yet" too: CN-M11 stayed green)
+    expect($html)->toContain(e($far->name).' has no rooms yet')->toContain('A booking needs a unit to stay in.');
 });
 
 // ── The money it shows is what is charged ────────────────────────────────────────────────────────

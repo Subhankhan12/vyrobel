@@ -434,6 +434,13 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   (Part 3, the suite; Verified 2026-10-04).
 - **A design's sentence is a promise.** "Matches an existing profile" and "Confirmation email sent" came from the wireframe and
   were never true here. Check every sentence a design hands over against what the code does (Verified 2026-10-04, read).
+- **A page-wide "it links to X" passes on the app shell.** The sidebar links to Units on every page, so a check that the empty
+  Calendar links there stayed green with the link removed (CB-M28). Look inside the block the check is about (Verified
+  2026-10-04, the mutation harness).
+- **Livewire 4 marks each Blade `@if` with an HTML comment** (`<!--[if BLOCK]><![endif]-->`). A check that spans an `@if` boundary
+  must allow it, or it fails on correct output (Verified 2026-10-04).
+- **Say the next step from what the page shows.** "Pick a unit to continue" came back above a unit already picked; the server
+  could not know. The dialog now says it from its own state (Verified 2026-10-04, the browser).
 
 ---
 

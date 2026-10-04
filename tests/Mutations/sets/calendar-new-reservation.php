@@ -82,7 +82,8 @@ return [
         'id' => 'CN-M8',
         'name' => 'a room type with no price is skipped again ("no units are free")',
         'file' => $rack,
-        'old' => "                \$waiting[] = ['name' => (string) \$rt['room_type_name'], 'units' => count(\$rt['units']), 'has_plan' => \$rt['rate_plan_id'] !== null];",
+        // since the second pass (2026-10-04) each waiting room type is built by waitingRoomType(), with what fixes it
+        'old' => "                \$waiting[] = \$this->waitingRoomType(\$rt, \$form['check_in'], \$form['check_out'], \$planNames, \$canSetPrice);",
         'new' => '                // skipped',
         'tests' => [['file' => $test, 'filter' => 'says a room type has no price yet']],
     ],
@@ -273,7 +274,7 @@ return [
     [
         'id' => 'CN-M30',
         'name' => 'the agent source is named apart from the full form',
-        'file' => $rack,
+        'file' => 'app/Support/Operator/CalendarReturn.php',   // the Calendar's one list of sources since the second pass
         'old' => "'agent' => 'Travel agent'",
         'new' => "'agent' => 'Agent'",
         'tests' => [['file' => $test, 'filter' => 'names the travel agent source']],

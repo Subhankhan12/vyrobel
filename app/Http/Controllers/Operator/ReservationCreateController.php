@@ -29,6 +29,7 @@ use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
 use App\Support\Notifications\BookingNotificationIntent;
+use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Pricing\NightlyRate;
 use App\Support\Property\PropertyContext;
@@ -357,6 +358,15 @@ class ReservationCreateController extends Controller
 
             return redirect()->to(route('app.front-desk').'?date='.urlencode(CarbonImmutable::parse($checkIn)->toDateString()))
                 ->with('desk_notice', $deskNotice);
+        }
+
+        // ⚠️ 2026-10-04 (his next report) — A BOOKING MADE ON THE CALENDAR COMES BACK TO THE CALENDAR, where it was made: the new
+        //    booking on its row, its reference and a way to open it. It used to land on the full form's done screen, away from the
+        //    rack — and that screen's QR needs an email the Calendar never asks for. The way back is checked ({@see CalendarReturn}).
+        if (CalendarReturn::wanted($request)) {
+            return redirect()->to(CalendarReturn::window($request))
+                ->with('folio_notice', $notice)
+                ->with('calendar_created', (string) $reservation->getKey());
         }
 
         // PRG to the in-wizard DONE screen (the wireframe's success card: reference + self-check-in QR),

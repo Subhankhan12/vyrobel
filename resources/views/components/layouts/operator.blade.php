@@ -947,9 +947,53 @@
         .vy-rack-notice { margin-bottom: 14px; }
         .vy-rack-hint { max-width: 110ch; margin: 14px 0 0; font-size: 12px; line-height: 1.55; color: var(--vy-on-grad); }
         .vy-rack-hint strong { color: var(--vy-ink); }
+        /* ---- The Calendar, second pass (2026-10-04, his report: "it is not possible to do reservation") -------------------------
+           A room with no price is fixed from inside the dialog (Set price · a saved season's Apply view), a property with no rooms
+           offers the ones that have some, and the grid marks the nights it cannot sell. ⚠️ One visual word throughout: a DASHED
+           accent edge means "no price yet" — on the dialog's waiting room types, the grid's cells, the legend and the note. */
+        .vy-rnr-msg { margin: 0 0 14px; padding: 10px 13px; border-radius: var(--vy-r-md); font-size: 12.5px; font-weight: 600; line-height: 1.45; }
+        .vy-rnr-msg.is-ok { background: rgba(52, 140, 90, 0.10); color: rgb(34, 110, 68); border: 1px solid rgba(52, 140, 90, 0.22); }
+        .vy-rnr-msg.is-err { background: rgba(194, 65, 12, 0.08); color: #8F3110; border: 1px solid var(--vy-accent-border); }
+        .vy-rnr-season { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; margin-top: 8px; padding: 11px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.72); border: 1px solid rgba(232, 112, 58, 0.22); }
+        .vy-rnr-season-why { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-muted); }
+        .vy-rnr-waiting .vy-rnr-season-why strong { font-size: 12.5px; }
+        .vy-rnr-season-go { height: 38px; }
+        /* the Apply view, in the dialog's place: the Rates page's disclosure, then what it does for THIS stay, said last and plainly */
+        .vy-rnr-confirm > p:last-child { margin-bottom: 0; font-weight: 600; color: var(--vy-ink); }
+        .vy-rnr-setprice { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(232, 112, 58, 0.32); }
+        .vy-rnr-setprice-row { display: flex; align-items: center; gap: 8px; }
+        .vy-rnr-money { position: relative; flex: 1 1 140px; min-width: 0; max-width: 210px; }
+        .vy-rnr-money-sym { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--vy-muted); pointer-events: none; }
+        .vy-rnr-money .vy-input { height: 40px; padding-left: 27px; }
+        .vy-rnr-setprice .vy-btn { flex: none; height: 40px; }
+        .vy-rnr-setprice .vy-btn:disabled { opacity: .55; cursor: default; }
+        .vy-rnr-problem--tight, .vy-rnr-fine--tight { margin: 0; }
+        .vy-rnr-others { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+        .vy-rnr-others-h { margin: 0 0 2px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); }
+        .vy-rnr-other { display: flex; align-items: center; gap: 11px; width: 100%; padding: 12px 14px; border-radius: var(--vy-r-md); border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.72); font: inherit; color: var(--vy-ink); text-align: left; cursor: pointer; transition: border-color .14s, background .14s; }
+        .vy-rnr-other:hover { border-color: var(--vy-accent-border); background: #fff; }
+        .vy-rnr-other:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-rnr-other-ico { flex: none; color: var(--vy-accent-text); }
+        .vy-rnr-other-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .vy-rnr-other-rooms { font-size: 12px; color: var(--vy-muted); white-space: nowrap; }
+        .vy-rnr-other-go { flex: none; color: var(--vy-faint); }
+        .vy-rack-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 36px 20px 10px; text-align: center; }
+        .vy-rack-empty strong { font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
+        .vy-rack-empty span { font-size: 13px; color: var(--vy-muted); }
+        .vy-rack-empty .vy-btn { margin-top: 8px; }
+        .vy-rack-others { max-width: 460px; margin: 18px auto 28px; padding: 0 16px; }
+        .vy-rack-norooms { margin-bottom: 14px; }   /* the same card above a grid of room types with no unit that can take a booking */
+        .vy-rack-pricenote { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 11px 14px; border-radius: var(--vy-r-md); background: rgba(255, 255, 255, 0.62); border: 1px solid rgba(232, 112, 58, 0.28); font-size: 12.5px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-rack-pricenote-mark { flex: none; width: 16px; height: 0; margin-top: 10px; border-bottom: 2px dashed rgba(232, 112, 58, 0.75); }
+        /* the number underlined dashed — light at any row height (a box drawn round the cell grew with the room type's label) */
+        .vy-avail.is-noprice { color: var(--vy-muted); text-decoration: underline dashed rgba(232, 112, 58, 0.75); text-decoration-thickness: 1.5px; text-underline-offset: 5px; }
+        .vy-legend-swatch.swatch-noprice { height: 0; margin-top: 2px; border: 0; border-bottom: 2px dashed rgba(232, 112, 58, 0.75); border-radius: 0; background: none; }
+        /* the nights already gone — never offered for a new booking */
+        .vy-avail.is-past, .vy-cal .vy-day.is-past { opacity: .45; }
         @media (max-width: 560px) {
             .vy-rnr-when { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-rnr-when .vy-field:last-child { grid-column: 1 / -1; }
+            .vy-rnr-money { max-width: none; }
         }
 
         /* Warm status tones (no green/red) — mapped ONLY to real reservation statuses */

@@ -33,7 +33,7 @@ return [
         'id' => 'NR-M2',
         'name' => 'the wizard is told the Rates summary, not that the price is set and a unit can be picked',
         'file' => $rates,
-        'old' => '        if ($this->returnsToWizard($request) && $setRate && count($roomTypes) === 1) {',
+        'old' => '        if ($this->fromBooking($request) && $setRate && count($roomTypes) === 1) {',   // the wizard or the Calendar's dialog
         'new' => '        if (false) {',
         'tests' => [['file' => $wizard, 'filter' => 'lets a person who manages rates set the price']],
     ],
@@ -81,7 +81,7 @@ return [
     [
         'id' => 'NR-M8',
         'name' => 'the chooser no longer says which property has no rooms',
-        'file' => $page,
+        'file' => 'app/Support/Property/BookableProperties.php',   // the one list, shared with the Calendar (2026-10-04)
         'old' => "'rooms' => (int) (\$open[(string) \$p->getKey()] ?? 0),",
         'new' => "'rooms' => 0,",
         'tests' => [['file' => $wizard, 'filter' => 'asks which property when']],
@@ -244,7 +244,7 @@ return [
     [
         'id' => 'NR-M27',
         'name' => 'a property whose rooms are all closed is said to have none',
-        'file' => $page,
+        'file' => 'app/Support/Property/BookableProperties.php',
         'old' => "'rooms_all' => (int) (\$all[(string) \$p->getKey()] ?? 0)])",
         'new' => "'rooms_all' => 0])",
         'tests' => [['file' => $wizard, 'filter' => 'says when a property’s rooms are all closed']],

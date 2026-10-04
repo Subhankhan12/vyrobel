@@ -1,0 +1,107 @@
+<?php
+// The Calendar, SECOND pass (2026-10-04) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names, counts and timings only — never a value, never a guest's details.
+use App\Livewire\ReservationRack;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\RateSeason;
+use App\Models\RoomType;
+use App\Models\Unit;
+use App\Services\AvailabilityService;
+use App\Support\Operator\CalendarReturn;
+use App\Support\Property\BookableProperties;
+use App\Support\Rates\SavedSeasonOffer;
+use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'a move needs reservations.assign' => $has('app.reservations.reschedule', 'can:reservations.assign'),
+    'a booking needs reservations.create' => $has('app.reservations.store', 'can:reservations.create'),
+    'set price needs rates.manage' => $has('app.rates.update', 'can:rates.manage'),
+    'season apply needs rates.manage' => $has('app.seasons.apply', 'can:rates.manage'),
+    'property switch exists' => Route::has('app.property.switch'),
+    'units page exists' => Route::has('app.units'),
+    'calendar exists' => Route::has('app.calendar'),
+];
+$out['pieces'] = [
+    'CalendarReturn::TOKEN' => CalendarReturn::TOKEN,
+    'BookableProperties::elsewhere' => method_exists(BookableProperties::class, 'elsewhere'),
+    'SavedSeasonOffer::forStay' => method_exists(SavedSeasonOffer::class, 'forStay'),
+    'ReservationRack::pricedNights' => method_exists(ReservationRack::class, 'pricedNights'),
+];
+
+foreach (['livewire/reservation-rack.blade.php', 'livewire/operator/partials/rack-new-reservation.blade.php',
+    'livewire/operator/partials/calendar-return-fields.blade.php', 'components/layouts/operator.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// Which roles see drag-to-move now (reservations.assign) — before this pass, every back-office role saw it.
+$roles = config('authorization.roles', []);
+$back = config('authorization.back_office_roles', []);
+$out['roles that may move (of the back-office roles)'] = array_values(array_filter($back,
+    fn (string $r): bool => in_array('*', $roles[$r] ?? [], true) || in_array('reservations.assign', $roles[$r] ?? [], true)));
+
+// Per organisation with properties: what the Calendar will now say for the next 14 nights — names of PROPERTIES, ROOM TYPES
+// and SEASONS, counts, timings.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+$priced = new ReflectionMethod(ReservationRack::class, 'pricedNights');
+$started = microtime(true);
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, $priced, &$out): void {
+        $props = Property::query()->orderBy('name')->get();
+        if ($props->isEmpty()) {
+            return;
+        }
+        $row = [];
+        foreach ($props as $p) {
+            $today = CarbonImmutable::now($p->timezone ?: 'UTC')->startOfDay();
+            $end = $today->addDays(14);
+            $types = RoomType::query()->where('property_id', $p->id)
+                ->with(['defaultRatePlan', 'ratePlans' => fn ($q) => $q->where('is_active', true)->orderBy('created_at')])->orderBy('name')->get();
+            $t = microtime(true);
+            $pricedNights = $priced->invoke(new ReservationRack, $types, $today, $end);
+            $marked = [];
+            foreach ($types as $rt) {
+                $avail = app(AvailabilityService::class)->availabilityRange($rt->id, $today, $end);
+                $n = 0;
+                foreach ($avail as $date => $left) {
+                    if ($left >= 1 && ! isset($pricedNights[(string) $rt->id][$date])) {
+                        $n++;
+                    }
+                }
+                $marked[$rt->name] = $n;
+            }
+            $row[$p->name] = [
+                'room types' => $types->count(),
+                'bookable units' => Unit::query()->bookable()->where('property_id', $p->id)->count(),
+                'next 14 nights marked "no price", per room type' => $marked,
+                'priced-nights read ms' => (int) round((microtime(true) - $t) * 1000),
+                'unapplied seasons (name · from → to)' => RateSeason::query()->whereNull('applied_at')
+                    ->whereIn('rate_plan_id', DB::table('rate_plans')->where('property_id', $p->id)->pluck('id'))
+                    ->get()->map(fn ($s) => $s->name.' · '.$s->starts_on->toDateString().' → '.$s->ends_on->toDateString())->all(),
+            ];
+        }
+        $out['orgs'][$org->name] = $row;
+    });
+}
+$out['total_ms'] = (int) round((microtime(true) - $started) * 1000);
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

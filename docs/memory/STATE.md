@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the NEW RESERVATION SECOND pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the CALENDAR SECOND pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -29,10 +29,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the NEW RESERVATION SECOND commit) | **4,300/4,300 on MySQL 8.4.10** (tree `b0fdbb9d224d3508` = the code plus these docs, before these figures were written; 2026-10-04 21:09–21:28 Baku) · **4,300/4,300 on MariaDB 11.8.9** (the same tree, 21:51–22:08 Baku) · 31,593 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). ⚠️ An earlier run on the tree before the last fix (20:50–21:08) had 1 failure — `steps()` public on a Livewire component, caught by the boundary guard — fixed, then the whole suite re-run. The CALENDAR commit before it (`7819226d`): 4,280/4,280 on both engines | **V** run outputs and JUnit logs 2026-10-04. |
-| Mutations | **699/699 landed and caught across every set**, 0 not caught, 0 did not land; baseline 398/398 green (`admin-06` = 87, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `new-reservation-bookable` caught 28/29 at first after the review's additions (NB-M11 — a test whose "no false claim" check ran only where the sentence could not appear; sharpened); four `new-reservation` needles repointed | **V** harness output 2026-10-04 21:29–21:50 Baku, tree `b0fdbb9d224d3508` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-04 22:08 Baku (the NEW RESERVATION SECOND pass; reseeded 22:08). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-04 (the NEW RESERVATION SECOND pass, before the suite runs) |
+| Suite (the CALENDAR SECOND commit) | **4,335/4,335 on MySQL 8.4.10** (tree `bc45dca32a733a7e` = the code plus these docs, before these figures were written; 2026-10-05 00:45–01:05 Baku) · **4,335/4,335 on MariaDB 11.8.9** (the same tree, 01:28–01:46 Baku) · 31,833 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). ⚠️ The first MySQL run, on the tree before the last fix (00:18–00:40), failed one test: the currency guard refusing "€" inside the dialog's attribute — fixed, then the whole suite re-run. The NEW RESERVATION SECOND commit before it (`bac3997b`): 4,300/4,300 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
+| Mutations | **760/760 landed and caught across every set**, 0 not caught, 0 did not land; baseline 431/431 green (`admin-06` = 87, `calendar-bookable` = 61, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `calendar-bookable` caught 49/50 at first (CB-M28 — a page-wide check the sidebar satisfied; tightened), and two `calendar-new-reservation` needles stayed green once the grid's note and card said the same words (CN-M9, CN-M11; their tests now look inside the dialog) | **V** harness output 2026-10-05 01:06–01:28 Baku, tree `bc45dca32a733a7e` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 01:47 Baku (the CALENDAR SECOND pass; reseeded 01:47). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 01:48 Baku (the CALENDAR SECOND pass, on the final tree) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AV`, 2026-10-04, run straight after the 22:14 Baku swap (and on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-04, after the 22:14 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -165,6 +165,15 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     closed. ⚠️ His "Winter" season stays unapplied until HE applies it (his protected workspace: look only for the agent).
     ⚠️ His Deluxe Sea View Suite's rate plan is **named "350"** (V read-only, made 28 Sep), so the page says "on the 350 plan" —
     his data, renamed on the Rates page if he meant a price. Two wordings for his go: `OPEN.md` D-NR2-NEXT-NOPRICE, D-NR2-SCOPE-WORDING.
+0n. **Calendar, second pass (2026-10-04)** — his report ("https://vyrobel.com/app/calendar?start=2026-09-28&days=14 … it is not
+    possible to do reservation. Fix it … if there's any other issue on this page"). 🔬 Why (read-only on production, 19:02 UTC):
+    the same as the New reservation page — his working property has no rooms, Villa Azure has 3 units and no price on any night,
+    "Winter" saved and never applied, 0 reservations, 0 errors — and the Calendar's dialog offered only a link away. Now: Set
+    price and Apply season INSIDE the dialog (each back into it on the same stay, the clicked unit picked, the name back from the
+    tab); the properties with rooms offered from the no-rooms dialog and the empty Calendar; a booking made here comes back here;
+    the grid marks the nights it cannot sell and says why; past nights greyed; drag-to-move only for whoever may move (seven of
+    eleven back-office roles were offered a drop the server refused); a refused move said as an error; the room-type filter kept
+    (`HISTORY.md`, "CALENDAR, SECOND PASS"). **Not yet live** — this line is updated by the deploy.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

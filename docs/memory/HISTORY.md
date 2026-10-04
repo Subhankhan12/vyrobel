@@ -689,6 +689,37 @@ His live look (signed in himself at the second ask): no-rooms card → Villa Azu
 and cancelled (nothing sent); Next refused; 390 px clean; 0 console messages; signed out, browser closed. Seen: his suite's plan
 is named "350" (his data); two wordings for his go (D-NR2-NEXT-NOPRICE, D-NR2-SCOPE-WORDING).
 
+**CALENDAR, SECOND PASS — 2026-10-04 — his "https://vyrobel.com/app/calendar?start=2026-09-28&days=14 … it is not possible to do
+reservation. Fix it … if there's any other issue on this page".** Plan posted and executed (his rule: plan, then keep working);
+no migration. **Why (🔬 read-only on production, 19:02 UTC):** the New reservation page's reason — no rooms on his working
+property, no price on any night of Villa Azure, "Winter" saved and never applied, 0 reservations, 0 errors — and the Calendar's
+dialog offered only "Set a price in the full form" (or "Go to Units"). 🔬 Reproduced first in tenant three with a copy of his
+setup. **Built:** Set price inside the dialog (the Rates write, `return=calendar`) and the saved season's Apply inside it (the
+Rates page's own disclosure, the dialog turned into an "Apply this season?" view), each back INTO the dialog on the same stay
+(`CalendarReturn`: every part checked or dropped, never the guest's name — `kept=1` brings it back from the tab), the clicked
+unit kept and its room type first, the next step said from what the dialog shows; the properties with rooms offered from the
+no-rooms dialog and the empty Calendar (`BookableProperties`, moved out of the New reservation page, as was `SavedSeasonOffer`);
+a booking made here comes back here ("Reservation R-… created. Open it"); the grid marks the nights it cannot sell (a dashed
+underline, the legend, one note naming the room types and the unapplied season) and greys the nights gone; drag-to-move only
+for `reservations.assign` (seven of eleven back-office roles were offered a drop the server refused); a refused move an alert;
+the room-type filter kept on every way round, and a foreign one ignored. **The independent review:** no high or medium; eight
+low, all fixed (the note offered ways a person lacked; "can't be booked" overclaimed — the storefront sells any fully priced plan,
+so "here"; a part-season promised a booking; Escape in the Apply view closed the booking and forgot the name; two price boxes a
+screen reader could not tell apart; room types with no bookable unit had no way on; work done for people who cannot use it; 7/14/30
+in three places) and one of its two unverified cases (a message lost on a property with no rooms). Mine on the way: Set price and
+Apply for dates changed but not checked (now locked like Confirm); a doubled quote I wrote into a button; and "€" inside the
+dialog's attribute, caught by the full suite's currency guard (moved into a script block, as the full page has it). Tests:
+`CalendarBookableTest` 35 (29 RED first; 3 pin what must stay; 3 proven by mutation); `CalendarNewReservationTest` changed with the
+behaviour and tightened (CN-M9 and CN-M11 stayed green once the grid's note and card said the same words). Mutations
+`calendar-bookable` 61, all caught; six older needles re-pointed to the moved code. 🖥 Walked at 1440 and 390 on the copy:
+the grid's note and marks, Apply Winter through the view (Back returns focus; nothing sent), Apply for real → back in the dialog
+with the name and 101 picked → booked (R-CJWSOXYT) → back on the Calendar with "Open it"; Set price at 390 ("€350.00 for the night
+of 10 Oct. SV is picked — confirm to book it"); the no-rooms card and dialog → Villa Walk; the filter through 7n and the arrows;
+after the review, Escape in the Apply view steps back with the name kept (a second Escape closes) and Set price locks once the
+dates change; 0 console messages. Gates: 4,335/4,335 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `bc45dca32a733a7e`; JUnit logs;
+⚠️ the run before the last fix had one failure, the currency guard on "€" in the dialog's attribute — fixed, re-run); 760/760
+mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -736,6 +767,10 @@ is named "350" (his data); two wordings for his go (D-NR2-NEXT-NOPRICE, D-NR2-SC
   caught it before commit; the fix shares the one dialog rather than copying it. ⚠️ And a PUBLIC static helper on a Livewire
   component again — the Guests pass's slip, a week later; the mechanism (`OperatorLivewireMutationBoundaryTest`) caught it in
   the full suite, as it is there to.
+- **A page-wide check proved nothing (the Calendar second pass, 2026-10-04):** "the empty Calendar links to Units" passed with
+  the link removed — the sidebar links to Units on every page; the mutation harness (CB-M28) caught it, and the check now looks
+  inside the card. And two behaviours I added on the walk (the clicked unit's room type first, the season's way back) had no
+  test until the mutation set asked for one.
 - **My own quote broke a whole dialog (the Calendar pass, 2026-10-04):** a `"` written in a comment inside `x-data` ended the
   attribute; every binding failed in the browser while every server-side test stayed green. Caught on the walk, before commit,
   and now refused by a test. And a guard I had doubled (the view behind the component) was caught by the mutation harness as

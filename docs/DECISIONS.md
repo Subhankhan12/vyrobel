@@ -19777,3 +19777,75 @@ no sideways scroll; read from the page without moving: 250 country options, the 
 email isn't sent from Vyrobel yet, house rules "Not set" with the Settings link; 0 console messages; signed out (a read-only
 check then went to sign-in), the automated browser closed. Seen and left for him: his suite's rate plan is named "350" (his
 data); two wordings, `OPEN.md` D-NR2-NEXT-NOPRICE and D-NR2-SCOPE-WORDING (ruled text, F-21).
+
+## 2026-10-04 — The Calendar, second pass: a booking can be made from the Calendar — a missing price set and a saved season applied inside its dialog, the properties with rooms offered, a booking made here back here, the nights it cannot sell marked, drag-to-move only for whoever may move
+
+**His request (Founder said, 2026-10-04):** "https://vyrobel.com/app/calendar?start=2026-09-28&days=14 - on this page there is
+functionality issues. it is not possible to do reservation. Fix it. Also check on this page, it shows this issue if it's fixed then
+okay, if it's not fixed, fix it please. And if there's any other issue on this page," — no screenshot reached this session; the
+issue he reported on this page before (the name boxes) was checked again in the live look.
+
+**Why it could not book (Verified 2026-10-04 19:02 UTC, read-only on production):** the New reservation page's reason. His
+working property "Internal Test Property" has no room types; "Villa Azure Lumière" has 3 units on two room types and **0 priced
+nights**; "Winter" (28 Sep → 31 Oct, the Double room's plan) saved and never applied; 0 reservations ever; 0 errors since
+`rel_AV`. The New reservation page offers the way through since `rel_AV`; **the Calendar's dialog still said "No price for these
+nights yet. Set a price in the full form"** — a link away that left the booking behind — and on the property with no rooms only
+"Go to Units"; the empty Calendar said "No room types on … yet". Reproduced first on a copy of his setup in tenant three.
+
+**Decided and built:** the full page's fixes, inside the Calendar's dialog — **Set price** (the Rates write, its own rules and
+`rates.manage`) and the **saved season's Apply** (the dialog becomes the Rates page's own "Apply this season?" view, one partial;
+nothing written until its own button; R-SEASON untouched), each coming back INTO the dialog on the same stay through
+`CalendarReturn` (a fixed `return=calendar` token; every part of the way back checked or dropped; **never the guest's name** —
+`kept=1` brings it back from the tab, #28); the clicked unit kept and its room type first; the dialog says the next step from
+what it shows ("U1 is picked — confirm to book it"). The **properties with rooms** offered from the no-rooms dialog and the empty
+Calendar (`BookableProperties`, and `SavedSeasonOffer`, both moved out of the New reservation page — one rule each). A booking
+made here **comes back here** (it used to land on the full form's done screen). And on the rest of the page: the grid **marks the
+nights it cannot sell** for want of a price (a dashed underline under the count, "No price yet" in the legend, one note naming the
+room types and the unapplied season) and **greys the nights gone**; **drag-to-move only for `reservations.assign`** (Property
+Owner, Group Admin, Hotel Manager, Front Desk — the other seven back-office roles were offered a drop the route refused, #30); a
+**refused move is an alert**, not the success line; the **room-type filter is kept** on every way round, and one from another
+property is ignored rather than emptying the grid.
+
+**The independent review (read-only, 2026-10-04):** no HIGH or MEDIUM. It checked and found holding: the way back (no open
+redirect), escaping (`@js`, the JSON block with `JSON_HEX_*`), tenant and property scope (`accessibleIds`, `RateScope`), #28, #30,
+the moved code (identical), the grid's marking against what the booking write accepts, and the submit guard. **Eight LOW, all
+fixed:** (1) the note offered ways a person lacked — a Revenue Manager prices but cannot book, and a paused workspace refuses both;
+(2) "can't be booked" overclaimed — the storefront sells any active plan with a full calendar, so the Calendar now says "here";
+(3) staff without rate rights were promised a booking after a season that prices only part of the stay; (4) Escape, the cross and
+a click outside in the Apply view closed the whole booking and forgot the guest's name — they step back now, as on the New
+reservation page; (5) two "Price a night" boxes and two "Set price" buttons a screen reader could not tell apart — named by room
+type, the error tied to its box; (6) room types with no bookable unit had no way on — the card now shows for any property with no
+unit that can take a booking, the grid beneath it; (7) the season's preview built for people who cannot apply it, a plan-name
+query per room type, a season query per marked room type — once each now; (8) 7/14/30 written three times — one list. Of its two
+unverified cases, the message lost when the dialog reopens on a property with no rooms is fixed; a stale or foreign id still meets
+the 404 every other rate write gives it. **Mine on the way:** Set price and Apply worked for dates typed but not checked — the old
+stay's nights would have been priced — now locked like Confirm; and a doubled quote I wrote into a button's `x-text`, caught by eye
+before any run and now refused by a test. And the full suite's first run caught one more of mine: `CurrencyDisplayFollowsTenantTest`
+refused the dialog's price check, which named "€" (stripping a typed sign) inside the dialog's attribute — moved into a script
+block, as the New reservation page has its own.
+
+**Tests:** `CalendarBookableTest` 35 — 29 failed first against the page as it stood or before each fix; three pin what must stay
+(Front Desk told who can price, the full form's done screen, a quiet grid when everything is priced); three proven by mutation
+(the clicked unit's order, the season's way back, the doubled-quote guard). `CalendarNewReservationTest`: its "Set a price in the
+full form" assertion now checks the price form in the dialog (the behaviour he asked to change); its class-rule check found two
+new classes without a rule — given one; two of its checks aimed at the dialog's own sentences (CN-M9, CN-M11 stayed green once the
+grid's note and card said the same words). Mutations `calendar-bookable` 61, all caught (CB-M28 first stayed green: the check
+looked page-wide and the sidebar links to Units — tightened); six older needles re-pointed to the moved code (CN-M8, CN-M30,
+NB-M25, NR-M2, NR-M8, NR-M27).
+
+**Walked (Verified 2026-10-04, tenant three, 1440 and 390 px):** the grid's note and marks; "+" on 101 → its room type first →
+Apply Winter → the view (focus on Back; Back returns focus; nothing sent) → applied for real → back in the dialog with the name and
+101 picked → Confirm → back on the Calendar, "Reservation R-CJWSOXYT created. Open it", the bar on 101, Double room no longer
+marked; Set price at 390 ("Price set — €350.00 for the night of 10 Oct. SV is picked — confirm to book it."); the no-rooms card and
+dialog → Villa Walk (the dialog reopened there, focus on First name); the filter through 7n and the arrows; after the review,
+Escape in the Apply view stepped back with the name kept and focus on Apply (a second Escape closed the dialog and cleared the
+address and the name), and Set price locked once the check-in changed; 0 console messages.
+
+**Gates (Verified 2026-10-05):** **4,335/4,335 on MySQL 8.4.10** (31,833 assertions, tree `bc45dca32a733a7e`: this code with the
+entry and the memory written, before these figures; 00:45–01:05 Baku) · **4,335/4,335 on MariaDB 11.8.9** (the same tree,
+01:28–01:46 Baku; nothing else on 3306 at the swap) — both read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped. ⚠️ The
+first MySQL run, on the tree before the last fix, failed one test: the currency guard (the dialog's price check named "€" inside
+its attribute); fixed and the whole suite re-run, after restiox's own test run (another project) finished · mutations **760/760
+across every set** (`calendar-bookable` 61; baseline 431/431 green; 01:06–01:28 Baku) · the money gate **FULL, unmoved** (`929 /
+10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 01:47
+Baku) · PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.

@@ -10,6 +10,7 @@ use App\Models\RateSeason;
 use App\Services\SeasonalRateService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Money\MoneyInput;
+use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Rates\RateScope;
 use App\Support\Rates\RatesListParams;
@@ -71,6 +72,10 @@ class SeasonActionController extends Controller
         }
 
         $message = 'Your workspace is read-only right now — rate changes are paused.';
+
+        if (CalendarReturn::wanted($request)) {
+            return redirect()->to(CalendarReturn::dialog($request))->with('calendar_dialog_error', $message);
+        }
 
         return $this->fromWizard($request)
             ? $this->toWizard($request)->with('new_reservation_notice', $message)
@@ -326,7 +331,8 @@ class SeasonActionController extends Controller
             );
         }
 
-        if ($this->fromWizard($request)) {
+        // ⚠️ 2026-10-04 (his next report) — and from the Calendar's New reservation dialog, back INTO it ({@see CalendarReturn}).
+        if ($this->fromWizard($request) || CalendarReturn::wanted($request)) {
             // ⚠️ DERIVED, NOT ASSUMED (the review, M1): the Rates page's own sentence of what was written (a stronger season
             //    that wins some nights, and the overlapping ones re-applied, are in it), then what the stay still lacks — its
             //    nights counted on the season's plan AFTER the write, never inferred from the season's dates.
@@ -338,9 +344,15 @@ class SeasonActionController extends Controller
                     - RateCalendar::query()->where('rate_plan_id', $model->rate_plan_id)->where('date', '>=', $in)->where('date', '<', $out)->count();
                 $stay = $missing <= 0 ? ' Pick a unit to continue.'
                     : ' '.$missing.' '.($missing === 1 ? 'night of the stay still has' : 'nights of the stay still have').' no price.';
+                // the Calendar's dialog says what comes next itself, from what it shows (a unit may already be picked)
+                if ($missing <= 0 && CalendarReturn::wanted($request)) {
+                    $stay = '';
+                }
             }
 
-            return $this->toWizard($request)->with('new_reservation_ok', $notice.$stay);
+            return CalendarReturn::wanted($request)
+                ? redirect()->to(CalendarReturn::dialog($request))->with('calendar_dialog_ok', $notice.$stay)
+                : $this->toWizard($request)->with('new_reservation_ok', $notice.$stay);
         }
 
         return $this->toPage($request)->with('rates_notice', $notice);

@@ -9,32 +9,33 @@
         {{-- Toolbar: REAL window navigation (GET links, RMB-safe) + honest NO-BACKEND affordances --}}
         <div class="vy-rack-toolbar vy-fade">
             <div class="vy-left">
-                <a class="vy-icobtn" href="?start={{ $window['prev'] }}&days={{ $window['selected_days'] }}" aria-label="Previous {{ $window['days'] }} nights" title="Previous {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['prev'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="Previous {{ $window['days'] }} nights" title="Previous {{ $window['days'] }} nights">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
                 </a>
                 <span class="vy-range">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></svg>
                     {{ $window['label'] }}
                 </span>
-                <a class="vy-icobtn" href="?start={{ $window['next'] }}&days={{ $window['selected_days'] }}" aria-label="Next {{ $window['days'] }} nights" title="Next {{ $window['days'] }} nights">
+                <a class="vy-icobtn" href="?start={{ $window['next'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}" aria-label="Next {{ $window['days'] }} nights" title="Next {{ $window['days'] }} nights">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
-                <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}">Today</a>
+                <a class="vy-pill" href="?start={{ $window['today'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}">Today</a>
             </div>
             <div class="vy-right">
                 {{-- #104 GATE 3d — view-range switcher (7 / 14 / 30 nights), preserving the current window
                      start. The design places it in the right-hand control group as a segmented pill. --}}
                 <span class="vy-seg-range" role="group" aria-label="Nights in view">
-                    @foreach ([7, 14, 30] as $d)
+                    @foreach ($window['ranges'] as $d)
                         <a class="vy-seg-btn @if ($window['selected_days'] === $d) is-on @endif"
                            @if ($window['selected_days'] === $d) aria-current="true" @endif
-                           href="?start={{ $window['start'] }}&days={{ $d }}">{{ $d }}n</a>
+                           href="?start={{ $window['start'] }}&days={{ $d }}{{ $window['rt_q'] }}">{{ $d }}n</a>
                     @endforeach
                 </span>
                 {{-- REAL room-type filter (GET; RMB-safe) --}}
                 @if (! empty($roomTypeOptions))
                     <form method="GET" class="vy-rack-filter">
                         <input type="hidden" name="start" value="{{ $window['start'] }}">
+                        <input type="hidden" name="days" value="{{ $window['selected_days'] }}">
                         <select name="rt" class="vy-propsw-select" onchange="this.form.submit()" aria-label="Filter by room type">
                             <option value="">All room types</option>
                             @foreach ($roomTypeOptions as $opt)
@@ -50,7 +51,7 @@
                      permission-wrapped already — this reuses that sibling's gate (#30, §N.8f). --}}
                 @if (! $readOnly)
                     @can('reservations.create')
-                    <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}&new=1">
+                    <a class="vy-btn vy-btn--accent" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}&new=1">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                         New reservation
                     </a>
@@ -59,9 +60,17 @@
             </div>
         </div>
 
-        @php $notice = session('new_reservation_notice') ?? session('folio_notice') ?? session('group_notice'); @endphp
+        @php
+            $notice = session('new_reservation_notice') ?? session('folio_notice') ?? session('group_notice');
+            // a price set or a season applied from the dialog says so INSIDE it — here only when it is not open (a paused workspace)
+            $dialogSaid = $newRes['open'] ? null : ($dialogError ?? $dialogOk);
+        @endphp
         @if ($notice)
-            <div class="vy-flash vy-rack-notice vy-fade" role="status">{{ $notice }}</div>
+            {{-- ⚠️ 2026-10-04 — a REFUSED move was this same quiet status line as one that worked; now an alert --}}
+            <div class="vy-flash{{ $refused ? ' is-err' : '' }} vy-rack-notice vy-fade" role="{{ $refused ? 'alert' : 'status' }}">{{ $notice }}@if ($created !== null) <a class="vy-rnr-link" href="{{ route('app.reservations.show', $created) }}">Open it</a>@endif</div>
+        @endif
+        @if ($dialogSaid !== null)
+            <div class="vy-flash {{ $dialogError !== null ? 'is-err' : 'is-ok' }} vy-rack-notice vy-fade" role="{{ $dialogError !== null ? 'alert' : 'status' }}">{{ $dialogSaid }}</div>
         @endif
 
         {{-- NEW RESERVATION — the dialog (rebuilt 2026-10-04: `partials/rack-new-reservation`). ⚠️ OPERATOR FIX 1 (audit Finding
@@ -72,17 +81,43 @@
             @include('livewire.operator.partials.rack-new-reservation')
         @endif
 
-        @if ($property === null || count($rows) === 0)
-            <div class="vy-card vy-fade">
-                <div class="vy-empty">
-                    @if ($property === null)
-                        No property yet — add a property to see its reservation rack.
-                    @else
-                        No room types on <strong>{{ $property['name'] }}</strong> yet.
-                    @endif
+        {{-- ⚠️⚠️ 2026-10-04 (his workspace): "No room types on … yet." and nothing to do about it, while his other property had three
+             rooms. Now — for a property with no unit that can take a booking, whatever the reason (the review, L6) — the Units page, and
+             the properties that do have rooms (this session's working property only). The grid still shows when it has room types. --}}
+        @if ($noRooms !== null)
+            <div class="vy-card vy-fade{{ count($rows) > 0 ? ' vy-rack-norooms' : '' }}">
+                <div class="vy-rack-empty">
+                    <strong>{{ $noRooms['title'] }}</strong>
+                    <span>{{ $noRooms['line'] }}</span>
+                    <a class="vy-btn vy-btn--ghost" href="{{ route('app.units') }}">Go to Units</a>
                 </div>
+                @if ($elsewhere !== [])
+                    <form method="POST" action="{{ route('app.property.switch') }}" class="vy-rnr-others vy-rack-others" aria-labelledby="vy-rack-others-h">
+                        @csrf
+                        <h3 id="vy-rack-others-h" class="vy-rnr-others-h">Open another property’s calendar</h3>
+                        @foreach ($elsewhere as $__p)
+                            <button type="submit" name="property_id" value="{{ $__p['id'] }}" class="vy-rnr-other">
+                                <svg class="vy-rnr-other-ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>
+                                <span class="vy-rnr-other-name">{{ $__p['name'] }}</span>
+                                <span class="vy-rnr-other-rooms">{{ $__p['rooms'] === 1 ? '1 room' : $__p['rooms'].' rooms' }}</span>
+                                <svg class="vy-rnr-other-go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                            </button>
+                        @endforeach
+                    </form>
+                @endif
             </div>
-        @else
+        @endif
+
+        @if ($property === null)
+            <div class="vy-card vy-fade">
+                <div class="vy-empty">No property yet — add a property to see its reservation rack.</div>
+            </div>
+        @elseif (count($rows) > 0)
+            {{-- ⚠️⚠️ 2026-10-04 (his report — "it is not possible to do reservation"): rooms free and no price on a night cannot be booked,
+                 and the strip said "2" either way. The marked nights, and why, said once above the grid. --}}
+            @if ($priceNote !== null)
+                <p class="vy-rack-pricenote vy-fade" role="note"><span class="vy-rack-pricenote-mark" aria-hidden="true"></span><span>No price yet on the marked nights for {{ $priceNote['names'] }}, so they can’t be booked here.@foreach ($priceNote['seasons'] as $__season) {{ $__season }} is saved but not applied.@endforeach @if ($canSetPrice && ! $readOnly)<a class="vy-rnr-link" href="{{ route('app.rates') }}">Set prices on the Rates page</a>{{ $canBook ? ', or set one for a stay from New reservation.' : '.' }}@elseif (! $readOnly) Ask someone who manages rates to set them.@endif</span></p>
+            @endif
             {{-- GATE 5.3 — drag-to-reschedule. A booking bar is draggable; the drop cells (only on ACTIVE unit
                  rows) POST to the certified AssignmentService::reschedule. The drop cell's date is a
                  SERVER-RENDERED string → the server preserves the stay length (no client date math, no
@@ -91,7 +126,7 @@
                  x-data="{
                      dragging: false, dragRes: '', dragLine: '',
                      base: @js(url('/app/reservations')), csrf: @js(csrf_token()),
-                     start: @js($window['start']), days: @js((string) $window['selected_days']),
+                     start: @js($window['start']), days: @js((string) $window['selected_days']), rt: @js($window['rt']),
                      onStart(e, resId, lineId) { this.dragRes = resId; this.dragLine = lineId; this.dragging = true; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', resId); },
                      onDrop(e, unitId, date) {
                          this.dragging = false;
@@ -101,7 +136,7 @@
                          const add = (n, v) => { const i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; f.appendChild(i); };
                          add('_token', this.csrf); add('reservation_unit_id', this.dragLine);
                          add('new_check_in', date); add('unit_id', unitId);
-                         add('return_start', this.start); add('return_days', this.days);
+                         add('return_start', this.start); add('return_days', this.days); if (this.rt) add('return_rt', this.rt);
                          document.body.appendChild(f); f.submit();
                      }
                  }">
@@ -116,7 +151,7 @@
                                 @foreach ($dates as $d)
                                     {{-- The design marks today with a short gradient rule across the top of
                                          the column head. Real comparison against the window's own today. --}}
-                                    <div class="vy-day @if ($d['weekend']) is-weekend @endif @if ($d['date'] === $window['today']) is-today @endif">
+                                    <div class="vy-day @if ($d['weekend']) is-weekend @endif @if ($d['date'] === $window['today']) is-today @endif @if ($d['past']) is-past @endif">
                                         <div class="vy-day-dow">{{ $d['dow'] }}</div>
                                         <div class="vy-day-num">{{ $d['day'] }}</div>
                                         <div class="vy-day-mon">{{ $d['mon'] }}</div>
@@ -138,9 +173,9 @@
                                 </div>
                                 <div class="vy-nights">
                                     @foreach ($dates as $d)
-                                        @php $avail = $row['availability'][$d['date']] ?? 0; @endphp
-                                        <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif"
-                                             title="{{ $avail }} available on {{ $d['date'] }}">{{ $avail }}</div>
+                                        @php $avail = $row['availability'][$d['date']] ?? 0; $__noPrice = isset($row['no_price'][$d['date']]); @endphp
+                                        <div class="vy-avail @if ($d['weekend']) is-weekend @endif @if ($d['past']) is-past @endif @if ($avail === 0) is-zero @elseif ($avail === 1) is-tight @endif @if ($__noPrice) is-noprice @endif"
+                                             title="{{ $avail }} available on {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}{{ $__noPrice ? ' — no price yet, so it can’t be booked here' : '' }}">{{ $avail }}</div>
                                     @endforeach
                                 </div>
                             </div>
@@ -206,7 +241,7 @@
                                                 <div class="vy-lane-book" aria-hidden="true">
                                                     @foreach ($dates as $d)
                                                         @if (isset($unit['free_nights'][$d['date']]))
-                                                            <a class="vy-lane-book-cell" tabindex="-1" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}&new=1&ci={{ $d['date'] }}&co={{ $unit['free_nights'][$d['date']] }}&unit={{ $unit['unit_id'] }}" title="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}" aria-label="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}"><span aria-hidden="true">+</span></a>
+                                                            <a class="vy-lane-book-cell" tabindex="-1" href="?start={{ $window['start'] }}&days={{ $window['selected_days'] }}{{ $window['rt_q'] }}&new=1&ci={{ $d['date'] }}&co={{ $unit['free_nights'][$d['date']] }}&unit={{ $unit['unit_id'] }}" title="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}" aria-label="Book {{ $unit['code'] }} from {{ $d['dow'] }} {{ $d['day'] }} {{ $d['mon'] }}"><span aria-hidden="true">+</span></a>
                                                         @else
                                                             <span class="vy-lane-book-cell is-off" aria-hidden="true"></span>
                                                         @endif
@@ -216,7 +251,7 @@
 
                                             {{-- Drop targets — one per night, only on a BOOKABLE (active) unit row, click-through
                                                  except while a drag is in flight. The date is server-rendered (no client date math). --}}
-                                            @if (! $readOnly && $unit['state'] === 'active')
+                                            @if ($canMove && $unit['state'] === 'active')
                                                 <div class="vy-lane-drop" :class="dragging ? 'is-dragging' : ''">
                                                     @foreach ($dates as $d)
                                                         <div data-date="{{ $d['date'] }}" @dragover.prevent @drop.prevent="onDrop($event, '{{ $unit['unit_id'] }}', '{{ $d['date'] }}')"></div>
@@ -229,11 +264,11 @@
                                                 @foreach ($unit['bars'] as $bar)
                                                     {{-- #104 GATE 3d — the bar links to the reservation detail; GATE 5.3 — it's draggable
                                                          to reschedule (unless the workspace is read-only). --}}
-                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif @if (! $readOnly) is-draggable @endif"
+                                                    <a class="vy-bar tone-{{ $bar['tone'] }} @if ($bar['clip_start']) is-clip-start @endif @if ($bar['clip_end']) is-clip-end @endif @if ($canMove) is-draggable @endif"
                                                        href="{{ route('app.reservations.show', $bar['id']) }}"
-                                                       @if (! $readOnly) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
+                                                       @if ($canMove) draggable="true" @dragstart="onStart($event, '{{ $bar['id'] }}', '{{ $bar['line_id'] }}')" @dragend="dragging = false" @endif
                                                        style="grid-column: {{ $bar['offset'] + 1 }} / span {{ $bar['span'] }}; text-decoration: none;"
-                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}{{ ! $readOnly ? ' · drag to reschedule' : '' }}">
+                                                       title="{{ $bar['guest'] }} — {{ $bar['status_label'] }} · {{ $bar['source'] }} · {{ $bar['nights'] }} {{ \Illuminate\Support\Str::plural('night', $bar['nights']) }} · {{ $bar['ref'] }}{{ $canMove ? ' · drag to reschedule' : '' }}">
                                                         <span class="vy-bar-txt">
                                                             <span class="vy-bar-guest">{{ $bar['guest'] }}</span>
                                                             {{-- The design's second line. Status stays as TEXT here, not colour-only:
@@ -296,12 +331,18 @@
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-pending"></span> Tentative / enquiry</span>
                         <span class="vy-legend-item"><span class="vy-legend-swatch tone-no-show"></span> No-show</span>
                         <span class="vy-legend-item"><span class="vy-legend-swatch swatch-ooo"></span> Out of order / blocked</span>
+                        @if ($priceNote !== null)
+                            <span class="vy-legend-item"><span class="vy-legend-swatch swatch-noprice"></span> No price yet</span>
+                        @endif
                     </div>
                     {{-- Drag-to-reschedule is LIVE (→ the certified AssignmentService::reschedule, availability
                          locked, no-overlap). Each row is a physical unit; hatched bars are real blocks. --}}
                     {{-- ⚠️ one sentence: inside the old inline-flex note "Drag a booking" sat in one column and the rest in another --}}
-                    @if (! $readOnly)
+                    @if ($canMove)
                         <p class="vy-rack-hint"><strong>Drag a booking</strong> to a new date or unit to reschedule it — the stay length is kept and availability is re-checked.@if ($canBook) Click an empty night on a unit’s row to book it there.@endif Hatched bars are real out-of-order / owner blocks; the header strip shows units available per night.</p>
+                    @elseif (! $readOnly)
+                        {{-- ⚠️ 2026-10-04 — moving a booking needs `reservations.assign`; this role books (or reads) and does not move --}}
+                        <p class="vy-rack-hint">Each row is a physical unit.@if ($canBook) Click an empty night on a unit’s row to book it there.@endif Hatched bars are real out-of-order / owner blocks; the header strip shows units available per night.</p>
                     @else
                         <p class="vy-rack-hint">Each row is a physical unit; hatched bars are real out-of-order / owner blocks; the header strip shows units available per night. (The workspace is paused — moves are off.)</p>
                     @endif

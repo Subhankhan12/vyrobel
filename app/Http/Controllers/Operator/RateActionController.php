@@ -13,6 +13,7 @@ use App\Services\RateDerivationService;
 use App\Support\Money\Money;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Money\MoneyInput;
+use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Rates\RateScope;
 use App\Support\Rates\RatesListParams;
@@ -224,15 +225,22 @@ class RateActionController extends Controller
         //    the stay's nights and a nightly price — so the answer names exactly that.
         //    ⚠️ "Pick a unit" only when the price went on the plan the wizard prices a stay with (the room type's main plan) —
         //    a hand-made request naming another plan gets the plain summary below, still back in the wizard.
-        if ($this->returnsToWizard($request) && $setRate && count($roomTypes) === 1) {
+        //    ⚠️ 2026-10-04 (his next report, the Calendar) — the Calendar's New reservation dialog sets it here too, and goes back
+        //    INTO the dialog on the same stay ({@see CalendarReturn}).
+        if ($this->fromBooking($request) && $setRate && count($roomTypes) === 1) {
             $primary = $roomTypes[0]->primaryRatePlan();
             $plan = $chosenPlan ?? $primary;
             if ($plan === null) {
                 return $this->refuse($request, $fromParam, $roomTypes[0]->name.' has no rate plan yet, so a price has nowhere to go. Add one on the Rates page first.');
             }
             if ($primary !== null && (string) $plan->getKey() === (string) $primary->getKey()) {
-                return $this->toWizard($request)->with('new_reservation_ok', 'Price set — '.MoneyFormatter::display($priceMinor, (string) $plan->currency)
-                    .' a night for these '.$nights.' '.($nights === 1 ? 'night' : 'nights').'. Pick a unit to continue.');
+                // ⚠️ one night is "the night of 2 Sep" — never "these 1 night" (2026-10-04)
+                $set = 'Price set — '.MoneyFormatter::display($priceMinor, (string) $plan->currency)
+                    .($nights === 1 ? ' for the night of '.$start->format('j M').'.' : ' a night for these '.$nights.' nights.');
+
+                // the wizard says what comes next; the Calendar's dialog says it itself, from what it shows — a unit may already be
+                // picked (🔬 the walk: "Pick a unit to continue" above the unit that was picked)
+                return $this->backToBooking($request, CalendarReturn::wanted($request) ? $set : $set.' Pick a unit to continue.', refused: false);
             }
         }
 
@@ -399,8 +407,8 @@ class RateActionController extends Controller
      */
     private function refuse(Request $request, ?string $from, string $message): RedirectResponse
     {
-        if ($this->returnsToWizard($request)) {
-            return $this->toWizard($request)->with('new_reservation_notice', $message);
+        if ($this->fromBooking($request)) {
+            return $this->backToBooking($request, $message, refused: true);
         }
 
         return RatesListParams::redirect($request, $from)->with('rates_error', $message);
@@ -409,8 +417,8 @@ class RateActionController extends Controller
     /** Done — shown as a notice, back on the page as the operator had it ({@see RatesListParams}). */
     private function done(Request $request, ?string $from, string $message): RedirectResponse
     {
-        if ($this->returnsToWizard($request)) {
-            return $this->toWizard($request)->with('new_reservation_ok', $message);
+        if ($this->fromBooking($request)) {
+            return $this->backToBooking($request, $message, refused: false);
         }
 
         return RatesListParams::redirect($request, $from)->with('rates_notice', $message);
@@ -420,6 +428,25 @@ class RateActionController extends Controller
     private function returnsToWizard(Request $request): bool
     {
         return $request->input('return') === self::RETURN_WIZARD;
+    }
+
+    /** Set from inside a booking — the New reservation wizard, or the Calendar's New reservation dialog. */
+    private function fromBooking(Request $request): bool
+    {
+        return $this->returnsToWizard($request) || CalendarReturn::wanted($request);
+    }
+
+    /**
+     * Back to the booking it came from, saying what happened THERE: inside the Calendar's dialog on the same stay, or the
+     * wizard on the same dates. A refusal is the page's alert, a success its status line.
+     */
+    private function backToBooking(Request $request, string $message, bool $refused): RedirectResponse
+    {
+        if (CalendarReturn::wanted($request)) {
+            return redirect()->to(CalendarReturn::dialog($request))->with($refused ? 'calendar_dialog_error' : 'calendar_dialog_ok', $message);
+        }
+
+        return $this->toWizard($request)->with($refused ? 'new_reservation_notice' : 'new_reservation_ok', $message);
     }
 
     /** Back to the wizard on the same dates — each one a real calendar date or left out. */

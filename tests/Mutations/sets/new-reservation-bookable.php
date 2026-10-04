@@ -208,7 +208,7 @@ return [
     [
         'id' => 'NB-M25',
         'name' => 'M2 — a season over priced nights only is offered as the fix',
-        'file' => $page,
+        'file' => 'app/Support/Rates/SavedSeasonOffer.php',   // the one rule, shared with the Calendar (2026-10-04)
         'old' => '            if ($prices === 0) {',
         'new' => '            if (false) {',
         'tests' => [['file' => $test, 'filter' => 'offers only a season that would price a night still without one']],

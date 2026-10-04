@@ -17,7 +17,6 @@ use App\Models\Property;
 use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
-use App\Models\RateSeason;
 use App\Models\Reservation;
 use App\Models\RoomType;
 use App\Models\Tax;
@@ -34,8 +33,10 @@ use App\Support\Guest\GuestHistory;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
+use App\Support\Property\BookableProperties;
 use App\Support\Property\PropertyContext;
 use App\Support\QrSvg;
+use App\Support\Rates\SavedSeasonOffer;
 use App\Support\Rates\SeasonApplyFacts;
 use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reservations\ReservationExtras;
@@ -310,19 +311,7 @@ class NewReservation extends Component
      */
     private function accessibleProperties(): array
     {
-        $ids = app(PropertyContext::class)->accessibleIds();
-        if ($ids === []) {
-            return [];
-        }
-
-        $count = fn (Builder $q) => $q->whereIn('property_id', $ids)->selectRaw('property_id, COUNT(*) AS n')->groupBy('property_id')->pluck('n', 'property_id');
-        $all = $count(Unit::query());
-        $open = $count(Unit::query()->bookable());
-
-        return Property::query()->whereIn('id', $ids)->orderBy('name')->get(['id', 'name'])
-            ->map(fn (Property $p): array => ['id' => (string) $p->getKey(), 'name' => (string) $p->name,
-                'rooms' => (int) ($open[(string) $p->getKey()] ?? 0), 'rooms_all' => (int) ($all[(string) $p->getKey()] ?? 0)])
-            ->all();
+        return BookableProperties::all();   // ONE list, shared with the Calendar's dialog and its empty state
     }
 
     /**
@@ -479,39 +468,7 @@ class NewReservation extends Component
      */
     private function savedSeasons(string $planId, string $checkIn, string $checkOut): array
     {
-        $lastNight = CarbonImmutable::parse($checkOut)->subDay()->toDateString();
-        $priced = RateCalendar::query()->where('rate_plan_id', $planId)->where('date', '>=', $checkIn)->where('date', '<', $checkOut)
-            ->pluck('date')->map(fn ($d): string => CarbonImmutable::parse($d)->toDateString())->all();
-        $missing = [];
-        for ($d = CarbonImmutable::parse($checkIn); $d->toDateString() < $checkOut; $d = $d->addDay()) {
-            if (! in_array($d->toDateString(), $priced, true)) {
-                $missing[] = $d->toDateString();
-            }
-        }
-        if ($missing === []) {
-            return [];
-        }
-
-        $preview = app(SeasonalRateService::class);
-        $out = [];
-        foreach (RateSeason::query()->where('rate_plan_id', $planId)->whereNull('applied_at')
-            ->where('starts_on', '<=', $lastNight)->where('ends_on', '>=', $checkIn)->orderBy('starts_on')->get() as $season) {
-            $from = $season->starts_on->toDateString();
-            $to = $season->ends_on->toDateString();
-            $prices = count(array_filter($missing, fn (string $d): bool => $d >= $from && $d <= $to));
-            if ($prices === 0) {
-                continue;   // it would change a price the stay already has, and leave the missing nights as they are
-            }
-            $out[] = SeasonApplyFacts::of($season, $preview->preview($season)) + [
-                'nightly' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency).' a night',
-                'from' => $season->starts_on->format('j M'),
-                'to' => $season->ends_on->format('j M'),
-                'prices' => $prices,
-                'missing' => count($missing),
-            ];
-        }
-
-        return $out;
+        return SavedSeasonOffer::forStay($planId, $checkIn, $checkOut);   // ONE rule, shared with the Calendar's dialog
     }
 
     /**

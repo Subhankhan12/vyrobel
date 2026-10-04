@@ -14,6 +14,7 @@ use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Services\AssignmentService;
 use App\Services\FrontDeskService;
+use App\Support\Operator\CalendarReturn;
 use App\Support\Operator\OperatorWorkspace;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -245,7 +246,7 @@ class FrontDeskActionController extends Controller
         // READ-ONLY workspace (billing paused/canceled but still in /app): edits are OFF. The UI hides the drag,
         // but this is the real server guard — the same self-check every operator write does (create/rate/desk).
         if (app(OperatorWorkspace::class)->isReadOnly()) {
-            return $this->afterReschedule($request, 'The workspace is paused — moves are off.');
+            return $this->afterReschedule($request, 'The workspace is paused — moves are off.', refused: true);
         }
 
         $model = Reservation::query()->with('reservationUnits')->findOrFail($reservation);   // tenant-scoped → 404
@@ -272,24 +273,22 @@ class FrontDeskActionController extends Controller
         try {
             $assignment->reschedule($line, $newCheckIn->toDateString(), $newCheckOut->toDateString(), $unitId);
         } catch (UnitUnavailableException|InsufficientAvailabilityException|InvalidArgumentException) {
-            return $this->afterReschedule($request, 'That move isn’t available — the unit or nights are already taken.');
+            return $this->afterReschedule($request, 'That move isn’t available — the unit or nights are already taken.', refused: true);
         }
 
         return $this->afterReschedule($request, "Moved {$model->reference} to {$newCheckIn->format('j M')}.");
     }
 
-    /** Redirect back to the Calendar, preserving the rack window (start/days), with a flash notice. */
-    private function afterReschedule(Request $request, string $notice): RedirectResponse
+    /**
+     * Redirect back to the Calendar as the person had it — its first night, 7/14/30 and, since 2026-10-04, its room-type filter
+     * ({@see CalendarReturn}) — with a flash notice. ⚠️ 2026-10-04: a REFUSED move was said in the same quiet status line as one
+     * that worked; it is now marked so the Calendar shows it as an error (`role="alert"`).
+     */
+    private function afterReschedule(Request $request, string $notice, bool $refused = false): RedirectResponse
     {
-        $start = $request->input('return_start');
-        $days = (int) $request->input('return_days');
-        $params = array_filter([
-            'start' => is_string($start) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $start) === 1 ? $start : null,
-            'days' => in_array($days, [7, 14, 30], true) ? $days : null,
-        ], fn ($v): bool => $v !== null);
+        $redirect = redirect()->to(CalendarReturn::window($request))->with('new_reservation_notice', $notice);
 
-        return redirect()->to(route('app.calendar').($params !== [] ? '?'.http_build_query($params) : ''))
-            ->with('new_reservation_notice', $notice);
+        return $refused ? $redirect->with('calendar_refused', true) : $redirect;
     }
 
     /**

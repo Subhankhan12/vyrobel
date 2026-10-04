@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the NEW RESERVATION SECOND pass (2026-10-04: a saved season applied from the booking, four steps)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the CALENDAR SECOND pass (2026-10-04: a booking can be made from the Calendar — price and season set inside its dialog)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -185,6 +185,29 @@ change is said.** Briefs live in `briefs/`.
   shows "That count sees only rates agreed through a proposal…" (F-21: its scope is stated even at zero, on purpose), but when no
   owner-agreed count is shown above it, "That count" reads as if it meant "34 of 34 nights". Same text on the Rates page since
   `rel_AO`. A wording that keeps F-21 — "Owner-agreed nights are counted only when agreed through a proposal…" — is his call.
+  ⚠️ Since the Calendar's second pass the same disclosure also opens from the Calendar's New reservation dialog.
+- ✅ **D-CAL2-NOPRICE — FIXED 2026-10-04 (his report on the Calendar; 🔬 read-only on production):** the Calendar's New reservation
+  dialog said "No price for these nights yet" with a link away to the full form, and nothing about his saved "Winter" season — so
+  nothing could be booked there. Set price and Apply season now work inside the dialog and come back into it
+  (`HISTORY.md`, "CALENDAR, SECOND PASS").
+- ✅ **D-CAL2-NOROOMS — FIXED 2026-10-04:** on a property with no rooms the dialog said "Go to Units" and the Calendar "No room
+  types on … yet"; both now offer the properties with rooms.
+- ✅ **D-CAL2-LANDING — FIXED 2026-10-04:** a booking made on the Calendar landed on the full form's done screen; it comes back to
+  the Calendar with its reference and "Open it".
+- ✅ **D-CAL2-DRAG — FIXED 2026-10-04 (pre-existing, #30):** every back-office role saw draggable bars and "Drag a booking"; the
+  move needs `reservations.assign`, which seven of the eleven do not hold — the drop was refused (403).
+- ✅ **D-CAL2-REFUSED — FIXED 2026-10-04 (pre-existing):** a refused move was the same quiet status line as one that worked.
+- ✅ **D-CAL2-FILTER — FIXED 2026-10-04 (pre-existing):** the arrows, Today, 7/14/30, New reservation and a dragged booking all
+  dropped the room-type filter; choosing a filter dropped 7/14/30; a filter from another property emptied the grid ("No room
+  types on … yet").
+- ✅ **D-NR2-NEXT-NOPRICE — the Calendar's half FIXED 2026-10-04:** its dialog says the next step from what it shows ("U1 is picked
+  — confirm to book it" / "Pick a unit below"). The New reservation page's "Pick a unit for these dates" stays for his go.
+- **D-NR2-ONE-NIGHT (seen on the Calendar walk 2026-10-04; the New reservation page; not changed — his go):** for a one-night stay
+  that page says "from 10 Oct to 10 Oct" and "1 of the 1 night of the stay that have no price"; the Calendar's dialog words a
+  single night right since its second pass ("the night of 10 Oct", "has"). Two template sentences.
+- **D-SHELL-PROPNAME (measured on the Calendar walk 2026-10-04, locally; on every operator page — his go):** the sidebar's
+  working-property box is 141 px wide, so a name over ~135 px is cut ("Harbourpoint Walkthrough" 165 px); his "Internal Test
+  Property" is likely cut on production. Not measured there.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

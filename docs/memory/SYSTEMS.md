@@ -422,6 +422,28 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   way in. `unit` is honoured only when that unit is in the free list.
 - ⚠️ **A double quote anywhere inside the dialog's `x-data` ends the HTML attribute** — comments included — and every binding
   fails while server-side tests stay green; `CalendarNewReservationTest` refuses one.
+- **Second pass (2026-10-04, his "it is not possible to do reservation"):** a waiting room type (`waitingRoomType()`) carries what
+  fixes it, for whoever holds `rates.manage`: a **Set price** form → `app.rates.update` for exactly the stay's nights on its main
+  plan, and each saved, unapplied season that would price a missing night (`App\Support\Rates\SavedSeasonOffer`, shared with
+  the New reservation page) → an **Apply view** inside the dialog (the shared `season-apply-disclosure` partial, then
+  `app.seasons.apply`). Both send `return=calendar` + the return fields (`partials/calendar-return-fields`) and come back INTO the
+  dialog through `App\Support\Operator\CalendarReturn::dialog()` — start, 7/14/30, filter, dates, adults, source, the clicked
+  unit (`clicked`), `kept=1`; each part checked or dropped; never the guest's name — with `calendar_dialog_ok` / `_error`, shown in
+  the dialog (on the page when the dialog cannot open, e.g. a paused workspace). The dialog adds the next step from what it shows.
+  The clicked unit's room type is listed first. Set price and Apply are locked while the dates typed differ from the ones checked
+  (`dirty`, as Confirm is); from the Apply view, Escape, the cross and a click outside step back to the booking (`close()`); each
+  price box and button is named by its room type. The season's facts (a preview each) are built only for `rates.manage`.
+- **A booking made here comes back here:** the per-unit forms send `return=calendar`; `ReservationCreateController` returns to
+  `CalendarReturn::window()` with `folio_notice` and `calendar_created` ("Open it"). Refusals still open the full form (§14).
+- **No rooms:** `others` (the dialog) and `elsewhere` (the Calendar's card, for any property with no unit that can take a booking —
+  `noRooms()`: none added, or all paused or out of service; the grid stays under it when there are room types) are
+  `App\Support\Property\BookableProperties::elsewhere()` — the person's properties with a bookable unit — as buttons to
+  `app.property.switch` (this session's working property only).
+- **The grid:** `pricedNights()` reads each room type's main-plan rates for the window in one query; a night from today with a
+  room to sell and no rate is `no_price` (`is-noprice`, a dashed underline; the legend's "No price yet"; `priceNote()` names the
+  room types and any unapplied season covering a marked night). `past` greys the nights before today. ⚠️ Drag-to-move (bars,
+  drop layer, hint) only with `$canMove` = `reservations.assign` and a workspace not paused; a refused move sets
+  `calendar_refused` (an alert). `rt` must be one of this property's room types or it is ignored, and every link keeps it.
 
 ---
 
