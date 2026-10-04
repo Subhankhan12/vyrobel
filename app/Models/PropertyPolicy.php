@@ -25,6 +25,26 @@ class PropertyPolicy extends Model
 {
     use BelongsToOrganization, HasFactory, HasUlids, SoftDeletes;
 
+    /**
+     * The words for a stored pet or smoking rule — the Settings form's own three options (its policies write,
+     * `SettingsActionController::updatePolicies()`). ⚠️ 2026-10-04: the New reservation
+     * page printed the stored code itself ("on_request", "not_allowed") on a property that had set its rules.
+     */
+    public const RULE_LABELS = ['allowed' => 'Allowed', 'on_request' => 'On request', 'not_allowed' => 'Not allowed'];
+
+    /**
+     * A stored rule in words, or NULL when none is set — never a default the property did not choose. A value that is not one
+     * of the three codes (an older free-text row) is shown as written rather than dropped.
+     */
+    public static function ruleLabel(mixed $value): ?string
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return null;
+        }
+
+        return self::RULE_LABELS[trim($value)] ?? trim($value);
+    }
+
     protected $fillable = [
         'organization_id',
         'property_id',

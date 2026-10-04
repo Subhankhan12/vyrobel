@@ -665,6 +665,25 @@ gate FULL unmoved.
 automated window; look only): the no-rooms card, 42 "+" links on Villa Azure, the dialog with each label over its own box, both
 room types said to have no price, 390 px, Escape; signed out and the browser closed.
 
+**NEW RESERVATION, SECOND PASS — 2026-10-04 — his "it is not possible to do reservation … deeply analyze this page … more cool,
+advanced, minimal and operational … ship everything live", and from now on no GitHub push per task (push at the very end, when he
+says).** The plan posted (twelve parts) and executed; no migration. **Why (🔬 read-only on production):** his working property has
+no rooms (a dead end with a small picker) and his other property never had a price — the €200 "Winter" season he SAVED on 28 Sep
+was never APPLIED, and the page never said so; 0 errors, nothing attempted today. **Built:** the properties that can take a
+booking offered from the no-rooms card; a saved season applied from the booking through the Rates page's own "Apply this
+season?" disclosure (one partial, one builder `SeasonApplyFacts`; R-SEASON untouched) and back on the same dates; seven steps →
+four (Stay · Guest · Extras only where there are some · Confirm); each night's price, "—" or "Full" on the calendar, today in
+the property's timezone; house rules in the Settings words, "Not set" where nothing was set, the stay's real free-cancellation
+date; the arrival sentence from the real conditions (email off on production — said); the confirmation box only with an
+address; the self check-in code only for a guest with an email; countries by name; "Paid now / Left to pay"; a total bar on a
+phone. **The independent review:** 2 high, 5 medium, 13 low — all fixed; ⚠️⚠️ H2: my first Apply posted on the first click,
+without the disclosure (never shipped); ⚠️ H1: a refused returning guest lost the confirmation. Tests:
+`NewReservationBookableTest` 20 (14 RED first, 6 proven by mutation); mutations `new-reservation-bookable` 29. 🖥 Walked on a copy
+of his production setup in tenant three at 1440 and 390: the no-rooms card, Winter and Autumn applied (Autumn through the
+dialog), a booking with a deposit (R-NGHV2TCX), the four-step path with an extra, a returning guest; 0 console messages.
+Gates: 4,300/4,300 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `b0fdbb9d224d3508`; JUnit logs; ⚠️ the run before the last fix
+had one failure, the boundary guard on a public `steps()` — fixed, re-run); 699/699 mutations; money gate FULL unmoved.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -707,6 +726,11 @@ room types said to have no price, 390 px, Escape; signed out and the browser clo
   and a list of hand-made inputs that a first check (the date) dropped never reached the second check (the shape) it was written
   for. Both stayed green under their mutation and were sharpened. And a step message computed live from a field Alpine does not
   watch (an email box) never re-rendered — caught by the browser, not by a test: the message is now state.
+- **I offered a money write without its confirmation (the New reservation second pass, 2026-10-04):** "Apply season" posted
+  on the first click while the Rates page applies only through a disclosure of what it overwrites. The independent review
+  caught it before commit; the fix shares the one dialog rather than copying it. ⚠️ And a PUBLIC static helper on a Livewire
+  component again — the Guests pass's slip, a week later; the mechanism (`OperatorLivewireMutationBoundaryTest`) caught it in
+  the full suite, as it is there to.
 - **My own quote broke a whole dialog (the Calendar pass, 2026-10-04):** a `"` written in a comment inside `x-data` ended the
   attribute; every binding failed in the browser while every server-side test stayed green. Caught on the walk, before commit,
   and now refused by a test. And a guard I had doubled (the view behind the component) was caught by the mutation harness as
@@ -725,7 +749,8 @@ live pass · KEYBOARD 01 (needs him) · OAuth-token-on-reset ruling · Stripe li
 DEC-h (F-58 and the Portfolio card) · DEC-i (Portfolio Edit scope) · DEC-j (maintenance write scope) · DEC-o (portal access
 from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate proposals and the property limit) · DEC-r (an
 existing guest's email on a new guest) · D-MONEY-COMMA (a comma read as thousands in every money field) · D-RACK-START-TZ (the
-calendar's default week on the app's day) · the signed-in looks still owed on earlier passes. (A11, A12
+calendar's default week on the app's day) · A13 (flag unapplied seasons on the Rates page) · the signed-in looks still owed on
+earlier passes. (A11, A12
 and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) Where:
 `OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 

@@ -6,26 +6,38 @@ namespace App\Livewire\Operator;
 
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
+use App\Http\Controllers\Operator\SeasonActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\AddOn;
+use App\Models\Availability;
 use App\Models\Fee;
 use App\Models\Guest;
 use App\Models\Property;
+use App\Models\PropertyPolicy;
 use App\Models\RateCalendar;
 use App\Models\RatePlan;
+use App\Models\RateSeason;
 use App\Models\Reservation;
+use App\Models\RoomType;
 use App\Models\Tax;
 use App\Models\Unit;
 use App\Models\UnitRateOverride;
 use App\Services\AssignmentService;
+use App\Services\SeasonalRateService;
 use App\Services\UnitAvailabilityService;
+use App\Support\Countries;
+use App\Support\Email\EmailTemplateResolver;
 use App\Support\Folio\StayEstimator;
+use App\Support\Guest\ArrivalPack;
 use App\Support\Guest\GuestHistory;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Money\MoneyFormatter;
 use App\Support\Pricing\NightlyRate;
 use App\Support\Property\PropertyContext;
 use App\Support\QrSvg;
+use App\Support\Rates\SeasonApplyFacts;
+use App\Support\Reservations\CancellationPolicy;
 use App\Support\Reservations\ReservationExtras;
 use App\Support\StayTime;
 use Carbon\CarbonImmutable;
@@ -77,6 +89,28 @@ class NewReservation extends Component
     /** Guest name-search results are bounded — a picker, not a directory dump. */
     private const GUEST_LIMIT = 8;
 
+    /** The steps, by number — the ones a refused booking reopens at ({@see ReservationCreateController::back()}). */
+    public const STEP_STAY = 1;
+
+    public const STEP_GUEST = 2;
+
+    public const STEP_EXTRAS = 3;
+
+    public const STEP_CONFIRM = 4;
+
+    /**
+     * ⚠️ 2026-10-04 (his second report: "more … minimal and operational") — SEVEN steps became FOUR. Two of the seven were nearly
+     * empty for most properties (a plan line and "no extras set up"; one optional arrival box): the plan now sits with the unit,
+     * the arrival time with the guest, the house rules with the confirmation. Extras is asked only where the property has some.
+     *
+     * @return array<int, string> step number => its name
+     */
+    private static function steps(bool $hasExtras): array
+    {
+        return array_filter([self::STEP_STAY => 'Stay', self::STEP_GUEST => 'Guest', self::STEP_EXTRAS => $hasExtras ? 'Extras' : '',
+            self::STEP_CONFIRM => 'Confirm'], fn (string $label): bool => $label !== '');
+    }
+
     /** The booking sources an operator may choose here — the controller accepts exactly these. */
     private const SOURCES = [
         ['value' => 'direct', 'label' => 'Direct'],
@@ -121,6 +155,17 @@ class NewReservation extends Component
         $fees = $property !== null ? $this->feesFor((string) $property->getKey(), $currencies) : [];
         $restored = $property !== null ? $this->restored($roomTypes, $extras) : null;
         $canPay = (bool) auth()->user()?->can('payments.record');
+        // The property's own today — the calendar's first bookable night and its "today" (guest-facing day logic, its timezone).
+        $today = CarbonImmutable::now((string) ($property?->timezone ?: config('app.timezone')))->toDateString();
+        $steps = self::steps($extras !== []);
+        // a refused booking reopens at its step — at Confirm when that step is one this property does not ask (Extras)
+        $initialStep = (int) ($restored['step'] ?? self::STEP_STAY);
+        $initialStep = isset($steps[$initialStep]) ? $initialStep : self::STEP_CONFIRM;
+        $rooms = $property !== null ? $this->roomsAt((string) $property->getKey()) : ['all' => 0, 'bookable' => 0];
+        // ⚠️ Read only where the steps render — not on the done screen, nor on a property with no rooms (the review, M5).
+        $nightly = $property !== null && $done === null && $rooms['bookable'] > 0 ? $this->nightlyCalendar($property, $today) : (object) [];
+        $mailSends = MailSafetyGuard::isSending((string) config('mail.default'), is_string(config('mail.mailers.smtp.host')) ? config('mail.mailers.smtp.host') : null);
+        $canSetPrice = (bool) auth()->user()?->can('rates.manage');
 
         return view('livewire.operator.new-reservation', [
             'viewer' => $this->viewer(),
@@ -128,8 +173,13 @@ class NewReservation extends Component
             'hasProperty' => $property !== null,
             'propertyId' => $property !== null ? (string) $property->getKey() : '',
             'properties' => $properties,
+            // ⚠️⚠️ 2026-10-04 (his second report) — a property with no rooms named only "choose it at the top", a small picker
+            //    he did not see: the page was a dead end while his other property had rooms. The ones that can take a booking
+            //    are offered as buttons in the card itself.
+            //    (The card shows only when THIS property has no bookable room, so it is never among them.)
+            'bookableElsewhere' => array_values(array_filter($properties, fn (array $p): bool => $p['rooms'] > 0)),
             'chooseProperty' => $chooseProperty,
-            'rooms' => $property !== null ? $this->roomsAt((string) $property->getKey()) : ['all' => 0, 'bookable' => 0],
+            'rooms' => $rooms,
             'currency' => $currency,
             'symbol' => MoneyFormatter::symbol($currency),
             'checkIn' => $checkIn,
@@ -141,16 +191,23 @@ class NewReservation extends Component
             'tooLong' => $tooLong,
             'maxNights' => UnitAvailabilityService::MAX_NIGHTS,
             'roomTypes' => $roomTypes,
-            'canSetPrice' => (bool) auth()->user()?->can('rates.manage'),
+            'canSetPrice' => $canSetPrice,
             'query' => $query,
             'guestMatches' => $guestMatches,
             'canPay' => $canPay,
             'sources' => self::SOURCES,
             // #90 — REAL extras (org-owned AddOns) and REAL house-rules config.
             'extras' => $extras,
-            'houseRules' => $property !== null ? $this->houseRules($property) : [],
+            'houseRules' => $property !== null ? $this->houseRules($property, $datesValid ? $checkIn : null) : [],
+            'canEditRules' => (bool) auth()->user()?->can('properties.manage'),
+            'arrivalNote' => $this->arrivalNote($property, $datesValid ? $checkIn : null, $mailSends),
+            // ⚠️ whether email reaches a real inbox from here at all — on production it does not yet (the mailer is `log`)
+            'mailSends' => $mailSends,
+            'countries' => Countries::everywhere(),
+            'steps' => $steps,
             'restored' => $restored,
-            'initialStep' => $restored['step'] ?? 1,
+            'initialStep' => $initialStep,
+            'hasNightly' => is_array($nightly) && $nightly !== [],
             'restrictionLines' => $this->restrictionLines(),
             // Everything the wizard's script reads, as data — one JSON block, never figures parsed back out of the page.
             'boot' => [
@@ -164,6 +221,7 @@ class NewReservation extends Component
                 'createUrl' => route('app.reservations.create'),
                 'searched' => $query !== '',
                 'canPay' => $canPay,
+                'mailSends' => $mailSends,
                 'contactCleared' => (bool) session('new_reservation_contact_cleared'),
                 'roomTypes' => $this->bootRoomTypes($roomTypes),
                 'extras' => array_map(fn (array $e): array => ['id' => $e['id'], 'price' => $e['price_minor'], 'currency' => $e['currency'],
@@ -171,6 +229,16 @@ class NewReservation extends Component
                 'taxes' => $taxes,
                 'fees' => $fees,
                 'restore' => $restored,
+                // the steps this property asks (Extras only where it has some) — the script walks these, in order
+                'steps' => array_keys($steps),
+                'today' => $today,
+                'nightly' => $nightly,
+                // whether each listed returning guest has an email — never the address (#28). ⚠️ And the one a refused booking
+                //    brings back, which is not in a search (the review, H1: a restored returning guest lost the confirmation).
+                'guestEmails' => (object) (array_column($guestMatches, 'has_email', 'id')
+                    + (($restored['existingGuestId'] ?? '') !== '' ? [$restored['existingGuestId'] => (bool) ($restored['existingGuestHasEmail'] ?? false)] : [])),
+                // the "Apply this season?" dialog's facts, for whoever may apply one (SeasonApplyFacts)
+                'seasons' => (object) ($canSetPrice ? collect($roomTypes)->flatMap(fn (array $rt): array => $rt['seasons'])->keyBy('id')->all() : []),
             ],
             // GATE 1 · Part B — the in-wizard DONE screen after a successful create (PRG → ?created=<id>).
             'done' => $done,
@@ -184,7 +252,7 @@ class NewReservation extends Component
      * check-in URL: a convenience deep-link (the guest still authenticates), never a fabricated code or a
      * check-in that bypasses the guest guard.
      *
-     * @return array{ref: string, guest: string, qr: string, check_in_time: string|null, show_url: string, create_url: string, property: string}|null
+     * @return array{ref: string, guest: string, qr: string|null, can_sign_in: bool, guest_url: string|null, check_in_time: string|null, show_url: string, create_url: string, property: string}|null
      */
     private function done(): ?array
     {
@@ -213,10 +281,18 @@ class NewReservation extends Component
         $guest = $reservation->leadGuest;
         $guestName = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
 
+        // ⚠️ 2026-10-04 — the QR opens the guest portal's check-in, and the guest portal is claimed BY EMAIL
+        //    ({@see \App\Http\Controllers\Guest\GuestClaimController}): for a guest with no address the code led nowhere. Only
+        //    whether there is one is read here — the address itself is never put on the page (#28).
+        $canSignIn = $guest !== null && trim((string) $guest->email) !== '';
+
         return [
             'ref' => (string) $reservation->reference,
             'guest' => $guestName !== '' ? $guestName : 'the guest',   // NAME only (#28)
-            'qr' => QrSvg::of(route('guest.checkin', $reservation->getKey()), 190),
+            'qr' => $canSignIn ? QrSvg::of(route('guest.checkin', $reservation->getKey()), 190) : null,
+            'can_sign_in' => $canSignIn,
+            // where an email is added — the guest's profile (contact details live only on the Guests pages, #28), for whoever may open it
+            'guest_url' => ! $canSignIn && $guest !== null && (bool) auth()->user()?->can('guests.manage') ? route('app.guests.show', $guest->getKey()) : null,
             'check_in_time' => $checkInTime,
             'show_url' => route('app.reservations.show', $reservation->getKey()),
             'create_url' => route('app.reservations.create'),
@@ -309,6 +385,9 @@ class NewReservation extends Component
                     ? MoneyFormatter::display($nightly[0], $currency).' a night'
                     : MoneyFormatter::display($nightly[0], $currency).'–'.MoneyFormatter::display($nightly[1], $currency).' a night'),
             'unpriced_nights' => ! $rt['priced'] && $planId !== '' ? $this->unpricedNights($planId, $checkIn, $checkOut, $nights) : $nights,
+            // ⚠️⚠️ 2026-10-04 — a SAVED season that was never applied: on production his €200 "Winter" sat on exactly this plan
+            //    while the page said "No price for these nights yet" (a season writes nothing until Apply).
+            'seasons' => ! $rt['priced'] && $planId !== '' ? $this->savedSeasons($planId, $checkIn, $checkOut) : [],
             'rate_plan_id' => $planId,
             // REAL active + priced rate plans for the selector (name + server-derived price). Never fabricated.
             'plans' => $plans,
@@ -386,6 +465,111 @@ class NewReservation extends Component
     }
 
     /**
+     * The plan's SAVED, NOT-YET-APPLIED seasons that would price at least one of the stay's nights that has no price — each
+     * with everything the Rates page's "Apply this season?" dialog says ({@see SeasonApplyFacts}, straight from
+     * {@see SeasonalRateService::preview()}): applying goes through that same dialog here, and the same Apply
+     * ({@see SeasonActionController::apply()} — `can:rates.manage`, the property limit, the paused guard, R-SEASON's
+     * precedence order; none of it repeated here). An applied season needs no offer: its nights already carry the price.
+     *
+     * ⚠️ The independent review (2026-10-04): a season that only overlapped the stay was offered with "so these nights have
+     * no price" even when the nights it covers were priced — applying it would change a price and fix nothing. Only a season
+     * that covers a night still WITHOUT a price is offered, saying how many of them it would price.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function savedSeasons(string $planId, string $checkIn, string $checkOut): array
+    {
+        $lastNight = CarbonImmutable::parse($checkOut)->subDay()->toDateString();
+        $priced = RateCalendar::query()->where('rate_plan_id', $planId)->where('date', '>=', $checkIn)->where('date', '<', $checkOut)
+            ->pluck('date')->map(fn ($d): string => CarbonImmutable::parse($d)->toDateString())->all();
+        $missing = [];
+        for ($d = CarbonImmutable::parse($checkIn); $d->toDateString() < $checkOut; $d = $d->addDay()) {
+            if (! in_array($d->toDateString(), $priced, true)) {
+                $missing[] = $d->toDateString();
+            }
+        }
+        if ($missing === []) {
+            return [];
+        }
+
+        $preview = app(SeasonalRateService::class);
+        $out = [];
+        foreach (RateSeason::query()->where('rate_plan_id', $planId)->whereNull('applied_at')
+            ->where('starts_on', '<=', $lastNight)->where('ends_on', '>=', $checkIn)->orderBy('starts_on')->get() as $season) {
+            $from = $season->starts_on->toDateString();
+            $to = $season->ends_on->toDateString();
+            $prices = count(array_filter($missing, fn (string $d): bool => $d >= $from && $d <= $to));
+            if ($prices === 0) {
+                continue;   // it would change a price the stay already has, and leave the missing nights as they are
+            }
+            $out[] = SeasonApplyFacts::of($season, $preview->preview($season)) + [
+                'nightly' => MoneyFormatter::display((int) $season->price_minor, (string) $season->currency).' a night',
+                'from' => $season->starts_on->format('j M'),
+                'to' => $season->ends_on->format('j M'),
+                'prices' => $prices,
+                'missing' => count($missing),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * The calendar's nights, from the property's today for a year: the lowest price a night across the room types that still
+     * have a room to sell (`p`, minor units, NULL when none of them has a price that night) and how many rooms are left (`f`).
+     * ⚠️ The same two sources a booking is checked against — the availability count (Level A) and each room type's MAIN plan
+     * ({@see RoomType::primaryRatePlan()}, the one the stay is priced on). A night with no availability row at all is left out:
+     * nothing is claimed about it. Plans in another currency than the property's are not mixed into its figure.
+     *
+     * @return array<string, array{p: int|null, f: int}>|object
+     */
+    private function nightlyCalendar(Property $property, string $today): array|object
+    {
+        $until = CarbonImmutable::parse($today)->addYear()->toDateString();
+        $currency = strtoupper((string) ($property->currency ?: 'EUR'));
+        $roomTypes = RoomType::query()->where('property_id', $property->getKey())
+            ->with(['defaultRatePlan', 'ratePlans' => fn ($q) => $q->where('is_active', true)->orderBy('created_at')])->get();
+        if ($roomTypes->isEmpty()) {
+            return (object) [];
+        }
+
+        $planOf = [];
+        foreach ($roomTypes as $rt) {
+            $plan = $rt->primaryRatePlan();
+            if ($plan !== null && strtoupper((string) $plan->currency) === $currency) {
+                $planOf[(string) $rt->getKey()] = (string) $plan->getKey();
+            }
+        }
+
+        // ⚠️ Plain rows and a plain date range (the review, M5): `whereDate()` wraps the column, so the (room type, date) index
+        //    could not range-scan and every row of those room types was read, history included; and a model per row cost
+        //    ~260 ms at 20 room types. Rooms left is still the ONE formula ({@see Availability::left()}).
+        $prices = [];
+        if ($planOf !== []) {
+            foreach (RateCalendar::query()->whereIn('rate_plan_id', array_values($planOf))->where('date', '>=', $today)
+                ->where('date', '<', $until)->toBase()->get(['rate_plan_id', 'date', 'price_minor']) as $row) {
+                $prices[(string) $row->rate_plan_id][substr((string) $row->date, 0, 10)] = (int) $row->price_minor;
+            }
+        }
+
+        $nights = [];
+        foreach (Availability::query()->whereIn('room_type_id', $roomTypes->modelKeys())->where('date', '>=', $today)
+            ->where('date', '<', $until)->toBase()->get(['room_type_id', 'date', 'total', 'sold', 'out_of_order', 'blocked']) as $row) {
+            $date = substr((string) $row->date, 0, 10);
+            $left = Availability::left((int) $row->total, (int) $row->sold, (int) $row->out_of_order, (int) $row->blocked);
+            $nights[$date] ??= ['p' => null, 'f' => 0];
+            $nights[$date]['f'] += $left;
+            $price = $prices[$planOf[(string) $row->room_type_id] ?? ''][$date] ?? null;
+            if ($left > 0 && $price !== null && ($nights[$date]['p'] === null || $price < $nights[$date]['p'])) {
+                $nights[$date]['p'] = $price;
+            }
+        }
+        ksort($nights);
+
+        return $nights !== [] ? $nights : (object) [];
+    }
+
+    /**
      * The wizard as the operator left it when a booking came back refused — read from the flashed input, each value
      * checked against what this page offers NOW: a unit no longer free is dropped (and the wizard reopens at step 1), an
      * extra or plan that is not real here is dropped. ⚠️ Never a new guest's email or phone: the controller does not
@@ -403,13 +587,13 @@ class NewReservation extends Component
         }
 
         $text = fn (string $key, int $max): string => is_string($old[$key] ?? null) ? mb_substr(trim($old[$key]), 0, $max) : '';
-        $step = max(1, min(7, (int) session('new_reservation_step', 1)));
+        $step = max(self::STEP_STAY, min(self::STEP_CONFIRM, (int) session('new_reservation_step', self::STEP_STAY)));
 
         $roomTypeId = $text('room_type_id', 40);
         $unitId = $text('unit_id', 40);
         $rt = collect($roomTypes)->firstWhere('room_type_id', $roomTypeId);
         if (! is_array($rt) || ! $rt['priced'] || ! collect($rt['units'])->contains('id', $unitId)) {
-            [$roomTypeId, $unitId, $rt, $step] = ['', '', null, 1];
+            [$roomTypeId, $unitId, $rt, $step] = ['', '', null, self::STEP_STAY];
         }
         $planId = $text('rate_plan_id', 40);
         if ($rt === null || ! collect($rt['plans'])->contains('id', $planId)) {
@@ -418,9 +602,11 @@ class NewReservation extends Component
 
         $existingId = $text('existing_guest_id', 40);
         $existingName = '';
+        $existingHasEmail = false;
         if ($existingId !== '') {
             $guest = Guest::query()->find($existingId);   // tenant-scoped
             $existingName = $guest !== null ? trim(((string) $guest->first_name).' '.((string) $guest->last_name)) : '';
+            $existingHasEmail = $guest !== null && trim((string) $guest->email) !== '';   // a yes or no — never the address (#28)
             $existingId = $guest !== null ? $existingId : '';
         }
 
@@ -451,7 +637,10 @@ class NewReservation extends Component
             'rulesAgreed' => ! empty($old['rules_agreed']),
             'source' => in_array($old['source'] ?? '', array_column(self::SOURCES, 'value'), true) ? (string) $old['source'] : 'direct',
             'teamNote' => $text('team_note', 2000),
-            'sendConfirmation' => $send !== '0',
+            // ⚠️ A "0" sent while the box could not be ticked (no address yet) was not a choice — it starts ticked again once
+            //    there is one (the review). A new guest's typed contact is never echoed (#28); the flag says one was typed.
+            'sendConfirmation' => $send !== '0' || ! ($existingId !== '' ? $existingHasEmail : (bool) session('new_reservation_contact_cleared')),
+            'existingGuestHasEmail' => $existingHasEmail,
             'payMethod' => in_array($method, ['cash', 'bank'], true) ? $method : 'later',
             'payAmount' => $text('payment_amount', 20),
         ];
@@ -609,34 +798,69 @@ class NewReservation extends Component
     }
 
     /**
-     * The property's REAL house rules (#90) — check-in/out times + the first policy's cancellation / pet /
-     * smoking / max-stay. Honest defaults where the property hasn't configured a value (never invented).
+     * How the guest gets directions and the door code — said from the real conditions (the review, M3): the pre-arrival email
+     * (the `emails:send-pre-arrival` command) goes {@see ArrivalPack::LEAD_DAYS} days before check-in, on the
+     * app's day, only to a guest with an address, only while the organisation has it switched on (#86), and only if email
+     * reaches anyone at all — on production it does not yet. ⚠️ It used to say "The confirmation includes directions and
+     * parking"; the confirmation says they come later.
+     */
+    private function arrivalNote(?Property $property, ?string $checkIn, bool $mailSends): string
+    {
+        $yourself = ' — give the guest directions and the door code yourself.';
+        $lead = ArrivalPack::LEAD_DAYS;
+
+        return match (true) {
+            ! $mailSends => 'Email isn’t being sent from Vyrobel yet'.$yourself,
+            $property !== null && ! EmailTemplateResolver::enabled((string) $property->organization_id, 'pre-arrival') => 'The pre-arrival email is switched off for your properties'.$yourself,
+            $checkIn !== null && $checkIn < CarbonImmutable::today()->addDays($lead)->toDateString() => 'This stay starts too soon for the pre-arrival email, which goes '.$lead.' days before check-in'.$yourself,
+            default => 'Directions, and the door code where the unit has one, reach the guest by email '.$lead
+                .' days before check-in — when they have an email address. The door code is never shown here.',
+        };
+    }
+
+    /**
+     * The property's REAL house rules (#90) in words — check-in/out times and its policy's pets, smoking, minimum stay and
+     * cancellation. NULL where the property has set nothing: the view says "Not set", never a rule nobody chose.
+     *
+     * ⚠️⚠️ 2026-10-04 (the second pass) — "Not permitted" was printed for pets and smoking on a property that had set NEITHER
+     * (his production property has no policy at all), the same invention this method's times had already been cured of; on a
+     * property that HAD set them, the stored codes themselves ("on_request", "not_allowed"); and "As per booking terms" over a
+     * real cancellation policy, whose shape (`type`, `free_until_days`) it never read. The words are the Settings form's own
+     * ({@see PropertyPolicy::ruleLabel()}); the free-cancellation date is the ONE reading every booking surface uses
+     * ({@see CancellationPolicy::freeUntilForCheckIn()}).
      *
      * @return array<string, string|null>
      */
-    private function houseRules(Property $property): array
+    private function houseRules(Property $property, ?string $checkIn): array
     {
         $policy = $property->policies()->first();
         $cancellation = data_get($policy, 'cancellation');
-        $cancellationLabel = is_array($cancellation)
-            ? (string) ($cancellation['label'] ?? $cancellation['policy'] ?? 'As per booking terms')
-            : 'As per booking terms';
-        $pet = data_get($policy, 'pet');
-        $smoking = data_get($policy, 'smoking');
+        $freeDays = is_array($cancellation) && is_numeric($cancellation['free_until_days'] ?? null) ? (int) $cancellation['free_until_days'] : null;
+        $freeUntil = $checkIn !== null ? CancellationPolicy::freeUntilForCheckIn((string) $property->getKey(), $checkIn) : null;
         $minStay = data_get($policy, 'min_stay');
 
         return [
             // ⚠️ THE SAME INVENTION, TWICE OVER — the logged '15:00' and, one line below it, an identical
-            // '11:00' for check-out. Both are now the real published time or NULL; the view renders the
-            // panel's own established absence idiom ('—', already used for min_stay) rather than an hour
-            // nobody published. ⚠️ StayTime also parses properly: `substr()` on a cast attribute is not a
-            // safe way to read a time.
+            // '11:00' for check-out. Both are now the real published time or NULL. ⚠️ StayTime also parses
+            // properly: `substr()` on a cast attribute is not a safe way to read a time.
             'check_in' => StayTime::display($property->check_in_time, 'H:i'),
             'check_out' => StayTime::display($property->check_out_time, 'H:i'),
-            'pet' => is_string($pet) && $pet !== '' ? $pet : 'Not permitted',
-            'smoking' => is_string($smoking) && $smoking !== '' ? $smoking : 'Not permitted',
-            'cancellation' => $cancellationLabel,
-            'min_stay' => is_numeric($minStay) ? (int) $minStay.' night min' : '—',
+            'pet' => PropertyPolicy::ruleLabel(data_get($policy, 'pet')),
+            'smoking' => PropertyPolicy::ruleLabel(data_get($policy, 'smoking')),
+            'cancellation' => match (true) {
+                // ⚠️ the review: "Free until 30 Sep" was shown on 4 Oct for a stay that close, and "until 0 days before"
+                $freeUntil !== null && $freeUntil->toDateString() < CarbonImmutable::now((string) ($property->timezone ?: config('app.timezone')))->toDateString() => 'Not free for this stay — it ended '.$freeUntil->format('j M'),
+                $freeDays === 0 => 'Free until check-in',
+                $freeUntil !== null => 'Free until '.$freeUntil->format('j M'),
+                $freeDays !== null => 'Free until '.$freeDays.' '.($freeDays === 1 ? 'day' : 'days').' before check-in',
+                is_array($cancellation) && is_string($cancellation['type'] ?? null) && $cancellation['type'] !== '' => ucfirst($cancellation['type']),
+                default => null,
+            },
+            'min_stay' => match (true) {
+                ! is_numeric($minStay) => null,
+                (int) $minStay <= 1 => 'No minimum',
+                default => (int) $minStay.' nights',
+            },
         ];
     }
 
@@ -648,7 +872,7 @@ class NewReservation extends Component
      * ⚠️ With the guest's stay history ({@see GuestHistory} — the CRM's own rule), never a contact detail: two guests
      * of the same name were otherwise identical rows with nothing to choose between them.
      *
-     * @return list<array{id: string, name: string, initials: string, history: string}>
+     * @return list<array{id: string, name: string, initials: string, history: string, has_email: bool}>
      */
     private function searchGuests(string $query): array
     {
@@ -666,7 +890,9 @@ class NewReservation extends Component
                 $name = $name !== '' ? $name : 'Guest';
 
                 return ['id' => (string) $guest->getKey(), 'name' => $name, 'initials' => $this->initials($name),
-                    'history' => GuestHistory::for($guest->reservations)['stat'] ?? 'No stays yet'];
+                    'history' => GuestHistory::for($guest->reservations)['stat'] ?? 'No stays yet',
+                    // whether a confirmation can go to them — never the address (#28)
+                    'has_email' => trim((string) $guest->email) !== ''];
             })
             ->all();
     }

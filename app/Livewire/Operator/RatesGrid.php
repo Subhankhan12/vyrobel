@@ -24,6 +24,7 @@ use App\Support\Money\MoneyFormatter;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Pricing\NightlyRate;
 use App\Support\Pricing\SeasonPrecedence;
+use App\Support\Rates\SeasonApplyFacts;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -236,17 +237,13 @@ class RatesGrid extends Component
             ->map(function (RateSeason $season) use ($seasons): array {
                 $p = $seasons->preview($season);
 
+                // ⚠️ The dialog's figures and its apply address come from ONE builder, shared with the New reservation page
+                //    (SeasonApplyFacts — straight from preview(), never recomputed); the rest is this page's own.
                 return [
-                    'id' => (string) $season->getKey(),
-                    // ⚠️ THE APPLY URL IS BUILT HERE, BY THE ROUTER — never concatenated in JavaScript. A
-                    // hand-assembled path to the one route that overwrites prices is a string that can drift
-                    // from the route definition without anything failing.
-                    'apply_url' => route('app.seasons.apply', $season->getKey()),
-                    // ⚠️ Built from the ROUTE, exactly as `apply_url` is and for the same reason: a
+                    // ⚠️ Built from the ROUTE, as the apply address is (SeasonApplyFacts) and for the same reason: a
                     //    hand-assembled path can drift from the definition without anything failing.
                     'update_url' => route('app.seasons.update', $season->getKey()),
                     'delete_url' => route('app.seasons.destroy', $season->getKey()),
-                    'name' => (string) $season->name,
                     'plan_name' => (string) ($season->ratePlan->name ?? '—'),
                     'room_type' => (string) ($season->ratePlan->roomType->name ?? ''),
                     'starts_on' => $season->starts_on->toDateString(),
@@ -256,26 +253,7 @@ class RatesGrid extends Component
                     //    the display string — `MoneyInput::toMinor()` parses this back on the way in.
                     'price_input' => number_format((int) $season->price_minor / 100, 2, '.', ''),
                     'applied_on' => $season->applied_at?->format('j M Y'),
-                    // Straight from preview() — never recomputed.
-                    'nights' => $p['nights'],
-                    'units' => $p['units'],
-                    'changing' => $p['changing'],
-                    'weekend_nights' => $p['weekend_nights'],
-                    'from_display' => $p['from_minor'] === null ? null : MoneyFormatter::display($p['from_minor'], $p['currency']),
-                    'to_display' => MoneyFormatter::display($p['to_minor'], $p['currency']),
-                    // ⚠️ THE CONFLICT — straight from preview(), which asks the ONE precedence rule per night.
-                    'overlaps' => $p['overlaps'],
-                    'losing_nights' => $p['losing_nights'],
-                    'losing_to' => $p['losing_to'],
-                    'rewritten_nights' => $p['rewritten_nights'],
-                    // ⚠️⚠️ THE DISCLOSURE — straight from preview(), which reads the SAME nightly rows the
-                    //    blast radius above is computed from. It states what applying would replace; it
-                    //    changes nothing and refuses nothing (see AgreedRateDisclosure).
-                    'agreed_nights' => $p['agreed_nights'],
-                    'agreed_owners' => $p['agreed_owners'],
-                    'agreed_from' => $p['agreed_from'],
-                    'agreed_to' => $p['agreed_to'],
-                ];
+                ] + SeasonApplyFacts::of($season, $p);
             })->all();
     }
 

@@ -41,16 +41,16 @@ return [
         'id' => 'NR-M3',
         'name' => 'no way to set the missing price from the wizard',
         'file' => $view,
-        'old' => "                                        @elseif (\$rt['has_plan'] && \$canSetPrice)",
-        'new' => '                                        @elseif (false)',
+        'old' => "                                            @if (\$rt['has_plan'] && \$canSetPrice)",   // @if since the second pass
+        'new' => '                                            @if (false)',
         'tests' => [['file' => $wizard, 'filter' => 'lets a person who manages rates set the price']],
     ],
     [
         'id' => 'NR-M4',
         'name' => 'the price form is offered to someone who cannot set prices',
         'file' => $page,
-        'old' => "            'canSetPrice' => (bool) auth()->user()?->can('rates.manage'),",
-        'new' => "            'canSetPrice' => true,",
+        'old' => "        \$canSetPrice = (bool) auth()->user()?->can('rates.manage');",   // computed once since the second pass
+        'new' => '        $canSetPrice = true;',
         'tests' => [['file' => $wizard, 'filter' => 'tells a person who cannot set prices who can']],
     ],
     // ── Which property ───────────────────────────────────────────────────────────────────────────────
@@ -105,9 +105,9 @@ return [
     ],
     [
         'id' => 'NR-M11',
-        'name' => 'a refused payment reopens at step 1, not at Payment',
+        'name' => 'a refused payment reopens at step 1, not at Confirm (Payment, before the second pass)',
         'file' => $create,
-        'old' => "                return \$this->back(\$request, 'Enter a valid payment amount, e.g. 150 or 150.00.', 7);",
+        'old' => "                return \$this->back(\$request, 'Enter a valid payment amount, e.g. 150 or 150.00.', NewReservation::STEP_CONFIRM);",
         'new' => "                return \$this->back(\$request, 'Enter a valid payment amount, e.g. 150 or 150.00.');",
         'tests' => [['file' => $wizard, 'filter' => 'keeps everything entered when a booking is refused']],
     ],
@@ -228,8 +228,8 @@ return [
         'id' => 'NR-M25',
         'name' => 'same-name guests are identical rows again',
         'file' => $page,
-        'old' => "                    'history' => GuestHistory::for(\$guest->reservations)['stat'] ?? 'No stays yet'];",
-        'new' => "                    'history' => ''];",
+        'old' => "                    'history' => GuestHistory::for(\$guest->reservations)['stat'] ?? 'No stays yet',",
+        'new' => "                    'history' => '',",
         'tests' => [['file' => $wizard, 'filter' => 'tells same-name guests apart']],
     ],
     // ── The independent review's findings ────────────────────────────────────────────────────────────

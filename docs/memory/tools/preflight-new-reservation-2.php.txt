@@ -1,0 +1,91 @@
+<?php
+// New reservation, SECOND pass (2026-10-04) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names, counts and timings only — never a value, never a guest's details.
+use App\Http\Controllers\Operator\RateActionController;
+use App\Livewire\Operator\NewReservation;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\PropertyPolicy;
+use App\Models\RateSeason;
+use App\Models\Unit;
+use App\Support\Countries;
+use App\Support\Reservations\CancellationPolicy;
+use App\Support\Tenancy\TenantContext;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v, 'intl' => extension_loaded('intl')];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'wizard needs reservations.create' => $has('app.reservations.create', 'can:reservations.create'),
+    'booking write needs reservations.create' => $has('app.reservations.store', 'can:reservations.create'),
+    'season apply needs rates.manage' => $has('app.seasons.apply', 'can:rates.manage'),
+    'set price needs rates.manage' => $has('app.rates.update', 'can:rates.manage'),
+    'guest profile needs guests.view' => $has('app.guests.show', 'can:guests.view'),
+    'property switch exists' => Route::has('app.property.switch'),
+    'settings page exists' => Route::has('app.settings'),
+];
+$countries = Countries::everywhere();
+$out['pieces'] = [
+    'NewReservation::steps' => method_exists(NewReservation::class, 'steps'),
+    'RETURN_WIZARD public' => (new ReflectionClassConstant(RateActionController::class, 'RETURN_WIZARD'))->isPublic(),
+    'PropertyPolicy::ruleLabel' => method_exists(PropertyPolicy::class, 'ruleLabel'),
+    'CancellationPolicy::freeUntilForCheckIn' => method_exists(CancellationPolicy::class, 'freeUntilForCheckIn'),
+    'countries' => count($countries),
+    'countries named by ICU' => count(array_filter($countries, fn ($n, $c) => $n !== $c, ARRAY_FILTER_USE_BOTH)),
+];
+
+foreach (['livewire/operator/new-reservation.blade.php', 'components/layouts/operator.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// Per organisation with properties: what the page will now offer — names of PROPERTIES and SEASONS, counts, timings.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+$nightly = new ReflectionMethod(NewReservation::class, 'nightlyCalendar');
+$started = microtime(true);
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, $nightly, &$out): void {
+        $props = Property::query()->orderBy('name')->get();
+        if ($props->isEmpty()) {
+            return;
+        }
+        $row = [];
+        foreach ($props as $p) {
+            $today = CarbonImmutable::now($p->timezone ?: 'UTC')->toDateString();
+            $t = microtime(true);
+            $cal = $nightly->invoke(new NewReservation, $p, $today);
+            $cal = is_array($cal) ? $cal : [];
+            $row[$p->name] = [
+                'bookable units' => Unit::query()->bookable()->where('property_id', $p->id)->count(),
+                'calendar nights' => count($cal),
+                'with a price' => count(array_filter($cal, fn ($n) => $n['p'] !== null)),
+                'rooms, no price' => count(array_filter($cal, fn ($n) => $n['f'] > 0 && $n['p'] === null)),
+                'full' => count(array_filter($cal, fn ($n) => $n['f'] === 0)),
+                'calendar ms' => (int) round((microtime(true) - $t) * 1000),
+                'unapplied seasons (name · from → to)' => RateSeason::query()->whereNull('applied_at')
+                    ->whereIn('rate_plan_id', DB::table('rate_plans')->where('property_id', $p->id)->pluck('id'))
+                    ->get()->map(fn ($s) => $s->name.' · '.$s->starts_on->toDateString().' → '.$s->ends_on->toDateString())->all(),
+                'policy row' => PropertyPolicy::query()->where('property_id', $p->id)->exists(),
+            ];
+        }
+        $out['orgs'][$org->name] = $row;
+    });
+}
+$out['total_ms'] = (int) round((microtime(true) - $started) * 1000);
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

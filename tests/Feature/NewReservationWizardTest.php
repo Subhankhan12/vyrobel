@@ -148,7 +148,7 @@ it('⚠️⚠️ keeps everything entered when a booking is refused, and reopens
 
     // 🔬 before: back at step 1 with every step empty — the draft was cleared on Confirm and nothing came back
     expect($html)->toContain('Enter a valid payment amount')
-        ->toContain('"step":7')
+        ->toContain('"step":4')   // Confirm — it was step 7 of seven (2026-10-04)
         ->toContain('"newFirst":"Grace"')
         ->toContain('"unitId":"'.$s['units'][0]->id.'"')
         ->toContain('"arrivalWindow":"3–6 PM"');
@@ -268,7 +268,7 @@ it('says a restricted booking was refused in plain words, not the engine’s', f
     // 🔬 before: "A minimum stay of 5 night(s) applies to arrivals on 2026-09-02 — this booking is 3 night(s)."
     test()->actingAs(operatorUser($s, [], 'Hotel Manager'))->post(route('app.reservations.store'), nrwBooking($s))
         ->assertSessionHas('new_reservation_notice', 'This booking wasn’t made — these dates are restricted. Book anyway with a reason below, or change the dates in step 1.')
-        ->assertSessionHas('new_reservation_step', 7);
+        ->assertSessionHas('new_reservation_step', 4);   // Confirm — it was step 7 of seven (2026-10-04)
 });
 
 it('⚠️ shows a unit’s own price — the one the booking charges', function () {
@@ -441,7 +441,7 @@ it('never restores a unit from another property out of a refused booking', funct
 
     $html = (string) test()->actingAs(operatorUser($s, [], 'Hotel Manager'))
         ->withSession(['_old_input' => ['room_type_id' => (string) $rt->id, 'unit_id' => (string) $farUnit->id, 'guest_first_name' => 'Grace'],
-            'new_reservation_step' => 7])
+            'new_reservation_step' => 4])
         ->get(route('app.reservations.create').NRW_STAY)->assertOk()->getContent();
 
     $restore = nrwBoot($html)['restore'];

@@ -48,7 +48,16 @@ class Availability extends Model
      */
     public function available(): int
     {
-        return max(0, $this->total - $this->sold - $this->out_of_order - $this->blocked);
+        return self::left((int) $this->total, (int) $this->sold, (int) $this->out_of_order, (int) $this->blocked);
+    }
+
+    /**
+     * Rooms left to sell on a night — the ONE formula, for a model or for a plain row read without one (the New reservation
+     * calendar reads a year of rows; hydrating a model for each cost ~260 ms at 20 room types — the 2026-10-04 review).
+     */
+    public static function left(int $total, int $sold, int $outOfOrder, int $blocked): int
+    {
+        return max(0, $total - $sold - $outOfOrder - $blocked);
     }
 
     public function roomType(): BelongsTo

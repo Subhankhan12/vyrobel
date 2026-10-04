@@ -45,6 +45,8 @@ them. Ten of these rules are repeated at the top of `CLAUDE.md`.
 - One suite at a time, and no edits while a suite runs.
 - Additive migrations only.
 - Never `--force` push. Push only under the four hard stops.
+- **Founder said (2026-10-04): no GitHub push per task.** Each task ships live from LOCAL commits (`ops/release.sh` needs no
+  GitHub) and is pushed only at the very end, when he says — then under the four hard stops.
 - If any public check fails after a deploy, roll back first and diagnose second.
 - Don't change the social sign-in rules, the verify gate, `RefuseEmailTaken` or `throttle:5,1` unless a brief says so.
 
@@ -414,6 +416,19 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **An address in a test can match the wrong link.** "The write surface opens" was `toContain(route('app.reservations.store'))`
   — the same path as the full form's GET link inside the dialog. Assert what only the thing under test renders (Verified
   2026-10-04, the review).
+- **A money write offered in a second place must carry its confirmation there too.** The New reservation page's first "Apply
+  season" posted on the first click — the Rates page applies only through "Apply this season?", which says what it overwrites,
+  that it cannot be undone and what an owner negotiated (R-RATE). One partial and one builder now serve both (Verified
+  2026-10-04, the independent review's H2).
+- **Ask production's data why before reading code.** "Not possible to do reservation" was a season SAVED and never APPLIED —
+  found by reading the workspace's seasons and audit rows (read-only, names and counts), not by any error (Verified 2026-10-04).
+- **Under the suite's frozen clock two rows share a `created_at`.** `latest('created_at')` picked either booking and a test
+  flickered; take the id from the response itself (the redirect's `created=`) (Verified 2026-10-04).
+- **`$nextTick` is too early to scroll to what `x-show` just revealed.** The element had no box yet and the scroll did nothing
+  — the message stayed 1,600 px below on a phone; two animation frames later it lands (Verified 2026-10-04, the browser).
+- **A sentence about an email must ask whether email is sent at all.** "Directions reach the guest by email" was false on
+  production (mailer `log`), for stays starting within two days, and with the template off — say it from
+  `MailSafetyGuard::isSending`, the template and the date (Verified 2026-10-04).
 - **A run that prints nothing has not passed.** The first full MySQL run of 2026-10-04 ended with an empty output file: the
   agent-output package had failed at shutdown and taken the result with it. Read the counts from a file the run writes itself
   (Part 3, the suite; Verified 2026-10-04).

@@ -284,7 +284,7 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   animate up on load — read the data, not a screenshot taken mid-count).
 - **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
   shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
-  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `calendar-new-reservation`) run by `php tests/Mutations/run.php`.
+  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `new-reservation-bookable`, `calendar-new-reservation`) run by `php tests/Mutations/run.php`.
 
 ## 12 · Photos and message attachments
 
@@ -355,29 +355,45 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   for `units.manage` only); the two dialogs read it.
 
 
-## 14 · The New reservation wizard (`/app/reservations/create`, 2026-10-04)
+## 14 · The New reservation wizard (`/app/reservations/create`, 2026-10-04; four steps since the second pass)
 
 - **The page** (`App\Livewire\Operator\NewReservation`, render only) reads; **the booking** posts to
-  `ReservationCreateController::store()` → `AssignmentService::createBooking()` (the one inventory write, row lock). Seven steps
-  are client-side Alpine (`newReservationWizard()`), fed by ONE JSON block (`<script type="application/json" id="vy-nr-boot">`):
-  bookable room types keyed by id (units, plans, per-unit prices), extras, and the taxes and fees per stay currency. The page
-  never parses a figure back out of its own text.
+  `ReservationCreateController::store()` → `AssignmentService::createBooking()` (the one inventory write, row lock). **Four
+  steps** (`NewReservation::steps()`: 1 Stay · 2 Guest · 3 Extras, only where the property has add-ons · 4 Confirm) are
+  client-side Alpine (`newReservationWizard()`, walking `BOOT.steps`), fed by ONE JSON block (`id="vy-nr-boot"`): bookable room
+  types keyed by id (units, plans, per-unit prices), extras, taxes and fees per stay currency, the calendar's nights, the
+  property's today, which listed guests have an email (booleans only, #28) and the season dialogs' facts. The page never parses a
+  figure back out of its own text. A refusal reopens at `NewReservation::STEP_*` (a step this property does not ask → Confirm).
 - **The property:** a booking needs one. Under "All properties" the page asks (the app's own switcher, `app.property.switch`,
-  which comes back to the page by Referer); with several, the top bar has a "Booking into" picker. A property with no bookable
-  unit gets one card, not the wizard.
+  which comes back by Referer); with several, the top bar has a "Booking into" picker. A property with no bookable unit gets
+  one card — and the properties that CAN take a booking as one-click buttons.
+- **The calendar** shows, per night, the main rate of the cheapest room still free, "—" when none has a price, "Full" when nothing
+  is left (`nightlyCalendar()`: the availability rows and each room type's `primaryRatePlan()`, the property's currency, a year
+  from the property's today; plain rows and a plain date range — no models, no `whereDate()`; `Availability::left()` the one
+  formula). Read only when the steps render.
 - **A missing price** is set by the Rates write itself (`RateActionController::apply`, `can:rates.manage`, `RateScope`) from
-  hidden forms OUTSIDE the booking form (`id="vy-nr-price-N"`), joined to the visible field by `form=`; `return=new-reservation`
-  + `return_check_in/out` send the answer back (`toWizard()`). "Pick a unit" only when the price went on the main plan.
-- **A refusal** comes back through `back()`: the reason (`new_reservation_notice`), the step (`new_reservation_step`) and the
-  input — never `guest_email`, `guest_phone` or the override's fields (`NEVER_ECHOED`, #28); `restored()` re-checks each value
-  against what the page offers now. A new guest the write just created is removed when the booking is refused — only when no
-  booking points at it. The override reason and note are checked before anything is written.
+  hidden forms OUTSIDE the booking form (`id="vy-nr-price-N"`), joined to the visible field by `form=`;
+  `return=RateActionController::RETURN_WIZARD` + `return_check_in/out` send the answer back (`toWizard()`).
+- ⚠️⚠️ **A saved, unapplied season** that would price a night the stay lacks is offered (`savedSeasons()`), and applied only
+  through the Rates page's own **"Apply this season?"** disclosure — one partial (`partials/season-apply-disclosure`), one builder
+  (`App\Support\Rates\SeasonApplyFacts`, from `SeasonalRateService::preview()`), read by both pages. Its form posts
+  `app.seasons.apply` (`SeasonActionController::apply()` — `rates.manage`, `RateScope`, the paused guard, R-SEASON untouched),
+  which with the same return token comes back to the booking with the Rates page's own sentence and what the stay still lacks.
+- **A refusal** comes back through `back()`: the reason, the step and the input — never `guest_email`, `guest_phone` or the
+  override's fields (`NEVER_ECHOED`, #28); `restored()` re-checks each value against what the page offers now, and carries
+  whether a restored returning guest has an email. A new guest the write just created is removed when the booking is refused —
+  only when no booking points at it. The override reason and note are checked before anything is written.
 - **The money** the summary shows uses the write's own rules: plan price, or the unit's own (`NightlyRate::stayTotalForUnit`),
   extras in the stay's currency, `FolioService`'s tax and fee formulas over the taxes and fees `StayEstimator` says the folio
-  posts. ⚠️ The shared `MoneyInput` reads a comma as thousands (D-MONEY-COMMA); the wizard refuses "150,50" before it is sent.
-- **The draft:** sessionStorage, this tab only, `vyrobel:new-reservation:draft` v3 — ids and counts, never a guest name, never
-  payment, credit or the rules answer; the party size across a date change; the rest only for the same stay. The done screen
-  clears it.
+  posts; "Paid now" never above the total (the write caps a payment at the balance). ⚠️ The shared `MoneyInput` reads a comma as
+  thousands (D-MONEY-COMMA); the wizard refuses "150,50" before it is sent.
+- **What it says** is derived, never assumed: house rules in the Settings words (`PropertyPolicy::ruleLabel()`, "Not set" where
+  nothing was set) with the stay's free-cancellation date (`CancellationPolicy::freeUntilForCheckIn()`); how directions reach the
+  guest (`arrivalNote()`: `MailSafetyGuard::isSending`, the pre-arrival template's on/off, `ArrivalPack::LEAD_DAYS`); the
+  confirmation box only with an address; the done screen's self check-in code only for a guest with an email.
+- **The draft:** sessionStorage, this tab only, `vyrobel:new-reservation:draft` **v4** (v3's step numbers meant other steps) —
+  ids and counts, never a guest name, never payment, credit or the rules answer; the party size across a date change; the rest
+  only for the same stay. The done screen clears it.
 
 ## 15 · The Calendar's New reservation dialog and its empty nights (`/app/calendar?new=1`, 2026-10-04)
 

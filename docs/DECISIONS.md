@@ -19673,3 +19673,90 @@ name 726/726, Check-in 435/435, Check-out 652/652 px at 1440; every box 42 px), 
 "No price for these nights yet · Set a price in the full form", no Confirm (nothing priced); 390 of 390 px at 390 with the
 foot in view; Escape closed it and dropped `new=1`; no console message. The working property was put back to "Internal Test
 Property" as he had it; he was signed out and the automated browser closed.
+
+## 2026-10-04 — New reservation, the second pass: a saved season applied from the booking, a way out of a property with no rooms, four steps, each night's price on the calendar, and only true sentences
+
+**Asked:** "https://vyrobel.com/app/reservations/create — on this page there is functionality issues. it is not possible to do
+reservation. Fix it … deeply analyze this page … build a proper plan … to make the design more cool, advanced, minimal and
+operational … ship everything live. And test it on MCP Playwright." With a standing change of method: **no GitHub push per task —
+work locally, ship live, push only at the very end when he says** (memory `feedback-ship-live-push-at-end`).
+
+**Why no reservation could be made (🔬 read-only on production, 2026-10-04 15:14 UTC).** His workspace has never had a
+reservation, and nothing was attempted today (0 reservations ever; today no guest created and no audit row; 0 errors logged on
+3 and 4 Oct). Its
+working property, "Internal Test Property", has no rooms; the page stopped there with only a small "Booking into" picker. Its
+other property, "Villa Azure Lumière", has 3 units and **no price on any night, ever** — though on 28 Sep he SAVED a season,
+"Winter", €200 a night from 28 Sep to 31 Oct on the Double room's plan, and it was **never applied** (`applied_at` NULL): a season
+writes nothing until Apply, and the booking page said only "No price for these nights yet". (The plan named "350" on the other
+room type reads like a price typed as a name; it has none.)
+
+**The plan (posted; executed):**
+1. **A way out of a property with no rooms** — the card lists the properties that can take a booking, each a one-click switch
+   (the app's own `app.property.switch`).
+2. **A saved season, applied from the booking** — a room type whose missing nights a saved, unapplied season would price says
+   so ("Winter · €200.00 a night · 28 Sep → 31 Oct — saved but not applied yet") with **Apply Winter…**, which opens the Rates
+   page's own **"Apply this season?"** disclosure (one shared partial, one builder `SeasonApplyFacts`, straight from
+   `SeasonalRateService::preview()`): what it overwrites, that it cannot be undone, what somebody negotiated (R-RATE: it tells),
+   what another season wins. Only "Apply and overwrite those nights" writes — the same `app.seasons.apply` (`rates.manage`, the
+   property limit, the paused guard, R-SEASON's precedence order; untouched) — and it comes back to the booking on the same dates
+   with the Rates page's own sentence of what was written and what the stay still lacks ("Winter applied — 30 nights rewritten
+   across 2 units. Pick a unit to continue."). A season is offered only if it prices at least one night still without one.
+3. **Seven steps became four** — Stay (dates, party, unit and its plan) · Guest (who, and the arrival time) · Extras (only where
+   the property has some) · Confirm (the review, the house rules, source and note, the email, the payment and the wallet
+   credit). Refusals reopen at the step holding what was refused (`NewReservation::STEP_*`; payment → Confirm, guest → Guest).
+4. **The calendar carries each night** — the main rate of the cheapest room still free, "—" when none has a price, "Full" when
+   nothing is left, today marked in the property's timezone — from the availability rows and each room type's main plan
+   (`RoomType::primaryRatePlan()`), one read for a year (plain date range, no models; `Availability::left()` the one formula).
+5. **Only true sentences** — house rules say "Not set" where the property set nothing (it said "Not permitted" for pets and smoking
+   on a property with no policy, printed the stored codes "on_request"/"not_allowed" on one that had one, and "As per booking
+   terms" over a real cancellation policy; now the Settings words via `PropertyPolicy::ruleLabel()` and the stay's own
+   free-cancellation date via `CancellationPolicy`); no claim that the rules go out with the confirmation (they don't); the
+   arrival sentence says how directions really reach the guest — and that email isn't being sent from Vyrobel yet, where it
+   isn't (`MailSafetyGuard::isSending`; production's mailer is `log`), the pre-arrival email switched off, or a stay too soon for
+   it (`ArrivalPack::LEAD_DAYS`); "Email the confirmation" cannot be ticked without an address; the done screen draws the self
+   check-in code only for a guest who can sign in to use it (the guest portal is claimed by email).
+6. **Smaller** — country as a list of every country by name (`Countries::everywhere()`, ICU names; the code is what is stored), the
+   "price set" note only on the Stay step, the summary's "Paid now / Left to pay", a bar with the estimated total on a phone, the
+   unit's plan chosen under the unit.
+
+**Found on the walk:** none of my own beyond the review's — and one the suite caught: ⚠️ I made `steps()` a PUBLIC static on
+the Livewire component, which `/livewire/update` could call (the boundary guard, `OperatorLivewireMutationBoundaryTest` — the
+same slip the Guests pass recorded); it is private now; two tests of mine were wrong first (the shared
+`secondProperty()` helper suffixes the name; `@selected` leaves a space) and one was flaky (two bookings share a `created_at`
+under the frozen clock — the id is now read from each redirect). On a phone, the refused step's message was scrolled to at
+`$nextTick`, before Alpine had laid it out — the scroll did nothing; two animation frames later it lands (🖥 measured: top 413 of
+844 px).
+
+**The independent review** (read-only): 2 high, 5 medium, 13 low — all fixed. ⚠️⚠️ **H2: the first version's Apply posted on
+the first click, without the Rates page's disclosure** — the money step's own safeguard, skipped; now the same dialog. ⚠️ **H1:
+a returning guest whose booking came back refused lost the confirmation** (the "has an email" answer came only from a search) —
+the restored guest now carries it. M1: the post-apply message was assumed from the season's dates — now derived from what was
+written. M2: seasons that only overlapped priced nights were offered as the fix. M3: the arrival sentence ignored stays starting
+too soon and a switched-off template. M4: the phone message out of sight. M5: the calendar read every row with models and a
+`whereDate()` the index cannot use, on every render. Low: the legend's "lowest price", a free-cancellation date already passed
+and "0 days before", "Total" vs "Estimated total", price tags overflowing narrow days, Apply and Set price live while paused,
+countries sorted by bytes, the confirmation box unticked after a refusal, "Paid now" above the total, a busy button after Back,
+a model importing a controller, the return token typed out, the profile link gated on view rather than manage, and three
+accessibility points. Also fixed in the shared disclosure (so on the Rates page too): "across 1 units".
+
+**Tests:** `NewReservationBookableTest` (20 — 14 written RED first, 6 after the review's fixes and proven by mutation);
+`NewReservationWizardTest`, `NewReservationPublishedTimeTest` and `OperatorNewReservationTest` updated where they pinned the
+replaced behaviour (step 7 → 4; "—" → "Not set"; a guest given an email where the self check-in code is the subject). Mutations
+`new-reservation-bookable`: 29 — first run 21/21, then 28/29 after the review's additions (NB-M11: the "no false claim" check ran
+only on the page where the sentence could not appear — sharpened), then all caught; `new-reservation` 34/34 and `rates-page`
+49/49 re-run (four needles repointed). The wizard's script (the four-step walk, the calendar tags, the dialog, the email box, the
+phone bar and scroll) is JavaScript: 🖥 verified in the browser on tenant three, not by mutation. 🖥 Walked on a copy of his
+production setup in tenant three: the no-rooms card → Villa Walk; the calendar with €200 on the priced nights and "—" elsewhere;
+Winter applied (first one click — then, after the review, through the dialog: "Autumn applied — 31 nights rewritten across 1
+unit. Pick a unit to continue."); a booking with a deposit (R-NGHV2TCX, €180 recorded, "3–6 PM" stored, country AZ); the
+four-step path with an extra (Breakfast €60); a returning guest; 390 px (the bar, the calendar at 41 px days, the refused
+message in view); 0 console messages.
+
+**Gates (Verified 2026-10-04):** **4,300/4,300 on MySQL 8.4.10** (31,593 assertions, tree `b0fdbb9d224d3508`: this code with the
+entry and the memory written, before these figures; 21:09–21:28 Baku) · **4,300/4,300 on MariaDB 11.8.9** (the same tree,
+21:51–22:08 Baku; nothing else on 3306 at the swap) — both read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped. ⚠️ The
+first MySQL run, on the tree before the last fix, failed one test: the boundary guard (`steps()` was public on the component); fixed
+and the whole suite re-run · mutations **699/699 across every set** (`new-reservation-bookable` 29; baseline 398/398 green;
+21:29–21:50 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 /
+cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 22:08 Baku) · PHPStan L5 0 errors and Pint clean on the whole
+codebase · the 54 test files that read the docs re-run on the final tree.

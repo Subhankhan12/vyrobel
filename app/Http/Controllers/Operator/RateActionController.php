@@ -54,7 +54,7 @@ class RateActionController extends Controller
     private const MAX_SPAN_NIGHTS = 370;
 
     /** `return` when the price is set from the New reservation wizard ({@see toWizard()}). */
-    private const RETURN_WIZARD = 'new-reservation';
+    public const RETURN_WIZARD = 'new-reservation';
 
     /**
      * Apply a rate and/or restriction change over a date range, to ONE room type or to ALL of the tenant's

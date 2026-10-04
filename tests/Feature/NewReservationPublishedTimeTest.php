@@ -46,6 +46,10 @@ function nrtSetup(?string $checkIn, ?string $checkOut): array
 /** A real reservation, so the post-create confirmation panel (site 1) renders. */
 function nrtReservation(array $f): Reservation
 {
+    // ⚠️ with an email (2026-10-04): the self check-in code — and its sentence with the time — is drawn only for a guest who can
+    //    sign in to use it, and the guest portal is claimed by email
+    $f['s']['guest']->update(['email' => 'nrt.guest@example.org']);
+
     return Reservation::create([
         'property_id' => $f['s']['property']->id,
         'reference' => 'VYR-NRT-1',
@@ -114,9 +118,9 @@ it('renders an honest absence in the house rules when no times are published', f
     $html = test()->actingAs($f['user'])->withSession($f['session'])
         ->get('/app/reservations/create')->assertOk()->getContent();
 
-    // "—" is the idiom this very panel already uses for an unset minimum stay.
-    expect($html)->toContain('<span>Check-in</span><strong>—</strong>')
-        ->and($html)->toContain('<span>Check-out</span><strong>—</strong>')
+    // "Not set" — the panel's one word for every rule the property has not set (2026-10-04; it was "—")
+    expect($html)->toContain('<span>Check-in</span><strong>Not set</strong>')
+        ->and($html)->toContain('<span>Check-out</span><strong>Not set</strong>')
         ->and($html)->not->toContain('From 15:00')
         ->and($html)->not->toContain('By 11:00')
         // ⚠️ and no midnight substitute.
@@ -132,7 +136,7 @@ it('treats check-in and check-out as independent facts', function () {
         ->get('/app/reservations/create')->assertOk()->getContent();
 
     expect($html)->toContain('From 14:00')
-        ->and($html)->toContain('<span>Check-out</span><strong>—</strong>')
+        ->and($html)->toContain('<span>Check-out</span><strong>Not set</strong>')
         ->and($html)->not->toContain('By 11:00');
 });
 

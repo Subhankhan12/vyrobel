@@ -342,7 +342,9 @@ it('caps a manual payment at the folio balance so a full/over-deposit collects o
 it('renders the done screen with the reference and an inline self-check-in QR after a create', function () {
     $s = ratedScenario(1, 10000);
     $frontDesk = operatorUser($s, [], 'Front Desk');
-    $this->actingAs($frontDesk)->post('/app/reservations/create', bookingPayload($s))->assertRedirect();
+    // ⚠️ with an email: the guest portal is claimed by email, so a guest without one gets no code (2026-10-04, the
+    //    NewReservationBookableTest case) — this pins the code's own rendering
+    $this->actingAs($frontDesk)->post('/app/reservations/create', bookingPayload($s, ['guest_email' => 'grace.hopper@example.org']))->assertRedirect();
     $reservation = Reservation::query()->latest('created_at')->firstOrFail();
 
     $this->actingAs($frontDesk)

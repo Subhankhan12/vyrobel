@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\RateCalendar;
 use App\Models\RateSeason;
 use App\Services\SeasonalRateService;
 use App\Support\Events\AuditEventRecorder;
@@ -12,6 +13,7 @@ use App\Support\Money\MoneyInput;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Rates\RateScope;
 use App\Support\Rates\RatesListParams;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -68,13 +70,49 @@ class SeasonActionController extends Controller
             return null;
         }
 
-        return $this->toPage($request)->with('rates_error', 'Your workspace is read-only right now — rate changes are paused.');
+        $message = 'Your workspace is read-only right now — rate changes are paused.';
+
+        return $this->fromWizard($request)
+            ? $this->toWizard($request)->with('new_reservation_notice', $message)
+            : $this->toPage($request)->with('rates_error', $message);
     }
 
     /** Back to the Rates page as the operator had it when started there ({@see RatesListParams}); otherwise back. */
     private function toPage(Request $request): RedirectResponse
     {
         return $request->input('return') === 'list' ? RatesListParams::redirect($request) : back();
+    }
+
+    /**
+     * ⚠️ 2026-10-04 — APPLY, FROM INSIDE A BOOKING. On production the founder's €200 "Winter" season was saved and never
+     * applied, so the New reservation page said there was no price. That page now offers this same Apply — and comes back to
+     * it on the same dates, as the Rates write does for a price set there ({@see RateActionController::toWizard()}).
+     * `return` is a fixed token, never a URL; the way back is built from two checked dates.
+     */
+    private function fromWizard(Request $request): bool
+    {
+        return $request->input('return') === RateActionController::RETURN_WIZARD;
+    }
+
+    private function toWizard(Request $request): RedirectResponse
+    {
+        $dates = array_filter([
+            'check_in' => $this->dateString($request->input('return_check_in')),
+            'check_out' => $this->dateString($request->input('return_check_out')),
+        ], fn (?string $v): bool => $v !== null);
+
+        return redirect()->to(route('app.reservations.create', $dates));
+    }
+
+    private function dateString(mixed $value): ?string
+    {
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        [$y, $m, $d] = array_map('intval', explode('-', $value));
+
+        return checkdate($m, $d, $y) ? $value : null;
     }
 
     /**
@@ -286,6 +324,23 @@ class SeasonActionController extends Controller
                 count($written) - 1,
                 count($written) === 2 ? ' was' : 's were',
             );
+        }
+
+        if ($this->fromWizard($request)) {
+            // ⚠️ DERIVED, NOT ASSUMED (the review, M1): the Rates page's own sentence of what was written (a stronger season
+            //    that wins some nights, and the overlapping ones re-applied, are in it), then what the stay still lacks — its
+            //    nights counted on the season's plan AFTER the write, never inferred from the season's dates.
+            $in = $this->dateString($request->input('return_check_in'));
+            $out = $this->dateString($request->input('return_check_out'));
+            $stay = '';
+            if ($in !== null && $out !== null && $out > $in) {
+                $missing = (int) CarbonImmutable::parse($in)->diffInDays(CarbonImmutable::parse($out))
+                    - RateCalendar::query()->where('rate_plan_id', $model->rate_plan_id)->where('date', '>=', $in)->where('date', '<', $out)->count();
+                $stay = $missing <= 0 ? ' Pick a unit to continue.'
+                    : ' '.$missing.' '.($missing === 1 ? 'night of the stay still has' : 'nights of the stay still have').' no price.';
+            }
+
+            return $this->toWizard($request)->with('new_reservation_ok', $notice.$stay);
         }
 
         return $this->toPage($request)->with('rates_notice', $notice);

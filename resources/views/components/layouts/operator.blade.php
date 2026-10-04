@@ -1410,14 +1410,12 @@
         .vy-nr-lede { margin: 5px 0 18px; font-size: 13px; line-height: 1.5; color: var(--vy-muted); }
         .vy-nr-h3 { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--vy-ink); }
         .vy-nr-label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); }
-        .vy-nr-label--gap { margin-top: 20px; }
         .vy-nr-opt { font-weight: 400; color: var(--vy-faint); }
         .vy-nr-field { margin-bottom: 14px; min-width: 0; }
         .vy-nr-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
         .vy-nr-input { width: 100%; box-sizing: border-box; padding: 10px 13px; border-radius: 11px; border: 1px solid rgba(120, 70, 40, 0.18); background: rgba(255, 255, 255, 0.7); font: 13.5px/1.4 var(--vy-sans); color: var(--vy-ink); }
         .vy-nr-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.18); background: #fff; }
         .vy-nr-input:disabled { opacity: 0.55; }
-        .vy-nr-input--short { max-width: 96px; text-transform: uppercase; }
         .vy-nr-textarea { resize: vertical; min-height: 66px; }
         .vy-nr-link { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); text-decoration: none; white-space: nowrap; }
         .vy-nr-link:hover { text-decoration: underline; }
@@ -1448,7 +1446,7 @@
         .vy-nr-cal-dow { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
         .vy-nr-cal-dow span { text-align: center; font-size: 11px; font-weight: 600; color: var(--vy-faint); padding: 4px 0; }
         .vy-nr-cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px 0; }
-        .vy-nr-cal-day { height: 38px; border: 0; background: transparent; font: 13px/1 var(--vy-sans); color: var(--vy-ink); cursor: pointer; border-radius: 9px; display: grid; place-items: center; transition: background 0.12s; font-variant-numeric: tabular-nums; }
+        .vy-nr-cal-day { height: 46px; border: 0; background: transparent; font: 13px/1 var(--vy-sans); color: var(--vy-ink); cursor: pointer; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 0; transition: background 0.12s; font-variant-numeric: tabular-nums; }
         .vy-nr-cal-day:hover:not(:disabled):not(.is-start):not(.is-end) { background: rgba(232, 112, 58, 0.12); }
         .vy-nr-cal-day:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; position: relative; z-index: 1; }
         .vy-nr-cal-day.is-pad { visibility: hidden; cursor: default; }
@@ -1525,7 +1523,6 @@
         .vy-nr-plan:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .vy-nr-plan-name { font-size: 13.5px; font-weight: 600; color: var(--vy-ink); }
         .vy-nr-plan-price { font-size: 12px; color: var(--vy-muted); font-variant-numeric: tabular-nums; }
-        .vy-nr-planone { margin: 0; font-size: 13px; color: var(--vy-muted); }
         .vy-nr-extra { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 11px 13px; border: 1px solid var(--vy-hairline); border-radius: 12px; background: rgba(255, 255, 255, 0.5); font-size: 13px; cursor: pointer; }
         .vy-nr-extra-text { flex: 1; min-width: 0; color: var(--vy-ink); }
         .vy-nr-extra-basis { color: var(--vy-muted); }
@@ -1595,6 +1592,39 @@
         .vy-nr-donebtn:hover { background: rgba(255, 255, 255, 0.9); }
         .vy-nr-donebtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .vy-nr-donebtn.is-primary { background: var(--vy-grad); color: #fff; border-color: transparent; box-shadow: var(--vy-shadow-accent); }
+        /* ── 2026-10-04, the second pass: each night's price on the calendar, the way out of a property with no rooms, a saved
+              season applied from here, and four steps with the confirmation in one place ───────────────────────────────── */
+        .vy-nr-cal-num { font-size: 13px; line-height: 1; }
+        .vy-nr-cal-price { min-height: 10px; max-width: 100%; overflow: hidden; white-space: nowrap; font-size: 10px; line-height: 1; font-weight: 500; color: var(--vy-muted); letter-spacing: -0.01em; }
+        /* the day cells are narrowest with two months side by side in a narrow card — "€120.50" spilled out (the review) */
+        @media (min-width: 561px) and (max-width: 1100px) { .vy-nr-cal-price { font-size: 9px; letter-spacing: -0.03em; } }
+        .vy-nr-h[tabindex="-1"]:focus { outline: none; }
+        .vy-nr-cal-day.is-noprice .vy-nr-cal-price { color: var(--vy-faint); }
+        .vy-nr-cal-day.is-full { color: var(--vy-faint); }
+        .vy-nr-cal-day.is-full .vy-nr-cal-price { color: #8F3110; font-weight: 600; }
+        .vy-nr-cal-day.is-today:not(.is-start):not(.is-end) { box-shadow: inset 0 0 0 1.5px rgba(232, 112, 58, 0.55); }
+        .vy-nr-cal-day.is-start .vy-nr-cal-price, .vy-nr-cal-day.is-end .vy-nr-cal-price { color: rgba(255, 255, 255, 0.92); }
+        .vy-nr-cal-legend { margin: 10px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--vy-muted); }
+        .vy-nr-cal-key { font-weight: 600; color: var(--vy-ink); }
+        .vy-nr-flash--in { margin: -4px 0 16px; }
+        .vy-nr-others { display: grid; gap: 8px; margin: 18px 0 16px; }
+        .vy-nr-others .vy-nr-h3 { margin-bottom: 2px; }
+        .vy-nr-other { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid rgba(120, 70, 40, 0.14); background: rgba(255, 255, 255, 0.66); font: 600 14px/1.3 var(--vy-sans); color: var(--vy-ink); text-align: left; cursor: pointer; transition: background 0.14s, border-color 0.14s; }
+        .vy-nr-other:hover { background: #fff; border-color: var(--vy-accent-border); }
+        .vy-nr-other:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-nr-rt.is-picked { border-color: var(--vy-accent-border); background: rgba(255, 255, 255, 0.62); }
+        .vy-nr-plans--inline { margin-top: 12px; }
+        .vy-nr-season { margin-bottom: 10px; padding: 14px 15px; border-radius: 12px; background: rgba(232, 112, 58, 0.09); border: 1px solid rgba(232, 112, 58, 0.35); }
+        .vy-nr-season-why { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-nr-season .vy-nr-fine { margin-top: 8px; }
+        .vy-nr-block { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--vy-hairline); }
+        .vy-nr-block > .vy-nr-h3 { margin-bottom: 8px; }
+        .vy-nr-lede--tight { margin: 0 0 12px; }
+        .vy-nr-fine--tight { margin-top: 6px; }
+        .vy-nr-field--gap { margin-top: 14px; }
+        .vy-nr-line.is-sub { padding: 4px 0; font-size: 12.5px; color: var(--vy-muted); }
+        .vy-nr-nav-total { display: none; }
+        .vy-nr-doneno { max-width: 340px; margin: 24px auto 8px; font-size: 13px; line-height: 1.55; color: var(--vy-muted); }
         @media (max-width: 900px) {
             .vy-nr-body { grid-template-columns: minmax(0, 1fr); }
             .vy-nr-summary { position: static; }
@@ -1608,6 +1638,10 @@
             .vy-nr-grid2, .vy-nr-deposit { grid-template-columns: minmax(0, 1fr); }
             .vy-nr-nav .vy-btn { flex: 1 1 auto; justify-content: center; }
             .vy-nr-nav-gap { display: none; }
+            /* a bar at the bottom on a phone: the total and the next move, where the thumb is */
+            .vy-nr-nav { position: sticky; bottom: 10px; z-index: 5; flex-wrap: wrap; padding: 10px 12px; border-radius: 16px; background: rgba(255, 252, 248, 0.94); backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow); }
+            .vy-nr-nav-total { display: inline-flex; align-items: baseline; gap: 6px; flex: 1 1 100%; font-size: 12.5px; color: var(--vy-muted); }
+            .vy-nr-nav-total strong { font-size: 15px; font-weight: 700; color: var(--vy-ink); font-variant-numeric: tabular-nums; }
             .vy-nr-review > div { grid-template-columns: minmax(0, 1fr) auto; }
             .vy-nr-review dt { grid-column: 1 / -1; }
             .vy-nr-search .vy-nr-input { min-width: 0; }

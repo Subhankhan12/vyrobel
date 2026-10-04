@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the CALENDAR NEW RESERVATION pass (2026-10-04: the dialog rebuilt)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the NEW RESERVATION SECOND pass (2026-10-04: a saved season applied from the booking, four steps)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -32,6 +32,7 @@ change is said.** Briefs live in `briefs/`.
 | A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
 | A11 | ✅ **FIXED 2026-10-02 (his go, "Yes, all of it")** — D-PAYRUN-TENANT: "Run payouts now" names its own organisation's owners, its run key carries the organisation, and "Last run" shows only this organisation (`HISTORY.md`, "PAYOUTS"). Live state: `STATE.md`. | — | — | — |
 | A12 | ✅ **FIXED 2026-10-02** — D-UNITS-EXPORT: the Units Export link takes the view's address at the click, as on Owners. | — | — | — |
+| A13 | **The Rates page could flag a saved-but-unapplied season more loudly.** On production his €200 "Winter" season sat saved and never applied for six days, the reason no booking could be made (V 2026-10-04). The booking page now offers it; the Rates page still shows it only as a "not applied" line in its season list. A banner ("1 season saved but not applied — no price is written until you apply it") is a small change to that page. | his go | — | Saving a season and expecting prices is an easy mistake; the two-step is deliberate (R-SEASON), its visibility is not. |
 
 ## Known defects (each its own ID)
 - **D-B19**: delete could not see an open Stripe Checkout page. **Fixed by ADMIN 06**, including the two gaps review 2 found
@@ -164,6 +165,18 @@ change is said.** Briefs live in `briefs/`.
 - **D-RACK-START-TZ (found 2026-10-04 by reading; not changed — shared with the Front Desk):** when the address names no week, the
   Calendar and the Front Desk start on the app's day (`BoardDate`, `CarbonImmutable::today()`), not the property's. Far from UTC the
   default week can start a day off the property's own today. The marked "today" column and the "+" links follow the property.
+- ✅ **D-NR2-SEASON — FIXED 2026-10-04 (his second report; 🔬 read-only on production):** a saved season that was never applied
+  left his property with no price on any night, and the booking page said only "No price for these nights yet". It now offers
+  the season and applies it through the Rates page's own disclosure (`HISTORY.md`, "NEW RESERVATION, SECOND PASS").
+- ✅ **D-NR2-NOROOMS — FIXED 2026-10-04:** a property with no rooms was a dead end with only a small picker; the card now offers the
+  properties that can take a booking.
+- ✅ **D-NR2-RULES — FIXED 2026-10-04 (pre-existing):** house rules invented "Not permitted" for pets and smoking on a property
+  with no policy, printed the stored codes ("on_request") on one with a policy, and ignored a real cancellation policy.
+- ✅ **D-NR2-CLAIMS — FIXED 2026-10-04 (pre-existing):** "The confirmation includes directions and parking" (it doesn't); "these go
+  out with the guest's confirmation" (they don't); a check-in QR for a guest who cannot sign in; "Email the confirmation" ticked
+  with no address. Each now says what is true, including that email isn't being sent from Vyrobel yet where it isn't.
+- ✅ **D-NR2-SEASON-ONECLICK — FIXED 2026-10-04 (mine, caught by the independent review before commit):** the first version of
+  Apply posted on the first click, without the Rates page's "Apply this season?" disclosure. Never shipped.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

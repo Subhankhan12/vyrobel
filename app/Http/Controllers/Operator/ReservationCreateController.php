@@ -160,19 +160,19 @@ class ReservationCreateController extends Controller
         $paymentMinor = null;
 
         if ($method === 'card') {
-            return $this->back($request, 'Card payments are coming soon — take cash or bank transfer now, or record it later from the folio.', 7);
+            return $this->back($request, 'Card payments are coming soon — take cash or bank transfer now, or record it later from the folio.', NewReservation::STEP_CONFIRM);
         }
 
         if (in_array($method, ['cash', 'bank'], true)) {
             if ($request->user()?->cannot('payments.record')) {
-                return $this->back($request, 'You don’t have permission to record a payment.', 7);
+                return $this->back($request, 'You don’t have permission to record a payment.', NewReservation::STEP_CONFIRM);
             }
             // GATE 1 B.2 — deposit split: validate a positive amount here; it is CAPPED at the real folio
             // balance when recorded (below), so a deposit/full up to the whole stay cost is allowed but the
             // operator can never collect more than is owed. (Was capped at the room charge only.)
             $paymentMinor = MoneyInput::toMinor($this->text($request, 'payment_amount'));
             if ($paymentMinor === null) {
-                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.', 7);
+                return $this->back($request, 'Enter a valid payment amount, e.g. 150 or 150.00.', NewReservation::STEP_CONFIRM);
             }
         }
 
@@ -243,7 +243,7 @@ class ReservationCreateController extends Controller
         } catch (RestrictionOverrideForbiddenException $e) {
             // ⚠️ Should be unreachable — the refusal only OFFERS the override to someone who can use it.
             //    Surfaced rather than 500ing if a request is crafted.
-            return $this->back($request, $e->getMessage(), 7);
+            return $this->back($request, $e->getMessage(), NewReservation::STEP_CONFIRM);
         } catch (RestrictionsViolationException $e) {
             // ⚠️⚠️ THE OVERRIDE IS OFFERED ONLY HERE — AFTER A REFUSAL, never as a checkbox on the form. A
             //    pre-tickable option gets ticked out of habit, the block stops firing at all, and the
@@ -259,7 +259,7 @@ class ReservationCreateController extends Controller
                 ? $e->getMessage()
                 : 'This booking wasn’t made — these dates are restricted. Book anyway with a reason below, or change the dates in step 1.';
 
-            return $this->back($request, $notice, 7)
+            return $this->back($request, $notice, NewReservation::STEP_CONFIRM)
                 ->with('restriction_breaches', $e->asRecords())
                 ->with('restriction_can_override', $request->user()?->can('reservations.restriction_override') === true);
         } catch (BookingException) {
@@ -459,7 +459,7 @@ class ReservationCreateController extends Controller
         if (is_string($existingId) && $existingId !== '') {
             $guest = Guest::query()->find($existingId);   // tenant-scoped
             if ($guest === null) {
-                return $this->back($request, 'That guest could not be found — search for them again.', 2);
+                return $this->back($request, 'That guest could not be found — search for them again.', NewReservation::STEP_GUEST);
             }
 
             return $guest;
@@ -469,12 +469,12 @@ class ReservationCreateController extends Controller
         $last = $this->text($request, 'guest_last_name');
 
         if ($first === '' && $last === '') {
-            return $this->back($request, 'Choose an existing guest, or enter a name for a new one.', 2);
+            return $this->back($request, 'Choose an existing guest, or enter a name for a new one.', NewReservation::STEP_GUEST);
         }
 
         $email = $this->text($request, 'guest_email');
         if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return $this->back($request, 'That guest email address isn’t valid.', 2);
+            return $this->back($request, 'That guest email address isn’t valid.', NewReservation::STEP_GUEST);
         }
         $phone = $this->text($request, 'guest_phone');
         // GATE 1 — the guest's Country (ISO-3166 alpha-2, e.g. "PT") → the guest's nationality. Bounded + upper;
@@ -502,10 +502,10 @@ class ReservationCreateController extends Controller
     {
         $breaches = $this->seenBreaches($request);
         if ($breaches === []) {
-            return $this->back($request, $notice, 7);   // nothing usable came back: the next submit is refused afresh, with its list
+            return $this->back($request, $notice, NewReservation::STEP_CONFIRM);   // nothing usable came back: the next submit is refused afresh, with its list
         }
 
-        return $this->back($request, $notice, 7)
+        return $this->back($request, $notice, NewReservation::STEP_CONFIRM)
             ->with('restriction_breaches', $breaches)
             ->with('restriction_can_override', true);
     }
@@ -561,7 +561,7 @@ class ReservationCreateController extends Controller
      * Guests pages, so they are neither flashed nor rendered back; the wizard says they were not kept and asks for them
      * again. Nor the override's own fields: a reason is chosen fresh against the breaches on screen, never pre-chosen.
      */
-    private function back(Request $request, string $notice, int $step = 1): RedirectResponse
+    private function back(Request $request, string $notice, int $step = NewReservation::STEP_STAY): RedirectResponse
     {
         $params = array_filter([
             'check_in' => $this->dateString($request->input('check_in')),
