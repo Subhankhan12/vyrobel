@@ -19537,3 +19537,17 @@ entry and the memory written, before these figures; 02:18–02:56 Baku) · **4,2
 34; baseline 353/353 green; 03:12–04:17 Baku) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest
 `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 04:36 Baku) · PHPStan L5 0 errors and Pint
 clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.
+
+✅ **LIVE on `rel_AT @ 282109e4` (2026-10-04, swap 4 ms, 04:41:27 Baku).** No migration; 6 files shipped. 🔬 Preflight from the
+staged release on production, read-only: the wizard and the booking write behind `reservations.create`, the price box's write
+behind `rates.manage`, the property switch and the Units page routed; the pieces present; the wizard and layout views compile;
+across the 15 organisations, the probes hold no rooms, his workspace's "Internal Test Property" 0 rooms and "Villa Azure Lumière"
+3 units in 2 room types with no price on the two sample stays (both offered with the price box), the availability read at most 12
+ms; 1 guest with no booking in his workspace (counts cannot say from what; left as it is). 🔬 After the swap: public checks **12
+PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,440 of 1,440** files in the live release match git at `282109e4` (the
+other 1,215 git files are never deployed); the `.htaccess` drift check passes (self-test 3/3); 0 errors logged since the swap.
+**The live look — he signed in himself, look only, nothing written:** 🖥 "Booking into · Internal Test Property" with "Internal
+Test Property has no rooms yet" and Go to Units; on Villa Azure Lumière (11–14 Oct) "No price for these nights yet" and "Price a
+night · Set price" on both room types, each naming its main plan; Next answering "Pick a unit for these dates to continue."; 390
+of 390 px at 390; no console message. The working property was put back as he had it; he was signed out and the automated
+browser closed. He chose not to set a price or make a test booking on production; the full booking was walked locally.

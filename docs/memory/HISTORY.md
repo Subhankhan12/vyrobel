@@ -628,6 +628,10 @@ the no-rooms card, the picker, a price set (a comma refused first), a unit by ke
 everything kept, a booking with an override and a €126 deposit (R-VL5P4JZX), the chooser, a returning guest; 0 console messages.
 Gates: 4,256/4,256 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `633895cac1ed8024`, the code plus these docs); 637/637 mutations;
 money gate FULL unmoved.
+**Deploy — LIVE `rel_AT @ 282109e4`, swap 4 ms (Verified 2026-10-04 04:41 Baku);** 6 files, no migration; preflight read-only
+(the gates, the views, his workspace: one property with no rooms, one with 3 unpriced units — exactly the two dead ends); public
+checks 12/0/0; 1,440/1,440 files match git; drift check passes; 0 errors since the swap. The live look (he signed in; look only):
+the no-rooms card, the price box on both Villa Azure room types, Next's message, 390 px; signed out and the browser closed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
