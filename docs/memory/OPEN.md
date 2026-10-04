@@ -162,7 +162,9 @@ change is said.** Briefs live in `briefs/`.
   day even when that was in the past, and Confirm could book a past check-in (the box's `min` guards only the GET).
 - ✅ **D-CAL-CLAIMS — FIXED 2026-10-04 (pre-existing, copied from the wireframe):** the dialog said it matched an existing guest's
   profile and that the guest got a confirmation email; it does neither (a new guest every time, and no email is asked for).
-- **D-RACK-START-TZ (found 2026-10-04 by reading; not changed — shared with the Front Desk):** when the address names no week, the
+- **D-RACK-START-TZ (found 2026-10-04 by reading; not changed — shared with the Front Desk):** ⚠️ Seen live 2026-10-05 00:15 Paris:
+  the top bar's date pill said "Sun 4 Oct" while Villa Azure's Calendar marked Mon 5 Oct as its today — the same app-day vs
+  property-day split, in the shell. when the address names no week, the
   Calendar and the Front Desk start on the app's day (`BoardDate`, `CarbonImmutable::today()`), not the property's. Far from UTC the
   default week can start a day off the property's own today. The marked "today" column and the "+" links follow the property.
 - ✅ **D-NR2-SEASON — FIXED 2026-10-04 (his second report; 🔬 read-only on production):** a saved season that was never applied
@@ -206,8 +208,8 @@ change is said.** Briefs live in `briefs/`.
   that page says "from 10 Oct to 10 Oct" and "1 of the 1 night of the stay that have no price"; the Calendar's dialog words a
   single night right since its second pass ("the night of 10 Oct", "has"). Two template sentences.
 - **D-SHELL-PROPNAME (measured on the Calendar walk 2026-10-04, locally; on every operator page — his go):** the sidebar's
-  working-property box is 141 px wide, so a name over ~135 px is cut ("Harbourpoint Walkthrough" 165 px); his "Internal Test
-  Property" is likely cut on production. Not measured there.
+  working-property box is 141 px wide, so a name over ~135 px is cut ("Harbourpoint Walkthrough" 165 px). Seen on production in
+  his live look 2026-10-05: "Internal Test Proper›".
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

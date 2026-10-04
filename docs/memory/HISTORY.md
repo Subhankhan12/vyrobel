@@ -718,7 +718,12 @@ of 10 Oct. SV is picked — confirm to book it"); the no-rooms card and dialog �
 after the review, Escape in the Apply view steps back with the name kept (a second Escape closes) and Set price locks once the
 dates change; 0 console messages. Gates: 4,335/4,335 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `bc45dca32a733a7e`; JUnit logs;
 ⚠️ the run before the last fix had one failure, the currency guard on "€" in the dialog's attribute — fixed, re-run); 760/760
-mutations; money gate FULL unmoved.
+mutations; money gate FULL unmoved. **Live 2026-10-05 01:51 Baku: `rel_AW @ a2831e72`, committed locally and NOT pushed.**
+Preflight read-only from the staged release; public checks 12/0/0; 1,447/1,447 files match git; drift + self-test pass; 0 errors.
+His live look (signed in himself at the first ask): the no-rooms card → Villa Azure; the note, the greyed and marked nights; "+" on
+101 → Double room first, Winter and Set price; the Apply view and Escape back (nothing sent); the name boxes still aligned; 390 px
+clean; 0 console messages; signed out, browser closed. Seen: the sidebar cuts his property's name (D-SHELL-PROPNAME), the top
+bar's date pill a day behind the property's (D-RACK-START-TZ).
 
 ## 2 · Mistakes to learn from (each one cited above)
 

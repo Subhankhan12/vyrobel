@@ -19849,3 +19849,20 @@ its attribute); fixed and the whole suite re-run, after restiox's own test run (
 across every set** (`calendar-bookable` 61; baseline 431/431 green; 01:06–01:28 Baku) · the money gate **FULL, unmoved** (`929 /
 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 01:47
 Baku) · PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.
+
+**LIVE (Verified 2026-10-05):** `rel_AW @ a2831e72` — committed LOCALLY and shipped from the local HEAD; **not pushed to GitHub, by
+his choice** (`origin/main` stays at `fc1ee357`). Staged 01:50–01:51 Baku (13 files, no migration); the read-only preflight from the
+staged release (`docs/memory/tools/preflight-calendar-2.php.txt`): every route gate held (move `reservations.assign`, booking
+`reservations.create`, price and season `rates.manage`), the pieces present, the four views compiled; the roles that may move: Property
+Owner, Group Admin, Hotel Manager, Front Desk; his workspace — "Internal Test Property" 0 room types, "Villa Azure Lumière" 14 of
+the next 14 nights marked "no price" on both room types (read in 6 ms), "Winter" unapplied. Swap 01:51:17 Baku (12 ms). Public
+checks **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`); **1,447 of 1,447** deployed files match git at `a2831e72`; drift check
+passes, self-test 3/3; **0 errors** since the swap (11 warnings, all `security.refusal`, the exposure battery). **His live look** (he
+signed in himself in the automated window, at the first ask; a read-only check confirmed it): his Calendar at his own address —
+"Internal Test Property has no rooms yet", Go to Units, Villa Azure Lumière offered; Villa Azure's Calendar with the note naming both
+room types and Winter, the nights before its today (5 Oct, Paris) greyed, every night from today marked; "+" on 101 for 10 Oct → the
+dialog with the names side by side (his earlier report), Double room first, Winter and Set price for "this night"; the Apply view
+("it prices 1 of the 1 night of the stay that has no price"), Escape back to the booking with nothing sent; 390 px with nothing
+outside the screen; Cancel; 0 console messages; signed out (a read-only check then went to sign-in), the automated browser closed.
+Seen and left for him: the sidebar cuts "Internal Test Property" (D-SHELL-PROPNAME) and the top bar's date pill said "Sun 4 Oct"
+beside a property already on 5 Oct (D-RACK-START-TZ).
