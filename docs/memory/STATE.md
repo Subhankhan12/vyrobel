@@ -1,25 +1,26 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the FIVE PAGES pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the Inbox tabs follow-up (2026-10-06), after the FIVE PAGES pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_AX` → commit `8345c86e`** (the Guests second pass: every word visible at every width, one search box, Message
-  only when email is sent — on top of the Calendar second pass, the New reservation second pass, the Calendar New reservation pass, the New reservation pass, the owners module pass, the payouts pass, the Owners rebuild, the Rates rebuild with DEC-l and its two live
+- **Live release `rel_AY` → commit `c73a97cd`** (the FIVE PAGES pass: the Inbox's New message, Housekeeping, Maintenance, Units —
+  Edit and a Delete that removes only what nothing has recorded — and Security; on top of the Guests second pass, the Calendar second pass, the New reservation second pass, the Calendar New reservation pass, the New reservation pass, the owners module pass, the payouts pass, the Owners rebuild, the Rates rebuild with DEC-l and its two live
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
-  remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 8345c86e…`, 4 ms), 2026-10-05 05:25 Baku; re-read at 17:47.
-  Rollback targets: `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = c73a97cd…`, 4 ms), 2026-10-05 22:08 Baku; `.release` re-read
+  on the host 2026-10-06 02:38.
+  Rollback targets: `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
 - **GitHub `origin/main` is at `fc1ee357`** (the Calendar pass's docs; **V** `git ls-remote origin`, 2026-10-05 17:47 Baku). **The
-  commits since — `bac3997b`, `6e195085`, `a2831e72`, `8b00318c`, `8345c86e` and the docs commit that records its deploy — are local
-  only, by his choice** (F 2026-10-04: no
+  commits since — `bac3997b`, `6e195085`, `a2831e72`, `8b00318c`, `8345c86e`, `2c58a940`, `c73a97cd` and the commits that record its
+  deploy and the Inbox tabs follow-up — are local only, by his choice** (F 2026-10-04: no
   push per task; push at the very end when he says, under the four hard stops — `RULES.md` Part 1). `ops/release.sh` ships
   the local HEAD, so production can be ahead of GitHub.
-- **Live code vs git, byte for byte: 1,448 of 1,448 files in the live release match git at `8345c86e`, 0 differ** (the other
-  1,227 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-05, after the 05:25 Baku swap, sha256
+- **Live code vs git, byte for byte: 1,452 of 1,452 files in the live release match git at `c73a97cd`, 0 differ** (the other
+  1,238 git files — tests, docs, tools, screenshots — are never deployed). **V** 2026-10-05, after the 22:08 Baku swap, sha256
   manifest checked inside the live release.
 - **`PAYOUT_ENGINE_ENABLED` is OFF on production** (**V** 2026-10-03, the read-only preflight from `rel_AS`: `false`;
   production holds 0 owners, 0 management agreements, 0 unit requests, 0 payouts). D-PAYRUN-TENANT is fixed live since `rel_AR`;
@@ -30,11 +31,12 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
+| Suite (the Inbox tabs follow-up) | **4,434/4,434 on MySQL 8.4.10** (32,565 assertions; tree `d24833fe404086c0`, 02:44–03:02 Baku — the code before two comment dates were corrected) · **4,434/4,434 on MariaDB 11.8.9** (32,565 assertions; tree `78d633402013dbf0` = the final code before these docs; 03:03–03:20 Baku) — both read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped | **V** run outputs and JUnit logs 2026-10-06. |
 | Suite (the FIVE PAGES commit) | **4,432/4,432 on MySQL 8.4.10** (tree `aba564f6e42d92a0` = the code plus these docs, before these figures were written; 2026-10-05 20:47–21:05 Baku) · **4,432/4,432 on MariaDB 11.8.9** (tree `73ef8334b2507a1f` = the same plus one mutation-set file; 21:43–22:01 Baku) · 32,538 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). The GUESTS SECOND commit before it (`8345c86e`): 4,359/4,359 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
-| Mutations | **941/941 landed and caught across every set** (34 sets), 0 not caught, 0 did not land; baseline 527/527 green (the five new sets: `units-five` = 37, `housekeeping-five` = 24, `maintenance-five` = 23, `security-five` = 22, `inbox-compose` = 17). ⚠️ The full run had UL-M8 green: the pass's new database-level refusal answered for the pre-check it mutates; re-aimed at the test that tells the layers apart, caught | **V** harness output 2026-10-05 21:05–21:32 Baku (UL-M8 21:36) |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 22:02 Baku (the FIVE PAGES pass; reseeded 22:02). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 20:46 Baku (the FIVE PAGES pass, on the final code) |
-| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AX`, 2026-10-05, run straight after the 05:25 Baku swap (and on `rel_AW` at 01:51 that day, on `rel_AV` at 22:14 on 2026-10-04, on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-05, after the 05:25 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
+| Mutations | **948 = the 941 below + `inbox-compose` IB-M18…M24** — that set re-run whole after the Inbox tabs follow-up, 24/24 caught (V 2026-10-06 02:42–02:43 Baku); no other set aims at the changed view (grep), so the rest were not re-run. Before: **941/941 landed and caught across every set** (34 sets), 0 not caught, 0 did not land; baseline 527/527 green (the five new sets: `units-five` = 37, `housekeeping-five` = 24, `maintenance-five` = 23, `security-five` = 22, `inbox-compose` = 17). ⚠️ The full run had UL-M8 green: the pass's new database-level refusal answered for the pre-check it mutates; re-aimed at the test that tells the layers apart, caught | **V** harness output 2026-10-05 21:05–21:32 Baku (UL-M8 21:36) |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-06 03:20 Baku (the Inbox tabs follow-up; reseeded 03:20); the same as 2026-10-05 22:02 (the FIVE PAGES pass). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors (1,089 of 1,089 files, from a cleared result cache, 24 s) · clean (the changed PHP) | **V** 2026-10-06 03:21 Baku (the Inbox tabs follow-up; the change is a view, a test and a mutation set). ⚠️ Two runs before it took one second each (result-cache hits): a `clear-result-cache` run under the agent-mode output wrapper printed nothing, and the analysis after it still took one second. Only a visibly cleared cache is a whole-codebase run. Before: 2026-10-05 20:46 |
+| Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AY`, straight after the 2026-10-05 22:08 Baku swap, and again 2026-10-06 02:39–02:44 — a re-run: the run at 02:31–02:38 answered **1 · 10 · 0**, the edge answering this Mac after its bot check (504s and 307s to the same address in ~80 ms, `/up` included); from the server's own address through the public hostname every page answered 200; no rollback — DEC-t, D-EDGE-CHECKS. Before: on `rel_AX`, 2026-10-05, run straight after the 05:25 Baku swap (and on `rel_AW` at 01:51 that day, on `rel_AV` at 22:14 on 2026-10-04, on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-05, after the 05:25 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
 ## Switches on production (V: read-only production read from `rel_AF`, 2026-09-29 13:5x Baku; yes/no only, never a value)
@@ -46,7 +48,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 - **Heartbeat alarm:** `OPS_HEARTBEAT_PING_URL` set: **no**, so it is unarmed.
 - **Break-glass:** enabled, 30 minutes. 0 sessions have ever been opened on production (V 2026-09-27).
 - **Other settings:** maintenance mode off · config cached · queue `database` · sessions `database` · cache `file`.
-- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AX`: 0 logged since its swap — 11 warnings, all `security.refusal`, written while the exposure battery ran — V 2026-10-05, read at 05:30 and again at 17:47 Baku, after his live look):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
+- **Loose ends (V 2026-09-29, after the `rel_AF` deploy; errors re-read after `rel_AY`: 0 error-level lines since its swap — V 2026-10-06 02:38 Baku, the app's logs for the UTC days 10-04 and 10-05; after `rel_AX`: 0 logged since its swap — 11 warnings, all `security.refusal`, written while the exposure battery ran — V 2026-10-05, read at 05:30 and again at 17:47 Baku, after his live look):** 0 failed jobs · 0 errors logged since the swap · 0 suspended organisations · 0 break-glass sessions open · 1 admin, 0 invites
   pending · 0 announcements · 0 `/status` incidents.
 
 ## Organisations on production (V: all 15 `active`, all internal)
@@ -210,7 +212,32 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     from its row, the allowlist lockout on remove refused, X called X. Three independent reviews (one finding each on Inbox/Housekeeping/
     Maintenance and on Security; none at the bar on Units, two smaller ones fixed anyway) and a second review of the fixes (one finding,
     fixed: only the unit-code index is answered as "already used").
-    Recorded for his go: `OPEN.md` D-OWNER-SEC-ERRORS, D-STAY-WORD. Committed locally, not pushed (his rule); the deploy and his live look follow.
+    Recorded for his go: `OPEN.md` D-OWNER-SEC-ERRORS, D-STAY-WORD. **✅ LIVE on `rel_AY @ c73a97cd`** (V: `ops/release.sh swap`,
+    2026-10-05 22:08:19 Baku, 4 ms; public checks 12/0/0 straight after; 1,452 of 1,452 deployed files match git, 0 differ; the
+    `.htaccess` drift check and its self-test pass; 0 error-level lines logged since the swap — re-read 2026-10-06 02:38). The
+    read-only preflight from the staged release: only Vyrobel Internal has inventory — 2 properties, 2 room types (0 priced), 3 units,
+    2 of which Delete would remove; every blocker read in 29 ms. **His live look** (he signed in himself in the automated window,
+    ~02:25 Baku on 2026-10-06; look only): Units — the guide, the room-type cards, the table, the Delete dialog for unit 101 opened and
+    cancelled (nothing deleted); Security and Housekeeping at 1,280 px as built; all five pages measured at 1,024 and 390 px with no
+    sideways scroll and nothing past its card — except the Inbox's filter tabs at 390 px, "Closed" cut to "Clos" (older than this
+    pass, the same kind of defect as his report) → 0q. **The look ended early, at the edge:** at ~02:30 the host's CDN put its
+    "Checking your browser" page (403) in front of the automated browser, and after it the browser reached only the sign-in page.
+    The app did not end the session (V production read 02:44, times only: its row still there, last activity 02:27:56, expiring by
+    itself at 04:27:56) — the browser's sign-in cookie had been replaced by a signed-out one; its vyrobel.com cookies were then
+    cleared and the browser closed. So Maintenance at 1,280 px and the Inbox's New message dialog were not opened live (both measured
+    live at 1,024 and 390 px; both walked locally) → `OPEN.md` D-EDGE-SIGNOUT. The public checks run after that (02:31–02:38)
+    answered 1 PASS · 10 FAIL — the edge answering this Mac, not the site (V: a curl from this Mac at 02:35 got 200s; at 02:38 the
+    server, asking through the public hostname from its own address, got 200 on every page; 0 errors logged; the re-run, 02:39–02:44,
+    12/0/0). ⚠️ No rollback — rule 8 says roll back first; a control ran first, and the ruling is his: `OPEN.md` DEC-t, D-EDGE-CHECKS.
+0q. **The Inbox's filter tabs on a phone (2026-10-06)** — seen on his live look of `rel_AY`: at 390 px the five tabs (All, Unread,
+    Arriving today, Assigned to me, Closed) ran 24 px past their box and "Closed" read "Clos" — the shared box's `overflow: hidden`
+    let it shrink under its own words. Built: at 560 px and below two even rows (All · Unread · Arriving today over Assigned to me ·
+    Closed), every word shown — a label wraps rather than being cut on the narrowest phones — with New message across the line
+    beneath; above 560 px one row as before. The tab shown is marked for a screen reader (`aria-current`), not by colour alone. 🖥
+    local walk at 320 / 360 / 375 / 390 / 430 / 560 / 561 / 768 / 1,024 / 1,280 px: no tab clipped, no sideways scroll.
+    `InboxComposeRedesignTest` +2 (13; both RED first), `inbox-compose` IB-M18…M24 caught (24/24). Gates: **4,434/4,434 on MySQL 8.4.10** (32,565 assertions; tree `d24833fe404086c0`, 02:44–03:02 Baku — before two comment dates were corrected) · **4,434/4,434 on MariaDB 11.8.9** (32,565 assertions; tree `78d633402013dbf0` = the final code before these docs; 03:03–03:20 Baku) — both from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · `inbox-compose` 24/24 caught (no other set aims at the changed view) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 03:20 Baku) · PHPStan L5 0 errors (1,089 files, from a cleared cache), Pint clean · the doc-reading tests — 69 files, the list re-derived from the tests (630 tests, 0 failed). Recorded for his go:
+    `OPEN.md` D-NOTIFPREFS-320 (found while checking the shared box's other pages). Committed locally, not pushed (his rule); the
+    deploy follows.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

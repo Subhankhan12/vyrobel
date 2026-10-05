@@ -157,6 +157,46 @@ it('⚠️⚠️ calls a Direct message "Saved", and says where the guest reads 
     expect(ibxPage($s, '?c='.$thread->id))->toContain('reads this in their guest account — it isn’t emailed.');
 });
 
+// ── seen live on rel_AY (2026-10-06, the live look at a phone's width): the filter tabs ──────────────────────────────
+
+it('⚠️⚠️ keeps every filter tab’s words on a phone — two even rows at 560 px and below, never "Clos" (seen live)', function () {
+    $s = seedScenario(1);
+    $html = ibxPage($s);
+    $css = (string) file_get_contents(resource_path('views/livewire/operator/operator-inbox.blade.php'));
+
+    // 🖥 before (production, 390 px): five tabs in one row 24 px wider than its box — "Closed" cut to "Clos", because the shared
+    //    box's overflow: hidden lets it shrink under its own words
+    expect($html)->toContain('<div class="vy-rack-toolbar vy-ibx-bar vy-fade">')
+        ->toContain('<div class="vy-seg vy-inbox-tabs">')
+        ->not->toContain('<div class="vy-seg" style="max-width: 560px;">')
+        ->and($css)->toContain('.vy-inbox-tabs { max-width: 560px; }')
+        ->and(preg_match('~@media \(max-width: 560px\) \{(.*?)\n        \}~s', $css, $phone))->toBe(1);
+
+    // the phone rule, inside its own block: the tabs get the toolbar's whole line; three over two, each label free to wrap
+    expect($phone[1])->toContain('.vy-ibx-bar > .vy-left')->toContain('flex: 1 1 100%;')
+        ->toContain('.vy-inbox-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));')
+        ->toContain('.vy-inbox-tabs > .vy-seg-opt { grid-column: span 2; white-space: normal;')
+        ->toContain('.vy-inbox-tabs > .vy-seg-opt:nth-child(n + 4) { grid-column: span 3; }');
+});
+
+it('⚠️ marks the filter it shows — for a screen reader as well as by colour', function () {
+    $s = seedScenario(1);
+    $tabs = function (string $html): string {
+        expect(preg_match('~<div class="vy-seg vy-inbox-tabs">(.*?)</div>~s', $html, $m))->toBe(1);
+
+        return $m[1];
+    };
+    $all = $tabs(ibxPage($s));
+    $closed = $tabs(ibxPage($s, '?filter=closed'));
+
+    // 📖 before: only the white fill said which filter was on
+    expect(substr_count($all, 'aria-current="page"'))->toBe(1)
+        ->and($all)->toMatch('~<a class="vy-seg-opt is-checked" href="[^"]*"\s+aria-current="page"\s*>All</a>~')
+        ->and(substr_count($closed, 'aria-current="page"'))->toBe(1)
+        ->and($closed)->toMatch('~<a class="vy-seg-opt is-checked" href="[^"]*"\s+aria-current="page"\s*>Closed</a>~')
+        ->toMatch('~<a class="vy-seg-opt\s*" href="[^"]*"\s*>All</a>~');
+});
+
 it('keeps the conversation search on the shared search box — its icon and field', function () {
     $s = seedScenario(1);
     $html = ibxPage($s);

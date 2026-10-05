@@ -492,6 +492,16 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **A class written for one thing can match another page's wrapper.** `.vy-units { display: flex }` (unit pills no page uses) also
   matched the Units page's root. Search a class before reusing a name — and remove dead rules (Verified 2026-10-05, 🔬 the computed
   display).
+- **A FAIL is about the site only if the site answered.** After the CDN's bot check flags a client, the edge answers that client
+  itself — 504s and 307s to the same address, in ~80 ms, `/up` included — and `ops/public-checks.sh` prints FAIL. Ask the same paths
+  from a second vantage point (the server, through the public hostname) before believing it either way; DEC-t asks him whether rule 8
+  should say so (Verified 2026-10-06: 1 · 10 · 0 from this Mac, 200 everywhere from the server, 12 · 0 · 0 on the re-run).
+- **An automated look can end at the edge.** The CDN's bot check left the browser signed out while the session lived on (it expires
+  by itself, 120 minutes after its last use). The Playwright profile is persistent: when the sign-out form cannot be submitted, clear
+  the site's cookies before closing the browser, and read the session table (times only) rather than assume (Verified 2026-10-06).
+- **Check a shared component's other users before calling a fix scoped.** The Inbox's tabs were cut by the shared `.vy-seg`; measuring
+  the box's other pages at 390 and 320 px found none cut — and found Notification preferences scrolling sideways at 320 px, a defect
+  no one had looked for (Verified 2026-10-06, 🖥).
 
 
 ---
@@ -555,7 +565,10 @@ It catches a CHANGE; the battery catches an EFFECT. Neither replaces the other (
 
 **`ops/public-checks.sh [BASE]`** — after EVERY swap. It checks /login + both social buttons, both social 302s, /signup, the anonymous /admin redirects and POST refusals, a 5xx sweep of public GETs, and battery SERVED=0.
 Pass = `PASS N · FAIL 0 · COULD NOT MEASURE 0`, exit 0. Exit 2 = a CDN browser challenge (403 "Checking your browser"): control-run it.
-**Any FAIL → roll back FIRST, diagnose after.** Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AH` (Verified 2026-09-29, after the Portfolio Open + fields swap).
+**Any FAIL → roll back FIRST, diagnose after.** ⚠️ An answer from the EDGE prints as FAIL too: after the CDN's bot check fires on this
+Mac, it answers this Mac itself — 504s and 307s to the same address in ~80 ms, `/up` included (V 2026-10-06; D-EDGE-CHECKS; whether a
+control from the server through the public hostname may come first is DEC-t, his). Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AY`
+(Verified 2026-10-06 02:39–02:44 Baku, the re-run).
 
 **`php artisan tinker --execute='require "ops/config-inventory.php";'`** (on the host with the php84 binary, inside the release).
 It reports which config keys are EMPTY and what each emptiness does: SILENT / LOUD / INERT / UNCLASSIFIED. It never prints a value.

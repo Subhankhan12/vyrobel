@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the FIVE PAGES pass (2026-10-05: Inbox New message, Housekeeping, Maintenance, Units — Edit and a safe Delete, several units at once — and Security)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the Inbox tabs follow-up (2026-10-06: the filter tabs on a phone, seen on his live look of the FIVE PAGES release; the edge's bot check and the public checks), after the FIVE PAGES pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -269,6 +269,8 @@ change is said.** Briefs live in `briefs/`.
 - ✅ **D-P5-INBOX — FIXED 2026-10-05 (his report: "New message page design is not good. 2 text is repeated"):** the dialog said one
   thing twice; its three dialogs sat on hand-made backdrops; the finder called an arrival due today "In-house". One shared
   `StayLabel` (the finder and the Guests Stay column read the same rule); the dialogs on the shared card (`HISTORY.md`, "FIVE PAGES").
+  **And its filter tabs on a phone** — "Closed" cut to "Clos" at 390 px, seen on his live look of `rel_AY`; fixed 2026-10-06 (two even
+  rows at 560 px and below; `HISTORY.md`, "THE INBOX'S TABS ON A PHONE").
 - ✅ **D-P5-HK — FIXED 2026-10-05 (his report):** Housekeeping's own search pill (icon at the top of the row), Board and List in the
   browser's own button look, a 720 px list in a narrower card, a blank "In progress" tag, "Today’s cleaning" over every day's rooms.
 - ✅ **D-P5-MT — FIXED 2026-10-05 (his report):** the board's 945 px table past its card; Note / Progress / Part ordered as one real
@@ -288,6 +290,21 @@ change is said.** Briefs live in `briefs/`.
 - **D-STAY-WORD (seen 2026-10-05; low — his go):** the stage badge everywhere says "In-house"; the Guests Stay column and the Inbox's
   New message list say "In house" (the Guests redesign's word, 2026-09-29). One concept, two spellings — one of them should read the
   other's.
+- **D-EDGE-CHECKS (seen 2026-10-06; the instrument — his go):** `ops/public-checks.sh` reads an answer from the EDGE as a FAIL of
+  the SITE. After the host's CDN put its bot check in front of this Mac's automated browser (~02:30 Baku), a run at 02:31–02:38
+  answered 1 PASS · 10 FAIL: every route a 504, or a 307 to itself, in ~80 ms — `/up` included, which the app never redirects. 🔬 From
+  the server's own address, through the public hostname, every page answered 200; the app had logged 0 errors; a re-run, 02:39–02:44,
+  was 12/0/0. The script knows only the 403 "Checking your browser" page as COULD NOT MEASURE. Proposed: when a probe fails, ask the
+  same paths from the server through the public hostname, and say COULD NOT MEASURE (edge) when the server gets the right answer —
+  a FAIL then means the site, seen from two places. The rule question is DEC-t.
+- **D-EDGE-SIGNOUT (seen once, 2026-10-06; his go — the CDN settings are in his hPanel):** after the CDN's bot check, the automated
+  browser came back without its sign-in: the app had not ended the session (V: its row still there, untouched), but the browser's
+  cookie had been replaced by a new signed-out one. Seen on an automated browser only, once. If the bot check ever stops a person's
+  browser the same way, a hotel's staff would be signed out mid-work with nothing in the app's logs. Worth one look at the CDN's
+  security level for `vyrobel.com` (and at a person's browser if it is raised).
+- **D-NOTIFPREFS-320 (found 2026-10-06 while checking the shared segmented box's other pages; low — his go):** at a 320 px window the
+  back office's Notification preferences page scrolls sideways by 54 px: its main column is 358 px wide (the "Notify me when" table
+  card and the Quiet hours panel), wider than the window. 🖥 390 px and up fit. The lists' narrow layout would carry over.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
@@ -332,4 +349,5 @@ change is said.** Briefs live in `briefs/`.
 | DEC-o | The owner's page (2026-10-03): should an operator be able to switch an owner's portal access off and on from their page? If yes: does their team go with them, and does someone who also works for you keep their login (the removal rule)? Not offered today — the old checkbox could not switch it off, and its server side was unsafe (D-OWNER-PORTAL). |
 | DEC-p | The owner's page (2026-10-03): should an existing owner be given units later? Today only their invite gives an owner existing units. It touches money: a unit's owner decides who is paid for its stays. |
 | DEC-q | Rate proposals (found by the 2026-10-03 review, pre-existing): proposing a rate to an owner — and accepting their counter, which applies the rate — does not check the person's properties, while every other rate and unit write does (DEC-k, DEC-l). Should it, as those do? |
+| DEC-t | Rule 8 ("Any FAIL → roll back FIRST, diagnose after"): on 2026-10-06, 4½ hours after `rel_AY`'s swap (its own checks 12/0/0), a run answered 1 PASS · 10 FAIL, and a control ran BEFORE any rollback — the answers could not have come from the app (`/up`, which it never redirects, was redirected; every answer in ~80 ms; a curl from the same Mac during that run got 200s). The server, asking through the public hostname, got 200 everywhere; 0 errors logged; the re-run (02:39–02:44 Baku) 12/0/0 — no rollback. Was that right? Should rule 8 name a control from a second vantage point first (D-EDGE-CHECKS), or stay as written? |
 | DEC-r | The New reservation wizard (2026-10-04): a new guest whose email matches an existing guest is created again — the walk made four "Lena Walk"s. Offer the existing guest instead (by the email's blind index, never showing the email back), or keep creating a new one? |

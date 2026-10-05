@@ -6,7 +6,8 @@ declare(strict_types=1);
 // text is repeated. Fix it. It must have better design"). 📖 The dialog printed its hint as a label AND the placeholder under a second
 // label, said who it lists twice, shared an id with the reply box, and a Direct message read "Delivered" though Direct sends nothing.
 // Run with `php tests/Mutations/run.php --set=inbox-compose`. ⚠️ How the dialog looks is what a browser draws: these prove the markup,
-// the words and the rules exist; the 🖥 walk at 1,440 and 390 px proved how they look.
+// the words and the rules exist; the 🖥 walk at 1,440 and 390 px proved how they look. IB-M18…M24: the filter tabs, cut to "Clos" at
+// 390 px on production (seen on the live look of rel_AY) — the 🖥 walk at 320 to 1,280 px proved every word shows.
 
 $test = 'tests/Feature/InboxComposeRedesignTest.php';
 
@@ -151,5 +152,62 @@ return [
         'old' => 'class="vy-gl-search vy-ibx-search" role="search"',
         'new' => 'class="vy-inbox-search-form" role="search"',
         'tests' => [['file' => $test, 'filter' => 'keeps the conversation search on the shared search box']],
+    ],
+    [
+        'id' => 'IB-M18',
+        'name' => 'the tabs go back to one row on a phone — "Closed" cut to "Clos" (seen live)',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '            .vy-inbox-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; max-width: none; }',
+        'new' => '            .vy-inbox-tabs { width: 100%; max-width: none; }',
+        'tests' => [['file' => $test, 'filter' => 'keeps every filter tab’s words on a phone']],
+    ],
+    [
+        'id' => 'IB-M19',
+        'name' => 'a label may not wrap — on the narrowest phones "Arriving today" runs past its cell',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '.vy-inbox-tabs > .vy-seg-opt { grid-column: span 2; white-space: normal; padding: 9px 6px; line-height: 1.25; }',
+        'new' => '.vy-inbox-tabs > .vy-seg-opt { grid-column: span 2; white-space: nowrap; padding: 9px 6px; line-height: 1.25; }',
+        'tests' => [['file' => $test, 'filter' => 'keeps every filter tab’s words on a phone']],
+    ],
+    [
+        'id' => 'IB-M20',
+        'name' => 'the second row loses its spans — a lone tab beside an empty cell',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '            .vy-inbox-tabs > .vy-seg-opt:nth-child(n + 4) { grid-column: span 3; }
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps every filter tab’s words on a phone']],
+    ],
+    [
+        'id' => 'IB-M21',
+        'name' => 'the tabs no longer get the toolbar’s whole line on a phone',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '            .vy-ibx-bar > .vy-left, .vy-ibx-bar > .vy-right { flex: 1 1 100%; }',
+        'new' => '            .vy-ibx-bar > .vy-right { flex: 1 1 100%; }',
+        'tests' => [['file' => $test, 'filter' => 'keeps every filter tab’s words on a phone']],
+    ],
+    [
+        'id' => 'IB-M22',
+        'name' => 'the tabs go back to an inline style with no phone rule of their own',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '<div class="vy-seg vy-inbox-tabs">',
+        'new' => '<div class="vy-seg" style="max-width: 560px;">',
+        'tests' => [['file' => $test, 'filter' => 'keeps every filter tab’s words on a phone']],
+    ],
+    [
+        'id' => 'IB-M23',
+        'name' => 'the filter shown is marked by colour only again',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => ' @if ($filter === $tabKey) aria-current="page" @endif',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'marks the filter it shows']],
+    ],
+    [
+        'id' => 'IB-M24',
+        'name' => 'every tab claims to be the one shown',
+        'file' => 'resources/views/livewire/operator/operator-inbox.blade.php',
+        'old' => '@if ($filter === $tabKey) aria-current="page" @endif',
+        'new' => 'aria-current="page"',
+        'tests' => [['file' => $test, 'filter' => 'marks the filter it shows']],
     ],
 ];

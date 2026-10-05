@@ -63,14 +63,12 @@
         </div>
 
         {{-- Toolbar: status tabs + New message --}}
-        <div class="vy-rack-toolbar vy-fade" style="margin-bottom: 10px;">
+        <div class="vy-rack-toolbar vy-ibx-bar vy-fade">
             <div class="vy-left">
-                <div class="vy-seg" style="max-width: 560px;">
-                    <a class="vy-seg-opt {{ $filter === null ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => null]) }}">All</a>
-                    <a class="vy-seg-opt {{ $filter === 'unread' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'unread']) }}">Unread</a>
-                    <a class="vy-seg-opt {{ $filter === 'arriving' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'arriving']) }}">Arriving today</a>
-                    <a class="vy-seg-opt {{ $filter === 'mine' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'mine']) }}">Assigned to me</a>
-                    <a class="vy-seg-opt {{ $filter === 'closed' ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => 'closed']) }}">Closed</a>
+                <div class="vy-seg vy-inbox-tabs">
+                    @foreach ([[null, 'All'], ['unread', 'Unread'], ['arriving', 'Arriving today'], ['mine', 'Assigned to me'], ['closed', 'Closed']] as [$tabKey, $tabLabel])
+                        <a class="vy-seg-opt {{ $filter === $tabKey ? 'is-checked' : '' }}" href="{{ $inboxUrl(['filter' => $tabKey]) }}" @if ($filter === $tabKey) aria-current="page" @endif>{{ $tabLabel }}</a>
+                    @endforeach
                 </div>
             </div>
             <div class="vy-right">
@@ -536,6 +534,19 @@
         .vy-sort-toggle { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; font-weight: 500; color: var(--vy-muted); text-decoration: none; white-space: nowrap; }
         .vy-sort-toggle:hover { color: var(--vy-ink); border-color: var(--vy-accent-border, rgba(217,102,46,.3)); }
         @media (max-width: 720px) { .vy-inbox-stats { grid-template-columns: repeat(2, 1fr); } }
+        /* the filter tabs (2026-10-06 — 🖥 seen live on rel_AY at 390 px: "Closed" cut to "Clos"; the shared box's overflow: hidden let
+           it shrink under its own words). Five in one row above 560 px, where the toolbar always gives them a line of their own (they
+           need ~394 px); at 560 px and below two even rows — All · Unread · Arriving today over Assigned to me · Closed — every word
+           shown, a label wrapping rather than cut on the narrowest phones, and New message across the line beneath. */
+        .vy-rack-toolbar.vy-ibx-bar { margin-bottom: 10px; }
+        .vy-inbox-tabs { max-width: 560px; }
+        @media (max-width: 560px) {
+            .vy-ibx-bar > .vy-left, .vy-ibx-bar > .vy-right { flex: 1 1 100%; }
+            .vy-ibx-bar > .vy-right .vy-btn { flex: 1; justify-content: center; }
+            .vy-inbox-tabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; max-width: none; }
+            .vy-inbox-tabs > .vy-seg-opt { grid-column: span 2; white-space: normal; padding: 9px 6px; line-height: 1.25; }
+            .vy-inbox-tabs > .vy-seg-opt:nth-child(n + 4) { grid-column: span 3; }
+        }
         .vy-inbox-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
         .vy-inbox-rail { display: flex; flex-direction: column; max-height: 72vh; }
         .vy-inbox-list { overflow-y: auto; }

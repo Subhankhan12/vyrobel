@@ -27,7 +27,10 @@ Commit `5d631d9f` (2026-09-23) says **both layers are off and the site is public
   always reach the origin, webhooks included; static assets are cached 7 days; a 301 was cached for 2+ hours.
   Any measurement through `vyrobel.com` measures the edge unless cache-busted. (Reported: KNOWN-LIMITS L12m, 2026-09-20)
 - **CDN browser check:** the CDN shows some fresh clients a "Checking your browser…" page (HTTP 403). That is not
-  the app refusing — `ops/public-checks.sh` counts it as COULD NOT MEASURE. (git: `ops/public-checks.sh` header)
+  the app refusing — `ops/public-checks.sh` counts it as COULD NOT MEASURE. (git: `ops/public-checks.sh` header) ⚠️ After it
+  fires on a client, the edge may answer that client itself for a while — 504s and 307s to the same address in ~80 ms, `/up`
+  included — which the script reads as FAIL (V 2026-10-06, D-EDGE-CHECKS); and a signed-in automated browser came back from it
+  signed out, its session row untouched (V 2026-10-06, D-EDGE-SIGNOUT).
 - **Web process user:** the web process runs as the hosting account's own user (the same user that owns the files).
   (Reported: DECISIONS "TONIGHT 01" #2, 2026-09-25)
 - **PHP:** use `/opt/alt/php84/usr/bin/php` (8.4.19). The default `php` is 8.3.33 and `artisan` exits 255 under
