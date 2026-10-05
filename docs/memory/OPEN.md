@@ -270,7 +270,8 @@ change is said.** Briefs live in `briefs/`.
   thing twice; its three dialogs sat on hand-made backdrops; the finder called an arrival due today "In-house". One shared
   `StayLabel` (the finder and the Guests Stay column read the same rule); the dialogs on the shared card (`HISTORY.md`, "FIVE PAGES").
   **And its filter tabs on a phone** — "Closed" cut to "Clos" at 390 px, seen on his live look of `rel_AY`; fixed 2026-10-06 (two even
-  rows at 560 px and below; `HISTORY.md`, "THE INBOX'S TABS ON A PHONE").
+  rows at 560 px and below; `HISTORY.md`, "THE INBOX'S TABS ON A PHONE"), live on `rel_AZ @ 59799d4d` — his look at a phone's width
+  is left.
 - ✅ **D-P5-HK — FIXED 2026-10-05 (his report):** Housekeeping's own search pill (icon at the top of the row), Board and List in the
   browser's own button look, a 720 px list in a narrower card, a blank "In progress" tag, "Today’s cleaning" over every day's rooms.
 - ✅ **D-P5-MT — FIXED 2026-10-05 (his report):** the board's 945 px table past its card; Note / Progress / Part ordered as one real

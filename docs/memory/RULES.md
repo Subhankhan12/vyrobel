@@ -567,8 +567,8 @@ It catches a CHANGE; the battery catches an EFFECT. Neither replaces the other (
 Pass = `PASS N · FAIL 0 · COULD NOT MEASURE 0`, exit 0. Exit 2 = a CDN browser challenge (403 "Checking your browser"): control-run it.
 **Any FAIL → roll back FIRST, diagnose after.** ⚠️ An answer from the EDGE prints as FAIL too: after the CDN's bot check fires on this
 Mac, it answers this Mac itself — 504s and 307s to the same address in ~80 ms, `/up` included (V 2026-10-06; D-EDGE-CHECKS; whether a
-control from the server through the public hostname may come first is DEC-t, his). Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AY`
-(Verified 2026-10-06 02:39–02:44 Baku, the re-run).
+control from the server through the public hostname may come first is DEC-t, his). Last: PASS 12 · FAIL 0 · CNM 0 on `rel_AZ`
+(Verified 2026-10-06 03:30–03:35 Baku, straight after its swap).
 
 **`php artisan tinker --execute='require "ops/config-inventory.php";'`** (on the host with the php84 binary, inside the release).
 It reports which config keys are EMPTY and what each emptiness does: SILENT / LOUD / INERT / UNCLASSIFIED. It never prints a value.
