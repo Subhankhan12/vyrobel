@@ -1,13 +1,14 @@
 {{-- Operator HOUSEKEEPING (#88 exact-match) — the operator MANAGING the real HousekeepingTask (the owner sees
      the same model read-only). Board + List views, crew panel with real load, assign / assign-all (real writes),
      room-detail MODAL with real proof photos + elapsed. Every mutation is a guarded controller POST.
-     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+     ⚠️ 2026-10-05 (his "text is not visible completely … search box … its symbol not well-aligned … Board and list buttons design
+     is not good"): rebuilt on the shared list kit — the shared 40 px search, Board | List as one segmented control, the list a
+     size container that stacks its rows when narrow, every dialog on the shared solid card, each room's DAY said (the page lists
+     every day's cleaning), and the words only what the page does. RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 <div class="vy-hk" x-data="{
         view: localStorage.getItem('vy:hk:view') || 'list',
-        density: localStorage.getItem('vy:hk:density') || 'cozy',
-        detail: null, assign: null, assignAllOpen: false,
+        detail: @js($detail), assign: null, assignAllOpen: false,
         setView(v) { this.view = v; localStorage.setItem('vy:hk:view', v); },
-        setDensity(d) { this.density = d; localStorage.setItem('vy:hk:density', d); },
         assignUrl(id) { return '{{ route('app.housekeeping.assign', '__ID__') }}'.replace('__ID__', id); },
         statusUrl(id) { return '{{ route('app.housekeeping.status', '__ID__') }}'.replace('__ID__', id); },
         photoUrl(id) { return '{{ route('app.housekeeping.photos.store', '__ID__') }}'.replace('__ID__', id); },
@@ -45,29 +46,14 @@
         toggleLane(k) { this.collapsed = { ...this.collapsed, [k]: ! this.collapsed[k] }; localStorage.setItem('vy:hk:collapsed', JSON.stringify(this.collapsed)); },
         laneOpen(k) { return ! this.collapsed[k]; },
      }">
-    <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Today’s cleaning across your rooms" :viewer="$viewer">
+    <x-operator.shell active="housekeeping" title="Housekeeping" subtitle="Cleaning across your rooms, by day" :viewer="$viewer">
 
-        {{-- ⚠️ F-13 — THE BOARD USED TO SAY NOTHING. A role with `housekeeping.view` and not
-             `housekeeping.manage` sees every task row and ZERO controls, which reads as a broken screen.
-             🔬 Three roles reach it that way: Front Desk, Maintenance and Guest Support Agent.
-
-             ⚠️ THE CONTROLS STAY ABSENT — that is the BETTER outcome, and it is not the defect. A present
-             control that refuses wastes a shift; the missing part was ever saying WHY. So this adds the
-             explanation and no control.
-
-             ⚠️ PLACED HERE DELIBERATELY, ABOVE THE FLASH REGION. 🔬 At 375px this shell stacks its whole
-             navigation above the content: the `h1` sits at ~691px, the flash region at ~903px and the task
-             table at ~1210px in an 812px viewport. An in-flow message down with the flashes would be BELOW
-             THE FOLD — the silence being fixed, merely relocated. Here it lands inside the first screen.
-
-             ⚠️ NO SCRIPT REQUIRED: plain Blade, no Alpine, no toggle — this board once shipped with its
-             default view cloaked and lost 13 forms, so anything added here must survive a blocked bundle.
-
-             The register is the product's own ("… isn't in your plan"; the owner portal naming who can
-             grant): say what you cannot do, and name who can fix it. --}}
+        {{-- ⚠️ F-13 — THE BOARD USED TO SAY NOTHING to a role with `housekeeping.view` and not `housekeeping.manage` (Front Desk,
+             Maintenance, Guest Support Agent): every task, zero controls, no reason. The controls stay absent; this says why, and
+             who can change it. ⚠️ Above the flashes on purpose — at 375 px they sit below the first screen. No script needed. --}}
         @unless ($canManage)
-            <div class="vy-flash" role="status" style="margin-bottom:14px;background:rgba(224,146,30,.10);border:1px solid rgba(224,146,30,.32);border-left:3px solid var(--vy-amber);border-radius:12px;padding:11px 15px;font-size:13px;font-weight:500;color:var(--vy-ink);">
-                You can see today’s cleaning, but not update it. Changing a room’s cleaning status needs housekeeping access — a Property Owner or Group Admin can grant it.
+            <div class="vy-hk-notice" role="status">
+                You can see the cleaning, but not update it. Changing a room’s cleaning status needs housekeeping access — a Property Owner or Group Admin can grant it.
             </div>
         @endunless
 
@@ -75,14 +61,14 @@
              a genuine server-side revert, never a fabricated client-only "undo"). --}}
         @if (session('hk_notice'))
             @php $hkUndo = session('hk_undo'); @endphp
-            <div class="vy-flash is-ok vy-fade" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div class="vy-flash is-ok vy-fade vy-hk-flash">
                 <span>{{ session('hk_notice') }}</span>
                 @if (is_array($hkUndo) && ! empty($hkUndo['url']))
-                    <form method="POST" action="{{ $hkUndo['url'] }}" style="margin: 0; flex: none;">
+                    <form method="POST" action="{{ $hkUndo['url'] }}" class="vy-hk-undo">
                         @csrf
                         @foreach ($hkUndo['ids'] ?? [] as $undoId)<input type="hidden" name="task_ids[]" value="{{ $undoId }}">@endforeach
                         @if (! empty($hkUndo['restore_priority']))<input type="hidden" name="restore_priority" value="{{ $hkUndo['restore_priority'] }}">@endif
-                        <button type="submit" class="vy-btn vy-btn--ghost" style="padding: 3px 14px; font-size: 12px;">Undo</button>
+                        <button type="submit" class="vy-btn vy-btn--ghost">Undo</button>
                     </form>
                 @endif
             </div>
@@ -91,39 +77,19 @@
             <div class="vy-flash is-err vy-fade">{{ session('hk_error') }}</div>
         @endif
 
-        {{-- ── Control row — Board/List toggle · density · Assign all ─────────────────────────────── --}}
-        <div class="vy-rack-toolbar vy-fade">
-            <div class="vy-left" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <div class="vy-seg">
-                    <button type="button" class="vy-seg-opt" :class="view === 'board' && 'is-checked'" @click="setView('board')">Board</button>
-                    <button type="button" class="vy-seg-opt" :class="view === 'list' && 'is-checked'" @click="setView('list')">List</button>
-                </div>
-                <div class="vy-seg" x-show="view === 'board'" x-cloak>
-                    <button type="button" class="vy-seg-opt" :class="density === 'cozy' && 'is-checked'" @click="setDensity('cozy')">Cozy</button>
-                    <button type="button" class="vy-seg-opt" :class="density === 'compact' && 'is-checked'" @click="setDensity('compact')">Compact</button>
-                </div>
-                <form method="GET" action="{{ route('app.housekeeping') }}" class="vy-input-group vy-input-group--pill" style="max-width: 260px;">
-                    {{-- The design carries the magnifier inside the field. Decorative. --}}
-                    <svg class="vy-search-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                    <input class="vy-input" type="search" name="q" value="{{ $query }}" placeholder="Search rooms…" aria-label="Search rooms">
-                    {{-- Searching must not silently drop the active crew filter (#20 — a scoped read
-                         rides the GET link, so the filter has to travel with it). --}}
-                    @if ($crewFilter) <input type="hidden" name="crew" value="{{ $crewFilter }}"> @endif
-                    @if ($query !== '')
-                        <a class="vy-pill" href="{{ route('app.housekeeping') }}{{ $crewFilter ? '?crew='.$crewFilter : '' }}">Clear</a>
-                    @endif
-                </form>
-            </div>
-            <div class="vy-right">
-                @if ($canManage)
-                    @if ($unassignedCount > 0)
-                        <button type="button" class="vy-btn vy-btn--accent" @click="assignAllOpen = true">Assign all · {{ $unassignedCount }}</button>
-                    @else
-                        <span class="vy-btn vy-btn--ghost" style="opacity: .55; cursor: default;">All assigned</span>
-                    @endif
+        {{-- ⚠️ 2026-10-05 (🖥 the walk) — Assign needs someone to assign: with nobody on the roster every room offered "Assign" and the
+             toolbar "Assign all", each opening a dialog with no one to pick. Offered only when it can work; otherwise said once. --}}
+        @php $canAssign = $canManage && $crew !== []; @endphp
+        @if ($canManage && $crew === [])
+            <div class="vy-hk-notice is-info" role="status">
+                No housekeepers on the roster yet, so rooms can’t be assigned.
+                @if ($canStaff)
+                    Give a team member the Housekeeping role in <a class="vy-gl-link" href="{{ route('app.roles') }}">Roles &amp; access</a>.
+                @else
+                    Someone who manages your team can give a team member the Housekeeping role.
                 @endif
             </div>
-        </div>
+        @endif
 
         {{-- ── Status summary strip (5 real tallies) ──────────────────────────────────────────────── --}}
         <div class="vy-hk-tally vy-fade">
@@ -150,80 +116,90 @@
             @endforeach
         </div>
 
-        {{-- ── Crew filter row (real housekeepers + Unassigned) ───────────────────────────────────── --}}
-        <div class="vy-seg vy-seg--inline vy-fade" style="margin-bottom: 16px; flex-wrap: wrap;">
-            <a class="vy-seg-opt @if ($crewFilter === null) is-checked @endif" href="{{ route('app.housekeeping', array_filter(['q' => $query])) }}">All housekeepers</a>
-            @foreach ($crew as $member)
-                <a class="vy-seg-opt @if ($member['active']) is-checked @endif" href="{{ route('app.housekeeping', array_filter(['crew' => $member['id'], 'q' => $query])) }}">
-                    {{ $member['name'] }} <span class="vy-muted">{{ $member['load'] }}</span>
-                </a>
-            @endforeach
-            <a class="vy-seg-opt @if ($crewFilter === 'unassigned') is-checked @endif" href="{{ route('app.housekeeping', array_filter(['crew' => 'unassigned', 'q' => $query])) }}">Unassigned</a>
+        {{-- ── The toolbar, on the shared list kit: search · Board | List · Assign all, the housekeeper chips beneath ───────── --}}
+        <div class="vy-gl-bar vy-hk-bar vy-fade">
+            <form class="vy-gl-search" method="GET" action="{{ route('app.housekeeping') }}" role="search">
+                {{-- Searching must not silently drop the active crew filter (#20 — a scoped read rides the GET link). --}}
+                @if ($crewFilter) <input type="hidden" name="crew" value="{{ $crewFilter }}"> @endif
+                <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <label class="vy-sr-only" for="vy-hk-q">Search rooms</label>
+                <input id="vy-hk-q" class="vy-gl-search-in" type="search" name="q" value="{{ $query }}" placeholder="Search room, type or housekeeper" maxlength="80" autocomplete="off">
+                @if ($query !== '')
+                    <a class="vy-gl-clear" href="{{ route('app.housekeeping', array_filter(['crew' => $crewFilter])) }}" aria-label="Clear search">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </a>
+                @endif
+            </form>
+            <div class="vy-gl-tools">
+                <div class="vy-hk-views" role="group" aria-label="View">
+                    <button type="button" class="vy-hk-view" :class="view === 'list' && 'is-on'" :aria-pressed="view === 'list' ? 'true' : 'false'" @click="setView('list')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+                        <span>List</span>
+                    </button>
+                    <button type="button" class="vy-hk-view" :class="view === 'board' && 'is-on'" :aria-pressed="view === 'board' ? 'true' : 'false'" @click="setView('board')">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg>
+                        <span>Board</span>
+                    </button>
+                </div>
+                @if ($canAssign && $unassignedCount > 0)
+                    <button type="button" class="vy-btn vy-btn--accent" @click="assignAllOpen = true">Assign all · {{ $unassignedCount }}</button>
+                @endif
+            </div>
+            <div class="vy-gs-filters">
+                <div class="vy-gl-chips" role="group" aria-label="Housekeeper">
+                    <a class="vy-gl-chip @if ($crewFilter === null) is-on @endif" href="{{ route('app.housekeeping', array_filter(['q' => $query])) }}" data-gl-key="crew-all" @if ($crewFilter === null) aria-current="page" @endif>Everyone<span class="vy-gl-count">{{ $chipCounts['all'] }}</span></a>
+                    @foreach ($crew as $member)
+                        <a class="vy-gl-chip @if ($member['active']) is-on @endif" href="{{ route('app.housekeeping', array_filter(['crew' => $member['id'], 'q' => $query])) }}" data-gl-key="crew-{{ $member['id'] }}" @if ($member['active']) aria-current="page" @endif>{{ $member['name'] }}<span class="vy-gl-count">{{ $member['count'] }}</span></a>
+                    @endforeach
+                    <a class="vy-gl-chip @if ($crewFilter === 'unassigned') is-on @endif" href="{{ route('app.housekeeping', array_filter(['crew' => 'unassigned', 'q' => $query])) }}" data-gl-key="crew-unassigned" @if ($crewFilter === 'unassigned') aria-current="page" @endif>Unassigned<span class="vy-gl-count">{{ $chipCounts['unassigned'] }}</span></a>
+                </div>
+            </div>
         </div>
 
         {{-- ═══ BOARD VIEW ═══ --}}
         <div x-show="view === 'board'" x-cloak>
             {{-- Crew panel --}}
-            <div class="vy-card vy-fade" style="margin-bottom: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div class="vy-card vy-fade vy-hk-crew">
                 <span class="vy-eyebrow">Crew</span>
                 @forelse ($crew as $member)
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="vy-avatar" style="width: 30px; height: 30px; font-size: 12px;">{{ $member['initials'] }}</span>
+                    <div class="vy-hk-crew-who">
+                        <span class="vy-avatar vy-hk-avatar">{{ $member['initials'] }}</span>
                         <div>
-                            <div style="font-size: 13px; font-weight: 600; color: var(--vy-ink);">{{ $member['name'] }}</div>
-                            <div style="font-size: 11px; color: var(--vy-muted);">{{ $member['load'] }} {{ \Illuminate\Support\Str::plural('room', $member['load']) }} open</div>
+                            <div class="vy-hk-crew-name">{{ $member['name'] }}</div>
+                            <div class="vy-hk-crew-load">{{ $member['load'] }} {{ \Illuminate\Support\Str::plural('room', $member['load']) }} open</div>
                         </div>
                     </div>
                 @empty
-                    <span class="vy-muted" style="font-size: 12.5px;">No housekeepers on the roster yet — add staff with the Housekeeping role.</span>
+                    <span class="vy-hk-crew-none">No housekeepers on the roster yet — add staff with the Housekeeping role.</span>
                 @endforelse
-                <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <div class="vy-hk-crew-end">
                     <span class="vy-tag tone-tag"><span class="vy-dot"></span>Out of order · {{ $outOfOrder }}</span>
                     <a class="vy-arr-link" href="{{ route('app.schedule') }}">Schedule →</a>
                 </div>
             </div>
 
-            {{-- Lanes --}}
-            {{-- ⚠️⚠️ D10 — THE HOUSE KANBAN CLASS, WHICH ALREADY EXISTED AND WHICH THIS BOARD NEVER USED.
-                 `.vy-kanban` is defined in the operator shell (layouts/operator.blade.php:944) as EXACTLY this
-                 grid, and the shell's responsive block already narrows it to two columns at 1100px. This board
-                 hand-rolled the same four columns INLINE, so it inherited the base grid's shape and none of its
-                 responsiveness — which is the real reason this file contains zero `@media` queries. The rule was
-                 never missing; the class was (§N.8f: one definition, used).
-                 ⚠️ `gap: 14px` STAYS INLINE deliberately. The shared class uses 16px, and adopting it would
-                 silently retune the DESK layout this pass is required to leave alone. The inline gap overrides
-                 the class, so the wide view is pixel-identical to before. --}}
+            {{-- Lanes — the house `.vy-kanban` grid (D10; it narrows to two columns at 1,100 px and one at 700 px). The inline gap
+                 stays: the shared class uses 16 px and the desk layout must not move. --}}
             <div class="vy-kanban" style="gap: 14px;">
                 @foreach ($columns as $column)
                     {{-- A lane is a forward-only drop target while a card is in flight (a card is dropped here to
                          advance its status). Backward lanes never highlight and reject the drop. --}}
-                    <div class="vy-card vy-fade vy-hk-lane" style="padding: 12px;"
+                    <div class="vy-card vy-fade vy-hk-lane"
                          :class="(hkForward('{{ $column['key'] }}') ? 'is-drop ' : '') + (laneOpen('{{ $column['key'] }}') ? '' : 'is-collapsed')"
                          @dragover.prevent @drop.prevent="hkDrop('{{ $column['key'] }}')">
-                        {{-- The lane header toggles collapse (a collapsed lane stays a drop target). --}}
-                        {{-- ⚠️⚠️ FOUND BY SWEEPING THE CLASS, NOT BY BEING REPORTED — a third instance of
-                             "a click handler no keyboard can activate", on a lane a keyboard user could
-                             therefore never collapse or expand.
-                             ⚠️ AND HERE THE WHOLE HEAD CAN BE THE NATIVE ELEMENT, unlike the other two: it
-                             contains only spans and an svg — phrasing content — so a `<button>` may wrap it
-                             and the entire header stays the click target it already was. Nothing is traded
-                             away, which is why this is the shape to prefer when the content permits it. --}}
-                        <button type="button" class="vy-detail-head" style="margin-bottom: 10px; user-select: none;"
-                                @click="toggleLane('{{ $column['key'] }}')"
-                                :aria-expanded="laneOpen('{{ $column['key'] }}') ? 'true' : 'false'">
-                            <span style="font-size: 13px; font-weight: 700; color: var(--vy-ink);">
-                                <span class="vy-tag tone-{{ $column['tone'] }}" style="padding: 2px 8px;"><span class="vy-dot"></span>{{ $column['label'] }}</span>
-                            </span>
-                            <span style="display: inline-flex; align-items: center; gap: 7px;">
-                                <span class="vy-muted" style="font-size: 12px;">{{ count($column['tasks']) }}</span>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="vy-muted" style="transition: transform .15s;" :style="laneOpen('{{ $column['key'] }}') ? 'transform: rotate(180deg)' : ''"><path d="M6 9l6 6 6-6"/></svg>
+                        {{-- The whole head is the native button (phrasing content only), so a keyboard can collapse a lane too. --}}
+                        <button type="button" class="vy-hk-lane-head" @click="toggleLane('{{ $column['key'] }}')" :aria-expanded="laneOpen('{{ $column['key'] }}') ? 'true' : 'false'">
+                            <span class="vy-tag tone-{{ $column['tone'] }}"><span class="vy-dot"></span>{{ $column['label'] }}</span>
+                            <span class="vy-hk-lane-end">
+                                <span class="vy-hk-lane-n">{{ count($column['tasks']) }}</span>
+                                <svg class="vy-hk-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="laneOpen('{{ $column['key'] }}') && 'is-open'" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
                             </span>
                         </button>
                         <div x-show="laneOpen('{{ $column['key'] }}')">
                             @forelse ($column['tasks'] as $card)
                                 @include('livewire.partials.hk-card', ['card' => $card])
                             @empty
-                                <div class="vy-empty" style="padding: 14px; font-size: 12px;">Empty</div>
+                                <div class="vy-hk-lane-empty">Nothing here</div>
                             @endforelse
                         </div>
                     </div>
@@ -232,82 +208,79 @@
         </div>
 
         {{-- ═══ LIST VIEW ═══ --}}
-        {{-- ⚠️⚠️ DELIBERATELY NOT CLOAKED — THIS IS THE BRANCH THAT IS VISIBLE AT INIT.
-             `x-data` starts at `localStorage.getItem('vy:hk:view') || 'list'`, so with no stored preference
-             this list IS the initial view. Cloaking it as well as the board meant that when Alpine did not
-             arrive — a bundle 404 after a deploy, a CSP refusal (this project has had one), a dropped
-             network — BOTH branches stayed `display: none` and the entire working surface vanished:
-             13 real `<form method="POST">` and 7 submit buttons in the DOM and unreachable. Measured.
-             ⚠️ The status/assign forms are SERVER-RENDERED POSTs to certified gated routes; they work
-             without Alpine. Cloaking them threw away functionality that was already there.
-             ⚠️ THE CLOAK'S REAL PURPOSE IS PRESERVED: the `board` branch above starts FALSE and stays
-             cloaked, so nothing flashes both views at once. The cost is a brief flash of the list for a
-             user whose stored preference is `board` — cosmetic, on a minority path, against a blank screen
-             on the failure path. ⚠️ NEVER CLOAK WHAT IS VISIBLE IN THE INITIAL STATE. --}}
+        {{-- ⚠️⚠️ DELIBERATELY NOT CLOAKED — THE BRANCH VISIBLE AT INIT (`view` defaults to 'list'). Cloaking it too left BOTH branches
+             hidden when Alpine did not arrive (a bundle 404, a CSP refusal) — 13 real POST forms unreachable. Measured. The status and
+             assign forms are server-rendered POSTs that work without Alpine. ⚠️ NEVER CLOAK WHAT IS VISIBLE IN THE INITIAL STATE. --}}
         <div x-show="view === 'list'">
-            <div class="vy-card vy-card--flush vy-fade">
-                <div class="vy-utable-wrap">
-                    {{-- ⚠️ `--stick-action` PINS THE ACTION COLUMN ON A PHONE. This table is 720px wide by
-                         design and scrolls sideways inside `.vy-utable-wrap` — correct for a wide table,
-                         where a row IS the unit of meaning. ⚠️ But the 5th column holds the button that
-                         ADVANCES THE TASK, and at 375px it rendered at x=669: a housekeeper had to
-                         discover a sideways scroll inside the table before they could mark a room clean.
-                         ⚠️ The modifier is scoped to THIS table: `.vy-utable` is shared by seven screens
-                         and pinning a column is only right where the last cell is a primary action. --}}
-                    <table class="vy-utable vy-utable--stick-action">
-                        <thead><tr><th>Room</th><th>Housekeeper</th><th>Stage</th><th>Ready</th><th></th></tr></thead>
+            {{-- ⚠️ 2026-10-05 — a SIZE CONTAINER, as the Guests list: the card's own width decides, and a narrow card stacks each room
+                 (its facts named) instead of a 720 px table running past it — 🔬 Ready and the action were cut between ~860 and
+                 ~1,010 px windows, and the action sat behind a sideways scroll on a phone. --}}
+            <div class="vy-card vy-gl-card vy-fade">
+                <div class="vy-gl-scroll">
+                    <table class="vy-gl-table vy-hk-table">
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th class="vy-hk-c-day">Day</th>
+                                <th class="vy-hk-c-who">Housekeeper</th>
+                                <th class="vy-hk-c-stage">Stage</th>
+                                <th class="vy-hk-c-ready">Ready</th>
+                                <th class="vy-hk-c-act"><span class="vy-sr-only">Next step</span></th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @forelse ($rows as $card)
                                 <tr>
-                                    <td>
-                                        <button type="button" class="vy-u-code vy-arr-link" style="border: none; background: none; cursor: pointer;" @click="detail = {{ \Illuminate\Support\Js::from($card) }}">{{ $card['unit'] }}</button>
-                                        <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 3px;">
-                                            @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>Turnover</span> @endif
-                                            @if ($card['urgency']) <span class="vy-tag tone-{{ $card['urgency']['tone'] === 'red' ? 'risk' : 'confirmed' }}"><span class="vy-dot"></span>{{ $card['urgency']['label'] }}</span> @endif
-                                            @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP</span> @endif
-                                        </div>
-                                        <div class="vy-u-sub">{{ $card['type'] }}@foreach ($card['guest_preferences'] as $p) · {{ $p }}@endforeach</div>
+                                    <td class="vy-hk-c-room">
+                                        <button type="button" class="vy-hk-room" @click="detail = {{ \Illuminate\Support\Js::from($card) }}">{{ $card['unit'] }}</button>
+                                        @if ($card['turnover'] || $card['urgency'] || $card['guest_vip'])
+                                            <div class="vy-hk-tags">
+                                                @if ($card['turnover']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>Turnover</span> @endif
+                                                @if ($card['urgency']) <span class="vy-tag tone-{{ $card['urgency']['tone'] === 'red' ? 'risk' : 'confirmed' }}"><span class="vy-dot"></span>{{ $card['urgency']['label'] }}</span> @endif
+                                                @if ($card['guest_vip']) <span class="vy-tag tone-vip"><span class="vy-dot"></span>VIP</span> @endif
+                                            </div>
+                                        @endif
+                                        <div class="vy-hk-sub">{{ $card['type'] }}@foreach ($card['guest_preferences'] as $p) · {{ $p }}@endforeach</div>
                                     </td>
-                                    <td>
+                                    <td class="vy-hk-c-day" data-label="Day"><span class="vy-hk-day is-{{ $card['day_tone'] }}">{{ $card['day'] }}</span></td>
+                                    <td class="vy-hk-c-who" data-label="Housekeeper">
                                         @if ($card['assignee'])
-                                            <span style="display: inline-flex; align-items: center; gap: 6px;"><span class="vy-avatar" style="width: 24px; height: 24px; font-size: 10px;">{{ $card['assignee_initials'] }}</span>{{ $card['assignee'] }}</span>
-                                        @elseif ($canManage)
-                                            <button type="button" class="vy-btn vy-btn--ghost" style="padding: 4px 12px; font-size: 12px;" @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">Assign</button>
+                                            <span class="vy-hk-who"><span class="vy-avatar vy-hk-avatar is-sm">{{ $card['assignee_initials'] }}</span>{{ $card['assignee'] }}</span>
+                                        @elseif ($canAssign)
+                                            <button type="button" class="vy-btn vy-btn--ghost vy-hk-small" @click="assign = {{ \Illuminate\Support\Js::from(['id' => $card['id'], 'unit' => $card['unit'], 'type' => $card['type']]) }}">Assign</button>
                                         @else
-                                            <span class="vy-muted">Unassigned</span>
+                                            <span class="vy-hk-none">Unassigned</span>
                                         @endif
                                     </td>
-                                    <td><span class="vy-tag tone-{{ $card['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $card['status_meta']['label'] }}</span></td>
-                                    {{-- D8-2 — the READY column. The target is the hour a guest may actually
-                                         turn up at THIS room (its property's published check-in time), shown
-                                         only when a real reservation arrives here on this date. No arrival or
-                                         no published time → the honest "—" stays; nothing is estimated. --}}
-                                    <td>
+                                    <td class="vy-hk-c-stage" data-label="Stage"><span class="vy-tag tone-{{ $card['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $card['status_meta']['label'] }}</span></td>
+                                    {{-- D8-2 — the READY column: the hour a guest may actually turn up at THIS room (its property's published
+                                         check-in time), only when a real reservation arrives here on this date; otherwise the honest "—". --}}
+                                    <td class="vy-hk-c-ready" data-label="Ready">
                                         @if ($card['status'] === 'inspected')
                                             <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Ready</span>
                                         @elseif ($card['elapsed'])
-                                            <span class="vy-u-sub">{{ $card['elapsed']['minutes'] }}m / {{ $card['elapsed']['expected'] }}m</span>
+                                            <span class="vy-hk-sub">{{ $card['elapsed']['minutes'] }}m / {{ $card['elapsed']['expected'] }}m</span>
                                             @if ($card['ready_by'])
-                                                <div class="vy-u-sub">by {{ $card['ready_by'] }}</div>
+                                                <span class="vy-hk-sub">by {{ $card['ready_by'] }}</span>
                                             @endif
                                         @elseif ($card['ready_by'])
-                                            <span class="vy-u-sub">by {{ $card['ready_by'] }}</span>
+                                            <span class="vy-hk-sub">by {{ $card['ready_by'] }}</span>
                                         @else
-                                            <span class="vy-muted">—</span>
+                                            <span class="vy-hk-none">—</span>
                                         @endif
                                     </td>
-                                    <td style="text-align: right;">
+                                    <td class="vy-hk-c-act">
                                         @if (($canManage) && $card['next'] !== [])
-                                            <form method="POST" action="{{ route('app.housekeeping.status', $card['id']) }}" style="display: inline;">
+                                            <form method="POST" action="{{ route('app.housekeeping.status', $card['id']) }}" class="vy-hk-inline">
                                                 @csrf
                                                 <input type="hidden" name="status" value="{{ $card['next'][0]['to'] }}">
-                                                <button type="submit" class="vy-btn vy-btn--accent" style="padding: 5px 12px; font-size: 12px;">{{ $card['next'][0]['label'] }}</button>
+                                                <button type="submit" class="vy-btn vy-btn--accent vy-hk-small">{{ $card['next'][0]['label'] }}</button>
                                             </form>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5"><div class="vy-empty">No rooms match this view.</div></td></tr>
+                                <tr><td colspan="6"><div class="vy-empty">No rooms match this view.</div></td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -315,38 +288,42 @@
             </div>
         </div>
 
-        {{-- ── ASSIGN modal ───────────────────────────────────────────────────────────────────────── --}}
-        <div x-show="assign" x-cloak @keydown.escape.window="assign = null"
-             style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
-                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
-            <div @click.outside="assign = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="assign" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assign-t" tabindex="-1" x-trap.noscroll="assign">
-                <h2 class="vy-card-title" style="margin-bottom: 2px;" id="vy-hk-assign-t">Assign housekeeper</h2>
-                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;" x-text="assign ? (assign.unit + ' · ' + assign.type) : ''"></p>
+        {{-- ── ASSIGN — the shared solid card (2026-10-05: its hand-made backdrop carried an inline display beside x-show, so it
+             opened as `block`, top-left — A8). Both Assign dialogs exist only when someone can be assigned. ── --}}
+        @if ($canAssign)
+        <div x-show="assign" x-cloak class="vy-modal-backdrop" @click.self="assign = null" @keydown.escape.window="assign = null">
+            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assign-t" tabindex="-1" x-trap.noscroll="assign">
                 <form method="POST" :action="assign ? assignUrl(assign.id) : ''">
                     @csrf
-                    <div style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow: auto;">
-                        @foreach ($crew as $i => $member)
-                            <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: 8px; cursor: pointer;">
-                                <span style="display: flex; align-items: center; gap: 8px;">
-                                    {{-- WAVE 3 — "Suggested" now means genuinely LEAST-LOADED, not "first in the
-                                         list". It badged and pre-selected $i === 0 (name order) while showing
-                                         that person's real load right beside it — a suggestion contradicting
-                                         its own number (#39). --}}
-                                    <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($member['id'] === $suggestedCrewId)>
-                                    <span class="vy-avatar" style="width: 26px; height: 26px; font-size: 11px;">{{ $member['initials'] }}</span>
-                                    {{ $member['name'] }}
-                                    @if ($member['id'] === $suggestedCrewId) <span class="vy-tag tone-vip" style="padding: 1px 7px;">Suggested</span> @endif
-                                </span>
-                                <span class="vy-muted" style="font-size: 12px;">{{ $member['load'] }} today</span>
-                            </label>
-                        @endforeach
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg></span>
+                        <div class="vy-hk-head-text">
+                            <h2 class="vy-modal-title" id="vy-hk-assign-t">Assign housekeeper</h2>
+                            <p class="vy-modal-sub" x-text="assign ? (assign.unit + ' · ' + assign.type) : ''"></p>
+                        </div>
+                        <button type="button" class="vy-modal-x" @click="assign = null" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
-                    <label class="vy-field-label" style="display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; margin-top: 12px;">
-                        <input type="checkbox" name="priority" value="1" checked> Clean next · priority
-                    </label>
-                    <p style="font-size: 11px; color: var(--vy-faint); margin: 6px 0 0;">The room appears in their task list. (Device push isn’t wired — no fabricated notification.)</p>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+                    <div class="vy-modal-body">
+                        <fieldset class="vy-hk-pick">
+                            <legend class="vy-field-label">Housekeeper</legend>
+                            <div class="vy-hk-options">
+                                @forelse ($crew as $member)
+                                    <label class="vy-hk-option">
+                                        {{-- WAVE 3 — "Suggested" means genuinely LEAST-LOADED, not the first name in the list (#39). --}}
+                                        <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($member['id'] === $suggestedCrewId)>
+                                        <span class="vy-avatar vy-hk-avatar">{{ $member['initials'] }}</span>
+                                        <span class="vy-hk-option-name">{{ $member['name'] }}@if ($member['id'] === $suggestedCrewId) <span class="vy-tag tone-vip">Suggested</span>@endif</span>
+                                        <span class="vy-hk-option-load">{{ $member['load'] }} open</span>
+                                    </label>
+                                @empty
+                                    <p class="vy-hk-crew-none">No housekeepers on the roster yet — add staff with the Housekeeping role.</p>
+                                @endforelse
+                            </div>
+                        </fieldset>
+                        <label class="vy-hk-check"><input type="checkbox" name="priority" value="1" checked> Clean next · priority</label>
+                        <p class="vy-hk-hint">It shows under their name on this board. Nothing is sent to their phone.</p>
+                    </div>
+                    <div class="vy-modal-foot">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="assign = null">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
                     </div>
@@ -354,119 +331,119 @@
             </div>
         </div>
 
-        {{-- ── ASSIGN-ALL confirm (the balance is computed + applied server-side) ──────────────────── --}}
-        <div x-show="assignAllOpen" x-cloak @keydown.escape.window="assignAllOpen = false"
-             style="position: fixed; inset: 0; z-index: 50; background: rgba(43,35,32,.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px;">
-            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
-                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
-            <div @click.outside="assignAllOpen = false" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 420px; max-height: 90vh; overflow: auto;" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assignall-t" tabindex="-1" x-trap.noscroll="assignAllOpen">
-                <h2 class="vy-card-title" style="margin-bottom: 2px;" id="vy-hk-assignall-t">Assign all unassigned</h2>
-                <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">Balanced by load &amp; who has the fewest open rooms — waiting-guest rooms first.</p>
-                <p style="font-size: 13px; color: var(--vy-ink); margin: 0 0 16px;">{{ $unassignedCount }} unassigned {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }} will be shared across {{ count($crew) }} {{ \Illuminate\Support\Str::plural('housekeeper', count($crew)) }}.</p>
+        {{-- ── ASSIGN ALL (the balance is computed + applied server-side) — the shared solid card ── --}}
+        <div x-show="assignAllOpen" x-cloak class="vy-modal-backdrop" @click.self="assignAllOpen = false" @keydown.escape.window="assignAllOpen = false">
+            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-labelledby="vy-hk-assignall-t" tabindex="-1" x-trap.noscroll="assignAllOpen">
                 <form method="POST" action="{{ route('app.housekeeping.assign-all') }}">
                     @csrf
-                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20a6 6 0 0 1 12 0M14 20a4.5 4.5 0 0 1 8 0"/></svg></span>
+                        <div class="vy-hk-head-text">
+                            <h2 class="vy-modal-title" id="vy-hk-assignall-t">Assign all unassigned</h2>
+                            <p class="vy-modal-sub">Shared by load — whoever has the fewest open rooms gets the next one, rooms with a guest waiting first.</p>
+                        </div>
+                        <button type="button" class="vy-modal-x" @click="assignAllOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                    </div>
+                    <div class="vy-modal-body">
+                        <p class="vy-hk-lead">{{ $unassignedCount }} unassigned {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }} will be shared across {{ count($crew) }} {{ \Illuminate\Support\Str::plural('housekeeper', count($crew)) }}.</p>
+                        <p class="vy-hk-hint">Each room shows under its housekeeper’s name on this board.</p>
+                    </div>
+                    <div class="vy-modal-foot">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="assignAllOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Assign {{ $unassignedCount }} {{ \Illuminate\Support\Str::plural('room', $unassignedCount) }}</button>
                     </div>
                 </form>
-                <p style="font-size: 11px; color: var(--vy-faint); margin: 10px 0 0;">Everyone sees their new rooms in their task list. Queues re-sort automatically.</p>
             </div>
         </div>
 
-        {{-- ── ROOM DETAIL modal (GATE 8.2 — was a right-side drawer; now a centered modal via the shared
-             .vy-modal-backdrop, whose grid centering survives x-show's inline-display toggle). ── --}}
-        <div x-show="detail" x-cloak @keydown.escape.window="detail = null" class="vy-modal-backdrop" style="z-index: 50;">
-            {{-- ⚠️ D2 pattern (proven, mechanical) + the D10 half: `max-height: 90vh; overflow: auto` so a tall
-                 dialog cannot push its own buttons off a short phone viewport with no way back to them. --}}
-            <div @click.outside="detail = null" class="vy-card vy-modal-card vy-fade" style="width: 100%; max-width: 440px; max-height: 90vh; overflow: auto;" x-show="detail" role="dialog" aria-modal="true" aria-label="Task detail" tabindex="-1" x-trap.noscroll="detail">
+        @endif
+
+        {{-- ── ROOM DETAIL — the shared solid card. ⚠️ 2026-10-05: it opens on load when the address names a task (`?task=` — where
+             the photo routes send you back), so adding or removing a photo lands back on the room, not on the bare list. ── --}}
+        <div x-show="detail" x-cloak class="vy-modal-backdrop" @click.self="detail = null" @keydown.escape.window="detail = null">
+            <div class="vy-modal vy-modal-card vy-hk-dlg" role="dialog" aria-modal="true" aria-label="Task detail" tabindex="-1" x-trap.noscroll="detail">
                 <template x-if="detail">
                     <div>
-                        <div class="vy-detail-head" style="margin-bottom: 12px;">
-                            <div>
-                                <div class="vy-detail-ref" x-text="detail.unit"></div>
-                                <div class="vy-u-sub" x-text="detail.type"></div>
+                        <div class="vy-modal-head">
+                            <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg></span>
+                            <div class="vy-hk-head-text">
+                                <h2 class="vy-modal-title" x-text="detail.unit"></h2>
+                                <p class="vy-modal-sub" x-text="detail.type + ' · ' + detail.day"></p>
                             </div>
-                            <button type="button" class="vy-btn vy-btn--ghost" style="padding: 4px 10px;" @click="detail = null">✕</button>
+                            <button type="button" class="vy-modal-x" @click="detail = null" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                         </div>
+                        <div class="vy-modal-body">
+                            {{-- Stage pipeline — the page's own words for the stages --}}
+                            <ol class="vy-hk-steps" aria-label="Stage">
+                                <template x-for="(step, i) in ['Pending', 'In progress', 'Clean', 'Inspected']" :key="step">
+                                    <li class="vy-hk-step" :class="['pending', 'in_progress', 'clean', 'inspected'].indexOf(detail.status) >= i && 'is-done'"><span class="vy-hk-step-bar"></span><span x-text="step"></span></li>
+                                </template>
+                            </ol>
 
-                        {{-- Stage pipeline --}}
-                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 16px;">
-                            <template x-for="(step, i) in ['Dirty','In progress','Clean','Inspected']" :key="step">
-                                <div style="flex: 1; text-align: center;">
-                                    <div :style="'height:4px;border-radius:2px;background:' + (['pending','in_progress','clean','inspected'].indexOf(detail.status) >= i ? '#C2410C' : 'var(--vy-hairline)')"></div>
-                                    <div style="font-size: 10px; color: var(--vy-muted); margin-top: 4px;" x-text="step"></div>
-                                </div>
+                            <dl class="vy-hk-facts">
+                                <dt>Housekeeper</dt><dd x-text="detail.assignee || 'Unassigned'"></dd>
+                                <template x-if="detail.elapsed"><dt>Elapsed</dt></template>
+                                <template x-if="detail.elapsed"><dd x-text="detail.elapsed.minutes + 'm / ' + detail.elapsed.expected + 'm'"></dd></template>
+                                <template x-if="detail.ready_by"><dt>Ready by</dt></template>
+                                <template x-if="detail.ready_by"><dd x-text="detail.ready_by"></dd></template>
+                            </dl>
+                            <template x-if="detail.urgency">
+                                <div class="vy-hk-urgent" x-text="detail.urgency.label"></div>
                             </template>
-                        </div>
 
-                        {{-- Info --}}
-                        <div class="vy-facts" style="margin-bottom: 14px;">
-                            <div class="vy-fact-label">Housekeeper</div>
-                            <div class="vy-fact-val"><span x-text="detail.assignee || 'Unassigned'"></span></div>
-                            <template x-if="detail.elapsed">
-                                <div class="vy-fact-label">Elapsed</div>
-                            </template>
-                            <template x-if="detail.elapsed">
-                                <div class="vy-fact-val"><span x-text="detail.elapsed.minutes + 'm / ' + detail.elapsed.expected + 'm'"></span></div>
-                            </template>
-                        </div>
-                        <template x-if="detail.urgency">
-                            <div class="vy-recon" style="margin-top: 0; margin-bottom: 12px;" x-text="detail.urgency.label"></div>
-                        </template>
+                            {{-- Reassign-from-detail (GATE 8.2) — the shared, gated assign dialog for THIS task. --}}
+                            @if ($canAssign)
+                                <button type="button" class="vy-btn vy-btn--ghost vy-hk-wide"
+                                        @click="assign = { id: detail.id, unit: detail.unit, type: detail.type }; detail = null"
+                                        x-text="detail && detail.assignee ? 'Reassign housekeeper' : 'Assign housekeeper'"></button>
+                            @endif
 
-                        {{-- Reassign-from-detail (GATE 8.2) — opens the shared, gated assign modal for THIS task
-                             (reuses the certified HousekeepingService::assign route; real-housekeeper-only). --}}
-                        @if ($canManage)
-                            <button type="button" class="vy-btn vy-btn--ghost" style="width: 100%; margin-bottom: 14px;"
-                                    @click="assign = { id: detail.id, unit: detail.unit, type: detail.type }; detail = null"
-                                    x-text="detail && detail.assignee ? 'Reassign housekeeper' : 'Assign housekeeper'"></button>
-                        @endif
-
-                        {{-- Photos --}}
-                        <h3 style="font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px;">Photos</h3>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-                            <template x-for="photo in detail.photos" :key="photo.id">
-                                <div style="position: relative;">
-                                    <img :src="photo.url" alt="Proof photo" style="width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline);">
-                                    @if ($canManage)
-                                        {{-- ⚠️ The SAME permission that gates the upload beneath and the route itself
-                                             (`housekeeping.manage`) — #30: the control and the route agree, so the UI
-                                             never invites a 403. Same × affordance and confirm as the maintenance
-                                             ticket's photo grid, so the two surfaces read identically. --}}
-                                        <form method="POST" :action="photoDeleteUrl(detail.id, photo.id)" style="margin:0;position:absolute;top:4px;right:4px;"
-                                              onsubmit="return confirm('Remove this photo? The image file is deleted — this cannot be undone.');">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" title="Remove photo" aria-label="Remove photo" style="width:20px;height:20px;border-radius:50%;border:none;background:rgba(43,35,32,.6);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center;">&times;</button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </template>
-                            <template x-if="detail.photos.length === 0">
-                                <span class="vy-muted" style="font-size: 12px;">Attach proof of the clean, or flag an issue.</span>
-                            </template>
-                        </div>
-                        @if ($canManage)
-                            <form method="POST" :action="detail ? photoUrl(detail.id) : ''" enctype="multipart/form-data">
-                                @csrf
-                                <label class="vy-btn vy-btn--ghost" style="cursor: pointer; display: inline-flex;">
-                                    Capture / upload
-                                    <input type="file" name="photo" accept="image/*" capture="environment" style="display: none;" onchange="this.form.submit()">
-                                </label>
-                            </form>
-
-                            {{-- Action --}}
-                            <template x-if="detail.next.length">
-                                <form method="POST" :action="detail ? statusUrl(detail.id) : ''" style="margin-top: 14px;">
+                            {{-- Photos --}}
+                            <h3 class="vy-hk-h3">Photos</h3>
+                            <div class="vy-hk-photos">
+                                <template x-for="photo in detail.photos" :key="photo.id">
+                                    <div class="vy-hk-photo">
+                                        <img :src="photo.url" alt="Proof photo">
+                                        @if ($canManage)
+                                            {{-- ⚠️ The SAME permission as the upload and the route (`housekeeping.manage`) — #30: the UI never
+                                                 invites a 403. Same × and confirm as the maintenance ticket's photos. --}}
+                                            <form method="POST" :action="photoDeleteUrl(detail.id, photo.id)" class="vy-hk-photo-x"
+                                                  onsubmit="return confirm('Remove this photo? The image file is deleted — this cannot be undone.');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" title="Remove photo" aria-label="Remove photo">&times;</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </template>
+                                <template x-if="detail.photos.length === 0">
+                                    <span class="vy-hk-none">Add a photo of the finished room.</span>
+                                </template>
+                            </div>
+                            @if ($canManage)
+                                <form method="POST" :action="detail ? photoUrl(detail.id) : ''" enctype="multipart/form-data">
                                     @csrf
-                                    <input type="hidden" name="status" :value="detail.next[0].to">
-                                    <button type="submit" class="vy-btn vy-btn--accent" style="width: 100%;" x-text="detail.next[0].label"></button>
+                                    <label class="vy-btn vy-btn--ghost vy-hk-upload">
+                                        Take or upload a photo
+                                        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-sr-only" onchange="this.form.submit()">
+                                    </label>
                                 </form>
+                            @endif
+                        </div>
+                        <div class="vy-modal-foot">
+                            @if ($canManage)
+                                <template x-if="detail.next.length">
+                                    <form method="POST" :action="detail ? statusUrl(detail.id) : ''" class="vy-hk-foot-form">
+                                        @csrf
+                                        <input type="hidden" name="status" :value="detail.next[0].to">
+                                        <button type="submit" class="vy-btn vy-btn--accent" x-text="detail.next[0].label"></button>
+                                    </form>
+                                </template>
+                            @endif
+                            <template x-if="detail.status === 'inspected'">
+                                <span class="vy-tag tone-in-house"><span class="vy-dot"></span>Guest-ready</span>
                             </template>
-                        @endif
-                        <template x-if="detail.status === 'inspected'">
-                            <div class="vy-tag tone-in-house" style="margin-top: 14px; display: inline-flex;"><span class="vy-dot"></span>Guest-ready</div>
-                        </template>
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="detail = null">Close</button>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -474,7 +451,3 @@
 
     </x-operator.shell>
 </div>
-
-@once
-    <style>[x-cloak] { display: none !important; }</style>
-@endonce

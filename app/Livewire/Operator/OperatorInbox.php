@@ -16,6 +16,7 @@ use App\Support\Inbox\MessageAttachments;
 use App\Support\Inbox\MessageTemplate;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Reservations\ReservationStage;
+use App\Support\Reservations\StayLabel;
 use App\Support\Schedule\StaffRoster;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -383,6 +384,9 @@ class OperatorInbox extends Component
             // EVERY thread, including the owner↔operator relay, which has no guest and no booking channel.
             // The sentence branches on what the thread actually is.
             'is_owner_thread' => $thread->owner_id !== null,
+            // ⚠️ 2026-10-05 — a DIRECT (manual) conversation sends nothing anywhere: the guest reads it in their own guest account,
+            //    if they have one. The words under the reply box say which; a booking channel keeps "replies wherever they booked".
+            'is_direct' => (string) $thread->channel === 'manual',
             'guest' => $this->guestCard($thread),
             'reservation' => $this->reservationCard($thread),
             'assignee' => $thread->assignedTo instanceof User ? ['name' => (string) $thread->assignedTo->name, 'initials' => $this->initials((string) $thread->assignedTo->name)] : null,
@@ -469,7 +473,7 @@ class OperatorInbox extends Component
             'author' => $out
                 ? ($m->author instanceof User ? (string) $m->author->name : ((string) $m->sender_label ?: 'Operator'))
                 : $this->displayName($thread),
-            'delivery' => $out ? $this->deliveryMeta((string) $m->delivery_status) : null,
+            'delivery' => $out ? $this->deliveryMeta((string) $m->delivery_status, (string) $m->channel) : null,
             // ⚠️ DEC-m (2026-09-30) — what an owner attached, for the staff they sent it to: each file opens through the
             //    inbox's own signed-in route; the rows are the owner portal's ({@see MessageAttachments::rows()}).
             'attachments' => app(MessageAttachments::class)->rows($m, 'app.inbox.attachment'),
@@ -481,10 +485,11 @@ class OperatorInbox extends Component
     /**
      * @return array{failed: bool, label: string}
      */
-    private function deliveryMeta(string $status): array
+    private function deliveryMeta(string $status, string $channel = ''): array
     {
         return match ($status) {
-            'delivered' => ['label' => 'Delivered', 'failed' => false],
+            // ⚠️ 2026-10-05 — Direct "delivers" by keeping the message in Vyrobel (ManualChannel sends nothing): "Saved", never "Delivered"
+            'delivered' => ['label' => $channel === 'manual' ? 'Saved' : 'Delivered', 'failed' => false],
             'sent' => ['label' => 'Sent', 'failed' => false],
             'queued' => ['label' => 'Sending…', 'failed' => false],
             'failed' => ['label' => 'Failed', 'failed' => true],
@@ -495,7 +500,7 @@ class OperatorInbox extends Component
     /**
      * Guest context card: NAME + channel + a derived-REAL "N stays · since {year}" (shared {@see GuestHistory}).
      *
-     * @return array{name: string, channel: string, stat: string|null, guest_id: string|null, is_vip: bool}
+     * @return array{name: string, channel: string, stat: string|null, guest_id: string|null, is_vip: bool, has_account: bool}
      */
     private function guestCard(MessageThread $thread): array
     {
@@ -518,6 +523,8 @@ class OperatorInbox extends Component
              * ⚠️ A thread with no linked guest is simply not VIP — never "unknown".
              */
             'is_vip' => $guest !== null && (bool) $guest->is_vip,
+            // whether the guest can sign in to their guest account — where a Direct message is read (a yes/no; never the hash)
+            'has_account' => $guest !== null && $guest->password !== null,
         ];
     }
 
@@ -565,7 +572,7 @@ class OperatorInbox extends Component
      * Guests with a current, upcoming or recent stay — the "New message" picker (name + a real stay meta line).
      * Name-only (#28); the encrypted contact is never shown. Ordered arriving-soonest first.
      *
-     * @return list<array{id: string, name: string, initials: string, meta: string}>
+     * @return list<array{id: string, name: string, initials: string, meta: string, has_account: bool, templates: array<string, string>}>
      */
     private function composeGuests(): array
     {
@@ -604,17 +611,17 @@ class OperatorInbox extends Component
             $unitLabel = $unit !== null ? (string) ($unit->name ?? $unit->code) : '';
             $in = CarbonImmutable::parse($reservation->check_in);
             $outDate = CarbonImmutable::parse($reservation->check_out);
-            $when = $in->toDateString() > $todayStr
-                ? 'Arrives '.$in->format('j M')
-                : ($outDate->toDateString() < $todayStr || (string) $reservation->status === 'checked_out'
-                    ? 'Checked out '.$outDate->format('j M')
-                    : 'In-house');
+            // ⚠️ 2026-10-05 — the ONE rule the Guests list's Stay column reads: "In-house" was said of a guest arriving today and
+            //    not yet checked in; "Checked out" of dates that passed with nobody checked in
+            $when = StayLabel::for($reservation, $today, 'j M');
 
             $rows[] = [
                 'id' => (string) $guest->getKey(),
                 'name' => $name,
                 'initials' => $this->initials($name),
                 'meta' => trim($when.($unitLabel !== '' ? ' · '.$unitLabel : '').' · '.ucfirst((string) $reservation->source)),
+                // where a Direct message is read: their guest account, if they have one (a yes/no, 2026-10-05)
+                'has_account' => $guest->password !== null,
                 // Each template pre-MERGED from the SAME context reservation (the ONE shared merge #83) so the
                 // New-message modal pre-fills the editable textarea — the operator reviews + edits, and the
                 // edited body is what sends (it wins over `template` in start()). No door codes/secrets (#33).

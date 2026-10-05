@@ -23,7 +23,11 @@ use LogicException;
 final class ActiveSessions
 {
     /**
-     * @return list<array{current: bool, device: string, ip: string, last_active: Carbon}>
+     * ⚠️ `key` names a session WITHOUT its id (2026-10-05): a session id is a bearer credential — whoever holds it is signed
+     * in — so the page that lists sessions must never print one. The key is a one-way hash of it, which
+     * {@see signOutOne()} matches back against this user's own rows.
+     *
+     * @return list<array{key: string, current: bool, device: string, ip: string, last_active: Carbon}>
      */
     public static function forUser(string $userId): array
     {
@@ -34,6 +38,7 @@ final class ActiveSessions
             ->orderByDesc('last_activity')
             ->get()
             ->map(fn ($row): array => [
+                'key' => self::key((string) $row->id),
                 'current' => $row->id === $currentId,
                 'device' => self::describeUserAgent((string) ($row->user_agent ?? '')),
                 'ip' => (string) ($row->ip_address ?? '—'),
@@ -41,6 +46,38 @@ final class ActiveSessions
             ])
             ->values()
             ->all();
+    }
+
+    /** The one-way name of a session, safe to print. */
+    public static function key(string $sessionId): string
+    {
+        return hash('sha256', $sessionId);
+    }
+
+    /**
+     * SIGN ONE OTHER SESSION OUT (2026-10-05, the operator Security page's per-device "Sign out"). Found only among THIS
+     * user's own rows, by its {@see key()}; the session in use is never touched (that is "Sign out", in the menu).
+     *
+     * ⚠️ Deleting the row IS the sign-out, and completely: sessions are stored in the database (SESSIONS 01), and no
+     * sign-in to the back office or the owner portal (the `web` guard these sessions belong to) sets a "remember me"
+     * cookie (📖 every `web` `Auth::login()` is called without one; only the guest portal's own guard offers one), so
+     * nothing can bring that session back. If either ever changes, this needs the password re-hash
+     * {@see signOutOthers()} uses — which is why that one, not this, is offered as the way to end every other session.
+     *
+     * @return string|null the device it signed out ("Safari · iPhone"), or null when no such session of this user exists
+     */
+    public static function signOutOne(Request $request, User $user, string $key): ?string
+    {
+        $current = $request->session()->getId();
+        foreach (DB::table('sessions')->where('user_id', (string) $user->getKey())->get(['id', 'user_agent']) as $row) {
+            if ((string) $row->id !== $current && hash_equals(self::key((string) $row->id), $key)) {
+                DB::table('sessions')->where('id', $row->id)->where('user_id', (string) $user->getKey())->delete();
+
+                return self::describeUserAgent((string) ($row->user_agent ?? ''));
+            }
+        }
+
+        return null;
     }
 
     /** An honest device label from a user-agent — "Chrome · Mac", "Unknown device" when absent (never invented). */

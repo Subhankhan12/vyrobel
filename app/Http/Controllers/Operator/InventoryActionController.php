@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\Property;
 use App\Models\RatePlan;
 use App\Models\RoomType;
@@ -17,14 +18,20 @@ use App\Support\Operator\OperatorWorkspace;
 use App\Support\Property\PropertyContext;
 use App\Support\Rates\RateScope;
 use App\Support\Rates\RatesListParams;
+use App\Support\Unit\InventoryDeletion;
+use App\Support\Unit\RoomTypePricing;
+use App\Support\Unit\UnitCodes;
 use App\Support\Unit\UnitListParams;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * OPERATOR INVENTORY CREATION — room types, units and rate plans (P-6 · Gate 1).
@@ -63,13 +70,30 @@ class InventoryActionController extends Controller
     /** The room-type kinds offered. A subset of the `room_types.kind` enum, matching PropertyController's TYPES idiom. */
     private const KINDS = ['room', 'apartment', 'villa', 'dorm'];
 
+    /**
+     * A room type's kind → the kind its units are written with. ⚠️ 2026-10-05 — the two enums differ in ONE word:
+     * `room_types.kind` says `dorm`, `units.unit_kind` says `dorm_bed`. Units were written with the room type's kind as
+     * it stood, so every unit added to a Dorm room type was refused by the database ("Data truncated for column
+     * 'unit_kind'", a server error page) — 🔬 reproduced by UnitsPassFiveTest before this map existed.
+     */
+    private const UNIT_KIND = ['room' => 'room', 'apartment' => 'apartment', 'villa' => 'villa', 'dorm' => 'dorm_bed'];
+
     /** One sentence for one refusal: a unit code is unique within its property (the database's own rule). */
     private const DUPLICATE_CODE = 'That unit code is already used in this property — choose another.';
+
+    /** The units table's unique index on (property, code), as the database names it in a violation (MySQL and MariaDB alike). */
+    private const UNIT_CODE_INDEX = 'units_property_id_code_unique';
 
     /** How far forward availability is materialised when a unit is added — the same year OwnerUnitRequestService uses. */
     private const AVAILABILITY_HORIZON_DAYS = 365;
 
-    public function storeRoomType(Request $request): RedirectResponse
+    /**
+     * ADD A ROOM TYPE — and, since 2026-10-05, its units in the same step (`unit_codes`, optional: "101-110"), so the
+     * simplest setup is one dialog rather than two plus one per room (the founder: "Add inventory … is so confusing").
+     * Nothing is written unless all of it can be: the codes are checked first, and the room type and its units are created
+     * in one transaction with one availability recompute.
+     */
+    public function storeRoomType(Request $request, AvailabilityService $availability): RedirectResponse
     {
         if ($guard = $this->readOnly('units', $request)) {
             return $guard;
@@ -89,26 +113,44 @@ class InventoryActionController extends Controller
             'std_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
             'bedrooms' => ['nullable', 'integer', 'min:0', 'max:30'],
             'property_id' => ['nullable', 'string'],
+            'unit_codes' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $property = $this->resolveProperty($request);
+        $codes = trim((string) ($data['unit_codes'] ?? '')) !== ''
+            ? $this->codesOrFail((string) $data['unit_codes'], (string) $property->getKey(), 'unit_codes')
+            : [];
 
-        $roomType = RoomType::create([
-            'property_id' => $property->getKey(),
-            'name' => $data['name'],
-            'code' => $this->uniqueCode(RoomType::query()->where('property_id', $property->getKey()), $data['name'], 'RT'),
-            'kind' => $data['kind'],
-            'std_occupancy' => (int) ($data['std_occupancy'] ?? $data['max_adults']),
-            'max_adults' => (int) $data['max_adults'],
-            'max_children' => (int) $data['max_children'],
-            'bedrooms' => isset($data['bedrooms']) ? (int) $data['bedrooms'] : null,
-            'is_virtual' => false,
-        ]);
+        $roomType = $this->sameCodeRefused('unit_codes', fn (): RoomType => DB::transaction(function () use ($data, $property, $codes, $availability): RoomType {
+            $roomType = RoomType::create([
+                'property_id' => $property->getKey(),
+                'name' => $data['name'],
+                'code' => $this->uniqueCode(RoomType::query()->where('property_id', $property->getKey()), $data['name'], 'RT'),
+                'kind' => $data['kind'],
+                'std_occupancy' => (int) ($data['std_occupancy'] ?? $data['max_adults']),
+                'max_adults' => (int) $data['max_adults'],
+                'max_children' => (int) $data['max_children'],
+                'bedrooms' => isset($data['bedrooms']) ? (int) $data['bedrooms'] : null,
+                'is_virtual' => false,
+            ]);
 
-        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice',
-            $roomType->name.' added. Next: add a unit to it, then a rate plan, and it can be sold.');
+            if ($codes !== []) {
+                $this->createUnits($roomType, $codes, null, null, $availability);
+            }
+
+            return $roomType;
+        }));
+
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $codes === []
+            ? $roomType->name.' added. Next: add its units — the real rooms guests stay in — then give it prices in Rates.'
+            : $roomType->name.' added with '.count($codes).' '.Str::plural('unit', count($codes)).': '.UnitCodes::summary($codes)
+                .'. Next: give it prices in Rates, and it can be booked.');
     }
 
+    /**
+     * ADD UNITS — one code, a list or a range ("101-110, 120"; {@see UnitCodes}), all to one room type, in one transaction
+     * with one availability recompute. A name is taken only when ONE unit is added; several are named by their codes.
+     */
     public function storeUnit(Request $request, AvailabilityService $availability): RedirectResponse
     {
         if ($guard = $this->readOnly('units', $request)) {
@@ -117,7 +159,7 @@ class InventoryActionController extends Controller
 
         $data = $request->validate([
             'room_type_id' => ['required', 'string'],
-            'code' => ['required', 'string', 'max:60'],
+            'code' => ['required', 'string', 'max:2000'],
             'name' => ['nullable', 'string', 'max:255'],
             'max_occupancy' => ['nullable', 'integer', 'min:1', 'max:30'],
         ]);
@@ -129,51 +171,193 @@ class InventoryActionController extends Controller
         // other unit write resolved inside the person's properties. Now the same rule as theirs.
         $roomType = $this->accessibleRoomType($data['room_type_id']);
 
-        // ⚠️ 2026-09-30 — THE DATABASE WAS THE ONLY CHECK. `units` is unique on (property, code), and this action had no
-        // rule for it, so a code already used in the property reached the unique index and came back as a 500. Refused
-        // here with a sentence instead, scoped to the ROOM TYPE's property (the unit is created there).
-        $request->validate(
-            ['code' => [Rule::unique('units', 'code')->where('property_id', $roomType->property_id)]],
-            ['code.unique' => self::DUPLICATE_CODE],
-        );
+        // ⚠️ 2026-09-30 — THE DATABASE WAS THE ONLY CHECK. `units` is unique on (property, code), so a code already used
+        // in the property reached the unique index and came back as a 500. Refused here with a sentence instead — every
+        // code of the list, scoped to the ROOM TYPE's property (the units are created there).
+        $codes = $this->codesOrFail($data['code'], (string) $roomType->property_id, 'code');
 
-        // ⚠️ ONE TRANSACTION, AND THE REASON IS SPECIFIC. The unit is written and then availability is
-        // recomputed; if the recompute threw in between, the tenant would own a unit that the storefront
+        // ⚠️ ONE TRANSACTION, AND THE REASON IS SPECIFIC. The units are written and then availability is
+        // recomputed; if the recompute threw in between, the tenant would own units that the storefront
         // can never offer — inventory that exists and is silently unsellable, which is the exact shape of
         // the defect this gate exists to remove. Mutation found the ordering: with the room-type lookup
         // broken, `Unit::create` had already run before `recompute()` raised, leaving a cross-org row
         // behind a 404 response.
-        $unit = DB::transaction(function () use ($data, $roomType, $availability): Unit {
-            $unit = Unit::create([
-                'property_id' => $roomType->property_id,
-                'room_type_id' => $roomType->getKey(),
-                'code' => $data['code'],
-                'name' => $data['name'] ?? $data['code'],
-                'unit_kind' => (string) $roomType->kind,
-                'max_occupancy' => isset($data['max_occupancy'])
-                    ? (int) $data['max_occupancy']
-                    : (int) ($roomType->max_adults + $roomType->max_children),
-                'housekeeping_status' => 'clean',
-                'condition_status' => 'in_service',
-                'is_active' => true,
-            ]);
+        $this->sameCodeRefused('code', fn () => DB::transaction(fn () => $this->createUnits($roomType, $codes,
+            count($codes) === 1 ? ($data['name'] ?? null) : null,
+            isset($data['max_occupancy']) ? (int) $data['max_occupancy'] : null,
+            $availability)));
 
-            // ⚠️⚠️ WITHOUT THIS THE ROOM TYPE STAYS UNSELLABLE, AND SILENTLY SO. `search()` calls
-            // `minAvailable()`, which reads `availability` rows and treats a MISSING row as zero — so a unit
-            // with no materialised availability is inventory the storefront will never offer. This is the
-            // same recompute `OwnerUnitRequestService::approve()` performs after creating a unit; reused,
-            // not reinvented. Derived from the code, not assumed: the fourth link in the sellable chain.
+        $priced = in_array((string) $roomType->getKey(), RoomTypePricing::pricedIds([(string) $roomType->getKey()]), true);
+        $one = count($codes) === 1;
+        $when = $priced
+            ? ($one ? 'It can be booked now.' : 'They can be booked now.')
+            : ($one ? 'It' : 'They').' can be booked once '.$roomType->name.' has prices — set them in Rates.';
+
+        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice', $one
+            ? $codes[0].' added to '.$roomType->name.'. '.$when
+            : count($codes).' units added to '.$roomType->name.': '.UnitCodes::summary($codes).'. '.$when);
+    }
+
+    /**
+     * DELETE A UNIT (2026-10-05, the founder: "there must be an option to edit and delete the unit").
+     *
+     * ⚠️⚠️ ONLY A UNIT NOTHING HAS RECORDED. {@see InventoryDeletion::unitBlockers()} holds why (the schema cascades a
+     * unit's history and orphans a sold stay's room); this action asks it again INSIDE the transaction, with the unit's row
+     * locked — 📖 InnoDB checks a new booking line's foreign key with a shared lock on this row, so a booking racing the
+     * delete either commits first (and is seen here) or waits and then fails loudly on the missing unit. Never neither.
+     *
+     * ⚠️ A REAL DELETE, not a soft one: `units` is unique on (property, code) INCLUDING soft-deleted rows, so a code
+     * deleted softly could never be used again — and nothing refers to this row. The audit row keeps what it was.
+     */
+    public function destroyUnit(Request $request, AvailabilityService $availability, AuditEventRecorder $audit, string $unit): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units', $request)) {
+            return $guard;
+        }
+
+        $model = $this->accessibleUnit($unit);   // property-scoped → another property's id 404s (DEC-k)
+
+        $blockers = DB::transaction(function () use ($model, $availability, $audit): array {
+            $locked = Unit::query()->whereKey($model->getKey())->lockForUpdate()->firstOrFail();
+            $blockers = InventoryDeletion::unitBlockers([(string) $locked->getKey()])[(string) $locked->getKey()] ?? [];
+            if ($blockers !== []) {
+                return $blockers;
+            }
+
+            $before = [
+                'code' => (string) $locked->code,
+                'name' => $locked->name,
+                'room_type_id' => (string) $locked->room_type_id,
+                'property_id' => (string) $locked->property_id,
+                'max_occupancy' => (int) $locked->max_occupancy,
+            ];
+            $locked->amenities()->detach();
+            $locked->forceDelete();
+
+            // its room type sells one fewer from today (the past has no availability to change: nothing was booked)
             $availability->recompute(
-                (string) $roomType->getKey(),
+                (string) $locked->room_type_id,
                 CarbonImmutable::today()->toDateString(),
                 CarbonImmutable::today()->addDays(self::AVAILABILITY_HORIZON_DAYS)->toDateString(),
             );
 
-            return $unit;
+            // PII-safe: a unit's code, name and size are neither guest nor contact data.
+            $audit->record('unit.deleted', $locked, $before, null);
+
+            return [];
         });
 
-        return $this->listReturn($request, redirect()->to(route('app.units')))->with('units_notice',
-            $unit->code.' added to '.$roomType->name.'. It is bookable for the next year once a rate plan has prices.');
+        $back = $this->listReturn($request, redirect()->to(route('app.units')));
+
+        if ($blockers !== []) {
+            return $back->with('units_error', 'Unit '.$model->code.' can’t be deleted — it has '.InventoryDeletion::sentence($blockers).' on record.'
+                .($model->is_active
+                    ? ' Pause it instead: it stops taking new bookings and keeps its history.'
+                    : ' It is already paused, so it takes no new bookings, and its history stays.'));
+        }
+
+        return $back->with('units_notice', "Unit {$model->code} deleted.");
+    }
+
+    /**
+     * EDIT A ROOM TYPE (2026-10-05) — its name and who it sleeps; its KIND only while it has no units.
+     *
+     * ⚠️ Why the kind locks: each unit copied its room type's kind when it was added (a Dorm's units are dorm beds), so a
+     * room type changed from Room to Villa would go on selling units that say "Room". ⚠️ `std_occupancy` is shown to guests
+     * ("Standard occupancy"); it was DERIVED from the adults when the room type was added ({@see storeRoomType()}), so while
+     * it still equals them it follows them — a value set some other way is kept, never above the new adults.
+     */
+    public function updateRoomType(Request $request, AuditEventRecorder $audit, string $roomType): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units', $request)) {
+            return $guard;
+        }
+
+        $model = $this->accessibleRoomType($roomType);   // DEC-k — inside the person's properties
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'kind' => ['nullable', 'in:'.implode(',', self::KINDS)],
+            'max_adults' => ['required', 'integer', 'min:1', 'max:30'],
+            'max_children' => ['required', 'integer', 'min:0', 'max:30'],
+        ]);
+
+        $kind = (string) ($data['kind'] ?? $model->kind);
+        if ($kind !== (string) $model->kind && Unit::withTrashed()->where('room_type_id', $model->getKey())->exists()) {
+            throw ValidationException::withMessages(['kind' => 'A room type’s kind can’t change while it has units — they were added as '
+                .InventoryDeletion::kindPlural((string) $model->kind).'.']);
+        }
+
+        $fields = ['name', 'kind', 'max_adults', 'max_children', 'std_occupancy'];
+        $before = $model->only($fields);
+        $adults = (int) $data['max_adults'];
+        $std = (int) $model->std_occupancy === (int) $model->max_adults ? $adults : min((int) $model->std_occupancy, $adults);
+
+        $model->update([
+            'name' => $data['name'],
+            'kind' => $kind,
+            'max_adults' => $adults,
+            'max_children' => (int) $data['max_children'],
+            'std_occupancy' => max(1, $std),
+        ]);
+
+        // PII-safe: a room type's name and sizes are neither guest nor contact data.
+        $audit->record('room_type.updated', $model, $before, $model->only($fields));
+
+        return $this->listReturn($request, redirect()->to(route('app.units')))
+            ->with('units_notice', 'Room type “'.$model->name.'” updated.');
+    }
+
+    /**
+     * DELETE A ROOM TYPE (2026-10-05) — only an EMPTY one: no unit (a soft-deleted one included — the database would
+     * cascade it), no booking, nothing else on record ({@see InventoryDeletion::roomTypeBlockers()}). ⚠️⚠️ The reason it
+     * must be checked: `reservation_units.room_type_id` CASCADEs — deleting a room type with history would delete sold
+     * stays. What goes with an empty one is its configuration: rate plans, nightly prices, seasons, restrictions,
+     * availability rows, amenities and photos (their files once the delete has committed).
+     */
+    public function destroyRoomType(Request $request, AuditEventRecorder $audit, string $roomType): RedirectResponse
+    {
+        if ($guard = $this->readOnly('units', $request)) {
+            return $guard;
+        }
+
+        $model = $this->accessibleRoomType($roomType);   // DEC-k
+        $files = [];
+
+        $blockers = DB::transaction(function () use ($model, $audit, &$files): array {
+            $locked = RoomType::query()->whereKey($model->getKey())->lockForUpdate()->firstOrFail();
+            $blockers = InventoryDeletion::roomTypeBlockers([(string) $locked->getKey()])[(string) $locked->getKey()] ?? [];
+            if ($blockers !== []) {
+                return $blockers;
+            }
+
+            $photos = Media::withTrashed()->where('mediable_type', $locked->getMorphClass())->where('mediable_id', $locked->getKey());
+            $files = $photos->get(['disk', 'path'])->map(fn (Media $m): array => [(string) $m->disk, (string) $m->path])->all();
+            $photos->forceDelete();
+            $locked->amenities()->detach();
+
+            $before = $locked->only(['name', 'kind', 'property_id', 'max_adults', 'max_children']);
+            $locked->forceDelete();
+
+            $audit->record('room_type.deleted', $locked, $before, null);
+
+            return [];
+        });
+
+        $back = $this->listReturn($request, redirect()->to(route('app.units')));
+
+        if ($blockers !== []) {
+            $hasUnits = Unit::withTrashed()->where('room_type_id', $model->getKey())->exists();
+
+            return $back->with('units_error', $model->name.' can’t be deleted — it has '.InventoryDeletion::sentence($blockers).' on record.'
+                .($hasUnits ? ' A room type can be deleted once it has no units.' : ' Deleting it would erase that or leave it pointing at nothing.'));
+        }
+
+        foreach ($files as [$disk, $path]) {
+            Storage::disk($disk)->delete($path);
+        }
+
+        return $back->with('units_notice', $model->name.' deleted.');
     }
 
     public function storeRatePlan(Request $request, AuditEventRecorder $audit): RedirectResponse
@@ -223,15 +407,6 @@ class InventoryActionController extends Controller
             $ratePlan->name.' created for '.$roomType->name.'. Use Set prices on its row to give it nightly prices — guests can be offered it once it has them.');
     }
 
-    /**
-     * The property these actions create against.
-     *
-     * ⚠️ RESOLVED FROM THE ACTOR'S OWN SCOPE, in this order: the explicitly selected property context, then
-     * an explicit tenant-scoped id, then — when the organisation has exactly one property — that one. A
-     * signup tenant is always in the last case. ⚠️ If the org has several and none is selected, the request
-     * is refused rather than guessed at: silently creating inventory on an arbitrary property is the
-     * `->first()` defect Phase 6a existed to remove.
-     */
     /**
      * EDIT A UNIT (F-6) — the operator realm could create a unit and never change it: no update route, no
      * delete route, no Livewire action, while `units` carries both `is_active` and `deleted_at`.
@@ -468,9 +643,33 @@ class InventoryActionController extends Controller
             : "Rate plan “{$model->name}” is off sale. Existing bookings keep the price they were sold at; no nightly prices were changed.");
     }
 
+    /**
+     * The property these actions create against.
+     *
+     * ⚠️ RESOLVED FROM THE ACTOR'S OWN SCOPE, in this order: the explicitly selected property context, then
+     * an explicit tenant-scoped id, then — when the organisation has exactly one property — that one. A
+     * signup tenant is always in the last case. ⚠️ If the org has several and none is selected, the request
+     * is refused rather than guessed at: silently creating inventory on an arbitrary property is the
+     * `->first()` defect Phase 6a existed to remove.
+     *
+     * ⚠️⚠️ 2026-10-05 — "ALL PROPERTIES" WAS EXACTLY THAT DEFECT. {@see PropertyContext::id()} answers the FIRST accessible
+     * property when "All properties" is selected, so a room type added from that view went to whichever property sorted
+     * first, without a word. Under "All" with more than one property, the form now names the property (the Add room type
+     * dialog asks), it must be one the person works in, and none chosen is refused, never guessed.
+     */
     private function resolveProperty(Request $request): Property
     {
-        $selected = app(PropertyContext::class)->id();
+        $context = app(PropertyContext::class);
+        if ($context->active() && $context->isAll() && count($context->accessibleIds()) > 1) {
+            $chosen = $request->input('property_id');
+            if (! is_string($chosen) || ! in_array($chosen, $context->accessibleIds(), true)) {
+                throw ValidationException::withMessages(['property_id' => 'Choose the property this room type belongs to.']);
+            }
+
+            return Property::query()->findOrFail($chosen);
+        }
+
+        $selected = $context->id();
 
         if (is_string($selected) && $selected !== '') {
             return Property::query()->findOrFail($selected);
@@ -507,6 +706,12 @@ class InventoryActionController extends Controller
      */
     public function updateArrivalInfo(Request $request, string $unit, ArrivalInfoService $arrival): RedirectResponse
     {
+        // ⚠️ 2026-10-05 — the one unit write with no pause guard: a paused workspace could still change door codes and
+        // wifi while every other unit write was refused. Reading them back (the audited reveal) stays allowed — it is a read.
+        if ($guard = $this->readOnly('units', $request)) {
+            return $guard;
+        }
+
         $target = $this->accessibleUnit($unit);
 
         $validated = $request->validate([
@@ -564,6 +769,91 @@ class InventoryActionController extends Controller
     }
 
     /**
+     * The codes typed ({@see UnitCodes}), refused in one sentence when the list is malformed or any code is already used in
+     * the property. ⚠️ A soft-deleted unit still holds its code — the unique index (property, code) counts it — so the
+     * check does too, or the database would answer with a 500 instead of this sentence.
+     *
+     * @return list<string>
+     */
+    private function codesOrFail(string $typed, string $propertyId, string $field): array
+    {
+        $parsed = UnitCodes::parse($typed);
+        if ($parsed['error'] !== null) {
+            throw ValidationException::withMessages([$field => $parsed['error']]);
+        }
+
+        $taken = Unit::withTrashed()->where('property_id', $propertyId)->whereIn('code', $parsed['codes'])
+            ->orderBy('code')->pluck('code')->map(fn ($c): string => (string) $c)->all();
+        if ($taken !== []) {
+            throw ValidationException::withMessages([$field => count($taken) === 1
+                ? 'Unit code '.$taken[0].' is already used in this property — choose another.'
+                : 'Already used in this property: '.UnitCodes::summary($taken).' — choose other codes.']);
+        }
+
+        return $parsed['codes'];
+    }
+
+    /**
+     * The database's own answer to a code it counts as already used, as a sentence (2026-10-05, the review). {@see codesOrFail()}
+     * compares codes the way PHP does — case only — but the column's collation also ignores ACCENTS ("Cafe" = "Café"), and a
+     * code added elsewhere between the check and the insert reaches the unique index too. Either ended in a server error page;
+     * the transaction rolls everything back (a room type added with its units included), and the person is told why.
+     * ⚠️ ONLY THAT INDEX (the second review): the save also rebuilds availability, whose own unique index (room type, date) can
+     * collide in a race — that is not a code problem, so any other index is rethrown, never relabelled.
+     *
+     * @template T
+     *
+     * @param  callable(): T  $write
+     * @return T
+     */
+    private function sameCodeRefused(string $field, callable $write): mixed
+    {
+        try {
+            return $write();
+        } catch (UniqueConstraintViolationException $e) {
+            if ($e->index !== self::UNIT_CODE_INDEX) {
+                throw $e;
+            }
+
+            throw ValidationException::withMessages([$field => 'One of these codes is already used in this property — codes that differ '
+                .'only by accents or capitals count as the same. Choose another.']);
+        }
+    }
+
+    /**
+     * Write the units and materialise their availability — called inside the caller's transaction.
+     *
+     * ⚠️⚠️ WITHOUT THE RECOMPUTE THE ROOM TYPE STAYS UNSELLABLE, AND SILENTLY SO. `search()` calls `minAvailable()`, which
+     * reads `availability` rows and treats a MISSING row as zero — so a unit with no materialised availability is inventory
+     * the storefront will never offer. This is the same recompute `OwnerUnitRequestService::approve()` performs after
+     * creating a unit; reused, not reinvented. Once per add, however many units it adds.
+     *
+     * @param  list<string>  $codes
+     */
+    private function createUnits(RoomType $roomType, array $codes, ?string $name, ?int $maxOccupancy, AvailabilityService $availability): void
+    {
+        foreach ($codes as $code) {
+            Unit::create([
+                'property_id' => $roomType->property_id,
+                'room_type_id' => $roomType->getKey(),
+                'code' => $code,
+                'name' => $name ?? $code,
+                'unit_kind' => self::UNIT_KIND[(string) $roomType->kind],
+                'max_occupancy' => $maxOccupancy ?? (int) ($roomType->max_adults + $roomType->max_children),
+                'housekeeping_status' => 'clean',
+                'condition_status' => 'in_service',
+                'is_active' => true,
+            ]);
+        }
+
+        $availability->recompute(
+            (string) $roomType->getKey(),
+            CarbonImmutable::today()->toDateString(),
+            CarbonImmutable::today()->addDays(self::AVAILABILITY_HORIZON_DAYS)->toDateString(),
+        );
+    }
+
+    /**
      * Back to the Units page as the operator had it, when the action was started there (`return=list`) — the address is
      * REBUILT from the page's own allow-listed settings ({@see UnitListParams::returnUrl()}), never taken from the request
      * as a URL. Anything else keeps its old destination.
@@ -607,8 +897,8 @@ class InventoryActionController extends Controller
 
         // ⚠️ 2026-09-30 — the rate-plan writes said "adding inventory is read-only" (they add no inventory), and with no
         //    resume date on record the sentence ended "until ." — both fixed: each surface names what is paused, and an
-        //    unknown date says so rather than printing nothing.
-        $what = $surface === 'rates' ? 'rate changes are' : 'adding inventory is';
+        //    unknown date says so rather than printing nothing. 2026-10-05 — the unit writes now edit and delete too.
+        $what = $surface === 'rates' ? 'rate changes are' : 'changes to units and room types are';
         $until = $workspace->resumeLabel();
 
         return $back->with($surface.'_error',

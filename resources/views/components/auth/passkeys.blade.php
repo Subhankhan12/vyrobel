@@ -8,6 +8,8 @@
     'sub' => '',
     'ghost' => '',
     'err' => '',
+    // The card's own spacing — the owner page stacks cards with it; the operator page lays them in a grid (2026-10-05).
+    'card' => 'margin-bottom:16px;',
 ])
 {{--
     THE SHARED PASSKEY CARD — ONE implementation for both realms (D24-2, 2026-08-15).
@@ -27,11 +29,13 @@
     unchanged by this pass.
 --}}
 {{-- ══ Passkeys (Wave B · GATE 4) — REAL WebAuthn; register runs the browser ceremony, remove re-auths ══ --}}
-<div class="vy-card vy-fade" style="margin-bottom:16px;" x-data="vyPasskeys()">
+<div class="vy-card vy-fade vy-passkeys" style="{{ $card }}" x-data="vyPasskeys()">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div style="max-width:60ch;">
             <h2 style="{{ $h2 }}">Passkeys</h2>
-            <p style="{{ $sub }}">Sign in with Face ID, Touch ID or your device PIN instead of a password — a passkey never leaves your device. Add one per device you use.</p>
+            {{-- ⚠️ 2026-10-05 — this said "a passkey never leaves your device": a synced one does (iCloud Keychain, Google
+                 Password Manager). What is true for every passkey: no password is typed, and nothing a phishing page can reuse. --}}
+            <p style="{{ $sub }}">Sign in with Face ID, Touch ID or your device PIN instead of typing a password. Add one on each device you use.</p>
         </div>
         <button type="button" class="vy-btn" @click="register()" x-bind:disabled="busy" style="flex-shrink:0;">
             <span x-show="!busy">Add a passkey</span><span x-show="busy" x-cloak>Working…</span>
@@ -46,19 +50,29 @@
                         <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">{{ $p['label'] }}</div>
                         <div style="font-size:11.5px;color:var(--vy-muted);">Last used {{ $p['last_used'] }}</div>
                     </div>
-                    <form method="POST" action="{{ route($removeRoute, $p['id']) }}" x-data="{ open: false }" style="flex-shrink:0;">
+                    {{-- ⚠️ 2026-10-05 — one id per passkey (it was the same id on every row, so each label named the first box), and a
+                         `_form` mark so a wrong password shows here, not in every card on the page that has a password field --}}
+                    <form method="POST" action="{{ route($removeRoute, $p['id']) }}" x-data="{ open: {{ old('_passkey') === $p['id'] && $errors->has('current_password') ? 'true' : 'false' }} }" style="flex-shrink:0;">
                         @csrf
+                        <input type="hidden" name="_form" value="passkey-remove">
+                        <input type="hidden" name="_passkey" value="{{ $p['id'] }}">
                         <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Remove</button>
-                        <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                            <label class="vy-sr-only" for="vy-lbl-passkeys-current-password">Your password</label>
-                            <input id="vy-lbl-passkeys-current-password" type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
-                            <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                        {{-- ⚠️ 2026-10-05 — x-show on a wrapper with no display of its own: beside an inline `display:flex` it opened as a
+                             block (x-show erases the inline display when it shows the element), the box and the button stacked --}}
+                        <div x-show="open" x-cloak>
+                            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                                <label class="vy-sr-only" for="vy-pk-pw-{{ $p['id'] }}">Your password</label>
+                                <input id="vy-pk-pw-{{ $p['id'] }}" type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
+                                <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                            </div>
                         </div>
                     </form>
                 </div>
             @endforeach
         </div>
-        @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+        @if (old('_form') === 'passkey-remove')
+            @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+        @endif
     @else
         <div style="font-size:13px;color:var(--vy-muted);margin-top:6px;">No passkeys yet. Add one to sign in without a password on this device.</div>
     @endif
@@ -68,6 +82,15 @@
         return {
             busy: false, msg: '',
             token: document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]')?.value,
+            // ⚠️ 2026-10-05 — the name the passkey keeps. It read only `navigator.userAgentData?.platform`, which Safari and
+            //    Firefox do not have, so a passkey added there was called "This device" for ever — on every other device too.
+            label() {
+                const ua = navigator.userAgent || '';
+                const platform = navigator.userAgentData?.platform
+                    || (/iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+                        : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : '');
+                return platform ? 'Passkey on ' + platform : 'Passkey';
+            },
             async register() {
                 if (!window.PublicKeyCredential) { this.msg = 'This browser doesn’t support passkeys.'; return; }
                 this.busy = true; this.msg = '';
@@ -78,7 +101,7 @@
                     const cred = await navigator.credentials.create({ publicKey: options });
                     const res = await fetch('{{ route($storeRoute) }}', {
                         method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': this.token, 'Content-Type': 'application/json', 'X-Passkey-Label': (navigator.userAgentData?.platform || 'This device') },
+                        headers: { 'X-CSRF-TOKEN': this.token, 'Content-Type': 'application/json', 'X-Passkey-Label': this.label() },
                         body: JSON.stringify(cred.toJSON()),
                     });
                     if (res.ok) { location.reload(); } else { this.msg = 'That passkey could not be registered. Try again.'; }

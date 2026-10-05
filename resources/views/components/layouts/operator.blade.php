@@ -1122,50 +1122,126 @@
 
         /* ---- Housekeeping kanban --------------------------------------------------------------- */
         .vy-kanban { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start; }
-        .vy-col {
-            background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15);
-            -webkit-backdrop-filter: blur(22px) saturate(1.15);
-            border: 1px solid var(--vy-glass-border); border-radius: var(--vy-r-lg);
-            box-shadow: var(--vy-shadow-sm); overflow: hidden;
-        }
-        .vy-col-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 13px 15px; border-bottom: 1px solid var(--vy-hairline); }
-        .vy-col-head .vy-col-title { display: flex; align-items: center; gap: 8px; font-family: var(--vy-display); font-size: 13px; font-weight: 600; }
-        .vy-col-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-        .vy-col-count { font-size: 11px; font-weight: 700; color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); border-radius: var(--vy-r-pill); padding: 2px 9px; }
-        /* Warm column accents (no green/red), keyed to the real status enum */
-        .vy-col.tone-pending .vy-col-dot { background: var(--vy-amber-2); }
-        .vy-col.tone-pending { border-top: 2px solid var(--vy-amber-2); }
-        .vy-col.tone-in-progress .vy-col-dot { background: var(--vy-accent-3); }
-        .vy-col.tone-in-progress { border-top: 2px solid var(--vy-accent-3); }
-        .vy-col.tone-clean .vy-col-dot { background: var(--vy-accent); }
-        .vy-col.tone-clean { border-top: 2px solid var(--vy-accent); }
-        .vy-col.tone-inspected .vy-col-dot { background: var(--vy-dark); }
-        .vy-col.tone-inspected { border-top: 2px solid var(--vy-dark); }
-
-        .vy-col-body { padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 60px; }
-        .vy-hk-card {
-            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border);
-            border-radius: var(--vy-r-md); box-shadow: var(--vy-shadow-sm); padding: 12px 13px;
-            display: flex; flex-direction: column; gap: 9px;
-        }
-        .vy-hk-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-        .vy-hk-unit { font-family: var(--vy-display); font-size: 13.5px; font-weight: 600; }
-        .vy-hk-date { font-size: 11px; color: var(--vy-muted); font-variant-numeric: tabular-nums; flex: none; }
-        .vy-hk-type { font-size: 11.5px; color: var(--vy-muted); }
-        .vy-hk-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
         .vy-prio { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; border-radius: var(--vy-r-pill); padding: 2px 8px; }
         .vy-prio.tone-high { color: var(--vy-accent); background: rgba(194, 65, 12, 0.12); }
         .vy-prio.tone-normal { color: var(--vy-muted); background: rgba(120, 70, 40, 0.08); }
         .vy-prio.tone-low { color: var(--vy-faint); background: rgba(120, 70, 40, 0.05); }
 
-        .vy-hk-assignee { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--vy-ink); }
-        .vy-hk-assignee .vy-mini-avatar { width: 18px; height: 18px; border-radius: 50%; background: var(--vy-grad); color: #fff; font-size: 9px; font-weight: 600; display: grid; place-items: center; }
-        .vy-hk-unassigned { font-size: 11px; color: var(--vy-amber); }
-
-        .vy-hk-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 3px; border-top: 1px solid var(--vy-hairline); margin-top: 1px; }
-        .vy-hk-actions form { margin: 0; }
-        .vy-hk-col-empty { text-align: center; color: var(--vy-faint); font-size: 12px; padding: 18px 8px; }
+        /* ---- Housekeeping (2026-10-05 — his "text is not visible completely … search box … its symbol not well-aligned … Board and
+           list buttons design is not good"): rebuilt on the shared list kit. The old .vy-col / .vy-hk-top/-unit/-date/-meta/-actions
+           rules styled a board this page no longer had; they are gone, and every rule below is used. --------------------------- */
+        .vy-hk-notice { margin-bottom: 14px; background: rgba(224, 146, 30, .10); border: 1px solid rgba(224, 146, 30, .32); border-left: 3px solid var(--vy-amber); border-radius: 12px; padding: 11px 15px; font-size: 13px; font-weight: 500; color: var(--vy-ink); }
+        .vy-hk-notice.is-info { background: rgba(255, 252, 248, .72); border-color: rgba(120, 70, 40, .14); border-left-color: var(--vy-accent); }
+        .vy-hk-flash { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .vy-hk-undo { margin: 0; flex: none; }
+        .vy-hk-undo .vy-btn { padding: 3px 14px; font-size: 12px; }
+        .vy-hk-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
+        .vy-hk-bar .vy-gl-chips { flex: 0 1 auto; max-width: 100%; }
+        /* Board | List — one segmented control, never the browser's own button */
+        .vy-hk-views { display: inline-flex; align-items: center; gap: 3px; height: 40px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, .07); border: 1px solid rgba(120, 70, 40, .10); box-sizing: border-box; flex: none; }
+        .vy-hk-view { -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; gap: 7px; height: 100%; padding: 0 14px; border: 0; border-radius: var(--vy-r-pill); background: transparent; color: var(--vy-on-grad); font: inherit; font-size: 13px; font-weight: 600; line-height: 1; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s; }
+        .vy-hk-view:hover { color: var(--vy-ink); }
+        .vy-hk-view.is-on { background: rgba(255, 255, 255, .95); color: var(--vy-accent-text); box-shadow: 0 2px 8px rgba(150, 90, 50, .16); }
+        .vy-hk-view:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-hk-view svg { flex: none; }
+        /* the board */
+        .vy-hk-crew { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+        .vy-hk-crew-who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .vy-hk-crew-name { font-size: 13px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-hk-crew-load { font-size: 11.5px; color: var(--vy-on-grad); }
+        .vy-hk-crew-none { font-size: 12.5px; color: var(--vy-on-grad); margin: 0; }
+        .vy-hk-crew-end { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .vy-hk-avatar { width: 30px; height: 30px; font-size: 12px; flex: none; }
+        .vy-hk-avatar.is-sm { width: 22px; height: 22px; font-size: 10px; }
+        .vy-hk-lane { padding: 12px; min-width: 0; }
+        .vy-hk-lane-head { -webkit-appearance: none; appearance: none; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; padding: 2px; border: 0; border-radius: 8px; background: none; font: inherit; color: var(--vy-ink); cursor: pointer; user-select: none; }
+        .vy-hk-lane-head:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-hk-lane-end { display: inline-flex; align-items: center; gap: 7px; }
+        .vy-hk-lane-n { font-size: 12px; font-weight: 600; color: var(--vy-on-grad); font-variant-numeric: tabular-nums; }
+        .vy-hk-chev { color: var(--vy-on-grad); transition: transform .15s; }
+        .vy-hk-chev.is-open { transform: rotate(180deg); }
+        .vy-hk-lane-empty { padding: 14px 6px; text-align: center; font-size: 12px; color: var(--vy-on-grad); }
+        .vy-hk-card { padding: 11px 12px; margin-bottom: 10px; border-left: 3px solid var(--vy-accent); min-width: 0; }
+        .vy-hk-card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 8px; flex-wrap: wrap; }
+        .vy-hk-room { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 0; font: inherit; font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+        .vy-hk-room:hover { color: var(--vy-accent-text); }
+        .vy-hk-room:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; border-radius: 4px; }
+        .vy-hk-sub { display: block; font-size: 12px; color: var(--vy-on-grad); margin-top: 2px; overflow-wrap: anywhere; }
+        .vy-hk-tags { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 6px; min-width: 0; }
+        .vy-hk-card-who { margin-top: 8px; }
+        .vy-hk-who { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--vy-ink); min-width: 0; overflow-wrap: anywhere; }
+        .vy-hk-none { font-size: 12px; color: var(--vy-on-grad); }
+        .vy-hk-small { padding: 4px 12px; font-size: 12px; }
+        .vy-hk-elapsed { margin-top: 8px; }
+        .vy-hk-elapsed-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--vy-on-grad); }
+        .vy-hk-elapsed.is-over .vy-hk-elapsed-row { color: var(--vy-accent-text); }
+        .vy-hk-elapsed-bar { height: 4px; border-radius: 2px; background: var(--vy-hairline); margin-top: 3px; overflow: hidden; }
+        .vy-hk-elapsed-bar span { display: block; height: 100%; background: #E0A63A; }
+        .vy-hk-elapsed.is-over .vy-hk-elapsed-bar span { background: var(--vy-accent); }
+        .vy-hk-card-foot { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--vy-hairline); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .vy-hk-inline { display: inline; margin: 0; }
+        /* the day a room is for — the page lists every day's cleaning */
+        .vy-hk-day { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; white-space: nowrap; color: var(--vy-on-grad); }
+        .vy-hk-day.is-today { color: var(--vy-ink); }
+        .vy-hk-day.is-overdue { color: var(--vy-accent-text); }
+        /* the list — a SIZE CONTAINER, as Guests: a narrow card stacks each room, every fact named, nothing running past the card */
+        .vy-hk .vy-gl-card { container: vy-hk-list / inline-size; }
+        .vy-hk .vy-gl-table { min-width: 0; }
+        .vy-hk .vy-hk-c-day, .vy-hk .vy-hk-c-stage, .vy-hk .vy-hk-c-ready { white-space: nowrap; }
+        .vy-hk .vy-hk-c-act { text-align: right; }
+        .vy-hk-c-room .vy-hk-tags, .vy-hk-c-room .vy-hk-sub { margin-top: 4px; }
+        @container vy-hk-list (max-width: 820px) {
+            .vy-hk .vy-gl-table, .vy-hk .vy-gl-table tbody { display: block; }
+            .vy-hk .vy-gl-table thead { display: none; }
+            .vy-hk .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 14px 16px; border-top: 1px solid var(--vy-hairline); }
+            .vy-hk .vy-gl-table tbody tr:first-child { border-top: none; }
+            .vy-hk .vy-gl-table tbody td { display: block; padding: 0; border: 0; text-align: left; }
+            .vy-hk .vy-gl-table tbody td.vy-hk-c-room { flex: 1 1 100%; min-width: 0; }
+            .vy-hk .vy-gl-table tbody td[data-label] { display: inline-flex; align-items: baseline; gap: 6px; font-size: 12.5px; }
+            .vy-hk .vy-gl-table tbody td[data-label]::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-on-grad); }
+            .vy-hk .vy-gl-table tbody td.vy-hk-c-act { margin-left: auto; }
+            .vy-hk .vy-gl-table tbody td[colspan] { flex: 1 1 100%; }
+        }
+        /* the dialogs — the shared solid card */
+        .vy-hk-dlg { max-width: 500px; }
+        .vy-hk-head-text { flex: 1; min-width: 0; }
+        .vy-hk-head-text .vy-modal-title { overflow-wrap: anywhere; }
+        .vy-hk-pick { border: 0; margin: 0 0 12px; padding: 0; min-width: 0; }
+        .vy-hk-pick legend { padding: 0; margin-bottom: 8px; }
+        .vy-hk-options { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
+        .vy-hk-option { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--vy-hairline); border-radius: 12px; cursor: pointer; font-size: 13px; }
+        .vy-hk-option:has(input:checked) { border-color: rgba(217, 102, 46, .35); background: rgba(217, 102, 46, .07); }
+        .vy-hk-option:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
+        .vy-hk-option input { accent-color: var(--vy-accent); margin: 0; flex: none; }
+        .vy-hk-option-name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+        .vy-hk-option-name .vy-tag { margin-left: 6px; }
+        .vy-hk-option-load { flex: none; font-size: 12px; color: var(--vy-on-grad); }
+        .vy-hk-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--vy-ink); cursor: pointer; }
+        .vy-hk-check input { accent-color: var(--vy-accent); }
+        .vy-hk-hint { font-size: 12px; color: var(--vy-on-grad); margin: 8px 0 0; }
+        .vy-hk-lead { font-size: 13.5px; color: var(--vy-ink); margin: 0; }
+        .vy-hk-dlg .vy-modal-foot .vy-btn { height: 42px; justify-content: center; }
+        .vy-hk-dlg .vy-modal-foot .vy-btn--ghost { flex: 0 0 auto; min-width: 104px; }
+        .vy-hk-foot-form { flex: 1; display: flex; margin: 0; }
+        .vy-hk-foot-form .vy-btn { flex: 1; }
+        .vy-hk-steps { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0 0 16px; padding: 0; }
+        .vy-hk-step { display: flex; flex-direction: column; gap: 5px; font-size: 11px; color: var(--vy-on-grad); text-align: center; }
+        .vy-hk-step-bar { height: 4px; border-radius: 2px; background: var(--vy-hairline); }
+        .vy-hk-step.is-done { color: var(--vy-ink); font-weight: 600; }
+        .vy-hk-step.is-done .vy-hk-step-bar { background: var(--vy-accent); }
+        .vy-hk-facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0 0 14px; font-size: 13px; }
+        .vy-hk-facts dt { color: var(--vy-on-grad); }
+        .vy-hk-facts dd { margin: 0; color: var(--vy-ink); font-weight: 600; }
+        .vy-hk-urgent { margin: 0 0 12px; padding: 8px 12px; border-radius: 10px; background: rgba(194, 65, 12, .08); color: var(--vy-accent-text); font-size: 12.5px; font-weight: 600; }
+        .vy-hk-wide { width: 100%; justify-content: center; margin-bottom: 14px; }
+        .vy-hk-h3 { font-size: 13px; font-weight: 700; color: var(--vy-ink); margin: 6px 0 8px; }
+        .vy-hk-photos { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .vy-hk-photo { position: relative; }
+        .vy-hk-photo img { display: block; width: 72px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vy-hairline); }
+        .vy-hk-photo-x { position: absolute; top: 4px; right: 4px; margin: 0; }
+        .vy-hk-photo-x button { width: 20px; height: 20px; border-radius: 50%; border: 0; background: rgba(43, 35, 32, .6); color: #fff; font-size: 12px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+        .vy-hk-upload { cursor: pointer; display: inline-flex; }
+        .vy-hk-upload:focus-within { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
 
         /* Maintenance board — reuses the housekeeping card/kanban; a few work-order-specific bits. */
         .vy-prio.tone-urgent { color: var(--vy-amber); background: rgba(224, 146, 30, 0.16); }
@@ -1292,6 +1368,28 @@
         .vy-fact-label { font-size: 9.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--vy-muted); }
         .vy-fact-val { font-size: 13.5px; font-weight: 500; margin-top: 3px; }
         /* #105 Work Order detail — the wireframe's 4-col fact grid + responsive 2-col stack */
+        /* ---- the work order page (2026-10-05 — his "note progress part ordered buttons design is not cool") ------------------------ */
+        .vy-wo-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px 16px; }
+        .vy-wo-facts > div { min-width: 0; }
+        .vy-wo-facts .vy-wo-fval { overflow-wrap: anywhere; }
+        .vy-wo-composer { display: flex; gap: 11px; margin-top: 4px; padding-top: 16px; border-top: 1px solid rgba(120, 70, 40, .10); }
+        .vy-wo-me { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(140deg, #F0A57A, #D9662E); display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 600; flex: none; }
+        .vy-wo-compose { flex: 1; min-width: 0; }
+        .vy-wo-kinds { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(120, 70, 40, .06); border: 1px solid rgba(120, 70, 40, .10); margin-bottom: 10px; max-width: 100%; box-sizing: border-box; }
+        .vy-wo-kind { -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: var(--vy-on-grad); font: inherit; font-size: 13px; font-weight: 500; line-height: 1; cursor: pointer; white-space: nowrap; transition: background .15s, color .15s, box-shadow .15s; }
+        .vy-wo-kind:hover { color: var(--vy-ink); }
+        .vy-wo-kind.is-on { background: rgba(255, 255, 255, .95); color: var(--vy-accent-text); font-weight: 600; box-shadow: 0 2px 8px rgba(150, 90, 50, .16); }
+        .vy-wo-kind:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-wo-kind-tick { display: none; flex: none; }
+        .vy-wo-kind.is-on .vy-wo-kind-tick { display: block; }
+        .vy-wo-partrow { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 10px; margin-bottom: 10px; }
+        .vy-wo-partrow .vy-field, .vy-wo-manage-form .vy-field { margin: 0; }
+        .vy-wo-textarea { width: 100%; min-height: 64px; resize: vertical; box-sizing: border-box; }
+        .vy-wo-compose-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+        .vy-wo-compose-note { font-size: 12px; color: var(--vy-on-grad); }
+        .vy-wo-compose-foot .vy-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
+        .vy-wo-manage-form { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+        @media (max-width: 560px) { .vy-wo-partrow { grid-template-columns: minmax(0, 1fr); } }
         .vy-wo-flabel { font-size: 10px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--vy-faint); margin-bottom: 5px; }
         .vy-wo-fval { font-size: 13px; font-weight: 500; }
         .vy-wo-fsub { font-size: 11px; color: var(--vy-faint); margin-top: 1px; }
@@ -1920,6 +2018,9 @@
         .vy-tag.tone-dirty .vy-dot { background: var(--vy-amber-2); }
         .vy-tag.tone-inspected { background: rgba(66, 52, 44, 0.12); color: var(--vy-dark); }
         .vy-tag.tone-inspected .vy-dot { background: var(--vy-dark); }
+        /* ⚠️ 2026-10-05 — "In progress" (housekeeping) had no tone at all: the tag and its dot were blank */
+        .vy-tag.tone-in-progress { background: rgba(224, 166, 58, 0.16); color: var(--vy-amber-text); }
+        .vy-tag.tone-in-progress .vy-dot { background: var(--vy-hk-progress); }
         .vy-tag.tone-in-service { background: rgba(138, 128, 121, 0.14); color: var(--vy-muted); }
         .vy-tag.tone-in-service .vy-dot { background: var(--vy-muted); }
         .vy-tag.tone-ooo { background: rgba(194, 65, 12, 0.14); color: var(--vy-accent); }
@@ -2204,6 +2305,28 @@
         .vy-mt-cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
         .vy-mt-rail { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
         .vy-mt-table { min-width: 940px; }
+        /* ⚠️ 2026-10-05 (his "text is not visible completely") — a SIZE CONTAINER, as Guests: 🔬 the 945 px table ran 213 px past its 734 px
+           card at a 1,024 px window (589 px at 390), the right columns behind a hidden scrollbar. A narrow card now stacks each work
+           order — its title and status, then the facts, each named; the sortable headers become a "Sort by" row. */
+        .vy-mnt .vy-gl-card { container: vy-mt-list / inline-size; }
+        .vy-mnt .vy-mt-table { min-width: 0; }
+        @container vy-mt-list (max-width: 980px) {
+            .vy-mnt .vy-gl-table, .vy-mnt .vy-gl-table tbody, .vy-mnt .vy-gl-table thead { display: block; }
+            .vy-mnt .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
+            .vy-mnt .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-mnt .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+            .vy-mnt .vy-gl-table thead th:not([aria-sort]):not(.vy-gl-check) { display: none; }
+            .vy-mnt .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 10px 14px 16px; border-top: 1px solid var(--vy-hairline); }
+            .vy-mnt .vy-gl-table tbody tr:first-child { border-top: none; }
+            .vy-mnt .vy-gl-table tbody td { display: block; padding: 0; border: 0; text-align: left; }
+            .vy-mnt .vy-gl-table tbody td.vy-gl-check { flex: none; order: 0; }
+            .vy-mnt .vy-gl-table tbody td.vy-mt-ordercell { flex: 1 1 0; min-width: 0; order: 1; }
+            .vy-mnt .vy-gl-table tbody td.vy-mt-c-status { flex: none; order: 2; }
+            .vy-mnt .vy-gl-table tbody td.vy-gl-actcol { flex: none; order: 3; width: auto; position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
+            .vy-mnt .vy-gl-table tbody tr::after { content: ""; order: 4; flex-basis: 100%; height: 0; margin-top: -8px; }
+            .vy-mnt .vy-gl-table tbody td[data-label]:not(.vy-mt-c-status) { flex: none; order: 5; display: inline-flex; align-items: baseline; gap: 5px; font-size: 12.5px; }
+            .vy-mnt .vy-gl-table tbody td[data-label]:not(.vy-mt-c-status)::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-on-grad); }
+        }
         .vy-mt-table td.vy-mt-ordercell { min-width: 240px; }
         .vy-mt-unit { font-family: var(--vy-display); font-weight: 600; white-space: nowrap; }
         /* priority: the colour is on the marker, the text stays readable (AA) at every level */
@@ -2343,34 +2466,107 @@
         .vy-ul-step-text span { font-size: 12px; line-height: 1.45; color: var(--vy-on-grad); }
         .vy-ul-step .vy-btn { margin-top: auto; }
 
-        .vy-ul-table { min-width: 900px; }
+        /* the two sections — room types, then units — each named, so the page reads top-down: what is sold, then the rooms
+           (⚠️ 2026-10-05, his "It is so confusing": the room types sat under the whole table, with no section name) */
+        .vy-ul-section { margin-top: 26px; }
+        .vy-ul-sechead { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 12px; }
+        .vy-ul-sechead-text { min-width: 0; }
+        .vy-ul-sectitle { margin: 0; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink); }
+        .vy-ul-secsub { margin: 3px 0 0; font-size: 12.5px; color: var(--vy-on-grad); }
+
         .vy-ul-table td.vy-ul-unitcell { min-width: 220px; }
         .vy-ul-unit { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .vy-ul-thumb { flex: none; width: 46px; height: 34px; border-radius: 8px; object-fit: cover; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
-        .vy-ul-thumb.is-empty { display: block; background: linear-gradient(135deg, #F0A57A, #D9662E); }
+        /* no photo: a quiet tile with the kind's mark (🖥 the old orange block on every row read as an image that failed) */
+        .vy-ul-thumb.is-empty { display: grid; place-items: center; background: rgba(120, 70, 40, 0.07); color: var(--vy-on-grad); box-shadow: none; }
         .vy-ul-who { min-width: 0; }
         .vy-ul-code { font-family: var(--vy-display); font-size: 14px; font-weight: 600; color: var(--vy-ink); }
         .vy-ul-table .vy-gl-contact > span + span::before { content: "·"; margin: 0 6px; }
+        /* a long unit name wraps within its own line rather than widening the column (🖥 it pushed "Garden Studio" and
+           "Operator-owned" onto two lines at 1,280 px) */
+        .vy-ul-table .vy-gl-contact { max-width: 240px; }
+        .vy-ul-table .vy-gl-none { white-space: nowrap; }
         .vy-ul-table tr.is-paused .vy-ul-thumb { opacity: .45; }
         .vy-tag.tone-paused { background: rgba(120, 70, 40, 0.1); color: var(--vy-on-grad); }
+        .vy-ul-type { display: block; color: var(--vy-ink); }
+        .vy-ul-kind { display: block; margin-top: 2px; font-size: 11.5px; color: var(--vy-on-grad); }
+        .vy-ul-table .vy-gl-actcol { width: 88px; }
+        .vy-ul-rowacts { display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; }
+        /* Edit, in plain sight on every row and room type (📖 before, only inside the ⋯ menu) — the row menu's own look */
+        .vy-ul-iconbtn { width: 32px; height: 32px; padding: 0; border-radius: 50%; display: inline-grid; place-items: center; border: 1px solid transparent; background: transparent; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, border-color .15s ease, color .15s ease; }
+        .vy-ul-iconbtn:hover { background: #fff; border-color: var(--vy-glass-border); color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); }
+        .vy-ul-iconbtn.is-danger:hover { color: #8F3110; }
+        .vy-ul-iconbtn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* ⚠️ 2026-10-05 (his "text is not visible completely") — a SIZE CONTAINER, as Guests and Maintenance: 🔬 the 900 px table ran
+           168 px past its 734 px card at a 1,024 px window. A narrow card now stacks each unit — its code and actions, then the
+           facts, each named; the sortable headers become a "Sort by" row. */
+        .vy-units .vy-gl-card { container: vy-ul-list / inline-size; }
+        .vy-units .vy-ul-table { min-width: 0; }
+        @container vy-ul-list (max-width: 860px) {
+            .vy-units .vy-gl-table, .vy-units .vy-gl-table tbody, .vy-units .vy-gl-table thead { display: block; }
+            .vy-units .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
+            .vy-units .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-units .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+            .vy-units .vy-gl-table thead th:not([aria-sort]):not(.vy-gl-check) { display: none; }
+            .vy-units .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 10px 14px 16px; border-top: 1px solid var(--vy-hairline); }
+            .vy-units .vy-gl-table tbody tr:first-child { border-top: none; }
+            .vy-units .vy-gl-table tbody td { display: block; padding: 0; border: 0; text-align: left; }
+            .vy-units .vy-gl-table tbody td.vy-gl-check { flex: none; order: 0; }
+            .vy-units .vy-gl-table tbody td.vy-ul-unitcell { flex: 1 1 0; min-width: 0; order: 1; }
+            .vy-units .vy-gl-table tbody td.vy-gl-actcol { flex: none; order: 2; width: auto; position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
+            .vy-units .vy-gl-table tbody tr::after { content: ""; order: 3; flex-basis: 100%; height: 0; margin-top: -8px; }
+            .vy-units .vy-gl-table tbody td[data-label] { flex: none; order: 4; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; }
+            .vy-units .vy-gl-table tbody td[data-label]::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-on-grad); }
+            .vy-units .vy-ul-type, .vy-units .vy-ul-kind { display: inline; margin: 0; font-size: 12.5px; }
+            .vy-units .vy-ul-kind::before { content: "· "; }
+        }
 
-        .vy-ul-types { margin-top: 26px; }
-        .vy-ul-types-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 12px; }
-        .vy-ul-types-sub { margin: 0; font-size: 12.5px; color: var(--vy-on-grad); }
-        .vy-ul-types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
-        .vy-card.vy-ul-rt { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
-        .vy-ul-rt-cover { position: relative; height: 128px; background: center / cover no-repeat; }
-        .vy-ul-rt-cover.is-empty { background: linear-gradient(135deg, #F6C6B4 0%, #E8703A 55%, #C2410C 100%); }
-        .vy-ul-rt-kind { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.92); font-size: 11.5px; font-weight: 600; color: var(--vy-ink); box-shadow: var(--vy-shadow-sm); }
-        .vy-ul-rt-body { display: flex; flex: 1; flex-direction: column; gap: 5px; padding: 16px 18px 18px; }
-        .vy-ul-rt-name { margin: 0; font-family: var(--vy-display); font-size: 16px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
-        .vy-ul-rt-meta, .vy-ul-rt-count { margin: 0; font-size: 12.5px; color: var(--vy-on-grad); }
+        /* room types — compact cards: what it is, what keeps it from being booked, and its actions (📖 before, a 128 px banner
+           and every photo control on each card) */
+        .vy-ul-types-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+        .vy-card.vy-ul-rt { display: flex; flex-direction: column; gap: 8px; padding: 16px 16px 14px; }
+        .vy-ul-rt-top { display: flex; align-items: flex-start; gap: 12px; }
+        .vy-ul-rt-thumb { flex: none; width: 52px; height: 52px; border-radius: 12px; object-fit: cover; }
+        .vy-ul-rt-thumb.is-empty { display: grid; place-items: center; background: rgba(232, 112, 58, 0.1); color: var(--vy-accent-text); }
+        .vy-ul-rt-id { flex: 1; min-width: 0; }
+        .vy-ul-rt-name { margin: 2px 0 0; font-family: var(--vy-display); font-size: 15.5px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-ul-rt-meta { margin: 3px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vy-ul-rt-acts { display: flex; gap: 2px; margin: -4px -6px 0 0; }
+        .vy-ul-rt-count { margin: 4px 0 0; font-size: 12.5px; color: var(--vy-on-grad); }
         .vy-ul-rt-count strong { font-weight: 600; color: var(--vy-ink); }
-        .vy-ul-rt-add { align-self: flex-start; margin-top: 6px; padding: 7px 13px; font-size: 12.5px; }
-        .vy-ul-rt-photos { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--vy-hairline); }
-        .vy-ul-rt-photos .vy-pm-thumbs { gap: 8px; }
-        .vy-pm-thumb.vy-ul-rt-thumb { width: 92px; height: 66px; }
+        .vy-ul-rt-state { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 7px; margin: 0; font-size: 12.5px; font-weight: 600; }
+        .vy-ul-rt-state.is-ok { color: rgb(38, 110, 70); }
+        .vy-ul-rt-state.is-warn { color: var(--vy-amber-text); }
+        .vy-ul-rt-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .vy-ul-rt-state a { margin-left: 4px; color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 2px; }
+        .vy-ul-rt-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--vy-hairline); }
+        .vy-ul-rt-btn { padding: 7px 12px; font-size: 12.5px; }
+        .vy-ul-rt-n { margin-left: 2px; padding: 0 6px; border-radius: var(--vy-r-pill); background: rgba(120, 70, 40, 0.08); font-size: 11px; font-variant-numeric: tabular-nums; }
         .vy-pm-file:focus-visible + .vy-pm-add { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+
+        /* the photos dialog — the controls always shown (they appeared on hover only, so a phone never saw them) */
+        .vy-ul-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .vy-ul-photo { position: relative; margin: 0; border-radius: var(--vy-r-md); overflow: hidden; border: 1px solid var(--vy-glass-border); background: #fff; }
+        .vy-ul-photo.is-cover { border-color: var(--vy-accent); }
+        .vy-ul-photo img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+        .vy-ul-photo-ctrls { display: flex; justify-content: center; gap: 4px; padding: 6px; }
+        .vy-ul-photo-ctrls form { margin: 0; }
+        .vy-ul-photo-ctrls .vy-pm-btn { border: 1px solid var(--vy-glass-border); }
+        .vy-ul-rt-upload { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .vy-ul-rt-upload .vy-gl-note { margin: 0; }
+
+        /* the dialogs' own bits */
+        .vy-ul-addsto { margin: 0 0 14px; font-size: 13px; color: var(--vy-on-grad); }
+        .vy-ul-addsto strong { font-weight: 600; color: var(--vy-ink); }
+        .vy-gl-note + .vy-ul-codesfield { margin-top: 16px; }
+        .vy-ul-codes-note { margin: 7px 0 0; font-size: 12px; line-height: 1.5; color: var(--vy-on-grad); }
+        .vy-ul-codes-note.is-ok { color: rgb(38, 110, 70); }
+        .vy-ul-codes-note.is-err { color: #8F3110; }
+        .vy-ul-kindlock { display: flex; flex-direction: column; margin: 0 0 15px; font-size: 13px; color: var(--vy-ink); }
+        .vy-ul-why p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-ul-why .vy-gl-note { margin: 0; }
+        .vy-ul-paused { margin: 0 0 14px; padding: 10px 12px; border-radius: var(--vy-r-sm); background: rgba(224, 166, 58, 0.14); font-size: 12.5px; line-height: 1.5; color: var(--vy-amber-text); }
+        .vy-modal-foot .vy-ul-foot-del { margin-right: auto; color: #8F3110; }
 
         .vy-ul-kinds .vy-choice-row { grid-auto-flow: row; grid-template-columns: repeat(4, minmax(0, 1fr)); }
         .vy-ul-narrow { max-width: 150px; }
@@ -2387,6 +2583,74 @@
         @media (max-width: 560px) {
             .vy-ul-kinds .vy-choice-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .vy-ul-reveal { margin: 0 18px 16px; }
+        }
+
+        /* ── Security (2026-10-05, his "this page design is not good") — one header, then two named groups of equal cards
+           (Signing in · Devices and access) and your data. 🖥 Before: a 560 px column beside full-width cards, the right half
+           of the page empty, 101 inline styles. The shared two-factor and passkey cards keep their own inner styles (the owner
+           page renders them too); here they are grid items like the rest. ⚠️ Every display is in a class. ─────────────── */
+        .vy-sec-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px 28px; padding: 22px 24px; }
+        .vy-sec-hero-id { display: flex; align-items: center; gap: 16px; flex: 1 1 300px; min-width: 0; }
+        .vy-sec-shield { flex: none; width: 54px; height: 54px; border-radius: 17px; display: grid; place-items: center; color: #fff; }
+        .vy-sec-shield.is-ok { background: linear-gradient(140deg, #3F8F5E, #23683F); box-shadow: 0 10px 22px rgba(35, 104, 63, 0.3); }
+        .vy-sec-shield.is-warn { background: linear-gradient(140deg, #E8703A, #C2410C); box-shadow: 0 10px 22px rgba(194, 65, 12, 0.32); }
+        .vy-sec-hero-text { min-width: 0; }
+        .vy-sec-state { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 7px; padding: 3px 11px 3px 9px; border-radius: var(--vy-r-pill); font-size: 11.5px; font-weight: 600; }
+        /* (the inks measured against their own washes: green 5.75, amber 5.39 — the badge's first colours were under AA) */
+        .vy-sec-state.is-ok { background: rgba(26, 127, 75, 0.1); color: rgb(18, 99, 58); }
+        .vy-sec-state.is-warn { background: rgba(178, 106, 8, 0.12); color: rgb(133, 76, 4); }
+        .vy-sec-state-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .vy-sec-title { margin: 0; font-family: var(--vy-display); font-size: 20px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink); }
+        .vy-sec-sub { margin: 3px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vy-sec-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; flex: 1.4 1 420px; }
+        .vy-sec-tile { display: flex; flex-direction: column; align-items: flex-start; padding: 13px 14px; border-radius: 15px; background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-hairline); color: inherit; text-decoration: none; transition: background .15s ease, box-shadow .15s ease, transform .15s ease; }
+        .vy-sec-tile:hover { background: rgba(255, 255, 255, 0.85); box-shadow: var(--vy-shadow-sm); transform: translateY(-2px); }
+        .vy-sec-tile:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-sec-tile-ico { width: 28px; height: 28px; margin-bottom: 9px; border-radius: 9px; display: grid; place-items: center; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent-text); }
+        .vy-sec-tile-n { font-family: var(--vy-display); font-size: 22px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
+        .vy-sec-tile-l { margin-top: 4px; font-size: 11.5px; color: var(--vy-on-grad); }
+        .vy-sec-group { margin-top: 26px; }
+        .vy-sec-group-title { margin: 0 0 12px; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink); }
+        .vy-sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }
+        .vy-sec-grid > .vy-card { min-width: 0; margin: 0; }
+        /* the tall password card beside two-factor and passkeys, the sign-in accounts across below — no stretched empty card */
+        .vy-sec-grid--signin > #sec-password { grid-row: span 2; }
+        .vy-sec-grid--signin > #sec-connections { grid-column: 1 / -1; }
+        .vy-sec-card { display: flex; flex-direction: column; }
+        .vy-sec-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .vy-sec-card-title { margin: 0 0 4px; font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
+        .vy-sec-card-sub { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--vy-on-grad); }
+        /* a label that wraps (🖥 "Confirm new password" at 1,024 px) keeps the two boxes level */
+        .vy-sec-form .vy-gl-fields { margin-bottom: 0; align-items: end; }
+        .vy-sec-hint { margin: 0 0 14px; }
+        .vy-sec-list { margin: 0; padding: 0; list-style: none; }
+        .vy-sec-row, .vy-sec-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--vy-hairline); }
+        .vy-sec-empty { flex-direction: column; align-items: flex-start; gap: 2px; }
+        .vy-sec-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .vy-sec-row-title { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
+        .vy-sec-empty .vy-sec-row-title { font-weight: 500; }
+        .vy-sec-row-meta { font-size: 12px; line-height: 1.45; color: var(--vy-on-grad); overflow-wrap: anywhere; }
+        .vy-sec-mono { font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+        .vy-sec-this { font-size: 10px; }
+        .vy-sec-small { padding: 7px 13px; font-size: 12.5px; white-space: nowrap; }
+        .vy-sec-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 12px; }
+        .vy-sec-why { max-width: 260px; text-align: right; }
+        .vy-sec-why p { margin: 6px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--vy-on-grad); }
+        .vy-sec-inline { margin: 0 0 10px; font-size: 12.5px; font-weight: 500; }
+        .vy-sec-inline.is-ok { color: rgb(34, 110, 68); }
+        .vy-sec-inline.is-err { color: #8F3110; }
+        .vy-sec-data { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-top: 26px; }
+        .vy-sec-data .vy-sec-card-sub { margin-bottom: 0; }
+        .vy-sec-dlg { max-width: 460px; }
+        .vy-sec-dlg .vy-modal-body > .vy-gl-note:first-child { margin-top: 0; }
+        @media (max-width: 900px) {
+            .vy-sec-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); flex-basis: 100%; }
+        }
+        @media (max-width: 560px) {
+            .vy-sec-hero { padding: 18px; }
+            .vy-sec-grid { grid-template-columns: minmax(0, 1fr); }
+            .vy-sec-row { flex-wrap: wrap; }
+            .vy-sec-why { max-width: none; text-align: left; }
         }
 
         @media (max-width: 1100px) {
@@ -2423,14 +2687,6 @@
         .vy-seg-opt.is-checked { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
         .vy-seg-opt.is-disabled { opacity: .5; cursor: not-allowed; }
         .vy-help { font-size: 11.5px; color: var(--vy-faint); margin-top: 8px; line-height: 1.45; }
-
-        /* Unit assignment — horizontal checkbox pills */
-        .vy-units { display: flex; flex-wrap: wrap; gap: 8px; }
-        .vy-unitpill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px 8px 10px; border-radius: var(--vy-r-pill); font-size: 13px; font-weight: 500; color: var(--vy-ink); background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-glass-border); cursor: pointer; transition: all .14s ease; }
-        .vy-unitpill input { position: absolute; opacity: 0; width: 0; height: 0; }
-        .vy-unitpill .vy-ubox { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--vy-faint); display: grid; place-items: center; flex: none; color: transparent; transition: all .14s ease; }
-        .vy-unitpill.is-checked { border-color: var(--vy-accent-border); color: var(--vy-accent); background: rgba(232, 112, 58, 0.08); font-weight: 600; }
-        .vy-unitpill.is-checked .vy-ubox { background: var(--vy-grad); border-color: transparent; color: #fff; }
 
         /* ---- Unit thumbnails + room-type photo manager ---------------------------------------- */
         .vy-u-cell { display: flex; align-items: center; gap: 11px; }

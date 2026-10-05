@@ -464,6 +464,34 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Before a sentence points at a page, check the reader can open it.** "Add a reply-to address in Settings" was shown to three of
   the five roles that may send, and Settings refuses all three (`properties.manage`) — "the UI never invites a 403" covers words as
   well as buttons (Verified 2026-10-05, the second review; `config/authorization.php` read).
+- **A test that asks for a parameter the page never reads opens the page's default — and can pass by coincidence.**
+  `InboxStageVipBadgeTest` sent `?thread=` (the inbox reads `?c=`), so it opened the wrong conversation and passed only because
+  another element printed the word it looked for; when that element changed, it went red. Use the real parameter, and assert the
+  element itself, not the word anywhere on the page (Verified 2026-10-05, the full suite).
+- **A test must post what the form posts.** Posting `_form` by hand made the marker in the VIEW untestable: removing it changed
+  nothing in the request. Read the form's hidden fields from the rendered page and post those (Verified 2026-10-05, SC-M20/M21).
+- **"Shown once" is not "shown in the right place."** With a form's marker gone its error moved to the page's top banner — still
+  exactly once, so a count stayed green. Assert where it is (Verified 2026-10-05, SC-M20/M21).
+- **The column's collation is the uniqueness rule, not PHP's comparison.** The parser refused "a1, A1" but not "Cafe, Café", which the
+  `utf8mb4` collation counts as one — the second insert hit the unique index as an error page. Catch the database's own answer and say
+  it in words (Verified 2026-10-05, 🔬 "Duplicate entry … units_property_id_code_unique"; the review).
+- **Two enums that name the same thing must be mapped, never copied across.** A unit took its room type's `kind` as it stood, and the
+  two lists differ in one word (`dorm` / `dorm_bed`), so every unit added to a Dorm room type failed (Verified 2026-10-05, 🔬 "Data
+  truncated for column 'unit_kind'").
+- **A remove can lock you out as surely as an add.** The allowlist guarded adding a first rule against shutting its author out, but
+  removing the one rule that admitted them did exactly that, with other rules left. Guard both directions with the middleware's own
+  check (`IpUtils::checkIp`, `$request->ip()`) (Verified 2026-10-05, 🖥 refused with the reason, then the last rule removed).
+- **A session id is a sign-in — never print one.** The per-device sign-out names each session by a one-way hash matched back among
+  the person's own rows (Verified 2026-10-05, the test asserts the raw id absent).
+- **A swap script must prove the engine answered before it runs the suite.** The MariaDB tools are keg-only (not on the PATH), so
+  `mariadbd-safe` was "command not found", the server never started, and the suite began against no database at all; the run is
+  only valid when `mariadb-admin ping` answered and `SELECT VERSION()` read MariaDB (Verified 2026-10-05).
+- **Stopping `php artisan test` does not stop its `pest` worker.** The worker kept running — against MySQL once it was back — and
+  blocked the next run (`ops/proc-check.sh` found it). Stop the child too, and check with the guard before starting again (Verified
+  2026-10-05).
+- **A class written for one thing can match another page's wrapper.** `.vy-units { display: flex }` (unit pills no page uses) also
+  matched the Units page's root. Search a class before reusing a name — and remove dead rules (Verified 2026-10-05, 🔬 the computed
+  display).
 
 
 ---
@@ -488,7 +516,7 @@ file (Verified 2026-10-04: the re-run, 4,280/4,280).
 
 **The MariaDB engine swap (both engines are a gate).** The engines SWAP on 3306 and never run side by side: on
 another port the concurrency workers still hit 3306. Steps: `brew services stop mysql@8.4`, then
-`mariadbd-safe --no-defaults --basedir=/opt/homebrew/opt/mariadb@11.8 --datadir=/opt/homebrew/var/mariadb118 --port=3306 --socket=/tmp/mysql.sock`,
+`/opt/homebrew/opt/mariadb@11.8/bin/mariadbd-safe --no-defaults --basedir=/opt/homebrew/opt/mariadb@11.8 --datadir=/opt/homebrew/var/mariadb118 --port=3306 --socket=/tmp/mysql.sock` (⚠️ full path: the formula is keg-only — `mariadbd-safe`, `mariadb` and `mariadb-admin` are not on the PATH; V 2026-10-05),
 run the suite, then `brew services start mysql@8.4`. `--no-defaults` is required. The app sets READ COMMITTED itself (L12b).
 (Reported: CLAUDE.md Commands.)
 

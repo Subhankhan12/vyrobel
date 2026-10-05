@@ -7,8 +7,12 @@ namespace App\Livewire;
 use App\Http\Controllers\Operator\InventoryActionController;
 use App\Livewire\Concerns\ResolvesCurrentProperty;
 use App\Livewire\Operator\Concerns\FormatsOperatorData;
+use App\Models\Property;
 use App\Models\RoomType;
+use App\Models\Unit;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Unit\InventoryDeletion;
+use App\Support\Unit\RoomTypePricing;
 use App\Support\Unit\UnitListParams;
 use App\Support\Unit\UnitRows;
 use Illuminate\Contracts\View\View;
@@ -29,6 +33,13 @@ use Livewire\Component;
  * ⚠️ ONE NAME FOR ONE THING. The switch that stops new bookings (`is_active`) is PAUSE / RESUME — the words the owner
  * portal already uses for the same flag. "Out of service" is the maintenance CONDITION shown beside it; the old control
  * was called "Take out of service" and meant something else.
+ *
+ * ⚠️⚠️ 2026-10-05 (the founder: "there must be an option to edit and delete the unit. And Add inventory section design
+ * and functionality is not good. It is so confusing"): Edit on every row in plain sight and Delete in its menu — each row
+ * says BEFOREHAND whether Delete can remove it and why not ({@see InventoryDeletion}); room types above the units as
+ * compact cards with Edit, Delete, their photos in a dialog and what keeps each from being booked; several units added at
+ * once; the setup guide kept until something has a price ({@see RoomTypePricing}); and under "All properties" the add
+ * dialog asks which property instead of silently using the first.
  *
  * @phpstan-import-type UnitRow from UnitRows
  *
@@ -73,8 +84,25 @@ class UnitsList extends Component
             fn (array $r): array => $r + ['actions' => $this->actions($r, $canWrite, $canPrice, $canManageUnits)],
             $rowsOf->sort($filtered, $state['sort'], $state['dir']),
         ), $state);
+        // whether Delete can remove each unit ON THIS PAGE, and why not — said before anyone presses it (the controller asks
+        // again, inside its transaction, at the moment of the delete)
+        $blockers = $canWrite ? InventoryDeletion::unitBlockers(array_map(fn (array $r): string => (string) $r['id'], $rows->items())) : [];
+        $rows->setCollection($rows->getCollection()->map(fn (array $r): array => $this->withDeletion($r, $blockers)));
 
         $roomTypes = RoomType::query()->whereIn('property_id', $readIds)->with('photos')->orderBy('name')->get();
+        $roomTypeIds = $roomTypes->map(fn (RoomType $rt): string => (string) $rt->getKey())->values()->all();
+        $priced = RoomTypePricing::pricedIds($roomTypeIds);
+        $typeBlockers = $canWrite ? InventoryDeletion::roomTypeBlockers($roomTypeIds) : [];
+        // every unit row a room type holds, a soft-deleted one too (its kind is locked while any exist)
+        $unitRowsByType = Unit::withTrashed()->whereIn('room_type_id', $roomTypeIds)->groupBy('room_type_id')
+            ->selectRaw('room_type_id, count(*) as n')->pluck('n', 'room_type_id')->map(fn ($n): int => (int) $n)->all();
+        $rtProperty = $roomTypes->mapWithKeys(fn (RoomType $rt): array => [(string) $rt->getKey() => (string) $rt->property_id])->all();
+        /** the properties on this page, by id — to name each room type's when the page spans more than one */
+        $propertyNames = Property::query()->whereIn('id', $readIds)->orderBy('name')->pluck('name', 'id')
+            ->mapWithKeys(fn ($name, $id): array => [(string) $id => (string) $name])->all();
+        $manyProperties = count($propertyNames) > 1;
+        $cards = $roomTypes->map(fn (RoomType $rt): array => $this->card($rt, $all, $priced, $typeBlockers, $unitRowsByType,
+            $manyProperties ? ($propertyNames[(string) $rt->property_id] ?? null) : null))->all();
 
         return view('livewire.units-list', [
             'viewer' => $this->viewer(),
@@ -97,15 +125,26 @@ class UnitsList extends Component
             'pages' => $this->pageLinks($state, $rows),
             'sortedBy' => $this->sortedBy($state),
             'exportUrl' => route('app.units.export', UnitListParams::clean($this->params($state))),
-            'roomTypeCards' => $roomTypes->map(fn (RoomType $rt): array => $this->card($rt, $all))->all(),
+            'roomTypeCards' => $cards,
+            // each card's facts, once, by id — what the room type dialogs open with (the page script's `type()`)
+            'roomTypesById' => collect($cards)->map(fn (array $c): array => array_intersect_key($c, array_flip(
+                ['id', 'name', 'kind', 'kind_key', 'adults', 'children', 'units', 'unit_rows', 'deletable', 'blockers'])))->keyBy('id')->all(),
             'roomTypeOptions' => $roomTypes->map(fn (RoomType $rt): array => [
                 'value' => (string) $rt->getKey(),
                 'label' => (string) $rt->name,
-                'hint' => $this->unitKindLabel((string) $rt->kind).' · sleeps '.((int) $rt->max_adults + (int) $rt->max_children),
+                // the room type's own kind word and size — and, when the page spans properties, which one it is in
+                'hint' => self::KINDS[(string) $rt->kind].' · sleeps '.((int) $rt->max_adults + (int) $rt->max_children)
+                    .($manyProperties ? ' · '.($propertyNames[(string) $rt->property_id] ?? '') : ''),
             ])->all(),
             'kindChoices' => array_map(fn (string $value, string $label): array => ['value' => $value, 'label' => $label, 'icon' => self::KIND_ICONS[$value]],
                 array_keys(self::KINDS), self::KINDS),
-            'setup' => ['room_types' => $roomTypes->count(), 'units' => count($all)],
+            'kindIcons' => self::KIND_ICONS,
+            // a real sequence — and it is finished only when something can be sold: a room type, a unit, and a price
+            'setup' => ['room_types' => $roomTypes->count(), 'units' => count($all), 'priced' => count($priced)],
+            // ⚠️ "All properties" with more than one: the Add room type dialog asks (the controller refuses a guess)
+            'propertyChoice' => $this->viewingAllProperties && $manyProperties,
+            'propertyOptions' => array_map(fn (string $id, string $name): array => ['value' => $id, 'label' => $name], array_keys($propertyNames), $propertyNames),
+            'addsTo' => $propertyNames[$this->currentPropertyId] ?? (string) (array_values($propertyNames)[0] ?? ''),
             // D18-5 — the ONE per-unit pricing form needs the room types and the units beneath them, labelled `name ?: code`.
             'unitPriceRoomTypes' => $roomTypes->map(fn (RoomType $rt): array => ['id' => (string) $rt->getKey(), 'name' => (string) $rt->name])->all(),
             'unitPriceUnits' => collect($all)->groupBy('room_type_id')
@@ -123,15 +162,26 @@ class UnitsList extends Component
             'boot' => [
                 'urls' => [
                     'edit' => route('app.inventory.units.update', ['unit' => '__ID__']),
+                    'destroy' => route('app.inventory.units.destroy', ['unit' => '__ID__']),
                     'active' => route('app.inventory.units.active', ['unit' => '__ID__']),
                     'arrival' => route('app.inventory.units.arrival-info', ['unit' => '__ID__']),
                     'reveal' => route('app.inventory.units.arrival-info.reveal', ['unit' => '__ID__']),
                     'bulkActive' => route('app.inventory.units.bulk-active'),
+                    'rtUpdate' => route('app.inventory.room-types.update', ['roomType' => '__ID__']),
+                    'rtDestroy' => route('app.inventory.room-types.destroy', ['roomType' => '__ID__']),
                 ],
                 'q' => $state['q'],
+                // the property a room type is added to when the dialog does not ask (its codes are checked against it)
+                'home' => $this->currentPropertyId,
                 'retry' => $canWrite ? $this->editRetry() : null,
                 'addRetry' => $canWrite ? $this->addRetry() : null,
+                'rtRetry' => $canWrite ? $this->roomTypeRetry() : null,
                 'reveal' => $this->reveal()['unit'] ?? null,
+                'photos' => $canManageUnits ? $this->photosReopen() : null,
+                // the codes already used in each property, so the add dialogs can say so while typing (the server decides)
+                'taken' => collect($all)->groupBy(fn (array $r): string => $rtProperty[$r['room_type_id']] ?? '')
+                    ->map(fn ($g): array => $g->pluck('code')->values()->all())->all(),
+                'roomTypeProperty' => $rtProperty,
             ],
         ]);
     }
@@ -194,9 +244,25 @@ class UnitsList extends Component
         }
         if ($canWrite) {
             $actions[] = $row['is_active'] ? 'pause' : 'resume';
+            // always offered to a writer: the dialog either deletes it or says what is on record and offers Pause
+            $actions[] = 'delete';
         }
 
         return $actions;
+    }
+
+    /**
+     * A row with whether Delete can remove it, and why not ({@see InventoryDeletion}).
+     *
+     * @param  array<string, mixed>  $row
+     * @param  array<string, list<string>>  $blockers
+     * @return array<string, mixed>
+     */
+    private function withDeletion(array $row, array $blockers): array
+    {
+        $found = $blockers[(string) $row['id']] ?? null;
+
+        return $row + ['deletable' => $found === [], 'blockers' => $found ?? []];
     }
 
     /**
@@ -298,21 +364,45 @@ class UnitsList extends Component
     // ── Room types ───────────────────────────────────────────────────────────────────────────────
 
     /**
+     * One room type card — and what keeps it from being booked, in the order a person fixes it: no units, none taking
+     * bookings, no prices.
+     *
      * @param  list<UnitRow>  $all
+     * @param  list<string>  $priced
+     * @param  array<string, list<string>>  $blockers
+     * @param  array<string, int>  $unitRows
      * @return array<string, mixed>
      */
-    private function card(RoomType $rt, array $all): array
+    private function card(RoomType $rt, array $all, array $priced, array $blockers, array $unitRows, ?string $property): array
     {
-        $units = array_filter($all, fn (array $r): bool => $r['room_type_id'] === (string) $rt->getKey());
+        $id = (string) $rt->getKey();
+        $units = array_filter($all, fn (array $r): bool => $r['room_type_id'] === $id);
+        $bookable = count(array_filter($units, fn (array $r): bool => $r['bookable']));
+        $isPriced = in_array($id, $priced, true);
+
+        [$state, $tone] = match (true) {
+            $units === [] => ['No units yet', 'warn'],
+            $bookable === 0 => ['No unit taking bookings', 'warn'],
+            ! $isPriced => ['No prices yet', 'warn'],
+            default => ['Units and prices set', 'ok'],
+        };
 
         return [
-            'id' => (string) $rt->getKey(),
+            'id' => $id,
             'name' => (string) $rt->name,
-            'kind' => $this->unitKindLabel((string) $rt->kind),
+            'kind' => self::KINDS[(string) $rt->kind],
+            'kind_key' => (string) $rt->kind,
+            'property' => $property,
             'adults' => (int) $rt->max_adults,
             'children' => (int) $rt->max_children,
             'units' => count($units),
-            'bookable' => count(array_filter($units, fn (array $r): bool => $r['bookable'])),
+            'bookable' => $bookable,
+            'unit_rows' => $unitRows[$id] ?? 0,
+            'state' => $state,
+            'state_tone' => $tone,
+            'needs_prices' => $units !== [] && ! $isPriced,
+            'deletable' => ($blockers[$id] ?? null) === [],
+            'blockers' => $blockers[$id] ?? [],
             'cover' => $rt->coverPhoto()?->url,
             'photos' => $rt->photos->map(fn ($p): array => [
                 'id' => (string) $p->getKey(),
@@ -355,9 +445,34 @@ class UnitsList extends Component
 
         return $form === 'room_type'
             ? ['form' => 'room_type', 'name' => $this->oldText('name'), 'kind' => $this->oldText('kind'),
-                'max_adults' => $this->oldText('max_adults'), 'max_children' => $this->oldText('max_children')]
+                'max_adults' => $this->oldText('max_adults'), 'max_children' => $this->oldText('max_children'),
+                'property_id' => $this->oldText('property_id'), 'unit_codes' => $this->oldText('unit_codes')]
             : ['form' => 'unit', 'room_type_id' => $this->oldText('room_type_id'), 'code' => $this->oldText('code'),
                 'name' => $this->oldText('name'), 'max_occupancy' => $this->oldText('max_occupancy')];
+    }
+
+    /**
+     * The Edit room type dialog, reopened with what was typed when the server refused it — only that form carries `_rt`.
+     *
+     * @return array<string, string>|null
+     */
+    private function roomTypeRetry(): ?array
+    {
+        $id = old('_rt');
+        if (! is_string($id) || preg_match('/^[0-9A-Za-z]{26}$/', $id) !== 1 || ! session()->has('errors')) {
+            return null;
+        }
+
+        return ['id' => $id, 'name' => $this->oldText('name'), 'kind' => $this->oldText('kind'),
+            'max_adults' => $this->oldText('max_adults'), 'max_children' => $this->oldText('max_children')];
+    }
+
+    /** The room type whose photos were just changed (or whose upload was refused) — its photos dialog opens again. */
+    private function photosReopen(): ?string
+    {
+        $id = session('units_photos') ?? (session()->has('errors') ? old('_photos') : null);
+
+        return is_string($id) && preg_match('/^[0-9A-Za-z]{26}$/', $id) === 1 ? $id : null;
     }
 
     private function oldText(string $key): string

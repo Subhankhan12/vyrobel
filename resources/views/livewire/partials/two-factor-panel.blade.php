@@ -11,7 +11,8 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @php $tf = $twoFactor; $tflbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;'; @endphp
 
-<div class="vy-card vy-fade" style="margin-bottom: 16px;">
+{{-- `$tfCard` — the card's own spacing: the owner page stacks cards with the default; the operator page lays them in a grid. --}}
+<div class="vy-card vy-fade vy-twofactor" style="{{ $tfCard ?? 'margin-bottom: 16px;' }}">
     <h2 style="font-family: var(--vy-display); font-size: 15px; font-weight: 600; margin: 0 0 4px;">Two-factor authentication</h2>
     <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px;">An authenticator app (Google Authenticator, 1Password, …) generates a 6-digit code at each sign-in — a second layer beyond your password.</p>
 
@@ -46,12 +47,18 @@
         <div style="border-top: 1px solid var(--vy-hairline); padding-top: 14px;">
             <form method="POST" action="{{ $tf['routes']['disable'] }}">
                 @csrf
+                {{-- ⚠️ 2026-10-05 — marked, so this panel shows a wrong password only when it came from this form: the error key
+                     `current_password` is shared by every password form on a page. (The operator page marks all of its forms; the
+                     owner page's own forms do not yet — OPEN.md D-OWNER-SEC-ERRORS.) --}}
+                <input type="hidden" name="_form" value="2fa-off">
                 <label style="{{ $tflbl }}" for="tf_disable_pw">Turn off — confirm your password</label>
                 <div style="display: flex; gap: 8px; max-width: 360px;">
                     <input id="tf_disable_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
                     <button type="submit" class="vy-btn vy-btn--ghost" style="white-space: nowrap; padding: 9px 15px;">Turn off</button>
                 </div>
-                @error('current_password') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                @if (old('_form') === '2fa-off')
+                    @error('current_password') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+                @endif
             </form>
         </div>
 
@@ -67,12 +74,16 @@
 
         <form method="POST" action="{{ $tf['routes']['confirm'] }}" style="margin-bottom: 10px;">
             @csrf
+            {{-- marked like the turn-off form, so a page that shows unplaced errors at its top knows this one has a place --}}
+            <input type="hidden" name="_form" value="2fa-confirm">
             <label style="{{ $tflbl }}" for="tf_code">6-digit code from your app</label>
             <div style="display: flex; gap: 8px; max-width: 320px;">
                 <input id="tf_code" type="text" name="code" class="vy-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" required>
                 <button type="submit" class="vy-btn vy-btn--accent" style="white-space: nowrap; padding: 9px 16px;">Confirm &amp; turn on</button>
             </div>
-            @error('code') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+            @if (old('_form') === '2fa-confirm')
+                @error('code') <span style="font-size: 11.5px; color: var(--vy-accent);">{{ $message }}</span> @enderror
+            @endif
         </form>
 
         <form method="POST" action="{{ $tf['routes']['disable'] }}">

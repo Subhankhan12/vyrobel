@@ -288,8 +288,8 @@ return [
         'id' => 'RP-M32',
         'name' => 'a paused workspace says "adding inventory" on the rate-plan writes',
         'file' => $inventory,
-        'old' => "        \$what = \$surface === 'rates' ? 'rate changes are' : 'adding inventory is';",
-        'new' => "        \$what = 'adding inventory is';",
+        'old' => "        \$what = \$surface === 'rates' ? 'rate changes are' : 'changes to units and room types are';",
+        'new' => "        \$what = 'changes to units and room types are';",
         'tests' => [['file' => $fix, 'filter' => 'says a paused workspace pauses RATE changes']],
     ],
 

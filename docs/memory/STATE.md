@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the GUESTS SECOND pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the FIVE PAGES pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -30,10 +30,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the GUESTS SECOND commit) | **4,359/4,359 on MySQL 8.4.10** (tree `0597738d6d3eaf01` = the code plus these docs, before these figures were written; 2026-10-05 04:19–04:37 Baku) · **4,359/4,359 on MariaDB 11.8.9** (the same tree, 05:03–05:21 Baku) · 32,010 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). The CALENDAR SECOND commit before it (`a2831e72`): 4,335/4,335 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
-| Mutations | **818/818 landed and caught across every set**, 0 not caught, 0 did not land; baseline 455/455 green (`admin-06` = 87, `calendar-bookable` = 61, `guests-second` = 58, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `guests-second` caught 20/21 at first (GS-M19 — the phone rule's own `nowrap` answered for the base rule; tightened); `guests-list` GL-M2 re-pointed to the new sort key | **V** harness output 2026-10-05 04:37–05:02 Baku, tree `0597738d6d3eaf01` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 05:22 Baku (the GUESTS SECOND pass; reseeded 05:22). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 05:22 Baku (the GUESTS SECOND pass, on the final tree) |
+| Suite (the FIVE PAGES commit) | **4,432/4,432 on MySQL 8.4.10** (tree `aba564f6e42d92a0` = the code plus these docs, before these figures were written; 2026-10-05 20:47–21:05 Baku) · **4,432/4,432 on MariaDB 11.8.9** (tree `73ef8334b2507a1f` = the same plus one mutation-set file; 21:43–22:01 Baku) · 32,538 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). The GUESTS SECOND commit before it (`8345c86e`): 4,359/4,359 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
+| Mutations | **941/941 landed and caught across every set** (34 sets), 0 not caught, 0 did not land; baseline 527/527 green (the five new sets: `units-five` = 37, `housekeeping-five` = 24, `maintenance-five` = 23, `security-five` = 22, `inbox-compose` = 17). ⚠️ The full run had UL-M8 green: the pass's new database-level refusal answered for the pre-check it mutates; re-aimed at the test that tells the layers apart, caught | **V** harness output 2026-10-05 21:05–21:32 Baku (UL-M8 21:36) |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 22:02 Baku (the FIVE PAGES pass; reseeded 22:02). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 20:46 Baku (the FIVE PAGES pass, on the final code) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AX`, 2026-10-05, run straight after the 05:25 Baku swap (and on `rel_AW` at 01:51 that day, on `rel_AV` at 22:14 on 2026-10-04, on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-05, after the 05:25 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -200,6 +200,17 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     saved)" and was closed unsaved; Message says email isn't being sent, with the box, switch and Send off (nothing sent); Units,
     Owners and Maintenance share the new search box; 0 console messages; signed out (a read-only check then went to sign-in), the
     automated browser closed.
+0p. **Five pages (2026-10-05)** — his request: the Inbox's New message ("2 text is repeated"), Housekeeping and Maintenance ("Text is
+    not visible completely", the search box, Board and List, Note / Progress / Part ordered), Units ("there must be an option to edit
+    and delete the unit … Add inventory … is so confusing") and Security ("this page design is not good"), "the same work as the last
+    pages … creativity, advanced features". Built (`HISTORY.md`, "FIVE PAGES"): every list fits its card at every width; the shared
+    search box and dialogs; the stay said by one rule; "Part ordered" marks the part awaited; Units — room types first as compact cards,
+    Edit on every row, a Delete that removes only what nothing has recorded (and says why otherwise), several units at once ("101-110"),
+    "All properties" asks which property, a Dorm's units no longer fail; Security — two named groups of equal cards, a device signed out
+    from its row, the allowlist lockout on remove refused, X called X. Three independent reviews (one finding each on Inbox/Housekeeping/
+    Maintenance and on Security; none at the bar on Units, two smaller ones fixed anyway) and a second review of the fixes (one finding,
+    fixed: only the unit-code index is answered as "already used").
+    Recorded for his go: `OPEN.md` D-OWNER-SEC-ERRORS, D-STAY-WORD. Committed locally, not pushed (his rule); the deploy and his live look follow.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

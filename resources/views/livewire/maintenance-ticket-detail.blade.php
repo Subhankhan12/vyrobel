@@ -92,7 +92,8 @@
 
                     {{-- details (real facts; Area / WO-#### / specialty OMITTED — not modelled, #39) --}}
                     <div class="vy-card vy-fade">
-                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px 16px;">
+                        {{-- 2026-10-05 — wraps on a narrow screen (four fixed columns ran past the card on a phone) --}}
+                        <div class="vy-wo-facts">
                             <div>
                                 <div class="vy-wo-flabel">Unit</div>
                                 <div class="vy-wo-fval">{{ $ticket['unit'] }}</div>
@@ -196,29 +197,34 @@
                             <div class="vy-empty" style="padding:12px 0;">No activity recorded yet.</div>
                         @endforelse
 
-                        {{-- composer — real note store (Note / Progress / Part ordered) --}}
+                        {{-- composer — the real note store. ⚠️ 2026-10-05 (his "note progress part ordered buttons design is not cool"): the three
+                             kinds are ONE real choice — a radio group at 13 px, the chosen one marked by its fill, a tick and aria-checked (never
+                             colour alone, as the inline-styled pills were) — Post stays off while there is nothing to post, and "Part ordered" asks
+                             for the part and really marks the work order as waiting on it (it only wrote a note before). --}}
                         @if ($canManage && ! $readOnly)
-                            <form method="POST" action="{{ route('app.maintenance.notes.store', $ticket['id']) }}"
-                                  x-data="{ kind: 'note', body: '' }"
-                                  style="display:flex;gap:11px;margin-top:4px;padding-top:16px;border-top:1px solid rgba(120,70,40,.10);">
+                            <form method="POST" action="{{ route('app.maintenance.notes.store', $ticket['id']) }}" x-data="{ kind: 'note', body: '' }" class="vy-wo-composer">
                                 @csrf
                                 <input type="hidden" name="kind" :value="kind">
-                                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(140deg,#F0A57A,#D9662E);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:500;flex-shrink:0;">{{ $viewer['initials'] ?? 'You' }}</div>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="display:inline-grid;grid-auto-flow:column;gap:4px;padding:4px;border-radius:12px;background:rgba(120,70,40,.06);border:1px solid rgba(120,70,40,.10);margin-bottom:10px;">
+                                <span class="vy-wo-me" aria-hidden="true">{{ $viewer['initials'] ?? 'You' }}</span>
+                                <div class="vy-wo-compose">
+                                    <div class="vy-wo-kinds" role="radiogroup" aria-label="Kind of update">
                                         @foreach ($noteKinds as $k)
-                                            <button type="button" @click="kind = '{{ $k['key'] }}'"
-                                                    :style="kind === '{{ $k['key'] }}' ? { background: 'rgba(255,255,255,.9)', color: '#C2410C', boxShadow: '0 2px 8px rgba(150,90,50,.16)', fontWeight: '600' } : { background: 'transparent', color: 'var(--vy-muted)', fontWeight: '500' }"
-                                                    style="padding:6px 14px;border-radius:9px;border:none;font-family:inherit;font-size:11.5px;cursor:pointer;white-space:nowrap;transition:background .16s,color .16s;">{{ $k['label'] }}</button>
+                                            <button type="button" role="radio" class="vy-wo-kind" :class="kind === '{{ $k['key'] }}' && 'is-on'" :aria-checked="kind === '{{ $k['key'] }}' ? 'true' : 'false'" @click="kind = '{{ $k['key'] }}'"><svg class="vy-wo-kind-tick" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5 9.5 17.5 19.5 7"/></svg>{{ $k['label'] }}</button>
                                         @endforeach
                                     </div>
+                                    <template x-if="kind === 'part'">
+                                        <div class="vy-wo-partrow">
+                                            <div class="vy-field"><label class="vy-field-label" for="vy-wo-part">Part</label><input id="vy-wo-part" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="e.g. Extractor fan motor"></div>
+                                            <div class="vy-field"><label class="vy-field-label" for="vy-wo-eta">Expected</label><input id="vy-wo-eta" class="vy-input" type="date" name="part_eta"></div>
+                                        </div>
+                                    </template>
                                     <label class="vy-sr-only" for="vy-lbl-maintenance-ticket-detail-body">Add an update for the team…</label>
-                                    <textarea id="vy-lbl-maintenance-ticket-detail-body" name="body" x-model="body" maxlength="2000" placeholder="Add an update for the team…" required
-                                              style="width:100%;min-height:58px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.7);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
-                                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:10px;">
-                                        <button type="submit" class="vy-btn vy-btn--accent" style="padding:9px 18px;font-size:12.5px;" :style="body.trim().length ? {} : { opacity: '.5' }">
+                                    <textarea id="vy-lbl-maintenance-ticket-detail-body" class="vy-input vy-wo-textarea" name="body" x-model="body" maxlength="2000" placeholder="Add an update for the team…" required></textarea>
+                                    <div class="vy-wo-compose-foot">
+                                        <span class="vy-wo-compose-note" x-show="kind === 'part'" x-cloak>Marks this work order as waiting on the part.</span>
+                                        <button type="submit" class="vy-btn vy-btn--accent" :disabled="! body.trim()">
                                             Post update
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -238,9 +244,6 @@
                             <span style="font-family:var(--vy-display);font-weight:600;font-size:22px;letter-spacing:-.01em;color:#fff;">{{ $ticket['status_label'] }}</span>
                         </div>
                         <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px;">{{ $ticket['priority_label'] }} priority · Unit {{ $ticket['unit'] }}@if ($ticket['is_oos']) · out of order @endif</div>
-                        @if ($ticket['can_resolve'] && ! $readOnly)
-                            <button type="button" @click="mr = true" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;margin-top:16px;">Mark resolved</button>
-                        @endif
                     </div>
 
                     {{-- assignee --}}
@@ -255,7 +258,7 @@
                             <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,#F0A57A,#D9662E);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:500;flex-shrink:0;">{{ $ticket['assignee_initials'] ?? '—' }}</div>
                             <div style="min-width:0;flex:1;">
                                 <div style="font-size:14px;font-weight:500;">{{ $ticket['assignee'] ?? 'Unassigned' }}</div>
-                                <div style="font-size:11.5px;color:var(--vy-faint);margin-top:1px;">{{ $ticket['assignee'] ? 'Technician' : 'No one assigned yet' }}</div>
+                                <div style="font-size:11.5px;color:var(--vy-faint);margin-top:1px;">{{ $ticket['assignee'] ? 'Assignee' : 'No one assigned yet' }}</div>
                             </div>
                         </div>
                     </div>
@@ -334,12 +337,12 @@
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;font-size:12px;">Parts arrived — clear</button>
                                     </form>
                                 @else
-                                    <form method="POST" action="{{ route('app.maintenance.parts', $ticket['id']) }}" style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+                                    <form method="POST" action="{{ route('app.maintenance.parts', $ticket['id']) }}" class="vy-wo-manage-form">
                                         @csrf
                                         <input type="hidden" name="awaiting_parts" value="1">
-                                        <label class="vy-sr-only" for="vy-lbl-maintenance-ticket-detail-part-name">Part needed (e.g. thermostat)</label>
-                                        <input id="vy-lbl-maintenance-ticket-detail-part-name" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="Part needed (e.g. thermostat)">
-                                        <input class="vy-input" type="date" name="part_eta" aria-label="Expected arrival">
+                                        {{-- 2026-10-05 — names that stay visible (a placeholder vanishes as you type; the date box had no name you could see) --}}
+                                        <div class="vy-field"><label class="vy-field-label" for="vy-wo-manage-part">Part needed</label><input id="vy-wo-manage-part" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="e.g. thermostat"></div>
+                                        <div class="vy-field"><label class="vy-field-label" for="vy-wo-manage-eta">Expected</label><input id="vy-wo-manage-eta" class="vy-input" type="date" name="part_eta"></div>
                                         <button type="submit" class="vy-btn vy-btn--ghost" style="width:100%;justify-content:center;font-size:12px;">Mark awaiting parts</button>
                                     </form>
                                 @endif
@@ -374,7 +377,7 @@
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M21 6H9a4 4 0 0 0-4 4v1"/><path d="M7 22l-4-4 4-4"/><path d="M3 18h12a4 4 0 0 0 4-4v-1"/></svg>
                                 </div>
                                 <div>
-                                    <div id="vy-mt-rt-t" style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Reassign technician</div>
+                                    <div id="vy-mt-rt-t" style="font-family:var(--vy-display);font-weight:600;font-size:19px;letter-spacing:-.01em;">Reassign work order</div>
                                     <div style="font-size:12.5px;color:var(--vy-faint);margin-top:2px;">Currently with {{ $ticket['assignee'] ?? 'no one' }}</div>
                                 </div>
                             </div>
@@ -418,7 +421,7 @@
                         {{-- notify both technicians --}}
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border:1px solid rgba(120,70,40,.10);background:rgba(255,255,255,.45);border-radius:14px;margin-bottom:18px;">
                             <div style="min-width:0;">
-                                <div style="font-size:13px;font-weight:500;">Notify both technicians</div>
+                                <div style="font-size:13px;font-weight:500;">Tell both of them</div>
                                 <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">The new assignee gets the order; any prior assignee is told they’re off it</div>
                             </div>
                             <button type="button" @click="notify = !notify" :style="{ background: notify ? 'linear-gradient(140deg,#E8703A,#C2410C)' : 'rgba(120,70,40,.18)' }" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
@@ -454,7 +457,9 @@
                         </div>
                         {{-- what was done → the ticket's resolution record + a timeline note --}}
                         <div style="margin-bottom:14px;">
-                            <div class="vy-eyebrow" style="margin-bottom:7px;">What was done</div>
+                            {{-- ⚠️ 2026-10-05 (the review) — a <div> named nothing: the box was read by its placeholder. A label, as its
+                                 neighbours Time spent and Parts cost, and as the board's own "What was done" --}}
+                            <label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-lbl-maintenance-ticket-detail-resolution">What was done</label>
                             <textarea id="vy-lbl-maintenance-ticket-detail-resolution" name="resolution" maxlength="2000" placeholder="e.g. Replaced the trap and seal — tested, no leak." style="width:100%;min-height:66px;resize:vertical;border:1px solid rgba(120,70,40,.14);background:rgba(255,255,255,.75);border-radius:14px;padding:11px 14px;font-family:inherit;font-size:13px;line-height:1.5;color:var(--vy-ink);outline:none;box-sizing:border-box;"></textarea>
                         </div>
                         {{-- time spent (hours, informational) + parts cost (€, bills the owner, #17) --}}
@@ -501,17 +506,20 @@
                                 </button>
                             </div>
                         @endif
-                        {{-- notify the front desk — a real, preference-gated ping to the reporter --}}
+                        {{-- tell the person who reported it — a real, preference-gated ping. ⚠️ 2026-10-05: offered only when someone did
+                             report it (with no reporter the toggle did nothing), and "back on sale" only when the unit really goes back. --}}
+                        @if ($ticket['reporter'])
                         <input type="hidden" name="notify" :value="notify ? '1' : '0'">
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;border:1px solid rgba(120,70,40,.10);background:rgba(255,255,255,.45);border-radius:14px;margin-bottom:18px;">
                             <div>
-                                <div style="font-size:13px;font-weight:500;">Notify the front desk</div>
-                                <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">Lets {{ $ticket['reporter'] ?? 'the reporter' }} know it’s fixed and back online</div>
+                                <div style="font-size:13px;font-weight:500;">Tell {{ $ticket['reporter'] }} it’s fixed</div>
+                                <div style="font-size:11px;color:var(--vy-faint);margin-top:1px;">Sends them a notification @if ($ticket['is_oos'])<span x-show="ret">— and that {{ $ticket['unit'] }} is back on sale</span>@endif</div>
                             </div>
                             <button type="button" @click="notify = !notify" :style="{ background: notify ? 'linear-gradient(140deg,#E8703A,#C2410C)' : 'rgba(120,70,40,.18)' }" style="width:38px;height:22px;border-radius:30px;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .16s;padding:0;">
                                 <span :style="{ left: notify ? '19px' : '3px' }" style="position:absolute;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(60,30,10,.25);transition:left .16s;"></span>
                             </button>
                         </div>
+                        @endif
                         <button type="submit" class="vy-btn vy-btn--accent" style="width:100%;justify-content:center;padding:13px 0;font-size:14px;">
                             @if ($ticket['is_oos'])<span x-text="ret ? 'Resolve & return to sale' : 'Mark resolved'"></span>@else Mark resolved @endif
                         </button>

@@ -86,8 +86,13 @@ class OperatorProfileController extends Controller
         $deleted = ActiveSessions::signOutOthers($request, $user, (string) $request->input('current_password'));
         $audit->record('user.other_sessions_signed_out', $user, null, ['count' => $deleted]);
 
-        return redirect()->route('app.profile')->with('profile_notice', $deleted > 0
+        $message = $deleted > 0
             ? 'Signed out of '.$deleted.' other '.Str::plural('session', $deleted).'.'
-            : 'You have no other active sessions.');
+            : 'You have no other active sessions.';
+
+        // 2026-10-05 — started from the Security page, it comes back there (📖 it always landed on Profile)
+        return $request->input('return') === 'security'
+            ? redirect()->route('app.security')->with('security_notice', $message)
+            : redirect()->route('app.profile')->with('profile_notice', $message);
     }
 }

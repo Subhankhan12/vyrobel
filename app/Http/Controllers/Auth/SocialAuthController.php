@@ -140,16 +140,16 @@ final class SocialAuthController extends Controller
             SocialLinkOutcome::SignIn => $this->signIn($request, $user, $identity),
 
             SocialLinkOutcome::RefuseUnverified => $this->refuse('login',
-                'Google has not verified that email address, so we cannot use it to sign in.'),
+                "{$label} has not verified that email address, so we cannot use it to sign in."),
 
             // ⚠️⚠️ THE TAKEOVER REFUSAL. Deliberately says what to do instead, because the user is very
             //    probably the right person — they just have not proved it yet, and an address is not proof.
             SocialLinkOutcome::RefuseEmailTaken => $this->refuse('login',
-                'An account already uses that email address. Sign in with your password, then connect Google from your security page.'),
+                "An account already uses that email address. Sign in with your password, then connect {$label} from your security page."),
 
             SocialLinkOutcome::SignUp => $this->beginSignUp($request, $identity),
 
-            default => $this->refuse('login', 'We could not complete sign-in with Google.'),
+            default => $this->refuse('login', "We could not complete sign-in with {$label}."),
         };
     }
 
@@ -200,26 +200,28 @@ final class SocialAuthController extends Controller
     private function finishLink(Request $request, SocialIdentity $identity): RedirectResponse
     {
         $actor = $request->user();
+        // ⚠️ 2026-10-05 — every message here said "Google", whichever provider was being linked (X too).
+        $label = SocialProviders::label($identity->provider);
 
         if (! $actor instanceof User) {
-            return $this->refuse('login', 'Please sign in before connecting a Google account.');
+            return $this->refuse('login', "Please sign in before connecting a {$label} account.");
         }
 
         return match (SocialLinking::forLink($actor, $identity)) {
             SocialLinkOutcome::Link => $this->createLink($actor, $identity),
 
             SocialLinkOutcome::AlreadyLinked => redirect()->route('app.security')
-                ->with('connections_status', 'That Google account is already connected.'),
+                ->with('connections_status', "That {$label} account is already connected."),
 
             SocialLinkOutcome::RefuseUnverified => $this->refuse('link',
-                'Google has not verified that email address, so we cannot connect it.'),
+                "{$label} has not verified that email address, so we cannot connect it."),
 
-            // ⚠️ Never move a link. One Google account signs in as one Vyrobel user, and re-pointing it here
+            // ⚠️ Never move a link. One provider account signs in as one Vyrobel user, and re-pointing it here
             //    would let whoever holds it take over a second account.
             SocialLinkOutcome::RefuseIdentityTaken => $this->refuse('link',
-                'That Google account is already connected to a different Vyrobel account.'),
+                "That {$label} account is already connected to a different Vyrobel account."),
 
-            default => $this->refuse('link', 'We could not connect that Google account.'),
+            default => $this->refuse('link', "We could not connect that {$label} account."),
         };
     }
 
@@ -234,7 +236,7 @@ final class SocialAuthController extends Controller
         ]);
 
         return redirect()->route('app.security')
-            ->with('connections_status', 'Google connected. You can now sign in with it.');
+            ->with('connections_status', SocialProviders::label($identity->provider).' connected. You can now sign in with it.');
     }
 
     /**
@@ -265,8 +267,9 @@ final class SocialAuthController extends Controller
 
         $row->delete();
 
+        // ⚠️ 2026-10-05 — this said "Google disconnected." for X too
         return redirect()->route('app.security')
-            ->with('connections_status', 'Google disconnected.');
+            ->with('connections_status', SocialProviders::label((string) $row->provider).' disconnected.');
     }
 
     /**

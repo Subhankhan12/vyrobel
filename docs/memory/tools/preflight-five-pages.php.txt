@@ -1,0 +1,112 @@
+<?php
+// The FIVE-PAGE pass (2026-10-05: Inbox New message · Housekeeping · Maintenance · Units · Security) — READ-ONLY preflight from
+// the STAGED release (stdin; writes nothing). Yes/no, names of settings, counts, property and room-type names, and timings only —
+// never a value, never a guest's or a staff member's details, never a session id.
+use App\Models\HousekeepingTask;
+use App\Models\IpAllowRule;
+use App\Models\MaintenanceTicket;
+use App\Models\MessageThread;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\RoomType;
+use App\Models\Unit;
+use App\Support\Tenancy\TenantContext;
+use App\Support\Unit\InventoryDeletion;
+use App\Support\Unit\RoomTypePricing;
+use App\Support\Unit\UnitCodes;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'Delete a unit needs units.manage' => $has('app.inventory.units.destroy', 'can:units.manage'),
+    'Edit a room type needs units.manage' => $has('app.inventory.room-types.update', 'can:units.manage'),
+    'Delete a room type needs units.manage' => $has('app.inventory.room-types.destroy', 'can:units.manage'),
+    'Add a photo needs units.manage' => $has('app.room-types.photos.store', 'can:units.manage'),
+    'Remove an IP rule needs settings.manage' => $has('app.security.ip-rules.remove', 'can:settings.manage'),
+    'Sign one device out is throttled' => $has('app.security.sessions.sign-out', 'throttle:10,1'),
+    'Housekeeping assign needs housekeeping.manage' => $has('app.housekeeping.assign', 'can:housekeeping.manage'),
+];
+
+// The per-device "Sign out" deletes a session ROW: true only on the database session driver (STATE.md: production switched to it
+// in SESSIONS 01). No sign-in sets a "remember me" cookie, so the row is the whole sign-in.
+$out['session driver'] = (string) config('session.driver');
+
+// The Add units field: the parser on production's PHP (a range, a list, a refusal).
+$out['unit codes'] = [
+    '101-103, 105' => UnitCodes::summary(UnitCodes::parse('101-103, 105')['codes']),
+    '1-500 refused' => UnitCodes::parse('1-500')['error'] !== null,
+];
+
+foreach (['livewire/units-list.blade.php', 'livewire/operator/operator-security.blade.php', 'livewire/operator/operator-inbox.blade.php',
+    'livewire/housekeeping-board.blade.php', 'livewire/partials/hk-card.blade.php', 'livewire/maintenance-list.blade.php',
+    'livewire/maintenance-ticket-detail.blade.php', 'components/auth/passkeys.blade.php', 'livewire/partials/two-factor-panel.blade.php',
+    'components/layouts/operator.blade.php', 'livewire/owner/owner-security.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// Per organisation: what each page will say about its own data — counts and names only.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, &$out): void {
+        if (! Property::query()->exists()) {
+            return;
+        }
+        $roomTypes = RoomType::query()->get(['id', 'name', 'kind', 'property_id']);
+        $ids = $roomTypes->map(fn ($rt): string => (string) $rt->id)->all();
+        $unitIds = Unit::query()->pluck('id')->map(fn ($id): string => (string) $id)->all();
+
+        $t = microtime(true);
+        $unitBlockers = InventoryDeletion::unitBlockers($unitIds);
+        $typeBlockers = InventoryDeletion::roomTypeBlockers($ids);
+        $priced = RoomTypePricing::pricedIds($ids);
+        $ms = (int) round((microtime(true) - $t) * 1000);
+
+        $today = now()->toDateString();
+        $tasks = HousekeepingTask::query()->whereIn('status', ['pending', 'in_progress'])->pluck('date')->map(fn ($d): string => substr((string) $d, 0, 10));
+        $out['orgs'][$org->name] = [
+            'properties (Add room type asks which, under All, when more than one)' => Property::query()->count(),
+            'units' => [
+                'room types' => count($ids),
+                'room types with a price ahead (the guide\'s third step)' => count($priced),
+                'Dorm room types (their units are now dorm beds — a unit could not be added before)' => $roomTypes->where('kind', 'dorm')->count(),
+                'units' => count($unitIds),
+                'units Delete would remove (nothing on record)' => count(array_filter($unitBlockers, fn (array $b): bool => $b === [])),
+                'room types Delete would remove (empty)' => count(array_filter($typeBlockers, fn (array $b): bool => $b === [])),
+                'reading what blocks a delete, ms (every unit and room type)' => $ms,
+            ],
+            'security' => [
+                'IP allowlist rules' => IpAllowRule::query()->count(),
+            ],
+            'housekeeping' => [
+                'open tasks dated before today ("Overdue")' => $tasks->filter(fn (string $d): bool => $d < $today)->count(),
+                'open tasks for today' => $tasks->filter(fn (string $d): bool => $d === $today)->count(),
+                'open tasks after today' => $tasks->filter(fn (string $d): bool => $d > $today)->count(),
+            ],
+            'maintenance' => [
+                'work orders by status' => MaintenanceTicket::query()->groupBy('status')->selectRaw('status, count(*) as n')->pluck('n', 'status')->all(),
+                'waiting on a part' => MaintenanceTicket::query()->where('awaiting_parts', true)->count(),
+            ],
+            'inbox' => [
+                'manual threads (a reply there is now labelled "Saved", not "Delivered")' => MessageThread::query()->where('channel', 'manual')->count(),
+            ],
+        ];
+    });
+}
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

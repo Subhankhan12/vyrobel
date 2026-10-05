@@ -34,8 +34,9 @@ it('renders the transcript with real delivery status', function () {
         ->assertOk()
         ->assertSee('Any parking?')                 // inbound
         ->assertSee('Yes, free parking on site.')   // outbound
-        ->assertSee('Delivered')                    // real delivery status (manual)
-        ->assertSee('Reply via Direct');            // composer over the real channel
+        ->assertSee('Saved')                        // real delivery status — Direct keeps it in Vyrobel, it is not "Delivered" (2026-10-05)
+        ->assertDontSee('Delivered')
+        ->assertSee('Write a reply…');              // the Direct composer (a booking channel keeps "Reply via …")
 });
 
 // ── 1b. The legacy deep-link redirects into the 3-pane ───────────────────────────────────────────

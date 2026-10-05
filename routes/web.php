@@ -940,11 +940,20 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
         ->middleware('can:units.manage')->name('inventory.units.store');
     // ⚠️ F-6 — a unit could be created and never changed or taken out of service. Both carry the SAME gate
     // as creating one (`units.manage`, held by Super Admin / Property Owner / Group Admin / Hotel Manager),
-    // because changing inventory and adding it are the same authority. ⚠️ There is deliberately NO delete
-    // route: a hard delete would CASCADE the append-only `unit_status_logs` and SET NULL on `owner_ledger`
-    // and `reservation_units` — orphaning money and a sold stay's frozen price. See docs/UNIT-LIFECYCLE.md.
+    // because changing inventory and adding it are the same authority.
+    // ⚠️⚠️ DELETE (2026-10-05, the founder: "there must be an option to edit and delete the unit") — a unit, and a room type,
+    // but ONLY one nothing has recorded: a hard delete would CASCADE `unit_status_logs`, cleaning and repair history and SET
+    // NULL on `owner_ledger` and `reservation_units` (a room type's delete CASCADEs sold stays themselves), so the
+    // controller refuses any of those, in words, and offers Pause for a unit with history. The rule is ONE class,
+    // App\Support\Unit\InventoryDeletion, asked again inside the delete's transaction with the row locked.
     Route::put('/units/{unit}', [InventoryActionController::class, 'updateUnit'])
         ->middleware('can:units.manage')->name('inventory.units.update');
+    Route::delete('/units/{unit}', [InventoryActionController::class, 'destroyUnit'])
+        ->middleware('can:units.manage')->name('inventory.units.destroy');
+    Route::put('/units/room-types/{roomType}', [InventoryActionController::class, 'updateRoomType'])
+        ->middleware('can:units.manage')->name('inventory.room-types.update');
+    Route::delete('/units/room-types/{roomType}', [InventoryActionController::class, 'destroyRoomType'])
+        ->middleware('can:units.manage')->name('inventory.room-types.destroy');
     Route::post('/units/{unit}/active', [InventoryActionController::class, 'setUnitActive'])
         ->middleware('can:units.manage')->name('inventory.units.active');
     // 2026-09-30 — the Units page rebuilt: pause or resume several units at once (the same audited service, one unit at a
@@ -1126,6 +1135,8 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::post('/security/ip-rules', [OperatorSecurityController::class, 'addIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.add');
     Route::delete('/security/ip-rules/{rule}', [OperatorSecurityController::class, 'removeIpRule'])->middleware('can:settings.manage')->name('security.ip-rules.remove');
     Route::post('/security/trusted-devices/revoke', [OperatorSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:6,1')->name('security.trusted.revoke');
+    // 2026-10-05 — sign ONE other device out, from its row (self-only; found by a one-way key, never a printed session id)
+    Route::post('/security/sessions/sign-out', [OperatorSecurityController::class, 'signOutSession'])->middleware('throttle:10,1')->name('security.sessions.sign-out');
 
     // ⚠️ CONNECTED SIGN-IN ACCOUNTS — self-only, and linking is reachable ONLY from an authenticated session:
     //    being signed in is the proof that a matching email address can never be. The unlink floor (a user

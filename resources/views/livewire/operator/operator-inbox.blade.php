@@ -5,8 +5,11 @@
      space, newline or tag. --}}
 <div x-data="{
         assignOpen: false, linkOpen: false,
-        composeOpen: false, composeGuest: null, composeTemplate: '', composeBody: '',
+        composeOpen: false, composeGuest: null, composeTemplate: '', composeBody: '', composeFind: '',
         composeData: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['templates']])),
+        composeAccount: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['has_account']])),
+        composeNames: @js(collect($composeGuests)->mapWithKeys(fn ($g) => [$g['id'] => $g['name']])),
+        composeName() { return this.composeGuest ? (this.composeNames[this.composeGuest] || 'This guest') : ''; },
         pickComposeGuest(id) { this.composeGuest = id; this.refillCompose(); },
         pickComposeTemplate(key) { this.composeTemplate = (this.composeTemplate === key ? '' : key); this.refillCompose(); },
         refillCompose() {
@@ -112,13 +115,17 @@
 
             {{-- Rail --}}
             <aside class="vy-card vy-card--flush vy-inbox-rail">
-                <form method="GET" action="{{ route('app.inbox') }}" class="vy-inbox-search">
-                    @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
-                    @if ($channel) <input type="hidden" name="channel" value="{{ $channel }}"> @endif
-                    @if ($sort === 'oldest') <input type="hidden" name="sort" value="oldest"> @endif
-                    <label class="vy-sr-only" for="vy-lbl-operator-inbox-q">Search guests &amp; messages…</label>
-                    <input id="vy-lbl-operator-inbox-q" type="search" name="q" value="{{ $query }}" class="vy-input" placeholder="Search guests &amp; messages…" autocomplete="off">
-                </form>
+                <div class="vy-inbox-search">
+                    {{-- 2026-10-05 — the shared search box (its icon, 40 px), as on every list page --}}
+                    <form method="GET" action="{{ route('app.inbox') }}" class="vy-gl-search vy-ibx-search" role="search">
+                        @if ($filter) <input type="hidden" name="filter" value="{{ $filter }}"> @endif
+                        @if ($channel) <input type="hidden" name="channel" value="{{ $channel }}"> @endif
+                        @if ($sort === 'oldest') <input type="hidden" name="sort" value="oldest"> @endif
+                        <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <label class="vy-sr-only" for="vy-lbl-operator-inbox-q">Search guests and messages</label>
+                        <input id="vy-lbl-operator-inbox-q" type="search" name="q" value="{{ $query }}" class="vy-gl-search-in" placeholder="Search guests &amp; messages" autocomplete="off">
+                    </form>
+                </div>
                 <div class="vy-inbox-list">
                     @forelse ($rows as $row)
                         <a href="{{ $inboxUrl(['c' => $row['id']]) }}"
@@ -255,7 +262,7 @@
                                 <div class="vy-msg-meta">
                                     <span>{{ $m['author'] }} · {{ $m['time'] }}</span>
                                     @if ($m['delivery'])
-                                        <span class="vy-msg-delivery {{ $m['delivery']['failed'] ? 'is-failed' : '' }}">{{ $m['delivery']['label'] }}</span>
+                                        <span class="vy-msg-delivery{{ $m['delivery']['failed'] ? ' is-failed' : '' }}">{{ $m['delivery']['label'] }}</span>
                                     @endif
                                     @if ($m['delivery'] && $m['delivery']['failed'] && ! $readOnly)
                                         {{-- REAL re-send (never a fake flip-to-delivered) — delivers on manual, fails again honestly on a deferred channel. --}}
@@ -283,8 +290,9 @@
                         @else
                             <form method="POST" action="{{ route('app.inbox.reply', $active['id']) }}" class="vy-composer-form">
                                 @csrf
-                                <label class="vy-sr-only" for="vy-lbl-operator-inbox-body">Reply via {{ $active['channel_label'] }}…</label>
-                                <textarea id="vy-lbl-operator-inbox-body" name="body" rows="2" class="vy-input" placeholder="Reply via {{ $active['channel_label'] }}…" required></textarea>
+                                @php $replyWord = $active['is_direct'] ? 'Write a reply…' : 'Reply via '.$active['channel_label'].'…'; @endphp
+                                <label class="vy-sr-only" for="vy-lbl-operator-inbox-body">{{ $replyWord }}</label>
+                                <textarea id="vy-lbl-operator-inbox-body" name="body" rows="2" class="vy-input" placeholder="{{ $replyWord }}" required></textarea>
                                 <div class="vy-composer-actions">
                                     @if ($active['can_close'])
                                         <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">Close</button>
@@ -299,48 +307,72 @@
                         <p class="vy-composer-hint">
                             @if ($active['is_owner_thread'])
                                 Your owner replies in their portal · this thread is not visible to the guest.
+                            @elseif ($active['is_direct'])
+                                {{-- ⚠️ 2026-10-05 — Direct sends nothing anywhere: the guest reads it in their own guest account, if they have one --}}
+                                @if ($active['guest']['has_account'])
+                                    {{ $active['name'] }} reads this in their guest account — it isn’t emailed.
+                                @else
+                                    {{ $active['name'] }} has no guest account, so this stays here as a record — it isn’t emailed.
+                                @endif
                             @else
                                 The guest replies wherever they booked · contact details stay private.
                             @endif
                         </p>
                     </footer>
                 @else
-                    <div class="vy-empty" style="padding: 60px 30px;">Pick a conversation, or start a new message.</div>
+                    <div class="vy-ibx-pane-empty">
+                        <span class="vy-ibx-pane-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
+                        <strong>Pick a conversation</strong>
+                        <span>Or start one with a guest who is staying, arriving or has just left.</span>
+                        @unless ($readOnly)
+                            <button type="button" class="vy-btn vy-btn--accent" @click="composeOpen = true">New message</button>
+                        @endunless
+                    </div>
                 @endif
             </section>
         </div>
 
-        {{-- ── Assign modal — INTERNAL hand-to-staff (guests never see this) ─────────────────────────── --}}
+        {{-- ── Assign — INTERNAL hand-to-staff (guests never see this); the shared solid card (2026-10-05) ───────────── --}}
         @if ($active)
         <div x-show="assignOpen" x-cloak class="vy-modal-backdrop" @click.self="assignOpen = false" @keydown.escape.window="assignOpen = false">
-            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="assignOpen" aria-labelledby="vy-dlg-operator-inbox-assignopen-3">
-                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-assignopen-3">Assign conversation</h2>
-                <p class="vy-modal-sub">{{ $active['name'] }} · they're notified in-app · the thread stays in this shared inbox.</p>
+            <div class="vy-modal vy-modal-card vy-ibx-dlg" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="assignOpen" aria-labelledby="vy-dlg-operator-inbox-assignopen-3">
                 <form method="POST" action="{{ route('app.inbox.assign', $active['id']) }}">
                     @csrf
-                    <div class="vy-assign-list">
-                        <label class="vy-assign-opt">
-                            <input type="radio" name="user_id" value="">
-                            <span><strong>Unassigned</strong><br><span class="vy-muted">No one in particular</span></span>
-                        </label>
-                        @foreach ($staff as $member)
-                            <label class="vy-assign-opt">
-                                <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($active['assignee'] && $active['assignee']['name'] === $member['name'])>
-                                <span><strong>{{ $member['name'] }}</strong><br><span class="vy-muted">{{ $member['department'] }} · {{ $member['role_label'] }}</span></span>
-                            </label>
-                        @endforeach
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg></span>
+                        <div class="vy-ibx-head-text">
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-assignopen-3">Assign conversation</h2>
+                            <p class="vy-modal-sub">{{ $active['name'] }} · they get a notification in Vyrobel, and the conversation stays in this shared inbox.</p>
+                        </div>
+                        <button type="button" class="vy-modal-x" @click="assignOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
-                    {{-- REAL editable internal note (staff-only). Persists as a thread Note on submit; empty → no note. --}}
-                    <div class="vy-compose-editor">
-                        <span class="vy-field-label">Internal note · guests never see this</span>
-                        @if ($active['note'])
-                            <div class="vy-assign-lastnote">Latest · {{ $active['note']['author'] }}: {{ \Illuminate\Support\Str::limit($active['note']['body'], 120) }}</div>
-                        @endif
-                        <label class="vy-field-label" for="vy-lbl-operator-inbox-note">Add a note for the team (optional) — e.g. why you're handing this over</label>
-                        <textarea id="vy-lbl-operator-inbox-note" name="note" rows="2" class="vy-input" placeholder="Add a note for the team (optional) — e.g. why you're handing this over"></textarea>
+                    <div class="vy-modal-body">
+                        <fieldset class="vy-ibx-pick">
+                            <legend class="vy-field-label">Assign to</legend>
+                            <div class="vy-ibx-options">
+                                <label class="vy-ibx-option">
+                                    <input type="radio" name="user_id" value="">
+                                    <span><strong>Unassigned</strong><span class="vy-ibx-option-sub">No one in particular</span></span>
+                                </label>
+                                @foreach ($staff as $member)
+                                    <label class="vy-ibx-option">
+                                        <input type="radio" name="user_id" value="{{ $member['id'] }}" @checked($active['assignee'] && $active['assignee']['name'] === $member['name'])>
+                                        <span><strong>{{ $member['name'] }}</strong><span class="vy-ibx-option-sub">{{ $member['department'] }} · {{ $member['role_label'] }}</span></span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+                        {{-- REAL editable internal note (staff-only). Persists as a thread Note on submit; empty → no note. --}}
+                        <div class="vy-field vy-ibx-field">
+                            <label class="vy-field-label" for="vy-ibx-note">Note for the team · optional</label>
+                            @if ($active['note'])
+                                <div class="vy-assign-lastnote">Latest · {{ $active['note']['author'] }}: {{ \Illuminate\Support\Str::limit($active['note']['body'], 120) }}</div>
+                            @endif
+                            <textarea id="vy-ibx-note" name="note" rows="2" class="vy-input vy-ibx-textarea" placeholder="Why you’re handing this over"></textarea>
+                            <span class="vy-ibx-hint">Staff only — the guest never sees notes.</span>
+                        </div>
                     </div>
-                    <p class="vy-modal-note">They're notified on their device; the thread stays in this shared inbox.</p>
-                    <div class="vy-modal-actions">
+                    <div class="vy-modal-foot">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Assign</button>
                     </div>
@@ -348,27 +380,38 @@
             </div>
         </div>
 
-        {{-- ── Link-reservation modal — attach/change/detach the thread's reservation (real, tenant-scoped) ── --}}
+        {{-- ── Link a reservation — attach/change/detach the thread's reservation (real, tenant-scoped) ── --}}
         @if ($active['has_guest'] && $active['link_reservations'] !== [])
         <div x-show="linkOpen" x-cloak class="vy-modal-backdrop" @click.self="linkOpen = false" @keydown.escape.window="linkOpen = false">
-            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="linkOpen" aria-labelledby="vy-dlg-operator-inbox-linkopen-2">
-                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-linkopen-2">Link a reservation</h2>
-                <p class="vy-modal-sub">{{ $active['name'] }} · pick which booking this conversation is about.</p>
+            <div class="vy-modal vy-modal-card vy-ibx-dlg" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="linkOpen" aria-labelledby="vy-dlg-operator-inbox-linkopen-2">
                 <form method="POST" action="{{ route('app.inbox.link-reservation', $active['id']) }}">
                     @csrf
-                    <div class="vy-assign-list">
-                        <label class="vy-assign-opt">
-                            <input type="radio" name="reservation_id" value="" @checked(! $active['reservation'])>
-                            <span><strong>Not linked</strong><br><span class="vy-muted">No reservation</span></span>
-                        </label>
-                        @foreach ($active['link_reservations'] as $r)
-                            <label class="vy-assign-opt">
-                                <input type="radio" name="reservation_id" value="{{ $r['id'] }}" @checked($r['linked'])>
-                                <span><strong>{{ $r['label'] }}</strong></span>
-                            </label>
-                        @endforeach
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></span>
+                        <div class="vy-ibx-head-text">
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-linkopen-2">Link a reservation</h2>
+                            <p class="vy-modal-sub">{{ $active['name'] }} · pick which booking this conversation is about.</p>
+                        </div>
+                        <button type="button" class="vy-modal-x" @click="linkOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
-                    <div class="vy-modal-actions">
+                    <div class="vy-modal-body">
+                        <fieldset class="vy-ibx-pick">
+                            <legend class="vy-sr-only">Reservation</legend>
+                            <div class="vy-ibx-options">
+                                <label class="vy-ibx-option">
+                                    <input type="radio" name="reservation_id" value="" @checked(! $active['reservation'])>
+                                    <span><strong>Not linked</strong><span class="vy-ibx-option-sub">No reservation</span></span>
+                                </label>
+                                @foreach ($active['link_reservations'] as $r)
+                                    <label class="vy-ibx-option">
+                                        <input type="radio" name="reservation_id" value="{{ $r['id'] }}" @checked($r['linked'])>
+                                        <span><strong>{{ $r['label'] }}</strong></span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="vy-modal-foot">
                         <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = false">Cancel</button>
                         <button type="submit" class="vy-btn vy-btn--accent">Save link</button>
                     </div>
@@ -378,47 +421,89 @@
         @endif
         @endif
 
-        {{-- ── New message modal — pick a guest with a current/upcoming stay + start from template ──────── --}}
+        {{-- ── New message — the shared solid card (2026-10-05, his "2 text is repeated … must have better design"): each thing
+             said once, a guest picker with a finder, templates as optional chips, one label per field, and what really happens to
+             the message — Direct keeps it in this inbox and the guest's own account; nothing is emailed. ───────────────────── --}}
         <div x-show="composeOpen" x-cloak class="vy-modal-backdrop" @click.self="composeOpen = false" @keydown.escape.window="composeOpen = false">
-            <div class="vy-modal" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="composeOpen" aria-labelledby="vy-dlg-operator-inbox-composeopen-1">
-                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
-                <p class="vy-modal-sub">Guests with a current or upcoming stay.</p>
-                <form method="POST" action="{{ route('app.inbox.start') }}">
-                    @csrf
-                    <input type="hidden" name="guest_id" :value="composeGuest">
-                    <input type="hidden" name="template" :value="composeTemplate">
-                    <div class="vy-assign-list" style="max-height: 190px;">
-                        @forelse ($composeGuests as $g)
-                            <label class="vy-assign-opt">
-                                <input type="radio" name="_guest_pick" value="{{ $g['id'] }}" @click="pickComposeGuest('{{ $g['id'] }}')">
-                                <span class="vy-conv-avatar" style="width:30px;height:30px;font-size:11px;">{{ $g['initials'] }}</span>
-                                <span><strong>{{ $g['name'] }}</strong><br><span class="vy-muted">{{ $g['meta'] }}</span></span>
-                            </label>
-                        @empty
-                            <div class="vy-empty" style="padding: 16px;">No guests with a current or upcoming stay.</div>
-                        @endforelse
+            <div class="vy-modal vy-modal-card vy-ibx-dlg vy-ibx-compose" role="dialog" aria-modal="true" tabindex="-1" x-trap.noscroll="composeOpen" aria-labelledby="vy-dlg-operator-inbox-composeopen-1">
+                @if ($composeGuests !== [])
+                    <form method="POST" action="{{ route('app.inbox.start') }}">
+                        @csrf
+                        <input type="hidden" name="guest_id" :value="composeGuest">
+                        <input type="hidden" name="template" :value="composeTemplate">
+                        <div class="vy-modal-head">
+                            <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
+                            <div class="vy-ibx-head-text">
+                                <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
+                                <p class="vy-modal-sub">Guests staying now, arriving soon, or who left in the last 14 days.</p>
+                            </div>
+                            <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+                        </div>
+                        <div class="vy-modal-body">
+                            <fieldset class="vy-ibx-pick">
+                                <legend class="vy-field-label">Guest</legend>
+                                <div class="vy-gl-search vy-ibx-find">
+                                    <svg class="vy-gl-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                                    <label class="vy-sr-only" for="vy-ibx-find">Find a guest</label>
+                                    <input id="vy-ibx-find" type="search" class="vy-gl-search-in" placeholder="Find a guest" x-model="composeFind" autocomplete="off" @keydown.enter.prevent>
+                                </div>
+                                <div class="vy-ibx-options vy-ibx-guests">
+                                    @foreach ($composeGuests as $g)
+                                        <label class="vy-ibx-option" x-show="composeFind.trim() === '' || @js(mb_strtolower($g['name'])).includes(composeFind.trim().toLowerCase())">
+                                            <input type="radio" name="_guest_pick" value="{{ $g['id'] }}" @click="pickComposeGuest(@js($g['id']))">
+                                            <span class="vy-conv-avatar vy-ibx-avatar" aria-hidden="true">{{ $g['initials'] }}</span>
+                                            <span class="vy-ibx-option-text"><strong>{{ $g['name'] }}</strong><span class="vy-ibx-option-sub">{{ $g['meta'] }}</span></span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </fieldset>
+                            <fieldset class="vy-ibx-pick vy-ibx-tpls">
+                                <legend class="vy-field-label">Start from a template · optional</legend>
+                                <div class="vy-template-row">
+                                    @foreach ($templates as $t)
+                                        <button type="button" class="vy-template-chip" :class="composeTemplate === @js($t['key']) ? 'is-on' : ''" :aria-pressed="composeTemplate === @js($t['key']) ? 'true' : 'false'" @click="pickComposeTemplate(@js($t['key']))">{{ $t['label'] }}</button>
+                                    @endforeach
+                                </div>
+                            </fieldset>
+                            {{-- The REAL editable body — a template pre-fills it (merged for the picked guest); the operator reviews + edits,
+                                 and this exact text is what sends (`body` wins over `template` server-side). --}}
+                            <div class="vy-field vy-ibx-field">
+                                <label class="vy-field-label" for="vy-ibx-compose-body">Message</label>
+                                <textarea id="vy-ibx-compose-body" name="body" x-model="composeBody" rows="5" class="vy-input vy-ibx-textarea" placeholder="Write your message…"></textarea>
+                            </div>
+                            <p class="vy-ibx-note" aria-live="polite">
+                                <span x-show="! composeGuest">Kept in this inbox — pick a guest to see where they’ll read it.</span>
+                                <span x-show="composeGuest && composeAccount[composeGuest]" x-cloak><span x-text="composeName()"></span> can read it in their guest account.</span>
+                                <span x-show="composeGuest && ! composeAccount[composeGuest]" x-cloak><span x-text="composeName()"></span> has no guest account, so it stays here as a record.</span>
+                                It isn’t emailed.
+                            </p>
+                        </div>
+                        <div class="vy-modal-foot">
+                            <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Cancel</button>
+                            <button type="submit" class="vy-btn vy-btn--accent" :disabled="! composeGuest">Start conversation</button>
+                        </div>
+                    </form>
+                @else
+                    {{-- nobody qualifies: say why and offer the way on — the guest profile's Message works for any guest --}}
+                    <div class="vy-modal-head">
+                        <span class="vy-modal-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg></span>
+                        <div class="vy-ibx-head-text">
+                            <h2 class="vy-modal-title" id="vy-dlg-operator-inbox-composeopen-1">New message</h2>
+                            <p class="vy-modal-sub">No guest to message from here yet.</p>
+                        </div>
+                        <button type="button" class="vy-modal-x" @click="composeOpen = false" aria-label="Close"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
                     </div>
-                    <div class="vy-compose-templates">
-                        <span class="vy-field-label">Start from</span>
-                        <div class="vy-template-row">
-                            @foreach ($templates as $t)
-                                <button type="button" class="vy-template-chip" :class="composeTemplate === '{{ $t['key'] }}' ? 'is-on' : ''" @click="pickComposeTemplate('{{ $t['key'] }}')">{{ $t['label'] }}</button>
-                            @endforeach
+                    <div class="vy-modal-body">
+                        <div class="vy-ibx-empty">
+                            <p>A guest shows up here while they’re staying, when they arrive soon, or for 14 days after they leave.</p>
+                            <p>To write to anyone else, open them in Guests and use <strong>Message</strong> on their profile.</p>
                         </div>
                     </div>
-                    {{-- The REAL editable body — a template pre-fills it (merged for the picked guest); the operator
-                         reviews + edits, and this exact text is what sends (`body` wins over `template` server-side). --}}
-                    <div class="vy-compose-editor">
-                        <span class="vy-field-label">Message</span>
-                        <label class="vy-field-label" for="vy-lbl-operator-inbox-body">Write a message, or pick a template above to start from one — you can edit it before sending.</label>
-                        <textarea id="vy-lbl-operator-inbox-body" name="body" x-model="composeBody" rows="5" class="vy-input" placeholder="Write a message, or pick a template above to start from one — you can edit it before sending."></textarea>
+                    <div class="vy-modal-foot">
+                        <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Close</button>
+                        <a class="vy-btn vy-btn--accent" href="{{ route('app.guests') }}">Go to Guests</a>
                     </div>
-                    <p class="vy-modal-note">Starts a thread in this inbox · the guest replies wherever they booked · contact details stay private.</p>
-                    <div class="vy-modal-actions">
-                        <button type="button" class="vy-btn vy-btn--ghost" @click="composeOpen = false">Cancel</button>
-                        <button type="submit" class="vy-btn vy-btn--accent" :disabled="!composeGuest" :style="!composeGuest ? 'opacity:.5;pointer-events:none;' : ''">Start conversation</button>
-                    </div>
-                </form>
+                @endif
             </div>
         </div>
 
@@ -453,7 +538,6 @@
         @media (max-width: 720px) { .vy-inbox-stats { grid-template-columns: repeat(2, 1fr); } }
         .vy-inbox-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
         .vy-inbox-rail { display: flex; flex-direction: column; max-height: 72vh; }
-        .vy-inbox-search { padding: 12px; border-bottom: 1px solid var(--vy-hairline); }
         .vy-inbox-list { overflow-y: auto; }
         .vy-conv { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border-bottom: 1px solid var(--vy-hairline); text-decoration: none; color: var(--vy-ink); position: relative; transition: background .12s; }
         .vy-conv:hover { background: rgba(120,70,40,.04); }
@@ -505,25 +589,46 @@
         .vy-composer-actions { display: flex; gap: 8px; }
         .vy-composer-note { font-size: 12.5px; color: var(--vy-faint); padding: 8px 0; }
         .vy-composer-hint { font-size: 11px; color: var(--vy-faint); margin: 8px 0 0; }
-        .vy-modal-backdrop { position: fixed; inset: 0; background: rgba(43,35,32,.42); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 20px; }
-        .vy-modal { background: var(--vy-surface, #FFFCF8); border-radius: 16px; padding: 22px; width: 440px; max-width: 100%; box-shadow: 0 24px 60px rgba(150,90,50,.24); }
-        .vy-modal-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 3px; }
-        .vy-modal-sub { font-size: 12.5px; color: var(--vy-muted); margin: 0 0 14px; }
-        .vy-assign-list { display: flex; flex-direction: column; gap: 2px; max-height: 300px; overflow-y: auto; }
-        .vy-assign-opt { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 13px; }
-        .vy-assign-opt:hover { background: rgba(120,70,40,.05); }
-        .vy-modal-note { font-size: 11px; color: var(--vy-faint); margin: 12px 0; border-top: 1px solid var(--vy-hairline); padding-top: 10px; }
-        .vy-modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
         .vy-thread-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 16px; padding: 8px 12px; border-radius: 10px; background: rgba(217,158,61,.1); border: 1px solid rgba(217,158,61,.28); color: #7A5A1E; font-size: 12px; line-height: 1.45; }
         .vy-thread-note svg { flex: none; margin-top: 1px; }
         .vy-thread-note strong { color: #6A4E1A; }
         .vy-assign-lastnote { margin: 6px 0; padding: 7px 10px; border-radius: 8px; background: rgba(217,158,61,.1); color: #7A5A1E; font-size: 11.5px; line-height: 1.4; }
-        .vy-compose-editor { margin-top: 14px; }
-        .vy-compose-editor textarea { margin-top: 6px; resize: vertical; width: 100%; box-sizing: border-box; }
-        .vy-compose-templates { margin-top: 14px; }
         .vy-template-row { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
         .vy-template-chip { padding: 7px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; cursor: pointer; color: var(--vy-ink); }
         .vy-template-chip.is-on { background: var(--vy-accent); color: #fff; border-color: var(--vy-accent); }
+        .vy-template-chip:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        /* ── 2026-10-05 — the Inbox's dialogs on the shared solid card, the search box, the empty pane ─────────────────────── */
+        .vy-inbox-search { padding: 12px; border-bottom: 1px solid var(--vy-hairline); }
+        .vy-ibx-search .vy-gl-search-in { min-width: 0; }
+        .vy-ibx-dlg { max-width: 540px; }
+        .vy-ibx-head-text { flex: 1; min-width: 0; }
+        .vy-ibx-head-text .vy-modal-title { overflow-wrap: anywhere; }
+        .vy-ibx-pick { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; }
+        .vy-ibx-pick legend { padding: 0; margin-bottom: 8px; }
+        .vy-ibx-find { height: 40px; margin-bottom: 8px; }
+        .vy-ibx-options { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+        .vy-ibx-guests { max-height: 232px; }
+        .vy-ibx-option { display: flex; align-items: center; gap: 11px; padding: 9px 11px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; font-size: 13px; }
+        .vy-ibx-option:hover { background: rgba(120, 70, 40, .05); }
+        .vy-ibx-option:has(input:checked) { border-color: rgba(217, 102, 46, .35); background: rgba(217, 102, 46, .07); }
+        .vy-ibx-option:has(input:focus-visible) { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
+        .vy-ibx-option input { accent-color: var(--vy-accent); flex: none; margin: 0; }
+        .vy-ibx-option strong { display: block; font-weight: 600; overflow-wrap: anywhere; }
+        .vy-ibx-option-text { min-width: 0; }
+        .vy-ibx-option-sub { display: block; font-size: 11.5px; color: var(--vy-on-grad); margin-top: 1px; }
+        .vy-ibx-avatar { width: 32px; height: 32px; font-size: 11px; }
+        .vy-ibx-field { margin-bottom: 0; }
+        .vy-ibx-textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+        .vy-ibx-hint { display: block; font-size: 11.5px; color: var(--vy-on-grad); margin-top: 6px; }
+        .vy-ibx-note { font-size: 12px; color: var(--vy-on-grad); margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--vy-hairline); line-height: 1.5; }
+        .vy-ibx-empty p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: var(--vy-ink); }
+        .vy-ibx-dlg .vy-modal-foot .vy-btn { height: 42px; justify-content: center; }
+        .vy-ibx-dlg .vy-modal-foot .vy-btn--ghost { flex: 0 0 auto; min-width: 110px; }
+        .vy-ibx-dlg .vy-btn--accent:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; transform: none; }
+        .vy-ibx-pane-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; padding: 56px 28px; color: var(--vy-on-grad); font-size: 13px; }
+        .vy-ibx-pane-empty strong { color: var(--vy-ink); font-size: 15px; font-weight: 600; }
+        .vy-ibx-pane-empty .vy-btn { margin-top: 10px; }
+        .vy-ibx-pane-ico { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(217, 102, 46, .1); color: var(--vy-accent); margin-bottom: 4px; }
         @media (max-width: 900px) { .vy-inbox-grid { grid-template-columns: 1fr; } }
     </style>
 </div>

@@ -78,11 +78,15 @@ return [
     ],
     [
         'id' => 'UL-M8',
-        'name' => 'a duplicate unit code reaches the unique index again (a 500, not a sentence)',
+        'name' => 'the check that names a used code is gone — only the database\'s own, unnamed refusal is left',
         'file' => $ctl,
-        'old' => "            ['code' => [Rule::unique('units', 'code')->where('property_id', \$roomType->property_id)]],",
-        'new' => "            ['code' => ['required']],",
-        'tests' => [['file' => $t, 'filter' => 'refuses a duplicate unit code']],
+        // re-anchored 2026-10-05: the codes are checked in one place for one code or many (codesOrFail)
+        'old' => "        \$taken = Unit::withTrashed()->where('property_id', \$propertyId)->whereIn('code', \$parsed['codes'])",
+        'new' => "        \$taken = Unit::withTrashed()->where('property_id', '')->whereIn('code', \$parsed['codes'])",
+        // 2026-10-05 — the database's own refusal is now said in words too (sameCodeRefused), so "refuses a duplicate unit code" is
+        // satisfied by either layer; this one is told apart by its OWN sentence, which names the code (a test per layer). The
+        // harness counts a mutation caught only when EVERY aimed test goes red, so only that test is aimed here.
+        'tests' => [['file' => 'tests/Feature/UnitsPassFiveTest.php', 'filter' => 'refuses a list with a code already used']],
     ],
     [
         'id' => 'UL-M9',
@@ -192,15 +196,17 @@ return [
         'id' => 'UL-M22',
         'name' => 'a room type card counts every unit as bookable',
         'file' => $page,
-        'old' => "            'bookable' => count(array_filter(\$units, fn (array \$r): bool => \$r['bookable'])),",
-        'new' => "            'bookable' => count(\$units),",
+        // re-anchored 2026-10-05: the card reads the count once, for its figure and for what keeps it from being booked
+        'old' => "        \$bookable = count(array_filter(\$units, fn (array \$r): bool => \$r['bookable']));",
+        'new' => '        $bookable = count($units);',
         'tests' => [['file' => $t, 'filter' => 'room type as a card']],
     ],
     [
         'id' => 'UL-M23',
         'name' => 'the setup guide stays after both a room type and a unit exist',
         'file' => $view,
-        'old' => "            @if (\$setup['room_types'] === 0 || \$setup['units'] === 0)",
+        // re-anchored 2026-10-05: the guide now stays until there is a price, too
+        'old' => "            @if (\$setup['room_types'] === 0 || \$setup['units'] === 0 || \$setup['priced'] === 0)",
         'new' => '            @if (true)',
         'tests' => [['file' => $t, 'filter' => 'guides a new property through setup']],
     ],

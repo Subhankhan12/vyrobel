@@ -62,10 +62,11 @@ it('offers only state-legal actions and persists them through the service', func
     $user = mtDetailMember($s);
     $ticket = app(MaintenanceService::class)->open(['unit_id' => $s['units'][0]->id, 'title' => 'Fix heater']);
 
-    // OPEN → Start offered, Resolve NOT offered.
+    // OPEN → Start offered, and Resolve too: ⚠️ 2026-10-05 — MaintenanceService::resolve() accepts open AND in progress, and the
+    // board offers both; this page alone was stricter than the server (the F-16 lesson: every surface offers what the server permits).
     $this->actingAs($user)->get("/app/maintenance/{$ticket->id}")
         ->assertSee('Start work')
-        ->assertDontSee('Mark resolved');
+        ->assertSee('Mark resolved');
 
     // Start persists → in_progress.
     $this->actingAs($user)->post(route('app.maintenance.start', $ticket->id))->assertRedirect(route('app.maintenance.show', $ticket->id));

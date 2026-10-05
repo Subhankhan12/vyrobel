@@ -6,6 +6,8 @@ use App\Livewire\UnitsList;
 use App\Models\Availability;
 use App\Models\Organization;
 use App\Models\Property;
+use App\Models\RateCalendar;
+use App\Models\RatePlan;
 use App\Models\RoomType;
 use App\Models\Unit;
 use App\Services\ArrivalInfoService;
@@ -98,14 +100,16 @@ it('⚠️⚠️ lays the add forms out with styled labels, one height of box, a
         ->and($view)->toContain('<x-operator.choices name="kind"');
     // Each add button sits in its dialog's footer, not in a row of fields whose margins it does not share.
     expect($view)->toMatch('/<div class="vy-modal-foot">\s*<button[^>]*>Cancel<\/button>\s*<button type="submit" class="vy-btn vy-btn--accent">Add room type<\/button>/')
-        ->and($view)->toMatch('/<div class="vy-modal-foot">\s*<button[^>]*>Cancel<\/button>\s*<button type="submit" class="vy-btn vy-btn--accent">Add unit<\/button>/');
+        // (2026-10-05 — the Add units button says how many it adds: "Add 10 units", so it carries an x-text)
+        ->and($view)->toMatch('/<div class="vy-modal-foot">\s*<button[^>]*>Cancel<\/button>\s*<button type="submit" class="vy-btn vy-btn--accent"[^>]*>Add unit<\/button>/');
 });
 
 it('⚠️⚠️ centres every dialog on the page by the shared class, each a near-opaque card', function () {
     $dialogs = array_values(array_filter(vyDialogCensus(), fn (array $d): bool => $d['file'] === 'livewire/units-list.blade.php'));
 
-    // Price individually (one per unit on the page) · Add room type · Add unit · Edit unit · Pause / Resume · Arrival info
-    expect($dialogs)->toHaveCount(6);
+    // Price individually (one per unit on the page) · Add room type · Add unit · Edit unit · Pause / Resume · Arrival info —
+    // and since 2026-10-05 Delete unit · Edit room type · Delete room type · Photos (one per room type)
+    expect($dialogs)->toHaveCount(10);
     foreach ($dialogs as $d) {
         expect(str_contains($d['backdrop'], 'vy-modal-backdrop'))->toBeTrue('x-show="'.$d['show'].'" is not centred by the class')
             ->and(str_contains($d['panel'], 'vy-modal-card'))->toBeTrue('x-show="'.$d['show'].'" is the see-through panel');
@@ -195,8 +199,9 @@ it('⚠️⚠️ offers each action only to a role allowed it, and none that a p
         return $m[1] ?? 'MISSING';
     };
 
-    expect($actions('Hotel Manager', $cast['units']['A2']))->toBe('edit price arrival pause')
-        ->and($actions('Hotel Manager', $cast['units']['A1']))->toBe('edit price arrival resume')
+    // (2026-10-05 — `delete` for a writer: the dialog deletes a unit nothing has recorded, or says what is on record)
+    expect($actions('Hotel Manager', $cast['units']['A2']))->toBe('edit price arrival pause delete')
+        ->and($actions('Hotel Manager', $cast['units']['A1']))->toBe('edit price arrival resume delete')
         ->and($actions('Revenue Manager', $cast['units']['A2']))->toBe('price')
         ->and($actions('Front Desk', $cast['units']['A2']))->toBe('');
 
@@ -512,6 +517,13 @@ it('⚠️ guides a new property through setup — room type, then unit, then pr
         ->and((bool) preg_match('/data-step="2"[^>]*class="[^"]*is-current/', $html))->toBeTrue();
 
     Unit::create(['property_id' => $type->property_id, 'room_type_id' => $type->id, 'code' => '101']);
+    // ⚠️ 2026-10-05 — it no longer steps aside here: with a room type and a unit but no price, nothing can be booked yet, and
+    //    the guide's third step (which never showed as done) is now the current one. It leaves once there is a price.
+    $html = (string) $this->actingAs($manager)->get('/app/units')->assertOk()->getContent();
+    expect($html)->toContain('data-ul-setup')->and((bool) preg_match('/data-step="3"[^>]*class="[^"]*is-current/', $html))->toBeTrue();
+
+    $plan = RatePlan::create(['property_id' => $type->property_id, 'room_type_id' => $type->id, 'name' => 'Flex', 'currency' => 'EUR']);
+    RateCalendar::create(['rate_plan_id' => $plan->id, 'date' => now()->addDays(5)->toDateString(), 'price_minor' => 9000, 'currency' => 'EUR']);
     expect((string) $this->actingAs($manager)->get('/app/units')->assertOk()->getContent())->not->toContain('data-ul-setup');
 });
 

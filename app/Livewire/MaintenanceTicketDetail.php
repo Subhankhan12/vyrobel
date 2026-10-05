@@ -139,7 +139,9 @@ class MaintenanceTicketDetail extends Component
                 'cost' => $ticket->cost_minor !== null ? $this->money((int) $ticket->cost_minor, (string) ($ticket->currency ?? $currency)) : null,
                 // Real state → which transitions the service will accept (offer only what it allows).
                 'can_start' => $canManage && $status === 'open',
-                'can_resolve' => $canManage && $status === 'in_progress',
+                // open AND in progress resolve — as the board and MaintenanceService::resolve() allow (2026-10-05; this page alone
+                // offered it only in progress)
+                'can_resolve' => $canManage && in_array($status, ['open', 'in_progress'], true),
                 'can_cancel' => $canManage && in_array($status, ['open', 'in_progress'], true),
                 'can_assign' => $canManage && in_array($status, ['open', 'in_progress'], true),
                 'is_active' => $ticket->isActive(),

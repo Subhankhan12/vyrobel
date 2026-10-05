@@ -11,6 +11,7 @@ use App\Models\IpAllowRule;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
+use App\Support\Security\ActiveSessions;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,14 +66,50 @@ class OperatorSecurityController extends Controller
         return $this->back('notice', 'Added '.$ip.' to the allowlist.');
     }
 
+    /**
+     * ⚠️⚠️ 2026-10-05 — THE REMOVE HAD NO LOCKOUT GUARD, THOUGH THE ADD HAS ONE. With other rules left, removing the one rule
+     * that admits the person's own address made {@see EnforceIpAllowlist} refuse their very next request — they locked
+     * themselves out of the back office with one click. Refused now, with what to do instead; removing the LAST rule stays
+     * allowed, because that switches the allowlist off (nobody is locked out by no rules).
+     */
     public function removeIpRule(Request $request, string $rule, AuditEventRecorder $audit): RedirectResponse
     {
         $model = IpAllowRule::query()->findOrFail($rule);   // tenant-scoped → cross-org 404
         $ip = (string) $model->ip_address;
+
+        $remaining = IpAllowRule::query()->whereKeyNot($model->getKey())->pluck('ip_address')->map(fn ($v): string => (string) $v)->all();
+        $current = (string) ($request->ip() ?? '');
+        if ($remaining !== [] && $current !== '' && IpUtils::checkIp($current, [$ip]) && ! IpUtils::checkIp($current, $remaining)) {
+            return $this->back('error', 'Removing '.$ip.' would lock you out — it is the only rule that lets your address ('.$current
+                .') reach the back office. Add a rule for your address first, or remove the others.');
+        }
+
         $model->delete();
         $audit->record('app.ip_allow_rule.removed', null, ['ip_address' => $ip], null);
 
-        return $this->back('notice', 'Removed '.$ip.' from the allowlist.');
+        return $this->back('notice', $remaining === []
+            ? 'Removed '.$ip.' — the allowlist is off: anyone with a valid sign-in can reach the back office.'
+            : 'Removed '.$ip.' from the allowlist.');
+    }
+
+    /**
+     * SIGN ONE OTHER DEVICE OUT (2026-10-05) — from its row on this page. Self-only: the session is found among the
+     * person's OWN sessions by its one-way key ({@see ActiveSessions::signOutOne()}), never by an id the page printed;
+     * the session in use is never one of them. Audited with the device's label, never the session id.
+     */
+    public function signOutSession(Request $request, AuditEventRecorder $audit): RedirectResponse
+    {
+        $data = $request->validate(['session' => ['required', 'string', 'size:64']]);
+        $user = $request->user();
+
+        $device = ActiveSessions::signOutOne($request, $user, (string) $data['session']);
+        if ($device === null) {
+            return $this->back('error', 'That session has already ended.');
+        }
+
+        $audit->record('user.session_signed_out', $user, null, ['device' => $device]);
+
+        return $this->back('notice', 'Signed out of '.$device.'.');
     }
 
     public function revokeTrustedDevice(Request $request, TrustedDeviceService $devices, AuditEventRecorder $audit): RedirectResponse

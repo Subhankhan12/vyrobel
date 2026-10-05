@@ -160,7 +160,7 @@
                                                 <a class="vy-gl-sort {{ $sorts['priority']['active'] ? 'is-on is-'.$sorts['priority']['dir'] : '' }}" href="{{ $sorts['priority']['href'] }}" data-gl-key="sort-priority">Priority<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
                                             <th>Status</th>
-                                            <th>Technician</th>
+                                            <th class="vy-mt-c-who">Assigned to</th>
                                             <th aria-sort="{{ $sorts['due']['aria'] }}">
                                                 <a class="vy-gl-sort {{ $sorts['due']['active'] ? 'is-on is-'.$sorts['due']['dir'] : '' }}" href="{{ $sorts['due']['href'] }}" data-gl-key="sort-due">Time to target<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                             </th>
@@ -186,17 +186,17 @@
                                                     </div>
                                                     <div class="vy-gl-contact">{{ $row['category'] }}</div>
                                                 </td>
-                                                <td><span class="vy-mt-unit">{{ $row['unit'] }}</span></td>
-                                                <td><span class="vy-mt-prio is-{{ $row['priority'] }}">{{ $row['priority_label'] }}</span></td>
-                                                <td><span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span></td>
-                                                <td>
+                                                <td class="vy-mt-c-unit" data-label="Unit"><span class="vy-mt-unit">{{ $row['unit'] }}</span></td>
+                                                <td class="vy-mt-c-prio" data-label="Priority"><span class="vy-mt-prio is-{{ $row['priority'] }}">{{ $row['priority_label'] }}</span></td>
+                                                <td class="vy-mt-c-status" data-label="Status"><span class="vy-tag tone-{{ $row['status_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['status_meta']['label'] }}</span></td>
+                                                <td class="vy-mt-c-who" data-label="Assigned to">
                                                     @if ($row['assignee'] !== null)
                                                         <span class="vy-mt-tech"><span class="vy-gl-avatar tone-{{ strlen($row['assignee']) % 4 + 1 }}" aria-hidden="true">{{ $row['assignee_initials'] }}</span>{{ $row['assignee'] }}</span>
                                                     @else
                                                         <span class="vy-gl-none">Unassigned</span>
                                                     @endif
                                                 </td>
-                                                <td>
+                                                <td class="vy-mt-c-due" data-label="Time to target">
                                                     @if ($row['status'] === 'resolved')
                                                         <span class="vy-gl-none">Resolved {{ $row['resolved'] }}</span>
                                                     @elseif ($row['sla']['label'] !== '')
@@ -206,7 +206,7 @@
                                                         <span class="vy-gl-none">—</span>
                                                     @endif
                                                 </td>
-                                                <td><span class="vy-gl-when">{{ $row['reported_ago'] }}</span></td>
+                                                <td class="vy-mt-c-when" data-label="Reported"><span class="vy-gl-when">{{ $row['reported_ago'] }}</span></td>
                                                 <td class="vy-gl-actcol">
                                                     <button type="button" class="vy-gl-more" aria-label="Actions for {{ $row['title'] }}" aria-controls="vy-mt-menu"
                                                             :aria-expanded="menuFor === '{{ $row['id'] }}' ? 'true' : 'false'" @click="openMenu($event, row('{{ $row['id'] }}'))">
@@ -267,7 +267,8 @@
                         @if ($oosHero['on_hold'] !== null)
                             <div class="vy-mt-oos-hold">
                                 <strong>{{ $oosHero['on_hold'] }} / night</strong>
-                                <span>revenue on hold</span>
+                                {{-- tonight's standard rate for each blocked unit — what they are not selling tonight, not a "revenue" figure (2026-10-05) --}}
+                                <span>tonight’s rate for the units blocked</span>
                             </div>
                         @endif
                     </div>
@@ -280,7 +281,6 @@
                                     <span class="vy-mt-panel-name">{{ $tech['name'] }}</span>
                                     <span class="vy-mt-panel-sub">{{ $tech['load'] }} open @if ($tech['urgent'] > 0) · {{ $tech['urgent'] }} urgent @endif</span>
                                 </span></span>
-                                <span class="vy-tag tone-{{ $tech['status'] === 'busy' ? 'risk' : 'in-house' }}"><span class="vy-dot"></span>{{ ucfirst($tech['status']) }}</span>
                             </div>
                         @empty
                             <p class="vy-mt-panel-empty">No technicians have open work right now.</p>
@@ -521,7 +521,7 @@
                                     </label>
                                     </div>
                                 </fieldset>
-                                <p class="vy-gl-note">The work order appears in their task list. Nothing is sent to their phone.</p>
+                                <p class="vy-gl-note">It shows under their name on this board. Nothing is sent to their phone.</p>
                             </div>
                             <div class="vy-modal-foot">
                                 <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = false">Cancel</button>
@@ -728,9 +728,12 @@
                                     </template>
                                     <form method="POST" :action="link(urls.photo, detail.id)" enctype="multipart/form-data" class="vy-mt-photo-form">
                                         @csrf
+                                        {{-- back to the board it was added from, not the full record (2026-10-05); the types the server takes --}}
+                                        <input type="hidden" name="return" value="list">
+                                        <input type="hidden" name="return_query" value="">
                                         <label class="vy-btn vy-btn--ghost vy-mt-photo-btn">
                                             Add photo
-                                            <input type="file" name="photo" accept="image/*" capture="environment" class="vy-mt-file" onchange="this.form.submit()">
+                                            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" class="vy-mt-file" @change="stamp($el.form); $el.form.submit()">
                                         </label>
                                     </form>
                                 @endif

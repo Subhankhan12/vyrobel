@@ -779,6 +779,102 @@ only): every width 390–1,440 inside the card; the search box 40 px, icon centr
 and closed unsaved; Message's honest sentence with everything off; the shared search box on Units, Owners, Maintenance; 0 console
 messages; signed out, browser closed.
 
+**FIVE PAGES — 2026-10-05 — his "https://vyrobel.com/app/inbox — on ~ New message page design is not good. 2 text is repeated …
+/app/housekeeping … Text is not visible completely. Serach box design is not good and its symbol is not well-aligned. Board and list
+buttons design is not good … /app/maintenance … Text is not visible completely. And note progress part ordered buttons design is not
+cool … /app/units … there must be an option to edit and delete the unit. And Add inventory section design and functionality is not
+good. It is so confusing … /app/security — this page design is not good … the same work as the last pages … creativity, advanced
+features … build a plan and execute it … ship everything live … test everything via MCP playwright".** Plan posted and executed (his
+rule); no migration.
+
+**Inbox — New message.** 🖥/📖 Why: the dialog said the same thing twice (its subtitle and a note under the picker), the finder's
+"In-house" was said of an arrival due today, a reply in a `manual` thread was labelled "Delivered" though nothing is sent, and its
+three dialogs sat on hand-made backdrops. Built: the three dialogs on the shared solid card; the guest finder with each stay said
+by the shared `StayLabel` (Guests' Stay column and the finder can no longer disagree); one sentence where two said the same; a
+`manual` thread's reply is "Saved"; the empty finder sends to Guests. `InboxComposeRedesignTest` (11), `inbox-compose` 17/17.
+
+**Housekeeping.** 🔬 Why: the page never used the shared list kit — its own search pill whose icon lost a cascade fight (top of the
+row); Board and List were bare buttons in the browser's own look; the list was a 720 px table in a card narrower than that between
+~860 and ~1,010 px windows; "In progress" tags had no colour (the tone was never defined); "Today’s cleaning" stood over every day's
+tasks. Built: the shared search box; Board | List as one segmented control (pressed state, focus ring); the list fits its card at
+every width (a size container — 820 px of card and below each room stacks, every fact named); each room says its day (Today ·
+Tomorrow · Overdue · <date>); "Cleaning across your rooms, by day"; housekeeper chips that count what clicking shows; Assign hidden
+while nobody is on the roster, with one sentence and (for who may) a link to Roles & access; the detail reopens after a photo; the
+dialogs on the shared card; the lane's arrow by class (A10). `HousekeepingPassFiveTest` (14), `housekeeping-five` 24/24.
+
+**Maintenance.** 🔬 Why: the board's table was 945 px — 213 px past its card at a 1,024 px window, 589 px at 390 — so the right
+columns slid behind a hidden scrollbar; the work order's Note / Progress / Part ordered were inline-styled 11.5 px pills chosen by
+colour alone, with no keyboard or screen-reader state; 📖 "Part ordered" only wrote a note — the board's "Awaiting parts" never
+followed. Built: the board fits its card (980 px of card and below each work order stacks); "Assigned to"; the kind of update is one
+radio group, 13 px, chosen by a tick as well as colour, keyboard and screen-reader state included; "Part ordered" names the part and
+its date and marks the work order waiting on it, so the board's tag and panel follow; Post off until there is text; Mark resolved
+once, for an open work order too (as the board and the service allow); the details wrap on a phone; honest words ("It shows under
+their name on this board. Nothing is sent to their phone."; no "Busy" / "Available" guessed from a count; "tonight’s rate for the
+units blocked"); a photo added from the board comes back to the board. `MaintenancePassFiveTest` (13), `maintenance-five` 22/22.
+
+**Units.** 📖/🔬 Why: Edit lived only in the row's ⋯ menu and there was NO Delete (a test pinned its absence: a hard delete cascades a
+unit's history and orphans money); room types could not be edited; units were added one per dialog; the setup guide's third step
+never completed, so the guide left while nothing could be booked; under "All properties" a new room type went to the first property
+unasked; 🔬 a "Dorm" room type's units failed with a server error ("Data truncated for column 'unit_kind'" — the two enums differ in
+one word); the 900 px table ran 168 px past its card at 1,024 px; a leftover `.vy-units { display: flex }` (for unit pills no page
+uses) matched the page's own wrapper; paused workspaces could still change arrival info and photos, and the photo routes found a room
+type through the tenant only (DEC-k). Built: room types first, as compact cards — what each is, its units and how many take bookings,
+what keeps it from being booked (No units yet · No unit taking bookings · No prices yet → Set prices · Units and prices set), Edit
+and Delete on the card, photos in a dialog of their own that reopens after each change; then the units, with Edit on every row and
+Delete in its menu. **Delete removes only what nothing has recorded** — one rule, `InventoryDeletion`, read by the page (each row
+and card says beforehand whether it can, and why not) and asked again by the controller inside the delete's transaction with the
+row locked; for a unit with history it names what is on record and offers Pause; a room type only when empty (its rate plans,
+prices, seasons and photos go with it). Edit room type: name and who it sleeps; its kind only while it has no units; the standard
+occupancy shown to guests follows the adults when it had followed them. **Add units:** one code, a list or a range ("101-110,
+120"), up to 100, previewed as typed ("Adds 4 units: G1–G3, G10"), codes already used refused by name — and a room type can bring
+its units in the same dialog. "All properties" asks which property (and refuses one the person does not work in). The setup guide
+stays until there is a price, and says what a room type and a unit are. A Dorm's units are dorm beds. The table fits its card (860
+px of card and below each unit stacks). Arrival info and photos refused while paused (the reveal, a read, stays). The words "adding
+inventory is read-only" became "changes to units and room types are read-only". `UnitsPassFiveTest` (17), `units-five` 34/34;
+`UnitLifecycleTest`'s "THERE IS NO DELETE ROUTE" became "DELETES ONLY A UNIT NOTHING HAS RECORDED" (his request; the reason kept).
+
+**Security.** 🖥 Why: a 560 px column of cards beside full-width ones with the right half of the page empty, "Current password"
+labelled twice, four dialogs on an undefined `vyp-scrim` class with inline positioning, 101 inline styles, flash colours under AA.
+📖 Beneath: "Sign out of all other devices" landed on Profile; one wrong password showed in three cards at once (the key
+`current_password` is shared by five forms); removing the allowlist rule that admits you locked you out on the next request (the
+add path had a guard; the remove path none); disconnecting X said "Google disconnected." (every link message said Google); a passkey
+added from Safari or Firefox was named "This device" for ever; "a passkey never leaves your device" (a synced one does). Built: one
+header — the state derived from two-factor and four real counts — then Signing in (change password beside two-factor and passkeys;
+sign-in accounts below) and Devices and access (sessions, trusted devices, IP allowlist, connected apps), and Export your data; every
+dialog on the shared card; each device signed out from its row (found by a one-way token, never its session id — a session id is a
+sign-in), "Sign out of all other devices" back here; each error once, in its own form, its dialog reopened; the allowlist remove
+refuses the rule that admits you and says what to do, and removing the last rule says the allowlist is off; X is X; a passkey is
+named for its platform; honest empty states (trusted devices with two-factor off; sign-in methods not switched on). The shared
+passkey card and two-factor panel changed for the owner page too (scoped errors, honest copy, unique ids). `SecurityPassFiveTest`
+(14), `security-five` 19/19.
+
+Contracts lowered: A8 (x-show beside an inline display) 22 → 14 sites; A10 (string :style) 10 → 9.
+**The independent reviews** (three, read-only, one per group of pages). Inbox / Housekeeping / Maintenance: one finding — the work
+order's Mark resolved dialog headed "What was done" with a `<div>`, so the box was named by its placeholder (its neighbours and the
+board's own were real labels); fixed, test first. Security: one — a wrong two-factor code showed twice (the page's banner and under
+the field: the confirm form had no `_form` mark); fixed, and the reviewer's note that the sessions comment overstated ("no sign-in
+sets remember me" — the guest portal's does) corrected. Units: nothing at the bar; two smaller ones fixed anyway — a channel
+connected to one of a room type's RATE PLANS did not keep the room type (that mapping CASCADEs too), and two codes the column's
+collation counts as one ("Cafe" / "Café", or one added elsewhere at the same moment) ended in an error page (🔬 "Duplicate entry …
+for key 'units.units_property_id_code_unique'") — now a sentence. **The full suite found one more:** `InboxStageVipBadgeTest` had
+asked for `?thread=`, a parameter the inbox never read, so it opened the default conversation and passed only because the New message
+list printed "In-house" elsewhere on the page; when that list said "In house" it went red. It now opens the conversation it names and
+reads the badge itself. **Two mutations survived at first** (SC-M20, SC-M21): with a form's mark removed its error moved to the top
+banner, still once — the tests counted, they did not place; they now post the form's own hidden fields (read from the page) and
+assert where the message is. **The second review** (of the fixes, read-only): one finding — the "already used" catch wrapped the whole save, and the availability
+rebuild inside it has its own unique index (room type, date): a race there would have been told as a code problem. Now only the
+units' (property, code) index is answered in words; any other is rethrown (test first, UF-M37). Two notes tidied: "1 channel
+connection, 1 channel connection" (a mapping on the room type and one on a plan) is one count; the shared two-factor panel's comment
+no longer claims "here only" on the owner page, whose own forms are unmarked (D-OWNER-SEC-ERRORS). It confirmed the rest: every 2FA
+error shows exactly once on the operator page; only the guest portal's guard offers "remember me"; the badge test and the hidden-field
+helper sound.
+Recorded for his go: `OPEN.md` D-OWNER-SEC-ERRORS (the owner Security page prints one password error under six fields),
+D-STAY-WORD ("In-house" / "In house"). Tests: `InboxComposeRedesignTest` 11, `HousekeepingPassFiveTest` 14, `MaintenancePassFiveTest`
+14, `UnitsPassFiveTest` 20, `SecurityPassFiveTest` 15 (each RED first); older tests changed with what he asked for (Units' no-delete
+pin, the setup guide, the action list, the dialog count) or because they tested the wrong thing (`InboxStageVipBadgeTest`). Mutations
+`inbox-compose` 17, `housekeeping-five` 24, `maintenance-five` 23, `units-five` 37, `security-five` 22 — all caught; `units-list`
+UL-M8/M22/M23 and `rates-page` RP-M32 re-anchored. Gates: **4,432/4,432 on MySQL 8.4.10** (32,538 assertions; tree `aba564f6e42d92a0` = this code with the docs before these figures; 20:47–21:05 Baku) · **4,432/4,432 on MariaDB 11.8.9** (tree `73ef8334b2507a1f` = the same plus UL-M8's re-aim, a mutation-set file; 21:43–22:01 Baku) — both read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · mutations **941/941 landed and caught across every set** (34 sets; baseline 527/527 green; 21:05–21:32 Baku, UL-M8 re-aimed and caught at 21:36 — the full run had it green: the new database-level refusal answered for the pre-check, so it is now aimed at the test that tells the two layers apart) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 22:02 Baku) · PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 doc-reading test files. ⚠️ The first MariaDB attempt was discarded: the MariaDB tools are keg-only (not on the PATH), so the server never started and that run had no database; and stopping it left its `pest` worker running against MySQL until it was found and stopped. After the runs, two lines of the Security view were rewritten so the secret scan stops reading `$hasPassword ? '…password'` as a password (the same words; the targeted tests re-run, 50 green) — the commit's tree differs from the suites' by those two lines and the UL-M8 aim. Committed locally, not pushed (his rule); the deploy and his live look follow.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

@@ -20,7 +20,7 @@ use App\Models\Unit;
  * active units into `total` and subtracts the out-of-order / out-of-service ones, so this is the same rule, not a guess.
  *
  * @phpstan-type UnitRow array{id: string, code: string, name: ?string, room_type: string, room_type_id: string,
- *   kind: string, occupancy: int, is_active: bool, bookable: bool, housekeeping: string, condition: string,
+ *   kind: string, kind_key: string, occupancy: int, is_active: bool, bookable: bool, housekeeping: string, condition: string,
  *   hk_label: string, hk_tone: string, condition_label: string, condition_tone: string, owner: ?string, cover: ?string,
  *   arrival: array{has_code: bool, ssid: ?string, has_wifi: bool, has_notes: bool}, work_orders: string}
  */
@@ -61,6 +61,7 @@ final class UnitRows
             'room_type' => (string) $unit->roomType->name,
             'room_type_id' => (string) $unit->room_type_id,
             'kind' => $this->unitKindLabel((string) $unit->unit_kind),
+            'kind_key' => (string) $unit->unit_kind,
             'occupancy' => (int) $unit->max_occupancy,
             'is_active' => $active,
             'bookable' => $active && ! in_array((string) $unit->condition_status, self::OUT_OF_ORDER, true),

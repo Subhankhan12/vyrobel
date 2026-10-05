@@ -17,6 +17,7 @@ use App\Support\Guest\GuestMessageSender;
 use App\Support\Guest\GuestSpend;
 use App\Support\Mail\MailSafetyGuard;
 use App\Support\Reservations\ReservationStage;
+use App\Support\Reservations\StayLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -466,20 +467,9 @@ class GuestsList extends Component
             return null;
         }
 
-        // ⚠️⚠️ 2026-10-05 — said from THAT booking's own stage and status. "Left …" is only a stay that was checked out: an arrival
-        //    due today, one overdue, and a booking whose dates passed with no check-in are not departures (the review: all three
-        //    read "Left <its check-out>" — for the first two a date still ahead). {@see orderByLastStay()} sorts by the same date.
-        $own = ReservationStage::for($relevant, $today);   // THIS booking's stage, from the one resolver the badge reads
-        $checkIn = CarbonImmutable::parse($relevant->check_in)->startOfDay();
-        $day = $checkIn->format('j M Y');
-
-        return match (true) {
-            (string) $relevant->status === 'checked_out' => 'Left '.CarbonImmutable::parse($relevant->check_out)->format('j M Y'),
-            $own === ReservationStage::TENTATIVE => 'Tentative · '.$day,   // the badge's word for enquiry and tentative
-            $own === ReservationStage::UPCOMING => 'Arrives '.$day,
-            $checkIn->isSameDay($today) => 'Arrives today',
-            default => 'Was due '.$day,   // confirmed, its check-in came, nobody checked it in — overdue, or its dates passed
-        };
+        // ⚠️⚠️ 2026-10-05 — said from THAT booking's own stage and status, by the ONE rule the Inbox's New message reads too
+        //    ({@see StayLabel}). {@see orderByLastStay()} sorts by the same date.
+        return StayLabel::for($relevant, $today);
     }
 
     /**

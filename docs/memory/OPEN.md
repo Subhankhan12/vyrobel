@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GUESTS SECOND pass (2026-10-05: every word visible at every width, one search box, Message only when email is sent)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the FIVE PAGES pass (2026-10-05: Inbox New message, Housekeeping, Maintenance, Units — Edit and a safe Delete, several units at once — and Security)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -27,9 +27,9 @@ change is said.** Briefs live in `briefs/`.
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
 | A6 | Remove two read-only scripts left in `env-backups/` (mode 644, inside the 700 folder): `admin06-prodfacts.php`, `memory01-prodstate.php` | a pass allowed to delete files on production (ADMIN 06's brief forbids deleting any) | — | Harmless, but tidy. |
 | A7 | **Make the mutation harness's "another run is active" check tell projects apart** (by working folder, as `RULES.md` asks). Today it matches any `pest` on the Mac, so `advisor-platform`'s runs block it — found 2026-09-29, when it refused once and had to wait for a gap. | a brief | — | Not a defect in Vyrobel; it costs time, and a hurried session might be tempted to weaken the guard. Don't. |
-| A8 | **The x-show + inline display sweep.** 22 elements on other screens carry `x-show` together with an inline `display` (security ×5, the owner portal ×10 across nine pages, and 7 more across housekeeping, roles, settings, schedule and passkeys; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, the unit requests page's two 2026-10-03 and the new reservation page's two 2026-10-04). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 22 (V 2026-10-04, scanned: exactly 22 — and re-counted by the independent review). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
-| A9 | **The see-through dialog panel on other screens.** The Inbox's three dialogs and Billing's still use the shared `.vy-modal` glass (the Calendar's New reservation dialog moved to the solid card 2026-10-04, with its rebuild). On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); these four were **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in those dialogs is likely below AA. |
-| A10 | **The string `:style` sweep.** 10 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, housekeeping, email previews). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 10. Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
+| A8 | **The x-show + inline display sweep.** 14 elements on other screens carry `x-show` together with an inline `display` (the owner portal ×10 across nine pages — its Security page twice — and roles ×2, settings, schedule; Maintenance's six were fixed 2026-09-29, the Units page's four 2026-09-30, the Rates page's eight with the unit price form's one 2026-10-01, the unit requests page's two 2026-10-03, the new reservation page's two 2026-10-04, and on 2026-10-05 the Inbox's, Housekeeping's and Security's dialogs and the shared passkey card's remove row). `x-show` removes the inline display when it shows the element, so each comes back as `block` after its first hide — the Guests dialogs opened in the top-left corner this way. `XShowInlineDisplayContractTest` holds them at a ceiling of 14 (V 2026-10-05, scanned: exactly 15 before the passkey row, 14 after). Each needs a browser look. | his go (asked 2026-09-29) | — | Some are dialogs that will open in the corner, as the Guests ones did. |
+| A9 | **The see-through dialog panel on other screens.** Billing's dialog still uses the shared `.vy-modal` glass (the Calendar's New reservation dialog moved to the solid card 2026-10-04; the Inbox's three on 2026-10-05). On the Portfolio's, the same glass measured 3.52:1 (sub-text) and 3.25:1 (labels), below AA (V 2026-09-29, sampled pixels); Billing's was **not measured**. The fix is one class per panel (`vy-modal-card`). | his go | — | Grey text in that dialog is likely below AA. |
+| A10 | **The string `:style` sweep.** 9 elements on other screens carry a static `style` AND a string `:style`, which Alpine turns into a REPLACEMENT of the whole attribute (schedule ×2, owner notification preferences ×2, operator notification preferences, maintenance settings, owner units, owner reports, email previews; housekeeping's lane arrow fixed 2026-10-05). On the work order page the same pattern shrank a switch to 16×6 px and stripped the dialogs' rows and tabs (🖥 V 2026-09-29). `AlpineStyleBindingContractTest` holds them at a ceiling of 9 (10 until 2026-10-05). Each needs a browser look; the fix is an object with the same values. | his go | — | Some controls on those screens probably render without their size or padding once Alpine binds them. |
 | A11 | ✅ **FIXED 2026-10-02 (his go, "Yes, all of it")** — D-PAYRUN-TENANT: "Run payouts now" names its own organisation's owners, its run key carries the organisation, and "Last run" shows only this organisation (`HISTORY.md`, "PAYOUTS"). Live state: `STATE.md`. | — | — | — |
 | A12 | ✅ **FIXED 2026-10-02** — D-UNITS-EXPORT: the Units Export link takes the view's address at the click, as on Owners. | — | — | — |
 | A13 | **The Rates page could flag a saved-but-unapplied season more loudly.** On production his €200 "Winter" season sat saved and never applied for six days, the reason no booking could be made (V 2026-10-04). The booking page now offers it; the Rates page still shows it only as a "not applied" line in its season list. A banner ("1 season saved but not applied — no price is written until you apply it") is a small change to that page. | his go | — | Saving a season and expecting prices is an easy mistake; the two-step is deliberate (R-SEASON), its visibility is not. |
@@ -247,7 +247,8 @@ change is said.** Briefs live in `briefs/`.
   `OwnerInviteActionController`), the owner's page "The link sent to … stops working", the refund page "The guest is emailed a
   refund confirmation automatically…", "Costs report emailed to …", "Test email sent to …" (email templates and previews); in the
   owner portal, team invites and the account email change. The same `MailSafetyGuard::sendingNow()` answers each.
-- **D-INBOX-DELIVERED (found 2026-10-05 by the independent review; the Inbox — his go):** a reply typed in a `manual` inbox thread
+- ✅ **D-INBOX-DELIVERED — FIXED 2026-10-05 (the five-page pass):** a reply in a `manual` thread is now labelled "Saved" and the
+  words under the reply box say where the guest reads it (their guest account, if they have one). *(was:)* a reply typed in a `manual` inbox thread
   (the guest profile's "Message" opens one) is labelled "Delivered", though `ManualChannel::send` sends nothing — it reaches only a
   guest with a claimed portal account, in the app; the hint says "The guest replies wherever they booked".
 - **D-REVIEW-REPLY (found 2026-10-05 by the independent review; the review-request email — his go):** "Simply reply to this email
@@ -265,6 +266,28 @@ change is said.** Briefs live in `briefs/`.
   copy that a guest with a claimed portal account could read. Should Message, with email off, still reach those guests in the app
   (and say so: "N of the selected can read it in their account; the rest won't get it")? 🔬 Production holds 0 guests who can sign in
   to the guest portal, in any organisation (V 2026-10-05, the read-only preflight) — so today the question changes nothing.
+- ✅ **D-P5-INBOX — FIXED 2026-10-05 (his report: "New message page design is not good. 2 text is repeated"):** the dialog said one
+  thing twice; its three dialogs sat on hand-made backdrops; the finder called an arrival due today "In-house". One shared
+  `StayLabel` (the finder and the Guests Stay column read the same rule); the dialogs on the shared card (`HISTORY.md`, "FIVE PAGES").
+- ✅ **D-P5-HK — FIXED 2026-10-05 (his report):** Housekeeping's own search pill (icon at the top of the row), Board and List in the
+  browser's own button look, a 720 px list in a narrower card, a blank "In progress" tag, "Today’s cleaning" over every day's rooms.
+- ✅ **D-P5-MT — FIXED 2026-10-05 (his report):** the board's 945 px table past its card; Note / Progress / Part ordered as one real
+  choice; "Part ordered" now marks the part awaited, so the board follows; and (the review) the Mark resolved dialog's "What was done"
+  is a real label.
+- ✅ **D-P5-UNITS — FIXED 2026-10-05 (his request):** Edit in plain sight and Delete — only what nothing has recorded
+  (`App\Support\Unit\InventoryDeletion`) — for units and room types; room type Edit; several units at once; "All properties" asks
+  which property; the setup guide stays until a price; a Dorm's units no longer fail ("Data truncated for column 'unit_kind'"); the
+  table fits its card; paused workspaces change no arrival info or photo; the photo routes inside the person's properties (DEC-k).
+- ✅ **D-P5-SEC — FIXED 2026-10-05 (his report: "this page design is not good"):** the page rebuilt; a device signed out from its row
+  (by a one-way token, never its session id); the allowlist remove no longer locks you out; X called X; honest passkey words and
+  names; each error once, in its own form.
+- **D-OWNER-SEC-ERRORS (found 2026-10-05 by the independent review; the OWNER portal's Security page — his go):** one wrong password
+  there shows under every password field on the page (`owner-security.blade.php` prints `@error('current_password')` in six places;
+  the shared two-factor panel and passkey card no longer add to it). The operator page's fix — each form marked, its error shown in
+  that form only — would carry over.
+- **D-STAY-WORD (seen 2026-10-05; low — his go):** the stage badge everywhere says "In-house"; the Guests Stay column and the Inbox's
+  New message list say "In house" (the Guests redesign's word, 2026-09-29). One concept, two spellings — one of them should read the
+  other's.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

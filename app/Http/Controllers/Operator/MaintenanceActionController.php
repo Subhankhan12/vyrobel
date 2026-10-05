@@ -352,7 +352,7 @@ class MaintenanceActionController extends Controller
             $maintenance->resolve($model, $cost, $labor, $parts, $laborHours, $validated['resolution'] ?? null, ! $returnToSale);
         } catch (RuntimeException) {
             return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))
-                ->with('mt_error', 'That ticket can’t be resolved — it isn’t in progress.');
+                ->with('mt_error', 'That work order can’t be resolved — it’s already closed.');   // open and in progress both resolve (2026-10-05)
         }
 
         // "Notify the front desk" — a real, preference-gated ping to the reporter (never a dead toggle, #39).
@@ -426,9 +426,21 @@ class MaintenanceActionController extends Controller
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:2000'],
             'kind' => ['nullable', Rule::in(MaintenanceService::NOTE_KINDS)],
+            'part_name' => ['nullable', 'string', 'max:160'],
+            'part_eta' => ['nullable', 'date'],
         ]);
 
-        $maintenance->addNote($model, $validated['body'], $validated['kind'] ?? 'note');
+        $kind = $validated['kind'] ?? 'note';
+        $maintenance->addNote($model, $validated['body'], $kind);
+
+        // ⚠️ 2026-10-05 — "Part ordered" DOES what it says: the work order is marked as waiting on that part, so the board's
+        //    "Awaiting parts" tag, its figure and the Parts-on-order panel follow. It only wrote a note before — nothing on the board
+        //    changed. The certified setAwaitingParts() (active work orders only; a closed one keeps just the note).
+        if ($kind === 'part' && $model->isActive()) {
+            $maintenance->setAwaitingParts($model, true, $validated['part_name'] ?? null, $validated['part_eta'] ?? null);
+
+            return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Update posted — marked as waiting on the part.');
+        }
 
         return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Update posted.');
     }
@@ -466,7 +478,8 @@ class MaintenanceActionController extends Controller
             'alt' => 'Maintenance photo · '.(string) $model->title,
         ]);
 
-        return redirect()->route('app.maintenance.show', $model->id)->with('mt_notice', 'Photo added.');
+        // the board's drawer sends return=list: back to the board where the photo was added (2026-10-05)
+        return $this->listReturn($request, redirect()->route('app.maintenance.show', $model->id))->with('mt_notice', 'Photo added.');
     }
 
     /** Remove a ticket photo — deletes the stored bytes + the row. Tenant + ticket scoped; read-only respected. */

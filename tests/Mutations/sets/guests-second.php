@@ -124,8 +124,8 @@ return [
         'id' => 'GS-M29',
         'name' => '"Sort by" in the lighter grey — 4.48:1 on a row (the review)',
         'file' => 'resources/views/components/layouts/operator.blade.php',
-        'old' => 'content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }',
-        'new' => 'content: "Sort by"; font-size: 11px; color: var(--vy-muted); }',
+        'old' => '.vy-gst .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }',
+        'new' => '.vy-gst .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-muted); }',
         'tests' => [['file' => $test, 'filter' => 'writes the stacked rows’ labels in the darker grey']],
     ],
     [
@@ -263,16 +263,16 @@ return [
     ],
     [
         'id' => 'GS-M14',
-        'name' => 'every past booking says "Left" — checked out or not (the review)',
-        'file' => 'app/Livewire/Operator/GuestsList.php',
-        'old' => '            (string) $relevant->status === \'checked_out\' => \'Left \'.',
+        'name' => 'every booking not in house says "Left" — checked out or not (the review)',
+        'file' => 'app/Support/Reservations/StayLabel.php',
+        'old' => '            (string) $reservation->status === \'checked_out\' => \'Left \'.',
         'new' => '            true => \'Left \'.',
         'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
     ],
     [
         'id' => 'GS-M41',
         'name' => 'an arrival due today says "Was due"',
-        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'file' => 'app/Support/Reservations/StayLabel.php',
         'old' => '            $checkIn->isSameDay($today) => \'Arrives today\',
 ',
         'new' => '',
@@ -281,9 +281,9 @@ return [
     [
         'id' => 'GS-M42',
         'name' => 'a booking nobody checked in says "Left <its check-out>" again (the review — a date still ahead for one overdue)',
-        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'file' => 'app/Support/Reservations/StayLabel.php',
         'old' => '            default => \'Was due \'.$day,',
-        'new' => '            default => \'Left \'.CarbonImmutable::parse($relevant->check_out)->format(\'j M Y\'),',
+        'new' => '            default => \'Left \'.CarbonImmutable::parse($reservation->check_out)->format($dateFormat),',
         'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
     ],
     [
@@ -436,7 +436,7 @@ return [
     [
         'id' => 'GS-M40',
         'name' => 'an unconfirmed booking says "Was due …" (or "Arrives …")',
-        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'file' => 'app/Support/Reservations/StayLabel.php',
         'old' => '            $own === ReservationStage::TENTATIVE => \'Tentative · \'.$day,   // the badge\'s word for enquiry and tentative
 ',
         'new' => '',
@@ -511,7 +511,7 @@ return [
     [
         'id' => 'GS-M58',
         'name' => 'every booking not checked out or tentative says "Arrives …" — overdue and stale ones included',
-        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'file' => 'app/Support/Reservations/StayLabel.php',
         'old' => '            $own === ReservationStage::UPCOMING => \'Arrives \'.$day,',
         'new' => '            true => \'Arrives \'.$day,',
         'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],

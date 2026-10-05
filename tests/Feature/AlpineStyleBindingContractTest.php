@@ -16,16 +16,18 @@ declare(strict_types=1);
 // in and is not growing elsewhere. It reads the views; it does not run Alpine — that the controls render was measured in a
 // browser.
 //
-// ⚠️ A CEILING, NOT A ZERO. 10 more sites carry the pattern on other screens (schedule, notification preferences, owner units
-// and reports, housekeeping, maintenance settings, email previews). Each needs looking at in a browser, and that sweep is
-// its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
+// ⚠️ A CEILING, NOT A ZERO. 9 more sites carry the pattern on other screens (schedule, notification preferences, owner units
+// and reports, maintenance settings, email previews) — 10 until the five-page pass (2026-10-05) turned the housekeeping lane's
+// arrow with a class. Each needs looking at in a browser, and that sweep is its own pass (asked for, not assumed). The
+// ceiling lets the number fall and never rise.
 
-const VY_STRING_STYLE_CEILING = 10;
+const VY_STRING_STYLE_CEILING = 9;
 
 /** The views this pattern was removed from — it must stay gone from these entirely. */
 const VY_STRING_STYLE_FIXED_VIEWS = [
     'livewire/maintenance-list.blade.php',
     'livewire/maintenance-ticket-detail.blade.php',   // 2026-09-29 — both dialogs and the update composer (14 sites)
+    'livewire/housekeeping-board.blade.php',           // 2026-10-05 — the lane's arrow
 ];
 
 /**

@@ -102,7 +102,10 @@ class HousekeepingBoard extends Component
         $allCards = $tasks->map(fn (HousekeepingTask $t): array => $this->card($t, $arrivals, $todayArrivals, $photos, $now, $checkInTimes))->all();
 
         $outOfOrder = $this->outOfOrderCount($readIds);
-        $crew = $this->crew($tasks, $crewFilter);
+        // ⚠️ 2026-10-05 — each filter chip counts exactly what clicking it shows: the rooms that pass the search (the chips carry it),
+        //    every stage — the chip used to print a person's OPEN load, while clicking them listed their clean rooms too
+        $searched = array_values(array_filter($allCards, fn (array $c): bool => $this->matches($c, null, $search)));
+        $crew = $this->crew($tasks, $crewFilter, $searched);
 
         // The displayed cards — narrowed by the crew filter + the search.
         $cards = array_values(array_filter($allCards, fn (array $c): bool => $this->matches($c, $crewFilter, $search)));
@@ -143,6 +146,10 @@ class HousekeepingBoard extends Component
             'crewFilter' => $crewFilter,
             'query' => $search,
             'detail' => $detail,
+            'chipCounts' => [
+                'all' => count($searched),
+                'unassigned' => count(array_filter($searched, fn (array $c): bool => $c['assigned_to'] === null)),
+            ],
             'unassignedCount' => count(array_filter($allCards, fn (array $c): bool => $c['assigned_to'] === null && in_array($c['status'], ['pending', 'in_progress'], true))),
             'housekeepers' => app(StaffRoster::class)->housekeepers(),
             // ⚠️ NAMED FOR THE PERMISSION IT CARRIES, renamed from `canAssign` 2026-09-23. It gates the
@@ -152,6 +159,8 @@ class HousekeepingBoard extends Component
             //    fallback was permanent, and the expression read as though two permissions were in play
             //    when there has only ever been one.
             'canManage' => auth()->user()?->can('housekeeping.manage') ?? false,
+            // who may give a team member the Housekeeping role — the empty-roster hint links to Roles & access only for them (#30)
+            'canStaff' => auth()->user()?->can('users.manage') ?? false,
         ]);
     }
 
@@ -206,6 +215,9 @@ class HousekeepingBoard extends Component
             'priority_tone' => $priority['tone'],
             'is_priority' => $task->priority === 'high',
             'date' => CarbonImmutable::parse($task->date)->format('j M'),
+            // ⚠️ 2026-10-05 — which DAY this room is for. The page lists every day's cleaning (no date filter), and said "Today's":
+            //    tomorrow's rooms read as today's. Today · Tomorrow · Overdue · <date> (not done, its day passed) · <weekday date>
+            ...$this->day((string) $task->date, $status, $now->startOfDay()),
             'assignee' => $assignee instanceof User ? (string) $assignee->name : null,
             'assignee_initials' => $assignee instanceof User ? $this->initials((string) $assignee->name) : null,
             'assigned_to' => $assignee instanceof User ? (string) $assignee->getKey() : null,
@@ -221,6 +233,24 @@ class HousekeepingBoard extends Component
             // D8-2 — the real turnover deadline, or null. Never a placeholder time.
             'ready_by' => $readyBy,
         ];
+    }
+
+    /**
+     * The task's day in words, and a tone for it — Today · Tomorrow · Overdue · 30 Jul (its day passed, not clean yet) · Wed 7 Oct.
+     *
+     * @return array{day: string, day_tone: string}
+     */
+    private function day(string $date, string $status, CarbonImmutable $today): array
+    {
+        $d = CarbonImmutable::parse($date)->startOfDay();
+        $done = in_array($status, ['clean', 'inspected'], true);
+
+        return match (true) {
+            $d->isSameDay($today) => ['day' => 'Today', 'day_tone' => 'today'],
+            $d->isSameDay($today->addDay()) => ['day' => 'Tomorrow', 'day_tone' => 'later'],
+            $d->lessThan($today) && ! $done => ['day' => 'Overdue · '.$d->format('j M'), 'day_tone' => 'overdue'],
+            default => ['day' => $d->format('D j M'), 'day_tone' => $d->lessThan($today) ? 'past' : 'later'],
+        };
     }
 
     /** Whether a card passes the active crew filter + search (unit / type / housekeeper name). */
@@ -264,10 +294,18 @@ class HousekeepingBoard extends Component
      * their pending/in_progress tasks in scope. No fabricated availability; the load is the real queue depth.
      *
      * @param  Collection<int, HousekeepingTask>|iterable<HousekeepingTask>  $tasks
+     * @param  list<array<string, mixed>>  $searched  the cards that pass the search — what each person's chip will show
      * @return list<array<string, mixed>>
      */
-    private function crew($tasks, ?string $crewFilter): array
+    private function crew($tasks, ?string $crewFilter, array $searched = []): array
     {
+        $shown = [];
+        foreach ($searched as $c) {
+            if ($c['assigned_to'] !== null) {
+                $shown[(string) $c['assigned_to']] = ($shown[(string) $c['assigned_to']] ?? 0) + 1;
+            }
+        }
+
         $load = [];
         foreach ($tasks as $task) {
             if (in_array((string) $task->status, ['pending', 'in_progress'], true) && $task->assigned_to !== null) {
@@ -280,6 +318,7 @@ class HousekeepingBoard extends Component
             'name' => $hk['name'],
             'initials' => $hk['initials'],
             'load' => (int) ($load[$hk['id']] ?? 0),
+            'count' => (int) ($shown[$hk['id']] ?? 0),
             'active' => $crewFilter === $hk['id'],
         ], app(StaffRoster::class)->housekeepers());
     }
@@ -295,7 +334,7 @@ class HousekeepingBoard extends Component
      * panel: ordering those by load would make the filters shuffle as work is assigned. Ties break on the
      * existing order, so the pick is stable between renders.
      *
-     * @param  list<array{id: string, name: string, initials: string, load: int, active: bool}>  $crew
+     * @param  list<array{id: string, name: string, initials: string, load: int, count: int, active: bool}>  $crew
      */
     private function suggestedHousekeeperId(array $crew): ?string
     {

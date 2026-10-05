@@ -268,12 +268,15 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **Dialogs:** `.vy-modal-backdrop` (carries the display and centres) › `.vy-modal.vy-modal-card` (near-opaque, so muted
   text clears AA), with `role=dialog`, `aria-modal`, `aria-labelledby`, `tabindex=-1`, `x-trap.noscroll` and Escape.
   ⚠️ `x-show` erases an inline `display`, so every display is a class — `XShowInlineDisplayContractTest` holds the other
-  screens at a ceiling of 22 (`OPEN.md` A8; 24 until 2026-10-04); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
-  ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
+  screens at a ceiling of 14 (`OPEN.md` A8; 22 until 2026-10-05); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
+  ceiling 9 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
   shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests; since
   2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays — and `.vy-rnr-*` the Calendar's New reservation dialog, which replaced `.vy-newres-*`; since 2026-10-05 `.vy-gst`/`.vy-gs-*` the Guests
-  second pass — its card is a size container, `vy-gst-list`, and its rows stack at 960 px of card and below). The shared search box
+  second pass — its card is a size container, `vy-gst-list`, and its rows stack at 960 px of card and below; since 2026-10-05 the five-page
+  pass: `.vy-ibx-*` the Inbox dialogs, `.vy-hk-*` Housekeeping (container `vy-hk-list`, stacks at 820 px of card), `.vy-wo-*` the work
+  order and the Maintenance board's container `vy-mt-list` (980 px), the Units sections, compact room type cards and container
+  `vy-ul-list` (860 px), and `.vy-sec-*` Security). The shared search box
   (`.vy-gl-search*`, the four list pages) is 40 px like the toolbar's buttons, a centred 16 px icon, the browser's search styling off. ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
   ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
 - **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
@@ -287,12 +290,25 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
     went out without asking (`OPEN.md` D-MAIL-CLAIMS). The Guests Message is sent AS THE PROPERTY (`BrandsGuestMail`: its name and
   reply-to address, like every other guest email) — which property is ONE definition, `App\Support\Guest\GuestMessageSender::property()`,
   read by the page (it names it) and the controller; there is no inbound mail, so no email reply reaches the Inbox.
+- **Units (2026-10-05):** what may be deleted is ONE rule, `App\Support\Unit\InventoryDeletion` (`unitBlockers()` /
+  `roomTypeBlockers()` — every table that CASCADEs or SET NULLs on a unit or room type, plus the FK-less moves and unit requests, the
+  morph notes/documents/files, an owner, a pending owner invitation), read by the page (each row and card says beforehand) and asked
+  again inside the delete's transaction with the row locked. Several codes at once: `App\Support\Unit\UnitCodes` ("101-110, 120",
+  up to 100; the page's script mirrors it only to preview). Priced or not: `App\Support\Unit\RoomTypePricing::pricedIds()` (the
+  setup guide's third step, the card's state, the add notices). A room type's kind maps to its units' (`dorm` → `dorm_bed`).
+- **Security (2026-10-05):** `App\Support\Security\ActiveSessions::key()` names a session by a one-way hash (never its id) and
+  `signOutOne()` deletes one of the person's own other sessions (route `app.security.sessions.sign-out`). Each password form carries a
+  hidden `_form`, and the shared two-factor panel and passkey card show an error only for their own form; the operator page shows
+  an unplaced error at its top only.
+- **One stay, one rule:** `App\Support\Reservations\StayLabel::for()` — the Guests Stay column and the Inbox's New message list.
 - **Shared partials:** `partials.submit-guard` (`data-guard-submit`: one submit per click) and `partials.count-up` (figures
   animate up on load — read the data, not a screenshot taken mid-count).
 - **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
   shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
   `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `new-reservation-bookable`, `calendar-new-reservation`,
-  `calendar-bookable`, `guests-second`) run by `php tests/Mutations/run.php`.
+  `calendar-bookable`, `guests-second`, and since 2026-10-05 `inbox-compose`, `housekeeping-five`, `maintenance-five`, `units-five`,
+  `security-five`) run by `php tests/Mutations/run.php` — ⚠️ WITHOUT `PAO_DISABLE=1`: the harness reads the runner's JSON summary
+  line, which that setting switches off (every result then reads "no result").
 
 ## 12 · Photos and message attachments
 

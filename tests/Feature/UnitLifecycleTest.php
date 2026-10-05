@@ -111,11 +111,21 @@ it('⚠️ both new routes are gated on units.manage, and a role without it is r
         ->and((bool) $unit->fresh()->is_active)->toBeTrue();
 })->with([['app.inventory.units.update', 'put'], ['app.inventory.units.active', 'post']]);
 
-it('⚠️ THERE IS NO DELETE ROUTE, deliberately — a hard delete would orphan money and destroy history', function () {
+it('⚠️ DELETES ONLY A UNIT NOTHING HAS RECORDED — a hard delete of one with history would orphan money and destroy it', function () {
     // 🔬 Measured at the schema: unit_status_logs / housekeeping_tasks / maintenance_tickets /
     // management_agreements / unit_rate_overrides CASCADE, and reservation_units / owner_ledger /
-    // owner_expenses / inventory_blocks / reviews SET NULL. Deleting a unit would therefore destroy
+    // owner_expenses / inventory_blocks / reviews SET NULL. Deleting a unit with history would therefore destroy
     // append-only history and orphan a sold stay's frozen price and the owner's ledger lines.
-    // ⚠️ Asserted so that adding one becomes a deliberate act that breaks a test — see docs/UNIT-LIFECYCLE.md.
-    expect(Route::has('app.inventory.units.destroy'))->toBeFalse();
+    // ⚠️ Until 2026-10-05 this asserted there was NO delete route, so that adding one would be a deliberate act that breaks
+    //    a test. It was deliberate: the founder asked for Delete ("there must be an option to edit and delete the unit").
+    //    The route keeps this test's reason — it refuses any unit with history (App\Support\Unit\InventoryDeletion, asked
+    //    again inside the delete's transaction), and UnitsPassFiveTest proves each refusal and the one delete it allows.
+    expect(Route::has('app.inventory.units.destroy'))->toBeTrue();
+
+    $s = seedScenario(1);
+    $unit = $s['units'][0];
+    book($s, ['unit_id' => $unit->id]);
+    $this->actingAs(ulActor($s, 'Hotel Manager'))->delete(route('app.inventory.units.destroy', $unit->id))
+        ->assertSessionHas('units_error');
+    expect(Unit::query()->find($unit->id))->not->toBeNull();
 });

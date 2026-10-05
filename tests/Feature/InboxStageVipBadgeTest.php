@@ -58,13 +58,26 @@ function d102Thread(array $s, ?Reservation $reservation, ?Guest $guest = null): 
     ]);
 }
 
-/** Open the inbox on a specific thread, as the operator. */
+/**
+ * Open the inbox on a specific thread, as the operator.
+ *
+ * ⚠️ 2026-10-05 — this asked for `?thread=`, a parameter the inbox has never read (it reads `?c=`), so the page opened its
+ * DEFAULT conversation — the first thread, the upcoming one — and the checked-in test below passed only because the New
+ * message list elsewhere on the page happened to print "In-house". When that list began to say "In house", the coincidence
+ * ended and the test went red. It now opens the conversation it names, and the stage is read from the badge itself.
+ */
 function d102Inbox(array $s, MessageThread $thread): string
 {
     return (string) test()->actingAs(d102Operator($s))
         ->withSession(['current_property_id' => $s['property']->id])
-        ->get('/app/inbox?thread='.$thread->getKey())
+        ->get('/app/inbox?c='.$thread->getKey())
         ->assertOk()->getContent();
+}
+
+/** The conversation's stage badge as rendered — a label anywhere else on the page must not answer for it. */
+function d102Badge(string $label): string
+{
+    return '<span class="vy-dot"></span>'.$label.'</span>';
 }
 
 // ── D10-2 · THE STAGE BADGE ───────────────────────────────────────────────────────────────────────
@@ -107,8 +120,10 @@ it('⚠️ D10-2 — the badge tracks the REAL stage: a checked-in stay reads di
     // ⚠️ NON-VACUITY: the two stages really are different, so the page assertions below discriminate.
     expect($upcomingLabel)->not->toBe($inHouseLabel);
 
-    expect(d102Inbox($s, d102Thread($s, $upcoming)))->toContain($upcomingLabel);
-    expect(d102Inbox($s, d102Thread($s, $inHouse)))->toContain($inHouseLabel);
+    $upcomingPage = d102Inbox($s, d102Thread($s, $upcoming));
+    $inHousePage = d102Inbox($s, d102Thread($s, $inHouse));
+    expect($upcomingPage)->toContain(d102Badge($upcomingLabel))->not->toContain(d102Badge($inHouseLabel))
+        ->and($inHousePage)->toContain(d102Badge($inHouseLabel))->not->toContain(d102Badge($upcomingLabel));
 });
 
 it('⚠️ D10-2 — a thread with NO reservation shows NO stage badge (and no "unknown" placeholder)', function () {

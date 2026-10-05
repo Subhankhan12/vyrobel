@@ -20,11 +20,13 @@ declare(strict_types=1);
 // ⚠️ A CEILING, NOT A ZERO. 39 more sites carry the same pattern in other screens (rates, units, security, owner pages) —
 // 45 after the Guests pass, 39 after the Maintenance pass fixed its six, 35 after the Units pass fixed its four, 26 after the
 // Rates pass fixed its nine, 24 after the owners module pass (2026-10-03) rebuilt the unit requests page (its two review forms),
-// 22 after the New reservation pass (2026-10-04) rebuilt the booking wizard (its draft banner and the guest checkbox row).
+// 22 after the New reservation pass (2026-10-04) rebuilt the booking wizard (its draft banner and the guest checkbox row),
+// 14 after the five-page pass (2026-10-05) put the Inbox, Housekeeping and Security dialogs on the shared card and moved the
+// passkey card's remove row (shared with the owner page) off an inline display.
 // Most are panels whose content happens to lay out acceptably as `block`; each needs looking at in a browser, and that
 // sweep is its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
 
-const VY_XSHOW_INLINE_DISPLAY_CEILING = 22;
+const VY_XSHOW_INLINE_DISPLAY_CEILING = 14;
 
 /** The views the Guests, Maintenance, Units and Rates passes fixed — the pattern must be gone from these entirely. */
 const VY_XSHOW_FIXED_VIEWS = [
@@ -37,6 +39,10 @@ const VY_XSHOW_FIXED_VIEWS = [
     'components/rates/unit-price-form.blade.php',     // 2026-10-01, the same pass (1 site)
     'livewire/operator/unit-requests.blade.php',      // 2026-10-03, the owners module pass (2 sites)
     'livewire/operator/new-reservation.blade.php',    // 2026-10-04, the New reservation pass (2 sites)
+    'livewire/operator/operator-inbox.blade.php',     // 2026-10-05, the five-page pass (its dialogs)
+    'livewire/housekeeping-board.blade.php',          // 2026-10-05, the same pass (Assign, Assign all)
+    'livewire/operator/operator-security.blade.php',  // 2026-10-05, the same pass (four dialogs)
+    'components/auth/passkeys.blade.php',             // 2026-10-05, the same pass (the remove row)
 ];
 
 /**

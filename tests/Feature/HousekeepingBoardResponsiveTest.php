@@ -83,12 +83,12 @@ it('⚠️ reuses breakpoints the shell already declared', function () {
 it('⚠️ bounds every dialog on this screen so its buttons cannot scroll away', function () {
     $src = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
 
-    preg_match_all('/<div [^>]*class="vy-card vy-modal-card[^"]*"[^>]*>/', $src, $panels);
+    // ⚠️ 2026-10-05 — the three panels moved onto the SHARED dialog card (`vy-modal vy-modal-card`), and the bound moved with them:
+    //    the shared `.vy-modal` caps its height and scrolls inside, so the inline `max-height: 90vh` each panel carried is gone.
+    preg_match_all('/<div [^>]*class="vy-modal vy-modal-card[^"]*"[^>]*>/', $src, $panels);
     expect(count($panels[0]))->toBe(3);
-    foreach ($panels[0] as $panel) {
-        expect($panel)->toContain('max-height: 90vh');
-        expect($panel)->toContain('overflow: auto');
-    }
+    $layout = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    expect($layout)->toMatch('~\n\s*\.vy-modal \{[^}]*max-height: 92vh; overflow-y: auto~');
 });
 
 // ⚠️ And the D2 contract, applied here because it is mechanical — every dialog announced and focus-managed.

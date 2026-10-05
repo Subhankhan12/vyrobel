@@ -12,6 +12,7 @@ use App\Models\IpAllowRule;
 use App\Models\Passkey;
 use App\Models\User;
 use App\Support\Auth\SignInCredentials;
+use App\Support\Auth\SocialProviders;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Security\ActiveSessions;
 use Carbon\CarbonImmutable;
@@ -31,9 +32,13 @@ use Livewire\Component;
  * shared {@see PreparesTwoFactor} trait — real TOTP enrollment (secret + QR, confirm-before-activate) +
  * one-time recovery codes + login-time enforcement (invariant #31), encrypted at rest. NOT a stub.
  *
- * Honesty (invariant #19): the design's active-sessions, trusted-devices, connected-apps and IP-rules panels
- * ARE still unbacked subsystems (docs/AUTH-INVENTORY.md) — shown here as an honest "Soon", never faked. (2FA is
- * no longer among them — it shipped 2026-07-18.)
+ * Honesty (invariant #19): active sessions, trusted devices and the IP allowlist are real (ActiveSessions,
+ * TrustedDeviceService, EnforceIpAllowlist); connected apps is the one honest empty state — no staff OAuth exists.
+ *
+ * ⚠️⚠️ 2026-10-05 (the founder: "this page design is not good. Fix it."): rebuilt as two named groups of equal cards —
+ * Signing in (password · two-factor · passkeys · sign-in accounts) and Devices and access (sessions · trusted devices ·
+ * IP allowlist · connected apps) — under one header, every dialog on the shared card. Each password form is marked
+ * (`_form`) so its error shows in that form only, and the dialog it came from reopens with it.
  */
 #[Layout('components.layouts.operator')]
 class OperatorSecurity extends Component
@@ -82,11 +87,18 @@ class OperatorSecurity extends Component
             ? $user->identities()->orderBy('created_at')->get()->map(fn ($i): array => [
                 'id' => (string) $i->getKey(),
                 'provider' => (string) $i->provider,
+                'label' => SocialProviders::label((string) $i->provider),
                 'email' => (string) ($i->provider_email ?? ''),
                 'last_used' => $i->last_used_at !== null ? CarbonImmutable::parse($i->last_used_at)->diffForHumans() : 'not used yet',
                 'can_unlink' => SignInCredentials::mayUnlink($user, (string) $i->getKey()),
             ])->all()
             : [];
+
+        $twoFactor = $this->twoFactorPanel('app.security.2fa');
+        $linked = array_column($connections, 'provider');
+        $x = SocialProviders::resolve('twitter');
+        // the dialog a refused form came from, opened again with its error inside it (`_form`, set by each form)
+        $errored = session()->has('errors') ? old('_form') : null;
 
         return view('livewire.operator.operator-security', [
             'viewer' => $this->viewer(),
@@ -94,7 +106,16 @@ class OperatorSecurity extends Component
             'connections' => $connections,
             'socialEnabled' => app(SocialIdentityProvider::class)->enabled(),
             'hasPassword' => $user instanceof User && $user->hasPassword(),
-            'twoFactor' => $this->twoFactorPanel('app.security.2fa'),
+            'twoFactor' => $twoFactor,
+            'twoFactorOn' => $twoFactor['state'] === 'enabled',
+            // a sign-in method can be connected only when it is switched on here and not connected already
+            'connectable' => array_values(array_filter([
+                app(SocialIdentityProvider::class)->enabled() && ! in_array('google', $linked, true) ? ['key' => 'google', 'label' => 'Google', 'route' => 'app.security.connections.link'] : null,
+                $x !== null && $x->enabled() && ! in_array('twitter', $linked, true) ? ['key' => 'twitter', 'label' => 'X', 'route' => 'app.security.connections.twitter'] : null,
+            ])),
+            'errored' => is_string($errored) ? $errored : null,
+            'erroredDevice' => $errored === 'revoke' && is_string(old('device_id')) ? (string) old('device_id') : null,
+            'canManageIp' => (bool) $user?->can('settings.manage'),
             'sessions' => $sessions,
             'trusted' => $trusted,
             'ipRules' => $ipRules,

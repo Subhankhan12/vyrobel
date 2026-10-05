@@ -78,7 +78,7 @@ it('lists guests with a current or upcoming stay in the new-message picker', fun
 
     $this->actingAs($manager)->get(route('app.inbox'))
         ->assertOk()
-        ->assertSee('Guests with a current or upcoming stay');
+        ->assertSee('Guests staying now, arriving soon, or who left in the last 14 days.');   // what it lists, said once (2026-10-05)
 });
 
 // ── GATE 3.3 — assign carries a REAL internal note (staff-only), and GDPR erase redacts it ───────
