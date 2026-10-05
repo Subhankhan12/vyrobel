@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the CALENDAR SECOND pass (2026-10-04)** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the GUESTS SECOND pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -29,10 +29,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
-| Suite (the CALENDAR SECOND commit) | **4,335/4,335 on MySQL 8.4.10** (tree `bc45dca32a733a7e` = the code plus these docs, before these figures were written; 2026-10-05 00:45–01:05 Baku) · **4,335/4,335 on MariaDB 11.8.9** (the same tree, 01:28–01:46 Baku) · 31,833 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). ⚠️ The first MySQL run, on the tree before the last fix (00:18–00:40), failed one test: the currency guard refusing "€" inside the dialog's attribute — fixed, then the whole suite re-run. The NEW RESERVATION SECOND commit before it (`bac3997b`): 4,300/4,300 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
-| Mutations | **760/760 landed and caught across every set**, 0 not caught, 0 did not land; baseline 431/431 green (`admin-06` = 87, `calendar-bookable` = 61, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `calendar-bookable` caught 49/50 at first (CB-M28 — a page-wide check the sidebar satisfied; tightened), and two `calendar-new-reservation` needles stayed green once the grid's note and card said the same words (CN-M9, CN-M11; their tests now look inside the dialog) | **V** harness output 2026-10-05 01:06–01:28 Baku, tree `bc45dca32a733a7e` |
-| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 01:47 Baku (the CALENDAR SECOND pass; reseeded 01:47). Tenant one only; local only. |
-| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 01:48 Baku (the CALENDAR SECOND pass, on the final tree) |
+| Suite (the GUESTS SECOND commit) | **4,359/4,359 on MySQL 8.4.10** (tree `0597738d6d3eaf01` = the code plus these docs, before these figures were written; 2026-10-05 04:19–04:37 Baku) · **4,359/4,359 on MariaDB 11.8.9** (the same tree, 05:03–05:21 Baku) · 32,010 assertions · 0 failed, 0 errors, 0 skipped (read from each run's JUnit log). The CALENDAR SECOND commit before it (`a2831e72`): 4,335/4,335 on both engines | **V** run outputs and JUnit logs 2026-10-05. |
+| Mutations | **818/818 landed and caught across every set**, 0 not caught, 0 did not land; baseline 455/455 green (`admin-06` = 87, `calendar-bookable` = 61, `guests-second` = 58, `admin-05` = 49, `rates-page` = 49, `owner-module` = 48, `owners-page` = 41, `new-reservation` = 34, `units-list` = 33, `calendar-new-reservation` = 33, `admin-p1` = 31, `new-reservation-bookable` = 29, `payout-run-scope` = 26, `maintenance-board` = 26, `guests-list` = 24, `message-attachments` = 7, `public-media` = 6, and 12 older sets). ⚠️ `guests-second` caught 20/21 at first (GS-M19 — the phone rule's own `nowrap` answered for the base rule; tightened); `guests-list` GL-M2 re-pointed to the new sort key | **V** harness output 2026-10-05 04:37–05:02 Baku, tree `0597738d6d3eaf01` |
+| Money gate FULL | `929 / 10928000 / 0 / 42 / 16 / 0` · digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` · `mode=FULL` ✅ | **V** `ops/money-as-seeded.sh` output 2026-10-05 05:22 Baku (the GUESTS SECOND pass; reseeded 05:22). Tenant one only; local only. |
+| PHPStan L5 · Pint | 0 errors · clean (both on the whole codebase) | **V** 2026-10-05 05:22 Baku (the GUESTS SECOND pass, on the final tree) |
 | Public checks / exposure battery | **12 PASS · 0 FAIL · 0 could not measure** (`SERVED=0`) on `rel_AW`, 2026-10-05, run straight after the 01:51 Baku swap (and on `rel_AV` at 22:14 on 2026-10-04, on `rel_AU` at 18:45 that day, on `rel_AT` at 04:41 that day, on `rel_AS` at 21:32 on 2026-10-03, on `rel_AR` at 17:26 that day, on `rel_AQ` on 2026-10-01 at 19:08, on `rel_AP` at 03:21 that day, on `rel_AO` at 02:10, on `rel_AN` at 21:59 on 2026-09-30, `rel_AM` at 20:42, `rel_AL` at 19:13, `rel_AK` at 17:29 and `rel_AJ` at 12:22 the same day; on `rel_AI`, `rel_AH`, `rel_AG`, `rel_AF` on 2026-09-29); drift check passes, self-test 3/3 (V 2026-10-05, after the 01:51 Baku swap) | **V** `ops/public-checks.sh` 2026-10-01 |
 | Customers | **0.** 15 organisations, all internal | **V** production read, 2026-09-29 |
 
@@ -179,6 +179,16 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     room types, Winter named), the nights gone greyed and the marked nights; "+" on 101 → Double room first, Winter and Set price;
     the Apply view opened, Escape stepped back (nothing sent); the name boxes still aligned (his earlier report); 390 px clean;
     0 console messages; signed out, browser closed. ⚠️ His "Winter" stays unapplied until HE applies it.
+0o. **Guests, second pass (2026-10-05)** — his report ("https://vyrobel.com/app/guests … Text is not visible completely. Serach box
+    design is not good and its symbol is not well-aligned … the same work as on the previous pages"). 🔬 Why (measured locally on a
+    copy of real shapes): below ~1,180 px the table was wider than its card (Status cut, Nationality under the menu on a phone); the
+    search squeezed between the chips and the buttons with an "i" against its edge; 📖 "Message" claimed "Sent by email" while
+    production's mailer is `log`. Now: the table fits its card at every width (rows stack at 960 px of card and below); the shared
+    search box redone for Guests, Owners, Units and Maintenance; Message refuses while email isn't sent and, when it is, goes out as
+    the property and says where replies go; the column is "Stay" and says each booking's own state; nationality picked by name, an
+    unlisted one kept (`HISTORY.md`, "GUESTS, SECOND PASS"). The review's 13 findings: the HIGH ("Left <date>" for stays nobody left)
+    and the four MEDIUM fixed, the low ones fixed or recorded. Recorded for his go: `OPEN.md` D-MAIL-CLAIMS, D-INBOX-DELIVERED,
+    D-REVIEW-REPLY, D-MAIL-GUARD-SHAPES, D-GS2-STACK-A11Y and DEC-s.
 1. **PW-SIGNUP PROBE permanent delete** has **not started** — ADMIN 06 is live, so it is ready for him. **Not suspended**
    (V 2026-09-29, `status = active`).
    - Backup exists (V 2026-09-27): `vyrobel-db-before-delete-pw-signup-probe-20260926T190414Z.sql.gz`, 87,968 bytes, mode 600,

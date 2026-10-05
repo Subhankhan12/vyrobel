@@ -8,16 +8,16 @@ use App\Http\Controllers\Controller;
 use App\Mail\OperatorGuestMessageMail;
 use App\Models\Guest;
 use App\Models\MessageThread;
-use App\Models\Property;
 use App\Services\GuestService;
 use App\Services\InboxService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Export\CsvSafe;
 use App\Support\Guest\GuestMarketing;
+use App\Support\Guest\GuestMessageSender;
 use App\Support\Guest\GuestName;
 use App\Support\Guest\MarketingUnsubscribe;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Operator\OperatorWorkspace;
-use App\Support\Property\PropertyContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -44,6 +44,12 @@ class GuestBulkActionController extends Controller
             return $this->paused();
         }
 
+        // ⚠️⚠️ 2026-10-05 — NOTHING IS "MESSAGED" WHILE EMAIL IS NOT SENT. On production the mailer is `log`: every message was
+        //    discarded, the notice said "N guests messaged" and each guest's inbox recorded it as sent. Refused, and said, instead.
+        if (! MailSafetyGuard::sendingNow()) {
+            return $this->back('Email isn’t being sent from Vyrobel yet — nothing was sent.', 'guest_error');
+        }
+
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['string'],
@@ -52,7 +58,7 @@ class GuestBulkActionController extends Controller
         ]);
 
         $marketing = $request->boolean('marketing');
-        $property = $this->currentPropertyName();
+        $current = GuestMessageSender::property();   // the ONE sender: the page names the same one
         $guests = Guest::query()->whereIn('id', $data['ids'])->get();
 
         $sent = 0;
@@ -83,9 +89,10 @@ class GuestBulkActionController extends Controller
             Mail::to($email)->send(new OperatorGuestMessageMail(
                 GuestName::display($guest),
                 $data['body'],
-                $property,
+                $current !== null ? (string) $current->name : null,
                 $marketing ? MarketingUnsubscribe::url($guest) : null,
                 $marketing ? MarketingUnsubscribe::oneClickUrl($guest) : null,
+                $current,   // sent as the property: its name, and replies to its reply-to address (2026-10-05)
             ));
 
             // Record it in the inbox so the operator keeps a thread and a future inbound reply attaches.
@@ -214,14 +221,6 @@ class GuestBulkActionController extends Controller
             'subject' => 'Message from your host',
             'assigned_to' => $request->user()?->getKey(),
         ]);
-    }
-
-    private function currentPropertyName(): ?string
-    {
-        $id = app(PropertyContext::class)->id();
-        $property = $id !== null ? Property::query()->find($id) : null;
-
-        return $property !== null ? (string) $property->name : null;
     }
 
     private function paused(): RedirectResponse

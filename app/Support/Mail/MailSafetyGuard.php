@@ -57,6 +57,18 @@ final class MailSafetyGuard
         return in_array($mailer, self::SENDING, true);
     }
 
+    /**
+     * Whether email from this app reaches real inboxes RIGHT NOW — the configured mailer as {@see isSending()} reads it. ⚠️ The ONE
+     * question every screen asks before it says "sent by email" (2026-10-05: the Guests page's Message said so while production's
+     * mailer was `log`, and recorded a sent message in each guest's inbox; the New reservation page asked the same thing inline).
+     */
+    public static function sendingNow(): bool
+    {
+        $host = config('mail.mailers.smtp.host');
+
+        return self::isSending((string) config('mail.default'), is_string($host) ? $host : null);
+    }
+
     /** Whether an SMTP host is THIS machine (a local catch-inbox) rather than a real mail provider. */
     public static function isLocalSmtpHost(?string $host): bool
     {

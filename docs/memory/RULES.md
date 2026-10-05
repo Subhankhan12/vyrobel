@@ -441,6 +441,30 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   must allow it, or it fails on correct output (Verified 2026-10-04).
 - **Say the next step from what the page shows.** "Pick a unit to continue" came back above a unit already picked; the server
   could not know. The dialog now says it from its own state (Verified 2026-10-04, the browser).
+- **A row's words must come from the record whose dates they show.** The Stay cell took the GUEST's stage and ONE booking's dates,
+  so an arrival due today read "Left <its check-out>" — a date still ahead (Verified 2026-10-05, the independent review; the sort key
+  had the same mix and moved with it).
+- **Alpine's `x-model` on a `<select>` picks before a child `x-if` has added the option.** Edit opened on "Not given" for a saved
+  code the list lacks, and Save would have erased it; set the select again on `$nextTick` (Verified 2026-10-05, 🖥 the select's
+  value read `""`).
+- **A rule on a shared kit class reaches every page that uses the class.** `.vy-gl-contact` stacked on Guests also stacked the Units
+  sub-line ("Name / · Door code set"). Scope a page's rule to its own root (Verified 2026-10-05, the review, then 🖥 on Units).
+- **When a new refusal shares a path with an old one, the old test can pass for the new reason.** The paused-workspace test kept
+  passing with the pause check deleted once a mailer that sends nothing refused too; give each test a fixture where only its own
+  reason applies (Verified 2026-10-05, the review; GS-M50).
+- **A table shares its shrinking across every column that may wrap.** "Wrap a long country name" was taken at 1,440 px too, where
+  nothing needed it; allow it only in the band that needs it — and measure the band (Verified 2026-10-05, 🖥 390–1,600 px).
+- **An email's "just reply" is a promise about where the reply goes.** With no reply-to, a guest's reply reached Vyrobel's own
+  sender while the email said "we'll see it" and the page said "replies land in your inbox" — no email reply ever does (Verified
+  2026-10-05, read: no inbound mail; the review).
+- **A figure caught mid-count is not a wrong figure.** The KPI read 5 where the data said 6: the count-up animation, screenshot
+  too early (Verified 2026-10-05, 🖥).
+- **A test that a function EXISTS does not prove it is CALLED.** The Edit fix's tests read `syncNat()`'s body; deleting either call
+  put the defect back with every test green (Verified 2026-10-05, the second review; GS-M56, GS-M57).
+- **Before a sentence points at a page, check the reader can open it.** "Add a reply-to address in Settings" was shown to three of
+  the five roles that may send, and Settings refuses all three (`properties.manage`) — "the UI never invites a 403" covers words as
+  well as buttons (Verified 2026-10-05, the second review; `config/authorization.php` read).
+
 
 ---
 

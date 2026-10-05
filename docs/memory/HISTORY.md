@@ -725,6 +725,54 @@ His live look (signed in himself at the first ask): the no-rooms card → Villa 
 clean; 0 console messages; signed out, browser closed. Seen: the sidebar cuts his property's name (D-SHELL-PROPNAME), the top
 bar's date pill a day behind the property's (D-RACK-START-TZ).
 
+**GUESTS, SECOND PASS — 2026-10-05 — his "https://vyrobel.com/app/guests — on this page there is design issue. Text is not visible
+completely. Serach box design is not good and its symbol is not well-aligned. Fix it … the same work as on the previous pages … in
+terms of design functionality and everything else".** Plan posted and executed (his rule: plan, then keep working); no migration.
+**Why (🔬 measured locally on a copy with long names, a long email, tags and stays — his workspace holds one guest):** below ~1,180 px
+the table (min-width 760 px) was wider than its card, so Status was cut ("No booki…") and at 390 px Nationality sat under the row's
+sticky menu; an email broke mid-word; the search box sat squeezed between the filter chips and the buttons, its icon off-centre on
+Safari's own search styling and an "i" button pressed into its edge; the top bar's "Search reservations, guests…" wrapped onto two
+lines at 1,024 px. 📖 Read in the code: "Message" said "Sent by email · replies land in your inbox" and recorded a sent message in
+each guest's inbox while production's mailer is `log` (`STATE.md`, Switches); the repeat-guests figure said "who have stayed" of
+bookings still ahead; "Last stay" showed an arrival to come as a bare date; nationality was two typed letters. **Built:** the card is
+a size container — at 960 px of card and below each guest stacks (name and status on top, the facts below, each named), under 520 px
+the status joins the facts and an empty Lifetime hides; status and the stay date never wrap, a country name only when over 16
+characters and only where the card is narrow; email and phone each on its own line. The search box redone ONCE in the shared list kit
+(Guests, Owners, Units, Maintenance): 40 px like the buttons, a centred 16 px icon, the browser's own search styling off, the "i" gone
+(its sentence lives in the placeholder and the empty search). The toolbar like the newer pages. Honest words, through one question,
+`MailSafetyGuard::sendingNow()` (shared with the New reservation page): while email isn't sent the Message dialog says so, its box,
+switch and Send are off, and the server refuses with nothing written; when it is, the message goes out AS THE PROPERTY (its name
+and its reply-to address, like every other guest email) and the dialog names that property and says where replies go — or that
+they won't reach the operator until a reply-to address is set (and, to a role that cannot open Settings, whom to ask); the email
+invites a reply only when one would reach the property. "N of M guests with a booking booked again" (and "no bookings yet —
+cancellations and no-shows don't count"); the column is "Stay" — In house · Arrives … · Arrives today · Was due … · Tentative · …
+· Left … — and sorts by the date it shows. Nationality picked by name (249, the host's ICU names); Edit opens on the saved code and
+keeps one the list lacks, "Kosovo (as saved)". The top bar's search keeps one line ("Search…" at 1,240 px and below; its spoken
+name holds the words it shows).
+**The independent review** (read-only; 13 findings, the stacked-table screen-reader one only weighed): **one HIGH** — "Left <date>"
+for stays nobody left: an arrival due today and one overdue read "Left <a date still ahead>", a booking never checked in "Left …"
+(the label took a guest-level stage and one booking's dates); fixed from that booking's own status, and the sort key with it. **Four
+MEDIUM**, all fixed: Edit opened on "Not given" for a code the list lacks and Save erased it (🖥 measured: the select's value was
+"" — x-model chose before x-if added the option); my contact rule was page-wide and stacked the Units sub-line; "replies land in
+your inbox" was never true of email (no inbound mail; no reply-to, so replies went to Vyrobel's sender); the paused-workspace test
+passed for the wrong reason once a mailer that sends nothing also refused. **Low**, fixed: a Lifetime holding only "… due" hidden on
+a phone; the full table still 939 px (969 with Select) in 890–940 px cards — 🖥 measured, so the stacking point moved to 960 and long
+country names may wrap there; two new labels in the grey that measures 4.48:1 on a row; "nobody has booked yet" with only cancelled
+bookings; the top bar's spoken name ("and") not holding its visible words; the untested rules. Recorded, not changed (outside the
+page or his call): `OPEN.md` D-MAIL-CLAIMS, D-INBOX-DELIVERED, D-REVIEW-REPLY, D-MAIL-GUARD-SHAPES, D-GS2-STACK-A11Y, DEC-s.
+**The second review** (of the fixes; read-only): the Stay labels and the sort key agree in every status, and the Edit fix holds against
+the bundled Alpine — but nothing tested that `syncNat()` is CALLED (only that it exists), and "add a reply-to address in Settings" was
+shown to Hotel Manager, Front Desk and Reservation Agent, who may send but cannot open Settings (a 403 invited). Both fixed; the one
+sending property is now `GuestMessageSender::property()` (the page and the controller asked separately) and the dialog names it;
+"Tentative · …", the badge's own word, from the shared stage resolver; "cancellations and no-shows"; a loose regex anchored; the sort
+test given a stay only the departure key orders right. Its width question (cards of 961–969 px with Select on) was 🖥 measured: inside
+the card. Mailpit counting as "not sending" stays, written down: the sending state is first seen in the email pass (`OPEN.md` A2).
+Tests: `GuestsListSecondPassTest` (24; each new one RED first, the rest proven by mutation); `OperatorGuestBulkTest`'s paused test now
+refuses with mail "working"; three older tests changed with the behaviour he asked for. Mutations `guests-second` 58, all caught
+(GS-M19 stayed green at first — the phone rule's own `nowrap` answered for the base rule; tightened); `guests-list` GL-M2 re-pointed
+to the new sort key. Gates: 4,359/4,359 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `0597738d6d3eaf01`; JUnit
+logs); 818/818 mutations; money gate FULL unmoved; PHPStan 0, Pint clean.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -784,6 +832,15 @@ bar's date pill a day behind the property's (D-RACK-START-TZ).
   a test that correctly pinned Arrival info as still offered there. The assertion was right and the title was wrong; caught
   on re-reading, before commit. And a memory lesson drafted from recall ("the menu swallowed focus") was checked against
   the transcript, found to be a change made on reading the code — never a measured failure — and not written as one.
+
+- **Mine, caught before commit (the Guests second pass, 2026-10-05):** a label built from the guest's stage and one booking's dates
+  ("Left <a date still ahead>"); a page rule on a shared kit class that reached Units; an `x-model` select that chose before its
+  `x-if` option existed, so Edit would have erased a saved nationality; a dialog sentence ("replies land in your inbox") kept from
+    before without checking it; a stacking point set from one measurement and missed by 59 px. The independent review found the first
+  four; the browser walk measured the fifth. And a test that kept passing for a new reason (the paused workspace) — the review again.
+  The second review, of the fixes: a test that proved a function EXISTS, not that it is CALLED; and advice pointing three roles at a
+  page that refuses them.
+
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

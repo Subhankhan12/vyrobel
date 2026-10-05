@@ -272,7 +272,9 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   ceiling 10 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
   shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests; since
-  2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays — and `.vy-rnr-*` the Calendar's New reservation dialog, which replaced `.vy-newres-*`). ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
+  2026-10-04 `.vy-nr-*` the New reservation wizard, which replaced the old `.vyn-*` rules — only `.vyn-grid3` stays — and `.vy-rnr-*` the Calendar's New reservation dialog, which replaced `.vy-newres-*`; since 2026-10-05 `.vy-gst`/`.vy-gs-*` the Guests
+  second pass — its card is a size container, `vy-gst-list`, and its rows stack at 960 px of card and below). The shared search box
+  (`.vy-gl-search*`, the four list pages) is 40 px like the toolbar's buttons, a centred 16 px icon, the browser's search styling off. ⚠️ Check a new class name for an EXISTING rule before using it: the owner page's root once took `.vyo-owner`, the Owners list's flex-row cell.
   ⚠️ That stylesheet ships on every operator page, so its comments are page text (`RULES.md` 2d).
 - **Writes:** each a POST to a controller through every middleware (#20); the Livewire components expose `render()` only
   (`OperatorLivewireMutationBoundaryTest`). While the workspace is paused (`OperatorWorkspace::isReadOnly()`) every write
@@ -280,11 +282,17 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **The property allow-list on writes** (`PropertyContext::readIds()`, #38): every unit write including Add unit (DEC-k),
   every rate write through `App\Support\Rates\RateScope` (DEC-l), and the units an owner invite may give (Owners).
   ⚠️ NOT yet: the Portfolio's Edit (DEC-i) and the maintenance writes (DEC-j) — `OPEN.md`.
+- **Whether email is sent:** `App\Support\Mail\MailSafetyGuard::sendingNow()` — the ONE question a screen asks before it says
+  "sent by email" (the Guests Message refuses without it; the New reservation page asks it). ⚠️ Other screens still say an email
+    went out without asking (`OPEN.md` D-MAIL-CLAIMS). The Guests Message is sent AS THE PROPERTY (`BrandsGuestMail`: its name and
+  reply-to address, like every other guest email) — which property is ONE definition, `App\Support\Guest\GuestMessageSender::property()`,
+  read by the page (it names it) and the controller; there is no inbound mail, so no email reply reaches the Inbox.
 - **Shared partials:** `partials.submit-guard` (`data-guard-submit`: one submit per click) and `partials.count-up` (figures
   animate up on load — read the data, not a screenshot taken mid-count).
 - **Each page's proof:** a `*PageFixesTest` (what the writes do; each RED first) and a `*PageRedesignTest` (what the page
   shows, read from the rendered HTML), plus a mutation set in `tests/Mutations/sets/` (`guests-list`, `maintenance-board`,
-  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `new-reservation-bookable`, `calendar-new-reservation`) run by `php tests/Mutations/run.php`.
+  `units-list`, `rates-page`, `owners-page`, `owner-module`, `new-reservation`, `new-reservation-bookable`, `calendar-new-reservation`,
+  `calendar-bookable`, `guests-second`) run by `php tests/Mutations/run.php`.
 
 ## 12 · Photos and message attachments
 

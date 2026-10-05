@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the CALENDAR SECOND pass (2026-10-04: a booking can be made from the Calendar — price and season set inside its dialog)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GUESTS SECOND pass (2026-10-05: every word visible at every width, one search box, Message only when email is sent)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -21,7 +21,7 @@ change is said.** Briefs live in `briefs/`.
 | ID | What | Waiting on | Brief | Why it matters |
 |---|---|---|---|---|
 | A1 | **Finish ADMIN 06** — ✅ DONE and LIVE on `rel_AF @ 4c17edd2` (V 2026-09-29; `HISTORY.md`, "ADMIN 06 finish"). Left: the signed-in look at the delete screen (needs his sign-in). | him, for the signed-in look | `ADMIN-06.md` | ⛔ Must be live before any live Stripe key. |
-| A2 | The email pass (TONIGHT 01 Part 2 / MAIL 02) | F1 | `TONIGHT-01.md`, `MAIL-02.md` | Switches production mail on. |
+| A2 | The email pass (TONIGHT 01 Part 2 / MAIL 02). ⚠️ Since 2026-10-05 it must also LOOK at the Guests Message's sending state — "Sent by email as <property>. Replies go to …", the property-branded email and its reply line — never yet seen in a browser: every non-production mailer is downgraded or (Mailpit) counts as not sending, so only tests reach it | F1 | `TONIGHT-01.md`, `MAIL-02.md` | Switches production mail on. |
 | A3 | PW-SIGNUP proof: **retake** the backup and the before-baselines right before his click (the 26 September ones predate ADMIN 06's migration); after his delete, run the proof `after` twice, `compare.py`, read the ledger back, keep the backup, delete the two ids files | F3 | `PW-SIGNUP-DELETE-1.md` | Proves only the probe's rows went, and nothing else moved. |
 | A4 | The whole-day walk on a test hotel | A2 | — (R: planning side) | The first end-to-end use with real email. |
 | A5 | F-36 / A10 | Channex going live | `docs/GO-LIVE-REQUIREMENTS.md` | R: blocked on Channex. |
@@ -210,6 +210,60 @@ change is said.** Briefs live in `briefs/`.
 - **D-SHELL-PROPNAME (measured on the Calendar walk 2026-10-04, locally; on every operator page — his go):** the sidebar's
   working-property box is 141 px wide, so a name over ~135 px is cut ("Harbourpoint Walkthrough" 165 px). Seen on production in
   his live look 2026-10-05: "Internal Test Proper›".
+- ✅ **D-GS2-CUT — FIXED 2026-10-05 (his report: "Text is not visible completely"; 🔬 measured):** below ~1,180 px the Guests table
+  was wider than its card — Status cut ("No booki…"), at 390 px Nationality under the row's sticky menu, emails broken mid-word.
+  The card is a size container; at 960 px of card and below each guest stacks (`HISTORY.md`, "GUESTS, SECOND PASS"). 🖥 Every
+  width 390–1,600 px fits, Select on and off.
+- ✅ **D-GS2-SEARCH — FIXED 2026-10-05 (his report: "Serach box design is not good and its symbol is not well-aligned"):** the
+  shared list search (Guests, Owners, Units, Maintenance) — 40 px like the buttons, a centred icon, the browser's own search
+  styling off; the Guests "i" button against its edge removed (its sentence kept in the placeholder and the empty search).
+- ✅ **D-GS2-MESSAGE — FIXED 2026-10-05 (pre-existing; 📖 read, and production's mailer is `log`):** the Guests "Message" said
+  "Sent by email · replies land in your inbox" and recorded a sent message in each guest's inbox while every email was discarded.
+  It now says email isn't being sent, its box and Send are off, and the server refuses with nothing written
+  (`MailSafetyGuard::sendingNow()`). When mail is on, it is sent as the property (name and reply-to) and says where replies go.
+- ✅ **D-GS2-REPLY — FIXED 2026-10-05 (pre-existing; found by the independent review):** "replies land in your inbox" was never true
+  of email — there is no inbound mail, and the message carried no reply-to, so a guest's reply went to Vyrobel's own sender while
+  the email said "Just reply to this email and we'll see it". Now sent with the property's reply-to; the email invites a reply only
+  when one exists, and the dialog names the property and says where replies go, or that they won't reach the operator yet — and,
+  to a role that cannot open Settings, whom to ask (the second review: the first wording sent three roles to a 403).
+- ✅ **D-GS2-STAY — FIXED 2026-10-05 (pre-existing in part; found by the independent review):** "Last stay" showed an arrival as a
+  bare date, and this pass's first "Left <date>" was said of stays nobody had left — an arrival due today and one overdue read "Left
+  <a date still ahead>", a booking never checked in "Left …". The column is "Stay": In house · Arrives … · Arrives today · Was due …
+  · Tentative · … · Left … (checked out only), sorted by the date it shows. ⚠️ On tenant one's seeded demo (local, V 2026-10-05,
+  the read-only preflight), 19 confirmed bookings whose check-in has come were never checked in — they read "Arrives today" or "Was
+  due …", which is what the records say.
+- ✅ **D-GS2-WORDS — FIXED 2026-10-05 (pre-existing):** "who have stayed booked again" counted bookings still ahead → "with a
+  booking booked again"; "nobody has booked yet" when the only bookings were cancelled → "no bookings yet — cancellations and
+  no-shows don't count".
+- ✅ **D-GS2-NATIONALITY — FIXED 2026-10-05:** nationality was two typed letters; Add and Edit now pick a country by name (249);
+  Edit opens on a code saved in lower case and keeps one the list does not have, "Kosovo (as saved)" — 🖥 saved with only the city
+  changed, the code stayed `XK` (the review had found the first version opening on "Not given" and erasing it on Save).
+- ✅ **D-GS2-TOPBAR — FIXED 2026-10-05 (seen on the walk; every operator page):** the top bar's "Search reservations, guests…"
+  wrapped onto two lines at 1,024 px; "Search…" at 1,240 px and below, its spoken name holding the words it shows.
+- **D-MAIL-CLAIMS (found 2026-10-05 by the independent review; outside the Guests page — his go):** other operator screens still
+  say an email went out with nothing asking whether mail is sent (production's mailer is `log`): Owners "We emailed <email> a link
+  to set their password" (`owners.blade.php`), "Invite sent to …" and "Invite sent again to …" (`InviteOwnerController`,
+  `OwnerInviteActionController`), the owner's page "The link sent to … stops working", the refund page "The guest is emailed a
+  refund confirmation automatically…", "Costs report emailed to …", "Test email sent to …" (email templates and previews); in the
+  owner portal, team invites and the account email change. The same `MailSafetyGuard::sendingNow()` answers each.
+- **D-INBOX-DELIVERED (found 2026-10-05 by the independent review; the Inbox — his go):** a reply typed in a `manual` inbox thread
+  (the guest profile's "Message" opens one) is labelled "Delivered", though `ManualChannel::send` sends nothing — it reaches only a
+  guest with a claimed portal account, in the app; the hint says "The guest replies wherever they booked".
+- **D-REVIEW-REPLY (found 2026-10-05 by the independent review; the review-request email — his go):** "Simply reply to this email
+  and tell us about your stay — we read every message" is printed whether or not the property has a reply-to address; without one
+  the reply goes to Vyrobel's sender. The same condition as the Guests message's reply line would make it true.
+- **D-MAIL-GUARD-SHAPES (found 2026-10-05 by the independent review; pre-existing; the email safety guard — his go):** the boot
+  guard reads a mailer by its NAME: `failover`, `roundrobin` and a custom-named smtp mailer are not downgraded outside production,
+  and an smtp host given only in `MAIL_URL` reads as the default 127.0.0.1 — a developer `.env` shaped that way could email real
+  people from a laptop. `sendingNow()` reads the same way, so on production such a mailer would refuse Message (the safe
+  direction). Resolving the transport behind a mailer name closes both.
+- **D-GS2-STACK-A11Y (found 2026-10-05 by the independent review; low; weighed, not changed):** the stacked rows set `display` on
+  `table`/`tr`/`td`, which some Safari + VoiceOver versions have read as plain text rather than a table; each fact carries its
+  visible name, and nothing focusable moves. Explicit table roles would keep the semantics — a browser look with VoiceOver first.
+- **DEC-s (asked 2026-10-05):** while email is off, the Guests Message refuses entirely — before this pass it also posted an in-app
+  copy that a guest with a claimed portal account could read. Should Message, with email off, still reach those guests in the app
+  (and say so: "N of the selected can read it in their account; the rest won't get it")? Production holds no claimed guest account
+  today (R: his workspace has one guest).
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

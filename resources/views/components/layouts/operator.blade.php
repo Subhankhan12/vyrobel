@@ -209,8 +209,15 @@
         .vy-topbar-lead { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
         .vy-ro-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px; border-radius: var(--vy-r-pill); background: rgba(217, 154, 61, 0.18); color: #8F6414; font-size: 11.5px; font-weight: 500; white-space: nowrap; flex: none; }
         .vy-glass-pill { display: inline-flex; align-items: center; gap: 8px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); }
-        .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-on-grad); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; }
+        .vy-search-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); color: var(--vy-on-grad); font-size: 13px; min-width: 210px; text-decoration: none; transition: color .15s; white-space: nowrap; }
         .vy-search-pill:hover { color: var(--vy-muted); }
+        .vy-search-short { display: none; }
+        @media (max-width: 1240px) {
+            /* ⚠️ 2026-10-05 — at 1,024 px the label broke into two lines; on one line it pushed into the page title. Shorter here. */
+            .vy-search-long { display: none; }
+            .vy-search-short { display: inline; }
+            .vy-search-pill { min-width: 0; }
+        }
         .vy-date-chip { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); font-size: 13px; font-weight: 500; white-space: nowrap; }
         .vy-acct { position: relative; }
         .vy-acct-btn { display: flex; align-items: center; gap: 9px; padding: 5px 9px 5px 14px; border-radius: var(--vy-r-pill); background: rgba(255, 252, 248, 0.58); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65); white-space: nowrap; cursor: pointer; font-family: var(--vy-sans); transition: background .15s; }
@@ -683,7 +690,7 @@
         .vy-btn--ghost:hover { background: rgba(255, 255, 255, 0.85); }
         .vy-btn:focus-visible, .vy-nav-item:focus-visible, .vy-icobtn:focus-visible, .vy-rowopen:focus-visible, .vy-detail-head:focus-visible,
         .vy-gl-chip:focus-visible, .vy-gl-sort:focus-visible, .vy-gl-name:focus-visible, .vy-gl-more:focus-visible, .vy-gl-menu-item:focus-visible,
-        .vy-gl-size:focus-visible, .vy-gl-page:focus-visible, .vy-gl-clear:focus-visible, .vy-gl-tip-btn:focus-visible, .vy-gl-link:focus-visible, .vy-modal-x:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-gl-size:focus-visible, .vy-gl-page:focus-visible, .vy-gl-clear:focus-visible, .vy-gl-link:focus-visible, .vy-modal-x:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
 
         /* ⚠️⚠️ A BUTTON THAT INHERITS ITS SURROUNDINGS — the ONE reset, so a keyboard path can be added to
            a row without changing how that row looks to everyone else. Two surfaces needed a real control
@@ -1960,19 +1967,21 @@
            the row plate (DO-A11Y-5). ⚠️ Every display below is in a class, never inline beside x-show — x-show removes
            an inline display when it shows the element (XShowInlineDisplayContractTest). ────────────────────────────── */
         .vy-gl-bar { position: relative; z-index: 3; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 22px 0 16px; padding: 8px; border-radius: var(--vy-r-lg); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
-        .vy-gl-search { position: relative; display: flex; align-items: center; gap: 6px; flex: 1 1 300px; min-width: 0; height: 40px; padding: 0 5px 0 14px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.72); border: 1px solid var(--vy-glass-border); transition: border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+        /* ⚠️ 2026-10-05 (his report on Guests: "search box design is not good and its symbol is not well-aligned") — ONE field for every
+           list that uses this kit (Guests, Owners, Units, Maintenance): the toolbar's own height, the icon drawn as a 16 px block centred
+           in the row, the text and its placeholder in readable ink, and the browser's own search styling switched off (Safari draws its
+           own field — padding, decoration — under `type="search"` unless told not to). */
+        .vy-gl-search { position: relative; display: flex; align-items: center; gap: 9px; flex: 1 1 300px; min-width: 0; height: 40px; padding: 0 6px 0 15px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.82); border: 1px solid rgba(120, 70, 40, 0.14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); transition: border-color .15s ease, box-shadow .15s ease, background .15s ease; }
         .vy-gl-search:focus-within { background: #fff; border-color: var(--vy-accent-border); box-shadow: 0 0 0 3px rgba(232, 112, 58, 0.12); }
-        .vy-gl-search-ico { flex: none; color: var(--vy-on-grad); }
+        .vy-gl-search-ico { flex: none; display: block; width: 16px; height: 16px; color: var(--vy-muted); }
         .vy-gl-spinner { flex: none; display: inline-block; width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(194, 65, 12, 0.18); border-top-color: var(--vy-accent); animation: vy-gl-spin .7s linear infinite; }
         @keyframes vy-gl-spin { to { transform: rotate(360deg); } }
-        .vy-gl-search-in { flex: 1; min-width: 0; height: 100%; margin-left: 2px; border: none; background: transparent; font: inherit; font-size: 13.5px; color: var(--vy-ink); outline: none; }
-        .vy-gl-search-in::placeholder { color: var(--vy-faint); }
-        .vy-gl-search-in::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
-        .vy-gl-clear, .vy-gl-tip-btn { flex: none; width: 28px; height: 28px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, color .15s ease; }
-        .vy-gl-clear:hover, .vy-gl-tip-btn:hover, .vy-gl-tip-btn[aria-expanded="true"] { background: rgba(120, 70, 40, 0.08); color: var(--vy-ink); }
-        .vy-gl-tipwrap { position: relative; flex: none; display: inline-flex; }
-        .vy-gl-tip { position: absolute; right: -4px; top: calc(100% + 10px); display: block; width: min(280px, calc(100vw - 48px)); padding: 11px 13px; border-radius: var(--vy-r-md); background: rgba(38, 29, 24, 0.96); color: rgba(255, 255, 255, 0.93); font-size: 12px; font-weight: 500; line-height: 1.5; box-shadow: 0 14px 34px rgba(40, 20, 8, 0.28); z-index: 5; }
-        .vy-gl-tip::before { content: ""; position: absolute; top: -5px; right: 13px; width: 10px; height: 10px; background: inherit; border-radius: 2px; transform: rotate(45deg); }
+        .vy-gl-search-in { flex: 1; min-width: 0; height: 100%; margin: 0; padding: 0; border: none; background: transparent; font: inherit; font-size: 13.5px; line-height: normal; color: var(--vy-ink); outline: none; -webkit-appearance: none; appearance: none; border-radius: 0; }
+        .vy-gl-search-in::placeholder { color: var(--vy-muted); opacity: 1; }
+        .vy-gl-search-in::-webkit-search-cancel-button, .vy-gl-search-in::-webkit-search-decoration, .vy-gl-search-in::-webkit-search-results-button, .vy-gl-search-in::-webkit-search-results-decoration { -webkit-appearance: none; display: none; }
+        .vy-gl-bar .vy-btn { height: 40px; }   /* one height for the toolbar row — the buttons were 36 px beside a 40 px field */
+        .vy-gl-clear { flex: none; width: 28px; height: 28px; padding: 0; border-radius: 50%; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-on-grad); cursor: pointer; transition: background .15s ease, color .15s ease; }
+        .vy-gl-clear:hover { background: rgba(120, 70, 40, 0.08); color: var(--vy-ink); }
         .vy-gl-chips { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.45); border: 1px solid var(--vy-glass-border); }
         .vy-gl-chip { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: var(--vy-r-pill); font-size: 12.5px; font-weight: 600; color: var(--vy-on-grad); white-space: nowrap; transition: background .15s ease, color .15s ease, box-shadow .15s ease; }
         .vy-gl-chip:hover { color: var(--vy-ink); background: rgba(255, 255, 255, 0.6); }
@@ -1981,6 +1990,69 @@
         .vy-gl-chip.is-on .vy-gl-count { background: rgba(232, 112, 58, 0.14); color: var(--vy-accent-text); }
         .vy-gl-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
         .vy-gl-select.is-on { background: #fff; color: var(--vy-accent-text); border-color: var(--vy-accent-border); }
+        /* ── Guests, second pass (2026-10-05, his report: "text is not visible completely") ────────────────────────────────────
+           The toolbar like the newer lists — search and the buttons on top, the filters below. The table fits its card at EVERY
+           width: at 960 px of card and below each guest is a stacked row (🔬 before: a 760 px table in a 732 px card at 1,024 px, Status
+           cut to "No booki…"; on a phone the Nationality column under the row menu). A size container, so the card's own width decides —
+           the sidebar and the window both change it. ⚠️ 960, not 880: the review predicted, and the walk measured, a full table of 939 px
+           (969 with Select on) in cards of 890–940 px — sideways scrolling again at 1,180–1,230 px windows. With a long country name
+           allowed to wrap up to 1,080 px of card (below), 🖥 the table then measured inside its card at every width from 961 px,
+           Select on and off (1,251–1,259 px windows included — the second review's question). */
+        .vy-gs-bar .vy-gl-tools { flex-wrap: wrap; justify-content: flex-end; }
+        .vy-gs-filters { flex: 1 1 100%; min-width: 0; display: flex; }
+        /* what cannot be used looks it (2026-10-05: Message's Send, refused while email is not sent, looked ready) */
+        .vy-gst .vy-btn--accent:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; transform: none; }
+        .vy-gst .vy-input:disabled { opacity: .55; cursor: not-allowed; }
+        .vy-gst .vy-gl-switch input:disabled ~ .vy-gl-track, .vy-gst .vy-gl-switch input:disabled ~ .vy-gl-switch-text { opacity: .5; }
+        @media (max-width: 1100px) {
+            /* the search has the whole first line here (the kit's rule) — so the filters and the buttons share the second */
+            .vy-gs-bar .vy-gs-filters { flex: 1 1 auto; order: 2; }
+            .vy-gs-bar .vy-gl-tools { order: 3; }
+        }
+        .vy-gs-bar .vy-gl-chips { flex: 0 1 auto; max-width: 100%; }
+        .vy-gst .vy-gl-card { container: vy-gst-list / inline-size; }
+        .vy-gst .vy-gl-table { min-width: 0; }
+        .vy-gst .vy-gl-c-nat, .vy-gst .vy-gl-c-status, .vy-gst .vy-gl-c-stay { white-space: nowrap; }
+        /* …except a country name over 16 characters ("Bosnia & Herzegovina", "Central African Republic"), which may wrap at its spaces
+           where the card is too narrow to hold it beside the rest — "United Kingdom" and every shorter name keep one line. Only up to
+           1,080 px of card: wider, the table measured fits with it on one line, and a wrap allowed there was taken anyway (🔬 at 1,440 px
+           — the table shares its shrinking out across every column that may wrap). */
+        @container vy-gst-list (max-width: 1080px) {
+            .vy-gst .vy-gl-c-nat.is-long { white-space: normal; }
+        }
+        /* ⚠️ scoped to this page: Units' sub-line is a .vy-gl-contact of spans joined by "·", and stacking it read "Name / · Door code set" */
+        .vy-gst .vy-gl-contact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+        .vy-gst .vy-gl-mail { overflow-wrap: anywhere; }   /* a long address breaks only when it must — it no longer shares a line with the phone */
+        @container vy-gst-list (max-width: 960px) {
+            /* the header keeps only what sorts — Guest · Stays · Stay — as a row of links above the cards */
+            .vy-gst .vy-gl-table, .vy-gst .vy-gl-table tbody, .vy-gst .vy-gl-table thead { display: block; }
+            .vy-gst .vy-gl-table thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 20px; padding: 11px 16px; }
+            .vy-gst .vy-gl-table thead th { padding: 0; border: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+            .vy-gst .vy-gl-table thead tr::before { content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }
+            .vy-gst .vy-gl-table thead th.vy-gl-c-nat, .vy-gst .vy-gl-table thead th.vy-gl-c-life, .vy-gst .vy-gl-table thead th.vy-gl-c-status,
+            .vy-gst .vy-gl-table thead th.vy-gl-actcol { display: none; }
+            /* each guest a wrapping row: the guest, its status and the menu on the first line, the facts on a quiet line beneath */
+            .vy-gst .vy-gl-table tbody tr { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 14px 10px 14px 16px; border-top: 1px solid var(--vy-hairline); }
+            .vy-gst .vy-gl-table tbody tr:first-child { border-top: none; }
+            .vy-gst .vy-gl-table tbody td { display: block; padding: 0; border: 0; text-align: left; }
+            .vy-gst .vy-gl-table tbody td.vy-gl-check { flex: none; order: 0; }
+            .vy-gst .vy-gl-table tbody td.vy-gl-guestcell { flex: 1 1 0; min-width: 0; order: 1; }
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-status { flex: none; order: 2; }
+            .vy-gst .vy-gl-table tbody td.vy-gl-actcol { flex: none; order: 3; width: auto; padding: 0; }
+            /* a stacked row keeps its menu in view by itself — no sticky edge (the phone rule for wide tables) */
+            .vy-gst .vy-gl-table tbody td.vy-gl-actcol { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
+            .vy-gst .vy-gl-table tbody tr::after { content: ""; order: 4; flex-basis: 100%; height: 0; margin-top: -8px; }
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-nat, .vy-gst .vy-gl-table tbody td.vy-gl-c-stays, .vy-gst .vy-gl-table tbody td.vy-gl-c-stay,
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-life { flex: none; order: 5; display: inline-flex; align-items: baseline; gap: 5px; font-size: 12.5px; }
+            .vy-gst .vy-gl-table tbody td[data-label]::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-on-grad); }   /* on the row: --vy-muted is 4.48:1 there */
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-status::before { content: none; }
+        }
+        @container vy-gst-list (max-width: 520px) {
+            /* a phone: the status joins the facts, so the name and its contact have the whole first line */
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-status { order: 5; }
+            /* an empty Lifetime ("—") goes; one with a figure or a balance due stays */
+            .vy-gst .vy-gl-table tbody td.vy-gl-c-life:not(:has(.vy-gl-fig, .vy-gl-due)) { display: none; }
+        }
 
         .vy-gl-results { transition: opacity .18s ease; }
         .vy-gl-results.is-loading { opacity: .55; }
@@ -2034,7 +2106,6 @@
         tr.is-erased .vy-gl-name { font-style: italic; font-weight: 500; color: var(--vy-on-grad); }
         .vy-gl-contact { margin-top: 3px; font-size: 11.5px; color: var(--vy-on-grad); overflow-wrap: anywhere; }
         .vy-gl-contact a:hover { color: var(--vy-accent-text); text-decoration: underline; text-underline-offset: 2px; }
-        .vy-gl-sep { margin: 0 2px; }
         .vy-gl-fig { font-family: var(--vy-display); font-weight: 600; font-variant-numeric: tabular-nums; }
         .vy-gl-none { color: var(--vy-on-grad); }
         .vy-gl-when { white-space: nowrap; }

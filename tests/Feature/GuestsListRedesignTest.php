@@ -123,7 +123,7 @@ it('⚠️⚠️ sorts by guest, stays or last stay — last stay by the date th
     // other way round. "In house" sits at today, between the arrival ahead and the departures behind.
     expect(glrNames($s, ['sort' => 'last_stay']))->toBe(['Ada Adams', 'Eve Evans', 'Bea Brown', 'Dee Diaz', 'Cy Clark', 'G One'])
         ->and(array_column(glrRows($s, ['sort' => 'last_stay']), 'last_stay'))
-        ->toBe(['Arrives 5 Oct 2026', 'In house', '20 Aug 2026', '12 Aug 2026', null, null])
+        ->toBe(['Arrives 5 Oct 2026', 'In house', 'Left 20 Aug 2026', 'Left 12 Aug 2026', null, null])   // "Left …" since 2026-10-05 (the column is "Stay")
         ->and(glrNames($s, ['sort' => 'last_stay', 'dir' => 'asc']))->toBe(['Dee Diaz', 'Bea Brown', 'Eve Evans', 'Ada Adams', 'Cy Clark', 'G One']);
 })->group('security');
 

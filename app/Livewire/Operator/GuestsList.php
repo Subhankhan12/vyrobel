@@ -9,9 +9,13 @@ use App\Livewire\Operator\Concerns\FormatsOperatorData;
 use App\Models\Guest;
 use App\Models\Reservation;
 use App\Models\Tag;
+use App\Support\Branding\PropertyBrand;
+use App\Support\Countries;
 use App\Support\Guest\GuestHistory;
 use App\Support\Guest\GuestListParams;
+use App\Support\Guest\GuestMessageSender;
 use App\Support\Guest\GuestSpend;
+use App\Support\Mail\MailSafetyGuard;
 use App\Support\Reservations\ReservationStage;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -119,6 +123,9 @@ class GuestsList extends Component
         // filter matched none", which are different empty states with different advice.
         $total = Guest::query()->count();
 
+        $mailSends = MailSafetyGuard::sendingNow();
+        $sender = $mailSends ? GuestMessageSender::property() : null;   // the property the email goes out as — the controller's own
+
         return view('livewire.operator.guests-list', [
             'viewer' => $this->viewer(),
             'subtitle' => $total.' '.($total === 1 ? 'guest profile' : 'guest profiles'),
@@ -134,6 +141,17 @@ class GuestsList extends Component
             'total' => $total,
             'stats' => $this->stats($today),
             'canErase' => (bool) auth()->user()?->can('guests.erase'),
+            // ⚠️ whether email reaches real inboxes from here at all — on production it does not yet (the mailer is `log`), so
+            //    Message says so and the server refuses rather than "messaging" nobody (2026-10-05)
+            'mailSends' => $mailSends,
+            // …and as WHICH property, and where a guest's email reply goes: that property's reply-to address (its brand)
+            'mailSender' => $sender !== null ? (string) $sender->name : null,
+            'mailReplyTo' => $mailSends ? PropertyBrand::for($sender)->replyTo : null,
+            // who may set that address (Settings is `properties.manage`) — Hotel Manager, Front Desk and Reservation Agent may send
+            // but not open Settings, so they are told whom to ask rather than sent to a page that refuses them (the second review)
+            'canBrand' => (bool) auth()->user()?->can('properties.manage'),
+            // where a guest is FROM — every country by name, as the New reservation page lists them (2026-10-05)
+            'countries' => Countries::everywhere(),
             // The page script's start: where a row's Edit and Erase post (the id fills `__ID__`), the search as
             // loaded, and an Edit the server just refused, to reopen as it was typed.
             'boot' => [
@@ -308,7 +326,9 @@ class GuestsList extends Component
      * computes it in PHP, so a sorted column never reads out of order:
      *   • a guest checked in right now shows "In house" — they sort at TODAY;
      *   • otherwise the reservation is their latest non-cancelled one by check-in (the id breaks a tie, in both
-     *     places), and it sorts by its ARRIVAL if that is still ahead ("Arrives …") and by its DEPARTURE if not.
+     *     places), and it sorts by its DEPARTURE if it was checked out ("Left …") and by its ARRIVAL if not
+     *     ("Arrives …", "Arrives today", "Was due …", "Tentative · …" — 2026-10-05; before, any stay whose arrival had
+     *     come sorted by a departure, including ones nobody had checked in).
      * Sorting by the check-in alone would be simpler and WRONG: a long stay that began first can end last, and
      * the column shows when it ended.
      *
@@ -327,8 +347,9 @@ class GuestsList extends Component
             ->select('lead_guest_id')
             ->toBase();
 
+        // the date the cell shows: a checked-out stay's departure ("Left …"), every other booking's arrival ("Arrives …", "Was due …")
         $latest = Reservation::query()
-            ->selectRaw('CASE WHEN reservations.check_in > ? THEN reservations.check_in ELSE reservations.check_out END', [$t])
+            ->selectRaw("CASE WHEN reservations.status = 'checked_out' THEN reservations.check_out ELSE reservations.check_in END")
             ->whereColumn('reservations.lead_guest_id', 'guests.id')
             ->whereNotIn('reservations.status', ReservationStage::CANCELLED_STATUSES)
             ->orderByDesc('reservations.check_in')
@@ -404,7 +425,10 @@ class GuestsList extends Component
                 'email' => $this->contact($guest->email) ?? '',
                 'phone' => $this->contact($guest->phone) ?? '',
                 'city' => (string) $guest->city,
-                'nationality' => (string) $guest->nationality,
+                // upper case: the country list's codes are — a code saved as "pt" opened Edit on "Not given" (2026-10-05)
+                'nationality' => strtoupper(trim((string) $guest->nationality)),
+                // …and a code the list does not have is offered as saved, so an edit never clears it
+                ...$this->unlistedNationality($guest->nationality),
                 'is_vip' => (bool) $guest->is_vip,
                 'risk_flag' => (bool) $guest->risk_flag,
                 'prefers_email' => (bool) $guest->prefers_email,
@@ -414,9 +438,9 @@ class GuestsList extends Component
     }
 
     /**
-     * The "Last stay" cell (#87) — the most relevant real state of this guest's most significant reservation:
-     * "In house" now, an arrival ahead, the departure of the latest stay, or null for a guest who has never
-     * booked. Derived from the SAME reservations + shared resolver as the badge, so the two cells never
+     * The "Stay" cell (#87; "Last stay" until 2026-10-05) — the most relevant real state of this guest's latest booking:
+     * "In house" now, "Arrives …" ahead, "Arrives today", "Was due …" (confirmed, never checked in), "Tentative · …",
+     * "Left …" after a check-out, or null for a guest who has never booked. Derived from the SAME reservations + shared resolver as the badge, so the two cells never
      * disagree — and {@see orderByLastStay()} sorts by exactly this, so the sorted column never does either.
      *
      * @param  Collection<int, Reservation>|iterable<Reservation>  $reservations
@@ -442,12 +466,20 @@ class GuestsList extends Component
             return null;
         }
 
+        // ⚠️⚠️ 2026-10-05 — said from THAT booking's own stage and status. "Left …" is only a stay that was checked out: an arrival
+        //    due today, one overdue, and a booking whose dates passed with no check-in are not departures (the review: all three
+        //    read "Left <its check-out>" — for the first two a date still ahead). {@see orderByLastStay()} sorts by the same date.
+        $own = ReservationStage::for($relevant, $today);   // THIS booking's stage, from the one resolver the badge reads
         $checkIn = CarbonImmutable::parse($relevant->check_in)->startOfDay();
-        if ($stage === ReservationStage::UPCOMING || $checkIn->greaterThan($today)) {
-            return $checkIn->isSameDay($today) ? 'Arrives today' : 'Arrives '.$checkIn->format('j M Y');
-        }
+        $day = $checkIn->format('j M Y');
 
-        return CarbonImmutable::parse($relevant->check_out)->format('j M Y');
+        return match (true) {
+            (string) $relevant->status === 'checked_out' => 'Left '.CarbonImmutable::parse($relevant->check_out)->format('j M Y'),
+            $own === ReservationStage::TENTATIVE => 'Tentative · '.$day,   // the badge's word for enquiry and tentative
+            $own === ReservationStage::UPCOMING => 'Arrives '.$day,
+            $checkIn->isSameDay($today) => 'Arrives today',
+            default => 'Was due '.$day,   // confirmed, its check-in came, nobody checked it in — overdue, or its dates passed
+        };
     }
 
     /**
@@ -510,9 +542,27 @@ class GuestsList extends Component
             'name' => trim($text('first_name').' '.$text('last_name')),
             'first_name' => $text('first_name'), 'last_name' => $text('last_name'),
             'email' => $text('email'), 'phone' => $text('phone'), 'city' => $text('city'), 'nationality' => $text('nationality'),
+            ...$this->unlistedNationality($text('nationality')),   // a refused edit keeps an unlisted code too (the review)
             'is_vip' => (bool) old('is_vip'), 'risk_flag' => (bool) old('risk_flag'),
             'prefers_email' => (bool) old('prefers_email'), 'marketing_consent' => (bool) old('marketing_consent'),
         ];
+    }
+
+    /**
+     * A saved nationality the country list does not have ("XK", or a code from an older import) — carried APART from the live
+     * choice, so Edit can keep offering it as saved while the person picks something else, and named as the row names it
+     * ("Kosovo (as saved)"). Empty for no code or a listed one.
+     *
+     * @return array{nationality_unlisted: string, nationality_unlisted_label: string}
+     */
+    private function unlistedNationality(mixed $code): array
+    {
+        $code = strtoupper(trim(is_string($code) ? $code : ''));
+        if ($code === '' || isset(Countries::everywhere()[$code])) {
+            return ['nationality_unlisted' => '', 'nationality_unlisted_label' => ''];
+        }
+
+        return ['nationality_unlisted' => $code, 'nationality_unlisted_label' => ($this->countryName($code) ?? $code).' (as saved)'];
     }
 
     // ── The controls — each link keeps every other setting ───────────────────────────────────────

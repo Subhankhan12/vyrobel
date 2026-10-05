@@ -89,6 +89,8 @@ it('rejects a bulk erase without the typed ERASE confirmation', function () {
 // ── Bulk MESSAGE emails the selected guests + records an inbox thread ────────────────────────────
 it('bulk-messages selected guests by email and records a manual inbox thread', function () {
     Mail::fake();
+    // a real mailer, set after boot — the page refuses to "message" anyone while email is not sent (2026-10-05)
+    config(['mail.default' => 'postmark']);
     $s = seedScenario(1);
     $a = bulkGuest('Ada', 'Lovelace', ['email' => 'ada@example.test']);
 
@@ -103,6 +105,7 @@ it('bulk-messages selected guests by email and records a manual inbox thread', f
 // ── Marketing mode genuinely gates on consent — a non-consented guest is skipped ─────────────────
 it('sends a marketing bulk message only to guests who consented', function () {
     Mail::fake();
+    config(['mail.default' => 'postmark']);   // a real mailer (as above)
     $s = seedScenario(1);
     $yes = bulkGuest('Yes', 'Consent', ['email' => 'yes@example.test', 'marketing_consent' => true]);
     $no = bulkGuest('No', 'Consent', ['email' => 'no@example.test', 'marketing_consent' => false]);
@@ -146,13 +149,17 @@ it('creates a new guest through the add-guest form, audited', function () {
 // ── Read-only (#84) refuses bulk writes ──────────────────────────────────────────────────────────
 it('refuses bulk message and erase while the workspace is paused', function () {
     Mail::fake();
+    // ⚠️ email "works" here (a real mailer, set after boot), so the PAUSE is what refuses — since 2026-10-05 a mailer that sends
+    //    nothing refuses too, and this test would have stayed green with the pause check deleted (the review)
+    config(['mail.default' => 'postmark']);
     $s = seedScenario(1);
     $s['org']->forceFill(['paused_until' => now()->addMonth()])->save();
     $a = bulkGuest('Ada', 'Lovelace', ['email' => 'ada@example.test']);
 
     $this->actingAs(operatorUser($s, [], 'Property Owner'))
         ->post(route('app.guests.bulk.message'), ['ids' => [$a->id], 'body' => 'hi'])
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('guest_error', fn (string $m): bool => str_contains($m, 'Your workspace is paused'));
     Mail::assertNothingSent();
 
     $this->actingAs(operatorUser($s, [], 'Property Owner'))

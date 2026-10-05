@@ -27,8 +27,9 @@ return [
         'id' => 'GL-M2',
         'name' => 'Last stay sorts by the check-in, not by the date the column shows',
         'file' => $list,
-        'old' => "->selectRaw('CASE WHEN reservations.check_in > ? THEN reservations.check_in ELSE reservations.check_out END', [\$t])",
-        'new' => "->selectRaw('CASE WHEN reservations.check_in > ? THEN reservations.check_in ELSE reservations.check_in END', [\$t])",
+        // re-pointed 2026-10-05: the key is now a checked-out stay's departure, every other booking's arrival (the Guests second pass)
+        'old' => "->selectRaw(\"CASE WHEN reservations.status = 'checked_out' THEN reservations.check_out ELSE reservations.check_in END\")",
+        'new' => "->selectRaw(\"CASE WHEN reservations.status = 'checked_out' THEN reservations.check_in ELSE reservations.check_in END\")",
         'tests' => [['file' => $t, 'filter' => 'sorts by guest']],
     ],
     [

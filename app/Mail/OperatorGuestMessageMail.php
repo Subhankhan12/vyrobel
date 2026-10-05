@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Mail\Concerns\BrandsGuestMail;
+use App\Models\Property;
 use App\Support\Guest\MarketingUnsubscribe;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -16,7 +18,12 @@ use Illuminate\Queue\SerializesModels;
  * Operator → guest free-text message (#87 — the Guests-list bulk "Message"). A real email carrying exactly the
  * operator's typed body, delivered to the guest's own address (MailSafetyGuard → log/Mailpit outside
  * production). It is recorded as a manual inbox thread too, so the operator keeps a record and a future inbound
- * reply (account-gated) attaches to it — "replies land in your inbox."
+ * reply (account-gated) attaches to it.
+ *
+ * ⚠️⚠️ 2026-10-05 — SENT AS THE PROPERTY ({@see BrandsGuestMail}): its name as the sender and its REPLY-TO address, like every
+ * other guest email. Before, it carried neither, so a guest's reply went to Vyrobel's own sender address while the email said
+ * "Just reply to this email and we'll see it" and the Guests page said "replies land in your inbox" (no email reply ever
+ * does — there is no inbound mail). The invitation to reply is now printed only when a reply-to address exists.
  *
  * The body is the operator's own words (no fabricated content, #39). `$propertyName` is the sender identity.
  *
@@ -26,7 +33,7 @@ use Illuminate\Queue\SerializesModels;
  */
 class OperatorGuestMessageMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use BrandsGuestMail, Queueable, SerializesModels;
 
     public function __construct(
         public readonly string $guestName,
@@ -34,13 +41,14 @@ class OperatorGuestMessageMail extends Mailable
         public readonly ?string $propertyName = null,
         public readonly ?string $unsubscribeUrl = null,
         public readonly ?string $unsubscribeOneClickUrl = null,
+        public readonly ?Property $property = null,
     ) {}
 
     public function envelope(): Envelope
     {
         $from = ($this->propertyName !== null && $this->propertyName !== '') ? $this->propertyName : 'Your host';
 
-        return new Envelope(subject: 'A message from '.$from);
+        return $this->brandedEnvelope('A message from '.$from, $this->brandFor($this->property));
     }
 
     /** RFC 2369/8058 unsubscribe headers — present ONLY on a marketing send (empty otherwise). */
@@ -51,9 +59,13 @@ class OperatorGuestMessageMail extends Mailable
 
     public function content(): Content
     {
+        $brand = $this->brandFor($this->property);
+
         return new Content(
             view: 'emails.operator-guest-message',
             with: [
+                'brand' => $brand,
+                'replyTo' => $brand->replyTo,   // the reply line is printed only when a reply reaches the property
                 'guestName' => $this->guestName,
                 'bodyText' => $this->bodyText,
                 'propertyName' => $this->propertyName,

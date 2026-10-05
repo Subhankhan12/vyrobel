@@ -174,9 +174,11 @@
             </div>
             <div class="vy-topbar-actions">
                 @if ($__searchHref)
-                    <a class="vy-search-pill" href="{{ $__searchHref }}">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                        Search reservations, guests…
+                    {{-- ⚠️ 2026-10-05 — one line at every width: at 1,024 px the label broke into "Search reservations, / guests…". Where the bar
+                         is narrow it shortens to "Search…"; its name for a screen reader stays the same throughout. --}}
+                    <a class="vy-search-pill" href="{{ $__searchHref }}" aria-label="Search reservations, guests">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                        <span class="vy-search-long">Search reservations, guests…</span><span class="vy-search-short" aria-hidden="true">Search…</span>
                     </a>
                 @endif
                 <span class="vy-date-chip">

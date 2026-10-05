@@ -1,6 +1,6 @@
 {{-- Operator GUESTS LIST — the CRM (#87), rebuilt 2026-09-29 on the founder's report (design approved the same day).
      Real guest profiles (operator-scoped, FULL contact — the CRM is the ONE PII surface, locked decision 4). One toolbar
-     (search · All / In-house / Upcoming / VIP · Select · Add guest), a table that sorts by Guest, Stays and Last stay and
+     (search · Select · Add guest, then All / In-house / Upcoming / VIP — 2026-10-05), a table that sorts by Guest, Stays and Stay and
      pages 25 / 50 / 100, a menu on every row (Open profile · Edit · Erase personal data), and the bulk bar. See
      App\Livewire\Operator\GuestsList for the REAL / DERIVED map.
 
@@ -54,16 +54,18 @@
                     <div class="vy-dk-label">Repeat guests</div>
                     @if ($stats['repeat_pct'] === null)
                         <div class="vy-dk-val">—</div>
-                        <div class="vy-dk-sub">nobody has stayed yet</div>
+                        <div class="vy-dk-sub">no bookings yet — cancellations and no-shows don’t count</div>
                     @else
                         <div class="vy-dk-val">{{ $stats['repeat_pct'] }}<span class="vy-dk-unit">%</span></div>
-                        <div class="vy-dk-sub">{{ $stats['repeat'] }} of {{ $stats['with_stays'] }} {{ \Illuminate\Support\Str::plural('guest', $stats['with_stays']) }} who have stayed booked again</div>
+                        {{-- ⚠️ 2026-10-05: "who have stayed" counted guests whose only booking is still ahead — the count is of bookings --}}
+                        <div class="vy-dk-sub">{{ $stats['repeat'] }} of {{ $stats['with_stays'] }} {{ \Illuminate\Support\Str::plural('guest', $stats['with_stays']) }} with a booking booked again</div>
                     @endif
                 </div>
             </div>
 
-            {{-- ── The toolbar — search · filters · Select · Add guest ─────────────────────────────────── --}}
-            <div class="vy-gl-bar vy-fade">
+            {{-- ── The toolbar — search · Select · Add guest, then the filters (2026-10-05: the newer lists' layout — search, chips and
+                 buttons in one row squeezed the search and sent the buttons alone onto a second line) ──────────────────────────── --}}
+            <div class="vy-gl-bar vy-gs-bar vy-fade">
                 {{-- Without script this is a plain GET form that keeps the other settings (the hidden fields); with it, the
                      results follow the typing. --}}
                 <form class="vy-gl-search" method="GET" action="{{ route('app.guests') }}" role="search" @submit.prevent="search()">
@@ -78,22 +80,9 @@
                     <button type="button" class="vy-gl-clear" x-show="q !== ''" x-cloak @click="clearSearch()" aria-label="Clear search">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
                     </button>
-                    <span class="vy-gl-tipwrap">
-                        <button type="button" class="vy-gl-tip-btn" aria-label="What search can find" aria-controls="vy-gl-tip"
-                                :aria-expanded="tip ? 'true' : 'false'" @click="tip = ! tip" @keydown.escape="tip = false">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.01"/></svg>
-                        </button>
-                        <span class="vy-gl-tip" id="vy-gl-tip" role="tooltip" x-show="tip" x-cloak x-transition.opacity @click.outside="tip = false">
-                            Finds names and cities, and an email address typed in full. Phone numbers and partial emails are encrypted, so they can’t be searched.
-                        </span>
-                    </span>
+                    {{-- ⚠️ 2026-10-05: the "i" button that sat 6 px from the field's edge is gone — what search cannot find is said where it
+                         matters, when a search finds nothing (the empty state below), and the placeholder names what it can. --}}
                 </form>
-
-                <div class="vy-gl-chips" data-gl-region="chips" role="group" aria-label="Show">
-                    @foreach ($chips as $chip)
-                        <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
-                    @endforeach
-                </div>
 
                 <div class="vy-gl-tools">
                     <button type="button" class="vy-btn vy-btn--ghost vy-gl-select" :class="selectMode && 'is-on'" :aria-pressed="selectMode ? 'true' : 'false'" @click="toggleMode()">
@@ -107,6 +96,15 @@
                             Add guest
                         </button>
                     @endcan
+                </div>
+
+                {{-- the filters on their own row, under the search and the buttons, at every width (as on Units and Owners) --}}
+                <div class="vy-gs-filters">
+                    <div class="vy-gl-chips" data-gl-region="chips" role="group" aria-label="Show">
+                        @foreach ($chips as $chip)
+                            <a class="vy-gl-chip {{ $chip['active'] ? 'is-on' : '' }}" href="{{ $chip['href'] }}" data-gl-key="chip-{{ $chip['key'] }}" @if ($chip['active']) aria-current="page" @endif>{{ $chip['label'] }}<span class="vy-gl-count">{{ $chip['count'] }}</span></a>
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
@@ -155,16 +153,17 @@
                                         <th aria-sort="{{ $sorts['name']['aria'] }}">
                                             <a class="vy-gl-sort {{ $sorts['name']['active'] ? 'is-on is-'.$sorts['name']['dir'] : '' }}" href="{{ $sorts['name']['href'] }}" data-gl-key="sort-name">Guest<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th>Nationality</th>
-                                        <th class="is-num" aria-sort="{{ $sorts['stays']['aria'] }}">
+                                        <th class="vy-gl-c-nat">Nationality</th>
+                                        <th class="is-num vy-gl-c-stays" aria-sort="{{ $sorts['stays']['aria'] }}">
                                             <a class="vy-gl-sort {{ $sorts['stays']['active'] ? 'is-on is-'.$sorts['stays']['dir'] : '' }}" href="{{ $sorts['stays']['href'] }}" data-gl-key="sort-stays">Stays<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
-                                        <th aria-sort="{{ $sorts['last_stay']['aria'] }}">
-                                            <a class="vy-gl-sort {{ $sorts['last_stay']['active'] ? 'is-on is-'.$sorts['last_stay']['dir'] : '' }}" href="{{ $sorts['last_stay']['href'] }}" data-gl-key="sort-last_stay">Last stay<span class="vy-gl-arrow" aria-hidden="true"></span></a>
+                                        <th class="vy-gl-c-stay" aria-sort="{{ $sorts['last_stay']['aria'] }}">
+                                            {{-- "Stay", not "Last stay": it shows an arrival ahead as well (2026-10-05) --}}
+                                            <a class="vy-gl-sort {{ $sorts['last_stay']['active'] ? 'is-on is-'.$sorts['last_stay']['dir'] : '' }}" href="{{ $sorts['last_stay']['href'] }}" data-gl-key="sort-last_stay">Stay<span class="vy-gl-arrow" aria-hidden="true"></span></a>
                                         </th>
                                         {{-- Not sortable: lifetime is per currency, and ranking EUR against USD would invent an exchange rate. --}}
-                                        <th class="is-num"><span title="Billed per currency — not sortable across currencies">Lifetime</span></th>
-                                        <th>Status</th>
+                                        <th class="is-num vy-gl-c-life"><span title="Billed per currency — not sortable across currencies">Lifetime</span></th>
+                                        <th class="vy-gl-c-status">Status</th>
                                         <th class="vy-gl-actcol"><span class="vy-sr-only">Actions</span></th>
                                     </tr>
                                 </thead>
@@ -188,8 +187,11 @@
                                                             @if ($row['risk_flag']) <span class="vy-tag tone-risk"><span class="vy-dot"></span>At risk</span> @endif
                                                             @foreach ($row['tags'] as $tag) <span class="vy-tag tone-tag"><span class="vy-dot"></span>{{ $tag }}</span> @endforeach
                                                         </div>
-                                                        @if ($row['email'] !== null)
-                                                            <div class="vy-gl-contact"><a href="mailto:{{ $row['email'] }}">{{ $row['email'] }}</a>@if ($row['phone'] !== null) <span class="vy-gl-sep">·</span> <span class="vy-gl-phone">{{ $row['phone'] }}</span>@endif</div>
+                                                        {{-- each on its own line (2026-10-05: an email broke mid-word and left a "·" dangling) --}}
+                                                        @if ($row['email'] !== null && $row['phone'] !== null)
+                                                            <div class="vy-gl-contact"><a class="vy-gl-mail" href="mailto:{{ $row['email'] }}">{{ $row['email'] }}</a><span class="vy-gl-phone">{{ $row['phone'] }}</span></div>
+                                                        @elseif ($row['email'] !== null)
+                                                            <div class="vy-gl-contact"><a class="vy-gl-mail" href="mailto:{{ $row['email'] }}">{{ $row['email'] }}</a></div>
                                                         @elseif ($row['phone'] !== null)
                                                             <div class="vy-gl-contact"><span class="vy-gl-phone">{{ $row['phone'] }}</span></div>
                                                         @elseif ($row['anonymized'])
@@ -198,9 +200,9 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
-                                            <td class="is-num"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
-                                            <td>
+                                            <td class="vy-gl-c-nat{{ mb_strlen((string) $row['nationality']) > 16 ? ' is-long' : '' }}" data-label="Nationality">@if ($row['nationality'] !== null) {{ $row['nationality'] }} @else <span class="vy-gl-none">—</span> @endif</td>
+                                            <td class="is-num vy-gl-c-stays" data-label="Stays"><span class="vy-gl-fig">{{ $row['stays'] }}</span></td>
+                                            <td class="vy-gl-c-stay" data-label="Stay">
                                                 @if ($row['last_stay'] === null)
                                                     <span class="vy-gl-none">—</span>
                                                 @elseif ($row['last_stay'] === 'In house')
@@ -209,7 +211,7 @@
                                                     <span class="vy-gl-when">{{ $row['last_stay'] }}</span>
                                                 @endif
                                             </td>
-                                            <td class="is-num">
+                                            <td class="is-num vy-gl-c-life" data-label="Lifetime">
                                                 @forelse ($row['billed'] as $line)
                                                     <div class="vy-gl-fig">{{ $line }}</div>
                                                 @empty
@@ -219,7 +221,7 @@
                                                     <div class="vy-gl-due">{{ $line }} due</div>
                                                 @endforeach
                                             </td>
-                                            <td>
+                                            <td class="vy-gl-c-status" data-label="Status">
                                                 @if ($row['stage_meta'] !== null)
                                                     <span class="vy-tag tone-{{ $row['stage_meta']['tone'] }}"><span class="vy-dot"></span>{{ $row['stage_meta']['label'] }}</span>
                                                 @else
@@ -325,7 +327,21 @@
                                 </span>
                                 <div class="vy-gl-head-text">
                                     <h3 class="vy-modal-title" id="vy-gl-msg-t">Message <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></h3>
-                                    <p class="vy-modal-sub">Sent by email · replies land in your inbox.</p>
+                                    {{-- ⚠️⚠️ 2026-10-05: "Sent by email" while production's mailer is `log` — nothing left, and each guest's inbox
+                                         recorded a message as sent. Said as it is, and refused by the server too. And "replies land in your
+                                         inbox" was never true of email (no inbound mail): a reply goes to the property's reply-to address. --}}
+                                    <p class="vy-modal-sub">
+                                        @if (! $mailSends)
+                                            Email isn’t being sent from Vyrobel yet, so a message can’t reach anyone from here.
+                                        @elseif ($mailReplyTo !== null)
+                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies go to {{ $mailReplyTo }}.
+                                        @elseif ($canBrand)
+                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies won’t reach you yet — add a reply-to address in Settings → Guest-facing brand.
+                                        @else
+                                            {{-- Settings is `properties.manage`; this role may send but not open it — never point at a page that refuses --}}
+                                            Sent by email{{ $mailSender !== null ? ' as '.$mailSender : '' }}. Replies won’t reach you yet — ask someone who manages property settings to add a reply-to address.
+                                        @endif
+                                    </p>
                                 </div>
                                 <button type="button" class="vy-modal-x" @click="msgOpen = false" aria-label="Close">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -334,16 +350,16 @@
                             <div class="vy-modal-body">
                                 <div class="vy-field">
                                     <label class="vy-field-label" for="vy-gl-msg-body">Message</label>
-                                    <textarea id="vy-gl-msg-body" class="vy-input vy-gl-textarea" name="body" rows="5" maxlength="2000" required placeholder="Write your message…" autofocus></textarea>
+                                    <textarea id="vy-gl-msg-body" class="vy-input vy-gl-textarea" name="body" rows="5" maxlength="2000" required placeholder="Write your message…" autofocus @disabled(! $mailSends)></textarea>
                                 </div>
                                 <label class="vy-gl-switch">
-                                    <input type="checkbox" name="marketing" value="1" x-model="marketing">
+                                    <input type="checkbox" name="marketing" value="1" x-model="marketing" @disabled(! $mailSends)>
                                     <span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>This is a marketing message</strong><span>Only guests who agreed to marketing get it — the rest are skipped.</span></span>
                                 </label>
                             </div>
                             <div class="vy-modal-foot">
                                 <button type="button" class="vy-btn vy-btn--ghost" @click="msgOpen = false">Cancel</button>
-                                <button type="submit" class="vy-btn vy-btn--accent">Send to <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></button>
+                                <button type="submit" class="vy-btn vy-btn--accent" @disabled(! $mailSends)><span>Send to <span x-text="count()"></span> <span x-text="count() === 1 ? 'guest' : 'guests'"></span></span></button>
                             </div>
                         </form>
                     </div>
@@ -414,7 +430,7 @@
                             </div>
                             <div class="vy-modal-foot">
                                 <button type="button" class="vy-btn vy-btn--ghost" @click="delOpen = false">Keep them</button>
-                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="bulkTyped.trim() !== 'ERASE'">Erase <span x-text="count()"></span></button>
+                                <button type="submit" class="vy-btn vy-btn--danger" disabled :disabled="bulkTyped.trim() !== 'ERASE'"><span>Erase <span x-text="count()"></span></span></button>
                             </div>
                         </form>
                     @else
@@ -453,7 +469,7 @@
                                     <div class="vy-field"><label class="vy-field-label" for="a_email">Email</label><input class="vy-input" id="a_email" type="email" name="email" maxlength="255" autocomplete="off"></div>
                                     <div class="vy-field"><label class="vy-field-label" for="a_phone">Phone</label><input class="vy-input" id="a_phone" type="tel" name="phone" maxlength="64" autocomplete="off"></div>
                                     <div class="vy-field"><label class="vy-field-label" for="a_city">City / country</label><input class="vy-input" id="a_city" type="text" name="city" maxlength="255" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="a_nat">Nationality <span class="vy-fl-note">· 2 letters</span></label><input class="vy-input vy-gl-code" id="a_nat" type="text" name="nationality" maxlength="2" pattern="[A-Za-z]{2}" title="Two letters, e.g. IE" placeholder="IE" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="a_nat">Nationality</label><select class="vy-input" id="a_nat" name="nationality"><option value="">Not given</option>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
                                 </div>
                                 <div class="vy-gl-switches">
                                     <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>VIP guest</strong><span>Flagged on arrivals and at the front desk</span></span></label>
@@ -507,7 +523,7 @@
                                     <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-email">Email</label><input class="vy-input" id="vy-gl-e-email" type="email" name="email" maxlength="255" x-model="edit.email" autocomplete="off"></div>
                                     <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-phone">Phone</label><input class="vy-input" id="vy-gl-e-phone" type="tel" name="phone" maxlength="64" x-model="edit.phone" autocomplete="off"></div>
                                     <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-city">City / country</label><input class="vy-input" id="vy-gl-e-city" type="text" name="city" maxlength="255" x-model="edit.city" autocomplete="off"></div>
-                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-nat">Nationality <span class="vy-fl-note">· 2 letters</span></label><input class="vy-input vy-gl-code" id="vy-gl-e-nat" type="text" name="nationality" maxlength="2" pattern="[A-Za-z]{2}" title="Two letters, e.g. IE" placeholder="IE" x-model="edit.nationality" autocomplete="off"></div>
+                                    <div class="vy-field"><label class="vy-field-label" for="vy-gl-e-nat">Nationality</label><select class="vy-input" id="vy-gl-e-nat" name="nationality" x-model="edit.nationality" x-ref="nat"><option value="">Not given</option><template x-if="edit.nationality_unlisted"><option :value="edit.nationality_unlisted" x-text="edit.nationality_unlisted_label"></option></template>@foreach ($countries as $__code => $__country)<option value="{{ $__code }}">{{ $__country }}</option>@endforeach</select></div>
                                 </div>
                                 <div class="vy-gl-switches">
                                     <label class="vy-gl-switch"><input type="checkbox" name="is_vip" value="1" x-model="edit.is_vip"><span class="vy-gl-track" aria-hidden="true"></span><span class="vy-gl-switch-text"><strong>VIP guest</strong><span>Flagged on arrivals and at the front desk</span></span></label>
@@ -580,17 +596,24 @@
                     this.edit = this.blank();
                     if (boot.retry) {
                         this.edit = Object.assign(this.blank(), boot.retry);
+                        this.syncNat();
                         this.editOpen = true;
                     }
                 },
+                // ⚠️ 2026-10-05 (the review, then 🖥 measured): x-model picks the select's option BEFORE x-if has added the
+                //    "(as saved)" one, so Edit opened on "Not given" and Save erased a code the list lacks. Set it again once it's there.
+                syncNat() {
+                    this.$nextTick(() => { if (this.$refs.nat) this.$refs.nat.value = this.edit.nationality; });
+                },
                 blank() {
-                    return { id: '', name: '', first_name: '', last_name: '', email: '', phone: '', city: '', nationality: '',
+                    return { id: '', name: '', first_name: '', last_name: '', email: '', phone: '', city: '', nationality: '', nationality_unlisted: '', nationality_unlisted_label: '',
                         is_vip: false, risk_flag: false, prefers_email: false, marketing_consent: false };
                 },
                 startEdit() {
                     const row = this.menu.row;
                     this.closeMenu(true);   // focus goes back to the row's button, so closing the dialog returns it there
                     this.edit = Object.assign(this.blank(), row.edit);
+                    this.syncNat();
                     this.editOpen = true;
                 },
                 startErase() {

@@ -1,0 +1,85 @@
+<?php
+// The Guests page, SECOND pass (2026-10-05) — READ-ONLY preflight from the STAGED release (stdin; writes nothing).
+// Yes/no, names of settings, counts and timings only — never a value, never a guest's details.
+use App\Models\Guest;
+use App\Models\Organization;
+use App\Models\Property;
+use App\Models\Reservation;
+use App\Support\Countries;
+use App\Support\Mail\MailSafetyGuard;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$has = fn (string $route, string $gate): bool => in_array($gate, $mw($route), true);
+$out['gates'] = [
+    'the list needs guests.view' => $has('app.guests', 'can:guests.view'),
+    'Message (bulk) needs guests.manage' => $has('app.guests.bulk.message', 'can:guests.manage'),
+    'Add guest needs guests.manage' => $has('app.guests.store', 'can:guests.manage'),
+    'Edit needs guests.manage' => $has('app.guests.update', 'can:guests.manage'),
+    'Erase (bulk) needs guests.erase' => $has('app.guests.bulk.anonymize', 'can:guests.erase'),
+];
+
+// The one question the Message dialog and the server now ask. On production it should say NO until mail is switched on
+// (OPEN.md F1/A2) — then the dialog says so and Send is off, and the server refuses.
+$out['email reaches real inboxes now (MailSafetyGuard::sendingNow)'] = MailSafetyGuard::sendingNow() ? 'yes' : 'no';
+
+// The nationality list is built from the host's ICU data: how many of the 249 codes get a real name here.
+$t = microtime(true);
+$all = Countries::everywhere();
+$out['countries'] = [
+    'intl loaded' => extension_loaded('intl'),
+    'codes' => count($all),
+    'codes with a real name' => count(array_filter($all, fn (string $name, string $code): bool => $name !== $code, ARRAY_FILTER_USE_BOTH)),
+    'build ms' => (int) round((microtime(true) - $t) * 1000),
+];
+
+foreach (['livewire/operator/guests-list.blade.php', 'components/layouts/operator.blade.php', 'components/operator/shell.blade.php'] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views_compile'][$view] = true;
+    } catch (\Throwable $e) {
+        $out['views_compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// Per organisation: how many guests, how many carry a nationality, and how many of those Edit will offer "(as saved)"
+// (a code the list does not have) or open upper-cased (saved in lower case). Counts only.
+$tenant = app(TenantContext::class);
+$orgs = $tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name']));
+foreach ($orgs as $org) {
+    $tenant->forOrganization((string) $org->id, function () use ($org, $all, &$out): void {
+        $nats = Guest::query()->pluck('nationality');
+        if ($nats->isEmpty() && ! Property::query()->exists()) {
+            return;
+        }
+        $given = $nats->filter(fn ($n): bool => trim((string) $n) !== '');
+        $today = now()->toDateString();
+        $out['orgs'][$org->name] = [
+            'guests' => $nats->count(),
+            'with a nationality' => $given->count(),
+            'not in the list (Edit keeps it "as saved")' => $given->filter(fn ($n): bool => ! isset($all[strtoupper(trim((string) $n))]))->count(),
+            'saved in lower case' => $given->filter(fn ($n): bool => trim((string) $n) !== strtoupper(trim((string) $n)))->count(),
+            // what the Stay column now says of bookings it used to call "Left …" (counts of bookings, not guests)
+            'bookings checked out ("Left …")' => Reservation::query()->where('status', 'checked_out')->count(),
+            'confirmed, check-in come, never checked in ("Arrives today" / "Was due …")' => Reservation::query()->where('status', 'confirmed')->whereDate('check_in', '<=', $today)->count(),
+            'enquiry or tentative ("Unconfirmed · …")' => Reservation::query()->whereIn('status', ['enquiry', 'tentative'])->count(),
+            // who an in-app copy of Message could reach while email is off (OPEN.md DEC-s): guests with a portal password set
+            'guests who can sign in to the guest portal' => Guest::query()->whereNotNull('password')->count(),
+            // where a guest's email reply to Message will go once mail is on: yes/no per property, never the address
+            'reply-to address set, per property' => Property::query()->orderBy('name')->get(['name', 'brand_reply_to'])
+                ->mapWithKeys(fn ($p): array => [$p->name => trim((string) $p->brand_reply_to) !== '' ? 'yes' : 'no'])->all(),
+        ];
+    });
+}
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

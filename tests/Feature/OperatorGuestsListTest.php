@@ -350,7 +350,8 @@ it('derives the stat tiles from real rows and refuses to invent a trend', functi
         // indentation between "guests" and "who" — matching the whole line would test the whitespace.)
         ->assertSee('50')
         ->assertSee('1 of 2 guests')
-        ->assertSee('who have stayed booked again')
+        // "with a booking" since 2026-10-05: the count is of bookings, and "who have stayed" was said of stays still ahead
+        ->assertSee('with a booking booked again')
         // The design's "+4%" had no prior-period snapshot anywhere to compute against.
         ->assertDontSee('+4%');
 

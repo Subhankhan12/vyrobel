@@ -165,7 +165,7 @@ class NewReservation extends Component
         $rooms = $property !== null ? $this->roomsAt((string) $property->getKey()) : ['all' => 0, 'bookable' => 0];
         // ⚠️ Read only where the steps render — not on the done screen, nor on a property with no rooms (the review, M5).
         $nightly = $property !== null && $done === null && $rooms['bookable'] > 0 ? $this->nightlyCalendar($property, $today) : (object) [];
-        $mailSends = MailSafetyGuard::isSending((string) config('mail.default'), is_string(config('mail.mailers.smtp.host')) ? config('mail.mailers.smtp.host') : null);
+        $mailSends = MailSafetyGuard::sendingNow();   // the one question (shared with the Guests page since 2026-10-05)
         $canSetPrice = (bool) auth()->user()?->can('rates.manage');
 
         return view('livewire.operator.new-reservation', [

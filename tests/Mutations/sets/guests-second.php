@@ -1,0 +1,519 @@
+<?php
+
+declare(strict_types=1);
+
+// Mutation set guests-second — the Guests page's SECOND pass (2026-10-05, the founder: "Text is not visible completely. Serach box
+// design is not good and its symbol is not well-aligned … the same work as the previous pages"). 🔬 Below ~1,180 px the table was wider
+// than its card (Status cut to "No booki…", on a phone Nationality under the row menu); emails broke mid-word; the search sat squeezed
+// between the chips and the buttons with an "i" against its edge; "Message" promised "Sent by email" while production's mailer is `log`.
+// GS-M22…M50 came from the independent review and the walk after it, GS-M51…M58 from the second review (of the fixes): "Left <date>" for stays nobody left, Edit erasing an unlisted
+// nationality, the contact rule leaking to Units, replies promised to an inbox no email reaches, the 939 px table in an 890 px card.
+// Run with `php tests/Mutations/run.php --set=guests-second`.
+// ⚠️ The stacked rows' layout, the field's look and Edit's select are what a browser draws: these prove the rules and the code exist
+// and are applied; the 🖥 walk at 390–1,600 px (Select on and off) and in Edit proved how they behave.
+
+$test = 'tests/Feature/GuestsListSecondPassTest.php';
+$bulk = 'tests/Feature/OperatorGuestBulkTest.php';
+
+return [
+    [
+        'id' => 'GS-M1',
+        'name' => 'the table stops being a size container — a narrow card hides columns again',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        .vy-gst .vy-gl-card { container: vy-gst-list / inline-size; }
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'lets the table fit its card at every width']],
+    ],
+    [
+        'id' => 'GS-M2',
+        'name' => 'a cell loses its name — the stacked row cannot say what a fact is',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<td class="is-num vy-gl-c-stays" data-label="Stays">',
+        'new' => '<td class="is-num vy-gl-c-stays">',
+        'tests' => [['file' => $test, 'filter' => 'lets the table fit its card at every width']],
+    ],
+    [
+        'id' => 'GS-M3',
+        'name' => 'a status, a nationality and a date wrap again',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        .vy-gst .vy-gl-c-nat, .vy-gst .vy-gl-c-status, .vy-gst .vy-gl-c-stay { white-space: nowrap; }
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps a status, a nationality and a date on one line']],
+    ],
+    [
+        'id' => 'GS-M4',
+        'name' => 'email and phone share a line again, a "·" left dangling',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<div class="vy-gl-contact"><a class="vy-gl-mail" href="mailto:{{ $row[\'email\'] }}">{{ $row[\'email\'] }}</a><span class="vy-gl-phone">{{ $row[\'phone\'] }}</span></div>',
+        'new' => '<div class="vy-gl-contact"><a class="vy-gl-mail" href="mailto:{{ $row[\'email\'] }}">{{ $row[\'email\'] }}</a> <span class="vy-gl-sep">·</span> <span class="vy-gl-phone">{{ $row[\'phone\'] }}</span></div>',
+        'tests' => [['file' => $test, 'filter' => 'puts email and phone each on its own line']],
+    ],
+    [
+        'id' => 'GS-M5',
+        'name' => 'the contact lines run together',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        .vy-gst .vy-gl-contact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }',
+        'new' => '        .vy-gst .vy-gl-contact { min-width: 0; }',
+        'tests' => [['file' => $test, 'filter' => 'puts email and phone each on its own line']],
+    ],
+    [
+        'id' => 'GS-M22',
+        'name' => 'the contact rule leaks to every page — Units\' "Name · Door code set" stacks (the review)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        .vy-gst .vy-gl-contact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }',
+        'new' => '        .vy-gl-contact { display: flex; flex-direction: column; gap: 1px; min-width: 0; }',
+        'tests' => [['file' => $test, 'filter' => 'stacks the contact lines on this page only']],
+    ],
+    [
+        'id' => 'GS-M23',
+        'name' => 'the 760 px floor comes back — a stacked row on a phone is 760 px wide (the review)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        .vy-gst .vy-gl-table { min-width: 0; }
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'lets the table fit its card at every width']],
+    ],
+    [
+        'id' => 'GS-M24',
+        'name' => 'the rows stack only below 880 px again — 939 px tables in 890–940 px cards (measured)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '@container vy-gst-list (max-width: 960px) {',
+        'new' => '@container vy-gst-list (max-width: 880px) {',
+        'tests' => [['file' => $test, 'filter' => 'stacks before the full table can outgrow its card']],
+    ],
+    [
+        'id' => 'GS-M25',
+        'name' => 'a long country name may never wrap — it pushes the table past its card (measured)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<td class="vy-gl-c-nat{{ mb_strlen((string) $row[\'nationality\']) > 16 ? \' is-long\' : \'\' }}" data-label="Nationality">',
+        'new' => '<td class="vy-gl-c-nat" data-label="Nationality">',
+        'tests' => [['file' => $test, 'filter' => 'stacks before the full table can outgrow its card']],
+    ],
+    [
+        'id' => 'GS-M26',
+        'name' => 'a long country name wraps at every width — even at 1,440 px (measured)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '        @container vy-gst-list (max-width: 1080px) {
+            .vy-gst .vy-gl-c-nat.is-long { white-space: normal; }
+        }
+',
+        'new' => '        .vy-gst .vy-gl-c-nat.is-long { white-space: normal; }
+',
+        'tests' => [['file' => $test, 'filter' => 'stacks before the full table can outgrow its card']],
+    ],
+    [
+        'id' => 'GS-M27',
+        'name' => 'on a phone the status stays beside the name, squeezing it (the review: untested)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '            .vy-gst .vy-gl-table tbody td.vy-gl-c-status { order: 5; }
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'on a phone moves the status down beside the facts']],
+    ],
+    [
+        'id' => 'GS-M28',
+        'name' => 'on a phone a Lifetime holding only a balance due is hidden (the review)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => '.vy-gst .vy-gl-table tbody td.vy-gl-c-life:not(:has(.vy-gl-fig, .vy-gl-due)) { display: none; }',
+        'new' => '.vy-gst .vy-gl-table tbody td.vy-gl-c-life:not(:has(.vy-gl-fig)) { display: none; }',
+        'tests' => [['file' => $test, 'filter' => 'on a phone moves the status down beside the facts']],
+    ],
+    [
+        'id' => 'GS-M29',
+        'name' => '"Sort by" in the lighter grey — 4.48:1 on a row (the review)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => 'content: "Sort by"; font-size: 11px; color: var(--vy-on-grad); }',
+        'new' => 'content: "Sort by"; font-size: 11px; color: var(--vy-muted); }',
+        'tests' => [['file' => $test, 'filter' => 'writes the stacked rows’ labels in the darker grey']],
+    ],
+    [
+        'id' => 'GS-M30',
+        'name' => 'the stacked labels in the lighter grey (the review)',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => 'text-transform: uppercase; color: var(--vy-on-grad); }   /* on the row: --vy-muted is 4.48:1 there */',
+        'new' => 'text-transform: uppercase; color: var(--vy-muted); }   /* on the row: --vy-muted is 4.48:1 there */',
+        'tests' => [['file' => $test, 'filter' => 'writes the stacked rows’ labels in the darker grey']],
+    ],
+    [
+        'id' => 'GS-M6',
+        'name' => 'Safari draws its own search field again under the icon',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => 'outline: none; -webkit-appearance: none; appearance: none; border-radius: 0; }',
+        'new' => 'outline: none; border-radius: 0; }',
+        'tests' => [['file' => $test, 'filter' => 'is one clean search field']],
+    ],
+    [
+        'id' => 'GS-M7',
+        'name' => 'the toolbar goes back to one squeezed row',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<div class="vy-gl-bar vy-gs-bar vy-fade">',
+        'new' => '<div class="vy-gl-bar vy-fade">',
+        'tests' => [['file' => $test, 'filter' => 'lays the toolbar out like the other lists']],
+    ],
+    [
+        'id' => 'GS-M8',
+        'name' => 'the server "messages" guests while email is not sent',
+        'file' => 'app/Http/Controllers/Operator/GuestBulkActionController.php',
+        'old' => '        if (! MailSafetyGuard::sendingNow()) {',
+        'new' => '        if (false) {',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M9',
+        'name' => 'the dialog promises "Sent by email" whatever the mailer',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                                        @if (! $mailSends)
+',
+        'new' => '                                        @if (false)
+',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M10',
+        'name' => 'Send stays usable while nothing can be sent',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '@disabled(! $mailSends)><span>Send to',
+        'new' => '><span>Send to',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M31',
+        'name' => 'the message box stays open to typing while nothing can be sent (the review: untested)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => 'autofocus @disabled(! $mailSends)></textarea>',
+        'new' => 'autofocus></textarea>',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M32',
+        'name' => 'the marketing switch stays usable while nothing can be sent (the review: untested)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => 'x-model="marketing" @disabled(! $mailSends)>',
+        'new' => 'x-model="marketing">',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M11',
+        'name' => 'the page assumes email is sent',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '        $mailSends = MailSafetyGuard::sendingNow();',
+        'new' => '        $mailSends = true;',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M12',
+        'name' => '"is email sent now" always says yes',
+        'file' => 'app/Support/Mail/MailSafetyGuard.php',
+        'old' => '        return self::isSending((string) config(\'mail.default\'), is_string($host) ? $host : null);',
+        'new' => '        return true;',
+        'tests' => [['file' => $test, 'filter' => 'will not say a message was sent while email is not sent']],
+    ],
+    [
+        'id' => 'GS-M34',
+        'name' => 'the page never learns the reply-to address',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            \'mailReplyTo\' => $mailSends ? PropertyBrand::for($sender)->replyTo : null,',
+        'new' => '            \'mailReplyTo\' => null,',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M36',
+        'name' => 'the email is no longer sent as the property — no reply-to, Vyrobel\'s name (the review)',
+        'file' => 'app/Mail/OperatorGuestMessageMail.php',
+        'old' => '        return $this->brandedEnvelope(\'A message from \'.$from, $this->brandFor($this->property));',
+        'new' => '        return new Envelope(subject: \'A message from \'.$from);',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M37',
+        'name' => 'the controller stops passing the property to the email',
+        'file' => 'app/Http/Controllers/Operator/GuestBulkActionController.php',
+        'old' => '                $current,   // sent as the property: its name, and replies to its reply-to address (2026-10-05)
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M38',
+        'name' => 'the email invites a reply that reaches no one at the property (the review)',
+        'file' => 'resources/views/emails/operator-guest-message.blade.php',
+        'old' => '    @if (! empty($replyTo))
+',
+        'new' => '    @if (true)
+',
+        'tests' => [['file' => $test, 'filter' => 'the email invites a reply only when the reply reaches the property']],
+    ],
+    [
+        'id' => 'GS-M13',
+        'name' => '"who have stayed" said of stays still ahead',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => 'with a booking booked again</div>',
+        'new' => 'who have stayed booked again</div>',
+        'tests' => [['file' => $test, 'filter' => 'counts repeat guests among guests with a booking']],
+    ],
+    [
+        'id' => 'GS-M39',
+        'name' => '"nobody has booked yet" when bookings were only cancelled (the review)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<div class="vy-dk-sub">no bookings yet — cancellations and no-shows don’t count</div>',
+        'new' => '<div class="vy-dk-sub">nobody has booked yet</div>',
+        'tests' => [['file' => $test, 'filter' => 'says why there is no repeat figure']],
+    ],
+    [
+        'id' => 'GS-M14',
+        'name' => 'every past booking says "Left" — checked out or not (the review)',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            (string) $relevant->status === \'checked_out\' => \'Left \'.',
+        'new' => '            true => \'Left \'.',
+        'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
+    ],
+    [
+        'id' => 'GS-M41',
+        'name' => 'an arrival due today says "Was due"',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            $checkIn->isSameDay($today) => \'Arrives today\',
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
+    ],
+    [
+        'id' => 'GS-M42',
+        'name' => 'a booking nobody checked in says "Left <its check-out>" again (the review — a date still ahead for one overdue)',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            default => \'Was due \'.$day,',
+        'new' => '            default => \'Left \'.CarbonImmutable::parse($relevant->check_out)->format(\'j M Y\'),',
+        'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
+    ],
+    [
+        'id' => 'GS-M43',
+        'name' => 'the column sorts by departures it no longer shows',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => 'ELSE reservations.check_in END")',
+        'new' => 'ELSE reservations.check_out END")',
+        'tests' => [['file' => $test, 'filter' => 'sorts the stay column by the date each cell shows']],
+    ],
+    [
+        'id' => 'GS-M15',
+        'name' => 'the column is "Last stay" above an arrival ahead',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => 'data-gl-key="sort-last_stay">Stay<span',
+        'new' => 'data-gl-key="sort-last_stay">Last stay<span',
+        'tests' => [['file' => $test, 'filter' => 'heads the stay column']],
+    ],
+    [
+        'id' => 'GS-M16',
+        'name' => 'Add guest asks for two letters again',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<select class="vy-input" id="a_nat" name="nationality">',
+        'new' => '<select class="vy-input vy-gl-code" id="a_nat" name="nationality" data-two-letters>',
+        'tests' => [['file' => $test, 'filter' => 'offers every country by name for nationality']],
+    ],
+    [
+        'id' => 'GS-M17',
+        'name' => 'Edit opens on "Not given" for a code saved in lower case',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '                \'nationality\' => strtoupper(trim((string) $guest->nationality)),',
+        'new' => '                \'nationality\' => (string) $guest->nationality,',
+        'tests' => [['file' => $test, 'filter' => 'opens Edit on the guest’s country']],
+    ],
+    [
+        'id' => 'GS-M18',
+        'name' => 'the row stops carrying a code the list lacks',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '                ...$this->unlistedNationality($guest->nationality),
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M44',
+        'name' => 'every code counts as listed — the "(as saved)" option never appears',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '        if ($code === \'\' || isset(Countries::everywhere()[$code])) {',
+        'new' => '        if (true) {',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M45',
+        'name' => 'the saved option is named by its code, not as the row names it ("XK" beside "Kosovo")',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '\'nationality_unlisted_label\' => ($this->countryName($code) ?? $code).\' (as saved)\'',
+        'new' => '\'nationality_unlisted_label\' => $code.\' (as saved)\'',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M46',
+        'name' => 'the saved option follows the live choice — picking France adds "FR (as saved)" (the review)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '<template x-if="edit.nationality_unlisted"><option :value="edit.nationality_unlisted"',
+        'new' => '<template x-if="edit.nationality"><option :value="edit.nationality"',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M47',
+        'name' => 'Edit opens on "Not given" and Save erases XK (the review, then measured in the browser)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                    this.$nextTick(() => { if (this.$refs.nat) this.$refs.nat.value = this.edit.nationality; });
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M48',
+        'name' => 'the select loses its ref — the re-set finds nothing',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => 'x-model="edit.nationality" x-ref="nat">',
+        'new' => 'x-model="edit.nationality">',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M49',
+        'name' => 'a refused edit reopens without the saved code (the review)',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            ...$this->unlistedNationality($text(\'nationality\')),   // a refused edit keeps an unlisted code too (the review)
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps that code when an edit the server refused reopens']],
+    ],
+    [
+        'id' => 'GS-M19',
+        'name' => 'the top bar search wraps again',
+        'file' => 'resources/views/components/layouts/operator.blade.php',
+        'old' => 'transition: color .15s; white-space: nowrap; }',
+        'new' => 'transition: color .15s; }',
+        'tests' => [['file' => $test, 'filter' => 'keeps the top bar’s search on one line']],
+    ],
+    [
+        'id' => 'GS-M20',
+        'name' => 'the top bar search\'s spoken name loses the words it shows (WCAG 2.5.3, the review)',
+        'file' => 'resources/views/components/operator/shell.blade.php',
+        'old' => ' aria-label="Search reservations, guests"',
+        'new' => ' aria-label="Search reservations and guests"',
+        'tests' => [['file' => $test, 'filter' => 'keeps the top bar’s search on one line']],
+    ],
+    [
+        'id' => 'GS-M21',
+        'name' => 'no short label for a narrow bar',
+        'file' => 'resources/views/components/operator/shell.blade.php',
+        'old' => '<span class="vy-search-short" aria-hidden="true">Search…</span>',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'keeps the top bar’s search on one line']],
+    ],
+    [
+        'id' => 'GS-M50',
+        'name' => 'bulk Message is no longer refused while the workspace is paused (the review: the test passed without it)',
+        'file' => 'app/Http/Controllers/Operator/GuestBulkActionController.php',
+        'old' => '    public function message(Request $request, InboxService $inbox): RedirectResponse
+    {
+        if (app(OperatorWorkspace::class)->isReadOnly()) {',
+        'new' => '    public function message(Request $request, InboxService $inbox): RedirectResponse
+    {
+        if (false) {',
+        'tests' => [['file' => $bulk, 'filter' => 'refuses bulk message and erase while the workspace is paused']],
+    ],
+    [
+        'id' => 'GS-M33',
+        'name' => 'the dialog says "replies land in your inbox" again (the review: no email reply ever does)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                                            Sent by email{{ $mailSender !== null ? \' as \'.$mailSender : \'\' }}. Replies go to {{ $mailReplyTo }}.
+',
+        'new' => '                                            Sent by email · replies land in your inbox.
+',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M35',
+        'name' => 'no reply-to: the dialog promises replies anyway',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                                            Sent by email{{ $mailSender !== null ? \' as \'.$mailSender : \'\' }}. Replies won’t reach you yet — add a reply-to address in Settings → Guest-facing brand.
+',
+        'new' => '                                            Sent by email · replies land in your inbox.
+',
+        'tests' => [['file' => $test, 'filter' => 'says a reply will not reach the operator while the property has no reply-to address']],
+    ],
+    [
+        'id' => 'GS-M40',
+        'name' => 'an unconfirmed booking says "Was due …" (or "Arrives …")',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            $own === ReservationStage::TENTATIVE => \'Tentative · \'.$day,   // the badge\'s word for enquiry and tentative
+',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
+    ],
+    [
+        'id' => 'GS-M51',
+        'name' => 'Settings is offered to roles that cannot open it — a 403 invited (the second review)',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            \'canBrand\' => (bool) auth()->user()?->can(\'properties.manage\'),',
+        'new' => '            \'canBrand\' => true,',
+        'tests' => [['file' => $test, 'filter' => 'says a reply will not reach the operator while the property has no reply-to address']],
+    ],
+    [
+        'id' => 'GS-M52',
+        'name' => 'a role without Settings is told nothing it can do',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                                            Sent by email{{ $mailSender !== null ? \' as \'.$mailSender : \'\' }}. Replies won’t reach you yet — ask someone who manages property settings to add a reply-to address.
+',
+        'new' => '                                            Sent by email. Replies won’t reach you yet.
+',
+        'tests' => [['file' => $test, 'filter' => 'says a reply will not reach the operator while the property has no reply-to address']],
+    ],
+    [
+        'id' => 'GS-M53',
+        'name' => 'the dialog stops naming the property the email goes out as (the second review)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                                            Sent by email{{ $mailSender !== null ? \' as \'.$mailSender : \'\' }}. Replies go to {{ $mailReplyTo }}.
+',
+        'new' => '                                            Sent by email. Replies go to {{ $mailReplyTo }}.
+',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M54',
+        'name' => 'the page asks about no property — names none, says no reply-to',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '        $sender = $mailSends ? GuestMessageSender::property() : null;',
+        'new' => '        $sender = null;',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M55',
+        'name' => 'the ONE sender answers nothing — the email carries no property',
+        'file' => 'app/Support/Guest/GuestMessageSender.php',
+        'old' => '        return $id !== null ? Property::query()->find($id) : null;',
+        'new' => '        return null;',
+        'tests' => [['file' => $test, 'filter' => 'sends as the property when email is sent']],
+    ],
+    [
+        'id' => 'GS-M56',
+        'name' => 'Edit no longer sets the select once its option exists — opens on "Not given", Save erases XK (the second review)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                    this.edit = Object.assign(this.blank(), row.edit);
+                    this.syncNat();
+',
+        'new' => '                    this.edit = Object.assign(this.blank(), row.edit);
+',
+        'tests' => [['file' => $test, 'filter' => 'keeps a code the country list does not have']],
+    ],
+    [
+        'id' => 'GS-M57',
+        'name' => 'a refused edit reopens without setting the select (the second review)',
+        'file' => 'resources/views/livewire/operator/guests-list.blade.php',
+        'old' => '                        this.edit = Object.assign(this.blank(), boot.retry);
+                        this.syncNat();
+',
+        'new' => '                        this.edit = Object.assign(this.blank(), boot.retry);
+',
+        'tests' => [['file' => $test, 'filter' => 'keeps that code when an edit the server refused reopens']],
+    ],
+    [
+        'id' => 'GS-M58',
+        'name' => 'every booking not checked out or tentative says "Arrives …" — overdue and stale ones included',
+        'file' => 'app/Livewire/Operator/GuestsList.php',
+        'old' => '            $own === ReservationStage::UPCOMING => \'Arrives \'.$day,',
+        'new' => '            true => \'Arrives \'.$day,',
+        'tests' => [['file' => $test, 'filter' => 'says where each stay stands']],
+    ],
+];

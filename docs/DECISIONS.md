@@ -19866,3 +19866,46 @@ dialog with the names side by side (his earlier report), Double room first, Wint
 outside the screen; Cancel; 0 console messages; signed out (a read-only check then went to sign-in), the automated browser closed.
 Seen and left for him: the sidebar cuts "Internal Test Property" (D-SHELL-PROPNAME) and the top bar's date pill said "Sun 4 Oct"
 beside a property already on 5 Oct (D-RACK-START-TZ).
+
+### 2026-10-05 — Guests, second pass: every word visible, one search box, and words the page can stand behind
+
+**His request:** "https://vyrobel.com/app/guests — on this page there is design issue. Text is not visible completely. Serach box
+design is not good and its symbol is not well-aligned. Fix it … the same work as on the previous pages … in terms of design
+functionality and everything else … make everything live and test it on the MCP Playwright." The plan was posted and executed
+(his standing rule: plan, then keep working).
+
+**Decided (by this pass, inside his request):**
+- **The table never scrolls sideways inside its card.** The card is a CSS size container; at 960 px of card and below each guest is
+  one stacked row (name and status, then the facts, each with its name), under 520 px the status joins the facts. 960, not the
+  first 880: the full table measured 939 px (969 with Select on) in cards of 890–940 px. A country name over 16 characters may wrap
+  only up to 1,080 px of card; every shorter name keeps one line. 🖥 Measured at 390 / 768 / 1,024 / 1,100–1,371 / 1,440 / 1,600 px,
+  Select on and off: the table is never wider than its card and no cell passes it.
+- **One search box for the four list pages** (Guests, Owners, Units, Maintenance): the shared `.vy-gl-search` is 40 px like the
+  toolbar's buttons, its icon a centred 16 px, the browser's own search-field styling turned off. The Guests "i" tooltip is gone;
+  what it said is in the placeholder ("Search name, city or exact email") and in the empty search's sentence.
+- **Message only when email reaches real inboxes, and sent as the property.** `MailSafetyGuard::sendingNow()` is the one question
+  (the New reservation page asked it inline; it calls the same method now). While it says no — production today, mailer `log` —
+  the dialog says "Email isn’t being sent from Vyrobel yet, so a message can’t reach anyone from here.", the box, the marketing
+  switch and Send are off, and the server refuses with nothing written. When it says yes, the email carries the property's name and
+  reply-to address (`BrandsGuestMail`, as every other guest email does) — the property is ONE definition,
+  `GuestMessageSender::property()`, read by the page and the controller — and the dialog names it and says where replies go ("Sent by
+  email as <property>. Replies go to …"), or that they won't reach the operator until a reply-to address is set: "in Settings →
+  Guest-facing brand" to whoever may open Settings (`properties.manage`), "ask someone who manages property settings" to Hotel
+  Manager, Front Desk and Reservation Agent, who may send but not open it. The email's "Just reply to this email and we'll see it"
+  is printed only when that is true. ⚠️ Locally, Mailpit (`smtp` to this machine) counts as not sending,
+  so the bulk Message cannot be exercised from a local browser; the tests represent "email works" with `config(['mail.default' =>
+  'postmark'])`. ⚠️ With email off, the in-app copy a guest with a portal account used to get is not sent either — his call (DEC-s).
+- **The Stay column says what each booking's own record says:** In house · Arrives <date> · Arrives today · Was due <date> (confirmed,
+  never checked in) · Tentative · <date> (enquiry or tentative — the badge's word) · Left <date> (checked out only), and sorts by the
+  date it shows. "N of M guests with a booking booked again"; with none, "no bookings yet — cancellations and no-shows don’t count".
+- **Nationality is picked by name** from every country (249, the host's ICU names); stored as the ISO code as before. A saved code
+  the list does not know is kept and shown "Kosovo (as saved)" in Edit, never cleared silently.
+- **The top bar's search keeps one line:** "Search…" at 1,240 px and below; its spoken name, "Search reservations, guests", holds the
+  words it shows at every width.
+
+**Gates (Verified 2026-10-05):** **4,359/4,359 on MySQL 8.4.10** (32,010 assertions, tree `0597738d6d3eaf01`: this code with the
+entry and the memory written, before these figures; 04:19–04:37 Baku) · **4,359/4,359 on MariaDB 11.8.9** (the same tree, 05:03–05:21
+Baku; nothing else on 3306 at the swap) — both read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · mutations **818/818
+across every set** (`guests-second` 58; baseline 455/455 green; 04:37–05:02 Baku) · the money gate **FULL, unmoved** (`929 /
+10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 05:22 Baku)
+· PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.

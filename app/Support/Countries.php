@@ -124,6 +124,10 @@ final class Countries
      */
     public static function everywhere(): array
     {
+        static $built = null;   // built once per request — the Guests list reads it for every row (2026-10-05)
+        if ($built !== null) {
+            return $built;
+        }
         $out = [];
         foreach (explode(' ', self::ISO) as $code) {
             $name = class_exists(\Locale::class) ? \Locale::getDisplayRegion('-'.$code, 'en') : '';
@@ -133,7 +137,7 @@ final class Countries
         $collator = class_exists(\Collator::class) ? new \Collator('en') : null;
         $collator !== null ? uasort($out, fn (string $a, string $b): int => (int) $collator->compare($a, $b)) : asort($out, SORT_NATURAL | SORT_FLAG_CASE);
 
-        return $out;
+        return $built = $out;
     }
 
     /** The 249 officially assigned ISO-3166-1 alpha-2 codes. */
