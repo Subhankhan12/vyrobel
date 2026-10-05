@@ -237,7 +237,8 @@ change is said.** Briefs live in `briefs/`.
   no-shows don't count".
 - ✅ **D-GS2-NATIONALITY — FIXED 2026-10-05:** nationality was two typed letters; Add and Edit now pick a country by name (249);
   Edit opens on a code saved in lower case and keeps one the list does not have, "Kosovo (as saved)" — 🖥 saved with only the city
-  changed, the code stayed `XK` (the review had found the first version opening on "Not given" and erasing it on Save).
+  changed, the code stayed `XK` (the review had found the first version opening on "Not given" and erasing it on Save). 🔬 On
+  production his workspace's one guest carries a code the list lacks (a count, V 2026-10-05); live, Edit opened on it "(as saved)".
 - ✅ **D-GS2-TOPBAR — FIXED 2026-10-05 (seen on the walk; every operator page):** the top bar's "Search reservations, guests…"
   wrapped onto two lines at 1,024 px; "Search…" at 1,240 px and below, its spoken name holding the words it shows.
 - **D-MAIL-CLAIMS (found 2026-10-05 by the independent review; outside the Guests page — his go):** other operator screens still
@@ -262,8 +263,8 @@ change is said.** Briefs live in `briefs/`.
   visible name, and nothing focusable moves. Explicit table roles would keep the semantics — a browser look with VoiceOver first.
 - **DEC-s (asked 2026-10-05):** while email is off, the Guests Message refuses entirely — before this pass it also posted an in-app
   copy that a guest with a claimed portal account could read. Should Message, with email off, still reach those guests in the app
-  (and say so: "N of the selected can read it in their account; the rest won't get it")? Production holds no claimed guest account
-  today (R: his workspace has one guest).
+  (and say so: "N of the selected can read it in their account; the rest won't get it")? 🔬 Production holds 0 guests who can sign in
+  to the guest portal, in any organisation (V 2026-10-05, the read-only preflight) — so today the question changes nothing.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

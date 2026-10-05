@@ -771,7 +771,13 @@ Tests: `GuestsListSecondPassTest` (24; each new one RED first, the rest proven b
 refuses with mail "working"; three older tests changed with the behaviour he asked for. Mutations `guests-second` 58, all caught
 (GS-M19 stayed green at first — the phone rule's own `nowrap` answered for the base rule; tightened); `guests-list` GL-M2 re-pointed
 to the new sort key. Gates: 4,359/4,359 on MySQL 8.4.10 and on MariaDB 11.8.9 (tree `0597738d6d3eaf01`; JUnit
-logs); 818/818 mutations; money gate FULL unmoved; PHPStan 0, Pint clean.
+logs); 818/818 mutations; money gate FULL unmoved; PHPStan 0, Pint clean. **Live 2026-10-05 05:25 Baku: `rel_AX @ 8345c86e`, committed
+locally and NOT pushed.** Preflight read-only from the staged release (email sending "no"; 249 countries; his one guest's nationality
+code is one the list lacks — the review's case; 0 portal accounts anywhere); public checks 12/0/0; 1,448/1,448 files match git; drift
++ self-test pass; 0 errors (re-read at 17:47). His live look (signed in himself at the first ask, ~12 hours after the deploy; look
+only): every width 390–1,440 inside the card; the search box 40 px, icon centred; Edit opened on his guest's saved code "(as saved)"
+and closed unsaved; Message's honest sentence with everything off; the shared search box on Units, Owners, Maintenance; 0 console
+messages; signed out, browser closed.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

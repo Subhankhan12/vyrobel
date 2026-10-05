@@ -72,7 +72,7 @@ foreach ($orgs as $org) {
             // what the Stay column now says of bookings it used to call "Left …" (counts of bookings, not guests)
             'bookings checked out ("Left …")' => Reservation::query()->where('status', 'checked_out')->count(),
             'confirmed, check-in come, never checked in ("Arrives today" / "Was due …")' => Reservation::query()->where('status', 'confirmed')->whereDate('check_in', '<=', $today)->count(),
-            'enquiry or tentative ("Unconfirmed · …")' => Reservation::query()->whereIn('status', ['enquiry', 'tentative'])->count(),
+            'enquiry or tentative ("Tentative · …")' => Reservation::query()->whereIn('status', ['enquiry', 'tentative'])->count(),
             // who an in-app copy of Message could reach while email is off (OPEN.md DEC-s): guests with a portal password set
             'guests who can sign in to the guest portal' => Guest::query()->whereNotNull('password')->count(),
             // where a guest's email reply to Message will go once mail is on: yes/no per property, never the address

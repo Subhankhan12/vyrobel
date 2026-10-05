@@ -19909,3 +19909,19 @@ Baku; nothing else on 3306 at the swap) — both read from the runs' JUnit logs:
 across every set** (`guests-second` 58; baseline 455/455 green; 04:37–05:02 Baku) · the money gate **FULL, unmoved** (`929 /
 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 05:22 Baku)
 · PHPStan L5 0 errors and Pint clean on the whole codebase · the 54 test files that read the docs re-run on the final tree.
+
+**LIVE (Verified 2026-10-05):** `rel_AX @ 8345c86e` — committed LOCALLY and shipped from the local HEAD; **not pushed to GitHub, by
+his choice** (`origin/main` stays at `fc1ee357`). Staged 05:24 Baku (11 files, no migration); the read-only preflight from the staged
+release (`docs/memory/tools/preflight-guests-2.php.txt`): every route gate held (the list `guests.view`; Message, Add and Edit
+`guests.manage`; Erase `guests.erase`), email reaching real inboxes now: no; 249 countries, all named by the host's ICU; the three
+views compiled; his workspace — one guest, whose nationality code is one the list lacks (a count only), no booking, no reply-to
+address on either property; 0 guests anywhere who can sign in to the guest portal. Swap 05:25:13 Baku (4 ms). Public checks **12 PASS
+· 0 FAIL · 0 could not measure** (`SERVED=0`); **1,448 of 1,448** deployed files match git at `8345c86e`; drift check passes,
+self-test 3/3; **0 errors** since the swap (11 warnings, all `security.refusal`, the exposure battery; re-read at 17:47 Baku, after
+his look). **His live look** (he signed in himself in the automated window, at the first ask, about twelve hours after the deploy; a
+read-only check confirmed it): `/app/guests` at 1,440 / 1,200 / 1,024 / 390 px — no sideways scroll, no cell past the card, no page
+overflow; the search box 40 px like its buttons, the icon centred to the pixel, no "i"; "Stay"; the top bar's search on one line
+("Search…" from 1,200 down); Add guest with 250 choices; Edit on his guest opened on its saved code "(as saved)" — the case the review
+caught — and was closed unsaved; Message: "Email isn’t being sent from Vyrobel yet, so a message can’t reach anyone from here." with
+the box, the switch and Send off (nothing sent); Units, Owners and Maintenance with the same 40 px search box; 0 console messages;
+signed out (a read-only check then went to sign-in), the automated browser closed.
