@@ -1075,8 +1075,13 @@ mutations 52/52; PHPStan L5 0 errors (21 s, cold cache); Pint clean. And `DEPLOY
 said "no long-running web path: exports and PDFs are queued", now names the two that are: the delete, and the PDFs that 15
 controllers render in the request (`PdfService`). GitHub's run on `02946350` (37509822810, 22:14:55–22:45:49 Baku): green, every
 gate — the suite 4,480 passed + 2 skipped (32,957 assertions, 1,519 s), money FULL with the same six figures and row digest,
-marketing 9, claims 23, cookies 15 (V: the run's own log). This commit is pushed after it, under the same four stops; its own run
-is read, not recorded here.
+marketing 9, claims 23, cookies 15 (V: the run's own log).
+**The fifth push** (`02946350..1f79446c`, 22:50:41 Baku — the four hard stops: private · Subhankhan12 · a fast-forward of one
+commit · the history scan over 8,644 blobs, 128 hits in the same 40 locations, none in the commit's 7 files; `git ls-remote` read
+`1f79446c` back). GitHub's run 37514423506 on it (22:50:46–23:13:34 Baku): green, every gate — the suite **4,481 passed** + 2
+skipped (32,960 assertions, 1,101 s; one more than before — the new test), money FULL with the same six figures, marketing 9,
+claims 23, cookies 15 (V: the run's own log). The record commit after it is pushed under the same four stops; its own run is read,
+not recorded here.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
@@ -1157,7 +1162,10 @@ is read, not recorded here.
   record against the host. The guard it described had one tested half of two ("no limit" yes, "a longer limit" no) — reading it
   again. And a check of my own: a version query that named the wrong database because Laravel had already built the connection —
   it failed loudly, and was redone with the connection purged. Same lesson as the team chat pass's "up to 10 MB": a sentence about
-  a host is a claim until the host's own value is read.
+  a host is a claim until the host's own value is read. And two process slips: the follow-up's engine swap (22:28–22:30) checked
+  only for test runs, not who was connected or whether advisor-platform ran, as today's earlier swaps did (`OPEN.md` F9 — nothing
+  was disturbed); and the mutation harness, started in the same command line as a test run, refused on its own parent shell — split
+  the commands (RULES Part 3).
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

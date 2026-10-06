@@ -608,9 +608,11 @@ never "the money is unchanged". The constants live in the script (git). The suit
 **Mutation runner.** `php tests/Mutations/run.php --set=admin-06` · `--only=A06-M7,A06-M8` · `--list` · no args = every set.
 Verdicts: `LANDED · CAUGHT` (good) · `LANDED · NOT CAUGHT` (guard unproven) · `DID NOT LAND` (harness error, never a result).
 It refuses to run beside another test run or with cached routes/config. It self-checks every run (git: header).
-Sets: tests/Mutations/sets/*.php (git ls). Last: **343/343 caught across every set, 0 not caught, 0 did not land** (Verified: harness,
-2026-09-29; `admin-06` = 87, `admin-05` = 49, `portfolio-remove` = 14, `portfolio-fields` = 6). ⚠️ Its "another test run is active" premise matches ANY `pest` on the Mac, another
-project's included (`advisor-platform` runs suites here): wait for a gap, and never weaken the check (`OPEN.md` A7).
+Sets: tests/Mutations/sets/*.php (git ls). The count and the last whole run are in `STATE.md`'s Mutations row (2026-10-06:
+1,008 listed by `--list` across 36 sets; the last whole run, 1,005/1,005, came before three were added; 2026-09-29: 343/343). ⚠️ Its "another test run is active" premise matches ANY `pest` on the Mac, another
+project's included (`advisor-platform` runs suites here): wait for a gap, and never weaken the check (`OPEN.md` A7). ⚠️ It also
+sees the shell that started it: one command line that runs `php artisan test` and then the harness leaves "artisan test" in the
+parent shell's command line, and the harness refuses (2026-10-06 — a false alarm, failing safe). Start it in its own command.
 
 **`ops/proc-check.sh`** — is a test run already going? `ops/proc-check.sh -q '<regex>'`; `--kill '<regex>'` kills by PID and confirms.
 Exit **0 = SAFE** (a trusted zero) · 1 = matches found · 3 = BLIND (its positive control failed) · 4 = `--kill` refused.
