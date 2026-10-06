@@ -510,6 +510,8 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   proves nothing there; `ext-intl` is left out on purpose (country names fall back to codes, §7.5.1b); the `.env` is
   `.env.example`'s, so the template must be right for a new environment; no secret is available there (Stripe stays fake).
 - **Reading it:** `gh run list --limit 5` · `gh run view <id>` (which step) · `gh run view <id> --log-failed` (the error).
+- ✅ **Green end to end since 2026-10-06** (run 37503697885 on `693b68fc`, ~42 minutes: the suite alone ~35 — GitHub's machine is
+  about twice as slow as this Mac). Before that it had never run a gate (`OPEN.md` D-CI-NEVER-RAN, closed).
 
 ---
 

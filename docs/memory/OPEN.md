@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found and fixed — GitHub's checks had never run a gate), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -323,16 +323,11 @@ change is said.** Briefs live in `briefs/`.
   ceiling is lower, a larger file is refused there as "failed to upload". 🔬 Production (2026-10-06, the preflight and his live look):
   PHP's ceilings are 256 MB, and the team chat page there reads 10 MB a file and 255 MB a request from the web PHP — so 10 MB is true
   on production; the gap is a host on PHP's defaults (this Mac). Kept open for the owner portal's wording only.
-- **D-CI-NEVER-RAN (found 2026-10-06 in the GitHub and memory pass; fixed the same day):** GitHub's checks had never run a gate —
-  every run from 2026-08-20 to 2026-10-04 (106: 104 failed, 2 cancelled, 0 passed) stopped at its first shell step,
-  `set: Illegal option -o pipefail` under the container's `sh`, while `DEPLOYMENT.md` §7.6 said every gate ran on every push
-  (corrected there). Fixed: `defaults.run.shell: bash`; two fixtures that refused by folder permissions (root ignores them) rebuilt
-  to refuse by structure. The first run that reached the gates (2026-10-06) passed Gates 0–2 and found two more of ours, both fixed:
-  a `set_time_limit(300)` that LOWERED the test process's "unlimited" (the suite died at nine minutes) and nine concurrency tests
-  whose workers hardcoded `127.0.0.1`. The second ran the whole suite: 26 environment failures, each reproduced here and fixed —
-  Passport keys never made, `.env.example` (`APP_NAME=Laravel`; empty `SESSION_SECURE_COOKIE=` / `FORCE_HTTPS=` that turned the
-  production defaults OFF), production-path billing tests that built the REAL Stripe client (here they called Stripe's test API on
-  every run), and five country-name tests that assumed `ext-intl`. Open until a run is green end to end — `HISTORY.md`.
+- ✅ **D-CI-NEVER-RAN — CLOSED 2026-10-06 (found and fixed in the GitHub and memory pass).** GitHub's checks had never run a gate
+  (106 runs, 2026-08-20 → 10-04, all stopped at `set -o pipefail` under the container's `sh`). Fixed layer by layer — the bash
+  default, root-proof fixtures, a time limit that lowered "unlimited", workers hardcoded to `127.0.0.1`, Passport keys, a wrong
+  `.env.example`, billing tests that built the real Stripe client, intl-only country tests. Run 37503697885 on `693b68fc` (2026-10-06 21:27–22:09 Baku) is **the first green run in the project's history — every gate**: the runtime contract, the assets, Pint, PHPStan L5, the full suite (**4,480 passed, 2 skipped** — the two auto-memory tests, whose file lives on this Mac only — 32,957 assertions, 2,125 s), the money gate (FULL, `929 / 10928000 / 0 / 42 / 16 / 0`), and the marketing content (9), external-claim (23) and cookie forward-guard (15) gates.
+  `HISTORY.md` ("GITHUB AND MEMORY").
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

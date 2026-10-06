@@ -1052,6 +1052,11 @@ MySQL 20:23–20:40 and on MariaDB 20:41–20:58 Baku, the same commit). Each ca
   where intl is loaded and the documented fallback where it is not.
 The two skips are the auto-memory tests (that file lives on this Mac only — by design). Mutation sets aimed at the changed tests
 re-run: ADMIN 05 51/51, ADMIN 06 87/87, Guests second 58/58, New reservation bookable 29/29 — 225 landed and caught, 0 not caught, 0 did not land (V 21:18–21:23 Baku).
+**The third push** (`d0dd97aa..693b68fc`, 21:27:29 Baku, the four hard stops again — the history scan unchanged, 128 hits in 40
+locations, none in the commit's 14 files). GitHub's run 37503697885 on `693b68fc` (2026-10-06 21:27–22:09 Baku) is **the first green run in the project's history — every gate**: the runtime contract, the assets, Pint, PHPStan L5, the full suite (**4,480 passed, 2 skipped** — the two auto-memory tests, whose file lives on this Mac only — 32,957 assertions, 2,125 s), the money gate (FULL, `929 / 10928000 / 0 / 42 / 16 / 0`), and the marketing content (9), external-claim (23) and cookie forward-guard (15) gates (V: `gh run view`, the run's own log). Production was not redeployed: it
+stays `rel_BA @ 16b15e2f`, and nothing in the commits after it changes what a web request does (the delete's time limit raises a
+web request's limit exactly as before; the rest is tests, the workflow, the template and docs). The final docs commit is pushed
+after this one, under the same four stops; its own run is read, not recorded here.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

@@ -831,6 +831,7 @@ is why those lines are in this list and not left to the pre-flight.
 > "unlimited"; concurrency workers hardcoded to `127.0.0.1`; Passport keys never generated; `.env.example` wrong for a new
 > environment (`APP_NAME=Laravel`, and empty `SESSION_SECURE_COOKIE=` / `FORCE_HTTPS=` lines that turned the production defaults
 > off); production-path billing tests that built the real Stripe client; country-name tests that assumed `ext-intl`.
+> ✅ **Green end to end since run 37503697885 (2026-10-06, `693b68fc`) — the first in the pipeline's history.**
 
 ⚠️ **What this closes.** Every gate in this project has been run **by hand** and reported in prose: the full
 suite, PHPStan L5, Pint, and the money-as-seeded re-measure. That worked because one person ran them every
