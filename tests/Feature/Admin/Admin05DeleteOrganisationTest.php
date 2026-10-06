@@ -422,16 +422,15 @@ it('⚠️ a file the disk will not remove is counted, logged WITH its path, and
         'id' => (string) Str::ulid(), 'organization_id' => $w['org']->id, 'mediable_type' => 'room_type', 'mediable_id' => $w['roomType']->id,
         'collection' => 'photos', 'disk' => 'local', 'path' => $path, 'mime' => 'image/jpeg', 'size' => 5, 'created_at' => now(), 'updated_at' => now(),
     ]));
-    $dir = dirname(Storage::disk('local')->path($path));
-    chmod($dir, 0555);   // the disk refuses: the directory is read-only
+    // the disk refuses: the "file" is a folder with something in it, which no unlink removes — whoever runs the test.
+    // ⚠️ 2026-10-06: this was a read-only folder (chmod 0555), which root ignores — and CI's container runs as root, where
+    // the delete would have SUCCEEDED and this test gone red for the runner, not for the code. The assertions are unchanged.
+    Storage::disk('local')->delete($path);
+    Storage::disk('local')->put($path.'/keep', 'photo');
     Log::spy();
 
-    try {
-        a05Delete($this->actingAs(platformAdmin(), 'admin'), $w['org'])->assertSessionHasNoErrors()
-            ->assertSessionHas('admin_notice', fn (string $n): bool => str_contains($n, '1 file could not be removed'));
-    } finally {
-        chmod($dir, 0755);
-    }
+    a05Delete($this->actingAs(platformAdmin(), 'admin'), $w['org'])->assertSessionHasNoErrors()
+        ->assertSessionHas('admin_notice', fn (string $n): bool => str_contains($n, '1 file could not be removed'));
 
     $result = a05Result((string) $w['org']->id);
     expect($result['files_failed'])->toBe(1)

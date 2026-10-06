@@ -44,7 +44,15 @@ them. Ten of these rules are repeated at the top of `CLAUDE.md`.
 **Code and deploys**
 - One suite at a time, and no edits while a suite runs.
 - Additive migrations only.
-- Never `--force` push. Push only under the four hard stops.
+- Never `--force` push. Push only under the four hard stops, each taken on its own with its own declared result (written out here
+  2026-10-06 — before, they were named in this file but defined only in the auto-memory):
+  1. the repository is **private**, read from the API — `gh api repos/Subhankhan12/vyrobel --jq .private` → `true`;
+  2. the signed-in identity owns it — `gh api user --jq .login` → `Subhankhan12`;
+  3. GitHub's `main` is an **ancestor** of the local HEAD — `git fetch origin` then `git merge-base --is-ancestor origin/main HEAD`:
+     a fast-forward, so `--force` is neither possible nor needed;
+  4. `ops/secret-scan.sh history` — every hit triaged by reading it, none new.
+- **After every push, read GitHub's checks** (`gh run list`, `gh run view <id> --log-failed`). A pipeline nobody reads is not a
+  control: 2026-08-20 → 10-04, 106 runs and not one gate (`OPEN.md` D-CI-NEVER-RAN).
 - **Founder said (2026-10-04): no GitHub push per task.** Each task ships live from LOCAL commits (`ops/release.sh` needs no
   GitHub) and is pushed only at the very end, when he says — then under the four hard stops.
 - If any public check fails after a deploy, roll back first and diagnose second.
@@ -533,6 +541,14 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Fired again: a "cleared" PHPStan run that took 0 seconds read its old result cache.** Under the agent's output wrapper the clear
   did not happen; deleting `resultCache.php` (the system temp folder's `phpstan/`) and running with `PAO_DISABLE=1` gave the real
   run — no errors in 31 s (Verified 2026-10-06). The time is the evidence: a whole-codebase run is never under a few seconds.
+- **A pipeline nobody reads is not a control.** `.github/workflows/ci.yml` was built 2026-08-20 and recorded as running every gate
+  on every push; 🔬 each of its 106 runs stopped at its first shell step (`set -o pipefail` under the container's `sh`), so no gate
+  ever ran there — 104 red runs, unread, for seven weeks (Verified 2026-10-06, `gh run list`). Read the run after the push: a claim
+  about CI is a claim until `gh run view` says otherwise.
+- **Root ignores permissions — a fixture must refuse by STRUCTURE.** CI's container runs as root, so a read-only folder (`chmod
+  0555`) refuses nothing there: ADMIN 05's "stuck file" test and the Inbox's "disk refuses" test would have seen their write or
+  delete succeed and gone red for the runner, not the code. They now refuse by structure — a folder where a file must be, a file
+  where a folder must go — which no user can pass (Verified 2026-10-06; both mutations still caught).
 
 
 ---

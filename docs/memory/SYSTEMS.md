@@ -495,6 +495,21 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **Notifications** — `TeamMessageNotification`, `InboxMessageNotification` (database only), written by
   `DispatchNotificationsForDomainEvent` on `team_chat.message_sent` / `inbox.message_received`; one entry per conversation.
 
+## 17 · GitHub and its checks (2026-10-06)
+
+- **The repository** `Subhankhan12/vyrobel` is **private** (read from the API, V 2026-10-06); default branch `main`. Pushed only at
+  his word, under the four hard stops (`RULES.md` Part 1). Other branches on GitHub are audit and fix branches from earlier passes —
+  all but `audit/operator-deep-parity` contained in `main`; seven merged local branches were never published and need not be.
+- **The checks** — `.github/workflows/ci.yml`, on every push to any branch and on pull requests: job `image` builds or reuses the
+  parity image (`Dockerfile.ci`, tagged by its hash, on ghcr.io); job `gates` runs IN that image with MySQL 8.4 and Redis 7 services —
+  prepare (`.env`, a key, a second `vyrobel` schema) → Gate 0 the runtime contract (`ops/runtime-contract.sh --services`) → the
+  assets (`npm ci`, `npm run build`) → Pint over the whole repo → PHPStan L5 → the full suite → the money gate (seeded at
+  2026-09-01) → the marketing content, claims and cookie gates. Sparse checkout: `docs/design/front/` is never downloaded.
+- ⚠️ **Container facts:** `run:` steps use `sh` unless told otherwise (hence `defaults.run.shell: bash` — without it no gate had ever
+  run, `OPEN.md` D-CI-NEVER-RAN); the container runs as **root** (no `USER` in `Dockerfile.ci`), so a permission-based fixture
+  proves nothing there.
+- **Reading it:** `gh run list --limit 5` · `gh run view <id>` (which step) · `gh run view <id> --log-failed` (the error).
+
 ---
 
 ## Sources

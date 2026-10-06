@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found and fixed — GitHub's checks had never run a gate), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -323,6 +323,12 @@ change is said.** Briefs live in `briefs/`.
   ceiling is lower, a larger file is refused there as "failed to upload". 🔬 Production (2026-10-06, the preflight and his live look):
   PHP's ceilings are 256 MB, and the team chat page there reads 10 MB a file and 255 MB a request from the web PHP — so 10 MB is true
   on production; the gap is a host on PHP's defaults (this Mac). Kept open for the owner portal's wording only.
+- **D-CI-NEVER-RAN (found 2026-10-06 in the GitHub and memory pass; fixed the same day):** GitHub's checks had never run a gate —
+  every run from 2026-08-20 to 2026-10-04 (106: 104 failed, 2 cancelled, 0 passed) stopped at its first shell step,
+  `set: Illegal option -o pipefail` under the container's `sh`, while `DEPLOYMENT.md` §7.6 said every gate ran on every push
+  (corrected there). Fixed: `defaults.run.shell: bash`; two fixtures that refused by folder permissions (root ignores them) rebuilt
+  to refuse by structure. Open until the first run that reaches the gates is green — its result is in `HISTORY.md` ("GITHUB AND
+  MEMORY").
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

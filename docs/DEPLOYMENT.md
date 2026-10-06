@@ -820,6 +820,15 @@ is why those lines are in this list and not left to the pre-flight.
 
 ### 7.6 CI — ✅ BUILT 2026-08-20 (rank 6) · **the deploy track is COMPLETE**
 
+> ⚠️⚠️ **CORRECTION, 2026-10-06 (the GitHub and memory pass): on GitHub this pipeline never ran a gate until 2026-10-06.**
+> 🔬 `gh run list`: 106 runs from 2026-08-20 to 2026-10-04 — 104 failures, 2 cancelled, 0 passes — and every one stopped at
+> "Prepare the environment" with `set: Illegal option -o pipefail`: inside a job container GitHub runs `run:` steps with `sh -e`
+> (dash), and the workflow writes bash. The proofs in §7.6.1 were made BY HAND on this machine; the workflow itself never reached
+> them. Fixed 2026-10-06 (`defaults.run.shell: bash` on the gates job); the first run able to reach the gates, and its result, are in
+> `docs/memory/HISTORY.md` ("GITHUB AND MEMORY"). ⚠️ Found with it: the container runs as **root**, which ignores folder
+> permissions — a fixture that refuses a write or a delete with a read-only folder refuses nothing there; two were rebuilt to refuse
+> by structure.
+
 ⚠️ **What this closes.** Every gate in this project has been run **by hand** and reported in prose: the full
 suite, PHPStan L5, Pint, and the money-as-seeded re-measure. That worked because one person ran them every
 time. It is not a control — it is a habit, and a habit has no failure mode that announces itself. §7.6 makes
@@ -1045,7 +1054,7 @@ Each of these is **its own pass**; they are deliberately not built together.
    app actually assumes. ⚠️ It surfaced a real gap the §0 pre-flight cannot see — the `REDIS_CLIENT`
    `phpredis` default needing an undeclared `ext-redis` (§7.5.1a). A **pinned parity image is deferred to
    §7.6**, where CI will consume it.
-6. ✅ **CI pipeline — BUILT 2026-08-20, see §7.6 above.** `.github/workflows/ci.yml` runs all four gates —
+6. ✅ **CI pipeline — BUILT 2026-08-20, see §7.6 above.** ⚠️ (2026-10-06: it never ran a gate on GitHub until then — the correction at §7.6.) `.github/workflows/ci.yml` runs all four gates —
    the full suite · PHPStan L5 · Pint · money-as-seeded — on every push and PR, **inside the §7.5 parity
    image**, with each gate individually proven to red the build (§N.29). The runtime is *consumed* from
    §7.5 via `ops/runtime-contract.sh`, not restated (§N.8f). ⚠️ The suite runs **alone** — no `--parallel`

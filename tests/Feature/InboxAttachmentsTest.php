@@ -159,14 +159,17 @@ it('⚠️⚠️ erases the files in a guest\'s conversations with the guest (GD
 
 it('⚠️⚠️ keeps a reply\'s files first — when the disk refuses one, nothing is sent and everything is kept (review 13)', function () {
     $s = iaWorld();
-    // a private disk that refuses every write — what a full or read-only disk does
-    $root = sys_get_temp_dir().'/vy-ia-readonly-'.bin2hex(random_bytes(4));
-    mkdir($root, 0555);
+    // a private disk that refuses the write — a FILE stands where the attachments' folder must go, so no folder can be made
+    // there, whoever runs the test (⚠️ not a read-only folder: root ignores permissions, and CI's container runs as root)
+    $root = sys_get_temp_dir().'/vy-ia-refuses-'.bin2hex(random_bytes(4));
+    mkdir($root);
+    file_put_contents($root.'/message-attachments', '');
     Storage::set('local', Storage::build(['driver' => 'local', 'root' => $root]));
 
     iaReply($s, (string) $s['thread']->id, ['body' => 'The map', 'attachments' => [UploadedFile::fake()->image('map.png')]])
         ->assertStatus(422)->assertJsonPath('ok', false)->assertJsonPath('message', 'A file could not be saved — nothing was sent. Try again.');
     expect(Message::query()->where('thread_id', $s['thread']->id)->where('direction', 'outbound')->count())->toBe(0);
+    unlink($root.'/message-attachments');
     rmdir($root);
 });
 

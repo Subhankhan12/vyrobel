@@ -1005,6 +1005,19 @@ Gates: **4,480/4,480 on MySQL 8.4.10** (32,952 assertions; 17:38–17:58 Baku) �
 
 **Deploy and live look.** ✅ LIVE on `rel_BA @ 16b15e2f` (V: swap 2026-10-06 18:59:10 Baku, 5 ms; 45 files shipped; the additive migration — the three team chat tables — run from the staged release before the swap, 1 s; the read-only preflight from the staged release: the nine route gates, this host's finfo reads all three browser recording formats as playable, the private disk's folder writable, PHP's ceilings 256 MB (so our 10 MB stands), the twelve views compile on PHP 8.4.19 / MariaDB 11.8.9; public checks 12/0/0; 1,457/1,457 deployable files match git; the drift check passes, self-test 3/3; 0 errors since the swap — 11 warnings, all `security.refusal`, from the exposure battery — and nothing logged during his look). **His live look is done** (he signed in himself; look only, his choice — nothing sent, nothing started): Messages with the Guests | Team toggle and its honest empty states; Team with "No conversations yet" and New conversation (the dialog centred, 480 px, focus inside, his colleagues listed, Escape closes it); the microphone allowed on Team only (`microphone=(self)` there, `()` on the dashboard); the page's own limits from the web PHP — 10 MB a file, 255 MB a request; the stamp every 5 s and the pulse, all 200, no read sent; 390 px with no sideways scroll on both pages; no console message; 0 team rows and 0 team or Inbox bell entries on production afterwards (read-only). ⚠️ A correction, said to him: I told him his workspace had one back-office person — that is "Vyrobel Test Workspace"; he works in the organisation whose working property is "Internal Test Property", where team chat lists five colleagues. He was signed out, the site's cookies cleared and the automated browser closed. Left: a two-person team chat test on production (his go — it writes in a protected workspace).
 
+**GITHUB AND MEMORY — 2026-10-06 — his "update the entire memory each and everything and do all the GitHub work … make sure
+everything is correct no any bug no any issues remaining".** 🔬 Read first: GitHub's `main` at `fc1ee357` (2026-10-05) with eleven
+local commits since; every other local branch contained in `main` or already on GitHub; one workflow, `.github/workflows/ci.yml` —
+and **every one of its 106 runs (2026-08-20 → 2026-10-04) had failed or been cancelled: 104 + 2, 0 passes**, each at "Prepare the
+environment": `set: Illegal option -o pipefail`, because GitHub runs a container job's steps with `sh -e` and the workflow writes bash.
+**No gate had ever run on GitHub**, while `DEPLOYMENT.md` §7.6 said every gate ran on every push (corrected there, dated; `OPEN.md`
+D-CI-NEVER-RAN). Fixed: `defaults.run.shell: bash` on the gates job. Then what the first real run would meet: the container runs as
+**root**, which ignores folder permissions, and two fixtures refused a write or a delete with a read-only folder — the Inbox's "disk
+refuses" test (mine, this pass's morning) and ADMIN 05's "stuck file" test. Rebuilt to refuse by structure (a file where the folder must
+go; a folder where the file must be), the assertions unchanged; both mutations re-run and caught (A05-M16, IA-M11); Pint over the whole
+repo clean. The memory: `RULES.md` writes out the four hard stops (named, never defined in the canon before) and the lessons;
+`SYSTEMS.md` §17 (GitHub and its checks); `STATE.md`; `OPEN.md`. The hard stops, the push and the first real run follow below.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
