@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string $path
  * @property string $collection
  * @property bool $is_cover
+ * @property array<string, mixed>|null $meta
  * @property-read string $url
  */
 class Media extends Model

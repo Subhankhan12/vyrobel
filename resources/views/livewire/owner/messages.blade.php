@@ -62,6 +62,7 @@
         .vy-msg-att-img { display:block; max-width:230px; max-height:200px; border-radius:12px; margin-top:6px; border:1px solid rgba(255,255,255,.7); }
         .vy-msg-att-file { display:inline-flex; align-items:center; gap:8px; margin-top:6px; padding:8px 12px; border-radius:11px; background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.12); text-decoration:none; color:var(--vy-ink); font-size:12px; }
         .vy-msg-bubble--me + * .vy-msg-att-file, .vy-msg-att-file:hover { background:rgba(255,255,255,.92); }
+        .vy-msg-att-voice { display:block; margin-top:6px; width:250px; max-width:100%; height:38px; }
         /* GATE 2 — reactions */
         .vy-msg-reacts { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
         .vy-msg-react { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:20px; background:rgba(255,255,255,.7); border:1px solid rgba(120,70,40,.12); font-size:12px; cursor:pointer; color:var(--vy-muted); }
@@ -261,6 +262,9 @@
                                             <div style="display:flex;justify-content:{{ $m['mine'] ? 'flex-end' : 'flex-start' }}">
                                                 @if ($att['is_image'])
                                                     <a href="{{ $att['url'] }}" target="_blank" rel="noopener"><img src="{{ $att['url'] }}" alt="{{ $att['name'] }}" class="vy-msg-att-img"></a>
+                                                @elseif (($att['kind'] ?? '') === 'voice')
+                                                    {{-- a voice note from the team (2026-10-06) — played here, never downloaded --}}
+                                                    <audio controls preload="none" src="{{ $att['url'] }}" class="vy-msg-att-voice" aria-label="Voice message"></audio>
                                                 @else
                                                     <a href="{{ $att['url'] }}" target="_blank" rel="noopener" class="vy-msg-att-file">
                                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--vy-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>

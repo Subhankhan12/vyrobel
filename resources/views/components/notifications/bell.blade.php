@@ -31,7 +31,7 @@
         <x-notifications.bell-glyph :unread="$unread" />
     </a>
 @else
-<div x-data="{ open: false }" @keydown.escape.window="open = false" style="position:relative;display:inline-flex">
+<div x-data="{ open: false }" data-vy-bell data-vy-bell-count="{{ $unread }}" @keydown.escape.window="open = false" style="position:relative;display:inline-flex">
     <button type="button" @click="open = !open" :aria-expanded="open ? 'true' : 'false'" class="vy-bell" title="Notifications" aria-label="Notifications" style="position:relative;cursor:pointer">
         <x-notifications.bell-glyph :unread="$unread" />
     </button>

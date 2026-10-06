@@ -13,11 +13,11 @@ use App\Models\Scopes\OwnerScope;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Inbox\MessageAttachments;
+use App\Support\Messaging\ChatFiles;
 use App\Support\Owner\OwnerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -40,9 +40,6 @@ class OwnerMessageActionController extends Controller
 
     private const ATTACH_MAX = 5;
 
-    /** ⚠️ The PRIVATE disk since 2026-09-30 (DEC-m) — attachments open only through the signed-in routes. */
-    private const ATTACH_DISK = MessageAttachments::DISK;
-
     /**
      * The owner's reply. Posted as `inbound` (into the org) by
      * {@see InboxService::postOwnerMessage()} — see that method for why it is not
@@ -62,7 +59,7 @@ class OwnerMessageActionController extends Controller
             // The quoted message must be a REAL message on THIS thread (never a cross-thread/owner id).
             'reply_to_message_id' => ['nullable', 'string', Rule::exists('messages', 'id')->where('thread_id', $model->getKey())],
             'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
-            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:jpeg,jpg,png,webp,gif,pdf,doc,docx,xls,xlsx,csv,txt'],
+            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:'.ChatFiles::FILE_EXTENSIONS],
         ]);
 
         $files = $request->file('attachments', []);
@@ -152,7 +149,7 @@ class OwnerMessageActionController extends Controller
             // guest. Re-resolved through the tenant scope + the back-office allow-list, never trusted from the body.
             'staff_id' => ['nullable', 'string'],
             'attachments' => ['nullable', 'array', 'max:'.self::ATTACH_MAX],
-            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:jpeg,jpg,png,webp,gif,pdf,doc,docx,xls,xlsx,csv,txt'],
+            'attachments.*' => ['file', 'max:'.self::ATTACH_MAX_KB, 'mimes:'.ChatFiles::FILE_EXTENSIONS],
         ]);
 
         $owner = $this->resolveOwnerId();
@@ -190,27 +187,9 @@ class OwnerMessageActionController extends Controller
     {
         $order = 0;
         foreach ($files as $file) {
-            if (! $file instanceof UploadedFile) {
-                continue;
+            if ($file instanceof UploadedFile) {
+                app(MessageAttachments::class)->store($message, $file, MessageAttachments::COLLECTION, $order++);   // the one writer
             }
-
-            $ext = $file->extension() ?: 'bin';
-            $name = (string) Str::ulid().'.'.$ext;
-            $path = $file->storeAs('message-attachments/'.$message->getKey(), $name, self::ATTACH_DISK);
-
-            Media::create([
-                'mediable_type' => $message->getMorphClass(),
-                'mediable_id' => $message->getKey(),
-                'collection' => 'attachments',
-                'disk' => self::ATTACH_DISK,
-                'path' => $path,
-                'mime' => (string) $file->getMimeType(),
-                'size' => (int) $file->getSize(),
-                'sort_order' => $order,
-                'is_cover' => false,
-                'alt' => (string) $file->getClientOriginalName(),
-            ]);
-            $order++;
         }
     }
 

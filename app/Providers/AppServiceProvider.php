@@ -71,6 +71,8 @@ use App\Models\SchedulePublication;
 use App\Models\Shift;
 use App\Models\Tag;
 use App\Models\Tax;
+use App\Models\TeamConversation;
+use App\Models\TeamMessage;
 use App\Models\Unit;
 use App\Models\UnitRequest;
 use App\Models\User;
@@ -534,6 +536,10 @@ class AppServiceProvider extends ServiceProvider
             // Phase 7d — roster shifts + time-off are audit subjects (schedule.shift.assigned / leave.*).
             'shift' => Shift::class,
             'leave_request' => LeaveRequest::class,
+            // Team chat (2026-10-06) — a message carries its files as `media` (mediable_type), and both are audit and
+            // domain-event subjects (team_chat.*).
+            'team_conversation' => TeamConversation::class,
+            'team_message' => TeamMessage::class,
         ]);
 
         // Domain-event consumers (synchronous, no queue). Each filters by event_type and is a
@@ -612,6 +618,20 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('marketing-contact', fn (Request $request): Limit => Limit::perMinute(
             (int) config('services.marketing.contact_rate_limit', 5)
         )->by($request->ip() ?? 'unknown'));
+
+        // ⚠️ TEAM CHAT AND THE PULSE (2026-10-06) — NAMED, PER PERSON AND PER PURPOSE. An unnamed `throttle:N,1` keys on
+        // the user id alone, so every such route shares ONE counter: a page polling every 3 seconds would starve the
+        // password change (6 a minute) into 429s. Each limiter here counts only its own requests. The ceilings are far
+        // above what the page sends (the open conversation: 20 a minute; the pulse: 3 a minute; a person typing: a few).
+        // The pulse is per PERSON, not per tab — 60 leaves room for several open tabs and their bell redraws (the review).
+        RateLimiter::for('team-chat-poll', fn (Request $request): Limit => Limit::perMinute(120)
+            ->by('team-chat-poll:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('team-chat-write', fn (Request $request): Limit => Limit::perMinute(40)
+            ->by('team-chat-write:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('pulse', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by('pulse:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('inbox-live', fn (Request $request): Limit => Limit::perMinute(60)
+            ->by('inbox-live:'.($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
         // PER-IP AUTH THROTTLE (audit 2026-08-07 · F-2a-04).
         //

@@ -10,4 +10,6 @@
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
 @props(['unread' => 0])
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
-@if ($unread > 0)<span aria-label="{{ $unread }} unread" style="position:absolute;top:var(--vy-bell-badge-top,9px);right:var(--vy-bell-badge-right,10px);min-width:15px;height:15px;padding:0 3px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid #FBEEE3;box-sizing:border-box">{{ $unread > 9 ? '9+' : $unread }}</span>@endif
+{{-- ⚠️ ALWAYS RENDERED, HIDDEN AT 0 (team chat, 2026-10-06): the live pulse (partials/live-pulse) changes the number in
+     place when a notification arrives, so there must be a badge to change; at 0 it is display:none (not announced). --}}
+<span data-vy-bell-badge aria-label="{{ $unread }} unread" style="position:absolute;top:var(--vy-bell-badge-top,9px);right:var(--vy-bell-badge-right,10px);min-width:15px;height:15px;padding:0 3px;border-radius:30px;background:linear-gradient(140deg,#E8703A,#C2410C);color:#fff;font-size:9px;font-weight:600;display:{{ $unread > 0 ? 'flex' : 'none' }};align-items:center;justify-content:center;border:1.5px solid #FBEEE3;box-sizing:border-box">{{ $unread > 9 ? '9+' : ($unread > 0 ? $unread : '') }}</span>

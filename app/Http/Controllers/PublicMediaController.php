@@ -37,6 +37,7 @@ final class PublicMediaController
     /** @var array<string, string> Upload directories deliberately NOT served here, each with its reason. */
     public const NOT_SERVED = [
         'message-attachments' => 'documents in a private owner–operator conversation — on the PRIVATE disk since 2026-09-30, opened only by the people in that conversation, signed in (DEC-m; MessageAttachmentController)',
+        'team-chat' => 'pictures, documents and voice notes in a conversation between colleagues — on the PRIVATE disk, opened only by that conversation\'s members, signed in (team chat, 2026-10-06; TeamChatFileController)',
     ];
 
     /** The image types served, by extension — and the file's own detected type must agree. */

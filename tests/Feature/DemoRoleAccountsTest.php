@@ -201,7 +201,11 @@ it('⚠️⚠️ re-measures the ungated screens AS FRONT DESK — reads open, w
     //    eighteen stay open BY DECISION (docs/GO-LIVE-REQUIREMENTS.md) — reads are deliberately open to all
     //    back-office roles. ⚠️ The count is derived from the route table, so it self-corrects; only the pin
     //    moved, and it moved as the record of a decision.
-    expect($ungated)->toHaveCount(14)
+    // ⚠️⚠️ 14 → 17 BY HIS REQUEST 2026-10-06 (team chat, `docs/TEAM-CHAT-DESIGN.md`): `app/inbox/team`, its poll and
+    //    `app/pulse` are open to EVERY back-office user by design — the employees he named hold no `guests.view` — and
+    //    who may read a conversation is its MEMBERSHIP (TeamChatService / TeamChatReader / TeamChatFiles), never a route
+    //    permission. Front Desk gets 200 on all three below, like every other open screen.
+    expect($ungated)->toHaveCount(17)
         ->and($open)->toHaveCount($ungated->count());
 
     // ⚠️ AND THE WRITES ARE STILL GATED, which is what makes this a privacy question and not an integrity

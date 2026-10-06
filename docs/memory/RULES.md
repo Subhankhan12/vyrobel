@@ -502,6 +502,37 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Check a shared component's other users before calling a fix scoped.** The Inbox's tabs were cut by the shared `.vy-seg`; measuring
   the box's other pages at 390 and 320 px found none cut — and found Notification preferences scrolling sideways at 320 px, a defect
   no one had looked for (Verified 2026-10-06, 🖥).
+- **The mail fake cannot see a notification's mail channel.** `Mail::fake()` ignores view-based sends, so
+  `Mail::assertNothingOutgoing()` stayed green with `['database', 'mail']` (TC-M8, Verified 2026-10-06). Assert on the
+  `NotificationSending` event — every channel passes it — and assert the `database` send too, so the check cannot pass empty.
+- **`UploadedFile::fake()` takes its type from the NAME.** A fake `.vbs` holding text is refused before the code under test runs; a
+  test of "the bytes decide" needs a real file (`new UploadedFile($path, $name, null, null, true)`) (Verified 2026-10-06).
+- **A final class cannot be mocked — cause the real failure.** A folder that refuses writes (`Storage::build` on a 0555 directory) and a
+  model's `creating` listener that throws gave the reply's two file failures without touching production code (Verified 2026-10-06).
+- **A page that re-reads itself through a path that WRITES watches its own writes.** The Inbox's refresh re-read the page, the page
+  marked the conversation read, the read moved the stamp the page watched: a refresh every 5 s, for ever, reading for a person who
+  might not be there (the independent review, Verified 2026-10-06). A live re-read must be read-only (`live=1`); a read is a POST.
+- **A shared class name is a shared rule.** The shell styles `.vy-chan-badge` as the Channels page's 34 × 34 tile; the Inbox reused the
+  name for a text pill and overrode its colours but not its size — "Direct" was squeezed into a square, live (🖥 2026-10-06).
+- **PHP's upload ceilings are the server's, not ours.** "Up to 10 MB" was false on a PHP with its defaults (2 MB a file, 8 MB a
+  request) — and above the ceiling the file arrives as nothing, refused as "could not be read". Read `ini_get` where the page is served
+  (`ChatFiles::limits()`) (Verified 2026-10-06).
+- **Defence in depth needs a test per layer — fired again.** The guest door's "never an owner's conversation" could not be reached by
+  any real data (an owner's conversation never names a guest), so removing it stayed green (IA-M5). The test now builds the one shape
+  only that layer refuses (Verified 2026-10-06).
+- **A missing class in a route's invokable controller fails EVERY request, not just its own** — Laravel loads
+  it while registering routes; `php -l` passes; run `php artisan route:list` after adding a controller (Verified 2026-10-06).
+- **A browser recording is not the type its name says** (🔬 finfo: Chrome's audio-only WebM is `video/webm`, Safari's MP4
+  `video/mp4`) — accept those through the voice field only, serve them as audio (Verified 2026-10-06).
+- **A timestamp is one second wide; a ULID is not — and a ULID cursor still needs a look-back.** Read positions are message ids; a
+  poll cursor looks 30 seconds back, because an id is made when a row is written and seen when its transaction ends (Verified 2026-10-06).
+- **One counter per user is shared by every unnamed throttle** — name the limiter per purpose (`team-chat-poll`, `pulse`,
+  `inbox-live`) (Verified 2026-10-06, from the framework's ThrottleRequests).
+- **A support (break-glass) session borrows a person's VIEW** — anything private to that person (their conversations AND their bell
+  entries about them) must refuse it explicitly (Verified 2026-10-06, the tests).
+- **Fired again: a "cleared" PHPStan run that took 0 seconds read its old result cache.** Under the agent's output wrapper the clear
+  did not happen; deleting `resultCache.php` (the system temp folder's `phpstan/`) and running with `PAO_DISABLE=1` gave the real
+  run — no errors in 31 s (Verified 2026-10-06). The time is the evidence: a whole-codebase run is never under a few seconds.
 
 
 ---

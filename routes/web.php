@@ -51,6 +51,7 @@ use App\Http\Controllers\Guest\GuestHelpController;
 use App\Http\Controllers\Guest\GuestHomeController;
 use App\Http\Controllers\Guest\GuestLoginController;
 use App\Http\Controllers\Guest\GuestManageController;
+use App\Http\Controllers\Guest\GuestMessageAttachmentController;
 use App\Http\Controllers\Guest\GuestMessagesController;
 use App\Http\Controllers\Guest\GuestNotificationsController;
 use App\Http\Controllers\Guest\GuestPasswordResetController;
@@ -78,6 +79,7 @@ use App\Http\Controllers\Operator\GuestActionController;
 use App\Http\Controllers\Operator\GuestBulkActionController;
 use App\Http\Controllers\Operator\GuestRequestAdminController;
 use App\Http\Controllers\Operator\InboxActionController;
+use App\Http\Controllers\Operator\InboxLiveController;
 use App\Http\Controllers\Operator\InventoryActionController;
 use App\Http\Controllers\Operator\InviteOwnerController;
 use App\Http\Controllers\Operator\InviteOwnerPreviewController;
@@ -97,6 +99,7 @@ use App\Http\Controllers\Operator\OwnerManageController;
 use App\Http\Controllers\Operator\PayoutRunActionController;
 use App\Http\Controllers\Operator\PropertyController;
 use App\Http\Controllers\Operator\PropertySwitchController;
+use App\Http\Controllers\Operator\PulseController;
 use App\Http\Controllers\Operator\RateActionController;
 use App\Http\Controllers\Operator\ReservationCreateController;
 use App\Http\Controllers\Operator\ReservationLifecycleController;
@@ -105,6 +108,8 @@ use App\Http\Controllers\Operator\RoomTypePhotoController;
 use App\Http\Controllers\Operator\ScheduleController;
 use App\Http\Controllers\Operator\SeasonActionController;
 use App\Http\Controllers\Operator\SettingsActionController;
+use App\Http\Controllers\Operator\TeamChatController;
+use App\Http\Controllers\Operator\TeamChatFileController;
 use App\Http\Controllers\Operator\UnitExportController;
 use App\Http\Controllers\Operator\UnitRateActionController;
 use App\Http\Controllers\Operator\UnitRequestActionController;
@@ -199,6 +204,7 @@ use App\Livewire\Operator\OperatorSchedule;
 use App\Livewire\Operator\OperatorSearch;
 use App\Livewire\Operator\OperatorSecurity;
 use App\Livewire\Operator\OperatorSettings;
+use App\Livewire\Operator\OperatorTeamChat;
 use App\Livewire\Operator\OperatorUnitRequests;
 use App\Livewire\Operator\PayoutRun;
 use App\Livewire\Operator\RatesGrid;
@@ -472,6 +478,8 @@ Route::prefix('guest')->name('guest.')->group(function () {
 
         Route::get('/messages', [GuestMessagesController::class, 'index'])->name('messages');
         Route::post('/messages', [GuestMessagesController::class, 'start'])->middleware('throttle:12,1')->name('messages.start');
+        // a file the property sent in the guest's own conversation (2026-10-06) — that guest only, signed in (DEC-m)
+        Route::get('/messages/attachments/{media}', GuestMessageAttachmentController::class)->name('messages.attachment');
         Route::get('/messages/{thread}', [GuestMessagesController::class, 'show'])->name('messages.show');
         Route::post('/messages/{thread}', [GuestMessagesController::class, 'send'])->middleware('throttle:20,1')->name('messages.send');
         // Saved (SG4) — wishlist (saved rooms) + waitlist (join for sold-out dates). Real, self-only stores;
@@ -1164,12 +1172,31 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     //    permission, then the organisation's threads ({@see MessageAttachments::find()}). The owner portal's door is
     //    `owner.messages.attachment`.
     Route::get('/inbox/attachments/{media}', MessageAttachmentController::class)->middleware('can:guests.view')->name('inbox.attachment');
+    // ⚠️⚠️ TEAM CHAT (2026-10-06, `docs/TEAM-CHAT-DESIGN.md`) — conversations between the people who work here: EVERY
+    //    back-office user (the group's own gate — Housekeeping, Maintenance, Accountant and Revenue Manager hold no
+    //    `guests.view`, and they are the employees he named), so NO `can:` here; who may read a conversation is its
+    //    MEMBERSHIP, decided in TeamChatService / TeamChatReader / TeamChatFiles (a 404 for anyone else). ⚠️ Registered
+    //    BEFORE `/inbox/{thread}`, which would otherwise take "team" for a thread id. ⚠️ Named limiters, never an
+    //    unnamed `throttle:N,1` — that one counter per user is shared with the password change and the sign-in actions.
+    Route::get('/inbox/team', OperatorTeamChat::class)->name('inbox.team');
+    Route::get('/inbox/team/poll', [TeamChatController::class, 'poll'])->middleware('throttle:team-chat-poll')->name('inbox.team.poll');
+    Route::post('/inbox/team/conversations', [TeamChatController::class, 'start'])->middleware('throttle:team-chat-write')->name('inbox.team.start');
+    Route::post('/inbox/team/{conversation}/messages', [TeamChatController::class, 'send'])->middleware('throttle:team-chat-write')->name('inbox.team.send');
+    Route::post('/inbox/team/{conversation}/read', [TeamChatController::class, 'read'])->middleware('throttle:team-chat-poll')->name('inbox.team.read');
+    Route::get('/inbox/team/files/{media}', TeamChatFileController::class)->name('inbox.team.file');
+    // THE GUESTS SIDE, LIVE — the open Inbox's small stamp (changes when anything it shows changes). Its own permission.
+    Route::get('/inbox/live', InboxLiveController::class)->middleware(['can:guests.view', 'throttle:inbox-live'])->name('inbox.live');
+    // THE PULSE — every back-office page's live counts (the bell, the Messages badge, the chime). Counts only.
+    Route::get('/pulse', PulseController::class)->middleware('throttle:pulse')->name('pulse');
     Route::get('/inbox/{thread}', fn (string $thread) => redirect()->route('app.inbox', ['c' => $thread]))->name('inbox.show');
     // NEW MESSAGE — start a thread with a real guest (current/upcoming stay), optionally seeded from a #83 template.
     Route::post('/inbox/start', [InboxActionController::class, 'start'])->middleware('can:guests.view')->name('inbox.start');
     // Inbox writes — REAL reply + lifecycle via POST → controller → InboxService → redirect (PRG).
     // Cross-org {thread} 404s; a deferred channel leaves an honest failed record + clean flash (never 500).
     Route::post('/inbox/{thread}/reply', [InboxActionController::class, 'reply'])->middleware('can:guests.view')->name('inbox.reply');
+    // (2026-10-06, the independent review) the open Inbox refreshes itself WITHOUT reading anything — reading is this POST,
+    // sent when the person is looking at the conversation; the live stamp's own limiter (never the sign-in's counter)
+    Route::post('/inbox/{thread}/read', [InboxActionController::class, 'read'])->middleware(['can:guests.view', 'throttle:inbox-live'])->name('inbox.read');
     Route::post('/inbox/{thread}/assign', [InboxActionController::class, 'assign'])->middleware('can:guests.view')->name('inbox.assign');
     Route::post('/inbox/{thread}/close', [InboxActionController::class, 'close'])->middleware('can:guests.view')->name('inbox.close');
     Route::post('/inbox/{thread}/reopen', [InboxActionController::class, 'reopen'])->middleware('can:guests.view')->name('inbox.reopen');

@@ -6,18 +6,26 @@ namespace App\Http\Controllers\Operator;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guest;
+use App\Models\Media;
 use App\Models\Membership;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
+use App\Support\Inbox\MessageAttachments;
 use App\Support\Inbox\MessageTemplate;
+use App\Support\Messaging\ChatFiles;
 use App\Support\Operator\OperatorWorkspace;
 use App\Support\Tenancy\TenantContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use RuntimeException;
+use Throwable;
 
 /**
  * Unified Inbox writes — the REAL reply + lifecycle actions driven from the styled conversation view via
@@ -33,37 +41,132 @@ use RuntimeException;
  */
 class InboxActionController extends Controller
 {
-    public function reply(Request $request, InboxService $inbox, string $thread): RedirectResponse
+    /**
+     * Reply — text, and (2026-10-06) pictures, documents and a voice note where the other side can see them: an owner's
+     * conversation (their portal) or a guest's Direct one (their guest account). A reply may be a file alone. Sent by the
+     * page without a reload it answers in JSON (201, or 422 in words); as a plain form it redirects back, as before.
+     */
+    public function reply(Request $request, InboxService $inbox, MessageAttachments $attachments, string $thread): RedirectResponse|JsonResponse
     {
-        if ($this->paused()) {
-            $model = MessageThread::query()->findOrFail($thread);
+        $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
 
-            return $this->back($model, 'inbox_error', $this->pausedMessage());
+        if ($this->paused()) {
+            return $this->answer($request, $model, $this->pausedMessage(), false);
         }
 
-        $validated = $request->validate([
-            'body' => ['required', 'string', 'max:5000'],
+        // the size this server takes (ours, or PHP's own ceiling when lower) — and said in those words
+        $mb = ChatFiles::limits()['mb'];
+        $check = Validator::make($request->all(), [
+            'body' => ['nullable', 'string', 'max:5000'],
+            'attachments' => ['nullable', 'array', 'max:'.ChatFiles::MAX_FILES],
+            'attachments.*' => ['file', 'max:'.($mb * 1024), 'mimes:'.ChatFiles::FILE_EXTENSIONS],
+            'voice' => ['nullable', 'file', 'max:'.($mb * 1024), 'mimes:'.ChatFiles::VOICE_EXTENSIONS],
+            'voice_seconds' => ['nullable', 'integer'],
+        ], [
+            'body.max' => 'A reply can be up to 5,000 characters.',
+            'attachments.max' => 'Send up to '.ChatFiles::MAX_FILES.' files at a time.',
+            'attachments.*.max' => 'Each file can be up to '.$mb.' MB.',
+            'attachments.*.mimes' => 'Send pictures (JPG, PNG, WebP, GIF) or documents (PDF, Word, Excel, CSV, text).',
+            'attachments.*.file' => 'That file could not be read — files can be up to '.$mb.' MB. Choose it again.',
+            'voice.max' => 'A voice note can be up to '.$mb.' MB.',
+            'voice.mimes' => 'That voice note could not be read — record it again.',
+            'voice.file' => 'That voice note could not be read — record it again.',
         ]);
+        if ($check->fails()) {
+            return $this->answer($request, $model, (string) $check->errors()->first(), false);
+        }
 
-        $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
+        $files = array_values(array_filter((array) $request->file('attachments', []), fn ($f): bool => $f instanceof UploadedFile));
+        $voice = $request->file('voice');
+        $voice = $voice instanceof UploadedFile ? $voice : null;
+        $body = trim((string) $request->input('body', ''));
+
+        if ($body === '' && $files === [] && $voice === null) {
+            return $this->answer($request, $model, 'Write a reply, or add a file or a voice note.', false);
+        }
+        // a file goes only where the other side can open it — the owner's portal, or the guest's own account (Direct)
+        if (($files !== [] || $voice !== null) && $model->owner_id === null && $model->channel !== 'manual') {
+            return $this->answer($request, $model, 'Files and voice notes can be sent to owners and in Direct conversations only.', false);
+        }
 
         $author = $request->user();
         $author = $author instanceof User ? $author : null;
 
+        // ⚠️ The files are kept on the disk FIRST (the independent review, 2026-10-06): the send below is deliberately not
+        // in a transaction, so a file refused after it would have left a reply without its files — or, a reply of files
+        // alone, an empty message on the other side. A disk that refuses one now means nothing is sent.
+        $kept = [];
         try {
-            $inbox->sendOutbound($model, $validated['body'], $author);
+            $folder = strtolower((string) Str::ulid());
+            foreach ($files as $file) {
+                $kept[] = ['file' => $attachments->keep($file, $folder, MessageAttachments::COLLECTION), 'collection' => MessageAttachments::COLLECTION, 'seconds' => null];
+            }
+            if ($voice !== null) {
+                $kept[] = ['file' => $attachments->keep($voice, $folder, MessageAttachments::VOICE), 'collection' => MessageAttachments::VOICE, 'seconds' => ChatFiles::seconds($request->input('voice_seconds'))];
+            }
+        } catch (Throwable $e) {
+            report($e);
+            $attachments->discard(array_column($kept, 'file'));
+
+            return $this->answer($request, $model, 'A file could not be saved — nothing was sent. Try again.', false);
+        }
+
+        try {
+            $message = $inbox->sendOutbound($model, $body, $author);
         } catch (RuntimeException $e) {
             // e.g. a deferred channel is not configured — the outbound is recorded FAILED (honest, not
             // faked) and surfaced cleanly, never a 500.
+            $attachments->discard(array_column($kept, 'file'));
             $inbox->markRead($model);
 
-            return $this->back($model, 'inbox_error', 'Couldn’t send — '.$e->getMessage());
+            return $this->answer($request, $model, 'Couldn’t send — '.$e->getMessage(), false);
+        }
+
+        $recorded = [];
+        try {
+            foreach ($kept as $i => $k) {
+                $recorded[] = $attachments->record($message, $k['file'], $k['collection'], $i, $k['seconds']);
+            }
+        } catch (Throwable $e) {
+            // the words went; the files did not — said so, and the page keeps them to send again
+            report($e);
+            Media::query()->whereKey(array_map(fn (Media $m): string => (string) $m->getKey(), $recorded))->forceDelete();
+            $attachments->discard(array_column($kept, 'file'));
+            $inbox->markRead($model);
+
+            return $this->answer($request, $model, 'Your message was sent, but its files could not be saved — send them again.', true, filesKept: true);
         }
 
         // Replying implies the operator has read the thread — clear the unread counter.
         $inbox->markRead($model);
 
-        return $this->back($model, 'inbox_notice', 'Reply sent.');
+        return $this->answer($request, $model, 'Reply sent.', true);
+    }
+
+    /**
+     * The page sent it live → JSON (201, or 422 with the reason); a plain form → back to the conversation with a flash.
+     * `filesKept`: the words were sent but the files were not — the page clears the words and keeps the files.
+     */
+    private function answer(Request $request, MessageThread $model, string $message, bool $ok, bool $filesKept = false): RedirectResponse|JsonResponse
+    {
+        if ($request->expectsJson()) {
+            return $ok ? response()->json(['ok' => true, 'message' => $message, 'files_kept' => $filesKept], 201) : response()->json(['ok' => false, 'message' => $message], 422);
+        }
+
+        return $this->back($model, $ok && ! $filesKept ? 'inbox_notice' : 'inbox_error', $message);
+    }
+
+    /**
+     * Read, on purpose (2026-10-06, the independent review): the open Inbox refreshes itself without reading anything,
+     * and says it was read when the person is looking at the conversation — this. The unread counter is shared by the
+     * staff, so is its bell entry ({@see InboxService::markRead()}). A support session's POST is refused before here.
+     */
+    public function read(InboxService $inbox, string $thread): JsonResponse
+    {
+        $model = MessageThread::query()->findOrFail($thread);   // tenant-scoped → cross-org 404
+        $inbox->markRead($model);
+
+        return response()->json(['ok' => true]);
     }
 
     /** Assign (or unassign) the thread to an active member of the org — an INTERNAL hand-off (the guest never sees it). */

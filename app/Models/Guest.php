@@ -10,6 +10,7 @@ use App\Models\Concerns\HasTags;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Guest\GuestName;
+use App\Support\Inbox\MessageAttachments;
 use App\Support\Security\ActiveSessions;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -292,7 +294,18 @@ class Guest extends Model implements AuthenticatableContract, CanResetPasswordCo
 
             if ($threadIds->isNotEmpty()) {
                 Message::query()->whereIn('thread_id', $threadIds)->update(['body' => '', 'sender_label' => null]);
+                // and the FILES in them (2026-10-06 — pictures, documents and voice notes can now be sent to a guest): a
+                // document or photo in their conversation is about them as much as its words — rows and files both go.
+                app(MessageAttachments::class)->eraseInThreads($threadIds->all());
                 MessageThread::query()->whereKey($threadIds)->update(['participant_identity' => null, 'subject' => null]);
+                // and the STAFF's bell entries that name these conversations (2026-10-06 — "New message from Ines Ibarra",
+                // and the older "Conversation assigned to you · Ines Ibarra …"): plaintext copies of the guest's name. Each
+                // carries the conversation's id (its link), so the id finds them all; deleted, as the guest's own are below.
+                DatabaseNotification::query()->where(function ($q) use ($threadIds): void {
+                    foreach ($threadIds as $threadId) {
+                        $q->orWhere('data', 'like', '%'.$threadId.'%');
+                    }
+                })->delete();
 
                 // Staff INTERNAL notes on the guest's threads are free text ABOUT the guest ("handing to HK re:
                 // late checkout for X") — their PII too, so redact the body on erase (keep the row skeleton for

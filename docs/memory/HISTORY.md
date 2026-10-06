@@ -907,6 +907,102 @@ scrolling sideways at 320 px (D-NOTIFPREFS-320, his go). Tests: `InboxComposeRed
 of one pinned the codebase's whitespace and counted the shell's own `aria-current`, corrected before any code). Mutations
 `inbox-compose` IB-M18…M24, 24/24 caught. Gates: **4,434/4,434 on MySQL 8.4.10** (32,565 assertions; tree `d24833fe404086c0`, 02:44–03:02 Baku — before two comment dates were corrected) · **4,434/4,434 on MariaDB 11.8.9** (32,565 assertions; tree `78d633402013dbf0` = the final code before these docs; 03:03–03:20 Baku) — both from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · `inbox-compose` 24/24 caught (no other set aims at the changed view) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 03:20 Baku) · PHPStan L5 0 errors (1,089 files, from a cleared cache), Pint clean · the doc-reading tests — 69 files, the list re-derived from the tests (630 tests, 0 failed). **Live 2026-10-06 03:29 Baku: `rel_AZ @ 59799d4d`, committed locally and NOT pushed.** One file shipped (the Inbox view); preflight read-only from the staged release (the seven route gates, sessions on `database`, all eleven views compile on PHP 8.4.19 / MariaDB 11.8.9); public checks 12/0/0 (03:30–03:35); 1,452/1,452 files match git, 0 differ; drift + self-test 3/3; 0 errors since the swap (11 warnings, all `security.refusal`, from the exposure battery; the counter shown to count — 44 warnings since midnight UTC on the same log). His look at a phone's width is left: the Inbox is behind his sign-in.
 
+**TEAM CHAT AND A LIVE MESSAGES PAGE — 2026-10-06 — his "https://vyrobel.com/app/inbox — messages must be owner and the employees as
+well … there should be option that owner can do the conversation with employees … some drop down … toggle for client and
+employees … attachment sending option picture sending option voice sending option … notification icon … notification sound … chat
+should be Ajax based runtime … complete this page and upon completion test everything with MCP playwright".** Read as: "owner" = the
+account owner in the back office, "employees" = the staff, "client" = guests (stated in the plan; unit owners keep their own
+conversations). Design `docs/TEAM-CHAT-DESIGN.md`; plan posted and executed (his rule).
+
+📖 The audit, three readers in parallel: no staff-to-staff messaging anywhere; nothing polled (every reply a reload); the Inbox is
+`guests.view`, which Housekeeping, Maintenance, Accountant and Revenue Manager do not hold — the employees he named could not open
+Messages at all; guest and owner threads share one table and ONE unread counter for all staff, so a staff conversation stored there
+would have shown in every front-desk agent's list and its files would have opened through a door that checks only the organisation;
+when a guest or an owner wrote, nobody on the staff was told (`inbox.message_received` had no handler); no audio anywhere; the guest
+portal showed no file at all; our own header switched the microphone off on every page. 🔬 Production replaces our CSP with
+`upgrade-insecure-requests` (the host) — `OPEN.md` D-PROD-CSP.
+
+**Gate 1 — team chat (`/app/inbox/team`).** Its own tables (`team_conversations`, `team_conversation_members`, `team_messages`):
+a conversation belongs to its MEMBERS — each with their own read position (a message id: ULIDs sort by the millisecond, a timestamp
+is one second wide). Every back-office user may use it (no new permission — the RBAC pins stay); only members see a conversation,
+its messages or its files (anyone else: a 404). One writer `TeamChatService` (start — one direct conversation per pair, a group of
+two or more; send; markRead — forward only), one reader `TeamChatReader` (the page's first draw and the poll read the same rule),
+one file rule `TeamChatFiles` (private disk; pictures in place, voice notes played with byte ranges for Safari, everything else
+downloaded; types from the file's own bytes — 🔬 Chrome's audio-only WebM reads as `video/webm`, Safari's MP4 as `video/mp4`).
+The page: conversations and the open one side by side (one at a time on a phone, with a way back); New conversation (one colleague
+→ your direct conversation, several → a group, optionally named); Enter sends; pictures, documents (also pasted or dropped in) and
+a voice note up to 3 minutes, heard before it is sent; "Sending…", and a message not sent comes back into the box with the reason;
+day dividers, names in groups, "Seen" / "Seen by Anna, Ben"; "Load earlier messages". Live: the open conversation every 3 s (20 s
+hidden, nothing after 30 minutes idle). A support (break-glass) session borrows a staff member's view, not their conversations: the
+page says they are private and every read is a 404. A paused workspace reads, never sends. **The Guests | Team toggle** at the top of
+Messages, each side with its live count; someone without `guests.view` sees Team only, and the sidebar's Messages — hidden from four
+of the eleven roles before — leads them there.
+**The bell, the badge, the chime (every back-office page — `partials/live-pulse`).** `app/pulse` every 20 s: the bell's own count,
+team unread, guests unread (for who may read them); the bell's badge always rendered (hidden at 0) and its list re-rendered from the
+same component when the count moves; Messages' badge and the tab title; a chime synthesised in the browser (no file), on unless
+switched off in the chat, after the first click or key. One bell entry per conversation ("Max Brown sent you 2 messages", "Anna Lee
+wrote in Morning shift"), in-app only, names only — reading the conversation reads it.
+
+**Gate 2 — the Guests side live.** A guest's or an owner's message now rings the bell of the person the conversation is assigned to,
+else everyone with `guests.view` (never a housekeeper): one entry per conversation ("2 new messages from Ines Walk"), the
+conversation's name by the Inbox's own rule (`ThreadName`, extracted), and opening it reads it for everyone (the unread counter is
+shared). The open Inbox asks a small stamp every 5 s (`app.inbox.live`) and, when it moves, re-reads itself and swaps the counts, the
+list, the conversation's header and its messages in place — never the reply being written.
+
+**Gate 3 — files and voice notes to guests and owners.** A reply may carry up to five pictures or documents and a voice note — where
+the other side can open them: an owner (their portal) or a guest's Direct conversation (their guest account); refused in words on
+Booking.com, Airbnb, WhatsApp and email. Sent without a reload (a plain form still works without JavaScript). One shared definition
+of a chat file (`ChatFiles`); one writer of message attachments (`MessageAttachments`, the owner portal's too); the guest portal's own
+door (`guest.messages.attachment` — that guest's own conversation only); the guest's page and the owner's portal show pictures and
+documents and play voice notes. GDPR: a guest's erasure takes the files in their conversations too. The recorder and the player are
+ONE script (`partials/chat-media`) for both pages.
+
+**The independent review, and what changed** (`TEAM-CHAT-DESIGN.md` §9). Three of its findings were checked against the code and
+were real before anything was fixed: (1) a colleague's message could be skipped — the page asked "after the newest message I hold",
+and that could be your own; and sending moved your read position, so theirs counted as read; (2) the open Inbox read conversations
+nobody looked at, and refreshed itself for ever — its refresh re-read the page, an opened conversation is read on every read, and a
+read moves the stamp; (3) the refresh could swap in a different conversation, the newest, when the address named none. Also: a support
+session saw the staff member's team-chat bell entries; ex-staff were still rung; read bell entries piled up; download names kept
+invisible direction marks and their claimed extension; a guest's erasure left the staff's bell entries naming them — and the older
+"Conversation assigned to you · <name>" entry, which the same line now takes too; a reply's file refused after the words went; erased
+files deleted before the erase was kept; two microphones at once; the pulse giving up on a passing error. Each fixed with a test that
+failed first or a mutation that proves its test can fail. 🔬 And the walk's own measurement: this Mac's PHP takes **2 MB a file and
+8 MB a request** (PHP's defaults) — "up to 10 MB" was not true here; the pages and the refusals now read the real ceilings
+(`ChatFiles::limits()`), and production's are read by the preflight.
+
+🖥 **Local walks (tenant three, two people and a guest at once, two separate browsers).** Before the review: a direct conversation —
+sent live, "Seen" within one poll, the reply on the other screen in 3.0 s; the other person's dashboard badge, bell and tab title
+updated without a reload; a picture and a PDF in 2.8 s; a real 3-second microphone recording heard before sending, received in 1.2 s,
+played (206 `audio/webm`); a named group; the phone layout; the sound switch remembered; signed out → the page said so. Guests side:
+a guest's message rang the bell; while the conversation was open her next message appeared by itself; a reply with text, a picture, a
+PDF and a voice note went out with no reload; the guest saw and heard all of it in her account. Found and fixed on that walk: the chat's
+search box grew 300 px tall; the phone's back arrow showed on a desktop; the bell stayed at 1 after reading; a stale subtitle; photos
+moving the conversation as they loaded; the browser's blue focus ring on a photo. ⚠️ A transient 500 on the poll was my own mistake:
+a wrong trait namespace in a new invokable controller — Laravel loads it while registering routes, so EVERY request failed until it
+was fixed (`php artisan route:list` sees it; `php -l` cannot).
+After the review: with Lina's poll held back and her own message her newest, Tomas's earlier message arrived in its place when the
+poll came back (the old code skipped it); with Tomas's window unfocused Lina's message came in unread and his bell said 1, read the
+moment he touched the page; a draft and a picture stayed with Lina's conversation through a visit to Morning shift; a send refused
+(500) after Tomas had moved on came back to ITS conversation with its picture and reason, a notice said so and cleared when he opened
+it; a 500 on the poll slowed it, a 419 stopped it and said "signed out" (the pulse the same); the microphone's "Starting…" could be
+cancelled, a double press started one recording, a recording still going stopped when Lina left the conversation and a finished one
+waited for her; the voice slider by keyboard ("0:05 of 0:14"); the open Inbox: a guest's message → one live refresh (nothing read),
+one read POST because Tomas was there, one more refresh, then only the stamp every 5 s — the loop gone; a second guest's conversation
+becoming newest left the open one in place, unread; Enter a new line and ⌘+Enter sent; a 3 MB file and five files over 7 MB together
+refused before sending; a refresh during a playing voice note waited for it; a header swapped live kept its Assign button working.
+Found and fixed on that walk, all on this page: a reply's line breaks collapsed in its bubble (the guest's and owner's pages kept
+them); the list's unread dot sat on the time's last digit; the "Direct" chip squeezed into the shell's 34 × 34 Channels tile (a
+shared class name, live on production since the Channels page); a conversation opened at its OLDEST message, so a live arrival
+landed out of sight; a stale "not sent" notice; Laravel's "Too Many Attempts." shown as the reason (now our own words except for our
+own refusals).
+
+Tests: `TeamChatTest` (27), `InboxLiveTest` (9), `InboxAttachmentsTest` (10) — each RED first except the reply's file-handling pair
+and the limits test, written after their code and proven by their mutations; mutation sets `team-chat` (29) and `inbox-live` (28) —
+the whole harness re-run on the final code — **1,005/1,005 landed and caught across all 36 sets** (`team-chat` 29 and `inbox-live` 28 new; V 18:21–18:53 Baku); 0 not caught, 0 did not land. ⚠️ On their first run two survived, both the tests' fault: TC-M8 ("every chat message is also emailed") — the mail fake
+cannot see a notification's mail channel; and IA-M5 — no data shape ever reached the guest door's "never an owner's conversation"
+layer. Both tests sharpened (the NotificationSending event; a conversation naming both an owner and the guest), both caught.
+Gates: **4,480/4,480 on MySQL 8.4.10** (32,952 assertions; 17:38–17:58 Baku) · **4,480/4,480 on MariaDB 11.8.9** (32,952 assertions; 18:00–18:19 Baku) — both on tree `0b3f80cfe6b338b6` (the code before one Blade comment was corrected and these docs written) and read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · PHPStan L5 0 errors (a whole run, 31 s at 18:21 Baku, from a result cache deleted by hand — a run under the output wrapper had read the old cache in 0 s) · Pint clean (the changed files) · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 17:59 Baku, reseeded 17:58).
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -975,6 +1071,11 @@ of one pinned the codebase's whitespace and counted the shell's own `aria-curren
   The second review, of the fixes: a test that proved a function EXISTS, not that it is CALLED; and advice pointing three roles at a
   page that refuses them.
 
+- **Mine, caught before commit (the team chat pass, 2026-10-06):** a wrong trait namespace in a new invokable controller that failed
+  EVERY request (Laravel loads it while registering routes); a poll cursor taken from my own message, and a read position moved by
+  sending — the review; a live refresh that read for the person and refreshed itself for ever — the review; two tests that could not
+  fail (TC-M8 asserted "never emailed" with a fake blind to it; IA-M5's layer no data reached) — the mutation harness; a "writes
+  nothing" preflight that wrote a probe file — re-reading; "up to 10 MB" stated without reading PHP's ceiling — the walk measured 2.
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

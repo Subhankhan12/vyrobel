@@ -6,6 +6,9 @@ namespace App\Support\Notifications;
 
 use App\Models\Guest;
 use App\Models\User;
+use App\Notifications\Operator\TeamMessageNotification;
+use App\Support\Platform\BreakGlass;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -54,7 +57,7 @@ final class NotificationFeed
         // D29-5 + DO6-4 — dismissed rows leave the feed. ⚠️ FILTERED HERE, in the ONE shared builder, so the
         // full page, the category counts and the bell panel all inherit it from a single place: a dismiss that
         // hid a notification on one surface but not another would be worse than no dismiss at all.
-        $query = $user->notifications()->getQuery()->whereNull('dismissed_at')->orderByDesc('created_at');
+        $query = self::withoutPrivate($user->notifications()->getQuery()->whereNull('dismissed_at'))->orderByDesc('created_at');
 
         if ($filter === 'unread') {
             $query->whereNull('read_at');
@@ -73,8 +76,8 @@ final class NotificationFeed
             'paginator' => $page,
             // ⚠️ The badge counts what the feed SHOWS. A dismissed-but-unread row would otherwise keep the
             // bell lit pointing at something the user has explicitly taken off their list.
-            'unread' => $user->notifications()->whereNull('dismissed_at')->whereNull('read_at')->count(),
-            'categories' => $user->notifications()->whereNull('dismissed_at')->get(['data'])
+            'unread' => self::unreadCount($user),
+            'categories' => self::withoutPrivate($user->notifications()->getQuery()->whereNull('dismissed_at'))->get(['data'])
                 ->map(fn (DatabaseNotification $n): string => (string) ($n->data['category'] ?? 'general'))
                 ->unique()
                 ->sort()
@@ -96,12 +99,31 @@ final class NotificationFeed
     {
         /** @var Collection<int, DatabaseNotification> $recent */
         // ⚠️ The panel filters dismissed too — same rule, same builder, so the bell and the page agree.
-        $recent = $user->notifications()->whereNull('dismissed_at')->limit($limit)->get();   // already newest-first
+        $recent = self::withoutPrivate($user->notifications()->getQuery()->whereNull('dismissed_at'))->limit($limit)->get();   // already newest-first
 
         return [
             'items' => $recent->map(fn (DatabaseNotification $n): array => self::map($n))->all(),
-            'unread' => $user->unreadNotifications()->whereNull('dismissed_at')->count(),
+            'unread' => self::unreadCount($user),
         ];
+    }
+
+    /** The bell's count — what the feed shows, unread (the pulse and team chat read it too, so they always agree). */
+    public static function unreadCount(User|Guest $user): int
+    {
+        return self::withoutPrivate($user->notifications()->getQuery()->whereNull('dismissed_at')->whereNull('read_at'))->count();
+    }
+
+    /**
+     * While a Vyrobel support (break-glass) session borrows this person's view, their private team-chat entries stay out
+     * of every read here — they name the person's conversations (2026-10-06, the independent review: team chat itself
+     * refuses the session; its bell entries must too).
+     *
+     * @param  Builder<DatabaseNotification>  $query
+     * @return Builder<DatabaseNotification>
+     */
+    private static function withoutPrivate(Builder $query): Builder
+    {
+        return $query->when(BreakGlass::hasStash(request()), fn (Builder $q) => $q->where('type', '!=', TeamMessageNotification::class));
     }
 
     /**

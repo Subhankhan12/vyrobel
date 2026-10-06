@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the Inbox tabs follow-up (2026-10-06: the filter tabs on a phone, seen on his live look of the FIVE PAGES release; the edge's bot check and the public checks), after the FIVE PAGES pass (2026-10-05)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -306,6 +306,22 @@ change is said.** Briefs live in `briefs/`.
 - **D-NOTIFPREFS-320 (found 2026-10-06 while checking the shared segmented box's other pages; low — his go):** at a 320 px window the
   back office's Notification preferences page scrolls sideways by 54 px: its main column is 358 px wide (the "Notify me when" table
   card and the Quiet hours panel), wider than the window. 🖥 390 px and up fit. The lists' narrow layout would carry over.
+- **D-PROD-CSP (found 2026-10-06; his go — hPanel):** production replaces our Content-Security-Policy with
+  `upgrade-insecure-requests` (🔬 through the edge and from the server itself, on `/login`); every other header of ours arrives, the
+  Permissions-Policy included. So `frame-ancestors`, `object-src`, `base-uri` and `form-action` are not in force on production
+  (`X-Frame-Options: SAMEORIGIN` still guards framing). Likely the panel's "force HTTPS" header; find where it is set and let ours
+  through. Team chat does not depend on it (its microphone rule is the Permissions-Policy, which arrives).
+- **D-TC-LATER (2026-10-06; his go):** not in the team chat pass — editing or deleting a sent message, reactions, typing and "online
+  now", desktop (system) notifications, search inside a conversation, starting a conversation with a unit owner from the back office.
+- **D-TC-PII (found 2026-10-06 by the independent review; his go):** staff may write about a guest in team chat ("room 12's guest,
+  Ines Walk, wants…"). A guest's erasure cannot find those words — a team message is not linked to a guest. The Inbox's own stores
+  ARE erased (its messages, files, notes and now the staff's bell entries). Options for him: a retention period for team chat, an
+  erase-by-name search for staff, or a rule in the staff guidance.
+- **D-UPLOAD-LIMITS (measured 2026-10-06; his go — hPanel):** 🔬 this Mac's PHP takes 2 MB a file and 8 MB a request (PHP's
+  defaults). Team chat and the Inbox now read the real ceilings (`ChatFiles::limits()`) and say them; production's are read by the
+  preflight. ⚠️ The OWNER portal's composer (outside this pass) still validates 10 MB and uses Laravel's own refusal words: where PHP's
+  ceiling is lower, a larger file is refused there as "failed to upload". If production's ceiling is below 10 MB, raising it is a
+  panel setting (`upload_max_filesize`, `post_max_size`).
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

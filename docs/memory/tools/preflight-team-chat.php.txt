@@ -1,0 +1,90 @@
+<?php
+// TEAM CHAT and a live Messages page (2026-10-06) — READ-ONLY preflight from the STAGED release (stdin; writes nothing — the
+// database read-only, the disk only asked whether it may be written). Yes/no, counts, types and timings only — never a message,
+// a name of a guest, a session id or a secret.
+use App\Models\Organization;
+use App\Support\Messaging\ChatFiles;
+use App\Support\Notifications\NotificationRecipients;
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+
+require getcwd().'/vendor/autoload.php';
+$app = require getcwd().'/bootstrap/app.php';
+$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+DB::statement('SET SESSION TRANSACTION READ ONLY');
+
+$out = ['release' => substr(trim((string) @file_get_contents(getcwd().'/.release')), 0, 8), 'php' => PHP_VERSION,
+    'db' => DB::selectOne('SELECT VERSION() AS v')->v];
+
+// the routes: who may knock, and their own rate limits (a named limiter never shares the sign-in's counter)
+$mw = fn (string $name): array => Route::getRoutes()->getByName($name)?->gatherMiddleware() ?? [];
+$out['routes'] = [
+    'team chat page open to every back-office user (no can:)' => ! collect($mw('app.inbox.team'))->contains(fn ($m) => is_string($m) && str_starts_with($m, 'can:')),
+    'team poll throttled by its own limiter' => in_array('throttle:team-chat-poll', $mw('app.inbox.team.poll'), true),
+    'team send throttled by its own limiter' => in_array('throttle:team-chat-write', $mw('app.inbox.team.send'), true),
+    'pulse throttled by its own limiter' => in_array('throttle:pulse', $mw('app.pulse'), true),
+    'Inbox live stamp needs guests.view' => in_array('can:guests.view', $mw('app.inbox.live'), true),
+    'Inbox reply still needs guests.view' => in_array('can:guests.view', $mw('app.inbox.reply'), true),
+    'Inbox read (sent by the open page) needs guests.view' => in_array('can:guests.view', $mw('app.inbox.read'), true),
+    'Inbox read throttled by the live limiter' => in_array('throttle:inbox-live', $mw('app.inbox.read'), true),
+    'guest file door is in the signed-in guest group' => in_array('auth:guest', $mw('guest.messages.attachment'), true),
+];
+
+// the migration: additive, three new tables
+$out['tables present (before migrate: false is expected)'] = [
+    'team_conversations' => Schema::hasTable('team_conversations'),
+    'team_conversation_members' => Schema::hasTable('team_conversation_members'),
+    'team_messages' => Schema::hasTable('team_messages'),
+];
+
+// what THIS host's finfo reads browser recordings as — the voice note rule depends on it (🔬 on the Mac: webm → video/webm)
+$pad = str_repeat("\0", 512);
+$samples = [
+    'webm (Chrome)' => "\x1A\x45\xDF\xA3\x9F\x42\x86\x81\x01\x42\xF7\x81\x01\x42\xF2\x81\x04\x42\xF3\x81\x08\x42\x82\x84webm\x42\x87\x81\x04\x42\x85\x81\x02".$pad,
+    'ogg (Firefox)' => 'OggS'."\x00\x02".str_repeat("\x00", 20)."\x01\x13OpusHead\x01\x01\x38\x01\x80\xBB\x00\x00\x00\x00\x00".$pad,
+    'mp4 (Safari)' => "\x00\x00\x00\x1Cftypiso5\x00\x00\x02\x00iso5iso6mp41".$pad,
+];
+$finfo = new finfo(FILEINFO_MIME_TYPE);
+foreach ($samples as $label => $bytes) {
+    $type = (string) $finfo->buffer($bytes);
+    $out['voice notes on this host'][$label] = $type.' → '.(ChatFiles::voiceType($type) ?? 'NOT PLAYABLE');
+}
+
+// the private disk will take the files: its folder exists and this PHP may write there (asked, nothing written)
+$root = Storage::disk('local')->path('');
+$out['private disk folder exists'] = is_dir($root);
+$out['private disk folder writable by this PHP'] = is_writable($root);
+
+// upload ceilings this PHP reports, and what the pages would say from them (the WEB server's PHP may differ — the CLI's are
+// read here; the team chat page carries the web PHP's own in its `limits`, read on the live look)
+$out['php limits (cli)'] = ['upload_max_filesize' => ini_get('upload_max_filesize'), 'post_max_size' => ini_get('post_max_size'),
+    'max_file_uploads' => ini_get('max_file_uploads'), 'ChatFiles::limits()' => ChatFiles::limits()];
+
+foreach ([
+    'livewire/operator/team-chat.blade.php', 'livewire/operator/operator-inbox.blade.php', 'partials/live-pulse.blade.php',
+    'partials/chat-media.blade.php', 'partials/messages-toggle.blade.php', 'components/notifications/bell.blade.php',
+    'components/notifications/bell-glyph.blade.php', 'components/notifications/category-icon.blade.php',
+    'components/operator/shell.blade.php', 'components/layouts/operator.blade.php', 'guest/message-thread.blade.php',
+    'livewire/owner/messages.blade.php',
+] as $view) {
+    try {
+        token_get_all(app('blade.compiler')->compileString((string) file_get_contents(resource_path('views/'.$view))), TOKEN_PARSE);
+        $out['views compile'][$view] = true;
+    } catch (Throwable $e) {
+        $out['views compile'][$view] = 'FAILED: '.$e->getMessage();
+    }
+}
+
+// per organisation: how many people team chat will list, and how many guest conversations are waiting (counts only)
+$tenant = app(TenantContext::class);
+foreach ($tenant->runAsSuperAdmin(fn () => Organization::query()->orderBy('name')->get(['id', 'name'])) as $org) {
+    $out['orgs'][$org->name] = $tenant->forOrganization((string) $org->id, fn () => [
+        'back-office staff (team chat lists all but yourself)' => count(app(NotificationRecipients::class)->operatorsForOrg((string) $org->id)),
+        'guest/owner conversations with unread messages' => DB::table('message_threads')->where('organization_id', $org->id)->where('unread_count', '>', 0)->where('status', '!=', 'closed')->count(),
+    ]);
+}
+
+echo json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), "\n";

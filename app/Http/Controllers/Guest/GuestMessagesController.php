@@ -10,6 +10,7 @@ use App\Models\Guest;
 use App\Models\Message;
 use App\Models\MessageThread;
 use App\Services\InboxService;
+use App\Support\Inbox\MessageAttachments;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -58,12 +59,14 @@ class GuestMessagesController extends Controller
         return view('guest.message-thread', [
             'thread' => (string) $model->getKey(),
             'subject' => (string) ($model->subject ?? 'Your conversation'),
-            'messages' => $model->messages()->orderBy('created_at')->get()->map(fn (Message $m): array => [
+            'messages' => $model->messages()->with('media')->orderBy('created_at')->get()->map(fn (Message $m): array => [
                 // MIRRORED: `inbound` = into the org = the guest's OWN message.
                 'mine' => (string) $m->direction === 'inbound',
                 'author' => (string) $m->direction === 'inbound' ? 'You' : (($m->sender_label !== null && $m->sender_label !== '') ? (string) $m->sender_label : 'Property'),
                 'body' => (string) $m->body,
                 'at' => CarbonImmutable::parse($m->created_at)->format('j M · H:i'),
+                // pictures, documents and voice notes the property sent (2026-10-06) — through this guest's own door
+                'files' => app(MessageAttachments::class)->rows($m, 'guest.messages.attachment'),
             ])->all(),
         ]);
     }

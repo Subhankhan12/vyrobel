@@ -19980,3 +19980,33 @@ need my permission … ship everything live … test everything via MCP playwrig
   owner's sign-in). The measurement found something else: Notification preferences scrolls sideways at 320 px (D-NOTIFPREFS-320).
 - **The tab shown is marked `aria-current="page"`** — the codebase's idiom for the same thing on Units' and Maintenance's chips.
 - **Gates: **4,434/4,434 on MySQL 8.4.10** (32,565 assertions; tree `d24833fe404086c0`, 02:44–03:02 Baku — before two comment dates were corrected) · **4,434/4,434 on MariaDB 11.8.9** (32,565 assertions; tree `78d633402013dbf0` = the final code before these docs; 03:03–03:20 Baku) — both from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · `inbox-compose` 24/24 caught (no other set aims at the changed view) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 03:20 Baku) · PHPStan L5 0 errors (1,089 files, from a cleared cache), Pint clean · the doc-reading tests — 69 files, the list re-derived from the tests (630 tests, 0 failed).**
+
+### 2026-10-06 — Team chat and a live Messages page (his "messages must be owner and the employees as well … toggle for client and employees … attachment … picture … voice … notification icon … notification sound … Ajax based runtime")
+Design: `docs/TEAM-CHAT-DESIGN.md` (the audit, the decisions, the review in §9, the known limits in §10). Read as: "owner" = the
+account owner in the back office, "employees" = the staff, "client" = guests; unit owners keep their own conversations.
+- **Team chat has its own tables** — never `message_threads`: a guest thread belongs to the organisation (one shared unread counter,
+  every `guests.view` holder reads it); a team conversation belongs to its members, each with their own read position (a message id).
+  Sharing the table would have needed a "not team" filter at every guest-Inbox read site.
+- **Every back-office user may use it** (the `/app` group's back-office gate; no new permission, so the RBAC pins stay). Only members
+  see a conversation, its messages or its files — a 404 for anyone else. A support (break-glass) session cannot open it, and its bell
+  entries are left out of the support session's bell, feed and counts.
+- **Live means polling** (shared hosting: no websockets, no Redis): the open conversation every 3 s (20 s hidden), the open Inbox's
+  stamp every 5 s (30 s hidden), every back-office page's pulse every 20 s (60 s hidden); nothing after 30 minutes without a key or a
+  click; signed out stops it, a busy or failing server only slows it. Named rate limits per purpose (`team-chat-poll` 120,
+  `team-chat-write` 40, `pulse` 60, `inbox-live` 60 a minute, per person).
+- **Reading is the person's act.** The Inbox's live refresh reads nothing (`live=1`); the page posts `app.inbox.read` for a
+  conversation the person opened (never a preview), only while they are at the page; team chat reads up to what the page was shown,
+  only while the person is there. Sending reads nothing.
+- **Notifications are in-app only, one per conversation**, naming people, never the text: a teammate's message rings the other
+  members who still work here; a guest's or an owner's rings the assignee, else everyone with `guests.view`. A guest's erasure deletes
+  the staff's bell entries naming their conversations (and the older assignment entry, which named them too).
+- **Sound is synthesised in the browser** (no file), on unless switched off, only after the person's first click or key.
+- **Files:** pictures, documents (the owner chat's list) and one voice note of up to 3 minutes; the type is judged by the file's own
+  bytes and a download carries the extension its bytes earned; this server's own upload ceilings are read and said
+  (`ChatFiles::limits()`). Guests and owners receive them where they can open them: an owner's portal, a guest's Direct conversation
+  (their guest account); refused on Booking.com, Airbnb, WhatsApp and email. A reply's files are kept on the disk before it is sent.
+- **The microphone** is allowed on the two Messages pages only (`microphone=(self)`); `media-src 'self' blob:` lets a recording be
+  heard before it is sent.
+- **In the Inbox, Enter is a new line and Ctrl/⌘+Enter sends** (these replies go to guests and owners); in team chat Enter sends.
+
+**Gates (Verified 2026-10-06):** **4,480/4,480 on MySQL 8.4.10** (32,952 assertions; 17:38–17:58 Baku) · **4,480/4,480 on MariaDB 11.8.9** (32,952 assertions; 18:00–18:19 Baku) — both on tree `0b3f80cfe6b338b6` (the code before one Blade comment was corrected and these docs written) and read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · PHPStan L5 0 errors (a whole run, 31 s at 18:21 Baku, from a result cache deleted by hand — a run under the output wrapper had read the old cache in 0 s) · Pint clean (the changed files) · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 17:59 Baku, reseeded 17:58). Mutations: the whole harness re-run on the final code — **1,005/1,005 landed and caught across all 36 sets** (`team-chat` 29 and `inbox-live` 28 new; V 18:21–18:53 Baku); 0 not caught, 0 did not land.

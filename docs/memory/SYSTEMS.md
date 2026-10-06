@@ -472,6 +472,29 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   drop layer, hint) only with `$canMove` = `reservations.assign` and a workspace not paused; a refused move sets
   `calendar_refused` (an alert). `rt` must be one of this property's room types or it is ignored, and every link keeps it.
 
+## 16 · Messages: team chat, the live Inbox, the pulse (`/app/inbox`, `/app/inbox/team`, 2026-10-06)
+
+- **Two sides, one toggle** (`partials/messages-toggle`): Guests (the Inbox — `guests.view`) | Team (every back-office user). The
+  sidebar's Messages leads someone without `guests.view` to Team; its count is `.vy-menu-count` (⚠️ never a class with "av" in it
+  plus a gradient — the avatar contrast sweep reads it as an avatar).
+- **Team chat** — its own tables (`team_conversations`, `team_conversation_members` with `last_read_message_id`, `team_messages`);
+  one writer `App\Services\TeamChatService`, one reader `App\Support\TeamChat\TeamChatReader` (the poll looks
+  `LOOK_BACK_SECONDS` = 30 back from its cursor), one file rule `App\Support\TeamChat\TeamChatFiles` (private disk,
+  `team-chat/{conversation}/{message}/`); routes `app.inbox.team*`; a support session gets a 404 everywhere and its bell hides
+  team entries (`NotificationFeed::withoutPrivate()`).
+- **The live Inbox** — `app.inbox.live` (a stamp), the page re-reading itself with `live=1` (reads nothing), `app.inbox.read`
+  (the person's own read). Live parts: `data-ibx-live="stats|rail|head|thread"`; the thread part carries `data-thread-id` and
+  `data-unread`.
+- **The pulse** (`partials/live-pulse`, `window.VyLive`) on every back-office page: `app.pulse` → the bell's count
+  (`NotificationFeed::unreadCount()`), team unread, guests unread (for `guests.view`); `?bell=1` re-renders the bell component.
+- **Files** — one definition `App\Support\Messaging\ChatFiles` (types, `limits()` = this PHP's real ceilings, `displayName()` =
+  the name's words + the extension its bytes earned); team files via `TeamChatFiles`, guest/owner files via
+  `App\Support\Inbox\MessageAttachments` (`keep()` → send → `record()` for the Inbox's reply; `store()` for the owner portal);
+  the guest's own door `guest.messages.attachment`. The recorder and the player: `partials/chat-media` (`window.VyRecorder`,
+  `Alpine.data('vyVoice')`).
+- **Notifications** — `TeamMessageNotification`, `InboxMessageNotification` (database only), written by
+  `DispatchNotificationsForDomainEvent` on `team_chat.message_sent` / `inbox.message_received`; one entry per conversation.
+
 ---
 
 ## Sources
@@ -480,7 +503,11 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   diff (2026-09-27); for §11–§13 (2026-10-01): the working tree at `38ba2a0d` — `app/Support/{Guest,Maintenance,Unit,Rates,Owner,Inbox}/`,
   `app/Services/{OwnerInviteService,PayoutRunService}.php`, `app/Http/Controllers/{PublicMediaController,Operator/*}.php`,
   `bootstrap/app.php`, `routes/web.php`, `tests/Mutations/sets/`; `routes/web.php`, `routes/console.php`, `ops/release.sh`, `ops/public-checks.sh`, `config/`,
-  `composer.json`, `.gitignore`, `.env.example` (names only), `app/Support/{Platform,Mail,Auth,Webhooks}/`; `.mcp.json` (shape).
+  `composer.json`, `.gitignore`, `.env.example` (names only), `app/Support/{Platform,Mail,Auth,Webhooks}/`; `.mcp.json` (shape);
+  for §16 (2026-10-06): the working tree of the team chat pass — `app/Services/TeamChatService.php`,
+  `app/Support/{TeamChat,Messaging,Inbox,Notifications}/`, `app/Http/Controllers/Operator/{TeamChat*,Pulse,InboxLive,InboxAction}Controller.php`,
+  `app/Listeners/DispatchNotificationsForDomainEvent.php`, `resources/views/partials/{live-pulse,chat-media,messages-toggle}.blade.php`,
+  `resources/views/livewire/operator/{team-chat,operator-inbox}.blade.php`, `routes/web.php`.
 - **docs:** `CLAUDE.md` · `docs/DEPLOYMENT.md` · `docs/KNOWN-LIMITS.md` (L12g/h/k/m/p, L13–L20) · `docs/DECISIONS.md`
   (ADMIN 01 P1–P5, TONIGHT 01, ADMIN 04/05/06) · `docs/EMAIL-PRODUCTION.md` · `docs/GOOGLE-SIGN-IN.md` ·
   `docs/OAUTH-DESIGN.md` · `docs/STRIPE-PRODUCTION.md` · `docs/GO-LIVE-REQUIREMENTS.md` · `docs/STATE.md` ·

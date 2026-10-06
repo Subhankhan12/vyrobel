@@ -16,9 +16,11 @@ use App\Models\Note;
 use App\Models\Reservation;
 use App\Models\SyncJob;
 use App\Models\User;
+use App\Notifications\Operator\InboxMessageNotification;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Events\DomainEventRecorder;
 use App\Support\Guest\GuestName;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -514,6 +516,14 @@ class InboxService
             'unread_count' => 0,
             'operator_last_read_at' => now(),
         ])->save();
+
+        // the staff's bell entries for this conversation are read too — the unread counter is shared, so is its entry
+        // (2026-10-06: a guest's or owner's message rings the bell; whoever opens it answers it for everyone)
+        DatabaseNotification::query()
+            ->where('type', InboxMessageNotification::class)
+            ->whereNull('read_at')
+            ->where('data->thread_id', (string) $thread->getKey())
+            ->update(['read_at' => now()]);
 
         return $thread;
     }

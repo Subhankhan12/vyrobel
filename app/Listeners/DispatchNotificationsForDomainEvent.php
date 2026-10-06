@@ -18,6 +18,9 @@ use App\Models\Payout;
 use App\Models\Reservation;
 use App\Models\ReservationUnit;
 use App\Models\Review;
+use App\Models\TeamConversation;
+use App\Models\TeamConversationMember;
+use App\Models\TeamMessage;
 use App\Models\Unit;
 use App\Models\User;
 use App\Notifications\FeedNotification;
@@ -28,11 +31,13 @@ use App\Notifications\Guest\GuestRefundProcessedNotification;
 use App\Notifications\Guest\GuestReviewRequestNotification;
 use App\Notifications\Operator\BalanceDueNotification;
 use App\Notifications\Operator\ChannelSyncErrorNotification;
+use App\Notifications\Operator\InboxMessageNotification;
 use App\Notifications\Operator\LowRatingNotification;
 use App\Notifications\Operator\NewBookingNotification;
 use App\Notifications\Operator\NewReviewNotification;
 use App\Notifications\Operator\OwnerPayoutSentNotification;
 use App\Notifications\Operator\StatementFinalizedNotification;
+use App\Notifications\Operator\TeamMessageNotification;
 use App\Notifications\Operator\ThreadAssignedNotification;
 use App\Notifications\Operator\UnitOutOfOrderNotification;
 use App\Notifications\Operator\UrgentWorkOrderNotification;
@@ -44,7 +49,9 @@ use App\Notifications\Owner\PayoutSentNotification;
 use App\Notifications\Owner\StatementReadyNotification;
 use App\Support\Folio\FolioTotals;
 use App\Support\Guest\GuestName;
+use App\Support\Inbox\ThreadName;
 use App\Support\Notifications\NotificationRecipients;
+use App\Support\TeamChat\TeamChatReader;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Log;
 /**
@@ -87,6 +94,10 @@ class DispatchNotificationsForDomainEvent
         // IN-APP row is dispatched from the notification dispatcher, leaving that email listener untouched.
         'reservation.cancelled',
         'payment.refunded',
+        // TEAM CHAT (2026-10-06) — a teammate wrote: one bell entry per conversation while unread, in-app only.
+        'team_chat.message_sent',
+        // THE GUESTS SIDE (2026-10-06) — a guest or a unit owner wrote: nobody on the staff was told before.
+        'inbox.message_received',
     ];
 
     /**
@@ -163,6 +174,8 @@ class DispatchNotificationsForDomainEvent
                     'inbox.message_sent' => $this->ownerMessage($domainEvent),
                     'reservation.cancelled' => $this->guestBookingCancelled($domainEvent),
                     'payment.refunded' => $this->guestRefundProcessed($domainEvent),
+                    'team_chat.message_sent' => $this->teamMessage($domainEvent, $orgId),
+                    'inbox.message_received' => $this->inboxMessage($domainEvent, $orgId),
                 };
             });
         } catch (Throwable $e) {
@@ -464,6 +477,71 @@ class DispatchNotificationsForDomainEvent
         }
 
         $assignee->notify(new ThreadAssignedNotification($thread, GuestName::display($thread->guest)));
+    }
+
+    /**
+     * TEAM CHAT (2026-10-06) — a teammate wrote. Every OTHER member who still works here gets ONE bell entry for the
+     * conversation: the earlier entry, read or not, is replaced by one that counts what is unread ("Max Brown sent you 2
+     * messages"; in a group "Anna Lee wrote in Morning shift" / "3 new messages in Morning shift"). It names people, never
+     * the text. ⚠️ A member whose membership ended keeps their place in the conversation but is never rung (the review).
+     */
+    private function teamMessage(DomainEvent $domainEvent, string $orgId): void
+    {
+        $message = TeamMessage::query()->with(['sender:id,name', 'conversation'])->find($domainEvent->subject_id);
+        if (! $message instanceof TeamMessage || ! $message->conversation instanceof TeamConversation) {
+            return;
+        }
+        $conversation = $message->conversation;
+        $sender = (string) ($message->sender->name ?? 'A teammate');
+        $reader = app(TeamChatReader::class);
+
+        $staff = $this->recipients->operatorsForOrg($orgId)->map(fn (User $u): string => (string) $u->getKey())->all();
+        $recipients = User::query()->whereIn('id', $staff)->whereIn('id', TeamConversationMember::query()
+            ->where('conversation_id', $conversation->getKey())->where('user_id', '!=', (string) $message->user_id)->select('user_id'))->get();
+
+        foreach ($recipients as $recipient) {
+            $unread = max(1, $reader->unreadIn($conversation, $recipient));
+            $groupName = $reader->displayName($conversation, $recipient);
+            $title = $conversation->kind === TeamConversation::DIRECT
+                ? ($unread > 1 ? $sender.' sent you '.$unread.' messages' : $sender.' sent you a message')
+                : ($unread > 1 ? $unread.' new messages in '.$groupName : $sender.' wrote in '.$groupName);
+
+            $recipient->notifications()   // one entry per conversation — never a pile of read ones beneath it
+                ->where('type', TeamMessageNotification::class)
+                ->where('data->conversation_id', (string) $conversation->getKey())
+                ->delete();
+            $recipient->notify(new TeamMessageNotification((string) $conversation->getKey(), $title, 'Team chat'));
+        }
+    }
+
+    /**
+     * THE GUESTS SIDE (2026-10-06) — a guest or a unit owner wrote. The person the conversation is assigned to (while they
+     * may still read guest conversations), else everyone who may (`guests.view`), gets ONE bell entry for it — the earlier
+     * entry, read or not, is replaced by one that counts ("2 new messages from Ines Ibarra"). Name only (#28).
+     */
+    private function inboxMessage(DomainEvent $domainEvent, string $orgId): void
+    {
+        $thread = MessageThread::query()->with(['guest', 'owner'])->find((string) ($domainEvent->payload['thread_id'] ?? ''));
+        if (! $thread instanceof MessageThread) {
+            return;
+        }
+
+        $readers = $this->recipients->operatorsForOrgWithPermission($orgId, 'guests.view');
+        $assignee = $thread->assigned_to !== null ? $readers->firstWhere('id', (string) $thread->assigned_to) : null;
+        $recipients = $assignee instanceof User ? collect([$assignee]) : $readers;
+
+        $name = ThreadName::for($thread);
+        $unread = max(1, (int) $thread->unread_count);
+        $title = $unread > 1 ? $unread.' new messages from '.$name : 'New message from '.$name;
+        $context = $thread->owner_id !== null ? 'Owner conversation' : 'Guest conversation';
+
+        foreach ($recipients as $recipient) {
+            $recipient->notifications()   // one entry per conversation — never a pile of read ones beneath it
+                ->where('type', InboxMessageNotification::class)
+                ->where('data->thread_id', (string) $thread->getKey())
+                ->delete();
+            $recipient->notify(new InboxMessageNotification((string) $thread->getKey(), $title, $context));
+        }
     }
 
     /** Send one notification to every back-office recipient in the org (no-op when there are none). */

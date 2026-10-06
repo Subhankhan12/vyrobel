@@ -60,6 +60,9 @@ class SecurityHeaders
             'font-src' => "'self' data:",
             // See note 4 — data: favicon, blob: upload previews.
             'img-src' => "'self' data: blob:",
+            // Team chat (2026-10-06) — a voice note is played back from the browser's own recording (a blob: URL) before
+            // it is sent; sent ones play from our own signed-in file route.
+            'media-src' => "'self' blob:",
             'connect-src' => "'self'",
             // See note 3 — the same-origin email-preview iframe.
             'frame-src' => "'self'",
@@ -95,8 +98,11 @@ class SecurityHeaders
         // Send the origin cross-site (useful for our own analytics/referrer logic) but never the path or
         // query — a booking or guest id in a Referer to a third party would be a real leak.
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        // Nothing in this app uses these, so deny them outright rather than leaving them at the UA default.
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()');
+        // Nothing in this app uses these, so deny them outright rather than leaving them at the UA default — except the
+        // microphone on the two Messages pages, where a voice note is recorded (team chat, 2026-10-06): allowed for this
+        // site only, `(self)`, and nowhere else.
+        $microphone = $request->routeIs('app.inbox', 'app.inbox.team') ? 'microphone=(self)' : 'microphone=()';
+        $response->headers->set('Permissions-Policy', 'camera=(), '.$microphone.', geolocation=(), payment=(), usb=(), interest-cohort=()');
 
         // ⚠️ HSTS only when the connection is genuinely secure — see the class docblock.
         if ($request->isSecure()) {

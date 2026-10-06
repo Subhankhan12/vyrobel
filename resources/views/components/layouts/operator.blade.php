@@ -166,6 +166,23 @@
            asks for. */
         .vy-nav-item[aria-disabled="true"] { cursor: default; }
         .vy-nav-item[aria-disabled="true"]:hover { background: transparent; color: var(--vy-on-grad); }
+        /* Team chat (2026-10-06) — Messages' live unread count (partials/live-pulse fills it; hidden at 0). */
+        .vy-menu-count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; background: linear-gradient(140deg, #E8703A, #C2410C); box-shadow: 0 2px 6px rgba(194, 65, 12, .28); }
+        .vy-menu-count[hidden] { display: none; }
+
+        /* Messages: Guests | Team (team chat, 2026-10-06) — the two kinds of conversation, each with its unread count. */
+        .vy-msg-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px; margin: 0 0 16px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.5); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
+        .vy-msg-tab { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px 0 12px; border-radius: var(--vy-r-pill); font-size: 13.5px; font-weight: 600; color: var(--vy-on-grad); text-decoration: none; transition: background .15s ease, color .15s ease, box-shadow .15s ease; }
+        .vy-msg-tab svg { width: 17px; height: 17px; flex: none; }
+        .vy-msg-tab:hover { color: var(--vy-ink); background: rgba(255, 255, 255, 0.6); }
+        .vy-msg-tab.is-on { background: #fff; color: var(--vy-accent-text); box-shadow: var(--vy-shadow-sm); }
+        .vy-msg-tab:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-msg-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; background: var(--vy-accent); }
+        .vy-msg-count[hidden] { display: none; }
+        @media (max-width: 560px) {
+            .vy-msg-toggle { display: flex; width: 100%; }
+            .vy-msg-tab { flex: 1; justify-content: center; padding: 0 10px; }
+        }
 
         /* Main column */
         .vy-main { padding: 22px 30px 60px; max-width: 1480px; }
@@ -3412,5 +3429,6 @@
     @livewireScripts
     @include('partials.submit-guard')   {{-- Polish Batch 4 — double-submit guard for the operator money/inventory writes --}}
     @include('partials.count-up')       {{-- Polish Batch 5 — KPI/hero count-up (lands on the exact real figure) --}}
+    @include('partials.live-pulse')     {{-- Team chat (2026-10-06) — the live bell, Messages badge and chime on every page --}}
 </body>
 </html>

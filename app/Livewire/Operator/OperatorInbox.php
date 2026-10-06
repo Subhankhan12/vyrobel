@@ -8,16 +8,20 @@ use App\Http\Controllers\Operator\InboxActionController;
 use App\Livewire\Owner\OwnerMessages;
 use App\Models\Message;
 use App\Models\MessageThread;
+use App\Models\Owner;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Services\InboxService;
 use App\Support\Guest\GuestHistory;
 use App\Support\Inbox\MessageAttachments;
 use App\Support\Inbox\MessageTemplate;
+use App\Support\Inbox\ThreadName;
 use App\Support\Operator\OperatorWorkspace;
+use App\Support\Platform\BreakGlass;
 use App\Support\Reservations\ReservationStage;
 use App\Support\Reservations\StayLabel;
 use App\Support\Schedule\StaffRoster;
+use App\Support\TeamChat\TeamChatReader;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
@@ -61,9 +65,12 @@ class OperatorInbox extends Component
 
         // Mark the explicitly-opened thread read FIRST (an explicit ?c=, never the default preview) so the rail
         // badge + unread count reflect it on THIS request. Tenant-scoped find → cross-org id = null.
+        // ⚠️ Never the page's own live refresh (`live=1`, 2026-10-06 — the independent review): it re-reads the open
+        // conversation every few seconds, and reading it there marked messages read nobody had looked at — and, as a
+        // read is itself a change, refreshed again forever. The page posts `app.inbox.read` when the person is there.
         $explicitId = is_string(request()->query('c')) && request()->query('c') !== '' ? (string) request()->query('c') : null;
         $explicitThread = $explicitId !== null ? MessageThread::query()->find($explicitId) : null;
-        if ($explicitThread !== null) {
+        if ($explicitThread !== null && ! request()->boolean('live')) {
             app(InboxService::class)->markRead($explicitThread);
         }
 
@@ -123,6 +130,14 @@ class OperatorInbox extends Component
                 ['key' => 'review-request', 'label' => 'Thanks & review'],
             ],
             'readOnly' => app(OperatorWorkspace::class)->isReadOnly(),
+            // Guests | Team (team chat, 2026-10-06) — the toggle's two counts (kept live by the pulse) and its label
+            // (a support session borrows a staff member's view, never their team chat — its count stays theirs)
+            'teamUnread' => auth()->user() instanceof User && ! BreakGlass::hasStash(request()) ? app(TeamChatReader::class)->unreadTotal(auth()->user()) : 0,
+            'guestsLabel' => Owner::query()->exists() ? 'Guests & owners' : 'Guests',
+            // the live refresh (2026-10-06): the stamp to ask, and the open conversation it covers
+            // `opened`: the person opened it (?c=) — only then does the page read new messages for them, never a preview
+            'live' => ['live' => route('app.inbox.live'), 'c' => $active['id'] ?? null, 'opened' => $explicitThread !== null,
+                'read' => $active !== null ? route('app.inbox.read', $active['id']) : null],
         ]);
     }
 
@@ -370,6 +385,7 @@ class OperatorInbox extends Component
 
         return [
             'id' => (string) $thread->getKey(),
+            'unread' => (int) $thread->unread_count,
             'name' => $name,
             'initials' => $this->initials($name),
             'channel_label' => $channel['label'],
@@ -647,24 +663,10 @@ class OperatorInbox extends Component
 
     // ── Shared helpers ───────────────────────────────────────────────────────────────────────────
 
+    /** The conversation's name — the one rule ({@see ThreadName}), shared with the staff's bell. */
     private function displayName(MessageThread $thread): string
     {
-        $owner = $thread->owner;
-        if ($owner !== null && trim((string) $owner->name) !== '') {
-            return (string) $owner->name;
-        }
-
-        $guest = $thread->guest;
-        if ($guest !== null) {
-            $name = trim(((string) $guest->first_name).' '.((string) $guest->last_name));
-            if ($name !== '') {
-                return $name;
-            }
-        }
-
-        $label = $thread->messages->first()?->sender_label;
-
-        return $label !== null && $label !== '' ? (string) $label : 'Unknown sender';
+        return ThreadName::for($thread);
     }
 
     private function reservationTag(MessageThread $thread): ?string

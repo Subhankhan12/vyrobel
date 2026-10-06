@@ -64,7 +64,9 @@
             ['guest-requests', 'Guest requests', 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9 10h6M9 13h4', auth()->user()?->can('reservations.view') ? route('app.guest-requests') : null],
             ['guests', 'Guests', 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', auth()->user()?->can('guests.view') ? route('app.guests') : null],
             ['reviews', 'Reviews', 'M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6L7.9 14 2 9.4h7.6z', auth()->user()?->can('reviews.view') ? route('app.reviews') : null],
-            ['inbox', 'Messages', 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', auth()->user()?->can('guests.view') ? route('app.inbox') : null],
+            // ⚠️ TEAM CHAT (2026-10-06) — Messages is for every back-office user now: the guest and owner conversations for
+            //    whoever holds `guests.view`, team chat for everyone else (it was hidden from four of the eleven roles).
+            ['inbox', 'Messages', 'M4 13h5l2 3h2l2-3h5M4 13V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v7M4 13v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5', auth()->user()?->can('guests.view') ? route('app.inbox') : route('app.inbox.team')],
         ]],
         ['OPERATIONS', [
             ['housekeeping', 'Housekeeping', 'M3 21h18M6 21V10l6-4 6 4v11M10 21v-5h4v5', route('app.housekeeping')],
@@ -128,12 +130,12 @@
                     @if ($isActive)
                         <span class="vy-nav-item is-active" aria-current="page">
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
-                            {{ $label }}
+                            {{ $label }}@if ($key === 'inbox')<span class="vy-menu-count" data-vy-badge="messages" hidden></span>@endif
                         </span>
                     @elseif ($href)
                         <a class="vy-nav-item" href="{{ $href }}">
                             <svg class="vy-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
-                            {{ $label }}
+                            {{ $label }}@if ($key === 'inbox')<span class="vy-menu-count" data-vy-badge="messages" hidden></span>@endif
                         </a>
                     @elseif ($key === 'channels' && ! $channelsAllowed)
                         {{-- Feature-gated by plan: Channels is a Pro feature; an Essential org sees a "Pro" lock. --}}

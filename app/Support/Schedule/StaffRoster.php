@@ -144,7 +144,8 @@ final class StaffRoster
         );
     }
 
-    private function initials(string $name): string
+    /** Two letters for an avatar — the roster's, read by team chat too (one definition). */
+    public static function initials(string $name): string
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [];
         $letters = array_map(fn (string $p): string => mb_substr($p, 0, 1), array_slice($parts, 0, 2));
