@@ -340,7 +340,8 @@ it('lists countries by name — and still sends the two-letter code the booking 
     // 🔬 before: a bare box, "optional · 2 letters, e.g. PT"
     $html = nrbPage(operatorUser($s, [], 'Hotel Manager'));
     expect($html)->toContain('<select id="gc" name="guest_country"')
-        ->toMatch('~<option value="PT"\s*>Portugal</option>~')   // @selected leaves its space when false
-        ->toMatch('~<option value="AZ"\s*>Azerbaijan</option>~')
+        // names from ICU (`ext-intl`); GitHub's image leaves it out on purpose (DEPLOYMENT §7.5.1b) — there each option is its code
+        ->toMatch(extension_loaded('intl') ? '~<option value="PT"\s*>Portugal</option>~' : '~<option value="PT"\s*>PT</option>~')   // @selected leaves its space when false
+        ->toMatch(extension_loaded('intl') ? '~<option value="AZ"\s*>Azerbaijan</option>~' : '~<option value="AZ"\s*>AZ</option>~')
         ->not->toContain('2 letters, e.g. PT');
 });

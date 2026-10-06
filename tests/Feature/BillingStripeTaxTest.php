@@ -5,6 +5,7 @@ use App\Models\Plan;
 use App\Models\RoomType;
 use App\Models\Subscription;
 use App\Models\Unit;
+use App\Payments\Stripe\FakeStripeClient;
 use App\Payments\Stripe\StripeClientInterface;
 use App\Services\BillingService;
 use App\Support\Billing\BillableUnits;
@@ -108,16 +109,24 @@ it('⚠️ THE CHECKOUT — the pass-2 refusal is LIFTED for per-unit, because t
     // Pass 2 threw here in production. It no longer does — the convention is declared AND wired.
     app()->detectEnvironment(fn () => 'production');
     config()->set('services.stripe.fake', false);
+    // ⚠️ THE GUARDS RUN FOR REAL; THE TRANSPORT STAYS FAKE (2026-10-06). The guards read the environment and `services.stripe.fake`
+    // (StripePriceWiring::productionMoneyPath()), so they are exercised exactly as before — but the client the container builds
+    // for that state is the REAL one: locally it found a test-mode secret and called Stripe on every run (~0.3 s each, with Price
+    // ids that do not exist there — "passing" only because Stripe's own error is not a RuntimeException), and on GitHub, with no
+    // secret, it refused to start. The fake records what would have been sent, and the tests now read it.
+    app()->instance(StripeClientInterface::class, new FakeStripeClient);
 
     try {
         expect(fn () => app(BillingService::class)->startCheckout($org, 'metered', 'monthly'))
             ->not->toThrow(RuntimeException::class);
+        expect(collect(app(StripeClientInterface::class)->checkoutSessions)->last()['price'] ?? null)->toBe('price_1RealMeteredMonthly');
 
         // ⚠️ THE GUARD WAS NOT REMOVED — unset the convention and production refuses to bill again.
         config()->set('billing.stripe_tax_behavior', null);
         expect(fn () => app(BillingService::class)->startCheckout($org, 'metered', 'monthly'))
             ->toThrow(RuntimeException::class, 'no Stripe tax convention is declared');
     } finally {
+        app()->forgetInstance(StripeClientInterface::class);
         app()->detectEnvironment(fn () => 'testing');
         config()->set('services.stripe.fake', true);
         config()->set('billing.stripe_tax_behavior', 'exclusive');

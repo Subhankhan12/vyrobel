@@ -329,7 +329,10 @@ change is said.** Briefs live in `briefs/`.
   (corrected there). Fixed: `defaults.run.shell: bash`; two fixtures that refused by folder permissions (root ignores them) rebuilt
   to refuse by structure. The first run that reached the gates (2026-10-06) passed Gates 0–2 and found two more of ours, both fixed:
   a `set_time_limit(300)` that LOWERED the test process's "unlimited" (the suite died at nine minutes) and nine concurrency tests
-  whose workers hardcoded `127.0.0.1`. Open until a run is green end to end — `HISTORY.md` ("GITHUB AND MEMORY").
+  whose workers hardcoded `127.0.0.1`. The second ran the whole suite: 26 environment failures, each reproduced here and fixed —
+  Passport keys never made, `.env.example` (`APP_NAME=Laravel`; empty `SESSION_SECURE_COOKIE=` / `FORCE_HTTPS=` that turned the
+  production defaults OFF), production-path billing tests that built the REAL Stripe client (here they called Stripe's test API on
+  every run), and five country-name tests that assumed `ext-intl`. Open until a run is green end to end — `HISTORY.md`.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

@@ -555,6 +555,17 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **A worker that finds its own database is a worker that cannot follow you.** Nine concurrency tests hardcoded `127.0.0.1:3306` for
   their worker processes — the reason an engine on another port failed them (2026-09-21) and why GitHub's container (MySQL at
   `mysql`) could never run them. Hand a child process the parent's resolved connection (`raceWorkerDbEnv()`) (Verified 2026-10-06).
+- **An empty line in an env template is a value, not "unset".** `SESSION_SECURE_COOKIE=` gives `''`, which beats the config's
+  production default — the 2026-08-07 audit added that line to close "a deploy copying the template got insecure cookies" and
+  reopened exactly that (found 2026-10-06 when GitHub built from the template). Document such a setting COMMENTED OUT.
+- **A test of the production path must keep the transport fake.** The guards read the environment; the container builds the client
+  from the same state — so a "production" test built the REAL Stripe client, called Stripe's test API with the local secret on every
+  run, and passed only because Stripe's error is not the exception it negated (🔬 0.27–0.53 s each). Bind the fake instance for the
+  production branch and assert what it recorded (Verified 2026-10-06).
+- **What git ignores, the pipeline must make.** Passport's keys (`storage/oauth-*.key`) exist on this Mac and on the host, never in a
+  checkout: `php artisan passport:keys --force` in CI (Verified 2026-10-06, 14 OAuth tests).
+- **A test that reads ICU depends on `ext-intl`.** GitHub's image omits it by design (DEPLOYMENT §7.5.1b); assert the names where it is
+  loaded and the documented fallback where it is not — never the names alone (Verified 2026-10-06).
 
 
 ---

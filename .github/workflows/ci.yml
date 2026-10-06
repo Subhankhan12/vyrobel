@@ -167,6 +167,9 @@ jobs:
           set -euo pipefail
           cp .env.example .env
           php artisan key:generate
+          # Passport's signing keys live in storage/ and are never committed (.gitignore): fresh ones for this
+          # throwaway runner, or every OAuth test fails "Invalid key supplied" (the first full run, 2026-10-06).
+          php artisan passport:keys --force
           # A second schema for the seed gate, so it never touches the suite's database.
           mysql -h "$DB_HOST" -u root -e 'CREATE DATABASE IF NOT EXISTS vyrobel;'
 

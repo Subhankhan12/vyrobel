@@ -827,7 +827,10 @@ is why those lines are in this list and not left to the pre-flight.
 > them. Fixed 2026-10-06 (`defaults.run.shell: bash` on the gates job); the first run able to reach the gates, and its result, are in
 > `docs/memory/HISTORY.md` ("GITHUB AND MEMORY"). ⚠️ Found with it: the container runs as **root**, which ignores folder
 > permissions — a fixture that refuses a write or a delete with a read-only folder refuses nothing there; two were rebuilt to refuse
-> by structure.
+> by structure. The first full runs found more, all fixed the same day: a `set_time_limit(300)` that lowered the test process's
+> "unlimited"; concurrency workers hardcoded to `127.0.0.1`; Passport keys never generated; `.env.example` wrong for a new
+> environment (`APP_NAME=Laravel`, and empty `SESSION_SECURE_COOKIE=` / `FORCE_HTTPS=` lines that turned the production defaults
+> off); production-path billing tests that built the real Stripe client; country-name tests that assumed `ext-intl`.
 
 ⚠️ **What this closes.** Every gate in this project has been run **by hand** and reported in prose: the full
 suite, PHPStan L5, Pint, and the money-as-seeded re-measure. That worked because one person ran them every

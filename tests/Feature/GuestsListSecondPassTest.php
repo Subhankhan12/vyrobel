@@ -114,8 +114,16 @@ it('⚠️ stacks before the full table can outgrow its card — and lets only a
     expect(gp2Css())->toContain('@container vy-gst-list (max-width: 960px) {')
         // …and only where it must: a wrap allowed at every width was taken at 1,440 px too (🔬 the table shares its shrinking out)
         ->toMatch('~@container vy-gst-list \(max-width: 1080px\) \{\s*\.vy-gst \.vy-gl-c-nat\.is-long \{ white-space: normal; \}\s*\}~');
-    expect($html)->toContain('<td class="vy-gl-c-nat is-long" data-label="Nationality">')
-        ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*United Kingdom~');
+    // ⚠️ Names come from ICU (`ext-intl`: here and on production). GitHub's check image leaves it out ON PURPOSE (DEPLOYMENT §7.5.1b,
+    //    `ops/runtime-contract.sh`: "absent — alpha-2 codes. Correct, by design"), so there the documented fallback is asserted.
+    if (extension_loaded('intl')) {
+        expect($html)->toContain('<td class="vy-gl-c-nat is-long" data-label="Nationality">')
+            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*United Kingdom~');
+    } else {
+        // without names every cell is a two-letter code, and a code is never long
+        expect($html)->not->toContain('vy-gl-c-nat is-long')
+            ->toMatch('~<td class="vy-gl-c-nat" data-label="Nationality">(?:<!--\[if BLOCK\]><!\[endif\]-->)?\s*GB~');
+    }
 });
 
 it('⚠️ puts email and phone each on its own line — an email breaks only when it must, and no separator is left dangling', function () {
@@ -314,9 +322,11 @@ it('⚠️ offers every country by name for nationality — in Add guest and in 
     $html = gp2Page($s);
 
     // 🔬 before: a two-letter box with a pattern ("· 2 letters", placeholder "IE")
+    // ⚠️ Names come from ICU (`ext-intl`: here and on production). GitHub's check image leaves it out ON PURPOSE (DEPLOYMENT §7.5.1b,
+    //    `ops/runtime-contract.sh`: "absent — alpha-2 codes. Correct, by design"), so there the documented fallback is asserted.
     expect($html)->toContain('<select class="vy-input" id="a_nat" name="nationality">')
         ->toContain('<select class="vy-input" id="vy-gl-e-nat" name="nationality" x-model="edit.nationality" x-ref="nat">')
-        ->toContain('<option value="JP">Japan</option>')
+        ->toContain(extension_loaded('intl') ? '<option value="JP">Japan</option>' : '<option value="JP">JP</option>')
         ->not->toContain('pattern="[A-Za-z]{2}"')->not->toContain('· 2 letters');
 
     test()->actingAs(operatorUser($s))->post(route('app.guests.store'), ['last_name' => 'Watanabe', 'first_name' => 'Kenji', 'nationality' => 'JP'])
@@ -339,7 +349,8 @@ it('⚠️⚠️ keeps a code the country list does not have — carried apart f
 
     // the saved code and its name travel apart from the live choice, so picking France never adds a second "FR (as saved)"
     expect($html)->toMatch('~nationality_unlisted(?:&quot;|\\\\u0022):(?:&quot;|\\\\u0022)XK(?:&quot;|\\\\u0022)~')
-        ->toMatch('~nationality_unlisted_label(?:&quot;|\\\\u0022):(?:&quot;|\\\\u0022)Kosovo \(as saved\)~')
+        // (ICU names XK "Kosovo"; without ext-intl — GitHub's image, DEPLOYMENT §7.5.1b — the label is its code)
+        ->toMatch('~nationality_unlisted_label(?:&quot;|\\\\u0022):(?:&quot;|\\\\u0022)'.(extension_loaded('intl') ? 'Kosovo' : 'XK').' \(as saved\)~')
         ->toContain('<template x-if="edit.nationality_unlisted"><option :value="edit.nationality_unlisted" x-text="edit.nationality_unlisted_label"></option></template>');
     // 🖥 before (the review, then measured in the browser): x-model chose before x-if had added the option — Edit opened on
     //    "Not given" with the select's value "", and Save would have erased XK. The select is set again once the option is there.

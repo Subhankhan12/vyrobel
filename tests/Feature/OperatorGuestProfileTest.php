@@ -81,7 +81,9 @@ it('renders the real guest with contact, flags, tags, notes and every stay', fun
         ->assertSee('Corporate')                             // the real tag via the shared pivot
         ->assertSee('Prefers the quiet side of the building.')   // the real note
         ->assertSee('Marco Staff')                           // its real author
-        ->assertSee('Ireland')                               // nationality → name, via the shared helper
+        // nationality → name, via the shared helper — from ICU (`ext-intl`); GitHub's image leaves it out on purpose
+        // (DEPLOYMENT §7.5.1b), and there the documented fallback, the code, is shown in the same place
+        ->assertSee(extension_loaded('intl') ? 'Ireland' : '<span class="vy-sep">·</span><span>IE</span>', false)
         ->assertSee($stay->reference)                        // the real stay
         ->assertSee('€300.00');                              // the real money
 

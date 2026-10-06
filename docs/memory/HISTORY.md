@@ -1029,6 +1029,29 @@ two tests (one RED on the old line) and two mutations (A05-M50, A05-M51, caught)
 test files hardcoded their workers' database as `127.0.0.1:3306` — inside the container MySQL is the service `mysql`, so every
 worker would have failed to connect (the same cause as `CLAUDE.md`'s "workers ignore an exported DB_PORT"). They now take the
 suite's own resolved connection (`raceWorkerDbEnv()`); 19/19 pass here.
+**The second push** (`92719a10..d0dd97aa`, 20:23:10 Baku, after the four hard stops again — the history scan the same 128 hits in
+40 locations, none in the commit's 21 files). **GitHub's second run** (37495290215) ran the whole suite for the first time:
+**26 failed, 2 skipped, 4,454 passed** — every failure an environment difference, none a product fault on this Mac (4,482/4,482 on
+MySQL 20:23–20:40 and on MariaDB 20:41–20:58 Baku, the same commit). Each cause was read from the run's own messages, then
+**reproduced here** with a temporary `.env.testing` copied from `.env.example`, as the workflow builds its `.env` (deleted after):
+- **OAuth, 14 tests — "Invalid key supplied":** Passport's signing keys live in `storage/` and are never committed; the workflow
+  never made any. It now runs `php artisan passport:keys --force` for each throwaway runner.
+- **The cookie notice, 3 tests, and the secure cookie, 1 — `.env.example` was wrong for any new environment:** `APP_NAME=Laravel`
+  made the session cookie `laravel-session`, which the notice does not disclose (production's is `vyrobel-session`); and
+  `SESSION_SECURE_COOKIE=` / `FORCE_HTTPS=` were EMPTY lines — an empty line is a value (`''`), so a deploy copied from the
+  template got non-secure session cookies and plain-http URLs, the very defect the 2026-08-07 audit had added the line to close.
+  🔬 Production itself is right (read-only: `vyrobel-session`, secure `true`). The template now says `APP_NAME=Vyrobel` and keeps
+  the two lines commented out, with why.
+- **Billing, 3 tests — and a hidden network call:** the production-path tests let the container build the REAL Stripe client. Here it
+  found the local test-mode secret and called Stripe's test API on every run (🔬 0.27–0.53 s per test, against Price ids that do not
+  exist there — "passing" only because Stripe's own error is not a RuntimeException); on GitHub, with no secret, it refused to start.
+  The guards still run on the real production path (they read the environment and `services.stripe.fake`), but the transport is the
+  fake now and the tests read what it recorded — the real Price ids (0.03 s each; nothing leaves the machine).
+- **Country names, 5 tests:** names come from ICU (`ext-intl`, here and on production — 🔬 production: Japan); GitHub's image leaves
+  it out ON PURPOSE (DEPLOYMENT §7.5.1b: the guarded fallback is the two-letter code). The tests assumed it; they now assert the names
+  where intl is loaded and the documented fallback where it is not.
+The two skips are the auto-memory tests (that file lives on this Mac only — by design). Mutation sets aimed at the changed tests
+re-run: ADMIN 05 51/51, ADMIN 06 87/87, Guests second 58/58, New reservation bookable 29/29 — 225 landed and caught, 0 not caught, 0 did not land (V 21:18–21:23 Baku).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
