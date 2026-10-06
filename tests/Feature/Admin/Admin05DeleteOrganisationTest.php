@@ -152,6 +152,21 @@ it('⚠️ never LOWERS a process with no time limit when it deletes (GitHub\'s 
     }
 })->group('security');
 
+it('⚠️ never LOWERS a longer limit a host allows when it deletes', function () {
+    // "never lower" has two halves: no limit at all (above), and a host whose limit is LONGER than the delete asks for —
+    // set_time_limit(300) there would cut a 600-second allowance to 300.
+    $before = ini_get('max_execution_time');
+    ini_set('max_execution_time', '600');
+    try {
+        $w = a05World();
+        a05Delete($this->actingAs(platformAdmin(), 'admin'), $w['org'])->assertSessionHasNoErrors();
+        expect(ini_get('max_execution_time'))->toBe('600');
+    } finally {
+        set_time_limit(0);
+        ini_set('max_execution_time', (string) $before);
+    }
+})->group('security');
+
 it('still gives a large deletion more time where a web request\'s limit is short', function () {
     // one delete per test: a second delete in the same test meets the console's own limit on deletions first
     $before = ini_get('max_execution_time');

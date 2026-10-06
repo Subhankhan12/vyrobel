@@ -416,7 +416,7 @@ return [
         'id' => 'A05-M50',
         'name' => 'the delete imposes 300 seconds on a process that had no time limit (GitHub\'s first full run died of it)',
         'file' => $ctl,
-        'old' => "        if (function_exists('set_time_limit') && \$limit !== 0 && \$limit < 300) {",
+        'old' => "        if (function_exists('set_time_limit') && \$limit !== 0 && \$limit <= 300) {",
         'new' => "        if (function_exists('set_time_limit')) {",
         'tests' => [['file' => $t, 'filter' => 'never LOWERS a process with no time limit']],
     ],
@@ -427,5 +427,13 @@ return [
         'old' => "            @set_time_limit(300);\n",
         'new' => '',
         'tests' => [['file' => $t, 'filter' => 'limit is short']],
+    ],
+    [
+        'id' => 'A05-M52',
+        'name' => 'the delete cuts a host\'s longer limit (600 seconds) down to 300',
+        'file' => $ctl,
+        'old' => "        if (function_exists('set_time_limit') && \$limit !== 0 && \$limit <= 300) {",
+        'new' => "        if (function_exists('set_time_limit') && \$limit !== 0) {",
+        'tests' => [['file' => $t, 'filter' => 'never LOWERS a longer limit']],
     ],
 ];

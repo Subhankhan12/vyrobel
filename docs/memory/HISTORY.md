@@ -1055,8 +1055,28 @@ re-run: ADMIN 05 51/51, ADMIN 06 87/87, Guests second 58/58, New reservation boo
 **The third push** (`d0dd97aa..693b68fc`, 21:27:29 Baku, the four hard stops again — the history scan unchanged, 128 hits in 40
 locations, none in the commit's 14 files). GitHub's run 37503697885 on `693b68fc` (2026-10-06 21:27–22:09 Baku) is **the first green run in the project's history — every gate**: the runtime contract, the assets, Pint, PHPStan L5, the full suite (**4,480 passed, 2 skipped** — the two auto-memory tests, whose file lives on this Mac only — 32,957 assertions, 2,125 s), the money gate (FULL, `929 / 10928000 / 0 / 42 / 16 / 0`), and the marketing content (9), external-claim (23) and cookie forward-guard (15) gates (V: `gh run view`, the run's own log). Production was not redeployed: it
 stays `rel_BA @ 16b15e2f`, and nothing in the commits after it changes what a web request does (the delete's time limit raises a
-web request's limit exactly as before; the rest is tests, the workflow, the template and docs). The final docs commit is pushed
-after this one, under the same four stops; its own run is read, not recorded here.
+web request's limit exactly as before — ⚠️ not at exactly 300 s, production's own value: see the fourth push, below; the rest is
+tests, the workflow, the template and docs). The final docs commit is pushed after this one, under the same four stops; its own run
+is read, not recorded here.
+**The fourth push, and a sentence that was not true** (22:14–22:31 Baku). `693b68fc..02946350` at 22:14:51, after the four hard
+stops (private · Subhankhan12 · a fast-forward of one commit · the history scan unchanged, 128 hits in 40 locations, none in the
+commit's 5 files); `git ls-remote` read `02946350` back. Then, checking the record against the host before closing: the paragraph
+above and STATE said the delete's new time-limit line raises a web request's limit "exactly as before". 🔬 Production's web PHP
+runs `max_execution_time = 300` (V 22:30:53 Baku: `/opt/alt/php84/etc/php.ini`; the selector's `alt_php.ini` sets only
+extensions; no `.htaccess` or `.user.ini` override; `set_time_limit` not disabled — and the same `php.ini`'s `post_max_size = 256M`
+is the 255 MB the live team chat page reads, so these are the web PHP's files). At exactly 300 the line (`$limit < 300`) did
+nothing, where the live code starts a fresh 300 s: true below 300, untrue at production's own value. Fixed: `$limit <= 300` — a
+fresh 300 s at 300 or less, as before; "no limit" and a longer limit are kept. Reading the guard again found a gap: "never lower"
+has two halves and only "no limit" was tested — a mutant dropping the `<= 300` clause would have cut a 600-second host to 300 with
+every test green. Now a test (600 kept) and mutation A05-M52, caught. The boundary itself (300 restarted, or left running) is
+invisible to a test — `ini_get` reads 300 either way — so it rests on the code comment and this record. Gates: the delete's test
+file 28/28 on MySQL 8.4.10 and 28/28 on MariaDB 11.8.9 (249 assertions each; JUnit 0 failed, 0 errors, 0 skipped); ADMIN 05
+mutations 52/52; PHPStan L5 0 errors (21 s, cold cache); Pint clean. And `DEPLOYMENT.md` §7.5.4's `max_execution_time` row, which
+said "no long-running web path: exports and PDFs are queued", now names the two that are: the delete, and the PDFs that 15
+controllers render in the request (`PdfService`). GitHub's run on `02946350` (37509822810, 22:14:55–22:45:49 Baku): green, every
+gate — the suite 4,480 passed + 2 skipped (32,957 assertions, 1,519 s), money FULL with the same six figures and row digest,
+marketing 9, claims 23, cookies 15 (V: the run's own log). This commit is pushed after it, under the same four stops; its own run
+is read, not recorded here.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
@@ -1131,6 +1151,13 @@ after this one, under the same four stops; its own run is read, not recorded her
   sending — the review; a live refresh that read for the person and refreshed itself for ever — the review; two tests that could not
   fail (TC-M8 asserted "never emailed" with a fake blind to it; IA-M5's layer no data reached) — the mutation harness; a "writes
   nothing" preflight that wrote a probe file — re-reading; "up to 10 MB" stated without reading PHP's ceiling — the walk measured 2.
+
+- **Mine, caught before the pass closed (the GitHub and memory pass, 2026-10-06):** "exactly as before" written about production
+  without reading production's value — true at a typical limit (30 s), untrue at the host's own (300 s); found by checking the
+  record against the host. The guard it described had one tested half of two ("no limit" yes, "a longer limit" no) — reading it
+  again. And a check of my own: a version query that named the wrong database because Laravel had already built the connection —
+  it failed loudly, and was redone with the connection purged. Same lesson as the team chat pass's "up to 10 MB": a sentence about
+  a host is a claim until the host's own value is read.
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

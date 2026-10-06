@@ -780,7 +780,7 @@ Derived from real paths; anything the app does not need is omitted rather than l
 | `post_max_size` | **≥ 14M** | must exceed `upload_max_filesize` plus the rest of the form |
 | `memory_limit` | **≥ 256M** | ⚠️ **The ID-document path is the driver:** `app/Services/Guest/GuestIdDocumentService.php:63` does `Crypt::encryptString((string) $file->get())` — the whole file is read into memory **and** its base64 ciphertext (~1.37×) held alongside it. An 8 MB ID is ~20 MB transient before framework overhead. The test suite already needs `512M` (`phpunit.xml:27`) |
 | `opcache.enable` | **1** | Performance only, not correctness — but a production PHP without it re-parses every file on every request |
-| `max_execution_time` | default is fine | No long-running **web** path: exports and PDFs are queued, and Horizon workers are CLI (no limit) |
+| `max_execution_time` | the host's (production: **300**), with `set_time_limit` not disabled | Two kinds of **web** request can run long: the platform admin's organisation delete, which gives itself 300 s where the limit is shorter (`Admin\CustomerController::destroy` — raise only: "no limit" and a longer limit are kept), and the PDFs, which 15 controllers render in the request (`PdfService`, dompdf). Production's web PHP is 300 s (`php.ini`, Verified 2026-10-06). Queue workers are CLI (no limit). ⚠️ Corrected 2026-10-06: this row said "no long-running web path: exports and PDFs are queued" |
 
 #### 7.5.5 A parity image — deferred to §7.6, deliberately
 

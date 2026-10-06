@@ -551,7 +551,12 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   where a folder must go — which no user can pass (Verified 2026-10-06; both mutations still caught).
 - **A limit meant for a web request must never LOWER "unlimited".** The admin delete's `set_time_limit(300)` ("give it the time")
   imposed 300 seconds on a command-line process whose limit was none — in the one-process test run it killed GitHub's suite nine
-  minutes later, inside an unrelated test. Raise only: `ini_get('max_execution_time')` of `0` is left alone (Verified 2026-10-06).
+  minutes later, inside an unrelated test. Raise only: `ini_get('max_execution_time')` of `0` is left alone, and so is a limit
+  longer than 300; 300 or less starts a fresh 300 s, as it always did (Verified 2026-10-06; tests at 0, 600 and 30).
+- **"Exactly as before" about a host is a claim until the host's own value is read.** The delete's new line was checked at a
+  typical web limit (30 s) and written up as unchanged — production's is 300 s (`php.ini`), the one value where it was not. Read
+  the host's setting before writing that something behaves the same there; a boundary is tested at the real value, not a typical
+  one (Verified 2026-10-06, the GitHub and memory pass).
 - **A worker that finds its own database is a worker that cannot follow you.** Nine concurrency tests hardcoded `127.0.0.1:3306` for
   their worker processes — the reason an engine on another port failed them (2026-09-21) and why GitHub's container (MySQL at
   `mysql`) could never run them. Hand a child process the parent's resolved connection (`raceWorkerDbEnv()`) (Verified 2026-10-06).
