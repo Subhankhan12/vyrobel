@@ -38,12 +38,7 @@ it('⚠️⚠️ F-53 — two CONCURRENT reversals: ONE reversal record, one win
         'RACE_PAYOUT_ID' => $paid->getKey(),
         'RACE_START_AT' => (string) $startAt,
         'QUEUE_CONNECTION' => 'sync',
-        'DB_CONNECTION' => 'mysql',
-        'DB_DATABASE' => 'vyrobel_test',
-        'DB_HOST' => '127.0.0.1',
-        'DB_PORT' => '3306',
-        'DB_USERNAME' => 'root',
-        'DB_PASSWORD' => '',
+        ...raceWorkerDbEnv(),
     ]);
 
     $worker = base_path('tests/Support/payout_reversal_race_worker.php');

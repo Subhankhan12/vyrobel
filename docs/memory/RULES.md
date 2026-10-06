@@ -549,6 +549,12 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   0555`) refuses nothing there: ADMIN 05's "stuck file" test and the Inbox's "disk refuses" test would have seen their write or
   delete succeed and gone red for the runner, not the code. They now refuse by structure — a folder where a file must be, a file
   where a folder must go — which no user can pass (Verified 2026-10-06; both mutations still caught).
+- **A limit meant for a web request must never LOWER "unlimited".** The admin delete's `set_time_limit(300)` ("give it the time")
+  imposed 300 seconds on a command-line process whose limit was none — in the one-process test run it killed GitHub's suite nine
+  minutes later, inside an unrelated test. Raise only: `ini_get('max_execution_time')` of `0` is left alone (Verified 2026-10-06).
+- **A worker that finds its own database is a worker that cannot follow you.** Nine concurrency tests hardcoded `127.0.0.1:3306` for
+  their worker processes — the reason an engine on another port failed them (2026-09-21) and why GitHub's container (MySQL at
+  `mysql`) could never run them. Hand a child process the parent's resolved connection (`raceWorkerDbEnv()`) (Verified 2026-10-06).
 
 
 ---

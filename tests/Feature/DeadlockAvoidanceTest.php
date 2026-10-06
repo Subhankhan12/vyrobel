@@ -50,8 +50,7 @@ it('serializes two multi-room bookings that lock room types in OPPOSITE order, w
             'RACE_ROOM_TYPE_X' => $typeX->id, 'RACE_ROOM_TYPE_Y' => $typeY->id,
             'RACE_GUEST_ID' => $guest->id, 'RACE_CHECK_IN' => '2026-09-01', 'RACE_CHECK_OUT' => '2026-09-03',
             'RACE_START_AT' => (string) $startAt,
-            'DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'vyrobel_test', 'DB_HOST' => '127.0.0.1',
-            'DB_PORT' => '3306', 'DB_USERNAME' => 'root', 'DB_PASSWORD' => '',
+            ...raceWorkerDbEnv(),
         ]);
 
         // Worker 1 books X then Y (unit X1, Y1); Worker 2 books Y then X (unit Y2, X2).

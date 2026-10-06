@@ -411,4 +411,21 @@ return [
         'new' => '<option value="chosen">',
         'tests' => [['file' => $f, 'filter' => 'never quietly widened']],
     ],
+    // ── 2026-10-06 (the GitHub and memory pass): the delete's time limit raises, never lowers ──────────────────────────
+    [
+        'id' => 'A05-M50',
+        'name' => 'the delete imposes 300 seconds on a process that had no time limit (GitHub\'s first full run died of it)',
+        'file' => $ctl,
+        'old' => "        if (function_exists('set_time_limit') && \$limit !== 0 && \$limit < 300) {",
+        'new' => "        if (function_exists('set_time_limit')) {",
+        'tests' => [['file' => $t, 'filter' => 'never LOWERS a process with no time limit']],
+    ],
+    [
+        'id' => 'A05-M51',
+        'name' => 'a large deletion no longer gets more time where a web request\'s limit is short',
+        'file' => $ctl,
+        'old' => "            @set_time_limit(300);\n",
+        'new' => '',
+        'tests' => [['file' => $t, 'filter' => 'limit is short']],
+    ],
 ];

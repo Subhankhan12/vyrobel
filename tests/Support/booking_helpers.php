@@ -219,3 +219,26 @@ if (! function_exists('soldOver')) {
             ->sum('sold');
     }
 }
+
+if (! function_exists('raceWorkerDbEnv')) {
+    /**
+     * The database a race worker must reach — the test process's OWN resolved connection, never a hardcoded host. ⚠️ (2026-10-06)
+     * Nine concurrency tests wrote `127.0.0.1:3306` for their workers, so a worker ignored where the suite's database really was:
+     * GitHub's checks (MySQL at the service host `mysql`) and an engine gate on another port could never reach it.
+     *
+     * @return array<string, string>
+     */
+    function raceWorkerDbEnv(): array
+    {
+        $c = (array) config('database.connections.mysql');
+
+        return [
+            'DB_CONNECTION' => 'mysql',
+            'DB_DATABASE' => (string) ($c['database'] ?? 'vyrobel_test'),
+            'DB_HOST' => (string) ($c['host'] ?? '127.0.0.1'),
+            'DB_PORT' => (string) ($c['port'] ?? '3306'),
+            'DB_USERNAME' => (string) ($c['username'] ?? 'root'),
+            'DB_PASSWORD' => (string) ($c['password'] ?? ''),
+        ];
+    }
+}

@@ -1017,6 +1017,18 @@ refuses" test (mine, this pass's morning) and ADMIN 05's "stuck file" test. Rebu
 go; a folder where the file must be), the assertions unchanged; both mutations re-run and caught (A05-M16, IA-M11); Pint over the whole
 repo clean. The memory: `RULES.md` writes out the four hard stops (named, never defined in the canon before) and the lessons;
 `SYSTEMS.md` §17 (GitHub and its checks); `STATE.md`; `OPEN.md`. The hard stops, the push and the first real run follow below.
+**The first push** — the four hard stops one at a time (2026-10-06 19:5x Baku): private = `true` · the identity `Subhankhan12` ·
+`origin/main` `fc1ee357` an ancestor of `92719a10` (12 commits, a fast-forward) · the history scan: 8,600 blobs, 128 hits in 40
+locations — the recorded baseline, none in any of the 157 files the 12 commits touch. Pushed 19:56:40 (`fc1ee357..92719a10`);
+`git ls-remote` read `92719a10` back. **GitHub's first run that could reach the gates** (37491735299): "Prepare the environment",
+Gate 0 (the runtime contract), the assets, Pint and PHPStan all PASSED for the first time — and the suite DIED after ~9 minutes:
+`Maximum execution time of 300 seconds exceeded`, inside dompdf. 🔬 The cause was ours: the admin delete called `set_time_limit(300)`
+to give a large deletion time — and where the limit is 0 (the command line; the whole test run is one process) that call IMPOSED
+300 seconds on everything after it; GitHub's slower machine ran out. Fixed — raise, never lower (`$limit !== 0 && $limit < 300`),
+two tests (one RED on the old line) and two mutations (A05-M50, A05-M51, caught). And read before the next run: all nine concurrency
+test files hardcoded their workers' database as `127.0.0.1:3306` — inside the container MySQL is the service `mysql`, so every
+worker would have failed to connect (the same cause as `CLAUDE.md`'s "workers ignore an exported DB_PORT"). They now take the
+suite's own resolved connection (`raceWorkerDbEnv()`); 19/19 pass here.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

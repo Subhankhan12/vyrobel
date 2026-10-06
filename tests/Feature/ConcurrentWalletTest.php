@@ -109,12 +109,7 @@ function raceWalletWorkers(array $vars): array
 {
     $env = array_merge(getenv(), $vars, [
         'RACE_START_AT' => (string) (microtime(true) + 2.0),   // both boot, then fire together
-        'DB_CONNECTION' => 'mysql',
-        'DB_DATABASE' => 'vyrobel_test',
-        'DB_HOST' => '127.0.0.1',
-        'DB_PORT' => '3306',
-        'DB_USERNAME' => 'root',
-        'DB_PASSWORD' => '',
+        ...raceWorkerDbEnv(),
     ]);
 
     $worker = base_path('tests/Support/wallet_race_worker.php');

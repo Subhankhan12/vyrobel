@@ -78,8 +78,7 @@ it('permits exactly one of two truly-concurrent reschedules onto the same unit a
             'RACE_NEW_CHECK_IN' => '2026-09-05',
             'RACE_NEW_CHECK_OUT' => '2026-09-07',
             'RACE_START_AT' => (string) $startAt,
-            'DB_CONNECTION' => 'mysql', 'DB_DATABASE' => 'vyrobel_test',
-            'DB_HOST' => '127.0.0.1', 'DB_PORT' => '3306', 'DB_USERNAME' => 'root', 'DB_PASSWORD' => '',
+            ...raceWorkerDbEnv(),
         ]);
 
         $worker = base_path('tests/Support/reschedule_race_worker.php');

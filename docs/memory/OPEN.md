@@ -327,8 +327,9 @@ change is said.** Briefs live in `briefs/`.
   every run from 2026-08-20 to 2026-10-04 (106: 104 failed, 2 cancelled, 0 passed) stopped at its first shell step,
   `set: Illegal option -o pipefail` under the container's `sh`, while `DEPLOYMENT.md` §7.6 said every gate ran on every push
   (corrected there). Fixed: `defaults.run.shell: bash`; two fixtures that refused by folder permissions (root ignores them) rebuilt
-  to refuse by structure. Open until the first run that reaches the gates is green — its result is in `HISTORY.md` ("GITHUB AND
-  MEMORY").
+  to refuse by structure. The first run that reached the gates (2026-10-06) passed Gates 0–2 and found two more of ours, both fixed:
+  a `set_time_limit(300)` that LOWERED the test process's "unlimited" (the suite died at nine minutes) and nine concurrency tests
+  whose workers hardcoded `127.0.0.1`. Open until a run is green end to end — `HISTORY.md` ("GITHUB AND MEMORY").
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

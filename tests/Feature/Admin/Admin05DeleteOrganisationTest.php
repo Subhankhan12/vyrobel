@@ -136,6 +136,36 @@ it('⚠️⚠️ deletes the organisation and EVERYTHING it owns — no row surv
         ->and(PlatformAdminAction::query()->where('action', 'platform.customer.deleted')->where('target_id', $orgId)->value('meta')['name'])->toBe((string) $w['org']->name);
 })->group('security');
 
+it('⚠️ never LOWERS a process with no time limit when it deletes (GitHub\'s first full run, 2026-10-06)', function () {
+    // ⚠️ The delete raised the limit with set_time_limit(300) unconditionally. Where the limit is 0 — "none": the command line, a
+    // queue worker, this test run — that IMPOSED 300 seconds on the rest of the process, and GitHub's first full suite died of it
+    // nine minutes later inside an unrelated PDF test.
+    $before = ini_get('max_execution_time');
+    ini_set('max_execution_time', '0');
+    try {
+        $w = a05World();
+        a05Delete($this->actingAs(platformAdmin(), 'admin'), $w['org'])->assertSessionHasNoErrors();
+        expect(ini_get('max_execution_time'))->toBe('0');
+    } finally {
+        set_time_limit(0);
+        ini_set('max_execution_time', (string) $before);
+    }
+})->group('security');
+
+it('still gives a large deletion more time where a web request\'s limit is short', function () {
+    // one delete per test: a second delete in the same test meets the console's own limit on deletions first
+    $before = ini_get('max_execution_time');
+    ini_set('max_execution_time', '30');
+    try {
+        $w = a05World();
+        a05Delete($this->actingAs(platformAdmin(), 'admin'), $w['org'])->assertSessionHasNoErrors();
+        expect(ini_get('max_execution_time'))->toBe('300');
+    } finally {
+        set_time_limit(0);
+        ini_set('max_execution_time', (string) $before);
+    }
+})->group('security');
+
 it('⚠️⚠️ a person who ALSO belongs to another organisation keeps their account — they only lose this membership', function () {
     $w = a05World();
     $elsewhere = seedScenario(1);

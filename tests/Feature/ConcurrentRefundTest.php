@@ -103,12 +103,7 @@ it('permits exactly one of two truly-concurrent FULL refunds of the same payment
             'RACE_REFUND_MINOR' => (string) $paidMinor, // BOTH try to refund the FULL amount
             'RACE_CURRENCY' => 'EUR',
             'RACE_START_AT' => (string) $startAt,
-            'DB_CONNECTION' => 'mysql',
-            'DB_DATABASE' => 'vyrobel_test',
-            'DB_HOST' => '127.0.0.1',
-            'DB_PORT' => '3306',
-            'DB_USERNAME' => 'root',
-            'DB_PASSWORD' => '',
+            ...raceWorkerDbEnv(),
         ]);
 
         $worker = base_path('tests/Support/refund_race_worker.php');

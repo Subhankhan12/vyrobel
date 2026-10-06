@@ -166,8 +166,12 @@ class CustomerController extends Controller
         $id = (string) $org->id;
         $name = (string) $org->name;
         $slug = (string) $org->slug;
-        // a large organisation is many statements in one transaction — give it the time, where the host allows it
-        if (function_exists('set_time_limit')) {
+        // a large organisation is many statements in one transaction — give it the time, where the host allows it.
+        // ⚠️ RAISE, never lower (2026-10-06): `0` is "no limit" (the command line, a queue worker, the test run), and calling
+        // set_time_limit(300) there IMPOSED a 300-second limit on the rest of the process — GitHub's first full run died of
+        // it nine minutes later, inside an unrelated PDF test.
+        $limit = (int) ini_get('max_execution_time');
+        if (function_exists('set_time_limit') && $limit !== 0 && $limit < 300) {
             @set_time_limit(300);
         }
         try {

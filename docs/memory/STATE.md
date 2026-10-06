@@ -241,8 +241,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     beneath; above 560 px one row as before. The tab shown is marked for a screen reader (`aria-current`), not by colour alone. 🖥
     local walk at 320 / 360 / 375 / 390 / 430 / 560 / 561 / 768 / 1,024 / 1,280 px: no tab clipped, no sideways scroll.
     `InboxComposeRedesignTest` +2 (13; both RED first), `inbox-compose` IB-M18…M24 caught (24/24). Gates: **4,434/4,434 on MySQL 8.4.10** (32,565 assertions; tree `d24833fe404086c0`, 02:44–03:02 Baku — before two comment dates were corrected) · **4,434/4,434 on MariaDB 11.8.9** (32,565 assertions; tree `78d633402013dbf0` = the final code before these docs; 03:03–03:20 Baku) — both from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · `inbox-compose` 24/24 caught (no other set aims at the changed view) · the money gate **FULL, unmoved** (`929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297`; reseeded 03:20 Baku) · PHPStan L5 0 errors (1,089 files, from a cleared cache), Pint clean · the doc-reading tests — 69 files, the list re-derived from the tests (630 tests, 0 failed). Recorded for his go:
-    `OPEN.md` D-NOTIFPREFS-320 (found while checking the shared box's other pages). Committed locally (`59799d4d`), not pushed (his
-    rule). **✅ LIVE on `rel_AZ @ 59799d4d`** (V: swap 2026-10-06 03:29:40 Baku, 4 ms; 1 file shipped — the Inbox view; the read-only
+    `OPEN.md` D-NOTIFPREFS-320 (found while checking the shared box's other pages). Committed locally (`59799d4d`); pushed
+    2026-10-06 with the GitHub and memory pass. **✅ LIVE on `rel_AZ @ 59799d4d`** (V: swap 2026-10-06 03:29:40 Baku, 4 ms; 1 file shipped — the Inbox view; the read-only
     preflight from the staged release: the seven route gates, sessions on `database`, all eleven views compile on PHP 8.4.19 / MariaDB
     11.8.9; public checks 12/0/0; 1,452/1,452 files match git, 0 differ; the drift check passes, self-test 3/3; 0 errors since the
     swap — 11 warnings, all `security.refusal`, from the exposure battery). **Left: his look at a phone's width** — the Inbox is behind

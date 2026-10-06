@@ -29,12 +29,7 @@ function launchInboundRace(Organization $org, string $threadRef, string $msgId):
         'RACE_BODY' => 'Concurrent inbound',
         'RACE_START_AT' => (string) $startAt,
         'QUEUE_CONNECTION' => 'sync',
-        'DB_CONNECTION' => 'mysql',
-        'DB_DATABASE' => 'vyrobel_test',
-        'DB_HOST' => '127.0.0.1',
-        'DB_PORT' => '3306',
-        'DB_USERNAME' => 'root',
-        'DB_PASSWORD' => '',
+        ...raceWorkerDbEnv(),
     ]);
 
     $worker = base_path('tests/Support/inbound_message_race_worker.php');

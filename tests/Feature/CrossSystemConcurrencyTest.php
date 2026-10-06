@@ -99,12 +99,7 @@ function launchRaceWorkers(array $perWorkerEnv, array $s): array
         'RACE_START_AT' => (string) $startAt,
         'QUEUE_CONNECTION' => 'sync',
         'CHANNEX_FAKE' => 'true',
-        'DB_CONNECTION' => 'mysql',
-        'DB_DATABASE' => 'vyrobel_test',
-        'DB_HOST' => '127.0.0.1',
-        'DB_PORT' => '3306',
-        'DB_USERNAME' => 'root',
-        'DB_PASSWORD' => '',
+        ...raceWorkerDbEnv(),
     ]);
 
     $worker = base_path('tests/Support/cross_race_worker.php');
