@@ -320,8 +320,9 @@ change is said.** Briefs live in `briefs/`.
 - **D-UPLOAD-LIMITS (measured 2026-10-06; his go — hPanel):** 🔬 this Mac's PHP takes 2 MB a file and 8 MB a request (PHP's
   defaults). Team chat and the Inbox now read the real ceilings (`ChatFiles::limits()`) and say them; production's are read by the
   preflight. ⚠️ The OWNER portal's composer (outside this pass) still validates 10 MB and uses Laravel's own refusal words: where PHP's
-  ceiling is lower, a larger file is refused there as "failed to upload". If production's ceiling is below 10 MB, raising it is a
-  panel setting (`upload_max_filesize`, `post_max_size`).
+  ceiling is lower, a larger file is refused there as "failed to upload". 🔬 Production (2026-10-06, the preflight and his live look):
+  PHP's ceilings are 256 MB, and the team chat page there reads 10 MB a file and 255 MB a request from the web PHP — so 10 MB is true
+  on production; the gap is a host on PHP's defaults (this Mac). Kept open for the owner portal's wording only.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 
