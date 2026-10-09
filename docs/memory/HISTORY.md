@@ -1149,7 +1149,10 @@ test browser to reach it; local database only). No console error anywhere (Chrom
 
 Gates: **4,495/4,495 on MySQL 8.4.10** (33,187 assertions; 18:23–18:42 Baku) · **4,495/4,495 on MariaDB 11.8.9** (33,187 assertions; 18:43–19:01 Baku) — both on the final code before these docs, read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · the engine swap asked (F: "Yes, swap", this pass only) and checked (nothing on 3306, no advisor process); MySQL restored 19:02 · the harness lists **1,028** across 38 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 19:02 Baku, reseeded at 2026-09-01) · no PHP application code changed (views, a component, tests), so PHPStan and Pint have nothing new to read beyond the two test files (Pint clean).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BC @ 2e2194e5` (V: stage — 6 files, nothing drifted on the host, no migration,
+every shipped file its own inode; swap 2026-10-09 19:07:25 Baku, 3 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; the
+component present in all three shells on the host; 0 error-level lines since — 11 warnings, all `security.refusal`, from the
+exposure battery). His look is next — behind his sign-in.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
