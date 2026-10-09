@@ -1182,7 +1182,9 @@ above it, 9px of air to the account chip in both top bars; 390px clean; nothing 
 error.
 Gates: **4,498/4,498 on MySQL 8.4.10** (33,214 assertions; 21:24–21:55 Baku) · **4,498/4,498 on MariaDB 11.8.9** (33,214 assertions; 21:56–22:19 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the harness lists **1,036** across 39 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 22:19 Baku).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BE @ 79d0cb60` (V: stage — 4 files, nothing drifted on the host, no migration; swap
+2026-10-09 22:21:55 Baku, 5 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; the glyph on the host carries the corner
+offsets; 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). His look is next.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

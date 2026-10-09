@@ -5,7 +5,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BD` → commit `906b7dd9`** (the OWNER TOP BAR follow-up — the owner portal's top bar stands still too. **V:** swap
+- **Live release `rel_BE` → commit `79d0cb60`** (the TOP BAR BELL pass — the unread badge on the bell's outer corner, the top bars
+  spaced. **V:** swap 2026-10-09 22:21:55 Baku, 5 ms; 4 files shipped, no migration, nothing drifted on the host; public checks
+  **12/0/0**; the glyph on the host carries the corner offsets; 0 error-level lines since — 11 warnings, all `security.refusal`, from
+  the exposure battery). Rollback target: `rel_BD @ 906b7dd9`. Before it: **`rel_BD` → commit `906b7dd9`** (the OWNER TOP BAR follow-up — the owner portal's top bar stands still too. **V:** swap
   2026-10-09 20:53:32 Baku, 4 ms; 1 file shipped, no migration, nothing drifted on the host; public checks **12/0/0**; the rule on the
   host carries no animation; 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). Rollback
   target: `rel_BC @ 2e2194e5`. Before it: **`rel_BC` → commit `2e2194e5`** (the SIDEBAR POSITION pass — every sidebar keeps its place across pages and reloads;
@@ -22,7 +25,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
   remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 16b15e2f…`, 5 ms), 2026-10-06 18:59:10 Baku; `.release`
   re-read on the host at 19:1x (a read-only count). The three team chat tables were added by `ops/release.sh migrate` from the staged release, before the swap.
-  Rollback targets: `rel_BC @ 2e2194e5` (the sidebar, before the owner top bar), `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  Rollback targets: `rel_BD @ 906b7dd9` (the owner top bar, before the bell), `rel_BC @ 2e2194e5` (the sidebar, before the owner top bar), `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
@@ -91,7 +94,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     The unread badge sat INSIDE the bell's circle and a "9+" covered the bell; it now sits on the circle's outer corner, clear of
     the bell, in all three shells (one shared glyph), and the top bars' items are 14px apart (`HISTORY.md`, "TOP BAR BELL"). ⚠️ The
     old prototype placement was pinned by `NotificationBellAppearanceTest` guard 4 — rewritten for the new look at his word, said to
-    him. Gates green on both engines. **Left: the deploy (`rel_BE`) and his look.**
+    him. Gates green on both engines. **✅ LIVE on `rel_BE @ 79d0cb60`** (V swap 22:21:55 Baku; public checks 12/0/0; 0
+    errors since). **Left: his look.**
 0t. **Sidebar position (2026-10-09)** — his report ("upon the page refresh the sidebar is going up again … it shouldn't be moving …
     across the entire application"). Every sidebar (operator, owner portal, admin console) now keeps its exact position across clicks
     and reloads and shows the current item; none slides in any more (`HISTORY.md`, "SIDEBAR POSITION"). 🖥 walked in all three
