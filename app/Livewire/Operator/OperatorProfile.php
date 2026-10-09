@@ -10,6 +10,7 @@ use App\Models\Property;
 use App\Models\User;
 use App\Support\Property\PropertyContext;
 use App\Support\Security\ActiveSessions;
+use App\Support\Time\TimezoneOptions;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -86,6 +87,16 @@ class OperatorProfile extends Component
             'lastLogin' => $user->last_login_at,
             'sessions' => ActiveSessions::forUser((string) $user->getKey()),
             'localeOptions' => ['en' => 'English', 'pt' => 'Português', 'es' => 'Español', 'fr' => 'Français'],
+            // The new select (2026-10-09): each language in its own name, with the English name beside it.
+            'languageOptions' => [
+                ['value' => 'en', 'label' => 'English'],
+                ['value' => 'pt', 'label' => 'Português', 'hint' => 'Portuguese'],
+                ['value' => 'es', 'label' => 'Español', 'hint' => 'Spanish'],
+                ['value' => 'fr', 'label' => 'Français', 'hint' => 'French'],
+            ],
+            // ⚠️ Every zone the `timezone` rule accepts — the page used to offer five, so a person elsewhere saw (and could
+            //    save) Lisbon in place of their own zone. The saved zone is kept even if the list ever lacks it.
+            'timezoneOptions' => TimezoneOptions::choices((string) ($user->timezone ?? ($property !== null ? $property->timezone : 'UTC'))),
         ]);
     }
 }

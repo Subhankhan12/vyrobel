@@ -42,15 +42,14 @@
                         <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="pn">Preferred name</label><input id="pn" type="text" name="preferred_name" class="vy-input" value="{{ old('preferred_name', $personal['preferred_name']) }}"></div>
                         <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="email">Work email</label><input id="email" type="email" name="email" class="vy-input" value="{{ old('email', $personal['email']) }}" required></div>
                         <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="phone">Phone</label><input id="phone" type="text" name="phone" class="vy-input" value="{{ old('phone', $personal['phone']) }}"></div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="locale">Language</label>
-                            <select id="locale" name="locale" class="vy-input">
-                                @foreach ($localeOptions as $code => $label)<option value="{{ $code }}" @selected($personal['locale'] === $code)>{{ $label }}</option>@endforeach
-                            </select>
+                        {{-- The new select (2026-10-09, his request — this page first, the rest of the app after his approval). --}}
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="locale-label" for="locale">Language</label>
+                            <x-select name="locale" id="locale" labelledby="locale-label" :options="$languageOptions" :value="old('locale', $personal['locale'])" />
                         </div>
-                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" for="tz">Timezone</label>
-                            <select id="tz" name="timezone" class="vy-input">
-                                @foreach (['Europe/Lisbon', 'Europe/Madrid', 'Europe/London', 'UTC', 'America/New_York'] as $tz)<option value="{{ $tz }}" @selected($personal['timezone'] === $tz)>{{ $tz }}</option>@endforeach
-                            </select>
+                        <div class="vy-field" style="margin: 0;"><label class="vy-field-label" id="tz-label" for="tz">Timezone</label>
+                            <x-select name="timezone" id="tz" labelledby="tz-label" :options="$timezoneOptions" :value="old('timezone', $personal['timezone'])"
+                                      search-placeholder="Search a city, region or offset" empty-text="No timezone matches that — try a city or an offset like +4."
+                                      :device-timezone="true" :min-width="340" />
                         </div>
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">

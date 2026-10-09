@@ -45,6 +45,16 @@ const VY_KEYBOARD_ALLOWED = [
             .'the same pick. Remove the search box\'s Enter handler and this exemption goes red.',
         'requires' => '@keydown.enter.prevent="pick(shown[active])"',
     ],
+    [
+        // 2026-10-09 — the Vyrobel select (`<x-select>`, first on /app/profile; the candidate to replace the combobox above
+        // app-wide once the founder approves it).
+        'file' => 'resources/views/components/select.blade.php',
+        'match' => ":role=\"row.group ? 'presentation' : 'option'\"",
+        'reason' => 'ARIA combobox + listbox pattern. The options are not tab stops by design: the panel\'s keydown drives them '
+            .'— ↑/↓, Page Up/Down and Home/End move the active option (named by aria-activedescendant), Enter picks it, Esc '
+            .'closes — and the click is the mouse path to the same pick. Remove the Enter case and this exemption goes red.',
+        'requires' => "case 'Enter': e.preventDefault(); this.choose(this.filtered[this.active]); break;",
+    ],
 ];
 
 it('has no click handler a keyboard cannot reach, outside the reasoned allow-list', function () {

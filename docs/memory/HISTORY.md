@@ -1186,6 +1186,50 @@ Gates: **4,498/4,498 on MySQL 8.4.10** (33,214 assertions; 21:24–21:55 Baku) �
 2026-10-09 22:21:55 Baku, 5 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; the glyph on the host carries the corner
 offsets; 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). His look is next.
 
+**THE VYROBEL SELECT, ON /app/profile — 2026-10-09 — his "https://vyrobel.com/app/profile On this page, the drop-downs are looking
+very basic or very disaster … make me very cool drop-downs and when I approve … apply it in the entire application. But first work on
+this page … ship it live, test it … unique minimal and advanced … also for the select as well … let me know I will check it first".**
+🔬 Read first: the page's two drop-downs are native selects, Language and Timezone, opening the operating system's plain list; the
+account menu is already a custom popover and the sidebar's property switcher is a native select in the shell (both left for the
+rollout, after his approval). ⚠️ And a defect: Timezone offered FIVE hard-coded zones while the `timezone` rule accepts every one, so a
+person elsewhere (he is in Baku) saw "Europe/Lisbon" — no option matched, so the first showed — and saving the form for any other
+reason wrote Lisbon over their real zone.
+
+**Built.** `<x-select>` (`components/select.blade.php`), one definition for the app-wide rollout: closed, a field like every
+`.vy-input`; open, a floating glass panel TELEPORTED to `<body>` and fixed to the field (each card is a backdrop-filter layer — a panel
+left inside one is painted under the next card), opening upward when there is no room below and following the field on scroll; an
+optional search (automatic above 8 options); quiet group headings; a terracotta tick on the chosen row, the active row tinted; an
+option may carry a hint and a `clock` (the live time in that zone, on the row and on the closed field); a "Use this device's
+timezone" row when the browser's zone differs. The form value is a hidden input rendered with the saved value on the server. The
+APG combobox + listbox pattern: ↓/↑/Enter/Space/typing open; ↓/↑, Page Down/Up, Home/End, Enter, Esc, Tab; type-to-find without a
+search; `aria-activedescendant`; reduced motion respected. `App\Support\Time\TimezoneOptions::choices()` (the existing helper the
+Portfolio already used, extended — its `all()` and `offsetLabel()` unchanged): every zone the rule accepts, city (and region) first,
+the offset as the hint ("UTC+4", "UTC+5:30", "UTC−3", searchable with "-3"), grouped by region, a saved zone outside the list kept.
+Language shows each language in its own name with the English name beside it.
+
+⚠️ **Two duplicates, caught by the first full run and corrected before shipping.** The run went RED once
+(`KeyboardReachabilityContractTest`: the option rows' click handler), and its allow-list named what a search for "select" had missed:
+the app already had a searchable drop-down, `<x-operator.combobox>` (2026-09-29, five places — Maintenance, Units, Portfolio ×2 —
+all in dialogs), and a timezone helper, `App\Support\Time\TimezoneOptions`. The helper: the second copy I had written
+(`App\Support\Forms\TimezoneOptions`) was folded into the existing one and deleted. The drop-down: his request is a NEW design,
+approved on this page before it spreads, so `<x-select>` is the candidate to replace the combobox — both exist until his approval, and
+the rollout folds the five combobox places in and deletes it (`OPEN.md` D-SELECT-ROLLOUT, said to him). The contract got a reasoned
+entry (the panel's Enter handler is its backing string; VS-M12 proves it).
+
+🖥 Walked locally (demo staff, 1440 × 900): closed — "Lisbon UTC+1" and its live time; open — centred on Lisbon; "baku" → Baku
+UTC+4 23:03; "+5:30" → Colombo and Kolkata; nonsense → the empty line; "new york" + Enter chooses it and the hidden field takes the
+value; Esc returns focus to the field; Language by Enter, "p" → Português, Enter; a click outside closes; at 1280 × 640 near the
+window's bottom it opens upward, fully on screen; at 390 px it fits (39–379) and a tap chooses; no console error. The walk found and
+fixed three faults of the first version: it opened at the top of the list (a scroll asked of a not-yet-shown panel — now one frame
+later); then 104–195px off centre (screen rects measured during the 98.5% opening scale — now layout offsets); and the app's 14px
+page scrollbar in the list (now a slim one). ⚠️ The save itself was not done in the browser: tenant one is never written, and the
+writable tenant's founder stops at email verification — it is proven by a test (Asia/Baku and "es" saved).
+`VySelectTest` (5); mutation set `vy-select` 12/12 landed and caught.
+
+Gates: the first MySQL run **4,502/4,503** — the one RED was the keyboard contract above (23:09–23:29 Baku); after the fixes **4,503/4,503 on MySQL 8.4.10** (33,260 assertions; 23:33–23:53 Baku) · **4,503/4,503 on MariaDB 11.8.9** (33,260 assertions; 23:53–00:14 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · PHPStan L5 0 errors (a whole run from a cleared cache, after the fixes) · Pint clean · the harness lists **1,048** across 40 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 2026-10-10 00:15 Baku).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -1208,6 +1252,9 @@ offsets; 0 error-level lines since — 11 warnings, all `security.refusal`, from
 - **SIDEBAR POSITION (2026-10-09):** the first version passed its own tests and still crept half a pixel a page — rounding and Chrome's
   scroll anchoring, both visible only by loading six pages in a row in a browser; and it restored nothing in the owner portal, whose
   scrolling box is the menu inside the sidebar. A position fix is proven by repeated loads, never by one.
+- **THE VYROBEL SELECT (2026-10-09):** I built a select and a timezone helper while both already existed — the search was for the
+  word "select", and the existing ones are a "combobox" and `Time\TimezoneOptions`. The keyboard contract's allow-list named the first.
+  Before building a component, search for the CONCEPT under every name it may carry (select, dropdown, combobox, picker, listbox).
 - **Self-inflicted:** editing during a suite run (REPAIR 01); removing a route by name search (CLOSE 01); two stale
   mutations that proved nothing (ADMIN 03). ADMIN 06 made three mistakes of its own, each caught by a guard or a review:
   a negated `toContain` with a message, which always passes; a bare `withoutGlobalScopes()`; and a `KNOWN-LIMITS` L19
