@@ -1124,6 +1124,33 @@ shipped file its own inode; `swap` 2026-10-09 17:53:48 Baku, 10 ms; `.release` r
 measure**; 0 error-level lines since the swap — 11 warnings, all `security.refusal` (layer `abort`), from the exposure battery). His look
 is next: the six role accounts are his to sign in to.
 
+**SIDEBAR POSITION — 2026-10-09 — his "if I open the owner or I open the reports, upon the page refresh … the sidebar is going up
+again … it shouldn't be shaking, it shouldn't be moving … fix that issue across the entire application".** 🔬 Read first: three shells
+have a sidebar — the operator back office (`.vy-side`), the owner portal (`.vy-side`, whose MENU `.vy-nav` is the box that scrolls)
+and the admin console (`.ad-side`); each is a sticky 100vh scroll box, and every menu link loads a whole new page, so the new
+sidebar started at the top with the item just opened off screen; and each replayed a 0.45 s slide-in (`vyFadeUp`/`adFadeUp`) on
+every page. The guest portal has no sidebar.
+
+**Built.** One component, `<x-sidebar-position for key>`, inline straight after each sidebar so it runs before the first paint:
+it puts the box back where this tab left it (sessionStorage, per realm), brings the current item (`aria-current="page"`) into view
+when nothing is remembered or a shorter window would hide it, and remembers on scroll, on a click in the sidebar and on
+`pagehide`; every storage call guarded. The sidebar's entrance animation removed in all three shells (the page content still fades
+in). 🖥 The walk found two creeps in the first version, both fixed and named in the component: rounding (520.5 saved as 521 — a
+pixel a page) and Chrome's scroll anchoring (the Messages badge appears after load, the box grows a pixel and the position shifted
+half a pixel, which was remembered — `overflow-anchor: none` on the box); and that the owner portal's scrolling box is its menu, not
+its sidebar (the first version restored nothing there).
+
+🖥 Walked locally (Playwright, 1280 × 600; demo accounts): operator — 520 px held over six loads (three clicks, three reloads),
+current item in view each time; a direct link to the last item in a fresh tab opens with it in view; a remembered top that would hide
+Security in a 400 px window scrolls to it; 390 px: the sidebar is not a scroll box, page 390 wide, no error. Owner — 580 px over six
+loads, a direct link to Help & support in view. Admin — 313 px over four loads (the local demo admin's two-factor set up in the
+test browser to reach it; local database only). No console error anywhere (Chrome's verbose password-form hints only).
+`SidebarPositionTest` (5); mutation set `sidebar-position` 11/11 landed and caught.
+
+Gates: **4,495/4,495 on MySQL 8.4.10** (33,187 assertions; 18:23–18:42 Baku) · **4,495/4,495 on MariaDB 11.8.9** (33,187 assertions; 18:43–19:01 Baku) — both on the final code before these docs, read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · the engine swap asked (F: "Yes, swap", this pass only) and checked (nothing on 3306, no advisor process); MySQL restored 19:02 · the harness lists **1,028** across 38 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 19:02 Baku, reseeded at 2026-09-01) · no PHP application code changed (views, a component, tests), so PHPStan and Pint have nothing new to read beyond the two test files (Pint clean).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -1143,6 +1170,9 @@ is next: the six role accounts are his to sign in to.
   Pest's agent-mode JSON, so that switch is for gates only, never for the harness; a test was named "ten of them" with nothing
   asserting ten (renamed); a production write's audit row named a model the morph map lacks and the transaction rolled back (the
   premise check on the re-run proved it); `mariadbd-safe` is keg-only and not on the shell's PATH — call it by its full path.
+- **SIDEBAR POSITION (2026-10-09):** the first version passed its own tests and still crept half a pixel a page — rounding and Chrome's
+  scroll anchoring, both visible only by loading six pages in a row in a browser; and it restored nothing in the owner portal, whose
+  scrolling box is the menu inside the sidebar. A position fix is proven by repeated loads, never by one.
 - **Self-inflicted:** editing during a suite run (REPAIR 01); removing a route by name search (CLOSE 01); two stale
   mutations that proved nothing (ADMIN 03). ADMIN 06 made three mistakes of its own, each caught by a guard or a review:
   a negated `toContain` with a message, which always passes; a bare `withoutGlobalScopes()`; and a `KNOWN-LIMITS` L19

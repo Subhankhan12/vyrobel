@@ -101,6 +101,8 @@
             @endforeach
         </div>
     </aside>
+    {{-- The owner portal scrolls the menu INSIDE the sidebar (.vy-nav), not the sidebar itself. --}}
+    <x-sidebar-position for=".vy-side .vy-nav" key="owner" />
 
     <div class="vy-main">
         <div class="vy-topbar">

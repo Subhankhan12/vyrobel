@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the ROLE SIGN-IN pass (2026-10-09: D-LAPSED-LOOP found and fixed; D-INTERNAL-TRIALS recorded), before it the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the SIDEBAR POSITION pass (2026-10-09: D-OWNER-TOPBAR-FADE recorded), before it the ROLE SIGN-IN pass (2026-10-09: D-LAPSED-LOOP found and fixed; D-INTERNAL-TRIALS recorded), before it the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -338,6 +338,9 @@ change is said.** Briefs live in `briefs/`.
   trial extended to 2027-03-31 at his word). If he works in another workspace and meets the Paywall, the same one-row extension (with
   its read-back and audit row) is the fix — his yes each time, since those are his protected workspaces. ⚠️ The admin console has no
   "Extend trial" action; building one is the alternative he was offered and did not choose.
+- **D-OWNER-TOPBAR-FADE (seen 2026-10-09 in the SIDEBAR POSITION pass; small — his go):** the owner portal's top bar (`.vy-topbar` in
+  `layouts/owner.blade.php`: title, bell, account) still slides up 12 px on every page (`vyFadeUp .45s .06s`), like the sidebars did
+  before the pass. The operator's top bar does not. Outside his report (the sidebar), so left as it is.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

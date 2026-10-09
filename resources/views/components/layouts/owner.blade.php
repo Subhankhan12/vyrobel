@@ -142,7 +142,7 @@
             position: sticky; top: 0; align-self: start; height: 100vh;
             padding: 26px 16px; display: flex; flex-direction: column; gap: 26px;
             overflow-y: auto;
-            animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) both;
+            /* No entrance animation: the sidebar is the same on every page, so it stays still (2026-10-09, his report). */
         }
         .vy-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
         .vy-brand-mark {

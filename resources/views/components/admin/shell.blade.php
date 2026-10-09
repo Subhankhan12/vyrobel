@@ -128,7 +128,7 @@
 
         .ad-layout { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; position: relative; z-index: 1; }
         /* The frosted nav floats directly on the gradient — no panel background, no divider rule. */
-        .ad-side { padding: 26px 16px 30px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; animation: adFadeUp .45s cubic-bezier(.22, .61, .36, 1) both; }
+        .ad-side { padding: 26px 16px 30px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; } /* No entrance animation: the sidebar is the same on every page, so it stays still (2026-10-09, his report). */
         .ad-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
         .ad-brand-mark { width: 34px; height: 34px; border-radius: var(--ad-r-sm); background: var(--ad-grad); color: #fff; font-family: var(--ad-display); font-weight: 600; font-size: 17px; display: grid; place-items: center; box-shadow: var(--vy-shadow-accent); }
         .ad-brand-name { font-family: var(--ad-display); font-weight: 600; font-size: 17px; letter-spacing: -0.01em; }
@@ -390,6 +390,7 @@
                 @endforeach
             </nav>
         </aside>
+        <x-sidebar-position for=".ad-side" key="admin" />
         <div class="ad-main">
             <header class="ad-top">
                 <div class="ad-top-lead">

@@ -153,6 +153,7 @@
             </nav>
         @endforeach
     </aside>
+    <x-sidebar-position for=".vy-side" key="operator" />
 
     <div class="vy-main">
         {{-- GATE 0 bespoke-chrome topbar (parameterized shared shell → prototype-exact): H1 (+ read-only pill)
