@@ -1167,6 +1167,23 @@ Gates: **4,496/4,496 on MySQL 8.4.10** (33,197 assertions; 19:26–20:21 Baku �
 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). ⚠️ While the gates ran, `restiox/admin`
 started its own `phpunit` (XAMPP's PHP, its database on port 3310 — not ours on 3306); identified by its working folder, left alone.
 
+**TOP BAR BELL — 2026-10-09 — his "on the top name bar, the notification icon is completely messed because there is no any proper
+spacing. Please fix that too. And make it proper. Cool looking."** 🔬 Measured first (owner portal, 1440 × 800, demo owner): the
+shared bell (`<x-notifications.bell-glyph>`, used by the operator, owner and guest shells) put the unread badge INSIDE the circle, 9px
+from the top and 10px from the right — the decoded prototype's placement — so a 19px-wide "9+" sat at the very position of the 18px
+bell glyph and hid it; and the account chip stood 10px away. Built: the badge on the circle's OUTER top-right corner (`-5px` / `-6px`,
+the prototype's gradient kept, 19px, 10px bold tabular figures, a 2px `#FFF8F2` ring, a soft shadow, `pointer-events: none` so a tap
+reaches the bell); the operator (38px) and guest (36px) shells' own badge offsets removed — the corner fits every size; the operator
+and owner top bars' items 14px apart (were 12 and 10). ⚠️ `NotificationBellAppearanceTest` guard 4 PINNED the old inside placement
+(the prototype match): it went RED on the change as it should and was rewritten to pin the new placement, at his word, said in the
+same turn — plus two guards (no shell overrides the offsets; 14px gaps). Mutation set `topbar-bell` 7/7 landed and caught. 🖥 Walked
+locally: owner (42px bell), operator (38px) and guest (36px, link mode) — the bell fully visible, the badge 5px past the circle and 4px
+above it, 9px of air to the account chip in both top bars; 390px clean; nothing clips the badge (only the body, sideways); no page
+error.
+Gates: **4,498/4,498 on MySQL 8.4.10** (33,214 assertions; 21:24–21:55 Baku) · **4,498/4,498 on MariaDB 11.8.9** (33,214 assertions; 21:56–22:19 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the harness lists **1,036** across 39 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 22:19 Baku).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

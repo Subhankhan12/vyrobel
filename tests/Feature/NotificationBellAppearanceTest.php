@@ -37,6 +37,11 @@ if (! function_exists('makeBellNotif')) {
 // 1.8-stroke bell glyph, and the unread badge INSIDE the circle with a `140deg #E8703A→#C2410C` gradient
 // and a 1.5px `#FBEEE3` ring. The operator prototype imports the same bell at `hint-size 38px,38px`.
 //
+// ⚠️ THE BADGE LEFT THE CIRCLE ON 2026-10-09, AT HIS WORD ("the notification icon is completely messed because there is
+// no proper spacing … make it proper"). 🔬 Inside the circle, a 19px "9+" badge sat on the 18px glyph and hid it. It now
+// sits on the circle's OUTER top-right corner — the gradient kept, a 2px light ring, 10px bold figures — and the top bar's
+// items are 14px apart so it never crowds the account chip. Guard 4 pinned the old placement; it now pins the new one.
+//
 // ⚠️ MIXED, DELIBERATELY. Guards 1–3 are SOURCE assertions (a computed style needs a browser this suite does
 // not have). Guards 4–5 assert the RENDERED page instead — they were source assertions too until extracting
 // the glyph into <x-notifications.bell-glyph> broke them while the output stayed byte-identical. A guard that
@@ -90,25 +95,46 @@ it('no longer needs !important on the owner bell, because nothing fights it any 
         'the owner bell is overriding an inline style again; that means the component started setting appearance inline');
 });
 
-// ── 4. The unread badge matches the prototype ───────────────────────────────────────────────────
-it('renders the unread badge inside the circle with the prototype gradient and ring', function () {
-    // ⚠️ ASSERTS THE RENDER, NOT A FILE. This read `bell.blade.php` as a string and broke the moment the
-    // glyph+badge were extracted into <x-notifications.bell-glyph> for the guest realm's link mode — the
-    // markup was byte-identical, the guard was just looking in the wrong file. It tracked a LOCATION, not the
-    // thing. Rendering a real page follows the definition wherever it moves next.
+// ── 4. The unread badge sits on the circle's outer corner, clear of the bell ───────────────────
+it('renders the unread badge on the circle’s outer corner — never over the bell (his report, 2026-10-09)', function () {
+    // ⚠️ ASSERTS THE RENDER, NOT A FILE: it follows the glyph wherever its definition moves (see the history above).
     $s = seedScenario(1);
     $user = operatorUser($s, ['name' => 'Mara Manager'], 'Hotel Manager');
     makeBellNotif($user);
 
     $html = test()->actingAs($user)->get('/app/dashboard')->assertOk()->getContent();
+    preg_match('/<span data-vy-bell-badge[^>]*>/', $html, $m);
+    Assert::assertNotEmpty($m, 'the unread badge did not render');
+    $badge = $m[0];
 
-    Assert::assertStringContainsString('linear-gradient(140deg,#E8703A,#C2410C)', $html, 'badge lost the prototype gradient fill');
-    Assert::assertStringContainsString('1.5px solid #FBEEE3', $html, 'badge lost the prototype ring that separates it from the glyph');
-    Assert::assertStringContainsString('font-size:9px', $html, 'badge type size drifted from the prototype');
+    Assert::assertStringContainsString('linear-gradient(140deg,#E8703A,#C2410C)', $badge, 'badge lost the prototype gradient fill');
+    Assert::assertStringContainsString('border:2px solid #FFF8F2', $badge, 'badge lost the light ring that lifts it off the circle');
+    Assert::assertStringContainsString('font-size:10px;font-weight:700', $badge, 'badge figures drifted from 10px bold');
+    Assert::assertStringContainsString('min-width:19px;height:19px', $badge, 'badge size drifted');
 
-    // The badge sits INSIDE the button (positive offsets), never hung off the corner.
-    Assert::assertStringNotContainsString('top:-3px', $html, 'badge is positioned outside the button again');
-    Assert::assertStringNotContainsString('right:-3px', $html, 'badge is positioned outside the button again');
+    // ⚠️ THE FIX ITSELF: negative offsets put it on the outer corner. Inside the circle (the old 9px / 10px) a "9+" covered the glyph.
+    Assert::assertStringContainsString('top:var(--vy-bell-badge-top,-5px);right:var(--vy-bell-badge-right,-6px)', $badge,
+        'the badge moved back inside the circle, where a two-character count covers the bell');
+    // It must never take the click meant for the bell button beneath it.
+    Assert::assertStringContainsString('pointer-events:none', $badge, 'the badge can swallow a click on the bell');
+});
+
+it('lets no shell move the badge back — the corner fits every bell size, so none tunes it', function () {
+    // The operator (38px) and guest (36px) shells used to set `--vy-bell-badge-*` for an INSIDE position. On the corner one
+    // offset fits 36, 38 and 42px, and a shell override is exactly how the badge would creep back over the glyph.
+    foreach (['components/layouts/operator.blade.php', 'components/layouts/owner.blade.php', 'components/guest/shell.blade.php', 'components/admin/shell.blade.php'] as $view) {
+        $css = (string) file_get_contents(resource_path('views/'.$view));
+        Assert::assertDoesNotMatchRegularExpression('/--vy-bell-badge-(top|right)\s*:/', $css, "{$view} sets the badge offsets again");
+    }
+});
+
+it('spaces the top bar so the corner badge never crowds the next control', function () use ($layout) {
+    foreach (['operator', 'owner'] as $realm) {
+        preg_match('/\.vy-topbar-actions\s*\{[^}]*\}/', $layout($realm), $m);
+        Assert::assertNotEmpty($m, "{$realm} shell has no .vy-topbar-actions rule");
+        // The badge reaches 6px past the circle; at 14px the account chip keeps ~8px of air (🖥 9px measured in both shells).
+        Assert::assertStringContainsString('gap: 14px', $m[0], "{$realm} top bar is cramped again");
+    }
 });
 
 // ── 5. The glyph is the prototype's bell, not the old one ───────────────────────────────────────

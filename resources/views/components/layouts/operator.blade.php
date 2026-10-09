@@ -207,14 +207,15 @@
            derived against the gradient stop rgb(241,185,150) (4.97), but the page paints down to
            rgb(241,172,134) — the gradient is DARKER than the value the token was computed against. */
         .vy-topbar-sub { font-size: 12.5px; color: var(--vy-on-grad); margin-top: 3px; }
-        .vy-topbar-actions { display: flex; align-items: center; gap: 12px; }
+        /* 14px, not 12: the bell's unread badge sits on the circle's outer corner and reaches 6px past it (2026-10-09). */
+        .vy-topbar-actions { display: flex; align-items: center; gap: 14px; }
 
         /* Notification bell — 38px frosted glass, matching the operator prototype's own topbar
            (a `dc-import` of "Notif Bell" at hint-size 38px) and the glass recipe its sibling
            search-pill / date-chip use. The shared notifications.bell component no longer sets
            background/border/padding inline, so this rule is the single owner of the bell's appearance
            and needs no `!important`. Badge offsets are tuned for 38px (the token defaults suit 42px). */
-        .vy-bell { position: relative; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 252, 248, 0.58); border: 1px solid var(--vy-glass-border); box-shadow: 0 14px 40px rgba(150, 90, 50, .12), inset 0 1px 0 rgba(255, 255, 255, .65); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); color: var(--vy-ink); transition: transform .14s ease; --vy-bell-badge-top: 8px; --vy-bell-badge-right: 9px; }
+        .vy-bell { position: relative; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 252, 248, 0.58); border: 1px solid var(--vy-glass-border); box-shadow: 0 14px 40px rgba(150, 90, 50, .12), inset 0 1px 0 rgba(255, 255, 255, .65); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); color: var(--vy-ink); transition: transform .14s ease; }
         .vy-bell:hover { transform: translateY(-1px); }
         .vy-chip { display: flex; align-items: center; gap: 9px; padding: 5px 12px 5px 6px; border-radius: var(--vy-r-pill); background: rgba(255, 255, 255, 0.6); border: 1px solid var(--vy-glass-border); box-shadow: var(--vy-shadow-sm); }
         .vy-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--vy-avatar-bg); color: var(--vy-on-peach); font-size: 11px; font-weight: 500; display: grid; place-items: center; flex: none; }

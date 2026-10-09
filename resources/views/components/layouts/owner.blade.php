@@ -178,7 +178,8 @@
            D-OWNER-TOPBAR-FADE). The operator's and the admin console's top bars never had one. */
         .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
         .vy-topbar h1.is-greeting { font-size: 30px; }
-        .vy-topbar-actions { display: flex; align-items: center; gap: 10px; }
+        /* 14px, not 10: the bell's unread badge sits on the circle's outer corner and reaches 6px past it (2026-10-09). */
+        .vy-topbar-actions { display: flex; align-items: center; gap: 14px; }
 
         /* Notification bell — 42px frosted glass, exact-match to the Owner Dashboard prototype.
            The `!important` that used to be here is GONE: it existed only to beat the shared bell

@@ -106,7 +106,6 @@
             box-shadow: 0 10px 30px rgba(150, 90, 50, .10), inset 0 1px 0 rgba(255, 255, 255, .65);
             backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15);
             color: var(--vy-ink); transition: transform .14s ease;
-            --vy-bell-badge-top: 7px; --vy-bell-badge-right: 8px;   /* tuned for 36px, not the 42px default */
         }
         .vy-bell:hover { transform: translateY(-1px); }
 
