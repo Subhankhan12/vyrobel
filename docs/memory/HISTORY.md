@@ -1119,7 +1119,10 @@ suspended gate (P2-M1, P2-M18, P3-B16) re-run, 3/3 caught.
 
 Gates: **4,490/4,490 on MySQL 8.4.10** (33,151 assertions; 17:04–17:26 Baku) · **4,490/4,490 on MariaDB 11.8.9** (33,151 assertions; 17:27–17:49 Baku) — both on the final code before these docs, read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · the engine swap asked first (F: "Yes, swap", this pass only — `OPEN.md` F9) and checked: nothing connected to 3306, no advisor-platform process · mutations: `lapsed-staff` 9/9 landed and caught; P2-M1, P2-M18, P3-B16 3/3; the harness lists **1,017** across 37 sets (`--list`, V 17:5x Baku) · PHPStan L5 0 errors (a whole run, 31 s, from a cleared cache, `PAO_DISABLE=1`) · Pint clean (the changed files) · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` (V 17:49 Baku, reseeded at 2026-09-01).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BB @ 6ca6a10b` (V: `ops/release.sh stage` — 6 files shipped, nothing drifted on the host, no migration, every
+shipped file its own inode; `swap` 2026-10-09 17:53:48 Baku, 10 ms; `.release` read back; public checks **12 PASS · 0 FAIL · 0 could not
+measure**; 0 error-level lines since the swap — 11 warnings, all `security.refusal` (layer `abort`), from the exposure battery). His look
+is next: the six role accounts are his to sign in to.
 
 ## 2 · Mistakes to learn from (each one cited above)
 

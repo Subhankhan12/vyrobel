@@ -332,7 +332,7 @@ change is said.** Briefs live in `briefs/`.
   every `/app` page to the Paywall, which only `billing.manage` may open — so ten of the eleven back-office roles got a 403 whose
   "Back to the dashboard" redirected straight back to it, and the workspace switcher was caught by the same redirect. Now only someone
   who can renew is sent there; everyone else gets a plain page with Sign out and their other workspaces (`LapsedWorkspaceStaffTest`,
-  mutation set `lapsed-staff` 9/9). Gates green on both engines; **deploy pending** (`STATE.md` 0s).
+  mutation set `lapsed-staff` 9/9). Gates green on both engines; ✅ LIVE on `rel_BB @ 6ca6a10b` (V 2026-10-09 17:53 Baku).
 - **D-INTERNAL-TRIALS (found 2026-10-09; his call):** every production organisation was made in late September with a 14-day trial,
   so most are probably lapsed now — `Vyrobel Test Workspace` included. Only `Vyrobel Internal — TEST TENANT` was read and changed (its
   trial extended to 2027-03-31 at his word). If he works in another workspace and meets the Paywall, the same one-row extension (with

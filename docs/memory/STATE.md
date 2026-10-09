@@ -5,13 +5,17 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BA` → commit `16b15e2f`** (team chat and a live Messages page — `HISTORY.md`, "TEAM CHAT" — on top of the Inbox's filter tabs on a phone and the FIVE PAGES pass: the Inbox's New
+- **Live release `rel_BB` → commit `6ca6a10b`** (the ROLE SIGN-IN fix — a lapsed workspace's staff get a plain page with Sign out, never
+  the 403 loop; `HISTORY.md`, "ROLE SIGN-IN". **V:** `ops/release.sh swap` output, 2026-10-09 17:53:48 Baku, 10 ms; 6 files shipped, no
+  migration, nothing drifted on the host; public checks **12 PASS · 0 FAIL · 0 could not measure** straight after; `.release` read
+  back on the host; 0 error-level lines since the swap — 11 warnings, all `security.refusal` (layer `abort`), from the exposure
+  battery). Rollback target: `rel_BA @ 16b15e2f`. Before it: **`rel_BA` → commit `16b15e2f`** (team chat and a live Messages page — `HISTORY.md`, "TEAM CHAT" — on top of the Inbox's filter tabs on a phone and the FIVE PAGES pass: the Inbox's New
   message, Housekeeping, Maintenance, Units — Edit and a Delete that removes only what nothing has recorded — and Security; on top of
   the Guests second pass, the Calendar second pass, the New reservation second pass, the Calendar New reservation pass, the New reservation pass, the owners module pass, the payouts pass, the Owners rebuild, the Rates rebuild with DEC-l and its two live
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
   remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 16b15e2f…`, 5 ms), 2026-10-06 18:59:10 Baku; `.release`
   re-read on the host at 19:1x (a read-only count). The three team chat tables were added by `ops/release.sh migrate` from the staged release, before the swap.
-  Rollback targets: `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  Rollback targets: `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
@@ -79,8 +83,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     `billing.manage` may open, and the 403's "Back to the dashboard" looped back (`HISTORY.md`, "ROLE SIGN-IN"). Done: his
     workspace's trial extended to 2027-03-31 at his word (V, read back); and the loop fixed in code — only someone who can renew is
     sent to the Paywall, everyone else gets a plain "subscription has ended" page with Sign out and their other workspaces; the
-    switcher let through. Gates green on both engines (Numbers). **Left: the deploy (`rel_BB`) and his look** — sign in as any of
-    the six role accounts.
+    switcher let through. Gates green on both engines (Numbers). **✅ LIVE on `rel_BB @ 6ca6a10b`** (V: swap 2026-10-09 17:53:48 Baku;
+    public checks 12/0/0; 0 errors since). **Left: his look** — sign in as any of the six role accounts (his passwords).
 0. **Portfolio remove (2026-09-29)** — ✅ LIVE on `rel_AG` (V). Left: a signed-in look on production (his sign-in); his calls
    DEC-h (F-58) and DEC-i (Edit scope).
 0b. **Portfolio Open + dialog fields (2026-09-29)** — ✅ LIVE on `rel_AH` (V). Left: a signed-in look on production.
