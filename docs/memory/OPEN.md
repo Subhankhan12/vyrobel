@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by the ROLE SIGN-IN pass (2026-10-09: D-LAPSED-LOOP found and fixed; D-INTERNAL-TRIALS recorded), before it the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -15,7 +15,7 @@ change is said.** Briefs live in `briefs/`.
 | F6 | The lawyer: Article 28 agreements (Hostinger first); who may hold customers' money; how long invoices and payment records must be kept | him | — | The ADMIN 06 hold on deleting live money records waits on the third answer. |
 | F7 | Real tax rates (`tax:set-rate`, replacing the EXAMPLE rates) | him | `docs/TAX-ENGINE-DESIGN.md` | The VAT figures shown are example rates. |
 | F8 | Optional: one email to `sales@` to prove the alias | him | — | **R:** the alias was created 2026-09-26; delivery is not proven. |
-| F9 | Keep `advisor-platform`'s test runs paused while a Vyrobel pass swaps the local database engine (MariaDB gate) — **F 2026-09-29: he paused them for ADMIN 06's finish.** **F 2026-09-30 (the Units pass): after an hour with the dev server still up, he said "stop advisor and complete vyrobel"; it was stopped with SIGTERM at 16:09 Baku (the Octane process and its frankenphp child) and left stopped.** Each pass still asks. **2026-10-06:** today's two earlier swaps (17:59 and 20:41 Baku) CHECKED rather than asked — who was connected to 3306 and whether advisor's processes ran; the time-limit follow-up's swap (22:28–22:30 Baku) checked only for test runs: a slip (nothing was connected; advisor's server stayed stopped). Whether a check may stand in for asking is his call. | him, per pass | — | The engine swap stops the shared local MySQL for ~25 min; that project's tests and its Octane dev server use it. |
+| F9 | Keep `advisor-platform`'s test runs paused while a Vyrobel pass swaps the local database engine (MariaDB gate) — **F 2026-09-29: he paused them for ADMIN 06's finish.** **F 2026-09-30 (the Units pass): after an hour with the dev server still up, he said "stop advisor and complete vyrobel"; it was stopped with SIGTERM at 16:09 Baku (the Octane process and its frankenphp child) and left stopped.** Each pass still asks. **2026-10-06:** today's two earlier swaps (17:59 and 20:41 Baku) CHECKED rather than asked — who was connected to 3306 and whether advisor's processes ran; the time-limit follow-up's swap (22:28–22:30 Baku) checked only for test runs: a slip (nothing was connected; advisor's server stayed stopped). Whether a check may stand in for asking is his call. **F 2026-10-09 (ROLE SIGN-IN): asked, "Yes, swap" — for this pass;** checked first too (nothing on 3306, no advisor process); MySQL restored at 17:49 Baku. | him, per pass | — | The engine swap stops the shared local MySQL for ~25 min; that project's tests and its Octane dev server use it. |
 
 ## Agent
 | ID | What | Waiting on | Brief | Why it matters |
@@ -328,6 +328,16 @@ change is said.** Briefs live in `briefs/`.
   default, root-proof fixtures, a time limit that lowered "unlimited", workers hardcoded to `127.0.0.1`, Passport keys, a wrong
   `.env.example`, billing tests that built the real Stripe client, intl-only country tests. Run 37503697885 on `693b68fc` (2026-10-06 21:27–22:09 Baku) is **the first green run in the project's history — every gate**: the runtime contract, the assets, Pint, PHPStan L5, the full suite (**4,480 passed, 2 skipped** — the two auto-memory tests, whose file lives on this Mac only — 32,957 assertions, 2,125 s), the money gate (FULL, `929 / 10928000 / 0 / 42 / 16 / 0`), and the marketing content (9), external-claim (23) and cookie forward-guard (15) gates.
   `HISTORY.md` ("GITHUB AND MEMORY").
+- **D-LAPSED-LOOP — FIXED 2026-10-09 (ROLE SIGN-IN; his report, "back to dashboard is also not working"):** a lapsed workspace sent
+  every `/app` page to the Paywall, which only `billing.manage` may open — so ten of the eleven back-office roles got a 403 whose
+  "Back to the dashboard" redirected straight back to it, and the workspace switcher was caught by the same redirect. Now only someone
+  who can renew is sent there; everyone else gets a plain page with Sign out and their other workspaces (`LapsedWorkspaceStaffTest`,
+  mutation set `lapsed-staff` 9/9). Gates green on both engines; **deploy pending** (`STATE.md` 0s).
+- **D-INTERNAL-TRIALS (found 2026-10-09; his call):** every production organisation was made in late September with a 14-day trial,
+  so most are probably lapsed now — `Vyrobel Test Workspace` included. Only `Vyrobel Internal — TEST TENANT` was read and changed (its
+  trial extended to 2027-03-31 at his word). If he works in another workspace and meets the Paywall, the same one-row extension (with
+  its read-back and audit row) is the fix — his yes each time, since those are his protected workspaces. ⚠️ The admin console has no
+  "Extend trial" action; building one is the alternative he was offered and did not choose.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

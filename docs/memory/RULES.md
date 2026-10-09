@@ -571,6 +571,11 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   checkout: `php artisan passport:keys --force` in CI (Verified 2026-10-06, 14 OAuth tests).
 - **A test that reads ICU depends on `ext-intl`.** GitHub's image omits it by design (DEPLOYMENT §7.5.1b); assert the names where it is
   loaded and the documented fallback where it is not — never the names alone (Verified 2026-10-06).
+- **Test a gate as someone its destination refuses.** The paywall redirect was only ever tested as `Property Owner` — the one role the
+  Paywall admits — so ten roles walked into a 403 loop the day a trial ended and nothing went red (ROLE SIGN-IN, Verified 2026-10-09).
+  When a gate redirects, drive every role through it and assert where each one actually lands.
+- **The mutation harness needs Pest's agent output.** It reads the JSON summary line, so `PAO_DISABLE=1` (right for a gate's JUnit
+  run) makes every baseline "no result" and every mutation "DID NOT LAND" (Verified 2026-10-09).
 
 
 ---

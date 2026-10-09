@@ -1083,6 +1083,44 @@ skipped (32,960 assertions, 1,101 s; one more than before — the new test), mon
 claims 23, cookies 15 (V: the run's own log). The record commit after it is pushed under the same four stops; its own run is read,
 not recorded here.
 
+**ROLE SIGN-IN — 2026-10-09 — his "I can't log into any of the role it just tell me that you don't have access to this and when I
+click on back to dashboard it is also not working … make sure all of the roles that we have created … we should be able to log in all of
+them".** 🔬 Read first (production, read-only): the refusal log since 2026-10-07 holds one entry shape only — one user of one
+organisation refused `GET /app/billing` (layer `policy`), ten times on 7 Oct and once at 12:43 UTC today (16:43 Baku, a minute before his
+message), five of them inside nine seconds — the "Back to the dashboard" clicks. The two ids are ULIDs: the organisation was made
+2026-09-23 12:05:16 UTC and the user 1 s later — "Vyrobel Internal — TEST TENANT (not a customer)", built by JOURNEY 01 through
+`TenantProvisioningService` with a 14-day trial (HISTORY, JOURNEY 01), so its trial ended 2026-10-07 12:05 UTC, four hours before the
+first refusal. ⚠️ A read-only database read to confirm it was refused by this session's permission layer and not worked around; the
+founder-approved write below read the state back instead.
+
+**Why.** `EnsureSubscriptionActive` sends every `/app` page of a lapsed workspace to the Paywall, and the Paywall is
+`can:billing.manage` — `Property Owner` alone in the catalogue. So the admin saw the Paywall and every other role got the 403, whose
+"Back to the dashboard" went to `/app/dashboard`, which redirected straight back: a loop (the F-50 class — a refusal whose way out is
+not one). The workspace switcher was caught by the same redirect. `BillingAccessGateTest` only ever signed in as `Property Owner`, so
+the other ten back-office roles were never driven through a lapsed workspace.
+
+**His workspace (F: "Extend its trial", 2026-10-09, AskUserQuestion; the date offered was 31 Mar 2027).** One guarded write on
+production from the live release: premises checked first (the organisation's id and name, not suspended, one subscription row,
+`trialing`, no Stripe id, trial already ended — any failure aborts with nothing written), one row updated inside a transaction with
+an audit row (`subscription.trial_extended`, actor `system`, before/after dates and the reason), then read back. **V:** before
+`trial_ends_at 2026-10-07T12:05:16Z`, lapsed yes, `is_internal` yes, status `active`; after `2027-03-31T23:59:59Z`, on trial, lapsed
+no, 174 days left. ⚠️ The first attempt threw inside the transaction (the morph map has no `Subscription`, so an audit row cannot
+name one) and rolled back whole; the second run's premise check — the trial still ended — is what proved the rollback. The audit
+row names the organisation and carries the subscription id.
+
+**The fix (code).** `EnsureSubscriptionActive`: a lapsed workspace still closes (#41), but only someone who holds `billing.manage`
+— by the permission, so a role granted it on the Roles page counts — is sent to the Paywall; everyone else gets a plain 403 page
+("This workspace’s subscription has ended … Nothing has been deleted … ask your administrator") with the suspended page's actions
+(Switch to another workspace, Sign out, Contact Vyrobel) and never a link back into the loop; a background request gets a JSON 403;
+the switcher is let through. The "other workspaces" list moved out of `RefuseSuspendedOrganization` into
+`App\Support\Platform\OtherWorkspaces` so the two pages cannot offer different lists. `LapsedWorkspaceStaffTest` (7; three RED
+first — a 302 where the page was due); mutation set `lapsed-staff` 9/9 landed and caught; the three existing mutations on the
+suspended gate (P2-M1, P2-M18, P3-B16) re-run, 3/3 caught.
+
+Gates: **4,490/4,490 on MySQL 8.4.10** (33,151 assertions; 17:04–17:26 Baku) · **4,490/4,490 on MariaDB 11.8.9** (33,151 assertions; 17:27–17:49 Baku) — both on the final code before these docs, read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · the engine swap asked first (F: "Yes, swap", this pass only — `OPEN.md` F9) and checked: nothing connected to 3306, no advisor-platform process · mutations: `lapsed-staff` 9/9 landed and caught; P2-M1, P2-M18, P3-B16 3/3; the harness lists **1,017** across 37 sets (`--list`, V 17:5x Baku) · PHPStan L5 0 errors (a whole run, 31 s, from a cleared cache, `PAO_DISABLE=1`) · Pint clean (the changed files) · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest `a0e1e01d92d608f6 / cc588f6bb9562863 / 2f5598c92aadf105 / 9bac428a1b859297` (V 17:49 Baku, reseeded at 2026-09-01).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -1098,6 +1136,10 @@ not recorded here.
   An `env()` read under cached config (L14). A mail job that "succeeds" under `log` (DEPLOY 11).
 - **Wrong process, wrong sample:** hrmzy's worker; a 10 s sample for a 2 s process; a `ps` grep matching itself.
 - **Deploy traps:** config cache with absolute paths; `scp` through hardlinks; hand-copied ops files (ADMIN 06 #6).
+- **ROLE SIGN-IN (2026-10-09):** the mutation harness was run with `PAO_DISABLE=1` and reported "no result" for every test — it reads
+  Pest's agent-mode JSON, so that switch is for gates only, never for the harness; a test was named "ten of them" with nothing
+  asserting ten (renamed); a production write's audit row named a model the morph map lacks and the transaction rolled back (the
+  premise check on the re-run proved it); `mariadbd-safe` is keg-only and not on the shell's PATH — call it by its full path.
 - **Self-inflicted:** editing during a suite run (REPAIR 01); removing a route by name search (CLOSE 01); two stale
   mutations that proved nothing (ADMIN 03). ADMIN 06 made three mistakes of its own, each caught by a guard or a review:
   a negated `toContain` with a message, which always passes; a bare `withoutGlobalScopes()`; and a `KNOWN-LIMITS` L19

@@ -1,5 +1,6 @@
 {{-- ADMIN 01 · PHASE 2 — what a person refused by a suspended workspace can actually do: move to another workspace
-     they belong to (if any), sign out, or contact Vyrobel. Never a link back into the page that refused them. --}}
+     they belong to (if any), sign out, or contact Vyrobel. Never a link back into the page that refused them.
+     Also the actions of a LAPSED workspace's page for someone who cannot renew (EnsureSubscriptionActive, 2026-10-09). --}}
 <div class="actions">
     @foreach ($otherWorkspaces ?? [] as $id => $name)
         <form method="POST" action="{{ route('app.workspace.switch') }}">

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\Membership;
 use App\Models\Organization;
 use App\Support\Platform\BreakGlass;
+use App\Support\Platform\OtherWorkspaces;
 use App\Support\Platform\TenantLifecycle;
 use App\Support\Tenancy\TenantContext;
 use Closure;
@@ -66,33 +66,7 @@ class RefuseSuspendedOrganization
                 .'were, and guests can still reach their own bookings. To find out why, or to restore access, '
                 .'contact Vyrobel.',
             'actions' => 'errors.partials.suspended-actions',
-            'otherWorkspaces' => $this->otherWorkspaces($request, $organizationId),
+            'otherWorkspaces' => OtherWorkspaces::for($request->user(), $organizationId),
         ], 403);
-    }
-
-    /**
-     * The person's OTHER active memberships whose organisation is itself usable — so the page can offer them.
-     *
-     * @return array<string, string> id => name
-     */
-    private function otherWorkspaces(Request $request, string $currentId): array
-    {
-        $user = $request->user();
-        if ($user === null) {
-            return [];
-        }
-
-        $ids = Membership::query()
-            ->where('user_id', $user->getAuthIdentifier())
-            ->where('status', 'active')
-            ->where('organization_id', '!=', $currentId)
-            ->pluck('organization_id');
-
-        return Organization::query()
-            ->whereIn('id', $ids)
-            ->where('status', '!=', TenantLifecycle::SUSPENDED)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->all();
     }
 }
