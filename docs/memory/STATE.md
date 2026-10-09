@@ -5,7 +5,12 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BF` → commit `94c56965`** (THE VYROBEL SELECT pass — the new select on /app/profile, awaiting his approval for
+- **Live release `rel_BG` → commit `6bde9910`** (THE ONE SELECT ENGINE pass — every drop-down on one engine. **V:** the read-only preflight
+  from the staged release on the host's PHP 8.4.26 — all 24 changed views compile, 419 zones, the combobox gone; swap 2026-10-10
+  03:38:26 Baku, 4 ms; 25 files shipped, 1 deleted, no migration, nothing drifted; public checks **12/0/0**; live signup's two selects
+  open the panel and close with Esc, no page error (Playwright, after the CDN's bot check let the page through); 0 error-level lines
+  since — 11 warnings, all `security.refusal`, from the exposure battery). ⚠️ The signed-in live walk was offered and he chose to
+  skip it (F 2026-10-10 03:4x Baku). Rollback target: `rel_BF @ 94c56965`. Before it: **`rel_BF` → commit `94c56965`** (THE VYROBEL SELECT pass — the new select on /app/profile, awaiting his approval for
   the rest of the app. **V:** the read-only preflight from the staged release on the host's own PHP (now **8.4.26**, not the 8.4.19
   recorded earlier): 419 zones of 419 identifiers, Baku labelled "Baku UTC+4", the Portfolio's list unchanged, both views compile;
   swap 2026-10-10 00:18:16 Baku, 3 ms; 4 files shipped, no migration, nothing drifted on the host; public checks **12/0/0**; 0
@@ -30,7 +35,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
   remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 16b15e2f…`, 5 ms), 2026-10-06 18:59:10 Baku; `.release`
   re-read on the host at 19:1x (a read-only count). The three team chat tables were added by `ops/release.sh migrate` from the staged release, before the swap.
-  Rollback targets: `rel_BE @ 79d0cb60` (the bell, before the select), `rel_BD @ 906b7dd9` (the owner top bar, before the bell), `rel_BC @ 2e2194e5` (the sidebar, before the owner top bar), `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  Rollback targets: `rel_BF @ 94c56965` (the profile's select, before the engine), `rel_BE @ 79d0cb60` (the bell, before the select), `rel_BD @ 906b7dd9` (the owner top bar, before the bell), `rel_BC @ 2e2194e5` (the sidebar, before the owner top bar), `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
@@ -101,8 +106,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled
     (`HISTORY.md`, "THE ONE SELECT ENGINE"). Walked locally everywhere; gates green on both engines; the whole harness 1,060/1,060.
-    **Left: the deploy (`rel_BG`) and the live walk** (the back office and the console need his sign-in). Recorded for his go:
-    `OPEN.md` D-ADMIN-COMBO.
+    **✅ LIVE on `rel_BG @ 6bde9910`** (V swap 03:38:26 Baku; public checks 12/0/0; live signup walked; 0 errors since). The signed-in
+    live walk: offered, skipped at his choice. Recorded for his go: `OPEN.md` D-ADMIN-COMBO.
 0v. **The Vyrobel select, on /app/profile (2026-10-09/10)** — his request ("make me very cool drop-downs … first work on this page …
     when I approve … apply it in the entire application"). Language and Timezone are `<x-select>`; Timezone offers every zone (it
     offered five — a person in Baku saw, and could save, Lisbon), searchable, with live clocks (`HISTORY.md`, "THE VYROBEL SELECT").

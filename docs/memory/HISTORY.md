@@ -1276,7 +1276,13 @@ repointed; the admin field system's own count test keeps counting only its block
 
 Gates: a first MySQL run **4,509/4,511** — two existing contracts caught the engine: the owner Messages page forbids the word "Read" (a fabricated receipt) and a script comment began "Read from a still probe" (rephrased; every comment in that script ships in every page); and the control-name census, reading each file alone, called the component's `aria-labelledby="{{ $labelledby }}"` dangling (dropped — the real select is named by the page's own label[for]; the label's id rides as data-labelledby to name the open list). After the fixes: **4,511/4,511 on MySQL 8.4.10** (33,898 assertions; 02:24–02:43 Baku) · **4,511/4,511 on MariaDB 11.8.9** (33,898 assertions; 02:44–03:32 Baku, slowed by another tool's load) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the WHOLE harness re-run **1,060/1,060 landed and caught across 41 sets** (01:09–01:37 Baku; the sets touched again after — vy-select 11, select-engine 13, PF-M6 — re-run whole, all caught) · PHPStan L5 0 errors (a cleared cache) · Pint clean · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 03:33 Baku).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BG @ 6bde9910` (V: the read-only preflight from the staged release — the host's PHP 8.4.26, all 24
+changed views compile, 419 zones, the combobox gone; stage — 25 files, 1 deleted, nothing drifted, no migration; swap 2026-10-10
+03:38:26 Baku, 4 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; 🖥 live signup (Playwright): both selects open the
+panel with their three choices and close with Esc, no page error — the CDN's "Checking your browser" answered first and then let the
+page through; 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). The signed-in live walk
+(the back office and the console behind his sign-in) was offered with the sign-in page open in the automated browser; he chose to
+skip it — the local walk across the six realms stands for those.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
