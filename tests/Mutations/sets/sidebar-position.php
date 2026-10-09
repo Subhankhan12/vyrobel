@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Mutation set sidebar-position — the sidebar stays where it was on every page and reload, in all three shells (2026-10-09,
 // his report: "upon the page refresh the sidebar is going up again … it shouldn't be moving"). One component after each
-// sidebar, aimed at the box that scrolls; no sidebar animates. Run with `php tests/Mutations/run.php --set=sidebar-position`.
+// sidebar, aimed at the box that scrolls; no sidebar animates, nor the owner portal's top bar (his go, the same day). Run with `php tests/Mutations/run.php --set=sidebar-position`.
 // ⚠️ These prove the markup and the rules; the position itself is a browser fact, walked in all three realms.
 
 $test = 'tests/Feature/SidebarPositionTest.php';
@@ -98,5 +98,13 @@ return [
         'old' => ' overflow-y: auto; } /* No entrance animation',
         'new' => ' overflow-y: auto; animation: adFadeUp .45s cubic-bezier(.22, .61, .36, 1) both; } /* No entrance animation',
         'tests' => [['file' => $test, 'filter' => 'animates no sidebar']],
+    ],
+    [
+        'id' => 'SP-M12',
+        'name' => 'the owner top bar slides in on every page again (D-OWNER-TOPBAR-FADE)',
+        'file' => 'resources/views/components/layouts/owner.blade.php',
+        'old' => 'justify-content: space-between; gap: 16px; margin-bottom: 24px; }',
+        'new' => 'justify-content: space-between; gap: 16px; margin-bottom: 24px; animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) .06s both; }',
+        'tests' => [['file' => $test, 'filter' => 'animates no top bar']],
     ],
 ];

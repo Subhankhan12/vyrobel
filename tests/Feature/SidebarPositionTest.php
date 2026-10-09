@@ -70,6 +70,25 @@ it('runs before the page is drawn, keeps the current item in view, and never cre
         ->and(substr_count($script, 'try {'))->toBe(3);
 });
 
+it('animates no top bar either — the owner portal’s slid in on every page until his go (D-OWNER-TOPBAR-FADE)', function () {
+    $rules = [
+        'resources/views/components/layouts/owner.blade.php' => '.vy-topbar {',
+        'resources/views/components/layouts/operator.blade.php' => '.vy-topbar {',
+        'resources/views/components/admin/shell.blade.php' => '.ad-top {',
+    ];
+
+    foreach ($rules as $file => $selector) {
+        $css = (string) file_get_contents(base_path($file));
+        $start = strpos($css, '        '.$selector);
+        expect($start)->not->toBeFalse("{$selector} in {$file}");
+
+        $body = (string) preg_replace('#/\*.*?\*/#s', '', substr($css, $start, strpos($css, '}', $start) - $start));
+
+        expect($body)->toContain('display: flex')   // the right rule: the bar itself
+            ->and($body)->not->toContain('animation');
+    }
+});
+
 it('animates no sidebar — the same on every page, so it stays still', function () {
     $rules = [
         'resources/views/components/layouts/operator.blade.php' => '.vy-side {',

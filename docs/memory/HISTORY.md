@@ -1154,6 +1154,16 @@ every shipped file its own inode; swap 2026-10-09 19:07:25 Baku, 3 ms; public ch
 component present in all three shells on the host; 0 error-level lines since — 11 warnings, all `security.refusal`, from the
 exposure battery). His look: done — F 2026-10-09 ~19:18 Baku, "Cool it works fine."
 
+**OWNER TOP BAR — 2026-10-09 — his "Do this too" on D-OWNER-TOPBAR-FADE** (recorded by the SIDEBAR POSITION pass). The owner portal's
+top bar (`.vy-topbar` in `layouts/owner.blade.php`) lost its `vyFadeUp .45s .06s` entrance, so it stands still on every page like the
+sidebars; read first that the operator's top bar never animated and the admin console's (`.ad-top`) sits outside its animated
+content, so the owner portal's was the only one. `SidebarPositionTest` +1 (all three top bars, comments stripped before the check);
+`sidebar-position` SP-M12, the set 12/12 landed and caught. 🖥 Locally as the demo owner (1280 × 600): on Statements, Reports and Team
+and a reload, the bar's animation `none`, 0 running, opacity 1 from the moment it exists; the menu still kept its place; no page error.
+Gates: **4,496/4,496 on MySQL 8.4.10** (33,197 assertions; 19:26–20:21 Baku — 55 minutes, another tool's video render held the load average near 19) · **4,496/4,496 on MariaDB 11.8.9** (33,197 assertions; 20:22–20:49 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the harness lists **1,029** across 38 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 20:50 Baku).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

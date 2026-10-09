@@ -173,7 +173,9 @@
 
         /* Main column */
         .vy-main { padding: 30px 34px 40px 22px; max-width: 1314px; }
-        .vy-topbar { position: relative; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; animation: vyFadeUp .45s cubic-bezier(.22, .61, .36, 1) .06s both; }
+        .vy-topbar { position: relative; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+        /* No entrance animation on the top bar either: it is the same on every page, like the sidebar (2026-10-09, his go on
+           D-OWNER-TOPBAR-FADE). The operator's and the admin console's top bars never had one. */
         .vy-topbar h1 { font-family: var(--vy-display); font-weight: 600; font-size: 24px; letter-spacing: -0.02em; margin: 0; }
         .vy-topbar h1.is-greeting { font-size: 30px; }
         .vy-topbar-actions { display: flex; align-items: center; gap: 10px; }
