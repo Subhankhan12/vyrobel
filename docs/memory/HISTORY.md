@@ -1152,7 +1152,7 @@ Gates: **4,495/4,495 on MySQL 8.4.10** (33,187 assertions; 18:23–18:42 Baku) �
 **Deploy.** ✅ LIVE on `rel_BC @ 2e2194e5` (V: stage — 6 files, nothing drifted on the host, no migration,
 every shipped file its own inode; swap 2026-10-09 19:07:25 Baku, 3 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; the
 component present in all three shells on the host; 0 error-level lines since — 11 warnings, all `security.refusal`, from the
-exposure battery). His look is next — behind his sign-in.
+exposure battery). His look: done — F 2026-10-09 ~19:18 Baku, "Cool it works fine."
 
 ## 2 · Mistakes to learn from (each one cited above)
 

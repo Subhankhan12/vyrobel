@@ -86,7 +86,7 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     across the entire application"). Every sidebar (operator, owner portal, admin console) now keeps its exact position across clicks
     and reloads and shows the current item; none slides in any more (`HISTORY.md`, "SIDEBAR POSITION"). 🖥 walked in all three
     realms; gates green on both engines. **✅ LIVE on `rel_BC @ 2e2194e5`** (V swap 19:07:25 Baku; public checks 12/0/0; 0
-    errors since). **Left: his look.** Recorded for his go: `OPEN.md`
+    errors since). **His look done** (F 2026-10-09 ~19:18 Baku: "Cool it works fine."). Recorded for his go: `OPEN.md`
     D-OWNER-TOPBAR-FADE.
 0s. **Role sign-in (2026-10-09)** — his report ("I can't log into any of the role … you don't have access to this … back to
     dashboard is also not working"). 🔬 Production's refusal log: one user refused `/app/billing` again and again from the day the
