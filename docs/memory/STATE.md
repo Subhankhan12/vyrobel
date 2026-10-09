@@ -5,7 +5,10 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BC` → commit `2e2194e5`** (the SIDEBAR POSITION pass — every sidebar keeps its place across pages and reloads;
+- **Live release `rel_BD` → commit `906b7dd9`** (the OWNER TOP BAR follow-up — the owner portal's top bar stands still too. **V:** swap
+  2026-10-09 20:53:32 Baku, 4 ms; 1 file shipped, no migration, nothing drifted on the host; public checks **12/0/0**; the rule on the
+  host carries no animation; 0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). Rollback
+  target: `rel_BC @ 2e2194e5`. Before it: **`rel_BC` → commit `2e2194e5`** (the SIDEBAR POSITION pass — every sidebar keeps its place across pages and reloads;
   `HISTORY.md`, "SIDEBAR POSITION". **V:** swap 2026-10-09 19:07:25 Baku, 3 ms; 6 files shipped, no migration, nothing drifted on the
   host; public checks **12/0/0** straight after; the three shells on the host carry the component; 0 error-level lines since — 11
   warnings, all `security.refusal` (layer `abort`), from the exposure battery). Rollback target: `rel_BB @ 6ca6a10b`. Before it:
@@ -19,7 +22,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
   fixes, DEC-m, photos at `/media`, DEC-k, the Units, Maintenance and Guests rebuilds, Portfolio Open + fields, the Portfolio
   remove and ADMIN 06). **V:** `ops/release.sh swap` output (`.release = 16b15e2f…`, 5 ms), 2026-10-06 18:59:10 Baku; `.release`
   re-read on the host at 19:1x (a read-only count). The three team chat tables were added by `ops/release.sh migrate` from the staged release, before the swap.
-  Rollback targets: `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
+  Rollback targets: `rel_BC @ 2e2194e5` (the sidebar, before the owner top bar), `rel_BB @ 6ca6a10b` (the ROLE SIGN-IN fix, before the sidebar), `rel_BA @ 16b15e2f` (team chat, before the ROLE SIGN-IN fix), `rel_AZ @ 59799d4d` (the Inbox tabs, before team chat — ⚠️ the three team chat tables stay, unused by it), `rel_AY @ c73a97cd` (the five pages, before the tabs), `rel_AX @ 8345c86e` (Guests second pass), `rel_AW @ a2831e72` (Calendar second pass), `rel_AV @ bac3997b` (New reservation second pass), `rel_AU @ 7819226d` (Calendar New reservation), `rel_AT @ 282109e4` (New reservation), `rel_AS @ 4751d2c9` (the owners module), `rel_AR @ d90f40ca` (payouts), `rel_AQ @ 5d391dbe` (Owners), `rel_AP @ 9b9b80c8` (Rates with its two fixes), `rel_AO @ cac9e677` (Rates, before the two fixes), `rel_AN @ 761cf2dd` (DEC-m),
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
@@ -88,8 +91,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     and reloads and shows the current item; none slides in any more (`HISTORY.md`, "SIDEBAR POSITION"). 🖥 walked in all three
     realms; gates green on both engines. **✅ LIVE on `rel_BC @ 2e2194e5`** (V swap 19:07:25 Baku; public checks 12/0/0; 0
     errors since). **His look done** (F 2026-10-09 ~19:18 Baku: "Cool it works fine."). Then his "Do this too" on
-    D-OWNER-TOPBAR-FADE: the owner portal's top bar stands still too (`HISTORY.md`, "OWNER TOP BAR"); gates green; **deploy
-    (`rel_BD`) follows.** Recorded for his go: `OPEN.md`
+    D-OWNER-TOPBAR-FADE: the owner portal's top bar stands still too (`HISTORY.md`, "OWNER TOP BAR"); gates green; **✅ LIVE on
+    `rel_BD @ 906b7dd9`** (V swap 20:53:32 Baku; public checks 12/0/0; 0 errors since). Left: his look. Recorded for his go: `OPEN.md`
     D-OWNER-TOPBAR-FADE.
 0s. **Role sign-in (2026-10-09)** — his report ("I can't log into any of the role … you don't have access to this … back to
     dashboard is also not working"). 🔬 Production's refusal log: one user refused `/app/billing` again and again from the day the

@@ -1162,7 +1162,10 @@ content, so the owner portal's was the only one. `SidebarPositionTest` +1 (all t
 and a reload, the bar's animation `none`, 0 running, opacity 1 from the moment it exists; the menu still kept its place; no page error.
 Gates: **4,496/4,496 on MySQL 8.4.10** (33,197 assertions; 19:26–20:21 Baku — 55 minutes, another tool's video render held the load average near 19) · **4,496/4,496 on MariaDB 11.8.9** (33,197 assertions; 20:22–20:49 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the harness lists **1,029** across 38 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 20:50 Baku).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BD @ 906b7dd9` (V: stage — 1 file, nothing drifted on the host, no migration; swap
+2026-10-09 20:53:32 Baku, 4 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; the rule on the host carries no animation;
+0 error-level lines since — 11 warnings, all `security.refusal`, from the exposure battery). ⚠️ While the gates ran, `restiox/admin`
+started its own `phpunit` (XAMPP's PHP, its database on port 3310 — not ours on 3306); identified by its working folder, left alone.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
