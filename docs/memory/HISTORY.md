@@ -1228,7 +1228,10 @@ writable tenant's founder stops at email verification — it is proven by a test
 
 Gates: the first MySQL run **4,502/4,503** — the one RED was the keyboard contract above (23:09–23:29 Baku); after the fixes **4,503/4,503 on MySQL 8.4.10** (33,260 assertions; 23:33–23:53 Baku) · **4,503/4,503 on MariaDB 11.8.9** (33,260 assertions; 23:53–00:14 Baku) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · PHPStan L5 0 errors (a whole run from a cleared cache, after the fixes) · Pint clean · the harness lists **1,048** across 40 sets · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 2026-10-10 00:15 Baku).
 
-**Deploy.** Recorded in the docs commit that follows the swap.
+**Deploy.** ✅ LIVE on `rel_BF @ 94c56965` (V: a read-only preflight from the staged release on the host's PHP — now
+8.4.26 — 419 zones, Baku "UTC+4", the Portfolio's list unchanged, both views compile; stage — 4 files, nothing drifted, no
+migration; swap 2026-10-10 00:18:16 Baku, 3 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; 0 error-level lines since —
+11 warnings, all `security.refusal`, from the exposure battery). His look and his approval are next.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
