@@ -52,10 +52,11 @@ return [
     ],
     [
         'id' => 'PF-M6',
-        'name' => 'the time zone list loses its keyboard path (Enter no longer picks) — its keyboard exemption must fall',
-        'file' => 'resources/views/components/operator/combobox.blade.php',
-        'old' => '@keydown.enter.prevent="pick(shown[active])"',
-        'new' => '@keydown.enter.prevent=""',
-        'tests' => [['file' => 'tests/Feature/KeyboardReachabilityContractTest.php', 'filter' => 'has no click handler a keyboard cannot reach']],
+        // 2026-10-10 — the combobox left; the time zone is the app-wide select, whose keyboard path is the engine's Enter.
+        'name' => 'the time zone list loses its keyboard path (Enter no longer picks)',
+        'file' => 'resources/views/components/vy-selects.blade.php',
+        'old' => "case 'Enter': e.preventDefault(); choose(st.active); break;",
+        'new' => "case 'Enter': e.preventDefault(); break;",
+        'tests' => [['file' => 'tests/Feature/SelectEngineTest.php', 'filter' => 'leaves the native select in charge']],
     ],
 ];

@@ -397,7 +397,7 @@
                                 @else
                                     <div class="vy-field">
                                         <label class="vy-field-label" for="vy-mt-n-unit">Unit</label>
-                                        <x-operator.combobox name="unit_id" id="vy-mt-n-unit" :options="$unitOptions" :selected="$unitOptions[0]['value']" search="Search units" empty="No unit matches" />
+                                        <x-select name="unit_id" id="vy-mt-n-unit" :options="$unitOptions" :value="$unitOptions[0]['value']" search-placeholder="Search units" empty-text="No unit matches" />
                                     </div>
                                 @endif
                                 <div class="vy-mt-cats">

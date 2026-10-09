@@ -222,6 +222,7 @@
     @endif
     {{ $head ?? '' }}
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <header class="vy-top">

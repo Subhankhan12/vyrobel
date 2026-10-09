@@ -44,6 +44,7 @@
         .who { font-size: 11.5px; color: var(--vy-faint); text-align: center; margin-top: 18px; }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <div class="card">

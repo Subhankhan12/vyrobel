@@ -28,6 +28,7 @@
             font-weight: 600; font-size: 14px; color: #fff; text-decoration: none; background: #C2410C;   /* DO-EMAIL-6: white 14px on the accent GRADIENT measured 3.08 at its lighter stop (#E8703A). The repo's settled fix for this exact construct is the SOLID accent — 5.18, the published anchor. */ box-shadow: rgba(194,65,12,.3) 0 4px 12px; }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="card">

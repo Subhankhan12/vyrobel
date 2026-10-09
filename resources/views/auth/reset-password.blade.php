@@ -72,6 +72,7 @@
         .vy-foot { text-align: center; color: var(--vy-faint); font-size: 11.5px; margin-top: 18px; }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="vy-card">

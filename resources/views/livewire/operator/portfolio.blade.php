@@ -293,7 +293,7 @@
                             <x-operator.choices name="type" label="Type" :options="$typeChoices" :selected="old('type', 'villa')" />
                             <div class="vy-field">
                                 <label class="vy-field-label" for="vy-add-tz">Time zone</label>
-                                <x-operator.combobox name="timezone" id="vy-add-tz" :options="$timezones" :selected="old('timezone', 'Europe/Lisbon')" search="Search time zones" empty="No time zone matches — try a city or “UTC+4”" />
+                                <x-select name="timezone" id="vy-add-tz" :options="$timezones" :value="old('timezone', 'Europe/Lisbon')" search-placeholder="Search time zones" empty-text="No time zone matches — try a city or “UTC+4”" :device-timezone="true" :min-width="340" />
                             </div>
                             {{-- ⚠️ P-6 · Gate 1 — channels dropped: they still have no creation path (decision ④), and naming a
                                  step the tenant cannot take is the defect this gate exists to remove. --}}
@@ -339,7 +339,7 @@
                                 :options="[['value' => 'active', 'label' => 'Active'], ['value' => 'inactive', 'label' => 'Inactive']]" />
                             <div class="vy-field">
                                 <label class="vy-field-label" for="vy-edit-tz">Time zone</label>
-                                <x-operator.combobox name="timezone" id="vy-edit-tz" :options="$timezones" x-model="editing.timezone" search="Search time zones" empty="No time zone matches — try a city or “UTC+4”" />
+                                <x-select name="timezone" id="vy-edit-tz" :options="$timezones" x-model="editing.timezone" search-placeholder="Search time zones" empty-text="No time zone matches — try a city or “UTC+4”" :device-timezone="true" :min-width="340" />
                             </div>
                         </div>
                         <div class="vy-modal-foot">

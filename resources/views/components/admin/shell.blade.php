@@ -347,6 +347,7 @@
     {{-- ADMIN 05 — the console's field system (inputs, dropdowns, choices, switches), after the layout's own rules --}}
     @include('admin.partials.fields')
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <div class="ad-amb" aria-hidden="true">

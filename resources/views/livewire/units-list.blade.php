@@ -509,7 +509,7 @@
                                 @if ($propertyChoice)
                                     <div class="vy-field">
                                         <label class="vy-field-label" for="vy-ul-rt-prop">Property</label>
-                                        <x-operator.combobox name="property_id" id="vy-ul-rt-prop" :options="array_merge([['value' => '', 'label' => 'Choose a property']], $propertyOptions)" :selected="''" search="Search properties" empty="No property matches" x-model="rtForm.property_id" />
+                                        <x-select name="property_id" id="vy-ul-rt-prop" :options="array_merge([['value' => '', 'label' => 'Choose a property']], $propertyOptions)" :value="''" search-placeholder="Search properties" empty-text="No property matches" x-model="rtForm.property_id" />
                                     </div>
                                 @else
                                     <p class="vy-ul-addsto">Adds to <strong>{{ $addsTo }}</strong></p>
@@ -578,7 +578,7 @@
                                 @if (count($roomTypeOptions) > 0)
                                     <div class="vy-field">
                                         <label class="vy-field-label" for="vy-ul-u-rt">Room type</label>
-                                        <x-operator.combobox name="room_type_id" id="vy-ul-u-rt" :options="$roomTypeOptions" :selected="$roomTypeOptions[0]['value']" search="Search room types" empty="No room type matches" x-model="unitForm.room_type_id" />
+                                        <x-select name="room_type_id" id="vy-ul-u-rt" :options="$roomTypeOptions" :value="$roomTypeOptions[0]['value']" search-placeholder="Search room types" empty-text="No room type matches" x-model="unitForm.room_type_id" />
                                     </div>
                                 @endif
                                 <div class="vy-field vy-ul-codesfield">

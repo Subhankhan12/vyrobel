@@ -19,6 +19,7 @@
         p{color:#4A4038;font-size:14px;line-height:1.55;margin:0}
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="card">

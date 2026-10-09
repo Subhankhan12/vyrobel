@@ -24,6 +24,7 @@
         .hint a{color:var(--accent);text-decoration:none;font-weight:500}
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="card">

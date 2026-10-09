@@ -41,6 +41,7 @@
         @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="vy-card">

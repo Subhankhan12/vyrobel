@@ -18,6 +18,10 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
  *
  * ⚠️ WHAT THESE CAN AND CANNOT SEE: the markup, the options, the saved value and the component's rules. The behaviour — opening,
  * search, keyboard, the live clocks, centring on the choice — is a browser fact: 🖥 walked 2026-10-09 (VySelect, profile).
+ *
+ * ⚠️ 2026-10-10 — REBUILT ON THE ONE ENGINE (his approval: "the same sort of select … in the entire application"). The field is
+ * now a REAL select (the engine opens and draws its panel; SelectEngineTest guards the engine), so these read a select, its
+ * <optgroup>s and data-hint / data-clock where they read a hidden input and an Alpine button before.
  */
 uses(DatabaseTransactions::class);
 
@@ -37,20 +41,24 @@ function personalForm(string $html): string
     return $m[0] ?? '';
 }
 
-it('renders Language and Timezone as the new select — no native select left in the form', function () {
+it('renders Language and Timezone as the rich select — a real select, named by its label, with the saved value chosen', function () {
     $s = seedScenario(1);
     $html = (string) $this->actingAs(selectStaff($s, 'Europe/Lisbon'))->get(route('app.profile'))->assertOk()->getContent();
     $form = personalForm($html);
 
     expect($form)->not->toBe('')
-        ->and($form)->not->toContain('<select')
-        // The form value: a hidden input carrying the saved value, so the form posts it before (or without) Alpine.
-        ->and($form)->toContain('<input type="hidden" name="locale" value="en"')
-        ->and($form)->toContain('<input type="hidden" name="timezone" value="Europe/Lisbon"')
-        // The field: a combobox named by its visible label, server-rendered with the chosen label.
-        ->and($form)->toMatch('#<button type="button" id="tz"[^>]*role="combobox"[^>]*aria-controls="tz-list"#s')
-        ->and($form)->toContain('aria-labelledby="tz-label tz"')
-        ->and($form)->toMatch('#<span class="vys-label"[^>]*>Lisbon</span>#');
+        // A REAL select carries the value: it posts with the form before (or without) a script.
+        // Named by the page's own label[for] (a real select needs nothing more); the label's id names the open list.
+        ->and($form)->toContain('<label class="vy-field-label" id="locale-label" for="locale">Language</label>')
+        ->and($form)->toMatch('#<select name="locale" id="locale"\s+data-labelledby="locale-label"#')
+        // `data-search` itself, never matched inside data-search-placeholder.
+        ->and($form)->toMatch('#<select name="timezone" id="tz"\s+data-labelledby="tz-label"[^>]*\sdata-search(?=[\s>])#s')
+        ->and($form)->toMatch('#<option value="en"[^>]*selected[^>]*>English</option>#')
+        ->and($form)->toMatch('#<option value="Europe/Lisbon"[^>]*data-hint="UTC\+1"[^>]*data-clock="Europe/Lisbon"[^>]*selected[^>]*>Lisbon</option>#')
+        // Regions as <optgroup>s; the device's own zone offered; the hint drawn over the field, server-rendered.
+        ->and($form)->toContain('<optgroup label="Europe">')
+        ->and($form)->toContain('data-suggest-device-zone')
+        ->and($form)->toContain('<span class="vys-deco" aria-hidden="true"><span class="vys-deco-hint">UTC+1</span>');
 });
 
 it('⚠️ offers every zone the server accepts, and shows a zone outside the old five as itself — never Lisbon', function () {
@@ -59,9 +67,9 @@ it('⚠️ offers every zone the server accepts, and shows a zone outside the ol
     $form = personalForm($html);
 
     // The bug: no option matched Baku, so the first ("Europe/Lisbon") showed and would have been saved.
-    expect($form)->toContain('<input type="hidden" name="timezone" value="Asia/Baku"')
-        ->and($form)->toMatch('#<span class="vys-label"[^>]*>Baku</span>#')
-        ->and($form)->toMatch('#<span class="vys-hint"[^>]*>UTC\+4</span>#');
+    expect($form)->toMatch('#<option value="Asia/Baku"[^>]*selected[^>]*>Baku</option>#')
+        ->and($form)->not->toMatch('#<option value="Europe/Lisbon"[^>]*selected#')
+        ->and($form)->toContain('<span class="vys-deco-hint">UTC+4</span>');
 
     expect(count(TimezoneOptions::choices()))->toBe(count(DateTimeZone::listIdentifiers()));
 });
@@ -96,16 +104,12 @@ it('labels every zone by its city, region and offset, and keeps a saved zone the
         ->and(collect(TimezoneOptions::choices('Not/AZone'))->pluck('value'))->not->toContain('Not/AZone');
 });
 
-it('floats the list above every card, centres the choice on opening, and styles itself once', function () {
+it('draws the profile on the one engine, included once', function () {
     $s = seedScenario(1);
     $html = (string) $this->actingAs(selectStaff($s, 'Europe/Lisbon'))->get(route('app.profile'))->assertOk()->getContent();
 
-    // ⚠️ Teleported to <body>: each card is a backdrop-filter layer, and a list left inside one is painted under the next card.
-    expect(substr_count($html, '<template x-teleport="body">'))->toBe(2)
-        // ⚠️ One frame after the tick, and LAYOUT offsets: a hidden list does not scroll, and the 98.5% opening scale makes a
-        //    screen rect 1.5% short (the walk saw Lisbon open near the bottom, then 195px off).
-        ->and($html)->toContain('this.$nextTick(() => requestAnimationFrame(() => {')
-        ->and($html)->toContain('list.scrollTop = (row.offsetTop - list.offsetTop) - (list.clientHeight - row.offsetHeight) / 2;')
-        // Two selects, one style block (its heading; `.vys-panel {` itself appears twice — the reduced-motion rule repeats it).
-        ->and(substr_count($html, '/* ── The Vyrobel select (components/select.blade.php)'))->toBe(1);
+    expect(substr_count($html, 'window.VySelect = {'))->toBe(1)
+        ->and(substr_count($html, '/* ── The closed field'))->toBe(1)
+        // No Alpine panel of its own any more: one engine for every drop-down.
+        ->and($html)->not->toContain('<template x-teleport="body">');
 });

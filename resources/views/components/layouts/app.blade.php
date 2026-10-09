@@ -8,6 +8,7 @@
     <title>{{ $title ?? 'Vyrobel — Contract Stub' }}</title>
     @livewireStyles
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main>

@@ -87,6 +87,7 @@
         .no-js [data-step] > * { animation: none; }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body class="no-js">
     <main class="vy-card">

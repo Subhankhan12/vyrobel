@@ -1233,6 +1233,51 @@ Gates: the first MySQL run **4,502/4,503** — the one RED was the keyboard cont
 migration; swap 2026-10-10 00:18:16 Baku, 3 ms; public checks **12 PASS · 0 FAIL · 0 could not measure**; 0 error-level lines since —
 11 warnings, all `security.refusal`, from the exposure battery). His look and his approval are next.
 
+**THE ONE SELECT ENGINE, EVERYWHERE — 2026-10-10 — his "that's very cool. I really like it. Now I need the same sort of select and
+same sort of drop down in the entire application, everywhere … ship it everywhere and … test everywhere, MCP Playwright … on live
+server".** 🔬 Read first: 95 `<select>` tags in 44 views across six realms — form posts, Alpine `x-model`, `onchange` auto-submitting
+filters, `required`, `disabled`; NONE `wire:model`; two `multiple` — the guest portal and the public pages load NO Alpine; five
+`<x-operator.combobox>` places; the admin console's own searchable drop-down (ADMIN 05's field system: a checklist mode and flags);
+six menu families (account menus, the bell, the row ⋯ menus, the owner statement and report pickers).
+
+**Built — one engine, `components/vy-selects.blade.php`, included once from every shell's head (19 layouts; the error pages and
+Laravel's unused welcome page aside), no Alpine needed.** ⚠️ The NATIVE select stays in charge — element, name, options, form,
+`x-model`, `onchange`, validation and every test unchanged; the engine changes only what is seen and clicked: a CSS skin on every
+closed select (no class added — a Livewire morph would strip it; the chevron forced past a field's own `background` shorthand; the
+app's focus ring in place of the browser's blue one), and a mouse press or a key opens the Vyrobel panel in place of the operating
+system's list. A choice sets `selectedIndex` and fires `input` and `change`. Focus never leaves the select (the APG select-only
+combobox): typing searches (above 8 options, never a list of plain numbers), ↑/↓, Page Up/Down, Home/End, Enter, Esc (stopped, so
+a dialog behind it stays open), Tab. Inside a dialog the panel lives IN the dialog (its trap and click-outside see it as inside),
+placed from a still probe when the dialog becomes the containing block; as wide as its longest choice up to 420px; opens upward
+without room below. A finger keeps the phone's own picker. Opt-out: `data-native` (no view uses it). The rich select component was
+rebuilt on it (a real select with `<optgroup>`s, data-hint / data-clock, the hint and live clock drawn over the field — an x-model
+change is followed every 0.4s, since x-model fires no event); the five combobox places moved onto it and the combobox and its CSS
+were deleted; the Portfolio's two zone pickers now use the same rich list as the profile. The menus share the panel's surface, rows,
+tint and opening motion. The console's searchable drop-down keeps its mechanics (checklist, flags — `OPEN.md` D-ADMIN-COMBO) and
+takes the same look from the engine's sheet; an open one now lifts its card, which fixed a pre-existing overlap (the next card
+painted over the list's last organisation).
+
+🖥 Walked locally (Playwright, 1440 × 900) with the demo accounts: 28 operator pages as the organisation admin (every visible select
+skinned, opened by mouse and by keyboard with the same choices as the select, closed by Esc, no page error); Maintenance settings'
+five assignee selects work once auto-assignment is on (off, the card blocks them by design); dialogs — Portfolio's Add property zone
+(in the dialog, searchable, the device row, Esc closes only the list, "baku" + Enter sets Asia/Baku and the clock), Units' room type
+and Guests' nationality (250, "portu" → PT), Rates' bulk edit and Schedule's add shift (x-model follows the choice); 24 owner pages
+(Bookings' auto-submitting filter navigates with `status=checked_out`); the guest portal with no Alpine (Saved 2, Manage 1, Review
+4); the storefront (`/stay/vyrobel-demo`, adults chosen); signup (type, currency); 20 admin pages (the console's plain selects on the
+engine; its searchable ones restyled). The walk found and fixed: the empty search box's caret before its icon; a numbers-only list
+with a search box; a narrow filter cutting its choices ("Changes & sign-ins"); the console overlap above.
+
+Tests: `SelectEngineTest` (8), `VySelectTest` rewritten for the real select, `PortfolioOpenAndFieldsTest` (its intent — a searchable
+zone list with offsets — pinned on the engine's markup), the keyboard contract's two retired entries removed. ⚠️ Two of my own test
+slips caught by mutation: Pest's `toContain()` takes many needles (a message became a needle — PHPUnit's Assert used), and
+`data-search\b` matched `data-search-placeholder`. Mutation sets: `vy-select` rewritten (11), `select-engine` new (13), PF-M6
+repointed; the admin field system's own count test keeps counting only its block (the engine names that panel
+`[class~="ad-combo-panel"]`, said in a comment).
+
+Gates: a first MySQL run **4,509/4,511** — two existing contracts caught the engine: the owner Messages page forbids the word "Read" (a fabricated receipt) and a script comment began "Read from a still probe" (rephrased; every comment in that script ships in every page); and the control-name census, reading each file alone, called the component's `aria-labelledby="{{ $labelledby }}"` dangling (dropped — the real select is named by the page's own label[for]; the label's id rides as data-labelledby to name the open list). After the fixes: **4,511/4,511 on MySQL 8.4.10** (33,898 assertions; 02:24–02:43 Baku) · **4,511/4,511 on MariaDB 11.8.9** (33,898 assertions; 02:44–03:32 Baku, slowed by another tool's load) — JUnit 0 failed, 0 errors, 0 skipped · the swap asked (F: "Yes, swap") and checked · the WHOLE harness re-run **1,060/1,060 landed and caught across 41 sets** (01:09–01:37 Baku; the sets touched again after — vy-select 11, select-engine 13, PF-M6 — re-run whole, all caught) · PHPStan L5 0 errors (a cleared cache) · Pint clean · the money gate **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 03:33 Baku).
+
+**Deploy.** Recorded in the docs commit that follows the swap.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -1258,6 +1303,10 @@ migration; swap 2026-10-10 00:18:16 Baku, 3 ms; public checks **12 PASS · 0 FAI
 - **THE VYROBEL SELECT (2026-10-09):** I built a select and a timezone helper while both already existed — the search was for the
   word "select", and the existing ones are a "combobox" and `Time\TimezoneOptions`. The keyboard contract's allow-list named the first.
   Before building a component, search for the CONCEPT under every name it may carry (select, dropdown, combobox, picker, listbox).
+- **THE ONE SELECT ENGINE (2026-10-10):** the same lesson, a third copy found the next day — the console's ADMIN 05 searchable drop-down
+  (`ad-combo`), surfaced only when the walk's clicks landed on hidden selects. And two of my test slips (Pest's multi-needle
+  `toContain` swallowing a message; `data-search\b` matching `data-search-placeholder`) were caught only by mutation — a test written
+  after its code is not proven until a mutation turns it red.
 - **Self-inflicted:** editing during a suite run (REPAIR 01); removing a route by name search (CLOSE 01); two stale
   mutations that proved nothing (ADMIN 03). ADMIN 06 made three mistakes of its own, each caught by a guard or a review:
   a negated `toContain` with a message, which always passes; a bare `withoutGlobalScopes()`; and a `KNOWN-LIMITS` L19

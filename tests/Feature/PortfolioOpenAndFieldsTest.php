@@ -60,9 +60,10 @@ it('⚠️ Add: Type is three choice tiles and Time zone a searchable list with 
     $manager = operatorUser($s, [], 'Property Owner');
 
     $page = $this->actingAs($manager)->get(route('app.portfolio'))->assertOk()
-        ->assertSee('data-combobox', false)
+        // 2026-10-10 — the time zone is the app-wide select: a real select the engine searches (it replaced the combobox).
         ->assertSee('Europe/Lisbon', false)
-        ->assertSee('aria-label="Search time zones"', false);   // the search box inside the list is named
+        ->assertSee('data-search-placeholder="Search time zones"', false);
+    expect((bool) preg_match('#<select name="timezone" id="vy-add-tz"[^>]*\sdata-search(?=[\s>])#s', (string) $page->getContent()))->toBeTrue('the zone list is searchable');
     $html = (string) $page->getContent();
     expect(substr_count($html, 'type="radio" name="type" value="hotel"'))->toBeGreaterThanOrEqual(1, 'Type is choice tiles')
         ->and(str_contains($html, '<select name="type"'))->toBeFalse('the bare Type dropdown is gone')

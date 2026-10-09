@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-// Mutation set vy-select — the Vyrobel select, first on /app/profile (2026-10-09, his request: "make me very cool drop-downs …
-// first work on this page"). Language and Timezone as `<x-select>`; every zone the server accepts, so nobody sees (or saves)
-// Lisbon in place of their own; the list floats above the cards and opens centred on the choice. Run with
-// `php tests/Mutations/run.php --set=vy-select`. ⚠️ These prove the markup, options and rules; the behaviour is a browser fact.
+// Mutation set vy-select — the rich select (the select component) and the timezone list behind it (2026-10-09 on /app/profile;
+// 2026-10-10 rebuilt on the one engine for the app-wide rollout). A REAL select carries the value, regions are <optgroup>s,
+// every zone the server accepts is offered, and a person elsewhere never sees (or saves) Lisbon. The engine itself is the
+// select-engine set. Run with `php tests/Mutations/run.php --set=vy-select`.
 
 $test = 'tests/Feature/VySelectTest.php';
 $select = 'resources/views/components/select.blade.php';
@@ -22,51 +22,51 @@ return [
     ],
     [
         'id' => 'VS-M2',
-        'name' => 'the form value is empty until Alpine boots (a save before then blanks the field)',
+        'name' => 'the saved value is not chosen (the first option shows — and saves)',
         'file' => $select,
-        'old' => '<input type="hidden" name="{{ $name }}" value="{{ $current }}"',
-        'new' => '<input type="hidden" name="{{ $name }}" value=""',
-        'tests' => [['file' => $test, 'filter' => 'no native select left']],
+        'old' => "@selected(\$item['value'] === \$current)>",
+        'new' => '>',
+        'tests' => [['file' => $test, 'filter' => 'offers every zone']],
     ],
     [
         'id' => 'VS-M3',
-        'name' => 'the field is no longer a combobox for a screen reader',
+        'name' => 'the select loses its id, so the page\'s label[for] names nothing',
         'file' => $select,
-        'old' => 'role="combobox" aria-haspopup="listbox"',
-        'new' => 'aria-haspopup="listbox"',
-        'tests' => [['file' => $test, 'filter' => 'no native select left']],
+        'old' => '<select name="{{ $name }}" id="{{ $id }}"',
+        'new' => '<select name="{{ $name }}"',
+        'tests' => [['file' => $test, 'filter' => 'renders Language and Timezone as the rich select']],
     ],
     [
         'id' => 'VS-M4',
-        'name' => 'the field loses its label for a screen reader',
+        'name' => 'a long list is not searchable',
         'file' => $select,
-        'old' => '@if ($labelledby) aria-labelledby="{{ $labelledby }} {{ $id }}" @endif',
-        'new' => '',
-        'tests' => [['file' => $test, 'filter' => 'no native select left']],
+        'old' => '($searchable === null && count($items) > 8)) data-search',
+        'new' => '($searchable === null && count($items) > 8000)) data-search',
+        'tests' => [['file' => $test, 'filter' => 'renders Language and Timezone as the rich select']],
     ],
     [
         'id' => 'VS-M5',
-        'name' => 'the list stays inside its card (painted under the next card down)',
+        'name' => 'regions lose their headings (no optgroup)',
         'file' => $select,
-        'old' => '<template x-teleport="body">',
-        'new' => '<template x-if="true">',
-        'tests' => [['file' => $test, 'filter' => 'floats the list above every card']],
+        'old' => "@if (\$group !== '')<optgroup label=\"{{ \$group }}\">@endif",
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'renders Language and Timezone as the rich select']],
     ],
     [
         'id' => 'VS-M6',
-        'name' => 'the choice is centred from screen rects again (195px short mid-animation)',
+        'name' => 'the hint is not drawn on the field until a script runs',
         'file' => $select,
-        'old' => 'list.scrollTop = (row.offsetTop - list.offsetTop) - (list.clientHeight - row.offsetHeight) / 2;',
-        'new' => 'const r = row.getBoundingClientRect(), l = list.getBoundingClientRect(); list.scrollTop += (r.top - l.top) - (list.clientHeight - r.height) / 2;',
-        'tests' => [['file' => $test, 'filter' => 'floats the list above every card']],
+        'old' => "<span class=\"vys-deco-hint\">{{ \$chosen['hint'] ?? '' }}</span>",
+        'new' => '<span class="vys-deco-hint"></span>',
+        'tests' => [['file' => $test, 'filter' => 'renders Language and Timezone as the rich select']],
     ],
     [
         'id' => 'VS-M7',
-        'name' => 'the list scrolls before it is on screen (opens at the top, not at the choice)',
+        'name' => 'the device\'s own zone is no longer offered',
         'file' => $select,
-        'old' => 'this.$nextTick(() => requestAnimationFrame(() => {',
-        'new' => 'this.$nextTick(() => (() => {',
-        'tests' => [['file' => $test, 'filter' => 'floats the list above every card']],
+        'old' => '@if ($deviceTimezone) data-suggest-device-zone @endif',
+        'new' => '',
+        'tests' => [['file' => $test, 'filter' => 'renders Language and Timezone as the rich select']],
     ],
     [
         'id' => 'VS-M8',
@@ -99,13 +99,5 @@ return [
         'old' => "\$label = count(\$parts) > 2 ? \$city.', '.str_replace('_', ' ', \$parts[1]) : \$city;",
         'new' => '$label = $city;',
         'tests' => [['file' => $test, 'filter' => 'labels every zone']],
-    ],
-    [
-        'id' => 'VS-M12',
-        'name' => 'Enter no longer picks the active option (the keyboard path the allow-list entry rests on)',
-        'file' => $select,
-        'old' => "case 'Enter': e.preventDefault(); this.choose(this.filtered[this.active]); break;",
-        'new' => "case 'Enter': e.preventDefault(); break;",
-        'tests' => [['file' => 'tests/Feature/KeyboardReachabilityContractTest.php', 'filter' => 'has no click handler a keyboard cannot reach']],
     ],
 ];

@@ -58,6 +58,7 @@
         .vy-foot a:hover { text-decoration: underline; }
     </style>
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body>
     <main class="vy-card">

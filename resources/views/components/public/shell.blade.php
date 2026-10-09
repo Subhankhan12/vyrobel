@@ -229,6 +229,7 @@
     </style>
     {{ $head }}
     <x-vy-scrollbar />
+    <x-vy-selects />
 </head>
 <body class="vy-body">
     <header class="vy-store-header">

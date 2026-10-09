@@ -1,6 +1,6 @@
 # OPEN — everything not finished, and who it is waiting on
 
-**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by THE VYROBEL SELECT pass (2026-10-10: D-SELECT-ROLLOUT recorded), before it the OWNER TOP BAR follow-up (2026-10-09: D-OWNER-TOPBAR-FADE fixed), before it the SIDEBAR POSITION pass (2026-10-09: D-OWNER-TOPBAR-FADE recorded), before it the ROLE SIGN-IN pass (2026-10-09: D-LAPSED-LOOP found and fixed; D-INTERNAL-TRIALS recorded), before it the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
+**2026-09-29, ADMIN 06 FINISH; updated by each pass since — last by THE ONE SELECT ENGINE pass (2026-10-10: D-SELECT-ROLLOUT done; D-ADMIN-COMBO recorded), before it THE VYROBEL SELECT pass (2026-10-10: D-SELECT-ROLLOUT recorded), before it the OWNER TOP BAR follow-up (2026-10-09: D-OWNER-TOPBAR-FADE fixed), before it the SIDEBAR POSITION pass (2026-10-09: D-OWNER-TOPBAR-FADE recorded), before it the ROLE SIGN-IN pass (2026-10-09: D-LAPSED-LOOP found and fixed; D-INTERNAL-TRIALS recorded), before it the GitHub and memory pass (2026-10-06: D-CI-NEVER-RAN found, fixed and CLOSED — GitHub's checks green end to end for the first time), after the team chat pass (2026-10-06: team chat, the live Messages page, files and voice notes — D-PROD-CSP, D-TC-LATER, D-TC-PII and D-UPLOAD-LIMITS recorded for his go), after the Inbox tabs follow-up (2026-10-06)** (first written 2026-09-27 by MEMORY 01). Labels: **V** = Verified (date given) ·
 **R** = Reported (source given) · **F** = Founder said. **Where a pass verified something different, it wins, and the
 change is said.** Briefs live in `briefs/`.
 
@@ -341,7 +341,7 @@ change is said.** Briefs live in `briefs/`.
 - **D-OWNER-TOPBAR-FADE — FIXED 2026-10-09 at his word ("Do this too"; `HISTORY.md`, "OWNER TOP BAR"). Was (seen in the SIDEBAR POSITION pass):** the owner portal's top bar (`.vy-topbar` in
   `layouts/owner.blade.php`: title, bell, account) still slides up 12 px on every page (`vyFadeUp .45s .06s`), like the sidebars did
   before the pass. The operator's top bar does not. Outside his report (the sidebar), so left as it is.
-- **D-SELECT-ROLLOUT (2026-10-10; WAITS FOR HIS APPROVAL of the new select on /app/profile):** `<x-select>` is the candidate for every
+- **D-SELECT-ROLLOUT — DONE 2026-10-10 at his approval (`HISTORY.md`, "THE ONE SELECT ENGINE"): every select on one engine, the combobox deleted, the dialog lesson kept (the panel lives IN a dialog). Was:** `<x-select>` is the candidate for every
   drop-down in the app. ⚠️ TWO SELECTS EXIST until then: the older `<x-operator.combobox>` (2026-09-29) serves five places — Maintenance's
   new work order (unit), Units (property; room type), Portfolio's add and edit (timezone) — and the native `<select>`s elsewhere (the
   sidebar's property switcher among them). The rollout: move all of them onto `<x-select>`, delete the combobox, and keep its one
@@ -349,6 +349,11 @@ change is said.** Briefs live in `briefs/`.
   `<body>` (right on a page of cards, wrong inside an `x-trap` dialog: the trap would refuse focus to the floating search). So inside a
   dialog it must teleport into the dialog, or not float. The account menu and the bell panel are menus, not selects — his call whether
   they take the same panel look.
+- **D-ADMIN-COMBO (2026-10-10; his go):** the console's searchable drop-down (ADMIN 05's field system, `admin/partials/fields`: a
+  checklist mode for `multiple` and flags in the country list; five single pickers and the announcement audience) is a SECOND engine
+  with the same look — the select engine restyles it from its own sheet and lifts its card while open, but its mechanics are its own.
+  Folding it in means teaching the one engine a checklist and flags, and re-aiming ADMIN 05's tests and its 52 mutations. Not done:
+  ruled, heavily tested, and the console is his alone.
 - **D-SUBDISPUTE (recorded, not built)**: a dispute on an organisation's own SUBSCRIPTION charge names only a payment the
   app never stores, so it does not refuse a delete. It is recorded `failed` for him to answer at Stripe (GO-LIVE B19).
 

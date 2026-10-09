@@ -35,26 +35,9 @@ const VY_KEYBOARD_ALLOWED = [
             .'specifies and this pass was scoped not to build.',
         'requires' => null,
     ],
-    [
-        // 2026-09-29 — the operator's searchable dropdown (first used for the time zone)
-        'file' => 'resources/views/components/operator/combobox.blade.php',
-        'match' => 'role="option"',
-        'reason' => 'ARIA listbox pattern. The options are not tab stops by design: the keyboard drives them from '
-            .'the search box — ↑/↓ move the active option, Enter picks it, Esc closes — which points at the active '
-            .'option with aria-activedescendant so a screen reader announces it. The click is the mouse path to '
-            .'the same pick. Remove the search box\'s Enter handler and this exemption goes red.',
-        'requires' => '@keydown.enter.prevent="pick(shown[active])"',
-    ],
-    [
-        // 2026-10-09 — the Vyrobel select (`<x-select>`, first on /app/profile; the candidate to replace the combobox above
-        // app-wide once the founder approves it).
-        'file' => 'resources/views/components/select.blade.php',
-        'match' => ":role=\"row.group ? 'presentation' : 'option'\"",
-        'reason' => 'ARIA combobox + listbox pattern. The options are not tab stops by design: the panel\'s keydown drives them '
-            .'— ↑/↓, Page Up/Down and Home/End move the active option (named by aria-activedescendant), Enter picks it, Esc '
-            .'closes — and the click is the mouse path to the same pick. Remove the Enter case and this exemption goes red.',
-        'requires' => "case 'Enter': e.preventDefault(); this.choose(this.filtered[this.active]); break;",
-    ],
+    // 2026-10-10 — the two drop-down entries that stood here (the operator combobox and the first, Alpine select) left with the
+    // components: every select is now a REAL select the one engine opens (components/vy-selects), and its option rows are drawn
+    // by script, not Blade — focus never leaves the select, which carries the keyboard path (SelectEngineTest).
 ];
 
 it('has no click handler a keyboard cannot reach, outside the reasoned allow-list', function () {
