@@ -1291,7 +1291,14 @@ the bell) and §20 (the one select engine, the rich field, the menus, the consol
 8.4.26 there and in `CLAUDE.md`'s stale-lines list; `STATE.md` (the GitHub line, the live code re-measured — **1,460 of 1,460 deployable
 files match git at `6bde9910`**, every line counted OK — his approval of the select, item 8g); `OPEN.md` F9 (five more swaps, each
 asked); `RULES.md` Part 2 (six lessons of the two days); the auto-memory index and a new page for the two days. Then the push under
-the four hard stops, and GitHub's checks read after it — recorded in the docs commit that follows.
+the four hard stops, and GitHub's checks read after it. **The push:** `9e4f717f..351cd844` (04:10:46 Baku) after the four hard stops, each
+run on its own — private `true`; identity `Subhankhan12`; `origin/main` an ancestor of HEAD (a fast-forward of 14 commits); the history
+scan over 8,749 blobs, **128 hits in the same 40 locations** as every earlier push (the published demo password in test fixtures —
+known and accepted), none in the push's 56 files; `git ls-remote` read `351cd844` back. **GitHub's checks: green end to end** — run
+38007913457 on `351cd844` (04:10–04:34 Baku): the parity image, the runtime contract, the assets, Pint, PHPStan L5, the full suite
+**4,509 passed + 2 skipped** (the auto-memory tests, which live on this Mac only — by design) = the 4,511 of the local runs, 33,894
+assertions; the money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`; marketing 9 · claims 23 · cookies 15. Then this record, pushed the
+same way.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
