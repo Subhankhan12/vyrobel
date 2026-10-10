@@ -137,11 +137,12 @@ it('shows the REAL management-fee rate, a masked payout IBAN, and no fabricated 
         ->assertSee('20% of booking revenue')        // the REAL agreement rate, read live
         ->assertDontSee('15% of booking revenue')
         ->assertSee('no card needed')                // honest — the owner has NO Vyrobel card/subscription
-        ->assertDontSee('4242')                      // no fabricated card-on-file
         // the masked payout IBAN (the primary owner has CAP_PAYOUT), never the full number (#28)
         ->assertSee('···· 1000')
         ->assertDontSee('LT121000011101001000');
 
+    // No fabricated card-on-file — read past the page's random carriers: a Livewire checksum held "4242" once in 300 renders.
+    expect(withoutRandomTokens((string) $res->getContent()))->not->toContain('4242');
     assertNoRawBlade($res);
 });
 

@@ -88,23 +88,24 @@ it('shows the real derived rating and review, never a fabricated count', functio
     $s = landingOrg();
     landingReview($s, $s['faro'], 'The balcony caught the sunrise every morning.');
 
-    $this->get("/stay/{$s['org']->slug}")
+    $response = $this->get("/stay/{$s['org']->slug}")
         ->assertOk()
         ->assertSee('The balcony caught the sunrise every morning.')  // real published review body
         ->assertSee('Marta L.')                                       // #28 first-name + initial byline
-        ->assertSee('1 review')                                       // REAL count (one published review)
-        ->assertDontSee('369');                                       // 🪤 the wireframe's fabricated figure
+        ->assertSee('1 review');                                      // REAL count (one published review)
+    // 🪤 the wireframe's fabricated figure — read past the page's random values (a token or ULID can hold "369" by chance).
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('369');
 });
 
 // ── 3. honesty — no reviews → NO rating badge, an honest empty state (never a fabricated "4.8") ──────
 it('hides the rating badge and shows an honest empty state with no reviews', function () {
     $s = landingOrg();
 
-    $this->get("/stay/{$s['org']->slug}")
+    $response = $this->get("/stay/{$s['org']->slug}")
         ->assertOk()
         ->assertSee('No reviews yet')      // honest empty state
-        ->assertDontSee('369')             // 🪤 the wireframe's fabricated figure
         ->assertDontSee('reviews ·');      // the "N reviews" rating chip is absent (no fabricated 4.8)
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('369');   // 🪤 the wireframe's fabricated figure
 });
 
 // ── 4. a room with NO rate calendar omits its from-price (never a fabricated price) ─────────────────

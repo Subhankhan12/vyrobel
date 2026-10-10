@@ -197,13 +197,14 @@ it('never renders an owner\'s contact or BANK details on a search row (#28/#42)'
     ]);
     $manager = operatorUser($s, [], 'Hotel Manager');
 
-    $this->actingAs($manager)->get('/app/search?q=Ironbank')
+    $response = $this->actingAs($manager)->get('/app/search?q=Ironbank')
         ->assertOk()
         ->assertSee('Ironbank Holdings')                    // the NAME is the permitted field
         ->assertDontSee('PT50000201231234567890154')        // ⚠️ never the IBAN…
-        ->assertDontSee('0154')                             // ⚠️ …nor even the masked tail, on THIS surface
         ->assertDontSee('treasury@ironbank.test')
         ->assertDontSee('+35191234567');
+    // ⚠️ …nor even the masked tail, on THIS surface — read past the page's random values (a checksum can hold "0154" by chance).
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('0154');
 });
 
 // ── The filter chips must stay GET links: /livewire/update does NOT run the property-context

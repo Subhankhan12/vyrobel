@@ -1298,7 +1298,18 @@ known and accepted), none in the push's 56 files; `git ls-remote` read `351cd844
 38007913457 on `351cd844` (04:10–04:34 Baku): the parity image, the runtime contract, the assets, Pint, PHPStan L5, the full suite
 **4,509 passed + 2 skipped** (the auto-memory tests, which live on this Mac only — by design) = the 4,511 of the local runs, 33,894
 assertions; the money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`; marketing 9 · claims 23 · cookies 15. Then this record, pushed the
-same way.
+same way. **GitHub's run on that record went RED** — run 38010017082 on `8f460c2d` (a docs-only commit; 04:39–05:21 Baku):
+`OwnerSettingsTest` › "no fabricated card", `Not to contain: 4242`. A docs commit changes no page, so the page differed by chance:
+🔬 rendered 300 times locally, `/owner/settings` held "4242" ONCE — inside a Livewire snapshot's `checksum`, a fresh sha256 on every
+render. A flaky check from before this pass, not a defect of the product (Verified). **Fixed in the tests only:**
+`withoutRandomTokens()` (`tests/Support/random_token_helpers.php`, required from `tests/Pest.php`) blanks the random VALUES a page
+carries — the checksum, the CSRF token, ULIDs, signed-link signatures — and nothing else; the snapshot's data stays readable. The
+class swept: every whole-page absence check of a short number reads through it (`4242` ×3 — owner settings, the refund screen, new
+reservation; `0154` on the search page and `4821` on payouts, both Livewire; the storefront's three-digit `369` ×2). The PDF, email
+and JSON checks carry no checksum and stay as they were. `RandomTokenHelperTest` (2) proves both halves, and three planted leaks
+were each caught and reverted: a visible 4242 on owner settings; `0154` held only in a Livewire property (so present only in the
+snapshot's data); `369` on the storefront. The 7 affected files: 70 passed (469 assertions); Pint clean. Pushed the same way; the run
+on that commit is read with `gh run list`.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
@@ -1397,6 +1408,9 @@ same way.
   only for test runs, not who was connected or whether advisor-platform ran, as today's earlier swaps did (`OPEN.md` F9 — nothing
   was disturbed); and the mutation harness, started in the same command line as a test run, refused on its own parent shell — split
   the commands (RULES Part 3).
+- **Mine, caught before commit (the MEMORY AND GITHUB pass, 2026-10-10):** the flaky-check helper's first draft blanked the whole
+  `wire:snapshot`. The snapshot carries the component's data to the browser, so a number leaking through a Livewire property would
+  have passed. Narrowed to the checksum alone, and proven with a planted `0154` held only in a property.
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

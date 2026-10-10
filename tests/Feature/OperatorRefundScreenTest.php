@@ -220,7 +220,9 @@ it('renders no fabricated card or ETA (#28 — the honest gateway, never a fake 
     $response = $this->actingAs($c['staff'])->get($c['screen'])->assertOk();
 
     // `payments` has card_token ONLY — no brand, no last4 column exists anywhere in the schema (#100 F3).
-    $response->assertDontSee('Visa')->assertDontSee('4242');
+    $response->assertDontSee('Visa');
+    // Read past the page's random carriers (a Livewire checksum can hold "4242" — 🔬 once in 300 renders, 2026-10-10).
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('4242');
     // No settlement-ETA field exists (a GatewayResult carries {id, status}) — the design's "2–5 days" is refused.
     $response->assertDontSee('2–5 business days');
 

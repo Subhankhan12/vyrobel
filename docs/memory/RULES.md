@@ -589,6 +589,11 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   comment of a Blade file (the operator layout carries the same warning).
 - **The mutation harness needs Pest's agent output.** It reads the JSON summary line, so `PAO_DISABLE=1` (right for a gate's JUnit
   run) makes every baseline "no result" and every mutation "DID NOT LAND" (Verified 2026-10-09).
+- **An absence check on a whole page also reads its RANDOM values** — a Livewire checksum (64 hex), the CSRF token, ULIDs, signed-link
+  signatures. A short number can sit in one by chance: "4242" was in a checksum once in 300 renders of `/owner/settings`, and GitHub
+  failed a docs-only commit on it (run 38010017082, 2026-10-10). Check a short number on a page through `withoutRandomTokens()`
+  (`tests/Support/random_token_helpers.php`), which blanks those values ONLY. ⚠️ Never blank the whole `wire:snapshot`: its data is
+  what reaches the browser, and a leak through a component property hides there.
 
 
 ---

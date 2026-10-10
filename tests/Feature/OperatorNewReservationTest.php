@@ -141,8 +141,9 @@ it('never captures or stores a raw card number', function () {
         ->get('/app/reservations/create?check_in=2026-09-02&check_out=2026-09-05');
     $response->assertOk()
         ->assertDontSee('card_number')
-        ->assertDontSee('4242')
         ->assertSee('coming soon');
+    // No test PAN — read past the page's random carriers (a Livewire checksum can hold "4242": 🔬 once in 300 renders).
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('4242');
 
     // A "card" method is refused (deferred) — nothing created, no payment.
     $this->actingAs(operatorUser($s, [], 'Front Desk'))

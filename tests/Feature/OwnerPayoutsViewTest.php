@@ -75,7 +75,7 @@ it('renders real payout data, reconciles paid-this-year, and invents no Schedule
     $s = seedScenario(1);
     $a = payoutOwner($s, 0, 20000, pay: true);   // net €170.00, payout PAID via the manual rail
 
-    $this->actingAs($a['user'])->get('/owner/payouts')
+    $response = $this->actingAs($a['user'])->get('/owner/payouts')
         ->assertOk()
         ->assertSee('Payout history')
         ->assertSee('Paid this year')
@@ -90,8 +90,9 @@ it('renders real payout data, reconciles paid-this-year, and invents no Schedule
         ->assertDontSee('On-hold')
         ->assertDontSee('Verification pending')
         // no fake payout-account details
-        ->assertDontSee('IBAN')
-        ->assertDontSee('4821');
+        ->assertDontSee('IBAN');
+    // …nor a fake account number — read past the page's random values (a checksum can hold "4821" by chance).
+    expect(withoutRandomTokens((string) $response->getContent()))->not->toContain('4821');
 
     // paid-this-year reconciles to Σ the owner's REAL paid payouts.
     expect((int) Payout::query()->where('owner_id', $a['owner']->id)->where('status', 'paid')->sum('amount_minor'))->toBe(17000);

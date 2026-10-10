@@ -107,3 +107,4 @@ require_once __DIR__.'/Support/keyboard_helpers.php';
 require_once __DIR__.'/Support/permission_helpers.php';
 require_once __DIR__.'/Support/admin_helpers.php';
 require_once __DIR__.'/Support/audit_register_helpers.php';
+require_once __DIR__.'/Support/random_token_helpers.php';
