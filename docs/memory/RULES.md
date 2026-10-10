@@ -574,6 +574,19 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **Test a gate as someone its destination refuses.** The paywall redirect was only ever tested as `Property Owner` — the one role the
   Paywall admits — so ten roles walked into a 403 loop the day a trial ended and nothing went red (ROLE SIGN-IN, Verified 2026-10-09).
   When a gate redirects, drive every role through it and assert where each one actually lands.
+- **Search for the CONCEPT under every name before building it** — select, dropdown, combobox, picker, listbox. A search for
+  "select" missed `<x-operator.combobox>` and `Time\TimezoneOptions` (built twice, one folded back), and the console's `ad-combo`
+  surfaced only when a walk's clicks landed on hidden selects (2026-10-09/10).
+- **Pest's `toContain()` takes MANY needles** — a "message" passed to it is searched for too (it failed a correct check once and could
+  as easily pass a wrong one). Messages go through PHPUnit's `Assert` (Verified 2026-10-10).
+- **A script or style inlined in a shell ships its comments to every page** — and the content contracts read pages: "Read from a still
+  probe" broke the owner Messages page's "no fabricated read receipt" check. Write those comments as if they were copy (2026-10-10).
+- **A per-file census cannot follow a component's runtime value** — `aria-labelledby="{{ $labelledby }}"` reads as dangling in its own
+  file. Name a component's control by the page's own `<label for>` (2026-10-10).
+- **A position or scroll fix is proven by repeated loads, never by one** — rounding and Chrome's scroll anchoring each crept a fraction
+  of a pixel per page, invisible on the first load (SIDEBAR POSITION, 2026-10-09).
+- **Blade compiles a component TAG anywhere, even inside a CSS or script comment** — and the page breaks. Never write one in a
+  comment of a Blade file (the operator layout carries the same warning).
 - **The mutation harness needs Pest's agent output.** It reads the JSON summary line, so `PAO_DISABLE=1` (right for a gate's JUnit
   run) makes every baseline "no result" and every mutation "DID NOT LAND" (Verified 2026-10-09).
 

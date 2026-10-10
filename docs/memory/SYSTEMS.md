@@ -33,7 +33,7 @@ Commit `5d631d9f` (2026-09-23) says **both layers are off and the site is public
   signed out, its session row untouched (V 2026-10-06, D-EDGE-SIGNOUT).
 - **Web process user:** the web process runs as the hosting account's own user (the same user that owns the files).
   (Reported: DECISIONS "TONIGHT 01" #2, 2026-09-25)
-- **PHP:** use `/opt/alt/php84/usr/bin/php` (8.4.19). The default `php` is 8.3.33 and `artisan` exits 255 under
+- **PHP:** use `/opt/alt/php84/usr/bin/php` (**8.4.26**, V 2026-10-10 — the host updated it; 8.4.19 through 2026-10-06). The default `php` is 8.3.33 and `artisan` exits 255 under
   it. (Reported: CLAUDE.md; KNOWN-LIMITS L12h)
 - **Database:** MariaDB 11.8.9 on production (local dev is MySQL 8.4). Schema reads can be ~1 s per call there —
   time any new schema-reading path **on the host** before a swap. (Reported: DECISIONS "ADMIN 05", 2026-09-26)
@@ -513,6 +513,62 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - ✅ **Green end to end since 2026-10-06** (run 37503697885 on `693b68fc`, ~42 minutes: the suite alone ~35 — GitHub's machine is
   about twice as slow as this Mac). Before that it had never run a gate (`OPEN.md` D-CI-NEVER-RAN, closed).
 
+## 18 · When a trial ends — the lapsed-workspace page (2026-10-09)
+
+- **`EnsureSubscriptionActive`** on the `/app` group: a LAPSED organisation (a trial past `trial_ends_at`, or a cancelled / past-due
+  subscription; `SubscriptionStatus::isLapsed()`, failing OPEN on no subscription) is closed. ⚠️ Only someone who can renew — by the
+  PERMISSION `billing.manage` (the `Property Owner` wildcard, or any role granted it on the Roles page) — is sent to the Paywall
+  (`/app/billing`); everyone else gets a plain 403 page ("This workspace's subscription has ended … ask your administrator") with
+  the suspended page's actions (`errors.partials.suspended-actions`: Switch to another workspace, Sign out, Contact Vyrobel); a JSON
+  request a JSON 403. The workspace switcher (`app.workspace.switch`) is let through. Before 2026-10-09 every role was sent to the
+  Paywall, which refused ten of eleven roles, and the 403's "Back to the dashboard" looped (`OPEN.md` D-LAPSED-LOOP).
+- **`App\Support\Platform\OtherWorkspaces::for()`** — the person's other active workspaces that are not suspended; ONE list, read by
+  both the suspended and the lapsed page.
+- ⚠️ Every production organisation was made in late September with a 14-day trial, so most have lapsed (`OPEN.md`
+  D-INTERNAL-TRIALS). The internal test tenant's runs to 2027-03-31 (extended at his word, 2026-10-09). There is no "Extend trial"
+  in the console: the extension was a guarded one-row write with an audit row (`subscription.trial_extended`).
+
+## 19 · The shells' still chrome: the sidebar, the top bars, the bell (2026-10-09)
+
+- **`<x-sidebar-position for key>`** (`components/sidebar-position.blade.php`), inline straight after each shell's sidebar: puts the
+  scroll box back where this tab left it before the first paint (sessionStorage `vy.sidebar.<realm>`), brings the current item
+  (`aria-current="page"`) into view when nothing is remembered, remembers on scroll / click / `pagehide`; `overflow-anchor: none` on
+  the box and the exact (unrounded) value — both found as half- and one-pixel creeps per page in the walk. ⚠️ The box that scrolls:
+  `.vy-side` (operator), `.vy-side .vy-nav` (owner portal — the menu INSIDE the sidebar), `.ad-side` (console).
+- **No entrance animation on persistent chrome:** the three sidebars and the owner portal's top bar no longer slide in on every page
+  (the operator's and the console's top bars never did). The page CONTENT still fades in.
+- **The bell** (`components/notifications/bell-glyph.blade.php`, shared by the operator, owner and guest shells): the unread badge on
+  the circle's OUTER top-right corner (`-5px` / `-6px` — the prototype put it inside, where a "9+" covered the bell); no shell sets
+  `--vy-bell-badge-*`; the operator and owner top bars space their items 14px apart.
+
+## 20 · Drop-downs: the one select engine (2026-10-10)
+
+- **`components/vy-selects.blade.php`** — included once from the head of every shell that carries the scrollbar theme (19: operator,
+  owner, guest, admin and its sign-in, public, the auth pages, onboarding, billing, oauth; not the error pages or Laravel's welcome).
+  No Alpine (the guest portal and the public pages load none). ⚠️ **The native select stays in charge** — element, name, options,
+  form, `x-model`, `onchange`, validation, tests. The engine changes only what is seen and clicked: a CSS skin on every closed select
+  (no class added — a Livewire morph would strip it; the chevron with `!important` past a field's own `background` shorthand; the app's
+  focus ring at zero specificity), and on a MOUSE press or a key the Vyrobel panel instead of the operating system's list. A finger
+  keeps the phone's picker. A choice sets `selectedIndex` and fires `input` and `change`.
+- **The panel:** a search above 8 options (never a list of plain numbers; `data-search` forces it, `data-search="off"` stops it);
+  `<optgroup>` → quiet headings; `data-hint` (muted beside the label), `data-clock` (an IANA zone: the live time), `data-keywords`;
+  a terracotta tick; as wide as its longest choice up to 420px (`data-panel-width` for a floor); upward without room below. Focus
+  never leaves the select (APG select-only combobox): ↑/↓, Page Up/Down, Home/End, Enter, Esc (stopped — a dialog behind stays open),
+  Tab, Backspace in a search. ⚠️ Inside `[aria-modal="true"]`, `[role="dialog"]` or `<dialog>` the panel is appended TO the dialog (its
+  trap and click-outside see it as inside), positioned from a still probe when the dialog is the containing block. Opt out with
+  `data-native` (none today; `SelectEngineTest` counts them). `window.VySelect` = `{ open, close, refresh }`.
+- **The rich field** — `components/select.blade.php`: a real select (named by the page's own `<label for>`; the label's id rides as
+  `data-labelledby` to name the list) with the hint and live clock drawn over its right side (`.vys-rich` / `.vys-deco`; an x-model
+  change is followed every 0.4s, since x-model fires no event). Used by the profile (Language, Timezone), the Portfolio's two zone
+  pickers, Units (property, room type) and Maintenance (unit). Timezones come from `App\Support\Time\TimezoneOptions::choices()`
+  (city first, region groups, offsets, clocks, search words; a saved zone the list lacks is kept) beside the older `all()`.
+- **The menus** (account menus, the bell's panel, the row ⋯ menus `.vy-gl-menu` / `.vy-ov-menu`, the owner statement and report
+  pickers) take the panel's surface, rows, tint and opening motion from the engine's sheet; each keeps its own layout.
+- ⚠️ **The console's own searchable drop-down** (ADMIN 05's field system, `admin/partials/fields`, `select[data-searchable]` → `ad-combo`:
+  a checklist for `multiple`, flags for countries) is a SECOND engine with the same look — restyled from the engine's sheet (written
+  `[class~="ad-combo-panel"]` so ADMIN 05's once-only count keeps counting its own block) and its card lifted while open (`OPEN.md`
+  D-ADMIN-COMBO). The retired `<x-operator.combobox>` is gone.
+
 ---
 
 ## Sources
@@ -525,7 +581,10 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   for §16 (2026-10-06): the working tree of the team chat pass — `app/Services/TeamChatService.php`,
   `app/Support/{TeamChat,Messaging,Inbox,Notifications}/`, `app/Http/Controllers/Operator/{TeamChat*,Pulse,InboxLive,InboxAction}Controller.php`,
   `app/Listeners/DispatchNotificationsForDomainEvent.php`, `resources/views/partials/{live-pulse,chat-media,messages-toggle}.blade.php`,
-  `resources/views/livewire/operator/{team-chat,operator-inbox}.blade.php`, `routes/web.php`.
+  `resources/views/livewire/operator/{team-chat,operator-inbox}.blade.php`, `routes/web.php`; for §18–§20 (2026-10-09/10):
+  `app/Http/Middleware/EnsureSubscriptionActive.php`, `app/Support/Platform/OtherWorkspaces.php`,
+  `resources/views/components/{sidebar-position,vy-selects,select}.blade.php`, `resources/views/components/notifications/bell-glyph.blade.php`,
+  `app/Support/Time/TimezoneOptions.php`, the shells under `resources/views/components/`, `admin/partials/fields.blade.php`.
 - **docs:** `CLAUDE.md` · `docs/DEPLOYMENT.md` · `docs/KNOWN-LIMITS.md` (L12g/h/k/m/p, L13–L20) · `docs/DECISIONS.md`
   (ADMIN 01 P1–P5, TONIGHT 01, ADMIN 04/05/06) · `docs/EMAIL-PRODUCTION.md` · `docs/GOOGLE-SIGN-IN.md` ·
   `docs/OAUTH-DESIGN.md` · `docs/STRIPE-PRODUCTION.md` · `docs/GO-LIVE-REQUIREMENTS.md` · `docs/STATE.md` ·

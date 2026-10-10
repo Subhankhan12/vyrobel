@@ -44,6 +44,7 @@ instruments) · `SYSTEMS.md` (the map) · `HISTORY.md` (every pass) · `briefs/`
 read `docs/memory/` first. **Known stale lines below (MEMORY 01, 2026-09-27):**
 - "Horizon on Redis — live" (production has neither) · "MySQL 8 — genuine MySQL" (production is MariaDB)
 - the Postmark and "email provider" lines (it is Hostinger SMTP, and off) · "never flips an org to active" (7b)
+- "PHP **8.4.19**" on production (it is **8.4.26**, Verified 2026-10-10 — the host updates it; read it, never copy it)
 - "no reverse-check-in … ruling R9" (R9 was built, `c6f32164`) · "`ops/deploy.sh` … appends the cron" (it refuses to run)
 - "a session cannot read the panel crons" (it can, off `ps`) · "NEXT = the account-gated integrations" (see `STATE.md`)
 

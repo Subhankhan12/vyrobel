@@ -1284,6 +1284,15 @@ page through; 0 error-level lines since — 11 warnings, all `security.refusal`,
 (the back office and the console behind his sign-in) was offered with the sign-in page open in the automated browser; he chose to
 skip it — the local walk across the six realms stands for those.
 
+**MEMORY AND GITHUB, 2026-10-10 — his "update the entire memory of everything we have done so far and most important … update the
+GitHub as well. Push everything to the GitHub. Make sure our GitHub is completely updated without any bugs".** The memory brought up to
+date with the day's six passes: `SYSTEMS.md` §18 (the lapsed-workspace page), §19 (the shells' still chrome — sidebar position, top bars,
+the bell) and §20 (the one select engine, the rich field, the menus, the console's own drop-down), and production's PHP corrected to
+8.4.26 there and in `CLAUDE.md`'s stale-lines list; `STATE.md` (the GitHub line, the live code re-measured — **1,460 of 1,460 deployable
+files match git at `6bde9910`**, every line counted OK — his approval of the select, item 8g); `OPEN.md` F9 (five more swaps, each
+asked); `RULES.md` Part 2 (six lessons of the two days); the auto-memory index and a new page for the two days. Then the push under
+the four hard stops, and GitHub's checks read after it — recorded in the docs commit that follows.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
@@ -1393,7 +1402,9 @@ from the owner's page) · DEC-p (giving an existing owner units) · DEC-q (rate 
 existing guest's email on a new guest) · D-MONEY-COMMA (a comma read as thousands in every money field) · D-RACK-START-TZ (the
 calendar's default week on the app's day) · A13 (flag unapplied seasons on the Rates page) · the signed-in looks still owed on
 earlier passes. (A11, A12
-and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) Where:
+and DEC-n were done 2026-10-02; D-PAYRUN-BUTTON 2026-10-03.) **Raised 2026-10-09/10:** D-INTERNAL-TRIALS (the other workspaces'
+lapsed trials) · D-ADMIN-COMBO (fold the console's own searchable drop-down into the one select engine) · the signed-in live look at
+the select engine (offered, skipped at his choice). (D-LAPSED-LOOP, D-OWNER-TOPBAR-FADE and D-SELECT-ROLLOUT were done.) Where:
 `OPEN.md`, `docs/GO-LIVE-REQUIREMENTS.md`, `docs/STRIPE-PRODUCTION.md`, `docs/KNOWN-LIMITS.md`, `docs/AUDIT-SUMMARY.md` §4.
 
 ## Sources used

@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -39,21 +39,17 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
   `rel_AM @ 9e9b1193` (photos), `rel_AL @ 8cda8c7f` (DEC-k), `rel_AK @ a4e2b6e5` (Units), `rel_AJ @ a3604b9c` (Maintenance), `rel_AI @ 9f704a3a` (Guests), `rel_AH @ 3b012e93` (Portfolio Open +
   fields), `rel_AG @ e4117aeb` (Portfolio remove), `rel_AF @ 4c17edd2` (ADMIN 06) — `ops/release.sh rollback rel_<X>`.
   ⚠️ A rollback to `rel_AL` or earlier puts photo addresses back on `/storage` — every photo 404s again.
-- **GitHub:** pushed at his word on 2026-10-06 ("do all the GitHub work") — five fast-forwards that evening, `fc1ee357..92719a10`
-  (19:56), `..d0dd97aa` (20:23), `..693b68fc` (21:27), `..02946350` (22:14), `..1f79446c` (22:50), and then the commit holding
-  this line — each after the four hard stops (`RULES.md` Part 1; **V** `git ls-remote` read each hash back). ⚠️ This file cannot
-  hold the hash of the commit it is in: `git ls-remote origin` is the reading. From here the rule is unchanged: local commits,
-  live deploys, push when he says. `ops/release.sh` ships the local HEAD, so production can be ahead of GitHub — and today it is
-  BEHIND it: production stays `rel_BA @ 16b15e2f`; the commits after it change no web request's behaviour (tests, the workflow,
-  `.env.example`, docs, and the delete's time limit). **V** 2026-10-06 22:30 Baku for the time limit: production's web PHP is 300
-  s (`php.ini`; the selector's `alt_php.ini` sets only extensions; no `.htaccess` or `.user.ini` override; `set_time_limit` not
-  disabled), and at 300 or less the delete still starts a fresh 300 s, as the live code does — only "no limit" or a longer one is
-  now kept. ⚠️ This line said "exactly as before" with `< 300` in the code, which was untrue at 300, production's own value
-  (HISTORY, the fourth push).
-- **Live code vs git, byte for byte: 1,457 of 1,457 deployable files in the live release match git at `16b15e2f`, 0 differ**
-  (counted this pass as `app bootstrap config database public resources routes ops artisan`, less `bootstrap/cache`, `public/build`
-  and `resources/css|js` — 22 files added and 23 changed since `rel_AZ`; the 1,452 recorded at `59799d4d` came from a wider set, so
-  the two are not compared). **V** 2026-10-06, after the 18:59 Baku swap, a sha256 manifest checked inside the live release.
+- **GitHub:** pushed at his word on **2026-10-10** ("update the entire memory … push everything to the GitHub … without any bugs") —
+  the commits of 2026-10-09/10 (`9e4f717f..` the commit holding this line: ROLE SIGN-IN, SIDEBAR POSITION, OWNER TOP BAR, TOP BAR BELL,
+  THE VYROBEL SELECT, THE ONE SELECT ENGINE, and this memory pass), after the four hard stops (`RULES.md` Part 1); GitHub's checks read
+  after the push (`HISTORY.md`, "MEMORY AND GITHUB, 2026-10-10"). ⚠️ This file cannot hold the hash of the commit it is in: `git
+  ls-remote origin` is the reading. Production `rel_BG @ 6bde9910` is behind GitHub only by docs commits. Before: pushed 2026-10-06
+  (five fast-forwards, `fc1ee357..` → `9e4f717f`; GitHub's checks green end to end from that day). The rule is unchanged: local commits,
+  live deploys, push when he says.
+- **Live code vs git, byte for byte: 1,460 of 1,460 deployable files in the live release match git at `6bde9910`, 0 differ**
+  (`app bootstrap config database public resources routes ops artisan`, less `bootstrap/cache`, `public/build`, `resources/css|js`).
+  **V** 2026-10-10 ~04:1x Baku, a sha256 manifest of `git archive 6bde9910` checked inside the live release — every line counted OK.
+  Before: 1,457 of 1,457 at `16b15e2f` (2026-10-06).
 - **`PAYOUT_ENGINE_ENABLED` is OFF on production** (**V** 2026-10-03, the read-only preflight from `rel_AS`: `false`;
   production holds 0 owners, 0 management agreements, 0 unit requests, 0 payouts). D-PAYRUN-TENANT is fixed live since `rel_AR`;
   D-PAYRUN-BUTTON since `rel_AS`.
@@ -112,7 +108,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     when I approve … apply it in the entire application"). Language and Timezone are `<x-select>`; Timezone offers every zone (it
     offered five — a person in Baku saw, and could save, Lisbon), searchable, with live clocks (`HISTORY.md`, "THE VYROBEL SELECT").
     Gates green on both engines. **✅ LIVE on `rel_BF @ 94c56965`** (V swap 2026-10-10 00:18:16 Baku; public checks 12/0/0; 0 errors
-    since). **Left: HIS APPROVAL — the app-wide rollout waits for it** (`OPEN.md` D-SELECT-ROLLOUT).
+    since). **His approval:** F 2026-10-10 ~00:34 Baku — "that's very cool. I really like it" — and the app-wide rollout asked for
+    at once (→ 0w).
 0u. **Top bar bell (2026-10-09)** — his report ("the notification icon is completely messed … no proper spacing … make it proper").
     The unread badge sat INSIDE the bell's circle and a "9+" covered the bell; it now sits on the circle's outer corner, clear of
     the bell, in all three shells (one shared glyph), and the top bars' items are 14px apart (`HISTORY.md`, "TOP BAR BELL"). ⚠️ The
@@ -367,6 +364,10 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     D-GB-SYMBOL, D-RATE-DERIVED-PRIMARY, D-RACK-START-TZ (`OPEN.md`).
 8f. Apply his "Winter" season (€200, Double room, 28 Sep–31 Oct) — from the booking page's "Apply Winter…" or the Rates page —
     so Villa Azure can take a booking; and say go (or not) on A13 (flag unapplied seasons on the Rates page).
+8g. (2026-10-09/10) Say go (or not) on D-INTERNAL-TRIALS — the other workspaces' trials have probably lapsed; the same guarded one-row
+    extension (or an "Extend trial" console action) per workspace, his yes each time — and on D-ADMIN-COMBO (fold the console's own
+    searchable drop-down into the one select engine). The signed-in live walk of the select engine was offered and skipped at his
+    choice: a look of his at any back-office page with a drop-down is the remaining live check.
 9. Optional: one email to `sales@` to prove the alias.
 
 **Which runs next.** ADMIN 06 is live, so nothing else can run without him: the email pass waits on `MAIL_PASSWORD`, the
