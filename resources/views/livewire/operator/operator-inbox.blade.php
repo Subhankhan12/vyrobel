@@ -373,7 +373,7 @@
                                     </div>
                                 @endif
                                 <label class="vy-sr-only" for="vy-lbl-operator-inbox-body">{{ $replyWord }}</label>
-                                <textarea id="vy-lbl-operator-inbox-body" name="body" rows="2" class="vy-input" placeholder="{{ $replyWord }}" x-model="body" @keydown.enter="enter($event)" @paste="paste($event)" aria-keyshortcuts="Control+Enter Meta+Enter" @if (! $carriesFiles) required @endif></textarea>
+                                <textarea id="vy-lbl-operator-inbox-body" name="body" rows="1" class="vy-input" placeholder="{{ $replyWord }}" x-model="body" x-ref="ta" x-init="grow($el)" @input="grow($el)" @keydown.enter="enter($event)" @paste="paste($event)" aria-keyshortcuts="Control+Enter Meta+Enter" @if (! $carriesFiles) required @endif></textarea>
                                 <div class="vy-composer-actions">
                                     @if ($carriesFiles)
                                         <div class="vy-composer-tools">
@@ -392,7 +392,7 @@
                                             </button>
                                         </div>
                                     @endif
-                                    <span class="vy-composer-hint" x-text="hint"></span>
+                                    <span class="vy-composer-hint"><kbd class="vy-kbd" x-text="hintKey">⌘</kbd><kbd class="vy-kbd">Enter</kbd><span class="vy-composer-hint-t">to send</span></span>
                                     @if ($active['can_close'])
                                         <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">Close</button>
                                     @endif
@@ -761,8 +761,10 @@
                     sending: false,
                     rec: IDLE(),
                     hint: (mac ? '⌘' : 'Ctrl') + ' + Enter to send',
+                    hintKey: mac ? '⌘' : 'Ctrl',
                     canRecord: cfg.files && !!(window.VyRecorder && window.VyRecorder.supported()),
                     mmss(n) { n = Math.max(0, Math.round(n || 0)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); },
+                    grow(el) { if (! el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 180) + 'px'; },
                     add(e) {
                         this.error = '';
                         for (const file of Array.from(e.target.files || [])) {
@@ -853,6 +855,7 @@
                         const json = res && (res.headers.get('content-type') || '').includes('application/json') ? await res.json().catch(() => null) : null;
                         if (!res || !json || !json.ok) { this.error = this.reason(res, json); return; }
                         this.body = '';
+                        this.$nextTick(() => this.grow(this.$refs.ta));
                         if (json.files_kept) {
                             // the words went, the files did not: they stay here to send again, and the reason is said
                             this.error = json.message;
@@ -879,7 +882,9 @@
         .vy-msg-track { position: relative; flex: 1; height: 5px; border-radius: 5px; background: rgba(120, 70, 40, 0.14); cursor: pointer; overflow: hidden; }
         .vy-msg-track:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 3px; }
         /* the shortcut sits beside the tools; the buttons keep the right edge (no hint on a phone: there is no Ctrl) */
-        .vy-composer-hint { align-self: center; margin: 0 auto 0 6px; font-size: 11.5px; color: var(--vy-muted); white-space: nowrap; }
+        .vy-composer-hint { align-self: center; margin: 0 auto 0 6px; display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--vy-faint); white-space: nowrap; }
+        .vy-kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; background: rgba(120, 70, 40, .07); border: 1px solid var(--vy-hairline); box-shadow: 0 1px 0 var(--vy-hairline); font-size: 10.5px; font-weight: 700; color: var(--vy-muted); font-family: var(--vy-sans); }
+        .vy-composer-hint-t { margin-left: 2px; }
         .vy-composer-actions .vy-composer-tools { margin-right: 0; }
         @media (max-width: 560px), (pointer: coarse) {
             .vy-composer-hint { display: none; }
@@ -902,9 +907,10 @@
         .vy-composer-preview { margin: 0; flex: 1; max-width: 320px; }
         @keyframes vy-ibx-rec { 0% { box-shadow: 0 0 0 0 rgba(217, 58, 43, .5); } 100% { box-shadow: 0 0 0 9px rgba(217, 58, 43, 0); } }
         @media (prefers-reduced-motion: reduce) { .vy-composer-rec-dot { animation: none; } }
-        .vy-composer-tools { display: flex; align-items: center; gap: 2px; margin-right: auto; }
-        .vy-composer-tool { position: relative; width: 36px; height: 36px; border: 0; border-radius: 50%; display: inline-grid; place-items: center; background: transparent; color: var(--vy-muted); cursor: pointer; }
-        .vy-composer-tool:hover { background: rgba(120, 70, 40, 0.07); color: var(--vy-ink); }
+        .vy-composer-tools { display: flex; align-items: center; gap: 4px; margin-right: auto; }
+        .vy-composer-tool { position: relative; width: 36px; height: 36px; border: 0; border-radius: 11px; display: inline-grid; place-items: center; background: transparent; color: var(--vy-muted); cursor: pointer; transition: background .14s ease, color .14s ease, transform .1s ease; }
+        .vy-composer-tool:hover { background: rgba(217, 102, 46, .1); color: var(--vy-accent-text); }
+        .vy-composer-tool:active { transform: scale(.92); }
         /* stat strip */
         .vy-inbox-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
         .vy-istat { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255, 252, 248, 0.66); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.12)); text-decoration: none; color: var(--vy-ink); transition: border-color .14s, transform .1s, box-shadow .14s; }
@@ -1012,12 +1018,15 @@
         /* The composer is one rounded glass card: the type box on top (borderless), a tidy action row beneath. */
         .vy-composer-form { display: flex; flex-direction: column; gap: 10px; padding: 10px 10px 10px 14px; border-radius: 18px; background: rgba(255, 252, 248, 0.72); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.14)); box-shadow: inset 0 1px 0 rgba(255,255,255,.6); transition: border-color .15s ease, box-shadow .15s ease, background .15s ease; }
         .vy-composer-form:focus-within { background: #fff; border-color: var(--vy-accent, #E8703A); box-shadow: 0 0 0 3px rgba(194, 65, 12, .13); }
-        .vy-composer-form textarea.vy-input { flex: 1; resize: none; min-height: 46px; max-height: 180px; width: 100%; border: 0; background: transparent; box-shadow: none; padding: 4px 4px 0; font-size: 14px; line-height: 1.5; }
+        .vy-composer-form textarea.vy-input { flex: 1; resize: none; min-height: 44px; max-height: 180px; width: 100%; border: 0; background: transparent; box-shadow: none; padding: 6px 4px 0; font-size: 14px; line-height: 1.5; overflow-y: auto; }
         .vy-composer-form textarea.vy-input:focus, .vy-composer-form textarea.vy-input:focus-visible { outline: none; box-shadow: none; }
+        .vy-composer-form textarea.vy-input::placeholder { color: var(--vy-faint); }
         .vy-composer-actions { display: flex; gap: 8px; align-items: center; }
         .vy-composer-actions .vy-btn { height: 38px; }
-        .vy-composer-send { padding: 0 20px; border-radius: var(--vy-r-pill); }
+        .vy-composer-send { padding: 0 22px; border-radius: var(--vy-r-pill); font-weight: 600; }
         .vy-composer-send svg { flex: none; }
+        .vy-composer-send:not(:disabled):hover { transform: translateY(-1px); }
+        .vy-composer-send:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; transform: none; }
         .vy-composer-note { font-size: 12.5px; color: var(--vy-faint); padding: 8px 0; }
         .vy-composer-hint { font-size: 11px; color: var(--vy-faint); margin: 8px 0 0; }
         .vy-thread-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 16px; padding: 8px 12px; border-radius: 10px; background: rgba(217,158,61,.1); border: 1px solid rgba(217,158,61,.28); color: #7A5A1E; font-size: 12px; line-height: 1.45; }
