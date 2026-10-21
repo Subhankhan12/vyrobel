@@ -1,19 +1,28 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BM` → commit `0790af9d`** (the SEARCH DATE PICKER pass — the same themed date picker on `/app/search`. The two
+- **Live release `rel_BN` → commit `978b8f71`** (the SEARCH 500 HOTFIX — `/app/search` threw a 500 FOR SIGNED-IN USERS after the
+  SEARCH DATE PICKER pass. ⚠️⚠️ **The bug, and the lesson:** the CSS comment I added to explain the stacking fix contained the literal
+  date-field component tag text, and **Blade compiles a component tag even inside a `<style>`/CSS comment** — so it was parsed as an
+  unclosed component that swallowed the rest of the file, producing a compiled-PHP parse error ("unexpected end of file, expecting
+  elseif/else/endif"). ⚠️ This is the SAME trap already written in `SYSTEMS.md` §20 for the select engine. ⚠️ It passed `view:cache`
+  and a `$compiler->compile()` preflight because those only GENERATE the PHP — they do not PARSE/execute it, and anon hits 302 before
+  render, so only a signed-in render surfaced it. **Fix:** reworded the comment so it never names a component tag; **now verified by
+  compiling AND token-parsing the compiled PHP** (the check that actually catches this). Views only — no DB, no logic, no migration.
+  **V:** preflight on the staged release — the view compiles AND its compiled PHP parses, only the 2 real `<x-date-field>` tags remain;
+  the whole app's compiled views all parse locally; stage — 1 file, nothing drifted, no migration; swap 2026-10-21 17:39:23 UTC
+  (~21:39 Baku), 16 ms; live log — the last `operator-search` error was 17:39:00, 23 s BEFORE the swap; none since; `/app/search`
+  serves (302→/login for anon). ⚠️ Not pushed to GitHub (his rule: push at the very end). Rollback target: `rel_BM @ 0790af9d`. Before it: **`rel_BM` → commit `0790af9d`** (the SEARCH DATE PICKER pass — the same themed date picker on `/app/search`. The two
   native `<input type="date">` check-in-range fields were replaced by `<x-date-field>` (the colourful trigger + custom calendar popover
   from the Insights pass), with the same stacking-context fix (`.vys-form:has(.vy-df-trigger.is-open){z-index:60}`) so the popover sits
-  above the result rows. The native input stays the truth — it submits with the GET form (the Search button) unchanged. Views only — no
-  DB, no logic, no migration. **V:** the read-only preflight from the staged release on the host's PHP — the 2 views compile, the page
-  uses exactly 2 `<x-date-field>` with 0 native date inputs left, the form stacking fix present; stage — 1 file shipped, 0 deleted,
-  nothing drifted, no migration; swap 2026-10-21 ~22:00 Baku, 4 ms; public checks **12/0/0** — the 5xx sweep clean over 168 public
-  routes, exposure battery SERVED=0; `/app/search` serves (302→/login for anon, no 500). ⚠️ Not pushed to GitHub (his rule: push at the
-  very end). Rollback target: `rel_BL @ b30e5570`. Before it: **`rel_BL` → commit `b30e5570`** (the SECURITY PASSWORD SHOW/HIDE pass — his request that every password field on
+  above the result rows. ⚠️ This pass's STATE line first claimed "no 500" — WRONG: it 500'd for signed-in users (see the SEARCH 500
+  HOTFIX above); the preflight's compile-only check missed it. The native input stays the truth — it submits with the GET form (the
+  Search button) unchanged. Views only — no DB, no logic, no migration; swap 2026-10-21 ~22:00 Baku, 4 ms. Rollback target:
+  `rel_BL @ b30e5570`. Before it: **`rel_BL` → commit `b30e5570`** (the SECURITY PASSWORD SHOW/HIDE pass — his request that every password field on
   `/app/security` carry a show/hide button. The five password inputs there (change/set password's current + new + confirm, the
   sign-out-others dialog, the revoke-device dialog) now use a new reusable `<x-password-field>` component
   (`resources/views/components/password-field.blade.php`): the input defaults to `type=password` and an eye button toggles it to text

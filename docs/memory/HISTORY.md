@@ -1415,11 +1415,27 @@ with 0 native date inputs left, the form stacking fix present; stage — 1 file,
 exposure battery SERVED=0; `/app/search` serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very
 end. Rollback target: `rel_BL @ b30e5570`.
 
+**SEARCH 500 HOTFIX, 2026-10-21 — his "there is some error on this page, it's not opening and working" (`/app/search`).** The SEARCH
+DATE PICKER pass above had broken the page FOR SIGNED-IN USERS (anon still 302'd before render, so it looked fine). The live log named
+it: `ViewException: syntax error, unexpected end of file, expecting "elseif" or "else" or "endif" (View: operator-search.blade.php)`.
+Cause: the CSS comment added to explain the stacking fix contained the literal date-field component tag text, and **Blade compiles a
+component tag even inside a `<style>`/CSS comment** — it was read as an unclosed component that swallowed the rest of the file, so the
+compiled PHP had an unterminated `@if`. Reworded the comment to never name a component tag (and added a warning not to). Committed
+`978b8f71` (1 file). **Deploy.** ✅ LIVE on `rel_BN @ 978b8f71` (V: preflight — the view compiles AND its compiled PHP token-parses on
+the host; only the 2 real tags remain; stage — 1 file, nothing drifted, no migration; swap 17:39:23 UTC, 16 ms; live log — last
+`operator-search` error 17:39:00, 23 s before the swap, none since; `/app/search` 302→/login for anon). Rollback target:
+`rel_BM @ 0790af9d`.
+- ⚠️⚠️ **THE LESSON (new, and a repeat of a known one):** a component tag inside a CSS/script comment or a `<style>` block STILL
+  COMPILES and breaks the page — already written in `SYSTEMS.md` §20 ("no component TAG is written in a comment… the page breaks"), yet
+  it happened again in a CSS comment. **And the preflight was too weak:** `view:cache` and `$compiler->compile()` only GENERATE the
+  compiled PHP; they do NOT parse/execute it, so a compiled-PHP syntax error sailed through, and the anon smoke test 302'd before any
+  render. **From now, a view preflight must token-parse the COMPILED PHP** (`token_get_all($code, TOKEN_PARSE)` or `php -l`), not just
+  compile it — that is the check that actually catches this.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
-`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`) each shipped through `ops/release.sh` with a read-only preflight
-and public checks 12/0/0, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the search pass, `main` is
-ahead of `origin/main` by 11). The reusable components added: `<x-favicon>`, `<x-date-field>` (now on Insights AND Search),
-`<x-password-field>`.
+`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`) each shipped through
+`ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the hotfix, `main` is ahead of
+`origin/main` by 13). The reusable components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search), `<x-password-field>`.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
