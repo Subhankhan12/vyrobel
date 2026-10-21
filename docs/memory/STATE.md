@@ -1,11 +1,22 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BP` → commit `ab5f6c93`** (the INBOX DESIGN POLISH pass — his "improve the design of `/app/inbox` more and make
+- **Live release `rel_BQ` → commit `abb626d6`** (the INBOX THREAD-ACTIONS FIX — his report that the four thread-header buttons
+  (Assign · Snooze · the reservation reference e.g. `R-…` · Change link) were still "messed" in height/alignment. Cause: they are
+  mixed element types — a `<button>`, a `<button>` inside an inline `<form style=display:inline>`, and an `<a>` — so with only
+  `.vy-btn`'s padding (no fixed height) they rendered at slightly different heights and the inline form threw off the baseline. Fix
+  (`livewire/operator/operator-inbox.blade.php`, CSS + markup): a scoped `.vy-thread-actions` rule gives every control one 34px height
+  and centered baseline, the `.vy-ta-form` wrapper is `inline-flex; margin:0`, each button got a small icon, and the reservation
+  reference is now a distinct terracotta code chip (`.vy-ta-ref`) rather than a plain oversized button; wraps right-aligned on narrow
+  widths (32px there). No logic, no DB, no migration. **V (hardened preflight):** the inbox view COMPILES AND its compiled PHP
+  TOKEN-PARSES on the host, the `vy-ta-btn`/`vy-ta-ref`/fixed-height rules present and the old inline-form style gone; stage — 1 file,
+  nothing drifted, no migration; swap 2026-10-21 ~22:36 UTC, 4 ms; the live log shows NO `operator-inbox` error; `/app/inbox` serves
+  (302→/login for anon); public checks **12/0/0**. ⚠️ Not pushed to GitHub (his rule: push at the very end). Rollback target:
+  `rel_BP @ ab5f6c93`. Before it: **`rel_BP` → commit `ab5f6c93`** (the INBOX DESIGN POLISH pass — his "improve the design of `/app/inbox` more and make
   there are no spacing issues". The page was already well-built; this tightened the vertical rhythm and refreshed two components, CSS +
   one markup wrapper only. Changes (`livewire/operator/operator-inbox.blade.php`): the stacked header sections now share a consistent
   16px gap (stat strip, toolbar `.vy-ibx-bar`, subbar — were an uneven 16/10/12); the 3-pane grid gap 16→18px; the stat cards redone as

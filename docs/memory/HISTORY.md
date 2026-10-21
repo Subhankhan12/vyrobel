@@ -1455,12 +1455,25 @@ stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~22:07 UTC, 13 
 `/app/inbox` 302→/login for anon; public checks 12/0/0). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback
 target: `rel_BO @ 1910a860`.
 
+**INBOX THREAD-ACTIONS FIX, 2026-10-21 — his "these 4 buttons design, height and alignment is still messed — Assign / Snooze /
+R-… / Change link — fix those and make them look more cool".** The thread-header actions on `/app/inbox` are mixed element types: a
+`<button>` (Assign), a `<button>` inside an inline `<form style=display:inline>` (Snooze/Reopen), and an `<a>` (the reservation
+reference + Change link). With only `.vy-btn`'s padding and no fixed height they rendered at slightly different heights, and the inline
+form wrapper threw off the flex baseline. Fix (CSS + markup, `operator-inbox.blade.php`): a scoped `.vy-thread-actions` rule — every
+control `height:34px` on a centered baseline, `.vy-ta-form` set `inline-flex; margin:0`, `flex-wrap` right-aligned (32px on ≤560px); a
+small icon on each button; and the reservation reference restyled as a distinct terracotta code chip (`.vy-ta-ref`) instead of a plain
+oversized button. Committed `abb626d6` (1 file, +35/−8). **Deploy (hardened preflight).** ✅ LIVE on `rel_BQ @ abb626d6` (V: the inbox
+view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the `vy-ta-btn`/`vy-ta-ref`/fixed-height rules present, the old inline-form
+style gone; stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~22:36 UTC, 4 ms; the live log shows NO `operator-inbox`
+error; `/app/inbox` 302→/login for anon; public checks 12/0/0). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback
+target: `rel_BP @ ab5f6c93`.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
 `rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`, inbox
-design polish → `rel_BP`) each shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those
-commits (as of the inbox pass, `main` is ahead of `origin/main` by 17). The reusable components added: `<x-favicon>`, `<x-date-field>`
-(on Insights AND Search), `<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own
-page-local `.vy-eye` pattern).
+design polish → `rel_BP`, inbox thread-actions fix → `rel_BQ`) each shipped through `ops/release.sh`, committed locally and NOT pushed —
+GitHub is behind `main` by those commits (as of the thread-actions fix, `main` is ahead of `origin/main` by 19). The reusable
+components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search), `<x-password-field>` (the back-office password reveal; the
+auth pages, `/login` included, keep their own page-local `.vy-eye` pattern).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
