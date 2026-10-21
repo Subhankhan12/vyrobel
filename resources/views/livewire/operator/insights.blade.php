@@ -18,12 +18,10 @@
                      matching how the presets already behave.
                      ⚠️ Everything downstream takes only start/end, so this feeds the SAME metric path, the
                      SAME span-shifted last-year comparison and therefore D3-4's coverage guard. --}}
-                <form method="GET" style="display:flex;align-items:center;gap:6px;margin-left:4px">
-                    <label class="vy-sr-only" for="ins-from">Range start</label>
-                    <input type="date" id="ins-from" name="from" value="{{ $customFrom }}" class="vy-pill" style="padding:5px 9px;font-size:12px">
-                    <span class="vy-topbar-sub" style="font-size:12px" aria-hidden="true">-</span>
-                    <label class="vy-sr-only" for="ins-to">Range end</label>
-                    <input type="date" id="ins-to" name="to" value="{{ $customTo }}" class="vy-pill" style="padding:5px 9px;font-size:12px">
+                <form method="GET" class="vy-ins-range">
+                    <x-date-field name="from" id="ins-from" :value="$customFrom" label="Range start" placeholder="Start date" />
+                    <span class="vy-ins-range-sep" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+                    <x-date-field name="to" id="ins-to" :value="$customTo" label="Range end" placeholder="End date" />
                     <button type="submit" class="vy-pill @if ($activeRange['key'] === 'custom') is-on @endif">Apply</button>
                 </form>
             </div>

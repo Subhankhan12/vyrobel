@@ -722,6 +722,65 @@
         .vy-empty { text-align: center; color: var(--vy-muted); padding: 40px 20px; font-size: 13.5px; }
         .vy-deferred-note { font-size: 11.5px; color: var(--vy-on-grad); display: inline-flex; align-items: center; gap: 6px; }
 
+        /* ---- Themed date field (x-date-field) — a colourful trigger + a custom calendar popover (2026-10-21).
+           The native <input type=date> stays the truth and is submitted; Alpine hides it and shows this skin. */
+        .vy-ins-range { display: inline-flex; align-items: center; gap: 8px; margin-left: 4px; flex-wrap: wrap; }
+        .vy-ins-range-sep { display: inline-grid; place-items: center; color: var(--vy-accent-text); opacity: .7; }
+        .vy-df { position: relative; display: inline-flex; }
+        .vy-df-native { padding: 5px 9px; font-size: 12px; }
+        /* When Alpine is live the trigger loses x-cloak; the native control is then visually hidden (but still
+           in the DOM and submitted). Before Alpine (or if :has is unsupported) the native field shows as before. */
+        .vy-df:has(.vy-df-trigger:not([x-cloak])) .vy-df-native { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; opacity: 0; pointer-events: none; }
+        .vy-df-trigger {
+            display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px 0 12px;
+            border-radius: var(--vy-r-pill); cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600;
+            color: var(--vy-accent-text); background: linear-gradient(135deg, rgba(232,112,58,.14), rgba(194,65,12,.12));
+            border: 1px solid rgba(194,65,12,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+            transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .1s ease;
+        }
+        .vy-df-trigger:hover { background: linear-gradient(135deg, rgba(232,112,58,.22), rgba(194,65,12,.18)); border-color: rgba(194,65,12,.38); }
+        .vy-df-trigger:active { transform: translateY(1px); }
+        .vy-df-trigger.is-open, .vy-df-trigger:focus-visible { outline: none; border-color: var(--vy-accent); box-shadow: 0 0 0 3px rgba(194,65,12,.16); background: #fff; }
+        .vy-df-trigger.is-set { color: var(--vy-ink); }
+        .vy-df-ico { color: var(--vy-accent-text); flex: none; }
+        .vy-df-caret { color: var(--vy-accent-text); flex: none; opacity: .75; transition: transform .18s ease; }
+        .vy-df-trigger.is-open .vy-df-caret { transform: rotate(180deg); }
+        .vy-df-value { white-space: nowrap; }
+
+        /* The calendar popover. */
+        .vy-df-pop {
+            position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; width: 272px; padding: 12px;
+            border-radius: var(--vy-r-lg, 18px); background: rgba(255, 252, 249, 0.96);
+            backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            border: 1px solid rgba(194, 65, 12, .14);
+            box-shadow: 0 18px 44px rgba(120, 60, 30, .22), inset 0 1px 0 rgba(255, 255, 255, .7);
+        }
+        .vy-df-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 4px 10px; }
+        .vy-df-title { display: inline-flex; align-items: baseline; gap: 6px; }
+        .vy-df-month { font-family: var(--vy-display, inherit); font-size: 14px; font-weight: 700; color: var(--vy-ink); letter-spacing: -.01em; }
+        .vy-df-year { font-size: 13px; font-weight: 600; color: var(--vy-accent-text); }
+        .vy-df-nav { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 10px; cursor: pointer; color: var(--vy-accent-text); background: rgba(194, 65, 12, .08); border: 1px solid transparent; transition: background .14s ease, border-color .14s ease, transform .1s ease; }
+        .vy-df-nav:hover { background: rgba(194, 65, 12, .16); border-color: rgba(194, 65, 12, .2); }
+        .vy-df-nav:active { transform: scale(.94); }
+        .vy-df-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+        .vy-df-dow { margin-bottom: 4px; }
+        .vy-df-dowcell { text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--vy-muted); padding: 2px 0; }
+        .vy-df-day {
+            aspect-ratio: 1 / 1; display: grid; place-items: center; border: 0; border-radius: 9px; cursor: pointer;
+            font: inherit; font-size: 12.5px; font-weight: 500; color: var(--vy-ink); background: transparent;
+            transition: background .12s ease, color .12s ease, transform .08s ease;
+        }
+        .vy-df-day:hover:not(.is-blank) { background: rgba(232, 112, 58, .16); }
+        .vy-df-day:active:not(.is-blank) { transform: scale(.9); }
+        .vy-df-day.is-blank { cursor: default; pointer-events: none; }
+        .vy-df-day.is-today { color: var(--vy-accent-text); font-weight: 700; box-shadow: inset 0 0 0 1.5px rgba(194, 65, 12, .4); }
+        .vy-df-day.is-sel { background: var(--vy-grad); color: #fff; font-weight: 700; box-shadow: 0 4px 12px rgba(194, 65, 12, .34); }
+        .vy-df-day.is-sel:hover { background: var(--vy-grad); }
+        .vy-df-day:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
+        .vy-df-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--vy-hairline); }
+        .vy-df-foot-btn { font: inherit; font-size: 12px; font-weight: 600; color: var(--vy-accent-text); background: none; border: 0; padding: 3px 6px; border-radius: 7px; cursor: pointer; transition: background .14s ease; }
+        .vy-df-foot-btn:hover { background: rgba(194, 65, 12, .1); }
+
         /* ---- Reservation rack (timeline grid) -------------------------------------------------- */
         .vy-rack-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
         .vy-rack-toolbar .vy-left, .vy-rack-toolbar .vy-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
