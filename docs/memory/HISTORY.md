@@ -1369,6 +1369,20 @@ public checks **12 PASS · 0 FAIL · 0 could not measure** — the 5xx sweep cle
 `/app/insights?range=ytd` serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very end.
 Rollback target: `rel_BI @ f3a7ab82`.
 
+**INSIGHTS DATE PICKER OVERLAP FIX, 2026-10-21 — his "upon opening date picker there is overlaping issue in both of them … fix those
+and ship it live".** Cause (a classic stacking-context trap): the `.vy-fade` entrance animation (`vyFadeUp`) leaves a `transform` on
+both the toolbar (`.vy-rack-toolbar`) and the KPI cards container (`.vy-dash-kpis`) below it; a non-`none` transform makes each a
+STACKING CONTEXT, so the popover's `z-index:60` was confined inside the toolbar's own context and the later cards (a sibling context,
+later in paint order) drew over the open calendar. Fix (CSS only, `layouts/operator.blade.php`, scoped to `.vy-ins`): the toolbar gets
+`position:relative`, and `.vy-ins .vy-rack-toolbar:has(.vy-df-trigger.is-open)` raises its whole context to `z-index:60` only while a
+picker is open — so the calendar paints above the cards, and nothing changes when it is closed. No overflow clip on the Insights
+wrappers to cut it. Local gate: `view:cache` compiled; git scope 1 file. Committed `cb378e72` (1 file, +6). **Deploy.** ✅ LIVE on
+`rel_BK @ cb378e72` (V: the read-only preflight from the staged release on the host's PHP — the 3 views compile, both fix rules
+present; stage — 1 file, 0 deleted, nothing drifted, no migration; swap 2026-10-21 ~21:10 Baku, 3 ms; public checks **12 PASS · 0
+FAIL · 0 could not measure** — the 5xx sweep clean over 168 public routes, exposure battery SERVED=0; `/app/insights?range=ytd`
+serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback target:
+`rel_BJ @ abcc5384`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
