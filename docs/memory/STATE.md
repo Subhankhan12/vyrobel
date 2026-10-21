@@ -1,11 +1,20 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BH` → commit `e72ce69d`** (the FAVICON pass — the terracotta "V" logo as the favicon on every surface: the front
+- **Live release `rel_BI` → commit `f3a7ab82`** (the CALENDAR ROOM-TYPE FILTER pass — the "All room types" drop-down on
+  `/app/calendar` resized and polished. The filter is a glass pill (`.vy-rack-filter`) wrapping a borderless native select; the one
+  select engine forces `min-height:40px` + `padding-right:36px` on every bare select, so the pill had ballooned to ~54px and sat
+  above the ~34px nights pill beside it. Now the pill is 34px (level with the nights pill), the engine's forced sizing is
+  neutralised INSIDE the pill while its chevron and open panel are kept, and a leading room-type icon + hover/focus-within polish
+  added. Scoped to `.vy-cal .vy-rack-filter` (used nowhere else); views only — no DB, no logic, no migration. **V:** the read-only
+  preflight from the staged release on the host's PHP — both changed views compile, the new icon markup and the three CSS changes
+  present; stage — 2 files shipped, 0 deleted, nothing drifted, no migration; swap 2026-10-21 ~20:20 Baku, 3 ms; public checks
+  **12/0/0** — the 5xx sweep clean over 168 public routes, exposure battery SERVED=0; `/app/calendar` serves (302→/login for anon,
+  no 500). ⚠️ Not pushed to GitHub (his rule: push at the very end). Rollback target: `rel_BH @ e72ce69d`. Before it: **`rel_BH` → commit `e72ce69d`** (the FAVICON pass — the terracotta "V" logo as the favicon on every surface: the front
   website, the operator/owner/guest/admin panels and every shared auth/error/status/oauth/billing front door, through ONE
   `<x-favicon>` component — `public/favicon.svg` + the admin panels' own inline data-URI as the fallback; the admin panels' prior
   inline favicon folded into the component. Views and one static asset only — no DB, no logic, no migration. **V:** the read-only

@@ -1331,6 +1331,23 @@ could not measure** — the 5xx sweep clean over 168 public routes, exposure bat
 serves HTTP 200 `image/svg+xml` 547 bytes with the gradient-V content, re-read after the swap). ⚠️ Not pushed to GitHub — his rule
 is to push at the very end; this pass stopped at the live swap he asked for. Rollback target: `rel_BG @ 6bde9910`.
 
+**CALENDAR ROOM-TYPE FILTER, 2026-10-21 — his "on this page the design of the 'all room types' dropdown should look cool and better
+sizing, fix it" (`/app/calendar`), then "ship it live".** Scope held to that one control. Found: the room-type filter
+(`reservation-rack.blade.php`) is a glass pill `.vy-rack-filter` wrapping a borderless native `<select class="vy-propsw-select">`
+with `onchange="this.form.submit()"`. The one select engine (`components/vy-selects.blade.php`) skins every bare select and forces
+`min-height:40px` + `padding-right:36px` on it — so inside the pill the field ballooned the pill to ~54px, out of line with the
+~34px glass nights pill (7n/14n/30n) beside it, the chevron floating far from the edge, no icon. Fix (`.vy-cal .vy-rack-filter` CSS
+in `layouts/operator.blade.php`, the class used nowhere else): the pill fixed at 34px to sit level with the nights pill; the
+engine's forced `min-height`/padding neutralised INSIDE the pill (`!important`, overriding `:where()` base specificity) while its
+chevron and open panel are kept for consistency (D-SELECT-ROLLOUT); a leading room-type grid icon (brand terracotta) added to the
+markup; hover (brighter glass, tinted border) and focus-within (white, accent ring) polish. The native select keeps its name,
+options, auto-submit and GET — posting and every test unchanged. Local gate: `view:cache` compiled; git scope 2 files. Committed
+`f3a7ab82` (2 files, +16/−4). **Deploy.** ✅ LIVE on `rel_BI @ f3a7ab82` (V: the read-only preflight from the staged release on the
+host's PHP — both changed views compile, the icon markup and the three CSS changes present; stage — 2 files, 0 deleted, nothing
+drifted, no migration; swap 2026-10-21 ~20:20 Baku, 3 ms; public checks **12 PASS · 0 FAIL · 0 could not measure** — the 5xx sweep
+clean over 168 public routes, exposure battery SERVED=0; `/app/calendar` serves 302→/login for anon, no 500). ⚠️ Not pushed to
+GitHub — his rule is to push at the very end. Rollback target: `rel_BH @ e72ce69d`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
