@@ -14,6 +14,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Status · Vyrobel</title>
+    <x-favicon />
     <style>
         :root { --ink: rgb(43, 35, 32); --muted: rgb(110, 100, 94); --card: rgba(255, 252, 248, .78); --line: rgba(120, 70, 40, .14); --accent: #C2410C; }
         @media (prefers-color-scheme: dark) { :root { --ink: #E8EAF0; --muted: #A8AEC0; --card: rgba(20, 27, 41, .8); --line: rgba(255,255,255,.12); } body { background: #0B0F17 !important; } }

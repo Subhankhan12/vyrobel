@@ -35,6 +35,8 @@
     <title>{{ $title !== '' ? $title.' · ' : '' }}{{ $property['name'] }}</title>
     @endif
 
+    <x-favicon />
+
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
 

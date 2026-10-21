@@ -7,6 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign-in approved · Vyrobel</title>
+    <x-favicon />
     <style>
         :root { --ink:#2B2320; --muted:#5F5853; }
         *,*::before,*::after{box-sizing:border-box}

@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>Confirm your email · Vyrobel</title>
+    <x-favicon />
     <link href="/fonts/fonts.css" rel="stylesheet">
     <style>
         :root { --vy-ink: rgb(43,35,32); --vy-muted: rgb(95,88,83); --vy-faint: rgb(108,100,95);

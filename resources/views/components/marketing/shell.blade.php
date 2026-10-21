@@ -33,6 +33,8 @@
     <x-marketing.seo :title="$title" :description="$description" :canonical="$canonical"
                      :og-type="$ogType" :og-image="$ogImage" :index="$index" :alternates="$alternates" />
 
+    <x-favicon />
+
     {{-- Self-hosted Inter + Sora — no third-party font request (F6-6). --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
 

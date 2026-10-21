@@ -10,6 +10,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Authorize {{ $client->name }} · Vyrobel</title>
+    <x-favicon />
     <style>
         :root {
             --vy-ink: #2b2320; --vy-muted: #5F5853; --vy-faint: #6C645F; --vy-accent: #c2410c;
