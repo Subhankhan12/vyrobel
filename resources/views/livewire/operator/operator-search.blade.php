@@ -300,8 +300,10 @@
         .vys-date { border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); border-radius: 999px; padding: 5px 12px; font-family: inherit; font-size: 12.5px; color: var(--vy-ink); }
         .vys-dash { color: var(--vy-faint); font-size: 12px; }
         /* ⚠️ Same stacking-context fix as Insights: `.vy-fade` leaves a transform on the form and the result rows
-           below it (each a stacking context), so the <x-date-field> calendar popover's z-index would be trapped and
-           the later rows paint over it. Raise the form's context while a picker is open. */
+           below it (each a stacking context), so the date-field calendar popover's z-index would be trapped and
+           the later rows paint over it. Raise the form's context while a picker is open.
+           ⚠️ DO NOT write the date-field component's tag name here — Blade compiles a component tag even inside a
+           CSS comment, which silently swallows the rest of the file (a render-time parse error). */
         .vys-form { position: relative; }
         .vys-form:has(.vy-df-trigger.is-open) { z-index: 60; }
         .vys-hint { font-size: 11.5px; color: var(--vy-muted); margin: 10px 0 16px; }
