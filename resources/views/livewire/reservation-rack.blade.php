@@ -36,6 +36,7 @@
                     <form method="GET" class="vy-rack-filter">
                         <input type="hidden" name="start" value="{{ $window['start'] }}">
                         <input type="hidden" name="days" value="{{ $window['selected_days'] }}">
+                        <svg class="vy-rack-filter-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
                         <select name="rt" class="vy-propsw-select" onchange="this.form.submit()" aria-label="Filter by room type">
                             <option value="">All room types</option>
                             @foreach ($roomTypeOptions as $opt)

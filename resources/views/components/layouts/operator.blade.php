@@ -825,10 +825,21 @@
         .vy-cal .vy-seg-btn.is-on { background: #fff; color: var(--vy-accent); box-shadow: var(--vy-shadow-sm); }
         .vy-cal .vy-seg-btn:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
 
-        /* The design's room-type control reads as a glass pill with a chevron, not a bare select. */
-        .vy-cal .vy-rack-filter { display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px 7px 15px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); transition: background .16s; }
-        .vy-cal .vy-rack-filter:hover { background: rgba(255, 255, 255, 0.75); }
-        .vy-cal .vy-rack-filter .vy-propsw-select { font-size: 12.5px; color: var(--vy-muted); }
+        /* The room-type control reads as a glass pill with a leading icon and the engine's chevron — sized to
+           sit level with the segmented nights pill beside it (both 34px tall). ⚠️ The one select engine forces
+           min-height:40px and padding-right:36px on every bare select; inside this pill those are neutralised so
+           the field hugs the pill, while the engine's chevron and open panel are kept (consistency, D-SELECT-ROLLOUT). */
+        .vy-cal .vy-rack-filter { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px 0 13px; border-radius: var(--vy-r-pill); background: var(--vy-glass); backdrop-filter: blur(22px) saturate(1.15); -webkit-backdrop-filter: blur(22px) saturate(1.15); border: 1px solid var(--vy-glass-border); transition: background .16s ease, border-color .16s ease, box-shadow .16s ease; }
+        .vy-cal .vy-rack-filter:hover { background: rgba(255, 255, 255, 0.78); border-color: rgba(194, 65, 12, .22); }
+        .vy-cal .vy-rack-filter:focus-within { background: #fff; border-color: var(--vy-accent); box-shadow: 0 0 0 3px rgba(194, 65, 12, .14); }
+        .vy-cal .vy-rack-filter-ico { color: var(--vy-accent-text); flex: none; opacity: .9; }
+        .vy-cal .vy-rack-filter .vy-propsw-select {
+            min-height: 0 !important; height: 26px; padding: 0 20px 0 0 !important; min-width: 7.5rem;
+            border: 0 !important; background-color: transparent !important; box-shadow: none !important;
+            font-size: 12.5px; font-weight: 500; color: var(--vy-ink); line-height: 26px;
+            background-position: right 2px center !important; background-size: 15px 15px !important;
+        }
+        .vy-cal .vy-rack-filter .vy-propsw-select:focus-visible { outline: none; }
 
         /* Today's column head carries a short gradient rule, inset from the edges. */
         .vy-cal .vy-day.is-today { position: relative; }
