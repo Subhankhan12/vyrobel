@@ -35,7 +35,7 @@
         @endphp
 
         {{-- ── The query bar (GET → drives the scoped search) ──────────────────────────────────────── --}}
-        <form method="GET" action="{{ route('app.search') }}" class="vy-fade" x-data="searchBox()" x-on:submit="remember()">
+        <form method="GET" action="{{ route('app.search') }}" class="vy-fade vys-form" x-data="searchBox()" x-on:submit="remember()">
             {{-- Carry the active filters so a NEW query keeps the filter state (the chips carry q the other way). --}}
             @foreach (['status', 'source', 'occupancy', 'sort'] as $carry)
                 @if (($filters[$carry] ?? '') !== '')
@@ -65,9 +65,9 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
                     Dates
                 </span>
-                <input type="date" name="from" class="vys-date" value="{{ $filters['from'] ?? '' }}" aria-label="Check-in from">
+                <x-date-field name="from" :value="$filters['from'] ?? ''" label="Check-in from" placeholder="From" />
                 <span class="vys-dash">→</span>
-                <input type="date" name="to" class="vys-date" value="{{ $filters['to'] ?? '' }}" aria-label="Check-in to">
+                <x-date-field name="to" :value="$filters['to'] ?? ''" label="Check-in to" placeholder="To" />
             </div>
         </form>
 
@@ -299,6 +299,11 @@
         .vys-chip.is-on { background: var(--vy-grad); color: #fff; border-color: transparent; font-weight: 600; }
         .vys-date { border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.6); border-radius: 999px; padding: 5px 12px; font-family: inherit; font-size: 12.5px; color: var(--vy-ink); }
         .vys-dash { color: var(--vy-faint); font-size: 12px; }
+        /* ⚠️ Same stacking-context fix as Insights: `.vy-fade` leaves a transform on the form and the result rows
+           below it (each a stacking context), so the <x-date-field> calendar popover's z-index would be trapped and
+           the later rows paint over it. Raise the form's context while a picker is open. */
+        .vys-form { position: relative; }
+        .vys-form:has(.vy-df-trigger.is-open) { z-index: 60; }
         .vys-hint { font-size: 11.5px; color: var(--vy-muted); margin: 10px 0 16px; }
 
         /* ── Results header ────────────────────────────────────────────────────────────────────── */
