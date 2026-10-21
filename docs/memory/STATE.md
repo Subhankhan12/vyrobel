@@ -1,11 +1,19 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BG` → commit `6bde9910`** (THE ONE SELECT ENGINE pass — every drop-down on one engine. **V:** the read-only preflight
+- **Live release `rel_BH` → commit `e72ce69d`** (the FAVICON pass — the terracotta "V" logo as the favicon on every surface: the front
+  website, the operator/owner/guest/admin panels and every shared auth/error/status/oauth/billing front door, through ONE
+  `<x-favicon>` component — `public/favicon.svg` + the admin panels' own inline data-URI as the fallback; the admin panels' prior
+  inline favicon folded into the component. Views and one static asset only — no DB, no logic, no migration. **V:** the read-only
+  preflight from the staged release on the host's PHP — `favicon.svg` present (547 bytes), the component present, all 14 edited
+  shells/front-doors compile, the component renders both the svg link and the data-URI fallback; stage — 24 files shipped, 0 deleted,
+  nothing drifted, no migration; swap 2026-10-21 ~20:01 Baku, 9 ms; public checks **12/0/0**; `https://vyrobel.com/favicon.svg` serves
+  HTTP 200 `image/svg+xml` 547 bytes with the gradient-V content; the 5xx sweep clean over 168 public routes; exposure battery
+  SERVED=0). ⚠️ Not pushed to GitHub (his rule: push at the very end). Rollback target: `rel_BG @ 6bde9910`. Before it: **`rel_BG` → commit `6bde9910`** (THE ONE SELECT ENGINE pass — every drop-down on one engine. **V:** the read-only preflight
   from the staged release on the host's PHP 8.4.26 — all 24 changed views compile, 419 zones, the combobox gone; swap 2026-10-10
   03:38:26 Baku, 4 ms; 25 files shipped, 1 deleted, no migration, nothing drifted; public checks **12/0/0**; live signup's two selects
   open the panel and close with Esc, no page error (Playwright, after the CDN's bot check let the page through); 0 error-level lines

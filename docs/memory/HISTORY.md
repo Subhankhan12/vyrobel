@@ -1311,6 +1311,26 @@ were each caught and reverted: a visible 4242 on owner settings; `0154` held onl
 snapshot's data); `369` on the storefront. The 7 affected files: 70 passed (469 assertions); Pint clean. Pushed the same way; the run
 on that commit is read with `gh run list`.
 
+**FAVICON, 2026-10-21 — his "update the favicon on the front website and all roles panel … I like the v logo and I want it as
+favicon", then "Ship everything live".** Scope held to the favicon only — no DB, no logic, no previous work touched. Found: the
+platform admin panels already carried an inline terracotta "V" data-URI favicon (`admin/shell`, `admin/auth`); every other surface
+had none, and `public/favicon.ico` was a 0-byte empty file. The brand "V" is the marketing logo mark — a rounded square, the
+terracotta gradient `#E8703A → #C2410C`, a white bold V. Built: `public/favicon.svg` (the gradient V, 547 bytes) and ONE
+`resources/views/components/favicon.blade.php` (`<x-favicon>`) as the single source of truth — an SVG `rel=icon` (guarded `filemtime`
+cache-bust, the marketing shell's own pattern), the admin panels' inline data-URI kept as the fallback that needs no file, and an
+`apple-touch-icon`. Wired into 22 views: the front website (`marketing/shell`, `public/shell`), the operator/owner/guest layouts,
+both admin panels (their inline favicon folded into the component), and every shared front door (login, forgot/reset/set-password,
+2FA, verify-email, onboarding, invite-invalid, login-approval ×2, guest auth layout, errors layout, status, oauth consent,
+feature-locked). Left untouched on purpose: `welcome.blade.php` (the Laravel splash, no longer routed) and `components/layouts/app`
+(the "Contract Stub" sibling layouts keep untouched); PDFs and emails (no browser tab). Local gate: `view:cache` compiled every
+view, the component rendered correct HTML, the SVG parsed as XML. Committed `e72ce69d` (24 files, +49/−3). **Deploy.** ✅ LIVE on
+`rel_BH @ e72ce69d` (V: the read-only preflight from the staged release on the host's PHP — `favicon.svg` present 547 bytes, the
+component present, all 14 edited shells/front-doors compile, the component renders both the svg link and the data-URI fallback;
+stage — 24 files, 0 deleted, nothing drifted, no migration; swap 2026-10-21 ~20:01 Baku, 9 ms; public checks **12 PASS · 0 FAIL · 0
+could not measure** — the 5xx sweep clean over 168 public routes, exposure battery SERVED=0; `https://vyrobel.com/favicon.svg`
+serves HTTP 200 `image/svg+xml` 547 bytes with the gradient-V content, re-read after the swap). ⚠️ Not pushed to GitHub — his rule
+is to push at the very end; this pass stopped at the live swap he asked for. Rollback target: `rel_BG @ 6bde9910`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
