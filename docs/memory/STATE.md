@@ -1,11 +1,20 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BQ` → commit `abb626d6`** (the INBOX THREAD-ACTIONS FIX — his report that the four thread-header buttons
+- **Live release `rel_BR` → commit `186da56a`** (the INBOX COMPOSER RESTYLE — his "the bottom type box and buttons are not looking
+  cool, make them cool". The reply composer at the foot of a thread (`livewire/operator/operator-inbox.blade.php`) was a plain
+  side-by-side flex; it is now one rounded glass "composer card": the children stack (textarea on top, the action row beneath), the
+  whole card gets a focus-within terracotta ring (turns white + a soft glow when the type box is focused), the textarea is borderless
+  inside the card (auto height 46–180px, 14px text), the action row's buttons share a 38px height, and the Reply/Send button is a pill
+  with a paper-plane icon (the dynamic Sending…/Reply label kept via a bound `<span>`). CSS + markup only; no logic, no DB, no migration.
+  **V (hardened preflight):** the inbox view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the composer-card focus-within CSS,
+  the send button + paper-plane icon, and the Reply/Sending label binding present; stage — 1 file, nothing drifted, no migration; swap
+  2026-10-21 ~22:50 UTC, 5 ms; the live log shows NO `operator-inbox` error; `/app/inbox` serves (302→/login for anon); public checks
+  **12/0/0**. ⚠️ Not pushed to GitHub (his rule: push at the very end). Rollback target: `rel_BQ @ abb626d6`. Before it: **`rel_BQ` → commit `abb626d6`** (the INBOX THREAD-ACTIONS FIX — his report that the four thread-header buttons
   (Assign · Snooze · the reservation reference e.g. `R-…` · Change link) were still "messed" in height/alignment. Cause: they are
   mixed element types — a `<button>`, a `<button>` inside an inline `<form style=display:inline>`, and an `<a>` — so with only
   `.vy-btn`'s padding (no fixed height) they rendered at slightly different heights and the inline form threw off the baseline. Fix
