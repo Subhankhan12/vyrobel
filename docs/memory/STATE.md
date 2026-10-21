@@ -1,11 +1,21 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BO` → commit `1910a860`** (the LOGIN PASSWORD SHOW/HIDE pass — his request that the show/hide reveal work on
+- **Live release `rel_BP` → commit `ab5f6c93`** (the INBOX DESIGN POLISH pass — his "improve the design of `/app/inbox` more and make
+  there are no spacing issues". The page was already well-built; this tightened the vertical rhythm and refreshed two components, CSS +
+  one markup wrapper only. Changes (`livewire/operator/operator-inbox.blade.php`): the stacked header sections now share a consistent
+  16px gap (stat strip, toolbar `.vy-ibx-bar`, subbar — were an uneven 16/10/12); the 3-pane grid gap 16→18px; the stat cards redone as
+  a clean two-line number-over-label (new `.vy-istat-text` wrapper) with a larger figure (20→22px), roomier padding, softer radius
+  (14→16) and a hover lift+shadow on the clickable Unread card; conversation rows a touch roomier (12/14→13/15) with a terracotta
+  left-accent bar on the active one (`.vy-conv.is-active::before`). No logic, no DB, no migration. **V (hardened preflight):** the inbox
+  view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the `.vy-istat-text` wrapper (×5), the active left-accent and the 18px
+  grid gap present; stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~22:07 UTC, 13 ms; the live log shows NO
+  `operator-inbox` error at all; `/app/inbox` serves (302→/login for anon); public checks **12/0/0**. ⚠️ Not pushed to GitHub (his
+  rule: push at the very end). Rollback target: `rel_BO @ 1910a860`. Before it: **`rel_BO` → commit `1910a860`** (the LOGIN PASSWORD SHOW/HIDE pass — his request that the show/hide reveal work on
   `https://vyrobel.com/login` too. The login page's single password field is now wrapped in `.vy-input-wrap` with a `.vy-eye` button
   that toggles the input between `password` and `text` and swaps an open/closed eye icon. `/login` is a self-contained view (its own
   `<head>`/`<style>`/`<script>`, NOT the operator shell and NOT Alpine), so this uses the auth-page `.vy-eye` + `data-toggle` pattern

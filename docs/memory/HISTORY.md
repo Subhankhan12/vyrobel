@@ -1444,11 +1444,23 @@ view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the eye markup/CSS/
 and the served HTML carries `vy-eye`, `data-toggle="password"` and the toggle script**; public checks 12/0/0). ⚠️ Not pushed to GitHub —
 his rule is to push at the very end. Rollback target: `rel_BN @ 978b8f71`.
 
+**INBOX DESIGN POLISH, 2026-10-21 — his "improve the design of `/app/inbox` more and make there are no spacing issues".** The page
+(`livewire/operator/operator-inbox.blade.php`) was already well-built, so this was a tightening pass, CSS + one markup wrapper only (no
+logic): the stacked header sections given a consistent 16px rhythm (stat strip / toolbar `.vy-ibx-bar` / subbar were 16/10/12); the
+3-pane grid gap 16→18px; the stat cards redone as a two-line number-over-label (new `.vy-istat-text` wrapper) with a bigger figure
+(20→22px), roomier padding, softer radius and a hover lift on the clickable Unread card; conversation rows slightly roomier with a
+terracotta left-accent on the active one. Committed `ab5f6c93` (1 file, +25/−14). **Deploy (hardened preflight).** ✅ LIVE on
+`rel_BP @ ab5f6c93` (V: the inbox view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the new wrapper/accent/gap present;
+stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~22:07 UTC, 13 ms; the live log shows NO `operator-inbox` error;
+`/app/inbox` 302→/login for anon; public checks 12/0/0). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback
+target: `rel_BO @ 1910a860`.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
-`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`) each
-shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the login pass,
-`main` is ahead of `origin/main` by 15). The reusable components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search),
-`<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own page-local `.vy-eye` pattern).
+`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`, inbox
+design polish → `rel_BP`) each shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those
+commits (as of the inbox pass, `main` is ahead of `origin/main` by 17). The reusable components added: `<x-favicon>`, `<x-date-field>`
+(on Insights AND Search), `<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own
+page-local `.vy-eye` pattern).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
