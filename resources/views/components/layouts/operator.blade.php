@@ -724,6 +724,12 @@
 
         /* ---- Themed date field (x-date-field) — a colourful trigger + a custom calendar popover (2026-10-21).
            The native <input type=date> stays the truth and is submitted; Alpine hides it and shows this skin. */
+        /* ⚠️ Overlap fix (2026-10-21): the `.vy-fade` animation puts a `transform` on both the toolbar and the KPI
+           cards below it, and a non-`none` transform makes each a STACKING CONTEXT — so the popover's z-index was
+           trapped inside the toolbar's context and the later cards painted over it. Raising the toolbar's whole
+           context above its siblings while a picker is open lets the calendar sit on top. Scoped to Insights. */
+        .vy-ins .vy-rack-toolbar { position: relative; }
+        .vy-ins .vy-rack-toolbar:has(.vy-df-trigger.is-open) { z-index: 60; }
         .vy-ins-range { display: inline-flex; align-items: center; gap: 8px; margin-left: 4px; flex-wrap: wrap; }
         .vy-ins-range-sep { display: inline-grid; place-items: center; color: var(--vy-accent-text); opacity: .7; }
         .vy-df { position: relative; display: inline-flex; }
