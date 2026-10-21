@@ -99,17 +99,17 @@
                         @if ($hasPassword)
                             <div class="vy-field">
                                 <label class="vy-field-label" for="vy-sec-cur">Current password</label>
-                                <input type="password" name="current_password" id="vy-sec-cur" class="vy-input" autocomplete="current-password" required>
+                                <x-password-field name="current_password" id="vy-sec-cur" autocomplete="current-password" :required="true" label="current password" />
                             </div>
                         @endif
                         <div class="vy-gl-fields">
                             <div class="vy-field">
                                 <label class="vy-field-label" for="vy-sec-new">New password</label>
-                                <input type="password" name="password" id="vy-sec-new" class="vy-input" autocomplete="new-password" required>
+                                <x-password-field name="password" id="vy-sec-new" autocomplete="new-password" :required="true" label="new password" />
                             </div>
                             <div class="vy-field">
                                 <label class="vy-field-label" for="vy-sec-conf">Confirm new password</label>
-                                <input type="password" name="password_confirmation" id="vy-sec-conf" class="vy-input" autocomplete="new-password" required>
+                                <x-password-field name="password_confirmation" id="vy-sec-conf" autocomplete="new-password" :required="true" label="password confirmation" />
                             </div>
                         </div>
                         {{-- ⚠️ DO13-4: the rule it enforces, stated — a refusal the person cannot comply with teaches nothing --}}
@@ -430,7 +430,7 @@
                         @endif
                         <div class="vy-field vy-ul-last">
                             <label class="vy-field-label" for="vy-sec-so-pw">Your password</label>
-                            <input type="password" id="vy-sec-so-pw" name="current_password" class="vy-input" autocomplete="current-password" required>
+                            <x-password-field name="current_password" id="vy-sec-so-pw" autocomplete="current-password" :required="true" label="password" />
                         </div>
                     </div>
                     <div class="vy-modal-foot">
@@ -463,7 +463,7 @@
                         @endif
                         <div class="vy-field vy-ul-last">
                             <label class="vy-field-label" for="vy-sec-rv-pw">Your password</label>
-                            <input type="password" id="vy-sec-rv-pw" name="current_password" class="vy-input" autocomplete="current-password" required>
+                            <x-password-field name="current_password" id="vy-sec-rv-pw" autocomplete="current-password" :required="true" label="password" />
                         </div>
                     </div>
                     <div class="vy-modal-foot">

@@ -1510,6 +1510,13 @@
         .vy-field-label { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); display: block; margin-bottom: 6px; }
         .vy-input-group { display: flex; gap: 8px; align-items: stretch; }
         .vy-input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.75); font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); }
+
+        /* Password field with a show/hide eye toggle (x-password-field). The eye sits inside the input's right edge. */
+        .vy-pw { position: relative; display: flex; width: 100%; }
+        .vy-pw .vy-pw-input { width: 100%; padding-right: 42px; }
+        .vy-pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: transparent; color: var(--vy-muted); cursor: pointer; border-radius: var(--vy-r-sm); transition: color .14s ease, background .14s ease; }
+        .vy-pw-eye:hover { color: var(--vy-accent-text); background: rgba(194, 65, 12, .08); }
+        .vy-pw-eye:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
         .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
         .vy-action-list { display: flex; flex-direction: column; gap: 8px; }
         .vy-action-list .vy-defer-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--vy-muted); padding: 8px 0; border-bottom: 1px solid var(--vy-hairline); }
