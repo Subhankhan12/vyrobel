@@ -581,7 +581,7 @@ no logic, no migration.
   guest, both admin panels, and every shared auth/error/status/oauth/billing front door). The admin panels' old inline favicon folded
   into it.
 - **`<x-date-field>`** — `components/date-field.blade.php`: a themed, progressively-enhanced date picker used by the Insights custom
-  range (`/app/insights`). The native `<input type="date">` stays the truth (name/value, submitted, no-JS fallback kept — D3-1); when
+  range (`/app/insights`) and the Search check-in range (`/app/search`). The native `<input type="date">` stays the truth (name/value, submitted, no-JS fallback kept — D3-1); when
   Alpine runs it hides the native control and shows a colourful terracotta-gradient trigger pill + a custom calendar popover
   (gradient title, month nav, a terracotta-gradient selected day, a today ring, Today/Clear), writing the chosen ISO date back onto the
   native input. ⚠️ Its Alpine fn is an inline `@once <script>` because the operator layout has no `@stack('scripts')`. CSS `.vy-df*` /

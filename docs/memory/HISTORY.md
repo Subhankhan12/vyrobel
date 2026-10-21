@@ -1401,10 +1401,25 @@ deleted, nothing drifted, no migration; swap 2026-10-21 ~21:35 Baku, 4 ms; publi
 the 5xx sweep clean over 168 public routes, exposure battery SERVED=0; `/app/security` serves 302→/login for anon, no 500). ⚠️ Not
 pushed to GitHub — his rule is to push at the very end. Rollback target: `rel_BK @ cb378e72`.
 
-⬆ The four UI passes of 2026-10-21 (favicon, calendar filter, insights date picker + its overlap fix, security show/hide) each
-shipped through `ops/release.sh` with a read-only preflight and public checks 12/0/0, committed locally and NOT pushed — GitHub is
-behind `main` by those commits (as of the security pass, `main` is ahead of `origin/main` by 10). The reusable components added:
-`<x-favicon>`, `<x-date-field>`, `<x-password-field>`.
+**SEARCH DATE PICKER, 2026-10-21 — his "same date picker color and style issue on this page as well, fix it" (`/app/search`).** The
+Operator Search page (`livewire/operator/operator-search.blade.php`) had two native `<input type="date" class="vys-date">` for the
+check-in range, inside its GET filter form. Replaced both with `<x-date-field>` (the same component from the Insights pass — colourful
+trigger + custom calendar popover), and added the same stacking-context fix: the form is `.vy-fade` (a transform → a stacking context)
+with the result rows below it, so the popover would be trapped; `.vys-form` (a class added to the form) gets `position:relative` and
+`:has(.vy-df-trigger.is-open){z-index:60}` so the calendar sits above the rows. The native input stays the truth and submits with the
+Search button unchanged (no auto-submit here, so no event wiring needed). CSS in the view's own `<style>`. Local gate: `view:cache`
+compiled; 0 native date inputs, 2 component tags. Committed `0790af9d` (1 file, +8/−3). **Deploy.** ✅ LIVE on `rel_BM @ 0790af9d`
+(V: the read-only preflight from the staged release on the host's PHP — the 2 views compile, the page uses exactly 2 `<x-date-field>`
+with 0 native date inputs left, the form stacking fix present; stage — 1 file, 0 deleted, nothing drifted, no migration; swap
+2026-10-21 ~22:00 Baku, 4 ms; public checks **12 PASS · 0 FAIL · 0 could not measure** — the 5xx sweep clean over 168 public routes,
+exposure battery SERVED=0; `/app/search` serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very
+end. Rollback target: `rel_BL @ b30e5570`.
+
+⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
+`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`) each shipped through `ops/release.sh` with a read-only preflight
+and public checks 12/0/0, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the search pass, `main` is
+ahead of `origin/main` by 11). The reusable components added: `<x-favicon>`, `<x-date-field>` (now on Insights AND Search),
+`<x-password-field>`.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
