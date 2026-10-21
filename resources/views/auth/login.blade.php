@@ -80,7 +80,11 @@
 
         .vy-btn { width: 100%; margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; border-radius: 30px; font-family: var(--vy-sans); font-size: 14px; font-weight: 600; color: #fff; background: var(--vy-grad); border: none; cursor: pointer; box-shadow: var(--vy-shadow-accent); transition: transform .15s ease; }
         .vy-btn:hover { transform: translateY(-1px); }
-        .vy-btn:focus-visible, .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-btn:focus-visible, .vy-input:focus-visible, .vy-eye:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
+        .vy-input-wrap { position: relative; }
+        .vy-input-wrap .vy-input { padding-right: 44px; }
+        .vy-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-muted); cursor: pointer; border-radius: var(--vy-r-sm); transition: color .15s ease, background .15s ease; }
+        .vy-eye:hover { color: var(--vy-accent); background: rgba(194, 65, 12, .08); }
 
         .vy-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
         .vy-forgot { font-size: 11.5px; color: var(--vy-accent); text-decoration: none; font-weight: 500; }
@@ -130,7 +134,13 @@
                     <label class="vy-label" for="password" style="margin-bottom:0;">Password</label>
                     <a class="vy-forgot" href="{{ route('password.request') }}">Forgot password?</a>
                 </div>
-                <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required style="margin-top:7px;">
+                <div class="vy-input-wrap" style="margin-top:7px;">
+                    <input class="vy-input" type="password" id="password" name="password" autocomplete="current-password" required>
+                    <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password" aria-pressed="false">
+                        <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="vy-btn">Sign in</button>
@@ -195,6 +205,23 @@
                     msg.textContent = 'Passkey sign-in was cancelled or not available.'; msg.style.display = '';
                 }
                 btn.disabled = false;
+            });
+        })();
+
+        // Show/hide the password — toggles the input type and swaps the eye icon.
+        (function () {
+            document.querySelectorAll('.vy-eye[data-toggle]').forEach(function (eye) {
+                eye.addEventListener('click', function () {
+                    var input = document.getElementById(eye.getAttribute('data-toggle'));
+                    if (!input) { return; }
+                    var show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    eye.setAttribute('aria-pressed', show ? 'true' : 'false');
+                    eye.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                    var open = eye.querySelector('.vy-eye-show'), closed = eye.querySelector('.vy-eye-hide');
+                    if (open) { open.style.display = show ? 'none' : ''; }
+                    if (closed) { closed.style.display = show ? '' : 'none'; }
+                });
             });
         })();
     </script>
