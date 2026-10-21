@@ -396,7 +396,10 @@
                                     @if ($active['can_close'])
                                         <button form="close-{{ $active['id'] }}" class="vy-btn vy-btn--ghost">Close</button>
                                     @endif
-                                    <button type="submit" class="vy-btn vy-btn--accent" :disabled="sending" x-text="sending ? 'Sending…' : 'Reply'">Reply</button>
+                                    <button type="submit" class="vy-btn vy-btn--accent vy-composer-send" :disabled="sending">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                                        <span x-text="sending ? 'Sending…' : 'Reply'">Reply</span>
+                                    </button>
                                 </div>
                             </form>
                             @if ($active['can_close'])
@@ -1005,10 +1008,16 @@
         .vy-msg-att-size { flex-shrink: 0; color: var(--vy-faint); font-size: 11px; }
         .vy-msg-delivery.is-failed { color: #B4400F; font-weight: 600; }
         .vy-msg-retry { border: none; background: none; padding: 0; color: var(--vy-accent, #E8703A); font-size: 10.5px; font-weight: 700; cursor: pointer; text-decoration: underline; }
-        .vy-thread-composer { border-top: 1px solid var(--vy-hairline); padding: 12px 16px; }
-        .vy-composer-form { display: flex; gap: 10px; align-items: flex-end; }
-        .vy-composer-form textarea { flex: 1; resize: vertical; }
-        .vy-composer-actions { display: flex; gap: 8px; }
+        .vy-thread-composer { border-top: 1px solid var(--vy-hairline); padding: 14px 16px; }
+        /* The composer is one rounded glass card: the type box on top (borderless), a tidy action row beneath. */
+        .vy-composer-form { display: flex; flex-direction: column; gap: 10px; padding: 10px 10px 10px 14px; border-radius: 18px; background: rgba(255, 252, 248, 0.72); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.14)); box-shadow: inset 0 1px 0 rgba(255,255,255,.6); transition: border-color .15s ease, box-shadow .15s ease, background .15s ease; }
+        .vy-composer-form:focus-within { background: #fff; border-color: var(--vy-accent, #E8703A); box-shadow: 0 0 0 3px rgba(194, 65, 12, .13); }
+        .vy-composer-form textarea.vy-input { flex: 1; resize: none; min-height: 46px; max-height: 180px; width: 100%; border: 0; background: transparent; box-shadow: none; padding: 4px 4px 0; font-size: 14px; line-height: 1.5; }
+        .vy-composer-form textarea.vy-input:focus, .vy-composer-form textarea.vy-input:focus-visible { outline: none; box-shadow: none; }
+        .vy-composer-actions { display: flex; gap: 8px; align-items: center; }
+        .vy-composer-actions .vy-btn { height: 38px; }
+        .vy-composer-send { padding: 0 20px; border-radius: var(--vy-r-pill); }
+        .vy-composer-send svg { flex: none; }
         .vy-composer-note { font-size: 12.5px; color: var(--vy-faint); padding: 8px 0; }
         .vy-composer-hint { font-size: 11px; color: var(--vy-faint); margin: 8px 0 0; }
         .vy-thread-note { display: flex; align-items: flex-start; gap: 8px; margin: 0 16px; padding: 8px 12px; border-radius: 10px; background: rgba(217,158,61,.1); border: 1px solid rgba(217,158,61,.28); color: #7A5A1E; font-size: 12px; line-height: 1.45; }
