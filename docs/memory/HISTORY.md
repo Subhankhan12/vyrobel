@@ -1432,10 +1432,23 @@ the host; only the 2 real tags remain; stage — 1 file, nothing drifted, no mig
   render. **From now, a view preflight must token-parse the COMPILED PHP** (`token_get_all($code, TOKEN_PARSE)` or `php -l`), not just
   compile it — that is the check that actually catches this.
 
+**LOGIN PASSWORD SHOW/HIDE, 2026-10-21 — his "password hide and show should be also working on `https://vyrobel.com/login`".** The
+login page (`auth/login.blade.php`) had one `type=password` field with no reveal. It is a self-contained view (its own
+`<head>`/`<style>`/`<script>`, not the operator shell, no Alpine), so the new back-office `<x-password-field>` (Alpine) was the wrong
+fit; used the auth-page pattern instead (as reset/forgot/set-password already do): the input wrapped in `.vy-input-wrap` with a
+`.vy-eye` button + `data-toggle="password"`, the eye-open/eye-closed icons swapped, and a small vanilla toggle added to the page's
+existing `<script>`. The password input keeps name/autocomplete/required and submits unchanged; enhancement only. Committed `1910a860`
+(1 file). **Deploy (hardened preflight, applying the SEARCH 500 lesson).** ✅ LIVE on `rel_BO @ 1910a860` (V: preflight — the login
+view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the eye markup/CSS/JS present, the password field keeps its name; stage —
+1 file, nothing drifted, no migration; swap 2026-10-21 ~22:35 Baku, 4 ms; **the LIVE public page confirmed — `/login` renders HTTP 200
+and the served HTML carries `vy-eye`, `data-toggle="password"` and the toggle script**; public checks 12/0/0). ⚠️ Not pushed to GitHub —
+his rule is to push at the very end. Rollback target: `rel_BN @ 978b8f71`.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
-`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`) each shipped through
-`ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the hotfix, `main` is ahead of
-`origin/main` by 13). The reusable components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search), `<x-password-field>`.
+`rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`) each
+shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the login pass,
+`main` is ahead of `origin/main` by 15). The reusable components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search),
+`<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own page-local `.vy-eye` pattern).
 
 ## 2 · Mistakes to learn from (each one cited above)
 

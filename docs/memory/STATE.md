@@ -1,11 +1,21 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BN` → commit `978b8f71`** (the SEARCH 500 HOTFIX — `/app/search` threw a 500 FOR SIGNED-IN USERS after the
+- **Live release `rel_BO` → commit `1910a860`** (the LOGIN PASSWORD SHOW/HIDE pass — his request that the show/hide reveal work on
+  `https://vyrobel.com/login` too. The login page's single password field is now wrapped in `.vy-input-wrap` with a `.vy-eye` button
+  that toggles the input between `password` and `text` and swaps an open/closed eye icon. `/login` is a self-contained view (its own
+  `<head>`/`<style>`/`<script>`, NOT the operator shell and NOT Alpine), so this uses the auth-page `.vy-eye` + `data-toggle` pattern
+  (as reset/forgot/set-password already do), with the toggle JS added to the page's existing `<script>`. The password input keeps its
+  name/autocomplete/required and submits unchanged; works only as an enhancement (no JS = a plain password field). Self-contained view
+  — no DB, no logic, no migration. **V (hardened preflight, post the SEARCH 500 lesson):** the staged login view COMPILES AND its
+  compiled PHP TOKEN-PARSES on the host (not just compiles), the eye toggle markup/CSS/JS present, the password field keeps its name;
+  stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~22:35 Baku, 4 ms; **the LIVE page confirmed: `/login` renders HTTP
+  200 and the served HTML carries `vy-eye`, `data-toggle="password"` and the toggle script**; public checks **12/0/0**. ⚠️ Not pushed to
+  GitHub (his rule: push at the very end). Rollback target: `rel_BN @ 978b8f71`. Before it: **`rel_BN` → commit `978b8f71`** (the SEARCH 500 HOTFIX — `/app/search` threw a 500 FOR SIGNED-IN USERS after the
   SEARCH DATE PICKER pass. ⚠️⚠️ **The bug, and the lesson:** the CSS comment I added to explain the stacking fix contained the literal
   date-field component tag text, and **Blade compiles a component tag even inside a `<style>`/CSS comment** — so it was parsed as an
   unclosed component that swallowed the rest of the file, producing a compiled-PHP parse error ("unexpected end of file, expecting
