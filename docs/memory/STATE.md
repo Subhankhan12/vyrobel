@@ -1,11 +1,22 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BK` → commit `cb378e72`** (the INSIGHTS DATE PICKER OVERLAP FIX — his report that both date pickers overlap
+- **Live release `rel_BL` → commit `b30e5570`** (the SECURITY PASSWORD SHOW/HIDE pass — his request that every password field on
+  `/app/security` carry a show/hide button. The five password inputs there (change/set password's current + new + confirm, the
+  sign-out-others dialog, the revoke-device dialog) now use a new reusable `<x-password-field>` component
+  (`resources/views/components/password-field.blade.php`): the input defaults to `type=password` and an eye button toggles it to text
+  (swapping an open/closed eye icon). Alpine-only enhancement (ships with Livewire); the input keeps its `name`, `required`,
+  `autocomplete` and submits exactly as before; the eye is `type=button`, `tabindex=-1`, so it never submits and never fights a
+  dialog's focus trap. Views only — no DB, no logic, no migration. CSS scoped to `.vy-pw` / `.vy-pw-eye` in the operator layout.
+  **V:** the read-only preflight from the staged release on the host's PHP — the 3 views compile, the component renders the password
+  input (keeps required), the eye toggles `:type`, the page uses exactly 5 `<x-password-field>` and 0 native password inputs remain;
+  stage — 3 files shipped, 0 deleted, nothing drifted, no migration; swap 2026-10-21 ~21:35 Baku, 4 ms; public checks **12/0/0** — the
+  5xx sweep clean over 168 public routes, exposure battery SERVED=0; `/app/security` serves (302→/login for anon, no 500). ⚠️ Not
+  pushed to GitHub (his rule: push at the very end). Rollback target: `rel_BK @ cb378e72`. Before it: **`rel_BK` → commit `cb378e72`** (the INSIGHTS DATE PICKER OVERLAP FIX — his report that both date pickers overlap
   on open. Cause: the `.vy-fade` entrance animation puts a `transform` on both the toolbar and the KPI cards below it, and a
   non-`none` transform makes each element a STACKING CONTEXT — so the popover's `z-index:60` was trapped inside the toolbar's context
   and the later cards painted over it. Fix: `.vy-ins .vy-rack-toolbar` gets `position:relative`, and `:has(.vy-df-trigger.is-open)`

@@ -569,6 +569,34 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
   `[class~="ad-combo-panel"]` so ADMIN 05's once-only count keeps counting its own block) and its card lifted while open (`OPEN.md`
   D-ADMIN-COMBO). The retired `<x-operator.combobox>` is gone.
 
+## 21 · The 2026-10-21 UI polish components (favicon, date field, password field)
+
+Four small UI passes on 2026-10-21 added three reusable Blade components. Each shipped live through `ops/release.sh` (favicon →
+`rel_BH`, calendar room-type filter → `rel_BI`, insights date picker → `rel_BJ` with its stacking-context overlap fix → `rel_BK`,
+security password show/hide → `rel_BL`), committed locally and **not pushed** (his push-at-the-end rule). All are views only — no DB,
+no logic, no migration.
+- **`<x-favicon>`** — `components/favicon.blade.php`: the one place the browser-tab icon is declared, so every surface carries the same
+  terracotta "V". Emits an SVG `rel=icon` (`public/favicon.svg`, guarded `filemtime` cache-bust), the admin panels' inline data-URI as
+  a no-file fallback, and an `apple-touch-icon`. Included in all browser `<head>`s (marketing, public storefront, operator, owner,
+  guest, both admin panels, and every shared auth/error/status/oauth/billing front door). The admin panels' old inline favicon folded
+  into it.
+- **`<x-date-field>`** — `components/date-field.blade.php`: a themed, progressively-enhanced date picker used by the Insights custom
+  range (`/app/insights`). The native `<input type="date">` stays the truth (name/value, submitted, no-JS fallback kept — D3-1); when
+  Alpine runs it hides the native control and shows a colourful terracotta-gradient trigger pill + a custom calendar popover
+  (gradient title, month nav, a terracotta-gradient selected day, a today ring, Today/Clear), writing the chosen ISO date back onto the
+  native input. ⚠️ Its Alpine fn is an inline `@once <script>` because the operator layout has no `@stack('scripts')`. CSS `.vy-df*` /
+  `.vy-ins-range` in the operator layout. ⚠️ Overlap lesson: the `.vy-fade` entrance animation leaves a `transform` on the toolbar and
+  the KPI cards, each a stacking context — the popover's z-index was trapped; the fix raises the toolbar's context
+  (`.vy-ins .vy-rack-toolbar:has(.vy-df-trigger.is-open) { z-index:60 }`) only while a picker is open.
+- **`<x-password-field>`** — `components/password-field.blade.php`: a password input with a show/hide eye toggle, used by the five
+  password fields on `/app/security` (change/set password: current + new + confirm; the sign-out-others and revoke-device dialogs).
+  Defaults to `type=password`; an Alpine eye button toggles `:type` and swaps an open/closed eye icon. The input keeps name/required/
+  autocomplete and submits unchanged (works with no JS); the eye is `type=button` + `tabindex=-1`, so it never submits and never fights
+  the dialogs' focus traps. CSS `.vy-pw` / `.vy-pw-eye` in the operator layout. (The auth pages keep their own page-local `.vy-eye` +
+  `data-toggle` reveal; this is the back-office equivalent.)
+- The calendar room-type filter (`rel_BI`) resized its glass pill to 34px (level with the nights pill) and neutralised the select
+  engine's forced sizing inside it while keeping its chevron/panel — CSS-only, `.vy-cal .vy-rack-filter` in the operator layout.
+
 ---
 
 ## Sources

@@ -1383,6 +1383,29 @@ FAIL · 0 could not measure** — the 5xx sweep clean over 168 public routes, ex
 serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback target:
 `rel_BJ @ abcc5384`.
 
+**SECURITY PASSWORD SHOW/HIDE, 2026-10-21 — his "on this page there are password fields, it must have show and hide buttons … in all
+password fields" (`/app/security`), then "ship it live and update the entire memory".** Found: five `type=password` inputs on Operator
+Security (`livewire/operator/operator-security.blade.php`) — the change/set-password card (current + new + confirm), the
+sign-out-others dialog, and the revoke-device dialog — none with a reveal. The auth pages (reset/set-password) already had a
+`.vy-eye` + `data-toggle` reveal, but it is page-local; this is the first back-office use. Built a reusable component
+`components/password-field.blade.php` (`<x-password-field>`): the input defaults to `type=password`, and an Alpine eye button
+(`x-data="{ show:false }"`, `:type="show ? 'text' : 'password'"`) toggles it, swapping an open/closed eye icon. ⚠️ The input keeps its
+`name`, `required`, `autocomplete` and all passed attributes, so posting/validation are unchanged and it degrades to an ordinary
+password field with no JS; the eye is `type=button` + `tabindex=-1`, so it never submits and never fights the dialogs' focus traps
+(`x-trap`). All five fields converted; CSS `.vy-pw` / `.vy-pw-eye` (eye inset at the input's right edge) scoped in
+`layouts/operator.blade.php`. Local gate: `view:cache` compiled; the component rendered correct HTML in tinker (password input with
+name + required, `:type` toggle, eye button). Committed `b30e5570` (3 files, +39/−5). **Deploy.** ✅ LIVE on `rel_BL @ b30e5570`
+(V: the read-only preflight from the staged release on the host's PHP — the 3 views compile, the component renders the input keeping
+required and toggling `:type`, the page uses exactly 5 `<x-password-field>` with 0 native password inputs left; stage — 3 files, 0
+deleted, nothing drifted, no migration; swap 2026-10-21 ~21:35 Baku, 4 ms; public checks **12 PASS · 0 FAIL · 0 could not measure** —
+the 5xx sweep clean over 168 public routes, exposure battery SERVED=0; `/app/security` serves 302→/login for anon, no 500). ⚠️ Not
+pushed to GitHub — his rule is to push at the very end. Rollback target: `rel_BK @ cb378e72`.
+
+⬆ The four UI passes of 2026-10-21 (favicon, calendar filter, insights date picker + its overlap fix, security show/hide) each
+shipped through `ops/release.sh` with a read-only preflight and public checks 12/0/0, committed locally and NOT pushed — GitHub is
+behind `main` by those commits (as of the security pass, `main` is ahead of `origin/main` by 10). The reusable components added:
+`<x-favicon>`, `<x-date-field>`, `<x-password-field>`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus
