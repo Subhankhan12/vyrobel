@@ -49,19 +49,27 @@
         <div class="vy-inbox-stats vy-fade" data-ibx-live="stats">
             <a class="vy-istat {{ $filter === 'unread' ? 'is-on' : '' }}" href="{{ $inboxUrl(['filter' => $filter === 'unread' ? null : 'unread']) }}">
                 <span class="vy-istat-dot" style="background:#E8703A"></span>
-                <span class="vy-istat-num" style="color:#B4400F">{{ $stats['unread'] }}</span><span class="vy-istat-label">Unread</span>
+                <span class="vy-istat-text">
+                    <span class="vy-istat-num" style="color:#B4400F">{{ $stats['unread'] }}</span><span class="vy-istat-label">Unread</span>
+                </span>
             </a>
             <div class="vy-istat">
                 <span class="vy-istat-dot" style="background:#2A6FDB"></span>
-                <span class="vy-istat-num">{{ $stats['open'] }}</span><span class="vy-istat-label">Open</span>
+                <span class="vy-istat-text">
+                    <span class="vy-istat-num">{{ $stats['open'] }}</span><span class="vy-istat-label">Open</span>
+                </span>
             </div>
             <div class="vy-istat">
                 <span class="vy-istat-dot" style="background:#D99A3D"></span>
-                <span class="vy-istat-num">{{ $stats['waiting'] }}</span><span class="vy-istat-label">Waiting on guest</span>
+                <span class="vy-istat-text">
+                    <span class="vy-istat-num">{{ $stats['waiting'] }}</span><span class="vy-istat-label">Waiting on guest</span>
+                </span>
             </div>
             <div class="vy-istat {{ $stats['needs_sending'] > 0 ? 'is-alert' : '' }}">
                 <span class="vy-istat-dot" style="background:#C0392B"></span>
-                <span class="vy-istat-num" style="{{ $stats['needs_sending'] > 0 ? 'color:#C0392B' : '' }}">{{ $stats['needs_sending'] }}</span><span class="vy-istat-label">Needs sending</span>
+                <span class="vy-istat-text">
+                    <span class="vy-istat-num" style="{{ $stats['needs_sending'] > 0 ? 'color:#C0392B' : '' }}">{{ $stats['needs_sending'] }}</span><span class="vy-istat-label">Needs sending</span>
+                </span>
             </div>
         </div>
 
@@ -880,16 +888,17 @@
         .vy-composer-tool { position: relative; width: 36px; height: 36px; border: 0; border-radius: 50%; display: inline-grid; place-items: center; background: transparent; color: var(--vy-muted); cursor: pointer; }
         .vy-composer-tool:hover { background: rgba(120, 70, 40, 0.07); color: var(--vy-ink); }
         /* stat strip */
-        .vy-inbox-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
-        .vy-istat { display: flex; align-items: center; gap: 9px; padding: 12px 15px; border-radius: 14px; background: rgba(255, 252, 248, 0.66); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.12)); text-decoration: none; color: var(--vy-ink); transition: border-color .14s, transform .1s; }
-        a.vy-istat:hover { transform: translateY(-1px); }
+        .vy-inbox-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+        .vy-istat { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: rgba(255, 252, 248, 0.66); backdrop-filter: blur(20px) saturate(1.1); -webkit-backdrop-filter: blur(20px) saturate(1.1); border: 1px solid var(--vy-glass-border, rgba(150,90,50,.12)); text-decoration: none; color: var(--vy-ink); transition: border-color .14s, transform .1s, box-shadow .14s; }
+        a.vy-istat:hover { transform: translateY(-1px); box-shadow: var(--vy-shadow-sm); }
         a.vy-istat.is-on { border-color: var(--vy-accent, #E8703A); box-shadow: 0 0 0 1px var(--vy-accent, #E8703A) inset; }
         .vy-istat.is-alert { border-color: rgba(192,57,43,.4); }
-        .vy-istat-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
-        .vy-istat-num { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-        .vy-istat-label { font-size: 12px; color: var(--vy-muted); line-height: 1.2; }
+        .vy-istat-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+        .vy-istat-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .vy-istat-num { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+        .vy-istat-label { font-size: 12px; color: var(--vy-muted); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         /* channel filter + sort + chips subbar */
-        .vy-inbox-subbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; min-height: 30px; }
+        .vy-inbox-subbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; min-height: 30px; }
         .vy-inbox-chan { display: flex; gap: 6px; flex-wrap: wrap; }
         .vy-chan-tab { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--vy-hairline); background: none; font-size: 12px; font-weight: 500; color: var(--vy-muted); text-decoration: none; }
         .vy-chan-tab:hover { color: var(--vy-ink); }
@@ -908,7 +917,7 @@
            it shrink under its own words). Five in one row above 560 px, where the toolbar always gives them a line of their own (they
            need ~394 px); at 560 px and below two even rows — All · Unread · Arriving today over Assigned to me · Closed — every word
            shown, a label wrapping rather than cut on the narrowest phones, and New message across the line beneath. */
-        .vy-rack-toolbar.vy-ibx-bar { margin-bottom: 10px; }
+        .vy-rack-toolbar.vy-ibx-bar { margin-bottom: 16px; }
         .vy-inbox-tabs { max-width: 560px; }
         @media (max-width: 560px) {
             .vy-ibx-bar > .vy-left, .vy-ibx-bar > .vy-right { flex: 1 1 100%; }
@@ -917,12 +926,14 @@
             .vy-inbox-tabs > .vy-seg-opt { grid-column: span 2; white-space: normal; padding: 9px 6px; line-height: 1.25; }
             .vy-inbox-tabs > .vy-seg-opt:nth-child(n + 4) { grid-column: span 3; }
         }
-        .vy-inbox-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+        .vy-inbox-grid { display: grid; grid-template-columns: 344px 1fr; gap: 18px; align-items: start; }
         .vy-inbox-rail { display: flex; flex-direction: column; max-height: 72vh; }
         .vy-inbox-list { overflow-y: auto; }
-        .vy-conv { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border-bottom: 1px solid var(--vy-hairline); text-decoration: none; color: var(--vy-ink); position: relative; transition: background .12s; }
+        .vy-conv { display: flex; gap: 12px; align-items: flex-start; padding: 13px 15px; border-bottom: 1px solid var(--vy-hairline); text-decoration: none; color: var(--vy-ink); position: relative; transition: background .12s; }
+        .vy-conv::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: transparent; transition: background .12s; }
         .vy-conv:hover { background: rgba(120,70,40,.04); }
         .vy-conv.is-active { background: rgba(217,102,46,.09); }
+        .vy-conv.is-active::before { background: var(--vy-accent, #E8703A); }
         .vy-conv-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--vy-accent-wash, #F6E4D6); color: var(--vy-accent); font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .vy-conv-body { flex: 1; min-width: 0; }
         .vy-conv-top { display: flex; justify-content: space-between; gap: 8px; }
