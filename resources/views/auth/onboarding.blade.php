@@ -52,6 +52,11 @@
         .vy-label { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--vy-muted); margin-bottom: 7px; }
         .vy-input { width: 100%; padding: 12px 14px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255,255,255,.8); font-family: var(--vy-sans); font-size: 14.5px; color: var(--vy-ink); }
         .vy-input:focus { outline: none; border-color: var(--vy-accent-3); box-shadow: 0 0 0 3px rgba(232,112,58,.16); }
+        .vy-input-wrap { position: relative; }
+        .vy-input-wrap .vy-input { padding-right: 44px; }
+        .vy-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: none; background: transparent; color: var(--vy-muted); cursor: pointer; border-radius: var(--vy-r-sm); transition: color .15s ease, background .15s ease; }
+        .vy-eye:hover { color: var(--vy-accent); background: rgba(194, 65, 12, .08); }
+        .vy-eye:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
         .vy-two { display: flex; gap: 10px; } .vy-two > .vy-field { flex: 1; }
         /* Strength meter (presentational) — same treatment as reset/set-password (D14 auth uniformity). A VISUAL
            AID only: the floor reflects the real server rule (Password::min(8)); higher bars are advice, never a gate. */
@@ -173,11 +178,23 @@
                 <div class="vy-two">
                     <div class="vy-field">
                         <label class="vy-label" for="password">Password</label>
-                        <input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" required>
+                        <div class="vy-input-wrap">
+                            <input class="vy-input" type="password" id="password" name="password" autocomplete="new-password" required>
+                            <button type="button" class="vy-eye" data-toggle="password" aria-label="Show password" aria-pressed="false">
+                                <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
+                            </button>
+                        </div>
                     </div>
                     <div class="vy-field">
                         <label class="vy-label" for="password_confirmation">Confirm</label>
-                        <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+                        <div class="vy-input-wrap">
+                            <input class="vy-input" type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+                            <button type="button" class="vy-eye" data-toggle="password_confirmation" aria-label="Show password" aria-pressed="false">
+                                <svg class="vy-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg class="vy-eye-hide" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2M9.9 5.1A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a17.8 17.8 0 0 1-3.3 4.2M6.6 6.6A17.6 17.6 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 3.4-.6"/></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 {{-- Presentational strength meter (D14) — a VISUAL AID; the server enforces Password::min(8). --}}
@@ -260,6 +277,21 @@
                 if (v.length >= 12) s++;
                 meter.className = 'vy-meter' + (v ? ' s' + s : '');
                 sLabel.textContent = v ? words[s] : '';
+            });
+
+            // Show/hide the password — toggles the input type and swaps the eye icon.
+            document.querySelectorAll('.vy-eye[data-toggle]').forEach(function (eye) {
+                eye.addEventListener('click', function () {
+                    var input = document.getElementById(eye.getAttribute('data-toggle'));
+                    if (!input) { return; }
+                    var reveal = input.type === 'password';
+                    input.type = reveal ? 'text' : 'password';
+                    eye.setAttribute('aria-pressed', reveal ? 'true' : 'false');
+                    eye.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+                    var open = eye.querySelector('.vy-eye-show'), closed = eye.querySelector('.vy-eye-hide');
+                    if (open) { open.style.display = reveal ? 'none' : ''; }
+                    if (closed) { closed.style.display = reveal ? '' : 'none'; }
+                });
             });
 
             show(0);
