@@ -181,27 +181,42 @@
                         </div>
                         <div class="vy-thread-actions">
                             @unless ($readOnly)
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="assignOpen = true">Assign</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vy-ta-btn" @click="assignOpen = true">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+                                    Assign
+                                </button>
                                 {{-- #104 GATE 3a — snooze / reopen: the routes + InboxService methods existed but had no
                                      UI, leaving a CLOSED thread a dead-end. Both are POST → controller → PRG. --}}
                                 @if ($active['can_snooze'])
-                                    <form method="POST" action="{{ route('app.inbox.snooze', $active['id']) }}" style="display:inline">@csrf
-                                        <button type="submit" class="vy-btn vy-btn--ghost">Snooze</button>
+                                    <form method="POST" action="{{ route('app.inbox.snooze', $active['id']) }}" class="vy-ta-form">@csrf
+                                        <button type="submit" class="vy-btn vy-btn--ghost vy-ta-btn">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3L2 6M22 6l-3-3"/></svg>
+                                            Snooze
+                                        </button>
                                     </form>
                                 @endif
                                 @if ($active['can_reopen'])
-                                    <form method="POST" action="{{ route('app.inbox.reopen', $active['id']) }}" style="display:inline">@csrf
-                                        <button type="submit" class="vy-btn vy-btn--accent">Reopen</button>
+                                    <form method="POST" action="{{ route('app.inbox.reopen', $active['id']) }}" class="vy-ta-form">@csrf
+                                        <button type="submit" class="vy-btn vy-btn--accent vy-ta-btn">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>
+                                            Reopen
+                                        </button>
                                     </form>
                                 @endif
                             @endunless
                             @if ($active['reservation'])
-                                <a class="vy-btn vy-btn--ghost" href="{{ route('app.reservations.show', $active['reservation']['id']) }}">{{ $active['reservation']['reference'] }}</a>
+                                <a class="vy-ta-ref" href="{{ route('app.reservations.show', $active['reservation']['id']) }}" title="Open reservation {{ $active['reservation']['reference'] }}">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    <span class="vy-ta-ref-code">{{ $active['reservation']['reference'] }}</span>
+                                </a>
                             @endif
                             {{-- #90 — the link-reservation control (route + service existed; no UI until now). Only for a
                                  guest thread with reservations to link. --}}
                             @if (! $readOnly && $active['has_guest'] && $active['link_reservations'] !== [])
-                                <button type="button" class="vy-btn vy-btn--ghost" @click="linkOpen = true">{{ $active['reservation'] ? 'Change link' : 'Link reservation' }}</button>
+                                <button type="button" class="vy-btn vy-btn--ghost vy-ta-btn" @click="linkOpen = true">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>
+                                    {{ $active['reservation'] ? 'Change link' : 'Link reservation' }}
+                                </button>
                             @endif
                         </div>
                     </header>
@@ -955,7 +970,19 @@
         .vy-thread-who { display: flex; gap: 11px; align-items: center; }
         .vy-thread-name { font-size: 15px; font-weight: 700; }
         .vy-thread-sub { font-size: 11.5px; color: var(--vy-faint); display: flex; gap: 5px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
-        .vy-thread-actions { display: flex; gap: 8px; }
+        /* Thread header actions — one consistent height and baseline for buttons of mixed element types
+           (a <button>, a form-wrapped <button>, an <a> reference chip). (2026-10-21) */
+        .vy-thread-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .vy-thread-actions .vy-ta-form { display: inline-flex; margin: 0; }
+        .vy-thread-actions .vy-ta-btn { height: 34px; padding: 0 13px; font-size: 12.5px; gap: 6px; white-space: nowrap; }
+        .vy-thread-actions .vy-ta-btn svg { flex: none; opacity: .85; }
+        .vy-thread-actions .vy-ta-btn.vy-btn--accent svg { opacity: 1; }
+        /* the reservation reference reads as a distinct monospace-ish code chip, not a plain button */
+        .vy-ta-ref { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: var(--vy-r-pill); text-decoration: none; font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--vy-accent-text); background: rgba(217, 102, 46, .1); border: 1px solid rgba(217, 102, 46, .22); transition: background .14s ease, border-color .14s ease; }
+        .vy-ta-ref:hover { background: rgba(217, 102, 46, .16); border-color: rgba(217, 102, 46, .4); }
+        .vy-ta-ref svg { flex: none; }
+        .vy-ta-ref-code { font-variant-numeric: tabular-nums; }
+        @media (max-width: 560px) { .vy-thread-actions .vy-ta-btn, .vy-ta-ref { height: 32px; } }
         .vy-thread-scroll { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
         .vy-day-divider { text-align: center; font-size: 11px; color: var(--vy-faint); margin: 6px 0; }
         .vy-day-divider span { background: var(--vy-hairline); padding: 2px 12px; border-radius: 20px; }
