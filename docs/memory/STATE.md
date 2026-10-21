@@ -1,11 +1,21 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX COMPOSER REFINEMENTS (2026-10-21); before it the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BR` → commit `186da56a`** (the INBOX COMPOSER RESTYLE — his "the bottom type box and buttons are not looking
+- **Live release `rel_BS` → commit `432cdcbc`** (the INBOX COMPOSER REFINEMENTS — his "still need a lot of improvements, make it more
+  cool and user friendly" (he chose: keep refining the composer). Further to the composer card (`operator-inbox.blade.php`): the reply
+  textarea now AUTO-GROWS with content — starts at one row, grows to a 180px cap then scrolls, and snaps back after a send (Alpine
+  `grow(el)` bound to `@input`/`x-init`, reset on `$nextTick` after the body clears); the attach/image/mic tools are rounded tiles
+  (radius 11) with a terracotta hover tint and a press animation (were flat muted circles); the ⌘/Ctrl+Enter hint is shown as keycap
+  chips (`.vy-kbd`) instead of plain grey text; the Send button is bolder with a hover lift and a clear dimmed disabled state; softer
+  placeholder. CSS + Alpine (grow/hintKey) only — no server logic, no DB, no migration. **V (hardened preflight):** the inbox view
+  COMPILES AND its compiled PHP TOKEN-PARSES on the host, the auto-grow binding + `grow()` method + keycap hint + tool tiles + send
+  disabled state present; stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~23:00 UTC, 10 ms; the live log shows NO
+  `operator-inbox` error; `/app/inbox` serves (302→/login for anon); public checks **12/0/0**. ⚠️ Not pushed to GitHub (his rule: push
+  at the very end). Rollback target: `rel_BR @ 186da56a`. Before it: **`rel_BR` → commit `186da56a`** (the INBOX COMPOSER RESTYLE — his "the bottom type box and buttons are not looking
   cool, make them cool". The reply composer at the foot of a thread (`livewire/operator/operator-inbox.blade.php`) was a plain
   side-by-side flex; it is now one rounded glass "composer card": the children stack (textarea on top, the action row beneath), the
   whole card gets a focus-within terracotta ring (turns white + a soft glow when the type box is focused), the textarea is borderless

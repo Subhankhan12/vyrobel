@@ -1479,12 +1479,23 @@ host, the composer-card focus-within CSS + send icon + label binding present; st
 2026-10-21 ~22:50 UTC, 5 ms; the live log shows NO `operator-inbox` error; `/app/inbox` 302→/login for anon; public checks 12/0/0).
 ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback target: `rel_BQ @ abb626d6`.
 
+**INBOX COMPOSER REFINEMENTS, 2026-10-21 — his "still need a lot of improvements, make it more cool and user friendly" (asked; he chose
+to keep refining the composer).** Further to the composer card: the reply textarea now AUTO-GROWS (Alpine `grow(el)` on `@input`/
+`x-init`, capped at 180px then scrolls, reset after a send); the attach/image/mic tools became rounded tiles (radius 11) with a
+terracotta hover + press animation; the ⌘/Ctrl+Enter hint shown as keycap chips (`.vy-kbd`); the Send button bolder with a hover lift
+and a dimmed disabled state; softer placeholder. CSS + Alpine only, no server logic. Committed `432cdcbc` (1 file). **Deploy (hardened
+preflight).** ✅ LIVE on `rel_BS @ 432cdcbc` (V: the inbox view COMPILES AND its compiled PHP TOKEN-PARSES on the host, the auto-grow
+binding/`grow()`/keycap/tool-tiles/send-disabled present; stage — 1 file, nothing drifted, no migration; swap 2026-10-21 ~23:00 UTC,
+10 ms; the live log shows NO `operator-inbox` error; `/app/inbox` 302→/login for anon; public checks 12/0/0). ⚠️ Not pushed to GitHub —
+his rule is to push at the very end. Rollback target: `rel_BR @ 186da56a`.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
 `rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`, inbox
-design polish → `rel_BP`, inbox thread-actions fix → `rel_BQ`, inbox composer restyle → `rel_BR`) each shipped through `ops/release.sh`,
-committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the composer restyle, `main` is ahead of
-`origin/main` by 21). The reusable components added: `<x-favicon>`, `<x-date-field>` (on Insights AND Search), `<x-password-field>` (the
-back-office password reveal; the auth pages, `/login` included, keep their own page-local `.vy-eye` pattern).
+design polish → `rel_BP`, inbox thread-actions fix → `rel_BQ`, inbox composer restyle → `rel_BR`, inbox composer refinements →
+`rel_BS`) each shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the
+composer refinements, `main` is ahead of `origin/main` by 23). The reusable components added: `<x-favicon>`, `<x-date-field>` (on
+Insights AND Search), `<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own
+page-local `.vy-eye` pattern).
 
 ## 2 · Mistakes to learn from (each one cited above)
 
