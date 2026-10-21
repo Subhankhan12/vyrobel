@@ -1348,6 +1348,27 @@ drifted, no migration; swap 2026-10-21 ~20:20 Baku, 3 ms; public checks **12 PAS
 clean over 168 public routes, exposure battery SERVED=0; `/app/calendar` serves 302→/login for anon, no 500). ⚠️ Not pushed to
 GitHub — his rule is to push at the very end. Rollback target: `rel_BH @ e72ce69d`.
 
+**INSIGHTS DATE PICKER, 2026-10-21 — his "on this page there are two date pickers, I didn't like the design of those, make them
+colourful as per theme and also upon opening use the coolest ever date picker" (`/app/insights?range=ytd`), then "ship everything
+live".** Found: the custom range on Operator Insights (`livewire/operator/insights.blade.php`) was two plain native
+`<input type="date" class="vy-pill">` with inline styles, inside a no-JS GET form that the code explicitly values (D3-1). A native
+date input's OPEN calendar can't be themed (the browser owns it), so the "coolest picker on open" needs a custom popover. Built a new
+reusable component `components/date-field.blade.php` (`<x-date-field>`): the native input stays the truth (name/value, submitted, no-JS
+fallback), and Alpine (ships with Livewire) ENHANCES — hides the native control, shows a colourful terracotta-gradient trigger pill
+(calendar icon + caret + pretty date), and on open a custom calendar popover (gradient month title, prev/next nav, Monday-first grid,
+a terracotta-gradient selected day with shadow, a today ring, hover/active states, Today + Clear). A choice writes the ISO date back
+onto the native input and fires input/change, so the form/URL/server read is unchanged. ⚠️ Pattern note: the operator layout has NO
+`@stack('scripts')`, so the component's Alpine fn is an inline `@once <script>` (the same way group-booking / new-reservation register
+theirs), not a push. CSS scoped to `.vy-df` / `.vy-ins-range` in `layouts/operator.blade.php`; native hidden via
+`:has(.vy-df-trigger:not([x-cloak]))` once Alpine drops x-cloak. Local gate: `view:cache` compiled; the component rendered correct
+HTML in tinker (native input with name, trigger, popover, fn). Committed `abcc5384` (3 files, +199/−6). **Deploy.** ✅ LIVE on
+`rel_BJ @ abcc5384` (V: the read-only preflight from the staged release on the host's PHP — the 3 changed views compile, the component
+renders native input + trigger + calendar + its Alpine fn, insights uses `<x-date-field>` and the old inputs are gone, the popover and
+gradient-selected-day CSS present; stage — 3 files, 0 deleted, nothing drifted, no migration; swap 2026-10-21 ~20:45 Baku, 6 ms;
+public checks **12 PASS · 0 FAIL · 0 could not measure** — the 5xx sweep clean over 168 public routes, exposure battery SERVED=0;
+`/app/insights?range=ytd` serves 302→/login for anon, no 500). ⚠️ Not pushed to GitHub — his rule is to push at the very end.
+Rollback target: `rel_BI @ f3a7ab82`.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

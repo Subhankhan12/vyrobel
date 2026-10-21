@@ -1,11 +1,23 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BI` → commit `f3a7ab82`** (the CALENDAR ROOM-TYPE FILTER pass — the "All room types" drop-down on
+- **Live release `rel_BJ` → commit `abcc5384`** (the INSIGHTS DATE PICKER pass — the custom date range on `/app/insights` gets a
+  themed date picker. The two native `<input type="date">` fields were replaced by a new reusable `<x-date-field>` component
+  (`resources/views/components/date-field.blade.php`): a colourful on-theme trigger pill (terracotta gradient tint, calendar icon,
+  caret) and, on open, a custom calendar popover (gradient header, month nav, a terracotta-gradient selected day, a today ring,
+  hover states, Today/Clear). ⚠️ The native `<input type="date">` STAYS and stays the truth — it carries the name/value, is still
+  submitted with the GET form, and the no-JS fallback is kept (D3-1); Alpine (shipped with Livewire) only enhances, writing the
+  chosen ISO date back onto the native input and firing change. Views only — no DB, no logic, no migration. CSS scoped to `.vy-df` /
+  `.vy-ins-range` in the operator layout. **V:** the read-only preflight from the staged release on the host's PHP — the 3 changed
+  views compile, the component renders the native input + trigger + calendar + its Alpine fn, insights uses `<x-date-field>` and the
+  old inline inputs are gone, the popover and gradient-selected-day CSS present; stage — 3 files shipped, 0 deleted, nothing drifted,
+  no migration; swap 2026-10-21 ~20:45 Baku, 6 ms; public checks **12/0/0** — the 5xx sweep clean over 168 public routes, exposure
+  battery SERVED=0; `/app/insights?range=ytd` serves (302→/login for anon, no 500). ⚠️ Not pushed to GitHub (his rule: push at the
+  very end). Rollback target: `rel_BI @ f3a7ab82`. Before it: **`rel_BI` → commit `f3a7ab82`** (the CALENDAR ROOM-TYPE FILTER pass — the "All room types" drop-down on
   `/app/calendar` resized and polished. The filter is a glass pill (`.vy-rack-filter`) wrapping a borderless native select; the one
   select engine forces `min-height:40px` + `padding-right:36px` on every bare select, so the pill had ballooned to ~54px and sat
   above the ~34px nights pill beside it. Now the pill is 34px (level with the nights pill), the engine's forced sizing is
