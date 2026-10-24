@@ -1575,6 +1575,15 @@ over all 20 accounts; all 20 take the staff key because production has 0 owner a
 2026-10-24 21:04:50 UTC, 12 ms; public checks 12/0/0; 1,485/1,485 files match git; 0 errors since; both pages 302 → /login for anon.
 Committed locally, not pushed. **His look, signed in: F 2026-10-25 "its look good".** Nothing removed — 🔬 checked against `rel_BT`:
 0 of 69 security-area routes gone, 0 form fields gone, 0 tests dropped (3 renamed for the new layout).
+**The push (his word, 2026-10-25: "yes update the github"):** `d3c3ef9a..89cb2647` (02:44:12 Baku), 30 commits — every pass since
+2026-10-10, `rel_BH` to `rel_BV`, all already live — after the four hard stops, each on its own: private `true`; identity `Subhankhan12`;
+`origin/main` an ancestor of HEAD (a fast-forward, 0 behind); the history scan over 8,909 blobs, **131 hits in 43 locations** — the 40
+of every earlier push (their blobs already on GitHub) plus **3 new, each read**: `login.blade.php:220` and `onboarding.blade.php:290`
+are the eye button's own `aria-label` ("Show password" / "Hide password", matched exactly), `SecurityProtectionsTest.php:34` the shared
+fixture password as a helper's default; none a secret. `git ls-remote` read `89cb2647` back. **GitHub's checks: green end to end** —
+run 40139824815 (02:44–03:26 Baku): the parity image, the runtime contract, assets, Pint, PHPStan L5, the full suite **4,539 passed + 2
+skipped** (the auto-memory tests, by design) = the local 4,541, 34,116 assertions; money FULL `929 / 10928000 / 0 / 42 / 16 / 0`;
+marketing 9 · claims 23 · cookies 15. Then this record, pushed the same way.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
