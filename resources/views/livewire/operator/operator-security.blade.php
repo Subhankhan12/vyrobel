@@ -22,7 +22,7 @@
     // the passwordless gate sends people here to set a password: open the form for them
     $pwFirst = ! $hasPassword && session()->has('password_status');
 @endphp
-<div class="vy-sx" x-data="{ pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), ipOpen: @js($errored === 'ip'), ipRemove: null, exportOpen: false, signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice) }">
+<div class="vy-sx" x-data="{ approvalOpen: @js($errored === 'approval'), pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), ipOpen: @js($errored === 'ip'), ipRemove: null, exportOpen: false, signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice) }">
     <x-operator.shell active="security" title="Security" :viewer="$viewer">
         <x-security.styles />
 
@@ -60,7 +60,7 @@
                         <div class="vy-sx-row">
                             <div class="vy-sx-row-main">
                                 <h3 class="vy-sx-row-title">Password</h3>
-                                <span class="vy-sx-row-meta">{{ $hasPassword ? 'A long passphrase you don’t use anywhere else.' : 'No password yet — set one to sign in with your email address.' }}</span>
+                                <span class="vy-sx-row-meta">@if (! $hasPassword) No password yet — set one to sign in with your email address. @elseif ($passwordChanged) Changed {{ $passwordChanged }}. @else Not recorded yet — it was set before Vyrobel kept the date. @endif</span>
                             </div>
                             <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pwOpen = true">{{ $hasPassword ? 'Change' : 'Set password' }}</button>
                         </div>
@@ -72,6 +72,9 @@
                     {{-- PASSKEYS — the SAME x-auth.passkeys the owner page renders, on the SAME PasskeyController/Service. Only
                          the route names differ; the ceremony and the empty state are one implementation (§N.8f). --}}
                     <x-auth.passkeys :passkeys="$passkeys" options-route="app.security.passkeys.options" store-route="app.security.passkeys.store" />
+
+                    {{-- LOGIN ALERTS · SESSION TIMEOUT (Part 3) — the same rows the owner page shows --}}
+                    <x-security.protection-rows :alerts="$alerts" :timeout="$timeout" :routes="['alerts' => 'app.security.login-alerts', 'timeout' => 'app.security.session-timeout']" />
                 </section>
 
                 {{-- SIGN-IN ACCOUNTS — this account's own linked providers. ⚠️ The unlink refusal (the lockout floor) is enforced
@@ -180,6 +183,30 @@
                 {{-- TRUSTED DEVICES — skip the two-factor code for 30 days; revoke re-asks for the password --}}
                 <section class="vy-sx-card vy-sx-in" id="sec-trusted" aria-labelledby="vy-sec-trust-t">
                     <h2 class="vy-sx-card-title" id="vy-sec-trust-t">Sign-in protection</h2>
+
+                    {{-- LOGIN APPROVAL (Part 3 — as the owner page has it) — a REAL hold on new devices; ON only while email is sent --}}
+                    <div class="vy-sx-row" id="sx-approval">
+                        <div class="vy-sx-row-main">
+                            <h3 class="vy-sx-row-title">Login approval requests</h3>
+                            <span class="vy-sx-row-meta">A new device waits until you approve it — from the link we email you, or here from a device you’re signed in on. A trusted device skips this.</span>
+                        </div>
+                        @if (! $approval['on'] && ! $approval['available'])
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="false" aria-label="Login approval requests" aria-disabled="true" aria-describedby="vy-sx-approval-why"></button>
+                        @else
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="{{ $approval['on'] ? 'true' : 'false' }}" aria-label="Login approval requests" @click="approvalOpen = true"></button>
+                        @endif
+                    </div>
+                    @if (! $approval['available'])
+                        <p class="vy-sx-note is-warn" id="vy-sx-approval-why">
+                            @if ($approval['on'])
+                                Email isn’t being sent from Vyrobel yet, so a new device can only be approved from here, while you’re signed in somewhere. Turn this off if that could lock you out.
+                            @else
+                                Email isn’t being sent from Vyrobel yet, so an approval link couldn’t reach you. This stays off until it is.
+                            @endif
+                        </p>
+                    @endif
+                    <x-security.approvals :waiting="$waiting" route="app.security.login-approval.decide" />
+
                     <div class="vy-sx-row">
                         <div class="vy-sx-row-main">
                             <h3 class="vy-sx-row-title">Trusted devices</h3>
@@ -314,6 +341,39 @@
 
         @include('livewire.partials.two-factor-off-dialog')
         <x-auth.passkey-remove-dialog remove-route="app.security.passkeys.remove" />
+
+        {{-- Login approval on / off — re-asks for the password (the owner page's dialog, the shared controller) --}}
+        <div class="vy-sx-scrim" x-cloak x-show="approvalOpen" x-transition.opacity @keydown.escape.window="approvalOpen = false" @click.self="approvalOpen = false">
+            <div class="vy-sx-dialog" x-show="approvalOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-appr-t" tabindex="-1" x-trap.noscroll="approvalOpen">
+                <form method="POST" action="{{ route('app.security.login-approval') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="approval">
+                    <input type="hidden" name="enabled" value="{{ $approval['on'] ? '0' : '1' }}">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-head">
+                        <span class="vy-sx-ico"><x-security.icon name="user-check" :size="18" /></span>
+                        <div class="vy-sx-dialog-text">
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-appr-t">{{ $approval['on'] ? 'Turn off login approval' : 'Turn on login approval' }}</h3>
+                            <p class="vy-sx-dialog-sub">{{ $approval['on'] ? 'New devices will sign in without waiting for your approval.' : 'A new device will wait until you approve it.' }}</p>
+                        </div>
+                        <button type="button" class="vy-sx-x" @click="approvalOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                    </div>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'approval' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="vy-sx-field">
+                            <label class="vy-sx-label" for="vy-sx-appr-pw">Your password</label>
+                            <x-password-field name="current_password" id="vy-sx-appr-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                        </div>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="approvalOpen = false">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">{{ $approval['on'] ? 'Turn off' : 'Turn on' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
         @if ($canManageIp)
             {{-- Add IP --}}

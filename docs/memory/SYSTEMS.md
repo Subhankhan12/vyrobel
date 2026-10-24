@@ -606,7 +606,7 @@ office: sign-in accounts, sessions with a per-device sign-out, the IP allowlist;
 - **The score — ONE rule:** `App\Support\Security\SecurityScore` — weights password 25 · two-factor 30 · recovery codes 15 · passkey 15 ·
   login approval 10 · login alerts 5 (=100). Only OFFERED protections count; they share the 100 by largest remainder, so the ring, "points
   available" and every "+N pts" are the same arithmetic. Tiers: Strong ≥ 85, Good ≥ 55, Basic. ⚠️ Login approval is offered only while
-  email really goes out (`MailSafetyGuard::sendingNow()`), and login alerts not until Part 3 — so today's denominator is 85.
+  email really goes out (`MailSafetyGuard::sendingNow()`) — so while production's email is off the denominator is 90 (since Part 3).
 - **Sign-in problems:** `App\Support\Security\SignInProblems` — `login_activity` LOCKOUT rows (five wrong passwords in a minute, `LoginRequest`)
   on the person's own address, `guard = web` only, the 90 days the log keeps, after `users.security_alerts_seen_at` ("This was me",
   `SecurityAlertController@seen`, routes `app.security.alerts.seen` / `owner.security.alerts.seen`, self-only, audited
@@ -621,8 +621,18 @@ office: sign-in accounts, sessions with a per-device sign-out, the IP allowlist;
   Each password form posts `_form`; its error shows in its own dialog, once, and that dialog reopens.
 - **Login approval** (owner page today; the back office in Part 3): switching ON is refused while email is not sent (D-LOGIN-APPROVAL-MAIL);
   OFF always works. The switch is `aria-disabled` (still reachable) with its reason beside it when it cannot be turned on.
-- **Tests and mutations:** `SecurityRedesignTest`, `SecurityPassFiveTest` (rewritten to the new layout), mutation sets `security-redesign`
-  (25) and `security-five` (22, re-aimed). ⚠️ The kit's class names are in the stylesheet on every page: assert the ELEMENT
+- **Part 3 (2026-10-24/25):** login alerts — `App\Support\Security\NewDeviceSignIn` (`isNew()`, `eventKeyFor()`: staff `new_device_login`,
+  owners `account_security`, always on) and `App\Listeners\NotifyNewDeviceSignIn` on the `Login` event (web guard; failures logged, never
+  breaking a sign-in) → `App\Notifications\NewDeviceSignInNotification`; the staff switch is `NotificationPreferences::setEvent()` (the
+  same rows as Notification preferences). Session timeout — `App\Support\Security\SessionTimeout` (15/30/60, background routes
+  `app.pulse`, `app.inbox.live`, `app.inbox.team.poll` and the Inbox's `live=1`) and `App\Http\Middleware\EnforceSessionTimeout` (web
+  group, after the session; stands aside for break-glass; a timed-out background request gets a 401). `users.password_changed_at` (the
+  User model's `saving` hook) and `users.session_timeout_minutes`. `App\Http\Controllers\Auth\AccountSecurityController` serves both
+  realms: `*.security.login-approval` (ON only while email is sent), `*.security.login-approval.decide` (`LoginApprovalService::waiting()` /
+  `decide()`, own pending rows only), `app.security.login-alerts`, `*.security.session-timeout`. The rows: `x-security.protection-rows`,
+  `x-security.approvals`.
+- **Tests and mutations:** `SecurityRedesignTest`, `SecurityProtectionsTest`, `SecurityPassFiveTest` (rewritten to the new layout), mutation
+  sets `security-redesign` (25), `security-protections` (14) and `security-five` (22, re-aimed). ⚠️ The kit's class names are in the stylesheet on every page: assert the ELEMENT
   (`<section class="vy-sx-alert`), never the bare class.
 
 ---

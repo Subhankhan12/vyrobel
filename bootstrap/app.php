@@ -3,6 +3,7 @@
 use App\Exceptions\PlatformWriteRefused;
 use App\Http\Controllers\PublicMediaController;
 use App\Http\Middleware\EndSessionsOnPasswordChange;
+use App\Http\Middleware\EnforceSessionTimeout;
 use App\Http\Middleware\EnterBreakGlassSession;
 use App\Http\Middleware\RefuseWritesDuringBreakGlass;
 use App\Http\Middleware\RequirePasswordBeforeReauth;
@@ -86,6 +87,8 @@ return Application::configure(basePath: dirname(__DIR__))
             //    (sorted after `auth` by the priority list, so it checks the guard the route authenticated with),
             //    standing aside only for a break-glass request. See EndSessionsOnPasswordChange.
             EndSessionsOnPasswordChange::class,
+            // 2026-10-24 — a person's own session timeout (their Security page); nothing for anyone who chose none.
+            EnforceSessionTimeout::class,
             // ⚠️⚠️ THE PASSWORDLESS ESCAPE — a STEP BEFORE the twenty-four `current_password` rules, never a
             //    bypass around them. It only ever REDIRECTS: a user with no password who reaches a
             //    confirmation is sent to set one and brought back; everyone else falls straight through to

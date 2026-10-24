@@ -8,6 +8,7 @@ use App\Models\LoginApproval;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -77,6 +78,33 @@ class LoginApprovalService
             ->find($approvalId);
 
         return $approval !== null && $approval->isPending() ? $approval : null;
+    }
+
+    /**
+     * The sign-ins waiting for THIS person's approval — still pending, not yet approved (2026-10-24: the Security page lists them so
+     * they can be approved or denied from a device already signed in). Newest first.
+     *
+     * @return Collection<int, LoginApproval>
+     */
+    public function waiting(User $user): Collection
+    {
+        return LoginApproval::query()
+            ->where('user_id', (string) $user->getKey())
+            ->whereNull('consumed_at')
+            ->whereNull('approved_at')
+            ->where('expires_at', '>', Carbon::now())
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get();
+    }
+
+    /**
+     * Decide a waiting sign-in from a signed-in device: approve marks it approved (the waiting browser then finishes, exactly as
+     * after the emailed link); deny closes it for good (consumed, never approved), so the waiting browser cannot finish.
+     */
+    public function decide(LoginApproval $approval, bool $approve): void
+    {
+        $approval->forceFill($approve ? ['approved_at' => Carbon::now()] : ['consumed_at' => Carbon::now()])->save();
     }
 
     /** Consume an approved request (single-use) once the pending login completes. */

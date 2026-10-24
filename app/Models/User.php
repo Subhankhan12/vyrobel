@@ -42,6 +42,8 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
  * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
  * @property Carbon|null $security_alerts_seen_at when "This was me" last cleared the Security page's sign-in warning
+ * @property Carbon|null $password_changed_at when the password last changed (null: before this was recorded) — set by booted()
+ * @property int|null $session_timeout_minutes the person's own inactivity sign-out (15/30/60), null = off
  */
 #[Fillable(['name', 'preferred_name', 'email', 'phone', 'password', 'locale', 'timezone', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at', 'compact_density', 'onboarding_tips', 'reduce_motion', 'date_format'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
@@ -79,6 +81,20 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
     /**
      * @return array<string, string>
      */
+    /**
+     * ⚠️ 2026-10-24 — WHEN THE PASSWORD LAST CHANGED, recorded in ONE place: the model, on every save that changes it. The password
+     * is written by seven paths (change, reset, set-password, owner and staff invites, team invites, onboarding); a stamp in each
+     * would miss the next one added. Null stays null for older accounts — the Security page says "Not recorded yet".
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->isDirty('password') && $user->password !== null) {
+                $user->password_changed_at = now();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
@@ -97,6 +113,8 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
             'security_alerts_seen_at' => 'datetime',
+            'password_changed_at' => 'datetime',
+            'session_timeout_minutes' => 'integer',
         ];
     }
 

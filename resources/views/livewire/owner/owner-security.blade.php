@@ -56,7 +56,7 @@
                         <div class="vy-sx-row">
                             <div class="vy-sx-row-main">
                                 <h3 class="vy-sx-row-title">Password</h3>
-                                <span class="vy-sx-row-meta">{{ $hasPassword ? 'A long passphrase you don’t use anywhere else.' : 'No password yet — set one to sign in with your email address.' }}</span>
+                                <span class="vy-sx-row-meta">@if (! $hasPassword) No password yet — set one to sign in with your email address. @elseif ($passwordChanged) Changed {{ $passwordChanged }}. @else Not recorded yet — it was set before Vyrobel kept the date. @endif</span>
                             </div>
                             <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pwOpen = true">{{ $hasPassword ? 'Change' : 'Set password' }}</button>
                         </div>
@@ -66,6 +66,9 @@
 
                     {{-- PASSKEYS — the shared card (D24-2): one ceremony for both realms; only the route names differ --}}
                     <x-auth.passkeys :passkeys="$passkeys" options-route="owner.security.passkeys.options" store-route="owner.security.passkeys.store" />
+
+                    {{-- LOGIN ALERTS (always on for an owner) · SESSION TIMEOUT (Part 3) — the same rows the back office shows --}}
+                    <x-security.protection-rows :alerts="$alerts" :timeout="$timeout" :routes="['alerts' => null, 'timeout' => 'owner.security.session-timeout']" />
                 </section>
             </div>
 
@@ -103,7 +106,7 @@
                     <div class="vy-sx-row">
                         <div class="vy-sx-row-main">
                             <h3 class="vy-sx-row-title">Login approval requests</h3>
-                            <span class="vy-sx-row-meta">A new device waits until you approve it from a link we email you. A trusted device skips this.</span>
+                            <span class="vy-sx-row-meta">A new device waits until you approve it — from the link we email you, or here from a device you’re signed in on. A trusted device skips this.</span>
                         </div>
                         @if (! $approval['on'] && ! $approval['available'])
                             <button type="button" class="vy-sx-switch" role="switch" aria-checked="false" aria-label="Login approval requests" aria-disabled="true" aria-describedby="vy-sx-approval-why"></button>
@@ -114,12 +117,14 @@
                     @if (! $approval['available'])
                         <p class="vy-sx-note is-warn" id="vy-sx-approval-why">
                             @if ($approval['on'])
-                                Email isn’t being sent from Vyrobel yet, so a new device can’t be approved. Turn this off, or sign in only from a trusted device.
+                                Email isn’t being sent from Vyrobel yet, so a new device can only be approved from here, while you’re signed in somewhere. Turn this off if that could lock you out.
                             @else
                                 Email isn’t being sent from Vyrobel yet, so an approval link couldn’t reach you. This stays off until it is.
                             @endif
                         </p>
                     @endif
+
+                    <x-security.approvals :waiting="$waiting" route="owner.security.login-approval.decide" />
 
                     {{-- TRUSTED DEVICES — REAL skip-2FA devices; remove re-asks for the password --}}
                     <div class="vy-sx-row">

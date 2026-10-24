@@ -48,7 +48,7 @@ class OperatorSecurity extends Component
         $user = auth()->user();
         abort_unless($user instanceof User, 403);
 
-        $overview = SecurityOverview::for($user, request(), false);
+        $overview = SecurityOverview::for($user, request(), true);
         $sessions = ActiveSessions::forUser((string) $user->getKey());
 
         $ipRules = IpAllowRule::query()->orderBy('created_at')->get()

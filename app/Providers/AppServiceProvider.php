@@ -14,6 +14,7 @@ use App\Listeners\EnqueueAriPushOnInventoryChange;
 use App\Listeners\GenerateDepartureCleanTask;
 use App\Listeners\Mail\RecordAcceptedMail;
 use App\Listeners\Mail\SuppressUndeliverableRecipients;
+use App\Listeners\NotifyNewDeviceSignIn;
 use App\Listeners\ReattributeOwnerOnUnitMove;
 use App\Listeners\RecomputeAvailabilityOnInventoryChange;
 use App\Listeners\RecordAuthActivity;
@@ -580,6 +581,9 @@ class AppServiceProvider extends ServiceProvider
         // platform activity log. ADDED onto the framework auth events (the tenant login flow is NOT modified);
         // the write can never break auth (swallowed on failure). Privacy: 90-day retention, security purpose,
         // /admin-only access, no guest PII persisted (see RecordAuthActivity + the login_activity migration).
+        // 2026-10-24 — LOGIN ALERTS (NotifyNewDeviceSignIn). The sign-in happening now is never its own history because the check
+        // reads only sign-ins before this second (proven by its own test) — registered before the log's listener too, not relied on.
+        Event::listen(Login::class, [NotifyNewDeviceSignIn::class, 'handle']);
         Event::listen(Login::class, [RecordAuthActivity::class, 'login']);
         Event::listen(Failed::class, [RecordAuthActivity::class, 'failed']);
         Event::listen(Lockout::class, [RecordAuthActivity::class, 'lockout']);

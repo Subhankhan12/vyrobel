@@ -296,9 +296,10 @@ change is said.** Briefs live in `briefs/`.
   can't lock you out". Now it switches ON only while `MailSafetyGuard::sendingNow()` (OFF always works), the page says why it stays off,
   and the score never counts it while it cannot work. ⚠️ An account that ALREADY has it on is still held on a new device while email is off
   — the deploy's read-only preflight counts such accounts on production (the review's M2).
-- **D-NEWDEVICE-INERT (found 2026-10-24 by reading; Part 3 of the Security plan, approved):** Notification preferences offers "Login from a
-  new device" (`new_device_login`), on by default — and nothing in the code ever sends it (🔬 grep: the catalogue is its only mention). A
-  switch that does nothing (#39). Part 3 builds the alert behind it.
+- ✅ **D-NEWDEVICE-INERT — FIXED 2026-10-24 (Part 3 of the Security plan; 🔬 RED first).** *(was:)* Notification preferences offers "Login
+  from a new device" (`new_device_login`), on by default — and nothing in the code ever sent it. Now `NotifyNewDeviceSignIn` sends it on a
+  sign-in from a device the account has not used in 90 days (never on an account's first sign-in), and the Security page's switch is the
+  same stored setting. An owner's sign-in alert is `account_security` — always on, as the owner settings had promised.
 - **D-SX-IP (the independent review, 2026-10-24; measured at the deploy):** the IP on the new "Sign-in blocked" card — and the one the Active
   sessions list has always shown — is `$request->ip()`; no trusted proxies are configured and production sits behind the `hcdn` CDN, so
   whether it is the visitor's address or the edge's was never measured (`docs/THE-LOCK-2026-09-23.md:21`). ✅ **Measured 2026-10-24 at the
@@ -306,7 +307,7 @@ change is said.** Briefs live in `briefs/`.
   connection (yes/no only). So the card shows it.
   ⚠️ The `login_activity` migration's docblock says "ACCESS: the platform /admin realm ONLY"; the card now shows a person the lockouts on
   THEIR OWN address (device, time — and the IP if it proves to be the visitor's). His call if that access should stay admin-only.
-- **D-SX-SCORE-APPROVAL (the independent review, 2026-10-24; low; Part 3 closes it):** once email is sent, the owner page offers login
+- ✅ **D-SX-SCORE-APPROVAL — CLOSED by Part 3 (2026-10-24): both pages now offer login approval.** *(was:)* once email is sent, the owner page offers login
   approval and the back office does not yet, so the same settings would score 26 there and 29 here; Part 3 gives the back office login
   approval. While production's email is off the two agree.
 - **D-STAY-WORD (seen 2026-10-05; low — his go):** the stage badge everywhere says "In-house"; the Guests Stay column and the Inbox's

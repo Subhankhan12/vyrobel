@@ -110,10 +110,11 @@ it('⚠️⚠️ shows the back office its derived score — ring, tier and the 
     $s = seedScenario(1);
     $html = sxPage('app.security', operatorUser($s, [], 'Property Owner'));
 
-    expect($html)->toContain('<span class="vy-sx-ring-n">29</span>')
+    // password + login alerts (on by default) of the five it can turn on here — login approval waits for email
+    expect($html)->toContain('<span class="vy-sx-ring-n">33</span>')
         ->toContain('<span class="vy-sx-tier">Basic</span>')
-        ->toContain('<span class="vy-sx-tile-n">1/4</span><span class="vy-sx-tile-l">Protections on</span>')
-        ->toContain('<span class="vy-sx-tile-n">71</span><span class="vy-sx-tile-l">Points available</span>')
+        ->toContain('<span class="vy-sx-tile-n">2/5</span><span class="vy-sx-tile-l">Protections on</span>')
+        ->toContain('<span class="vy-sx-tile-n">67</span><span class="vy-sx-tile-l">Points available</span>')
         ->toContain('<span class="vy-sx-tile-l">Trusted devices</span>')
         ->toContain('<span class="vy-sx-tile-l">Connected apps</span>')
         ->toContain('<div class="vy-sx-cols">');
@@ -123,7 +124,7 @@ it('⚠️ lists each protection still off with its points and a way to the real
     $s = seedScenario(1);
     $html = sxPage('app.security', operatorUser($s, [], 'Property Owner'));
 
-    expect($html)->toContain('data-protection="two_factor"')->toContain('<span class="vy-sx-pts">+35 pts</span>')
+    expect($html)->toContain('data-protection="two_factor"')->toContain('<span class="vy-sx-pts">+33 pts</span>')
         ->toContain('data-protection="passkey"')->toContain('href="#sx-passkeys"')
         ->not->toContain('data-protection="password"');
 });
@@ -134,10 +135,10 @@ it('⚠️⚠️ gives the owner page the SAME score for the same settings — o
     $staff = operatorUser($s, [], 'Property Owner');
 
     $ownerHtml = sxPage('owner.security', $owner);
-    expect($ownerHtml)->toContain('<span class="vy-sx-ring-n">29</span>')
-        ->toContain('<span class="vy-sx-tile-n">1/4</span><span class="vy-sx-tile-l">Protections on</span>')
+    expect($ownerHtml)->toContain('<span class="vy-sx-ring-n">33</span>')
+        ->toContain('<span class="vy-sx-tile-n">2/5</span><span class="vy-sx-tile-l">Protections on</span>')
         ->toContain('<div class="vy-sx-cols">')
-        ->and(sxPage('app.security', $staff))->toContain('<span class="vy-sx-ring-n">29</span>');
+        ->and(sxPage('app.security', $staff))->toContain('<span class="vy-sx-ring-n">33</span>');
 });
 
 // ── SIGN-IN PROBLEMS — real lockouts on your own address, never invented ─────────────────────────────────────────
@@ -230,7 +231,8 @@ it('⚠️⚠️ refuses to switch login approval ON while email is not being se
         ->post(route('owner.security.login-approval'), ['enabled' => '1', 'current_password' => 'owner-pass-9'])
         ->assertRedirect(route('owner.security'))->assertSessionHas('security_error');
     expect($owner->fresh()->require_login_approval)->toBeFalse()
-        ->and(sxPage('owner.security', $owner->fresh()))->toContain('Email isn’t being sent from Vyrobel yet');
+        // the approval note's own sentence — the login-alerts row also says email isn't sent, so the bare phrase proves nothing
+        ->and(sxPage('owner.security', $owner->fresh()))->toContain('so an approval link couldn’t reach you. This stays off until it is.');
 
     // switching it OFF always works — the way out is never blocked
     $owner->forceFill(['require_login_approval' => true])->save();

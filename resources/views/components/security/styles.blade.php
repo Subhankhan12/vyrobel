@@ -118,6 +118,17 @@
     .vy-sx-done { display: flex; align-items: center; gap: 11px; margin-top: 14px; padding: 13px 16px; border-radius: 14px; background: var(--sx-tint-soft); border: 1px solid var(--sx-tint-line);
         font-size: 13px; font-weight: 600; color: var(--vy-accent-text); }
 
+    .vy-sx-row.is-stack { flex-direction: column; align-items: stretch; gap: 10px; }
+    .vy-sx-timeout { flex: none; }
+    .vy-sx .vy-sx-select { width: 100%; max-width: 280px; min-height: 36px; padding: 6px 34px 6px 14px; border-radius: 30px; border: 1px solid rgba(120, 70, 40, .2);
+        background-color: rgba(255, 255, 255, .78); font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--vy-ink); cursor: pointer; }
+    .vy-sx-wait { margin: 4px 0 12px; padding: 14px 16px; border-radius: 14px; background: var(--sx-tint-soft); border: 1px solid var(--sx-tint-line); }
+    .vy-sx-wait-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .vy-sx-wait-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--vy-accent-3); }
+    .vy-sx-wait-label { font-size: 12.5px; font-weight: 600; color: var(--vy-accent-text); }
+    .vy-sx-wait-when { margin-left: auto; font-size: 11.5px; color: var(--vy-muted); }
+    .vy-sx-wait-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .vy-sx-wait-acts form, .vy-sx-wait-acts .vy-sx-btn { width: 100%; }
     .vy-sx-avatar { width: 36px; height: 36px; flex: none; border-radius: 11px; display: grid; place-items: center; background: var(--sx-tint); color: var(--vy-accent-text); font-size: 12px; font-weight: 700; }
 
     .vy-sx-codes { margin: 0 0 12px; padding: 14px; border-radius: 14px; border: 1px solid var(--sx-tint-line); background: rgba(255, 255, 255, .6); }

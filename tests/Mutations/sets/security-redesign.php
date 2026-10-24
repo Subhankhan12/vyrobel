@@ -14,7 +14,7 @@ $score = 'app/Support/Security/SecurityScore.php';
 $overview = 'app/Support/Security/SecurityOverview.php';
 $problems = 'app/Support/Security/SignInProblems.php';
 $alerts = 'app/Http/Controllers/Auth/SecurityAlertController.php';
-$ownerCtl = 'app/Http/Controllers/Owner/OwnerSecurityController.php';
+$ownerCtl = 'app/Http/Controllers/Auth/AccountSecurityController.php';   // Part 3: the toggle moved into the shared controller
 $operatorView = 'resources/views/livewire/operator/operator-security.blade.php';
 $ownerView = 'resources/views/livewire/owner/owner-security.blade.php';
 
@@ -215,8 +215,8 @@ return [
         'id' => 'SX-M24',
         'name' => 'the back office stops reading the shared overview (its own copy of the score)',
         'file' => 'app/Livewire/Operator/OperatorSecurity.php',
-        'old' => '        $overview = SecurityOverview::for($user, request(), false);',
-        'new' => "        \$overview = SecurityOverview::for(\$user, request(), false);\n        \$overview['score']['num'] = 40;",
+        'old' => '        $overview = SecurityOverview::for($user, request(), true);',
+        'new' => "        \$overview = SecurityOverview::for(\$user, request(), true);\n        \$overview['score']['num'] = 40;",
         'tests' => [['file' => $test, 'filter' => 'gives the owner page the SAME score']],
     ],
     [

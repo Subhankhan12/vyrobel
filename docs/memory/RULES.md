@@ -613,6 +613,14 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
 - **`aria-label` must contain the words on the button (WCAG 2.5.3).** "Enable" labelled "Add a passkey" hid its own word from voice control;
   the name is now "Enable: Add a passkey" (the independent review, 2026-10-24).
 
+- **A test request carries no session cookie, so a session does not survive from one test request to the next.** The first session-timeout
+  tests "travelled" 16 minutes and stayed signed in — every request had a fresh session with no last-seen time. Give the session what a
+  browser's would hold (`withSession([SessionTimeout::KEY => …])`) and read it back with `session()` (2026-10-24).
+- **A log that keeps whole seconds and a clock with microseconds disagree inside one second.** "Sign-ins before now" counted the row written
+  for this very sign-in once it landed first; compare with `startOfSecond()`, and prove it with a frozen clock (2026-10-24).
+- **Fired again: a page-wide search satisfied by a sentence added elsewhere.** "Email isn't being sent from Vyrobel yet" became true of two
+  rows; SX-M19 survived until the test asserted the note's own sentence (2026-10-24).
+
 
 ---
 

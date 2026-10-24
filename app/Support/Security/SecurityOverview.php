@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Support\Security;
 
+use App\Models\LoginApproval;
 use App\Models\Passkey;
 use App\Models\User;
+use App\Services\NotificationPreferences;
+use App\Support\Auth\LoginApprovalService;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Mail\MailSafetyGuard;
+use App\Support\Platform\DeviceLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
@@ -26,7 +30,9 @@ final class SecurityOverview
      * @return array{score: array<string, mixed>, twoFactorOn: bool, recoveryCodes: array{left: int, total: int},
      *               passkeys: list<array{id: string, label: string, last_used: string}>,
      *               trusted: list<array{id: string, label: string, ip: string, last_used: ?string, expires: ?string, current: bool}>,
-     *               approval: array{shown: bool, on: bool, available: bool}, problems: array<string, mixed>}
+     *               approval: array{shown: bool, on: bool, available: bool}, problems: array<string, mixed>,
+     *               alerts: array{key: string, on: bool, always_on: bool, email: bool}, timeout: array{minutes: ?int},
+     *               waiting: list<array{id: string, device: string, ip: ?string, when: string}>, passwordChanged: ?string}
      */
     public static function for(User $user, Request $request, bool $approvalHere): array
     {
@@ -34,6 +40,7 @@ final class SecurityOverview
         $codes = self::recoveryCodes($user);
         $passkeys = self::passkeys($user);
         $approval = self::loginApproval($user, $approvalHere);
+        $alerts = self::loginAlerts($user);
 
         return [
             'score' => SecurityScore::from([
@@ -44,7 +51,7 @@ final class SecurityOverview
                 // ⚠️ offered only where an approval can reach the person — on while email is off is a sign-in nobody can
                 //    approve, not a protection, so it earns nothing (the page warns instead)
                 'login_approval' => ['done' => $approval['on'] && $approval['available'], 'offered' => $approval['available']],
-                'login_alerts' => ['done' => false, 'offered' => false],
+                'login_alerts' => ['done' => $alerts['on'], 'offered' => true],
             ]),
             'twoFactorOn' => $twoFactorOn,
             'recoveryCodes' => $codes,
@@ -52,7 +59,46 @@ final class SecurityOverview
             'trusted' => self::trustedDevices($user, $request),
             'approval' => $approval,
             'problems' => SignInProblems::for($user),
+            'alerts' => $alerts,
+            'timeout' => ['minutes' => SessionTimeout::minutesFor($user)],
+            'waiting' => $approval['shown'] ? self::waitingApprovals($user) : [],
+            'passwordChanged' => $user->password_changed_at !== null ? CarbonImmutable::parse($user->password_changed_at)->diffForHumans() : null,
         ];
+    }
+
+    /**
+     * Login alerts (Part 3, NewDeviceSignIn): which preference governs them for this person, whether it is on, whether it can be
+     * switched (an owner's is always on — the owner settings promise it), and whether email would carry it today.
+     *
+     * @return array{key: string, on: bool, always_on: bool, email: bool}
+     */
+    public static function loginAlerts(User $user): array
+    {
+        $key = NewDeviceSignIn::eventKeyFor($user);
+        $prefs = app(NotificationPreferences::class);
+
+        return [
+            'key' => $key,
+            'on' => $prefs->allows($user, $key, 'in_app'),
+            'always_on' => NotificationPreferences::isAlwaysOn($key),
+            'email' => MailSafetyGuard::sendingNow() && $prefs->allows($user, $key, 'email'),
+        ];
+    }
+
+    /**
+     * The sign-ins waiting for this person's approval, as the card shows them — the browser and IP they came from, how long ago.
+     *
+     * @return list<array{id: string, device: string, ip: ?string, when: string}>
+     */
+    public static function waitingApprovals(User $user): array
+    {
+        return app(LoginApprovalService::class)->waiting($user)
+            ->map(fn (LoginApproval $a): array => [
+                'id' => (string) $a->getKey(),
+                'device' => DeviceLabel::from($a->user_agent),
+                'ip' => $a->ip !== null ? (string) $a->ip : null,
+                'when' => $a->created_at !== null ? CarbonImmutable::parse($a->created_at)->diffForHumans() : 'just now',
+            ])->values()->all();
     }
 
     /**

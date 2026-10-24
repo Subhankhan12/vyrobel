@@ -1549,6 +1549,27 @@ is the visitor's (a marked request vs this Mac's SSH address, yes/no only); swap
 1,476/1,476 deployable files match git; 0 errors since — 11 warnings, all `security.refusal`, the battery). ⚠️ Not pushed (his rule).
 Rollback target: `rel_BT @ 4923e342`.
 
+**SECURITY REDESIGN, PART 3, 2026-10-24/25 — the rest of his approved plan ("All of it").** Built on the kit (`SYSTEMS.md` §22): **login
+alerts** — `NewDeviceSignIn::isNew()` (the account's own sign-ins in the log's 90 days; a device = its browser and system as `DeviceLabel`
+names them; never on an account's first sign-in; never the sign-in happening now — the log keeps whole seconds, so this second's rows are not
+history, proven by its own test rather than by listener order) → `NewDeviceSignInNotification` through the preference gate (the bell; email
+once email is sent); staff toggle it on the Security page or in Notification preferences — ONE setting (`NotificationPreferences::setEvent`);
+an owner's is `account_security`, "always on" in the owner settings since before this existed (D-NEWDEVICE-INERT fixed). **Session
+timeout** — 15 / 30 / 60 minutes or off (the store's own 2 hours), `EnforceSessionTimeout` in the web group, standing aside for a support
+session; the bell's pulse, the Inbox's stamp and team chat's poll never count as the person. **Password last changed** — the User model's
+`saving` hook dates every password write (seven paths); older accounts say "Not recorded yet". **Login approval on the back office** and
+**Approve / Deny of a waiting sign-in from a signed-in device** on both pages — `AccountSecurityController` serves both realms (the owner
+page's old `setLoginApproval` moved into it; ON still only while email is sent). Additive migration `password_changed_at` +
+`session_timeout_minutes`. **Mine, caught:** the timeout tests first relied on a session carried between test requests (none is — a test sends
+no session cookie), rewritten to give the session its last-seen time; the new-device time filter compared whole-second log rows with a
+microsecond clock (a same-second row would have counted) — now `startOfSecond()`, with a frozen-clock test; the session-timeout row squeezed
+its words into one column at 320 px (stacked); two Parts 1+2 tests moved by the new protection (+35 → +33 pts; and "Email isn't being sent"
+now said by two rows, so SX-M19's test asserts the approval note's own sentence). Tests `SecurityProtectionsTest` (13; 11 RED first, the
+rest guards proven by mutation); mutations `security-protections` 14/14; `security-redesign` re-run 25/25. **Gates:** MySQL 4,540/4,541 —
+the one red was mine: the new set's ids `SP-M1`–`SP-M12` were already the sidebar set's; renamed `SXP-M`, re-run 14/14, the file green
+alone · MariaDB 4,541/4,541 (34,120 assertions) · PHPStan L5 0 · Pint clean · money gate FULL unmoved. ⚠️ **Pick a new set's id prefix
+by grepping every set first** — the suite caught it, but only after a 28-minute run.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

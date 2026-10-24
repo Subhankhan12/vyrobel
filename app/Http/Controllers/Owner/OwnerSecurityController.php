@@ -11,7 +11,6 @@ use App\Models\Unit;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Security\ActiveSessions;
-use App\Support\Security\SecurityOverview;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,38 +90,6 @@ class OwnerSecurityController extends Controller
         $response = back()->with('owner_notice', 'That device was removed — it’ll need a 2FA code next time.');
 
         return $wasCurrent !== null ? $response->withCookie($devices->forgetCookie()) : $response;
-    }
-
-    /**
-     * Turn LOGIN APPROVAL on/off (Wave B · GATE 4) — self-only + re-auth. When on, a sign-in from an untrusted
-     * new device is held pending until the emailed link is clicked. Opt-in; a trusted device (or turning this
-     * back off) is the recovery path, so it cannot lock the user out permanently.
-     */
-    public function setLoginApproval(Request $request, AuditEventRecorder $audit): RedirectResponse
-    {
-        $user = $request->user();
-        abort_if($user === null, 403);
-
-        $request->validate([
-            'enabled' => ['required', 'boolean'],
-            'current_password' => ['required', 'current_password'],
-        ]);
-
-        $enabled = $request->boolean('enabled');
-
-        // ⚠️⚠️ 2026-10-24 — ON only while email really goes out. The approval link is an email: with the mailer discarding
-        //    every message (production's `log` today), a new device's sign-in would be held for a link nobody receives, and
-        //    the only way in would be a device already trusted. OFF is always allowed — the way out is never blocked.
-        if ($enabled && ! SecurityOverview::loginApproval($user, true)['available']) {
-            return back()->with('security_error', 'Login approval can’t be turned on yet: email isn’t being sent from Vyrobel, so the approval link would never reach you and a new device couldn’t sign in.');
-        }
-
-        $user->forceFill(['require_login_approval' => $enabled])->save();
-        $audit->record('owner.login_approval_changed', $user, null, ['enabled' => $enabled]);
-
-        return back()->with('owner_notice', $enabled
-            ? 'Login approval is on — a new device must be approved by email before it can sign in.'
-            : 'Login approval is off.');
     }
 
     /**

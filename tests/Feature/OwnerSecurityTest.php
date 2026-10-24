@@ -76,7 +76,7 @@ it('shows a real derived security score from true state (2FA off by default)', f
     // A fresh owner: only the password protection is on (2FA off) → score 40/100 = "Basic", 1 of 3 on.
     $this->actingAs($c['owner'])->get('/owner/security')
         ->assertSee('Account security')
-        ->assertSee('1/4')                                       // Protections on — DERIVED (password only; 2026-10-24: four offered — SecurityScore)
+        ->assertSee('2/5')                                       // Protections on — DERIVED (password + login alerts, which are always on for an owner; 2026-10-24: five offered — SecurityScore)
         ->assertSee('Basic')                                     // score 40 (<60) → Basic tier, from real state
         ->assertSee('Boost your score')
         ->assertSee('Turn on two-factor to strengthen your account.')   // the honest nudge (2FA off)

@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\SwitchController as AdminSwitchController;
 use App\Http\Controllers\AnnouncementDismissController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\AcceptOwnerTeamInviteController;
+use App\Http\Controllers\Auth\AccountSecurityController;
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\LoginApprovalController;
@@ -1161,6 +1162,12 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::get('/security/export', [OperatorSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
     // "This was me" on the sign-in problems card (2026-10-24) — self-only; the SAME controller serves the owner page.
     Route::post('/security/alerts/seen', [SecurityAlertController::class, 'seen'])->middleware('throttle:10,1')->name('security.alerts.seen');
+    // Part 3 (2026-10-24) — login approval (as the owner page has it), deciding a waiting sign-in, login alerts, the session timeout:
+    // ONE AccountSecurityController for both realms, self-only, each change audited with its realm.
+    Route::post('/security/login-approval', [AccountSecurityController::class, 'loginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
+    Route::post('/security/login-approval/decide', [AccountSecurityController::class, 'decideApproval'])->middleware('throttle:10,1')->name('security.login-approval.decide');
+    Route::post('/security/login-alerts', [AccountSecurityController::class, 'loginAlerts'])->middleware('throttle:10,1')->name('security.login-alerts');
+    Route::post('/security/session-timeout', [AccountSecurityController::class, 'sessionTimeout'])->middleware('throttle:10,1')->name('security.session-timeout');
     // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
     // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
     // redirects into the 3-pane so existing links keep working.
@@ -1792,8 +1799,12 @@ Route::middleware(['auth', RefuseSuspendedOrganization::class, EnsureOwnerPortal
     Route::post('/security/sessions/sign-out-others', [OwnerSecurityController::class, 'signOutOtherSessions'])->middleware('throttle:6,1')->name('security.sessions.signout');
     // Trusted devices (Wave B · GATE 4) — remove one (self-only, re-auth). A trust lets a browser skip 2FA.
     Route::post('/security/trusted-devices/revoke', [OwnerSecurityController::class, 'revokeTrustedDevice'])->middleware('throttle:10,1')->name('security.trusted-devices.revoke');
-    // Login approval (Wave B · GATE 4) — turn the new-device email-approval requirement on/off (self-only, re-auth).
-    Route::post('/security/login-approval', [OwnerSecurityController::class, 'setLoginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
+    // Login approval (Wave B · GATE 4) — turn the new-device email-approval requirement on/off (self-only, re-auth). 2026-10-24: the
+    // SAME AccountSecurityController as the back office (ON only while email is really sent), plus deciding a waiting sign-in from here
+    // and the person's own session timeout.
+    Route::post('/security/login-approval', [AccountSecurityController::class, 'loginApproval'])->middleware('throttle:10,1')->name('security.login-approval');
+    Route::post('/security/login-approval/decide', [AccountSecurityController::class, 'decideApproval'])->middleware('throttle:10,1')->name('security.login-approval.decide');
+    Route::post('/security/session-timeout', [AccountSecurityController::class, 'sessionTimeout'])->middleware('throttle:10,1')->name('security.session-timeout');
     // Connected apps (Wave D · OAuth) — revoke a third-party OAuth app (self-only, re-auth, audited; immediate).
     Route::post('/security/connected-apps/revoke', [OwnerConnectedAppController::class, 'revoke'])->middleware('throttle:10,1')->name('security.connected-apps.revoke');
     // Passkeys (Wave B · GATE 4) — register (2-step ceremony) + remove (re-auth), self-only via $request->user().

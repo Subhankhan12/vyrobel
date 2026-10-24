@@ -1,6 +1,6 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SECURITY REDESIGN pass (2026-10-24, Parts 1+2 of his approved plan); before it the SIGNUP PASSWORD SHOW/HIDE pass (2026-10-21); before it the INBOX COMPOSER REFINEMENTS (2026-10-21); before it the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SECURITY REDESIGN pass (2026-10-24/25: Parts 1+2, then Part 3 of his approved plan); before it the SIGNUP PASSWORD SHOW/HIDE pass (2026-10-21); before it the INBOX COMPOSER REFINEMENTS (2026-10-21); before it the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
@@ -200,6 +200,7 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 ## Numbers
 | What | Value | Source |
 |---|---|---|
+| Suite (the SECURITY REDESIGN, Part 3) | **4,541/4,541 on MariaDB 11.8.9** (34,120 assertions; 2026-10-25 00:30–01:00 Baku) — JUnit 0 failed, 0 errors, 0 skipped · MySQL 8.4.10 4,540/4,541 (23:58–00:25 Baku); the one failure (duplicate mutation ids, mine) fixed and its file green alone. Parts 1+2: 4,528/4,528 on both engines (the Live line) | **V** run outputs and JUnit logs 2026-10-25. |
 | Suite (THE ONE SELECT ENGINE pass) | **4,511/4,511 on MySQL 8.4.10** (33,898 assertions; 2026-10-10 02:24–02:43 Baku) · **4,511/4,511 on MariaDB 11.8.9** (33,898 assertions; 02:44–03:32 Baku) — JUnit 0 failed, 0 errors, 0 skipped. A first MySQL run was 4,509/4,511 (two contracts; fixed) | **V** run outputs and JUnit logs 2026-10-10. |
 | Suite (THE VYROBEL SELECT pass) | **4,503/4,503 on MySQL 8.4.10** (33,260 assertions; 2026-10-09 23:33–23:53 Baku) · **4,503/4,503 on MariaDB 11.8.9** (33,260 assertions; 23:53–00:14 Baku) — JUnit 0 failed, 0 errors, 0 skipped. A first MySQL run was 4,502/4,503 (the keyboard contract; fixed) | **V** run outputs and JUnit logs 2026-10-09/10. |
 | Suite (the TOP BAR BELL pass) | **4,498/4,498 on MySQL 8.4.10** (33,214 assertions; 21:24–21:55 Baku) · **4,498/4,498 on MariaDB 11.8.9** (33,214 assertions; 21:56–22:19 Baku) — JUnit 0 failed, 0 errors, 0 skipped | **V** run outputs and JUnit logs 2026-10-09. |
@@ -251,6 +252,18 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     session timeout, password last changed, login approval + approve-from-here on the back office) — drafted, not in the repo yet.
     **✅ Parts 1+2 LIVE on `rel_BU @ c763ff59`** (V swap 2026-10-24 23:36 Baku; public checks 12/0/0; 0 errors since). Left: his look
     (signed in) and Part 3.
+    **Part 3 built (2026-10-24/25):** login alerts made real (`NewDeviceSignIn` + `NotifyNewDeviceSignIn`: a sign-in from a device the
+    account has not used in 90 days → the bell, and email once email is sent; staff switch = Notification preferences' `new_device_login`,
+    one stored setting; an owner's is `account_security`, always on), the session timeout (15 / 30 / 60 min, `EnforceSessionTimeout`; the
+    page's own polling never counts as activity), "password last changed" (the User model stamps every path), login approval on the back
+    office and Approve / Deny of a waiting sign-in from a signed-in device (both pages) — one `AccountSecurityController` for both realms.
+    Additive migration: `users.password_changed_at`, `users.session_timeout_minutes`.
+    **V gates on the final code:** MySQL 8.4.10 **4,540/4,541** (23:58–00:25 Baku) — the one failure was mine: my new mutation ids
+    `SP-M1`–`SP-M12` repeated the sidebar set's (`MutationSetsStillLandTest`, ids must be unique); renamed `SXP-M1`–`SXP-M14`, that file
+    green alone on MySQL (4 tests, 1,112 assertions) and no other test reads the sets · MariaDB 11.8.9 **4,541/4,541** (34,120 assertions;
+    00:30–01:00 Baku; JUnit 0 failed, 0 errors, 0 skipped; nothing on 3306 first) · PHPStan L5 0 errors (48 s, a cleared cache) · Pint clean
+    (the 21 changed PHP files) · mutations `security-protections` 14/14 (re-run after the rename), `security-redesign` 25/25 · money gate
+    **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 01:01 Baku).
 0w. **The one select engine, everywhere (2026-10-10)** — his approval ("the same sort of select and same sort of drop down in the
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled

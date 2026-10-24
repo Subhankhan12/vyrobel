@@ -20033,3 +20033,9 @@ it and give me some planning … once i approved then start building it". **Rule
 **Proof:** `SecurityRedesignTest` (15), `SecurityPassFiveTest` rewritten to the new layout, mutation sets `security-redesign` 25/25 and
 `security-five` 22/22; the independent review's points fixed or recorded (`docs/memory/HISTORY.md`, "SECURITY REDESIGN"). Gates and the
 deploy are recorded in `docs/memory/STATE.md`.
+
+**Part 3, the same day (2026-10-24/25):** login alerts made real (the "Login from a new device" switch had sent nothing — staff switch it,
+an owner's is always on as the owner settings promised), the session timeout (15 / 30 / 60 minutes; a page polling by itself never counts
+as the person), "password last changed" (dated by the User model on every path), and login approval on the back office with Approve / Deny of
+a waiting sign-in from a signed-in device on both pages — one `AccountSecurityController` for both realms. `SecurityProtectionsTest` (13),
+mutations `security-protections` 14/14.

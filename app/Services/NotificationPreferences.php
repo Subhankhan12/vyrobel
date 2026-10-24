@@ -182,6 +182,26 @@ class NotificationPreferences
     }
 
     /**
+     * Switch ONE event on or off on every channel for the authenticated user (SELF-ONLY) — the Security page's login-alerts switch
+     * (2026-10-24), the same stored rows Notification preferences reads and writes, so the two can never disagree. An always-on
+     * event cannot be switched (it is refused, never silently written).
+     */
+    public function setEvent(User $user, string $eventKey, bool $on): void
+    {
+        $entry = self::CATALOG[$eventKey] ?? null;
+        if ($entry === null || $entry['always_on']) {
+            throw new \InvalidArgumentException("{$eventKey} cannot be switched.");
+        }
+
+        foreach (self::CHANNELS as $channel) {
+            NotificationPreference::query()->updateOrCreate(
+                ['user_id' => $user->getKey(), 'event_key' => $eventKey, 'channel' => $channel],
+                ['enabled' => $on],
+            );
+        }
+    }
+
+    /**
      * The current on/off state for every (event, channel) in an audience — stored preference over catalog
      * default; always_on forced on. Drives the preferences screen.
      *
