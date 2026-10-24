@@ -1573,7 +1573,8 @@ by grepping every set first** — the suite caught it, but only after a 28-minut
 routes, middleware, columns, 13 views compile and parse, email sent no, 0 timeouts, 0 approvals waiting, 559 ms for the new-device check
 over all 20 accounts; all 20 take the staff key because production has 0 owner accounts (checked from the raw tables too); swap
 2026-10-24 21:04:50 UTC, 12 ms; public checks 12/0/0; 1,485/1,485 files match git; 0 errors since; both pages 302 → /login for anon.
-Committed locally, not pushed. Left: his signed-in look.
+Committed locally, not pushed. **His look, signed in: F 2026-10-25 "its look good".** Nothing removed — 🔬 checked against `rel_BT`:
+0 of 69 security-area routes gone, 0 form fields gone, 0 tests dropped (3 renamed for the new layout).
 
 ## 2 · Mistakes to learn from (each one cited above)
 

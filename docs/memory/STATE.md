@@ -275,7 +275,10 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     (the 21 changed PHP files) · mutations `security-protections` 14/14 (re-run after the rename), `security-redesign` 25/25 · money gate
     **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 01:01 Baku).
     **✅ Part 3 LIVE on `rel_BV @ f426f449`** (V swap 2026-10-25 01:04 Baku, 12 ms; public checks 12/0/0; 1,485/1,485 files match git;
-    0 errors since). **Left: his look, signed in** — both Security pages; he signs in himself.
+    0 errors since). **✅ His look, signed in — F 2026-10-25 02:37 Baku: "its look good"** (`/app/security` on production; the owner
+    page cannot be seen there — production has 0 owner accounts). 🔬 Asked "i hope you didnt remove previous features": checked against
+    `rel_BT @ 4923e342` — 0 of the 69 security-area routes gone (77 now), every page route still has a form or button (2FA through the
+    panel's route prefix), 0 form fields gone, 0 test files deleted, 0 tests dropped (3 renamed for the new layout; 4,352 → 4,380).
 0w. **The one select engine, everywhere (2026-10-10)** — his approval ("the same sort of select and same sort of drop down in the
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled
