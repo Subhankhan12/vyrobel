@@ -5,7 +5,18 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BT` → commit `4923e342`** (the SIGNUP PASSWORD SHOW/HIDE pass — his request for the reveal on
+- **Live release `rel_BU` → commit `c763ff59`** (the SECURITY REDESIGN, Parts 1+2 — both Security pages on his design and one kit;
+  `HISTORY.md`, "SECURITY REDESIGN"). **V:** gates on the final code — **4,528/4,528 on MySQL 8.4.10** (34,049 assertions; 22:37–23:11
+  Baku) · **4,528/4,528 on MariaDB 11.8.9** (34,049; 23:12–23:33 Baku) — JUnit 0 failed, 0 errors, 0 skipped; the engine swap asked
+  (F: "Yes, swap") and checked (nothing on 3306, no advisor process); PHPStan L5 0 errors (106 s, a cleared cache); Pint clean; mutations
+  `security-redesign` 25/25, `security-five` 22/22, CB-M48 caught, all 1,085 anchors land; the money gate **FULL** `929 / 10928000 / 0 /
+  42 / 16 / 0`, digest unchanged (V 23:3x Baku). Deploy: stage — 22 files, nothing drifted, the additive migration run from the staged
+  release (12 ms); the read-only preflight on the host (PHP 8.4.26, MariaDB 11.8.9): the 12 views compile AND parse, the routes and column
+  in place, email sent **no**, **0 accounts with login approval on** (the review's M2 affects nobody), and 🔬 **the IP the app logs is the
+  visitor's** — a marked request from this Mac through the CDN logged the same address the server sees on this Mac's SSH connection (D-SX-IP's
+  measurement; yes/no only, no address printed); swap 2026-10-24 19:36:58 UTC (23:36 Baku), 5 ms; public checks **12/0/0**; 1,476/1,476
+  deployable files match git; 0 error-level lines since the swap — 11 warnings, all `security.refusal`, from the exposure battery; both
+  Security pages 302 → /login for anon. ⚠️ Not pushed (his rule). Rollback target: `rel_BT @ 4923e342`. Before it: **`rel_BT` → commit `4923e342`** (the SIGNUP PASSWORD SHOW/HIDE pass — his request for the reveal on
   `https://vyrobel.com/signup` too. The onboarding page (`auth/onboarding.blade.php`, `/signup` → `OnboardingController@create`) has
   two password inputs (Password + Confirm) in the non-social path; each is now wrapped in `.vy-input-wrap` with a `.vy-eye` button that
   toggles the type and swaps an open/closed eye icon. Self-contained view with vanilla JS (no Alpine), so it uses the auth-page
@@ -238,6 +249,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     fixed; ⚠️⚠️ login approval refused ON while email is not sent (it was a lockout waiting to happen — `OPEN.md` D-LOGIN-APPROVAL-MAIL).
     Refused as fabrication: a place name, "trusted locations", SMS, re-showing recovery codes, sample apps. **Part 3 next** (login alerts,
     session timeout, password last changed, login approval + approve-from-here on the back office) — drafted, not in the repo yet.
+    **✅ Parts 1+2 LIVE on `rel_BU @ c763ff59`** (V swap 2026-10-24 23:36 Baku; public checks 12/0/0; 0 errors since). Left: his look
+    (signed in) and Part 3.
 0w. **The one select engine, everywhere (2026-10-10)** — his approval ("the same sort of select and same sort of drop down in the
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled

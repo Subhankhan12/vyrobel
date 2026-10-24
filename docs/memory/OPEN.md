@@ -301,7 +301,9 @@ change is said.** Briefs live in `briefs/`.
   switch that does nothing (#39). Part 3 builds the alert behind it.
 - **D-SX-IP (the independent review, 2026-10-24; measured at the deploy):** the IP on the new "Sign-in blocked" card — and the one the Active
   sessions list has always shown — is `$request->ip()`; no trusted proxies are configured and production sits behind the `hcdn` CDN, so
-  whether it is the visitor's address or the edge's was never measured (`docs/THE-LOCK-2026-09-23.md:21`). The preflight reads it.
+  whether it is the visitor's address or the edge's was never measured (`docs/THE-LOCK-2026-09-23.md:21`). ✅ **Measured 2026-10-24 at the
+  deploy: it is the visitor's** — a marked request from this Mac, through the CDN, logged the same address the server sees on this Mac's SSH
+  connection (yes/no only). So the card shows it.
   ⚠️ The `login_activity` migration's docblock says "ACCESS: the platform /admin realm ONLY"; the card now shows a person the lockouts on
   THEIR OWN address (device, time — and the IP if it proves to be the visitor's). His call if that access should stay admin-only.
 - **D-SX-SCORE-APPROVAL (the independent review, 2026-10-24; low; Part 3 closes it):** once email is sent, the owner page offers login

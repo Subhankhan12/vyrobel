@@ -1541,6 +1541,13 @@ asked for (its two-group, label and dialog-count pins), `OperatorSecuritySession
 chip — still never "Protected" with two-factor off), `OwnerSecurityTest` 1/3 → 1/4, `LoginApprovalTest` (switch-on now needs email),
 `XShowInlineDisplayContractTest` ceiling 14 → 12. Mutations `security-redesign` 25/25, `security-five` 22/22 (8 re-aimed), CB-M48 caught;
 all 1,085 anchors land.
+Gates (the final code): **4,528/4,528 on MySQL 8.4.10** (22:37–23:11 Baku) and **4,528/4,528 on MariaDB 11.8.9** (23:12–23:33), 34,049
+assertions, JUnit 0 failed / 0 errors / 0 skipped; PHPStan L5 0 (106 s, cleared cache); Pint clean; money gate FULL unmoved. Committed
+`c763ff59`. **Deploy.** ✅ LIVE on `rel_BU @ c763ff59` (V: stage — 22 files, nothing drifted, the additive migration from the staged release,
+12 ms; the read-only preflight — views compile and parse on the host, 0 accounts with login approval on, email sent no, and 🔬 the logged IP
+is the visitor's (a marked request vs this Mac's SSH address, yes/no only); swap 2026-10-24 19:36:58 UTC, 5 ms; public checks 12/0/0;
+1,476/1,476 deployable files match git; 0 errors since — 11 warnings, all `security.refusal`, the battery). ⚠️ Not pushed (his rule).
+Rollback target: `rel_BT @ 4923e342`.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
