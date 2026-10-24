@@ -51,31 +51,34 @@ function sec5Src(string $view = 'views/livewire/operator/operator-security.blade
 
 // ── his report: the design ─────────────────────────────────────────────────────────────────────────────────────
 
-it('⚠️⚠️ lays the page out in two named groups of equal cards — no 560 px column beside full-width ones', function () {
+it('⚠️⚠️ lays the page out in three columns of the shared Security kit — no 560 px column beside full-width ones', function () {
+    // 2026-10-24 — his design replaced the two named groups (2026-10-05) with three columns, shared with the owner page;
+    // the defect this pinned (a narrow column beside full-width cards, the right half of the page empty) stays refused
     $s = seedScenario(1);
     $html = sec5Page($s);
 
-    expect($html)->toContain('<h2 class="vy-sec-group-title" id="vy-sec-signin-t">Signing in</h2>')
-        ->toContain('<h2 class="vy-sec-group-title" id="vy-sec-access-t">Devices and access</h2>');
+    expect($html)->toContain('<div class="vy-sx-cols">')
+        ->and(substr_count($html, '<div class="vy-sx-col">'))->toBe(3);
     expect(sec5Src())->not->toContain('max-width:560px')->not->toContain('max-width: 560px');
-    expect((string) file_get_contents(resource_path('views/components/layouts/operator.blade.php')))
-        ->toMatch('~\.vy-sec-grid \{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(\d+px, 1fr\)\)~');
+    expect((string) file_get_contents(resource_path('views/components/security/styles.blade.php')))
+        ->toMatch('~\.vy-sx-cols \{[^}]*grid-template-columns: repeat\(auto-fit, minmax\(min\(\d+px, 100%\), 1fr\)\)~');
 });
 
 it('labels Current password once', function () {
     $s = seedScenario(1);
 
     // 🖥 before: "CURRENT PASSWORD" printed twice above one box
-    expect(substr_count(sec5Page($s), '<label class="vy-field-label" for="vy-sec-cur">'))->toBe(1);
+    expect(substr_count(sec5Page($s), '<label class="vy-sx-label" for="vy-sec-cur">'))->toBe(1);
 });
 
-it('⚠️⚠️ opens every dialog centred on the shared solid card — never the undefined scrim with inline positioning', function () {
+it('⚠️⚠️ opens every dialog centred on the Security kit’s solid card — never the undefined scrim with inline positioning', function () {
     $src = sec5Src();
 
-    // 📖 before: class="vyp-scrim" (no CSS anywhere) + style="position:fixed;inset:0;…display:flex" beside x-show
+    // 📖 before (2026-10-05): class="vyp-scrim" (no CSS anywhere) + style="position:fixed;inset:0;…display:flex" beside x-show.
+    // Since 2026-10-24 every dialog is the kit's scrim + solid card, each scrim holding exactly one dialog panel.
     expect($src)->not->toContain('vyp-scrim')->not->toContain('position:fixed')
-        ->and(substr_count($src, 'class="vy-modal-backdrop"'))->toBe(5)
-        ->and(substr_count($src, 'class="vy-modal vy-modal-card'))->toBe(5);
+        ->and(substr_count($src, 'class="vy-sx-scrim"'))->toBeGreaterThanOrEqual(6)
+        ->and(substr_count($src, 'class="vy-sx-scrim"'))->toBe(substr_count($src, 'class="vy-sx-dialog"'));
 });
 
 it('⚠️ shows flashes in the shared AA classes, not hand-mixed colours', function () {
@@ -249,5 +252,5 @@ it('offers the export as choice tiles with visible labels — no native dropdown
 
     expect($src)->not->toContain('<select name="format"')->not->toContain('<select name="range"')
         ->toContain('<x-operator.choices name="format"')->toContain('<x-operator.choices name="range"')
-        ->toContain('<label class="vy-field-label" for="vy-sec-from">From</label>');
+        ->toContain('<label class="vy-sx-label" for="vy-sec-from">From</label>');
 });

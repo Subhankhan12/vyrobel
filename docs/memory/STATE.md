@@ -1,11 +1,22 @@
 # STATE — where Vyrobel stands right now
 
-**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the INBOX COMPOSER REFINEMENTS (2026-10-21); before it the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
+**Snapshot: 2026-09-29, live state read 13:41–13:55 Baku; updated by each pass since — last by the SECURITY REDESIGN pass (2026-10-24, Parts 1+2 of his approved plan); before it the SIGNUP PASSWORD SHOW/HIDE pass (2026-10-21); before it the INBOX COMPOSER REFINEMENTS (2026-10-21); before it the INBOX COMPOSER RESTYLE (2026-10-21); before it the INBOX THREAD-ACTIONS FIX (2026-10-21); before it the INBOX DESIGN POLISH pass (2026-10-21); before it the LOGIN PASSWORD SHOW/HIDE pass (2026-10-21); before it the SEARCH 500 HOTFIX (2026-10-21); before it the SEARCH DATE PICKER pass (2026-10-21); before it the SECURITY PASSWORD SHOW/HIDE pass (2026-10-21); before it the INSIGHTS DATE PICKER OVERLAP FIX (2026-10-21); before it the INSIGHTS DATE PICKER pass (2026-10-21); before it the CALENDAR ROOM-TYPE FILTER pass (2026-10-21); before it the FAVICON pass (2026-10-21); before it the MEMORY AND GITHUB pass (2026-10-10); before it THE ONE SELECT ENGINE pass (2026-10-10); before it THE VYROBEL SELECT pass (2026-10-10); before it the TOP BAR BELL pass (2026-10-09); before it the OWNER TOP BAR follow-up (2026-10-09); before it the SIDEBAR POSITION pass (2026-10-09); before it the ROLE SIGN-IN pass (2026-10-09); before it the GitHub and memory pass (2026-10-06), after the team chat pass went live** (first written 2026-09-27 by MEMORY 01).
 Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier record, not re-checked; source given) ·
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BS` → commit `432cdcbc`** (the INBOX COMPOSER REFINEMENTS — his "still need a lot of improvements, make it more
+- **Live release `rel_BT` → commit `4923e342`** (the SIGNUP PASSWORD SHOW/HIDE pass — his request for the reveal on
+  `https://vyrobel.com/signup` too. The onboarding page (`auth/onboarding.blade.php`, `/signup` → `OnboardingController@create`) has
+  two password inputs (Password + Confirm) in the non-social path; each is now wrapped in `.vy-input-wrap` with a `.vy-eye` button that
+  toggles the type and swaps an open/closed eye icon. Self-contained view with vanilla JS (no Alpine), so it uses the auth-page
+  `.vy-eye` + `data-toggle` pattern (as login/reset/forgot/set-password), the toggle JS added to the page's existing `<script>` (a safe
+  `querySelectorAll('.vy-eye[data-toggle]')` — zero elements on the social path, both otherwise). The strength meter and the
+  double-submit provisioning guard are untouched; the inputs keep name/autocomplete/required. No DB, no logic, no migration.
+  **V (hardened preflight):** the onboarding view COMPILES AND its compiled PHP TOKEN-PARSES on the host, two eye toggles
+  (password + password_confirmation), the toggle script and eye CSS present, both password fields keep their names; stage — 1 file,
+  nothing drifted, no migration; swap 2026-10-21 ~23:10 UTC, 4 ms; **the LIVE public page confirmed — `/signup` renders HTTP 200 and the
+  served HTML carries 12 `vy-eye` refs, 2 `data-toggle` buttons and the toggle script**; public checks **12/0/0**. ⚠️ Not pushed to
+  GitHub (his rule: push at the very end). Rollback target: `rel_BS @ 432cdcbc`. Before it: **`rel_BS` → commit `432cdcbc`** (the INBOX COMPOSER REFINEMENTS — his "still need a lot of improvements, make it more
   cool and user friendly" (he chose: keep refining the composer). Further to the composer card (`operator-inbox.blade.php`): the reply
   textarea now AUTO-GROWS with content — starts at one row, grows to a 180px cap then scrolls, and snaps back after a send (Alpine
   `grow(el)` bound to `@input`/`x-init`, reset on `$nextTick` after the body clears); the attach/image/mic tools are rounded tiles
@@ -217,6 +228,16 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
 `ADMIN-03B PROBE` · `SESSIONS-01 PROBE` · `SESSIONS-01-FD PROBE` · `TONIGHT01 PROBE` · `TONIGHT01B PROBE` · `PW-SIGNUP PROBE`.
 
 ## ⚠️ IN FLIGHT — started, not finished
+0x. **Security, both pages, on his design (2026-10-24)** — his screenshot of the `Owner Security.html` wireframe ("this is what is missing
+    inside our security page … color and most of important things"); the audit and a three-part plan posted; **F 2026-10-24: "Both pages
+    (Recommended)" and "All of it (Recommended)"** (two deploys: Parts 1+2, then 3). Parts 1+2 built (`HISTORY.md`, "SECURITY REDESIGN"):
+    `/app/security` and `/owner/security` on ONE kit (`x-security.*`, `App\Support\Security\{SecurityScore,SecurityOverview,SignInProblems}`)
+    — the score ring derived from real settings (one rule for both pages), the warm cards, three columns, compact rows whose forms open in
+    centred dialogs, a real "Sign-in blocked" card from the sign-in log with "This was me" (`users.security_alerts_seen_at`, additive),
+    recovery codes left; the owner page's near-invisible password boxes and its one-error-under-five-fields (D-OWNER-SEC-ERRORS, 🔬 5×)
+    fixed; ⚠️⚠️ login approval refused ON while email is not sent (it was a lockout waiting to happen — `OPEN.md` D-LOGIN-APPROVAL-MAIL).
+    Refused as fabrication: a place name, "trusted locations", SMS, re-showing recovery codes, sample apps. **Part 3 next** (login alerts,
+    session timeout, password last changed, login approval + approve-from-here on the back office) — drafted, not in the repo yet.
 0w. **The one select engine, everywhere (2026-10-10)** — his approval ("the same sort of select and same sort of drop down in the
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled

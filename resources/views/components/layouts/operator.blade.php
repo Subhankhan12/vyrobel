@@ -1510,13 +1510,6 @@
         .vy-field-label { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--vy-muted); display: block; margin-bottom: 6px; }
         .vy-input-group { display: flex; gap: 8px; align-items: stretch; }
         .vy-input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: var(--vy-r-sm); border: 1px solid var(--vy-glass-border); background: rgba(255, 255, 255, 0.75); font-family: var(--vy-sans); font-size: 13.5px; color: var(--vy-ink); }
-
-        /* Password field with a show/hide eye toggle (x-password-field). The eye sits inside the input's right edge. */
-        .vy-pw { position: relative; display: flex; width: 100%; }
-        .vy-pw .vy-pw-input { width: 100%; padding-right: 42px; }
-        .vy-pw-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: transparent; color: var(--vy-muted); cursor: pointer; border-radius: var(--vy-r-sm); transition: color .14s ease, background .14s ease; }
-        .vy-pw-eye:hover { color: var(--vy-accent-text); background: rgba(194, 65, 12, .08); }
-        .vy-pw-eye:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
         .vy-input:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 1px; }
         .vy-action-list { display: flex; flex-direction: column; gap: 8px; }
         .vy-action-list .vy-defer-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--vy-muted); padding: 8px 0; border-bottom: 1px solid var(--vy-hairline); }
@@ -2670,73 +2663,6 @@
             .vy-ul-reveal { margin: 0 18px 16px; }
         }
 
-        /* ── Security (2026-10-05, his "this page design is not good") — one header, then two named groups of equal cards
-           (Signing in · Devices and access) and your data. 🖥 Before: a 560 px column beside full-width cards, the right half
-           of the page empty, 101 inline styles. The shared two-factor and passkey cards keep their own inner styles (the owner
-           page renders them too); here they are grid items like the rest. ⚠️ Every display is in a class. ─────────────── */
-        .vy-sec-hero { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px 28px; padding: 22px 24px; }
-        .vy-sec-hero-id { display: flex; align-items: center; gap: 16px; flex: 1 1 300px; min-width: 0; }
-        .vy-sec-shield { flex: none; width: 54px; height: 54px; border-radius: 17px; display: grid; place-items: center; color: #fff; }
-        .vy-sec-shield.is-ok { background: linear-gradient(140deg, #3F8F5E, #23683F); box-shadow: 0 10px 22px rgba(35, 104, 63, 0.3); }
-        .vy-sec-shield.is-warn { background: linear-gradient(140deg, #E8703A, #C2410C); box-shadow: 0 10px 22px rgba(194, 65, 12, 0.32); }
-        .vy-sec-hero-text { min-width: 0; }
-        .vy-sec-state { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 7px; padding: 3px 11px 3px 9px; border-radius: var(--vy-r-pill); font-size: 11.5px; font-weight: 600; }
-        /* (the inks measured against their own washes: green 5.75, amber 5.39 — the badge's first colours were under AA) */
-        .vy-sec-state.is-ok { background: rgba(26, 127, 75, 0.1); color: rgb(18, 99, 58); }
-        .vy-sec-state.is-warn { background: rgba(178, 106, 8, 0.12); color: rgb(133, 76, 4); }
-        .vy-sec-state-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-        .vy-sec-title { margin: 0; font-family: var(--vy-display); font-size: 20px; font-weight: 600; letter-spacing: -.02em; color: var(--vy-ink); }
-        .vy-sec-sub { margin: 3px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--vy-on-grad); }
-        .vy-sec-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; flex: 1.4 1 420px; }
-        .vy-sec-tile { display: flex; flex-direction: column; align-items: flex-start; padding: 13px 14px; border-radius: 15px; background: rgba(255, 255, 255, 0.55); border: 1px solid var(--vy-hairline); color: inherit; text-decoration: none; transition: background .15s ease, box-shadow .15s ease, transform .15s ease; }
-        .vy-sec-tile:hover { background: rgba(255, 255, 255, 0.85); box-shadow: var(--vy-shadow-sm); transform: translateY(-2px); }
-        .vy-sec-tile:focus-visible { outline: 2px solid var(--vy-accent); outline-offset: 2px; }
-        .vy-sec-tile-ico { width: 28px; height: 28px; margin-bottom: 9px; border-radius: 9px; display: grid; place-items: center; background: rgba(217, 102, 46, 0.12); color: var(--vy-accent-text); }
-        .vy-sec-tile-n { font-family: var(--vy-display); font-size: 22px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; color: var(--vy-ink); }
-        .vy-sec-tile-l { margin-top: 4px; font-size: 11.5px; color: var(--vy-on-grad); }
-        .vy-sec-group { margin-top: 26px; }
-        .vy-sec-group-title { margin: 0 0 12px; font-family: var(--vy-display); font-size: 17px; font-weight: 600; color: var(--vy-ink); }
-        .vy-sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }
-        .vy-sec-grid > .vy-card { min-width: 0; margin: 0; }
-        /* the tall password card beside two-factor and passkeys, the sign-in accounts across below — no stretched empty card */
-        .vy-sec-grid--signin > #sec-password { grid-row: span 2; }
-        .vy-sec-grid--signin > #sec-connections { grid-column: 1 / -1; }
-        .vy-sec-card { display: flex; flex-direction: column; }
-        .vy-sec-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-        .vy-sec-card-title { margin: 0 0 4px; font-family: var(--vy-display); font-size: 15px; font-weight: 600; color: var(--vy-ink); }
-        .vy-sec-card-sub { margin: 0 0 12px; font-size: 12.5px; line-height: 1.5; color: var(--vy-on-grad); }
-        /* a label that wraps (🖥 "Confirm new password" at 1,024 px) keeps the two boxes level */
-        .vy-sec-form .vy-gl-fields { margin-bottom: 0; align-items: end; }
-        .vy-sec-hint { margin: 0 0 14px; }
-        .vy-sec-list { margin: 0; padding: 0; list-style: none; }
-        .vy-sec-row, .vy-sec-empty { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-top: 1px solid var(--vy-hairline); }
-        .vy-sec-empty { flex-direction: column; align-items: flex-start; gap: 2px; }
-        .vy-sec-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .vy-sec-row-title { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--vy-ink); overflow-wrap: anywhere; }
-        .vy-sec-empty .vy-sec-row-title { font-weight: 500; }
-        .vy-sec-row-meta { font-size: 12px; line-height: 1.45; color: var(--vy-on-grad); overflow-wrap: anywhere; }
-        .vy-sec-mono { font-variant-numeric: tabular-nums; letter-spacing: .01em; }
-        .vy-sec-this { font-size: 10px; }
-        .vy-sec-small { padding: 7px 13px; font-size: 12.5px; white-space: nowrap; }
-        .vy-sec-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 12px; }
-        .vy-sec-why { max-width: 260px; text-align: right; }
-        .vy-sec-why p { margin: 6px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--vy-on-grad); }
-        .vy-sec-inline { margin: 0 0 10px; font-size: 12.5px; font-weight: 500; }
-        .vy-sec-inline.is-ok { color: rgb(34, 110, 68); }
-        .vy-sec-inline.is-err { color: #8F3110; }
-        .vy-sec-data { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-top: 26px; }
-        .vy-sec-data .vy-sec-card-sub { margin-bottom: 0; }
-        .vy-sec-dlg { max-width: 460px; }
-        .vy-sec-dlg .vy-modal-body > .vy-gl-note:first-child { margin-top: 0; }
-        @media (max-width: 900px) {
-            .vy-sec-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); flex-basis: 100%; }
-        }
-        @media (max-width: 560px) {
-            .vy-sec-hero { padding: 18px; }
-            .vy-sec-grid { grid-template-columns: minmax(0, 1fr); }
-            .vy-sec-row { flex-wrap: wrap; }
-            .vy-sec-why { max-width: none; text-align: left; }
-        }
 
         @media (max-width: 1100px) {
             .vy-gl-search { flex-basis: 100%; }

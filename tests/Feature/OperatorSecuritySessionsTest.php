@@ -37,17 +37,22 @@ it('renders the real active-sessions panel with the user’s sessions, not a Soo
 // account with two-factor OFF was told it was protected. On an auth page that is a safety CLAIM, not
 // decoration (the same class as the hardcoded "Verified" badge the finish-to-100 pass removed from Owners).
 // It is now derived from $twoFactor['state']; this proves it genuinely flips, in BOTH directions.
-it('derives the account-security badge from the REAL two-factor state, never a fixed “Protected”', function () {
+// ⚠️ 2026-10-24 — his design replaced the badge with the score's tier (App\Support\Security\SecurityScore) and the two-factor
+// row's own On / Off chip. The ruling this pins is unchanged: with two-factor OFF nothing on the page claims protection.
+it('derives the account-security state from the REAL two-factor state, never a fixed “Protected”', function () {
     $s = seedScenario(1);
     $manager = operatorUser($s, [], 'Hotel Manager');
 
-    // 2FA OFF (the seeded default) → the badge must NOT claim protection.
+    // 2FA OFF (the seeded default) → nothing claims protection, and the row says Off.
     expect($manager->hasTwoFactorEnabled())->toBeFalse();
     $this->actingAs($manager)->get(route('app.security'))->assertOk()
-        ->assertSee('Two-factor off')
-        ->assertDontSee('Protected');
+        ->assertSee('<span class="vy-sx-chip is-quiet">Off</span>', false)
+        ->assertSee('<span class="vy-sx-tier">Basic</span>', false)
+        ->assertSee('Turn on two-factor to strengthen your account.')
+        ->assertDontSee('Protected')
+        ->assertDontSee('<span class="vy-sx-tier">Strong</span>', false);
 
-    // Turn 2FA genuinely ON (the real columns the panel reads) → the badge flips to Protected.
+    // Turn 2FA genuinely ON (the real columns the panel reads) → the row says On and the tier moves up.
     $manager->forceFill([
         'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
         'two_factor_recovery_codes' => encrypt(json_encode(['aaaa-bbbb'])),
@@ -56,6 +61,7 @@ it('derives the account-security badge from the REAL two-factor state, never a f
     expect($manager->fresh()->hasTwoFactorEnabled())->toBeTrue();
 
     $this->actingAs($manager->fresh())->get(route('app.security'))->assertOk()
-        ->assertSee('Protected')
-        ->assertDontSee('Two-factor off');
+        ->assertSee('<span class="vy-sx-chip">On</span>', false)
+        ->assertSee('<span class="vy-sx-tier">Good</span>', false)
+        ->assertDontSee('<span class="vy-sx-chip is-quiet">Off</span>', false);
 });

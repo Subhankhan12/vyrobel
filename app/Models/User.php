@@ -41,6 +41,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Carbon|null $last_login_at the `datetime` cast makes this a Carbon at runtime
  * @property string|null $avatar_path relative path on the `public` disk of the user's own avatar
  * @property string|null $pending_email a login-email change parked here until the signed verify link is opened
+ * @property Carbon|null $security_alerts_seen_at when "This was me" last cleared the Security page's sign-in warning
  */
 #[Fillable(['name', 'preferred_name', 'email', 'phone', 'password', 'locale', 'timezone', 'avatar_path', 'status', 'two_factor_enabled', 'require_login_approval', 'quiet_hours_start', 'quiet_hours_end', 'last_login_at', 'compact_density', 'onboarding_tips', 'reduce_motion', 'date_format'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
@@ -95,6 +96,7 @@ class User extends Authenticatable implements MustVerifyEmail, OAuthenticatable
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'security_alerts_seen_at' => 'datetime',
         ];
     }
 

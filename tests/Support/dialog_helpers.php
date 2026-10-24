@@ -41,6 +41,7 @@ function vyDialogCensus(): array
             $isBackdrop = str_contains($attrs, 'vy-modal-backdrop')
                 || str_contains($attrs, 'vyp-scrim')
                 || str_contains($attrs, 'vy-fdm-overlay')
+                || str_contains($attrs, 'vy-sx-scrim')            // the Security kit's dialogs (2026-10-24)
                 || (str_contains($style, 'position: fixed') && str_contains($style, 'z-index') && str_contains($style, 'inset'));
 
             if (! $isBackdrop || ! preg_match('/x-show="([^"]*)"/', $attrs, $show)) {

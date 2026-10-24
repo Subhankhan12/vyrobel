@@ -595,6 +595,24 @@ All lines: (Reported: docs/KNOWN-LIMITS.md, date shown). Status words are the do
   (`tests/Support/random_token_helpers.php`), which blanks those values ONLY. ⚠️ Never blank the whole `wire:snapshot`: its data is
   what reaches the browser, and a leak through a component property hides there.
 
+- **A class name in a stylesheet that ships with the page is on every page.** The Security kit's sheet holds `.vy-sx-alert`, so
+  `not->toContain('vy-sx-alert')` failed with no card and `toContain` passed with none (the targeted run, 2026-10-24). Assert the element
+  (`<section class="vy-sx-alert`). The instrument read its own needle — in CSS this time.
+- **Fired again: a test that posts a form's marker by hand cannot see the marker removed.** `_form` typed into the request kept SX-M21 green
+  with the owner sign-out dialog's marker deleted; the test now posts the hidden fields read from the rendered form (`sxHidden()`).
+- **Fired again: zsh does not split `$FILES`.** A queued run would have passed 39 paths as one; caught before it ran — the list is now a bash
+  array in a script.
+- **The busy check cannot tell projects apart (`OPEN.md` A7) — read the other run's connection before waiting on it.** `restiox/admin`'s
+  phpunit talks to its own MySQL on 3310 (`lsof -a -p <pid> -iTCP`); with nothing connected to 3306, our run may start beside it. The
+  harness's own check still refuses, and is never weakened (2026-10-24, after he asked why work had stopped).
+- **A `position: fixed` dialog inside an element with `backdrop-filter` (or a transform) is placed in that element, not the window.** The
+  Security cards are glass; every dialog lives at the page root (2026-10-24).
+- **A protection that depends on email is a lockout while email is discarded.** Login approval held a new device's sign-in for an emailed
+  link, and production's mailer is `log`; the switch now refuses ON unless `MailSafetyGuard::sendingNow()`. Before any feature says it
+  protects someone, ask what happens when its channel is off (D-LOGIN-APPROVAL-MAIL, 2026-10-24).
+- **`aria-label` must contain the words on the button (WCAG 2.5.3).** "Enable" labelled "Add a passkey" hid its own word from voice control;
+  the name is now "Enable: Add a passkey" (the independent review, 2026-10-24).
+
 
 ---
 

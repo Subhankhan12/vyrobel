@@ -1,289 +1,415 @@
-{{-- Owner "SECURITY" (owner account area · Gate 2). Per-USER (auth-resolved) — password, 2FA, real active
-     sessions, data export; the ONE primary-owner-only action is Deactivate (#42). Real state only — the
-     score + protection list are a REAL /100 DERIVED from true protections (never fabricated); deferred items are honest "Soon". Writes are controller POSTs.
-     RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
+{{-- Owner "SECURITY" — the acting login's OWN security (per USER, so accountant/view-only sub-users manage their own). Real
+     state only: password, two-factor with its recovery codes, passkeys, login approval, trusted devices, the REAL sessions
+     table, connected apps (OAuth #72), a data export; the ONE primary-owner-only action is Deactivate (#42). Every write is a
+     controller POST, never a Livewire action.
+
+     ⚠️⚠️ 2026-10-24 — REBUILT ON HIS DESIGN, and SHARED with the back office's page: the score is
+     App\Support\Security\SecurityScore (one rule for both pages — this page scored three protections and the other none), the
+     kit is x-security.*, and what both pages show about the person is App\Support\Security\SecurityOverview.
+     🖥 Before: one long column; every password box 184 px wide, 70% white with a white border on a white card; one wrong
+     password printed under all six password fields (D-OWNER-SEC-ERRORS). Now each password form opens in its own dialog,
+     marked with `_form`, and its error shows there, once.
+     ⚠️ Login approval switches ON only while email really goes out: its approval link is an email, and a sign-in held for a
+     link nobody receives cannot be finished. Switching it OFF is always allowed.
+
+     ⚠️ Every dialog sits at this root, outside the cards: a card's backdrop blur makes it the box a fixed dialog is placed in.
+     RAW-BLADE RULE: every `@` follows a space, newline, tag, quote or bracket. --}}
 @php
-    $lbl = 'display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--vy-faint);margin-bottom:7px;';
-    $h2 = 'font-family:var(--vy-display);font-size:15px;font-weight:600;margin:0 0 4px;';
-    $sub = 'font-size:12.5px;color:var(--vy-muted);margin:0 0 16px;';
-    $err = 'font-size:11.5px;color:var(--vy-accent-text);display:block;margin-top:5px;';
-    $btn = 'background:var(--vy-grad);color:#fff;padding:11px 22px;';
-    $ghost = 'background:rgba(255,255,255,.6);border:1px solid var(--vy-glass-border);color:var(--vy-ink);padding:9px 16px;';
+    $tiles = [
+        ['icon' => 'shield', 'n' => $score['on'].'/'.$score['total'], 'label' => 'Protections on', 'href' => '#sx-boost'],
+        ['icon' => 'plus', 'n' => $score['available'], 'label' => 'Points available', 'href' => '#sx-boost'],
+        ['icon' => 'device', 'n' => count($trusted), 'label' => 'Trusted devices', 'href' => '#sx-approval'],
+        ['icon' => 'apps', 'n' => count($connectedApps), 'label' => 'Connected apps', 'href' => '#sx-apps'],
+    ];
+    $pwFirst = ! $hasPassword && session()->has('password_status');
 @endphp
-<div>
+<div class="vy-sx" x-data="{ pwOpen: @js($errored === 'password' || $pwFirst), tfOff: @js($errored === '2fa-off'), pkRemove: @js($pkErrored), signOutOpen: @js($errored === 'signout'), revokeId: @js($erroredDevice), appRevoke: @js($erroredApp), approvalOpen: @js($errored === 'approval'), deactivateOpen: @js($errored === 'deactivate') }">
     <x-owner.shell active="security" title="Security" :viewer="$viewer">
+        <x-security.styles />
 
-        @if (session('owner_notice'))
-            <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px;">
-                <div style="font-size:13.5px;color:var(--vy-ink);">{{ session('owner_notice') }}</div>
-            </div>
-        @endif
-        @if (session('password_status'))
-            <div class="vy-card vy-fade" style="border-left:3px solid var(--vy-accent);margin-bottom:16px;">
-                <div style="font-size:13.5px;color:var(--vy-ink);">{{ session('password_status') }}</div>
-            </div>
-        @endif
-
-        {{-- ══ Account security score — a REAL score DERIVED from true protections (password 40 + 2FA 40 +
-             recovery 20 = /100), never a fabricated number. The 4 stats + Boost are all real (#39). ═══════ --}}
-        @php $circ = 326.726; $ringOffset = $circ * (1 - min(100, max(0, $score['num'])) / 100); @endphp
-        <div class="vy-card vy-fade" style="margin-bottom:16px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:18px;flex:1;min-width:280px;">
-                <div style="position:relative;width:112px;height:112px;flex-shrink:0;">
-                    <svg width="112" height="112" viewBox="0 0 120 120">
-                        <defs><linearGradient id="vysecGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F0A57A"/><stop offset="1" stop-color="#C2410C"/></linearGradient></defs>
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(120,70,40,.12)" stroke-width="10"/>
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="url(#vysecGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="{{ $circ }}" stroke-dashoffset="{{ $ringOffset }}" transform="rotate(-90 60 60)"/>
-                    </svg>
-                    <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-                        <span style="font-family:var(--vy-display);font-weight:600;font-size:29px;line-height:1;color:var(--vy-ink);font-variant-numeric:tabular-nums;">{{ $score['num'] }}</span>
-                        <span style="font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--vy-faint);margin-top:3px;">of 100</span>
-                    </div>
-                </div>
-                <div style="min-width:0;">
-                    <div style="display:inline-flex;align-items:center;gap:7px;padding:3px 11px 3px 9px;border-radius:30px;background:linear-gradient(rgba(217,102,46,.12),rgba(217,102,46,.12)),rgba(255,252,248,.92);margin-bottom:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--vy-accent);box-shadow:0 0 0 3px rgba(232,112,58,.18);"></span><span style="font-size:11px;font-weight:600;color:#B4400F;">{{ $score['tier'] }}</span></div>
-                    <div style="font-family:var(--vy-display);font-weight:600;font-size:20px;letter-spacing:-.02em;line-height:1.15;">Account security</div>
-                    <div style="font-size:12.5px;color:var(--vy-muted);margin-top:3px;max-width:340px;line-height:1.45;">{{ $score['caption'] }}</div>
-                </div>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1.4;min-width:320px;">
-                @php $stat = 'display:flex;flex-direction:column;align-items:flex-start;padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.55);border:1px solid var(--vy-hairline);box-sizing:border-box;'; $statv = 'font-family:var(--vy-display);font-weight:600;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1;'; $statl = 'font-size:11px;color:var(--vy-muted);margin-top:4px;'; @endphp
-                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['on'] }}/{{ $score['total'] }}</span><span style="{{ $statl }}">Protections on</span></div>
-                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['to_full'] }}</span><span style="{{ $statl }}">Points to full</span></div>
-                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['sessions'] }}</span><span style="{{ $statl }}">Active sessions</span></div>
-                <div style="{{ $stat }}"><span style="{{ $statv }}">{{ $score['two_factor'] ? 'On' : 'Off' }}</span><span style="{{ $statl }}">Two-factor</span></div>
-            </div>
-        </div>
-
-        {{-- ══ Boost your score — the REAL remaining protections; "Enable" jumps to the real control ══════ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Boost your score</h2>
-            <p style="{{ $sub }}">{{ $score['on'] }} of {{ $score['total'] }} protections on.</p>
-            @if (count($score['boost']) > 0)
-                <div style="display:flex;flex-direction:column;gap:8px;">
-                    @foreach ($score['boost'] as $b)
-                        <div style="display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:14px;background:rgba(255,255,255,.5);border:1px solid var(--vy-glass-border);">
-                            <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:500;color:var(--vy-ink);">{{ $b['label'] }}</span><span style="display:block;font-size:11.5px;color:var(--vy-muted);margin-top:1px;">{{ $b['desc'] }}</span></span>
-                            <span style="font-size:11.5px;font-weight:600;color:#B4400F;flex-shrink:0;">{{ $b['pts'] }}</span>
-                            <a href="#two-factor" class="vy-btn" style="{{ $btn }}padding:7px 14px;font-size:12px;text-decoration:none;flex-shrink:0;">Enable</a>
-                        </div>
-                    @endforeach
-                </div>
-            @else
-                <div style="padding:13px 16px;border-radius:14px;background:rgba(217,102,46,.1);border:1px solid rgba(232,112,58,.28);display:flex;align-items:center;gap:11px;">
-                    <span style="width:30px;height:30px;border-radius:50%;background:var(--vy-grad);color:#fff;display:grid;place-items:center;flex-shrink:0;">✓</span>
-                    <span style="font-size:13px;font-weight:500;color:#B4400F;">All protections are on — your account is fully secured.</span>
-                </div>
+        @foreach (['owner_notice', 'password_status', 'security_notice'] as $flash)
+            @if (session($flash))
+                <div class="vy-sx-flash is-ok" role="status">{{ session($flash) }}</div>
             @endif
-        </div>
+        @endforeach
+        @if (session('security_error'))
+            <div class="vy-sx-flash is-err" role="alert">{{ session('security_error') }}</div>
+        @endif
+        @if ($errors->any() && $errored === null)
+            <div class="vy-sx-flash is-err" role="alert">{{ $errors->first() }}</div>
+        @endif
 
-        {{-- ══ Change password — self-only, current-password-verified ══════════════════════════════════ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Change password</h2>
-            <p style="{{ $sub }}">Enter your current password to confirm it’s you. Other devices with “remember me” are signed out.</p>
-            <form method="POST" action="{{ route('owner.security.password') }}">
-                @csrf
-                <div style="display:grid;gap:14px;max-width:380px;">
-                    {{-- ⚠️⚠️ THE SET-A-PASSWORD PATH IS THIS SAME CARD. An account with no password has nothing to
-                     confirm with — `Hash::check(x, null)` is false — so demanding a current password would make
-                     setting a FIRST one impossible and the lockout permanent. The field is omitted only in that
-                     case; for every account that HAS a password it is required exactly as before, and the
-                     controller enforces the same split rather than trusting this view. --}}
-                    @if (auth()->user()?->hasPassword())
-                        <div>
-                            <label style="{{ $lbl }}" for="cur_pw">Current password</label>
-                            <input id="cur_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" required>
-                            @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
+        <x-security.hero :score="$score" :tiles="$tiles" />
+
+        <div class="vy-sx-cols">
+            {{-- ══ LEFT — signing in ══════════════════════════════════════════════════════════════════════════════ --}}
+            <div class="vy-sx-col">
+                <x-security.problems :problems="$problems" seen-route="owner.security.alerts.seen" secure="pwOpen = true" />
+
+                <section class="vy-sx-card vy-sx-in" id="sx-signin" aria-labelledby="vy-sx-signin-t">
+                    <h2 class="vy-sx-card-title" id="vy-sx-signin-t">Signing in</h2>
+                    <p class="vy-sx-card-sub">How you prove it’s you. @if ($lastLogin) Last sign-in {{ $lastLogin->diffForHumans() }}. @endif</p>
+
+                    {{-- ⚠️⚠️ THE SET-A-PASSWORD PATH IS THIS SAME ROW: with no password there is nothing to confirm with, so the
+                         dialog omits the current-password field only then, and the controller enforces the same split. --}}
+                    <div class="vy-sx-block" id="sx-password">
+                        <div class="vy-sx-row">
+                            <div class="vy-sx-row-main">
+                                <h3 class="vy-sx-row-title">Password</h3>
+                                <span class="vy-sx-row-meta">{{ $hasPassword ? 'A long passphrase you don’t use anywhere else.' : 'No password yet — set one to sign in with your email address.' }}</span>
+                            </div>
+                            <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="pwOpen = true">{{ $hasPassword ? 'Change' : 'Set password' }}</button>
                         </div>
-                    @else
-                        <p style="font-size: 12.5px; color: var(--vy-muted); margin: 0;">Your account does not have a password yet. Set one below — you will be asked for it when confirming sensitive changes.</p>
+                    </div>
+
+                    @include('livewire.partials.two-factor-panel')
+
+                    {{-- PASSKEYS — the shared card (D24-2): one ceremony for both realms; only the route names differ --}}
+                    <x-auth.passkeys :passkeys="$passkeys" options-route="owner.security.passkeys.options" store-route="owner.security.passkeys.store" />
+                </section>
+            </div>
+
+            {{-- ══ MIDDLE — the score, your data, deactivate ═════════════════════════════════════════════════════════ --}}
+            <div class="vy-sx-col">
+                <x-security.boost :score="$score" />
+
+                {{-- YOUR DATA — a REAL owner-scoped export (#28) --}}
+                <section class="vy-sx-card vy-sx-in" id="sx-data" aria-labelledby="vy-sx-data-t">
+                    <h2 class="vy-sx-card-title" id="vy-sx-data-t">Data &amp; privacy</h2>
+                    <p class="vy-sx-card-sub">Download a copy of your data — your profile plus the statements, payouts and units your account covers.</p>
+                    <div class="vy-sx-alert-acts">
+                        <a href="{{ route('owner.security.export') }}" class="vy-sx-btn vy-sx-btn--soft"><x-security.icon name="download" /> Request my data</a>
+                    </div>
+                </section>
+
+                {{-- DEACTIVATE — PRIMARY-OWNER-ONLY, reversible and non-destructive --}}
+                @if ($isPrimaryOwner)
+                    <section class="vy-sx-card vy-sx-in" id="sx-deactivate" aria-labelledby="vy-sx-deact-t">
+                        <h2 class="vy-sx-card-title" id="vy-sx-deact-t">Deactivate account</h2>
+                        <p class="vy-sx-card-sub">Pause your portal access. Your statements and payout history are <strong>kept</strong> — nothing is deleted. To reactivate, contact your management team.</p>
+                        <div class="vy-sx-alert-acts">
+                            <button type="button" class="vy-sx-btn vy-sx-btn--line" @click="deactivateOpen = true"><x-security.icon name="pause" /> Deactivate</button>
+                        </div>
+                    </section>
+                @endif
+            </div>
+
+            {{-- ══ RIGHT — sign-in protection, sessions, apps ═══════════════════════════════════════════════════════ --}}
+            <div class="vy-sx-col">
+                <section class="vy-sx-card vy-sx-in" id="sx-approval" aria-labelledby="vy-sx-prot-t">
+                    <h2 class="vy-sx-card-title" id="vy-sx-prot-t">Sign-in protection</h2>
+
+                    {{-- LOGIN APPROVAL — a REAL hold on new devices; switching it re-asks for the password --}}
+                    <div class="vy-sx-row">
+                        <div class="vy-sx-row-main">
+                            <h3 class="vy-sx-row-title">Login approval requests</h3>
+                            <span class="vy-sx-row-meta">A new device waits until you approve it from a link we email you. A trusted device skips this.</span>
+                        </div>
+                        @if (! $approval['on'] && ! $approval['available'])
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="false" aria-label="Login approval requests" aria-disabled="true" aria-describedby="vy-sx-approval-why"></button>
+                        @else
+                            <button type="button" class="vy-sx-switch" role="switch" aria-checked="{{ $approval['on'] ? 'true' : 'false' }}" aria-label="Login approval requests" @click="approvalOpen = true"></button>
+                        @endif
+                    </div>
+                    @if (! $approval['available'])
+                        <p class="vy-sx-note is-warn" id="vy-sx-approval-why">
+                            @if ($approval['on'])
+                                Email isn’t being sent from Vyrobel yet, so a new device can’t be approved. Turn this off, or sign in only from a trusted device.
+                            @else
+                                Email isn’t being sent from Vyrobel yet, so an approval link couldn’t reach you. This stays off until it is.
+                            @endif
+                        </p>
                     @endif
-                    <div>
-                        <label style="{{ $lbl }}" for="new_pw">New password</label>
-                        <input id="new_pw" type="password" name="password" class="vy-input" autocomplete="new-password" required>
-                        @error('password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                        <span style="font-size:11px;color:var(--vy-faint);">{{ \App\Support\Auth\PasswordPolicy::hint() }}</span>
-                    </div>
-                    <div>
-                        <label style="{{ $lbl }}" for="conf_pw">Confirm new password</label>
-                        <input id="conf_pw" type="password" name="password_confirmation" class="vy-input" autocomplete="new-password" required>
-                    </div>
-                </div>
-                <div style="margin-top:16px;display:flex;justify-content:flex-end;">
-                    <button type="submit" class="vy-btn" style="{{ $btn }}">Update password</button>
-                </div>
-            </form>
-        </div>
 
-        {{-- ══ Two-factor — REAL TOTP (shared panel; posts to owner.security.2fa.*) ═════════════════════ --}}
-        <div id="two-factor">
-            @include('livewire.partials.two-factor-panel')
-        </div>
-
-        {{-- ══ Active sessions — the REAL sessions table; "sign out others" re-auths with the password ══ --}}
-        <div class="vy-card vy-fade" style="margin:16px 0;">
-            <h2 style="{{ $h2 }}">Active sessions</h2>
-            <p style="{{ $sub }}">Where you’re signed in right now.
-                @if ($lastLogin) Last sign-in {{ $lastLogin->diffForHumans() }}. @endif
-            </p>
-            <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:16px;">
-                @forelse ($sessions as $s)
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--vy-hairline);">
-                        <div>
-                            <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">
-                                {{ $s['device'] }}
-                                @if ($s['current']) <span style="font-size:10.5px;font-weight:600;color:var(--vy-green-text);background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
-                            </div>
-                            <div style="font-size:11.5px;color:var(--vy-muted);">{{ $s['ip'] }} · active {{ $s['last_active']->diffForHumans() }}</div>
+                    {{-- TRUSTED DEVICES — REAL skip-2FA devices; remove re-asks for the password --}}
+                    <div class="vy-sx-row">
+                        <div class="vy-sx-row-main">
+                            <h3 class="vy-sx-row-title">Trusted devices</h3>
+                            <span class="vy-sx-row-meta">Skip the two-factor code at sign-in. Tick “Trust this device” at the code screen to add the one you’re on.</span>
                         </div>
                     </div>
-                @empty
-                    <div style="font-size:13px;color:var(--vy-muted);">No active sessions recorded.</div>
-                @endforelse
-            </div>
-            <form method="POST" action="{{ route('owner.security.sessions.signout') }}" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;">
-                @csrf
-                <div>
-                    <label style="{{ $lbl }}" for="so_pw">Confirm your password to sign out other sessions</label>
-                    <input id="so_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" style="max-width:240px;">
-                    @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                </div>
-                <button type="submit" class="vy-btn" style="{{ $ghost }}margin-top:26px;">Sign out all other sessions</button>
-            </form>
-        </div>
-
-        {{-- ══ Trusted devices (Wave B · GATE 4) — REAL skip-2FA devices; remove re-auths with the password ══ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Trusted devices</h2>
-            <p style="{{ $sub }}">Browsers you’ve chosen to trust skip the two-factor code at sign-in. Remove any you don’t recognise — it’ll need a code again next time. Tick “Trust this device” at the code screen to add the one you’re on.</p>
-            @if (count($trustedDevices) > 0)
-                <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px;">
-                    @foreach ($trustedDevices as $d)
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--vy-hairline);">
-                            <div>
-                                <div style="font-size:13.5px;font-weight:500;color:var(--vy-ink);">
-                                    {{ $d['label'] }}
-                                    @if ($d['current']) <span style="font-size:10.5px;font-weight:600;color:var(--vy-green-text);background:rgba(34,120,60,.12);border-radius:20px;padding:2px 9px;margin-left:6px;">This device</span> @endif
+                    <ul class="vy-sx-sub-rows">
+                        @forelse ($trusted as $d)
+                            <li class="vy-sx-item">
+                                <span class="vy-sx-ico"><x-security.icon name="device" /></span>
+                                <div class="vy-sx-row-main">
+                                    <span class="vy-sx-row-title">{{ $d['label'] }}@if ($d['current']) <span class="vy-sx-chip is-ok">This device</span>@endif</span>
+                                    <span class="vy-sx-row-meta">{{ $d['ip'] !== '' ? $d['ip'].' · ' : '' }}last used {{ $d['last_used'] ?? '—' }} · trust expires {{ $d['expires'] ?? '—' }}</span>
                                 </div>
-                                <div style="font-size:11.5px;color:var(--vy-muted);">@if ($d['ip']){{ $d['ip'] }} · @endif last used {{ $d['last_used'] }} · trust expires {{ $d['expires'] }}</div>
-                            </div>
-                            <form method="POST" action="{{ route('owner.security.trusted-devices.revoke') }}" x-data="{ open: false }" style="flex-shrink:0;">
-                                @csrf
-                                <input type="hidden" name="device_id" value="{{ $d['id'] }}">
-                                <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Remove</button>
-                                <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                                    <input type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
-                                    <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="revokeId = '{{ $d['id'] }}'">Remove</button>
+                            </li>
+                        @empty
+                            <li class="vy-sx-empty">
+                                <strong>No trusted devices</strong>
+                                {{ $twoFactorOn ? 'Every sign-in asks for your code.' : 'Two-factor is off, so no device skips it.' }}
+                            </li>
+                        @endforelse
+                    </ul>
+                </section>
+
+                {{-- ACTIVE SESSIONS — the REAL sessions table; "sign out others" re-asks for the password --}}
+                <section class="vy-sx-card vy-sx-in" id="sx-sessions" aria-labelledby="vy-sx-sess-t">
+                    <h2 class="vy-sx-card-title" id="vy-sx-sess-t">Active sessions</h2>
+                    <p class="vy-sx-card-sub">Where you’re signed in right now.</p>
+                    <ul class="vy-sx-rows">
+                        @forelse ($sessions as $s)
+                            <li class="vy-sx-row">
+                                <span class="vy-sx-ico"><x-security.icon name="monitor" /></span>
+                                <div class="vy-sx-row-main">
+                                    <span class="vy-sx-row-title">{{ $s['device'] }}@if ($s['current']) <span class="vy-sx-chip is-ok">This device</span>@endif</span>
+                                    <span class="vy-sx-row-meta"><span class="vy-sx-mono">{{ $s['ip'] }}</span> · active {{ $s['last_active']->diffForHumans() }}</span>
                                 </div>
-                            </form>
-                        </div>
-                    @endforeach
-                </div>
-                @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-            @else
-                <div style="font-size:13px;color:var(--vy-muted);margin-top:6px;">No trusted devices — every sign-in asks for a two-factor code.</div>
-            @endif
-        </div>
-
-        {{-- ══ Passkeys (Wave B · GATE 4) — REAL WebAuthn ══
-             ⚠️ D24-2 EXTRACTED THIS CARD INTO <x-auth.passkeys>, SHARED WITH THE OPERATOR SECURITY PAGE. The
-             markup, the browser ceremony and the re-auth-to-remove form are unchanged — only the owner route
-             names moved into props. Copying it to the operator realm instead would have left two ceremonies
-             to drift (§N.8f). --}}
-        <x-auth.passkeys
-            :passkeys="$passkeys"
-            options-route="owner.security.passkeys.options"
-            store-route="owner.security.passkeys.store"
-            remove-route="owner.security.passkeys.remove"
-            :h2="$h2" :sub="$sub" :ghost="$ghost" :err="$err" />
-
-        {{-- ══ Login approval (Wave B · GATE 4) — REAL email approval for new devices; toggle re-auths ══ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                <div style="max-width:60ch;">
-                    <h2 style="{{ $h2 }}">Login approval for new devices</h2>
-                    <p style="{{ $sub }}">When on, signing in from a device you haven’t trusted is held until you approve it from a link we email you. A trusted device skips this, and you can turn it off here — so it can’t lock you out.</p>
-                </div>
-                <span style="font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:20px;padding:4px 11px;{{ $loginApprovalOn ? 'color:var(--vy-green-text);background:rgba(34,120,60,.12);' : 'color:var(--vy-faint);background:rgba(0,0,0,.04);' }}">{{ $loginApprovalOn ? 'On' : 'Off' }}</span>
-            </div>
-            <form method="POST" action="{{ route('owner.security.login-approval') }}" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                @csrf
-                <input type="hidden" name="enabled" value="{{ $loginApprovalOn ? '0' : '1' }}">
-                <div>
-                    <label style="{{ $lbl }}" for="la_pw">Confirm your password to {{ $loginApprovalOn ? 'turn off' : 'turn on' }}</label>
-                    <input id="la_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" style="max-width:240px;">
-                    @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                </div>
-                <button type="submit" class="vy-btn" style="{{ $loginApprovalOn ? $ghost : '' }}margin-top:26px;">{{ $loginApprovalOn ? 'Turn off' : 'Turn on login approval' }}</button>
-            </form>
-        </div>
-
-        {{-- ══ Connected apps — REAL (Wave D · OAuth): third-party apps you authorized + their scopes + revoke ══ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Connected apps</h2>
-            <p style="{{ $sub }}">Third-party apps you’ve given read-only access to your account. Each can read only the data listed — never your guests’ contact details, door codes or Wi-Fi — and only your own. Revoke any anytime; access stops immediately.</p>
-
-            @forelse ($connectedApps as $app)
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--vy-hairline);">
-                    <div style="min-width:0;">
-                        <div style="font-size:13.5px;font-weight:600;color:var(--vy-ink);">{{ $app['name'] }}</div>
-                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 5px;">
-                            @foreach ($app['scopes'] as $i => $scopeId)
-                                <span title="{{ $app['scope_labels'][$i] ?? '' }}" style="font-size:10.5px;font-weight:600;color:var(--vy-accent-text);background:rgba(194,65,12,.08);border:1px solid var(--vy-accent-border,rgba(194,65,12,.2));border-radius:20px;padding:2px 9px;font-family:ui-monospace,monospace;">{{ $scopeId }}</span>
-                            @endforeach
-                        </div>
-                        <div style="font-size:11.5px;color:var(--vy-muted);">@if ($app['authorized_at']) Authorized {{ $app['authorized_at'] }} @else Authorized @endif</div>
+                            </li>
+                        @empty
+                            <li class="vy-sx-empty"><strong>No active sessions recorded</strong></li>
+                        @endforelse
+                    </ul>
+                    <div class="vy-sx-alert-acts">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="signOutOpen = true">Sign out all other sessions</button>
                     </div>
-                    <form method="POST" action="{{ route('owner.security.connected-apps.revoke') }}" x-data="{ open: false }" style="flex-shrink:0;">
+                </section>
+
+                {{-- CONNECTED APPS — REAL (OAuth #72): third-party apps you authorized, their scopes, a re-authed revoke --}}
+                <section class="vy-sx-card vy-sx-in" id="sx-apps" aria-labelledby="vy-sx-apps-t">
+                    <h2 class="vy-sx-card-title" id="vy-sx-apps-t">Connected apps</h2>
+                    <p class="vy-sx-card-sub">Apps you’ve given read-only access — never your guests’ contact details, door codes or Wi-Fi, and only your own data.</p>
+                    <ul class="vy-sx-rows">
+                        @forelse ($connectedApps as $app)
+                            <li class="vy-sx-row">
+                                <span class="vy-sx-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($app['name'], 0, 2)) }}</span>
+                                <div class="vy-sx-row-main">
+                                    <span class="vy-sx-row-title">{{ $app['name'] }}</span>
+                                    <span class="vy-sx-row-meta">
+                                        @foreach ($app['scopes'] as $i => $scopeId)<span class="vy-sx-chip" title="{{ $app['scope_labels'][$i] ?? '' }}">{{ $scopeId }}</span> @endforeach
+                                        @if ($app['authorized_at']) · authorized {{ $app['authorized_at'] }}@endif
+                                    </span>
+                                </div>
+                                <button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="appRevoke = @js(['id' => $app['client_id'], 'name' => $app['name']])">Revoke</button>
+                            </li>
+                        @empty
+                            <li class="vy-sx-empty"><strong>No connected apps</strong> Third-party apps you authorize will appear here.</li>
+                        @endforelse
+                    </ul>
+                </section>
+            </div>
+        </div>
+
+        {{-- ══ DIALOGS ══════════════════════════════════════════════════════════════════════════════════════════════ --}}
+
+        {{-- Change / set password --}}
+        <div class="vy-sx-scrim" x-cloak x-show="pwOpen" x-transition.opacity @keydown.escape.window="pwOpen = false" @click.self="pwOpen = false">
+            <div class="vy-sx-dialog" x-show="pwOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-pw-t" tabindex="-1" x-trap.noscroll="pwOpen">
+                <div class="vy-sx-dialog-head">
+                    <span class="vy-sx-ico"><x-security.icon name="key" :size="18" /></span>
+                    <div class="vy-sx-dialog-text">
+                        <h3 class="vy-sx-dialog-title" id="vy-sx-pw-t">@if ($hasPassword) Change password @else Set a password @endif</h3>
+                        <p class="vy-sx-dialog-sub">{{ $hasPassword ? 'Other devices with “remember me” are signed out.' : 'You’ll be asked for it when confirming sensitive changes.' }}</p>
+                    </div>
+                    <button type="button" class="vy-sx-x" @click="pwOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                </div>
+                <form method="POST" action="{{ route('owner.security.password') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="password">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'password' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">
+                                @foreach ($errors->all() as $error)
+                                    <div>{{ $error }}</div>
+                                @endforeach
+                            </div>
+                        @endif
+                        @if ($hasPassword)
+                            <div class="vy-sx-field">
+                                <label class="vy-sx-label" for="vy-sx-cur">Current password</label>
+                                <x-password-field name="current_password" id="vy-sx-cur" autocomplete="current-password" :required="true" label="current password" autofocus />
+                            </div>
+                        @endif
+                        <div class="vy-sx-pair">
+                            <div class="vy-sx-field">
+                                <label class="vy-sx-label" for="vy-sx-new">New password</label>
+                                <x-password-field name="password" id="vy-sx-new" autocomplete="new-password" :required="true" label="new password" :autofocus="! $hasPassword" />
+                            </div>
+                            <div class="vy-sx-field">
+                                <label class="vy-sx-label" for="vy-sx-conf">Confirm new password</label>
+                                <x-password-field name="password_confirmation" id="vy-sx-conf" autocomplete="new-password" :required="true" label="password confirmation" />
+                            </div>
+                        </div>
+                        <p class="vy-sx-hint">{{ \App\Support\Auth\PasswordPolicy::hint() }}</p>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="pwOpen = false">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">@if ($hasPassword) Update password @else Set password @endif</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @include('livewire.partials.two-factor-off-dialog')
+        <x-auth.passkey-remove-dialog remove-route="owner.security.passkeys.remove" />
+
+        {{-- Login approval on / off — re-asks for the password --}}
+        <div class="vy-sx-scrim" x-cloak x-show="approvalOpen" x-transition.opacity @keydown.escape.window="approvalOpen = false" @click.self="approvalOpen = false">
+            <div class="vy-sx-dialog" x-show="approvalOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-appr-t" tabindex="-1" x-trap.noscroll="approvalOpen">
+                <form method="POST" action="{{ route('owner.security.login-approval') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="approval">
+                    <input type="hidden" name="enabled" value="{{ $approval['on'] ? '0' : '1' }}">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-head">
+                        <span class="vy-sx-ico"><x-security.icon name="user-check" :size="18" /></span>
+                        <div class="vy-sx-dialog-text">
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-appr-t">{{ $approval['on'] ? 'Turn off login approval' : 'Turn on login approval' }}</h3>
+                            <p class="vy-sx-dialog-sub">{{ $approval['on'] ? 'New devices will sign in without waiting for your approval.' : 'A new device will wait until you approve it from the link we email you.' }}</p>
+                        </div>
+                        <button type="button" class="vy-sx-x" @click="approvalOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                    </div>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'approval' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="vy-sx-field">
+                            <label class="vy-sx-label" for="vy-sx-appr-pw">Your password</label>
+                            <x-password-field name="current_password" id="vy-sx-appr-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                        </div>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="approvalOpen = false">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--grad">{{ $approval['on'] ? 'Turn off' : 'Turn on' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Sign out all other sessions --}}
+        <div class="vy-sx-scrim" x-cloak x-show="signOutOpen" x-transition.opacity @keydown.escape.window="signOutOpen = false" @click.self="signOutOpen = false">
+            <div class="vy-sx-dialog" x-show="signOutOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-so-t" tabindex="-1" x-trap.noscroll="signOutOpen">
+                <form method="POST" action="{{ route('owner.security.sessions.signout') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="signout">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-head">
+                        <span class="vy-sx-ico is-danger"><x-security.icon name="logout" :size="18" /></span>
+                        <div class="vy-sx-dialog-text">
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-so-t">Sign out all other sessions</h3>
+                            <p class="vy-sx-dialog-sub">Every session but this one ends now. Confirm with your password.</p>
+                        </div>
+                        <button type="button" class="vy-sx-x" @click="signOutOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                    </div>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'signout' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="vy-sx-field">
+                            <label class="vy-sx-label" for="vy-sx-so-pw">Your password</label>
+                            <x-password-field name="current_password" id="vy-sx-so-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                        </div>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="signOutOpen = false">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Sign out others</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Remove a trusted device --}}
+        <div class="vy-sx-scrim" x-cloak x-show="revokeId !== null" x-transition.opacity @keydown.escape.window="revokeId = null" @click.self="revokeId = null">
+            <div class="vy-sx-dialog" x-show="revokeId !== null" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-rv-t" tabindex="-1" x-trap.noscroll="revokeId !== null">
+                <form method="POST" action="{{ route('owner.security.trusted-devices.revoke') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="revoke">
+                    <input type="hidden" name="device_id" :value="revokeId">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-head">
+                        <span class="vy-sx-ico is-danger"><x-security.icon name="device" :size="18" /></span>
+                        <div class="vy-sx-dialog-text">
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-rv-t">Remove trusted device</h3>
+                            <p class="vy-sx-dialog-sub">It will be asked for a two-factor code next time. Confirm with your password.</p>
+                        </div>
+                        <button type="button" class="vy-sx-x" @click="revokeId = null" aria-label="Close"><x-security.icon name="x" /></button>
+                    </div>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'revoke' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="vy-sx-field">
+                            <label class="vy-sx-label" for="vy-sx-rv-pw">Your password</label>
+                            <x-password-field name="current_password" id="vy-sx-rv-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                        </div>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="revokeId = null">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Remove</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Revoke a connected app — immediate; re-asks for the password --}}
+        <div class="vy-sx-scrim" x-cloak x-show="appRevoke !== null" x-transition.opacity @keydown.escape.window="appRevoke = null" @click.self="appRevoke = null">
+            <div class="vy-sx-dialog" x-show="appRevoke !== null" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-app-t" tabindex="-1" x-trap.noscroll="appRevoke !== null">
+                <form method="POST" action="{{ route('owner.security.connected-apps.revoke') }}">
+                    @csrf
+                    <input type="hidden" name="_form" value="app-revoke">
+                    <input type="hidden" name="client_id" :value="appRevoke ? appRevoke.id : ''">
+                    <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                    <div class="vy-sx-dialog-head">
+                        <span class="vy-sx-ico is-danger"><x-security.icon name="apps" :size="18" /></span>
+                        <div class="vy-sx-dialog-text">
+                            <h3 class="vy-sx-dialog-title" id="vy-sx-app-t">Revoke <span x-text="appRevoke ? appRevoke.name : ''"></span>?</h3>
+                            <p class="vy-sx-dialog-sub">Its access stops immediately. Confirm with your password.</p>
+                        </div>
+                        <button type="button" class="vy-sx-x" @click="appRevoke = null" aria-label="Close"><x-security.icon name="x" /></button>
+                    </div>
+                    <div class="vy-sx-dialog-body">
+                        @if ($errored === 'app-revoke' && $errors->any())
+                            <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="vy-sx-field">
+                            <label class="vy-sx-label" for="vy-sx-app-pw">Your password</label>
+                            <x-password-field name="current_password" id="vy-sx-app-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                        </div>
+                    </div>
+                    <div class="vy-sx-dialog-foot">
+                        <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="appRevoke = null">Cancel</button>
+                        <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Revoke</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @if ($isPrimaryOwner)
+            {{-- Deactivate — reversible, nothing deleted; re-asks for the password (it was the browser's confirm()) --}}
+            <div class="vy-sx-scrim" x-cloak x-show="deactivateOpen" x-transition.opacity @keydown.escape.window="deactivateOpen = false" @click.self="deactivateOpen = false">
+                <div class="vy-sx-dialog" x-show="deactivateOpen" x-transition role="dialog" aria-modal="true" aria-labelledby="vy-sx-de-t" tabindex="-1" x-trap.noscroll="deactivateOpen">
+                    <form method="POST" action="{{ route('owner.security.deactivate') }}">
                         @csrf
-                        <input type="hidden" name="client_id" value="{{ $app['client_id'] }}">
-                        <button type="button" @click="open = !open" class="vy-btn" style="{{ $ghost }}font-size:12px;padding:6px 12px;">Revoke</button>
-                        <div x-show="open" x-cloak style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                            <input type="password" name="current_password" class="vy-input" autocomplete="current-password" placeholder="Your password" style="max-width:180px;font-size:12.5px;">
-                            <button type="submit" class="vy-btn vy-btn--accent" style="font-size:12px;padding:6px 12px;">Confirm</button>
+                        <input type="hidden" name="_form" value="deactivate">
+                        <input type="text" value="{{ auth()->user()?->email }}" autocomplete="username" readonly aria-hidden="true" tabindex="-1" hidden>
+                        <div class="vy-sx-dialog-head">
+                            <span class="vy-sx-ico is-danger"><x-security.icon name="pause" :size="18" /></span>
+                            <div class="vy-sx-dialog-text">
+                                <h3 class="vy-sx-dialog-title" id="vy-sx-de-t">Deactivate your account?</h3>
+                                <p class="vy-sx-dialog-sub">You’ll be signed out and can’t sign in until it’s reactivated. Your statements and payout history are kept.</p>
+                            </div>
+                            <button type="button" class="vy-sx-x" @click="deactivateOpen = false" aria-label="Close"><x-security.icon name="x" /></button>
+                        </div>
+                        <div class="vy-sx-dialog-body">
+                            @if ($errored === 'deactivate' && $errors->any())
+                                <div class="vy-sx-errors" role="alert">{{ $errors->first() }}</div>
+                            @endif
+                            <div class="vy-sx-field">
+                                <label class="vy-sx-label" for="vy-sx-de-pw">Your password</label>
+                                <x-password-field name="current_password" id="vy-sx-de-pw" autocomplete="current-password" :required="true" label="password" autofocus />
+                            </div>
+                        </div>
+                        <div class="vy-sx-dialog-foot">
+                            <button type="button" class="vy-sx-btn vy-sx-btn--soft" @click="deactivateOpen = false">Keep my account</button>
+                            <button type="submit" class="vy-sx-btn vy-sx-btn--danger">Deactivate</button>
                         </div>
                     </form>
                 </div>
-            @empty
-                <div style="font-size:12.5px;color:var(--vy-muted);padding:6px 0;">No connected apps — third-party apps you authorize will appear here.</div>
-            @endforelse
-            @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-        </div>
-
-        {{-- ══ Your data — a REAL owner-scoped export ══════════════════════════════════════════════════ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}">Your data</h2>
-            <p style="{{ $sub }}">Download a copy of your data — your profile plus the statements, payouts and units your account covers.</p>
-            <a href="{{ route('owner.security.export') }}" class="vy-btn" style="{{ $ghost }}display:inline-block;text-decoration:none;">Download my data (JSON)</a>
-        </div>
-
-        {{-- ══ Coming soon — honest, never a fake toggle ═══════════════════════════════════════════════ --}}
-        <div class="vy-card vy-fade" style="margin-bottom:16px;">
-            <h2 style="{{ $h2 }}margin-bottom:12px;">Coming soon</h2>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-                @foreach (['New-device email alerts', 'Full sign-in history', 'Session timeout'] as $soon)
-                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border:1px solid var(--vy-hairline);border-radius:10px;">
-                        <span style="font-size:12.5px;color:var(--vy-muted);">{{ $soon }}</span>
-                        <span style="font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--vy-faint);background:rgba(0,0,0,.04);padding:3px 9px;border-radius:20px;">Soon</span>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-
-        {{-- ══ Deactivate — PRIMARY-OWNER-ONLY, reversible + non-destructive ═══════════════════════════ --}}
-        @if ($isPrimaryOwner)
-            <div class="vy-card vy-fade" style="border:1px solid rgba(194,65,12,.25);">
-                <h2 style="{{ $h2 }}color:var(--vy-accent-text);">Deactivate account</h2>
-                <p style="{{ $sub }}">Pause your portal access. You’ll be signed out and won’t be able to sign in until it’s reactivated. Your statements and payout history are <strong>kept</strong> — nothing is deleted. To reactivate, contact your management team.</p>
-                <form method="POST" action="{{ route('owner.security.deactivate') }}" onsubmit="return confirm('Pause your account? You will be signed out until it is reactivated.');" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;">
-                    @csrf
-                    <div>
-                        <label style="{{ $lbl }}" for="de_pw">Confirm your password</label>
-                        <input id="de_pw" type="password" name="current_password" class="vy-input" autocomplete="current-password" style="max-width:240px;">
-                        @error('current_password') <span style="{{ $err }}">{{ $message }}</span> @enderror
-                    </div>
-                    <button type="submit" class="vy-btn" style="background:none;border:1px solid var(--vy-accent);color:var(--vy-accent-text);padding:10px 18px;margin-top:26px;">Deactivate</button>
-                </form>
             </div>
         @endif
 

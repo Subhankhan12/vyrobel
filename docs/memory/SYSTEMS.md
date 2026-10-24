@@ -271,7 +271,7 @@ Open (git; `docs/DECISIONS.md` 2026-09-29 → 10-01; `HISTORY.md` §1).
 - **Dialogs:** `.vy-modal-backdrop` (carries the display and centres) › `.vy-modal.vy-modal-card` (near-opaque, so muted
   text clears AA), with `role=dialog`, `aria-modal`, `aria-labelledby`, `tabindex=-1`, `x-trap.noscroll` and Escape.
   ⚠️ `x-show` erases an inline `display`, so every display is a class — `XShowInlineDisplayContractTest` holds the other
-  screens at a ceiling of 14 (`OPEN.md` A8; 22 until 2026-10-05); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
+  screens at a ceiling of 12 (`OPEN.md` A8; 22 until 2026-10-05, 14 until 2026-10-24); a string `:style` replaces the whole attribute — `AlpineStyleBindingContractTest`,
   ceiling 9 (A10). `.vy-modal`'s own 26 px padding stacks with the head/body/foot's; the rebuilt dialogs set it to 0.
 - **Page styles** live in the operator layout's `<style>` (`resources/views/components/layouts/operator.blade.php`): the
   shared `.vy-gl-*`, then one block per page (`.vy-mt-*` Maintenance, `.vy-ul-*` Units, `.vyr-*` Rates, `.vyo-*` Owners — and since 2026-10-03 the owner's page, `.vyo-pr-*` the payout run and `.vyo-ur-*` unit requests; since
@@ -596,6 +596,34 @@ no logic, no migration.
   `data-toggle` reveal; this is the back-office equivalent.)
 - The calendar room-type filter (`rel_BI`) resized its glass pill to 34px (level with the nights pill) and neutralised the select
   engine's forced sizing inside it while keeping its chevron/panel — CSS-only, `.vy-cal .vy-rack-filter` in the operator layout.
+
+## 22 · The Security pages' kit — both pages, one design (2026-10-24)
+
+His design (the `Owner Security.html` wireframe), on BOTH `/app/security` and `/owner/security`, each keeping only what is its own (the back
+office: sign-in accounts, sessions with a per-device sign-out, the IP allowlist; the owner portal: connected apps, Deactivate).
+- **What both pages read about the person — ONE class:** `App\Support\Security\SecurityOverview::for($user, $request, $approvalHere)` →
+  the score, two-factor, recovery codes left, passkeys, trusted devices, login approval (`shown` / `on` / `available`) and sign-in problems.
+- **The score — ONE rule:** `App\Support\Security\SecurityScore` — weights password 25 · two-factor 30 · recovery codes 15 · passkey 15 ·
+  login approval 10 · login alerts 5 (=100). Only OFFERED protections count; they share the 100 by largest remainder, so the ring, "points
+  available" and every "+N pts" are the same arithmetic. Tiers: Strong ≥ 85, Good ≥ 55, Basic. ⚠️ Login approval is offered only while
+  email really goes out (`MailSafetyGuard::sendingNow()`), and login alerts not until Part 3 — so today's denominator is 85.
+- **Sign-in problems:** `App\Support\Security\SignInProblems` — `login_activity` LOCKOUT rows (five wrong passwords in a minute, `LoginRequest`)
+  on the person's own address, `guard = web` only, the 90 days the log keeps, after `users.security_alerts_seen_at` ("This was me",
+  `SecurityAlertController@seen`, routes `app.security.alerts.seen` / `owner.security.alerts.seen`, self-only, audited
+  `user.security_alert_dismissed`). Browser and time; the IP pending D-SX-IP. Never a place name.
+- **The kit:** `components/security/{styles,icon,hero,boost,problems}.blade.php` — every class `vy-sx-*`, the sheet included by each page (its
+  CSS ships in the page, so no comments in it, and never a component tag in the file outside its Blade comment). The shared two-factor
+  section (`livewire/partials/two-factor-panel`) and passkey section (`x-auth.passkeys`) are rows of the "Signing in" card; their dialogs live
+  at the PAGE ROOT (`two-factor-off-dialog`, `x-auth.passkey-remove-dialog`) — ⚠️ a card's `backdrop-filter` makes it the box a
+  `position: fixed` dialog is placed in. The page's Alpine state opens them (`pwOpen`, `tfOff`, `pkRemove`, …).
+- **Dialogs:** `.vy-sx-scrim` › `.vy-sx-dialog` (near-opaque, centred, `x-trap` on its own show expression, Escape); `autofocus` on the first
+  field (Alpine's trap focuses it). `tests/Support/dialog_helpers.php`'s census knows `vy-sx-scrim`, so every one is under the dialog contract.
+  Each password form posts `_form`; its error shows in its own dialog, once, and that dialog reopens.
+- **Login approval** (owner page today; the back office in Part 3): switching ON is refused while email is not sent (D-LOGIN-APPROVAL-MAIL);
+  OFF always works. The switch is `aria-disabled` (still reachable) with its reason beside it when it cannot be turned on.
+- **Tests and mutations:** `SecurityRedesignTest`, `SecurityPassFiveTest` (rewritten to the new layout), mutation sets `security-redesign`
+  (25) and `security-five` (22, re-aimed). ⚠️ The kit's class names are in the stylesheet on every page: assert the ELEMENT
+  (`<section class="vy-sx-alert`), never the bare class.
 
 ---
 

@@ -1489,13 +1489,58 @@ binding/`grow()`/keycap/tool-tiles/send-disabled present; stage — 1 file, noth
 10 ms; the live log shows NO `operator-inbox` error; `/app/inbox` 302→/login for anon; public checks 12/0/0). ⚠️ Not pushed to GitHub —
 his rule is to push at the very end. Rollback target: `rel_BR @ 186da56a`.
 
+**SIGNUP PASSWORD SHOW/HIDE, 2026-10-21 — his "password hide and show should be on signup page as well `https://vyrobel.com/signup`".**
+The onboarding page (`auth/onboarding.blade.php`) has two password inputs (Password + Confirm) in the non-social path and had no reveal.
+It is a self-contained view with vanilla JS (no Alpine), so — as with login — used the auth-page `.vy-eye` + `data-toggle` pattern:
+each input wrapped in `.vy-input-wrap` with an eye button (eye-open/eye-closed swap), and a small vanilla toggle added to the page's
+existing `<script>` (`querySelectorAll('.vy-eye[data-toggle]')`, safe when the social path shows no password fields). The strength meter
+and double-submit provisioning guard untouched; inputs keep name/autocomplete/required. Committed `4923e342` (1 file). **Deploy
+(hardened preflight).** ✅ LIVE on `rel_BT @ 4923e342` (V: the onboarding view COMPILES AND its compiled PHP TOKEN-PARSES on the host,
+two eye toggles + script + CSS present, both password fields keep their names; stage — 1 file, nothing drifted, no migration; swap
+2026-10-21 ~23:10 UTC, 4 ms; **the LIVE public page confirmed — `/signup` HTTP 200 with 12 `vy-eye` refs, 2 `data-toggle` buttons and
+the toggle script**; public checks 12/0/0). ⚠️ Not pushed to GitHub — his rule is to push at the very end. Rollback target:
+`rel_BS @ 432cdcbc`.
+
 ⬆ The 2026-10-21 UI passes (favicon → `rel_BH`, calendar filter → `rel_BI`, insights date picker → `rel_BJ`, its overlap fix →
 `rel_BK`, security show/hide → `rel_BL`, search date picker → `rel_BM`, its 500 hotfix → `rel_BN`, login show/hide → `rel_BO`, inbox
-design polish → `rel_BP`, inbox thread-actions fix → `rel_BQ`, inbox composer restyle → `rel_BR`, inbox composer refinements →
-`rel_BS`) each shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those commits (as of the
-composer refinements, `main` is ahead of `origin/main` by 23). The reusable components added: `<x-favicon>`, `<x-date-field>` (on
-Insights AND Search), `<x-password-field>` (the back-office password reveal; the auth pages, `/login` included, keep their own
-page-local `.vy-eye` pattern).
+design polish → `rel_BP`, inbox thread-actions fix → `rel_BQ`, inbox composer restyle → `rel_BR`, inbox composer refinements → `rel_BS`,
+signup show/hide → `rel_BT`) each shipped through `ops/release.sh`, committed locally and NOT pushed — GitHub is behind `main` by those
+commits (as of the signup pass, `main` is ahead of `origin/main` by 25). The reusable components added: `<x-favicon>`, `<x-date-field>`
+(on Insights AND Search), `<x-password-field>` (the back-office password reveal; the auth pages — `/login` and `/signup` included —
+keep their own page-local `.vy-eye` pattern).
+
+**SECURITY REDESIGN (PARTS 1+2), 2026-10-24 — his screenshot of the `Owner Security.html` wireframe: "Ignore the sidebar … if you see the
+central page data and color combination this is what is missing inside our security page, i love the features that we have in our
+security page and also the design but color and most of important things are missing … plz audit it and give me some planning … once i
+approved then start building it".** Audited both pages against it (rendered locally at 1,440 px, every feature traced to its backend), a
+three-part plan posted; **F: "Both pages (Recommended)", "All of it (Recommended)"** — two deploys (Parts 1+2, then 3).
+
+🔬 Found: the owner page a single column with its password boxes 184 px wide, 70% white with a white border on a white card; one wrong
+owner password printed under every field (D-OWNER-SEC-ERRORS — 🔬 5 times); the back office with no score at all and the owner page scoring
+three protections its own way; ⚠️⚠️ login approval switchable ON while production discards every email, so a held sign-in could never be
+finished (D-LOGIN-APPROVAL-MAIL); Notification preferences' "Login from a new device" switch backed by nothing (D-NEWDEVICE-INERT, Part 3).
+
+**Built (Parts 1+2).** One kit for both pages (`SYSTEMS.md` §22): the score ring derived from real settings by ONE rule
+(`SecurityScore` — only offered protections count, shares rounded so the ring and the rows add up), its tier and next step, four tiles; the
+warm cards, icon chips, gradient and dark buttons and switches of the design; three columns (Signing in · Boost + data · Sign-in protection +
+the rest); compact rows whose forms open in centred dialogs with focus in the first field; a real "Sign-in blocked" card from the sign-in log
+(lockouts on your own address, 90 days) with "Secure my account" and "This was me" (`users.security_alerts_seen_at`, additive migration);
+recovery codes left; the owner page's dialogs each marked so an error shows once, in place; login approval refused ON while email is not
+sent, and its switch says why. **Refused (fabrication):** a place name ("Porto, Portugal" — no location service), "trusted locations",
+"Code by SMS", re-showing recovery codes (shown once by design), sample apps. **Mine, caught:** a test needle that the shared stylesheet
+satisfied on every page (`vy-sx-alert`); a test posting `_form` by hand (SX-M21 survived until it posted the form's own fields); a queued run
+with zsh's unsplit `$FILES`; boost rows wrapping to five lines and a stray divider (the browser). **The independent review** (read-only):
+the IP may be the CDN's (D-SX-IP — measured at the deploy), accounts already holding login approval stay held while email is off (counted at
+the deploy), the scores differ once email is on (D-SX-SCORE-APPROVAL, Part 3 closes it), `failed` rows read as "paused" (now lockouts only),
+a decide-then-read race (now decided on the row), "Enable" missing from its buttons' names (now "Enable: …"), lost row headings (now
+`h3`), an unreachable disabled switch (now `aria-disabled`), a 320 px sideways scroll (now `minmax(min(320px, 100%), 1fr)`). Also re-aimed:
+CB-M48 (`calendar-bookable`), left unable to land by the 2026-10-21 Calendar filter pass, which ran no gates.
+
+Tests: `SecurityRedesignTest` (15; 13 RED first — the other two are guards, proven by mutation: SX-M16, SX-M25), `SecurityPassFiveTest` rewritten to the layout he
+asked for (its two-group, label and dialog-count pins), `OperatorSecuritySessionsTest` (the badge became the tier and the two-factor
+chip — still never "Protected" with two-factor off), `OwnerSecurityTest` 1/3 → 1/4, `LoginApprovalTest` (switch-on now needs email),
+`XShowInlineDisplayContractTest` ceiling 14 → 12. Mutations `security-redesign` 25/25, `security-five` 22/22 (8 re-aimed), CB-M48 caught;
+all 1,085 anchors land.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
@@ -1597,6 +1642,9 @@ page-local `.vy-eye` pattern).
 - **Mine, caught before commit (the MEMORY AND GITHUB pass, 2026-10-10):** the flaky-check helper's first draft blanked the whole
   `wire:snapshot`. The snapshot carries the component's data to the browser, so a number leaking through a Livewire property would
   have passed. Narrowed to the checksum alone, and proven with a planted `0154` held only in a property.
+- **Mine, caught before commit (the Security redesign, 2026-10-24):** a check that read its own needle in the page's own stylesheet; a test
+  that typed the form's marker instead of reading it; zsh's unsplit variable, again; and ~30 minutes idle behind another project's test run
+  that could never touch ours — he asked why work had stopped. Read the other run's database connection first (`RULES.md` Part 2).
 
 ## 3 · Still open (as the docs report it; re-check before acting — `OPEN.md` is the authority)
 

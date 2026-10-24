@@ -26,7 +26,7 @@ declare(strict_types=1);
 // Most are panels whose content happens to lay out acceptably as `block`; each needs looking at in a browser, and that
 // sweep is its own pass (asked for, not assumed). The ceiling lets the number fall and never rise.
 
-const VY_XSHOW_INLINE_DISPLAY_CEILING = 14;
+const VY_XSHOW_INLINE_DISPLAY_CEILING = 12;
 
 /** The views the Guests, Maintenance, Units and Rates passes fixed — the pattern must be gone from these entirely. */
 const VY_XSHOW_FIXED_VIEWS = [
@@ -43,6 +43,7 @@ const VY_XSHOW_FIXED_VIEWS = [
     'livewire/housekeeping-board.blade.php',          // 2026-10-05, the same pass (Assign, Assign all)
     'livewire/operator/operator-security.blade.php',  // 2026-10-05, the same pass (four dialogs)
     'components/auth/passkeys.blade.php',             // 2026-10-05, the same pass (the remove row)
+    'livewire/owner/owner-security.blade.php',        // 2026-10-24, the Security redesign (its two inline remove rows)
 ];
 
 /**

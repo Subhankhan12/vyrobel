@@ -11,6 +11,7 @@ use App\Models\Unit;
 use App\Support\Auth\TrustedDeviceService;
 use App\Support\Events\AuditEventRecorder;
 use App\Support\Security\ActiveSessions;
+use App\Support\Security\SecurityOverview;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -108,6 +109,14 @@ class OwnerSecurityController extends Controller
         ]);
 
         $enabled = $request->boolean('enabled');
+
+        // ⚠️⚠️ 2026-10-24 — ON only while email really goes out. The approval link is an email: with the mailer discarding
+        //    every message (production's `log` today), a new device's sign-in would be held for a link nobody receives, and
+        //    the only way in would be a device already trusted. OFF is always allowed — the way out is never blocked.
+        if ($enabled && ! SecurityOverview::loginApproval($user, true)['available']) {
+            return back()->with('security_error', 'Login approval can’t be turned on yet: email isn’t being sent from Vyrobel, so the approval link would never reach you and a new device couldn’t sign in.');
+        }
+
         $user->forceFill(['require_login_approval' => $enabled])->save();
         $audit->record('owner.login_approval_changed', $user, null, ['enabled' => $enabled]);
 

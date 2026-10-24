@@ -20010,3 +20010,26 @@ account owner in the back office, "employees" = the staff, "client" = guests; un
 - **In the Inbox, Enter is a new line and Ctrl/⌘+Enter sends** (these replies go to guests and owners); in team chat Enter sends.
 
 **Gates (Verified 2026-10-06):** **4,480/4,480 on MySQL 8.4.10** (32,952 assertions; 17:38–17:58 Baku) · **4,480/4,480 on MariaDB 11.8.9** (32,952 assertions; 18:00–18:19 Baku) — both on tree `0b3f80cfe6b338b6` (the code before one Blade comment was corrected and these docs written) and read from the runs' JUnit logs: 0 failed, 0 errors, 0 skipped · PHPStan L5 0 errors (a whole run, 31 s at 18:21 Baku, from a result cache deleted by hand — a run under the output wrapper had read the old cache in 0 s) · Pint clean (the changed files) · money gate FULL `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 17:59 Baku, reseeded 17:58). Mutations: the whole harness re-run on the final code — **1,005/1,005 landed and caught across all 36 sets** (`team-chat` 29 and `inbox-live` 28 new; V 18:21–18:53 Baku); 0 not caught, 0 did not land.
+
+## 2026-10-24 — Security, both pages: his design on one kit, a score derived from real settings, real sign-in problems, and login approval that cannot lock anyone out
+
+**Ask (F, 2026-10-24):** his screenshot of the `Owner Security.html` wireframe — "this is what is missing inside our security page … plz audit
+it and give me some planning … once i approved then start building it". **Ruled (F, the same day):** "Both pages (Recommended)" and "All of it
+(Recommended)" — three parts in two deploys (Parts 1+2, then 3).
+
+**Decided in the build, each with its reason:**
+- **One score, one rule** (`App\Support\Security\SecurityScore`): password 25 · two-factor 30 · recovery codes 15 · passkey 15 · login approval 10
+  · login alerts 5. Only protections the account can turn on count, sharing the 100 by largest remainder — so a missing channel never marks
+  anyone down, and the ring and the rows add up. The owner page's old 40/40/20 is replaced (its test moved with it, said to him).
+- **Login approval switches ON only while email is really sent** (`MailSafetyGuard::sendingNow()`); OFF always. Its approval link is an
+  email; with production's mailer `log`, a held sign-in could never finish. Found by this pass's audit (`docs/memory/OPEN.md`
+  D-LOGIN-APPROVAL-MAIL).
+- **Sign-in problems are LOCKOUTS on the person's own address** (`login_activity`, `guard = web`, 90 days), dismissed by "This was me"
+  (`users.security_alerts_seen_at`). ⚠️ The `login_activity` migration recorded its access as admin-only; the card shows a person the lockouts
+  on their own address — his call whether that stays (`OPEN.md` D-SX-IP), and whether the IP is shown depends on it being the visitor's (measured
+  at the deploy).
+- **Refused as fabrication (#39):** place names, "trusted locations", SMS, re-showing recovery codes, sample apps — `DIVERGENCE-REGISTER.md`.
+
+**Proof:** `SecurityRedesignTest` (15), `SecurityPassFiveTest` rewritten to the new layout, mutation sets `security-redesign` 25/25 and
+`security-five` 22/22; the independent review's points fixed or recorded (`docs/memory/HISTORY.md`, "SECURITY REDESIGN"). Gates and the
+deploy are recorded in `docs/memory/STATE.md`.

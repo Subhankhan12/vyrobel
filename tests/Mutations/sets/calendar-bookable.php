@@ -415,9 +415,10 @@ return [
         'id' => 'CB-M48',
         'name' => 'choosing a filter drops 7/14/30',
         'file' => 'resources/views/livewire/reservation-rack.blade.php',
+        // 2026-10-24 re-aimed: the room-type filter pass (2026-10-21) put its icon between the field and the select
         'old' => '                        <input type="hidden" name="days" value="{{ $window[\'selected_days\'] }}">
-                        <select name="rt"',
-        'new' => '                        <select name="rt"',
+                        <svg class="vy-rack-filter-ico"',
+        'new' => '                        <svg class="vy-rack-filter-ico"',
         'tests' => [['file' => $test, 'filter' => 'keeps the room-type filter on every way round the Calendar']],
     ],
     [

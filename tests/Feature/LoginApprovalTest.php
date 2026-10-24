@@ -136,6 +136,10 @@ it('refuses an unsigned or tampered approval link', function () {
 
 // ── 7. The owner Security toggle enables/disables login approval (re-auth) ─────────────────────────
 it('toggles login approval from the owner Security page with re-auth', function () {
+    // 2026-10-24 — it switches ON only while email really goes out (its approval link is an email): a real SMTP host here,
+    // nothing actually sent. The refusal while email is discarded is SecurityRedesignTest's.
+    Mail::fake();
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => 'smtp.hostinger.com']);
     $s = seedScenario(1);
     $user = ownerRoleUser($s, 0);
     $user->forceFill(['password' => 'owner-pass-9', 'require_login_approval' => false])->save();

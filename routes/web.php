@@ -33,6 +33,7 @@ use App\Http\Controllers\Auth\OnboardingController;
 use App\Http\Controllers\Auth\PasskeyController;
 use App\Http\Controllers\Auth\PasskeyLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\SecurityAlertController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Auth\TwoFactorController;
@@ -1158,6 +1159,8 @@ Route::middleware([EnterBreakGlassSession::class, 'auth', 'verified', RefuseSusp
     Route::post('/security/connections/{identity}/unlink', [SocialAuthController::class, 'unlink'])
         ->middleware('throttle:10,1')->name('security.connections.unlink');
     Route::get('/security/export', [OperatorSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
+    // "This was me" on the sign-in problems card (2026-10-24) — self-only; the SAME controller serves the owner page.
+    Route::post('/security/alerts/seen', [SecurityAlertController::class, 'seen'])->middleware('throttle:10,1')->name('security.alerts.seen');
     // Unified Inbox — the 3-pane operator MESSAGES page (#90 exact-match, OperatorInbox). Tenant-scoped;
     // the active thread rides ?c={id} (scoped find → cross-org null). The legacy /inbox/{thread} deep-link
     // redirects into the 3-pane so existing links keep working.
@@ -1799,6 +1802,8 @@ Route::middleware(['auth', RefuseSuspendedOrganization::class, EnsureOwnerPortal
     Route::post('/security/passkeys/{passkey}/remove', [PasskeyController::class, 'destroy'])->middleware('throttle:10,1')->name('security.passkeys.remove');
     // Real owner-scoped data export ("Request my data").
     Route::get('/security/export', [OwnerSecurityController::class, 'exportData'])->middleware('throttle:6,1')->name('security.export');
+    // "This was me" on the sign-in problems card (2026-10-24) — self-only; the SAME controller serves the back office.
+    Route::post('/security/alerts/seen', [SecurityAlertController::class, 'seen'])->middleware('throttle:10,1')->name('security.alerts.seen');
     // DEACTIVATE (pause) — 🔒 PRIMARY-OWNER-ONLY (#42), re-auth with the password, reversible + non-destructive.
     Route::post('/security/deactivate', [OwnerSecurityController::class, 'deactivate'])->middleware([EnsurePrimaryOwner::class, 'throttle:6,1'])->name('security.deactivate');
 

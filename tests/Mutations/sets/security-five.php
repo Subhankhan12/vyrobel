@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 $test = 'tests/Feature/SecurityPassFiveTest.php';
 $view = 'resources/views/livewire/operator/operator-security.blade.php';
-$css = 'resources/views/components/layouts/operator.blade.php';
+$css = 'resources/views/components/security/styles.blade.php';   // 2026-10-24: the page's CSS moved to the shared Security kit
 $ctl = 'app/Http/Controllers/Operator/OperatorSecurityController.php';
 $sessions = 'app/Support/Security/ActiveSessions.php';
 
@@ -21,33 +21,33 @@ return [
         'id' => 'SC-M1',
         'name' => 'the cards go back to a 560 px column beside full-width ones (his report)',
         'file' => $css,
-        'old' => '        .vy-sec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; align-items: stretch; }',
-        'new' => '        .vy-sec-grid { display: block; max-width: 560px; }',
-        'tests' => [['file' => $test, 'filter' => 'lays the page out in two named groups']],
+        'old' => '    .vy-sx-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; align-items: start; }',
+        'new' => '    .vy-sx-cols { display: block; max-width: 560px; }',
+        'tests' => [['file' => $test, 'filter' => 'lays the page out in three columns']],
     ],
     [
         'id' => 'SC-M2',
-        'name' => 'the groups lose their names',
+        'name' => 'the page falls back to one stacked column (2026-10-24: three columns, his design)',
         'file' => $view,
-        'old' => '<h2 class="vy-sec-group-title" id="vy-sec-access-t">Devices and access</h2>',
-        'new' => '<h2 class="vy-sec-group-title" id="vy-sec-access-t"></h2>',
-        'tests' => [['file' => $test, 'filter' => 'lays the page out in two named groups']],
+        'old' => '        <div class="vy-sx-cols">',
+        'new' => '        <div class="vy-sx-stack">',
+        'tests' => [['file' => $test, 'filter' => 'lays the page out in three columns']],
     ],
     [
         'id' => 'SC-M3',
         'name' => '"Current password" is labelled twice again',
         'file' => $view,
-        'old' => "                        @if (\$hasPassword)\n                            <div class=\"vy-field\">\n                                <label class=\"vy-field-label\" for=\"vy-sec-cur\">Current password</label>",
-        'new' => "                        <label class=\"vy-field-label\" for=\"vy-sec-cur\">Current password</label>\n                        @if (\$hasPassword)\n                            <div class=\"vy-field\">\n                                <label class=\"vy-field-label\" for=\"vy-sec-cur\">Current password</label>",
+        'old' => "                        @if (\$hasPassword)\n                            <div class=\"vy-sx-field\">\n                                <label class=\"vy-sx-label\" for=\"vy-sec-cur\">Current password</label>",
+        'new' => "                        <label class=\"vy-sx-label\" for=\"vy-sec-cur\">Current password</label>\n                        @if (\$hasPassword)\n                            <div class=\"vy-sx-field\">\n                                <label class=\"vy-sx-label\" for=\"vy-sec-cur\">Current password</label>",
         'tests' => [['file' => $test, 'filter' => 'labels Current password once']],
     ],
     [
         'id' => 'SC-M4',
         'name' => 'a dialog goes back to the undefined scrim with inline positioning',
         'file' => $view,
-        'old' => '<div class="vy-modal-backdrop" x-cloak x-show="exportOpen" x-transition.opacity',
+        'old' => '<div class="vy-sx-scrim" x-cloak x-show="exportOpen" x-transition.opacity',
         'new' => '<div class="vyp-scrim" x-cloak x-show="exportOpen" style="position:fixed;inset:0;display:flex;" x-transition.opacity',
-        'tests' => [['file' => $test, 'filter' => 'opens every dialog centred on the shared solid card']],
+        'tests' => [['file' => $test, 'filter' => 'opens every dialog centred on the Security kit']],
     ],
     [
         'id' => 'SC-M5',
@@ -119,7 +119,7 @@ return [
         'id' => 'SC-M13',
         'name' => 'removing a rule goes back to the browser’s confirm()',
         'file' => $view,
-        'old' => '<button type="button" class="vy-btn vy-btn--ghost vy-sec-small" @click="ipRemove = @js([\'id\' => $r[\'id\'], \'ip\' => $r[\'ip\']])">Remove</button>',
+        'old' => '<button type="button" class="vy-sx-btn vy-sx-btn--soft vy-sx-btn--sm" @click="ipRemove = @js([\'id\' => $r[\'id\'], \'ip\' => $r[\'ip\']])">Remove</button>',
         'new' => '<form method="POST" action="{{ route(\'app.security.ip-rules.remove\', $r[\'id\']) }}" onsubmit="return confirm(\'Remove?\')">@csrf @method(\'DELETE\')<button type="submit" class="vy-btn vy-btn--ghost vy-sec-small">Remove</button></form>',
         'tests' => [['file' => $test, 'filter' => 'asks before removing an allowlist rule']],
     ],
@@ -127,8 +127,8 @@ return [
         'id' => 'SC-M14',
         'name' => 'the page says "admin panel" again',
         'file' => $view,
-        'old' => '<span class="vy-sec-row-meta">Anyone with a valid sign-in can reach the back office from any network.</span>',
-        'new' => '<span class="vy-sec-row-meta">Anyone with a valid sign-in can reach the admin panel from any network.</span>',
+        'old' => '                                Anyone with a valid sign-in can reach the back office from any network.',
+        'new' => '                                Anyone with a valid sign-in can reach the admin panel from any network.',
         'tests' => [['file' => $test, 'filter' => 'says "back office", never "admin panel"']],
     ],
     // ── honest words ──────────────────────────────────────────────────────────────────────────────────────────────
@@ -159,8 +159,8 @@ return [
     [
         'id' => 'SC-M18',
         'name' => 'the two-factor panel shows every password error on the page, whichever form it came from',
-        'file' => 'resources/views/livewire/partials/two-factor-panel.blade.php',
-        'old' => "                @if (old('_form') === '2fa-off')\n                    @error('current_password')",
+        'file' => 'resources/views/livewire/partials/two-factor-off-dialog.blade.php',
+        'old' => "                    @if (old('_form') === '2fa-off')\n                        @error('current_password')",
         'new' => "                @if (true)\n                    @error('current_password')",
         'tests' => [['file' => $test, 'filter' => 'shows each error inside the form that caused it']],
     ],
@@ -184,7 +184,7 @@ return [
         'id' => 'SC-M21',
         'name' => 'Change password loses its mark — its error falls to the top of the page',
         'file' => $view,
-        'old' => "                        <input type=\"hidden\" name=\"_form\" value=\"password\">\n",
+        'old' => "                    <input type=\"hidden\" name=\"_form\" value=\"password\">\n",
         'new' => '',
         'tests' => [['file' => $test, 'filter' => 'shows each error inside the form that caused it']],
     ],
