@@ -5,7 +5,18 @@ Labels: **V** = Verified (how and when) · **R** = Reported (from an earlier rec
 **F** = Founder said. ⚠️ Memory is a claim, not a fact. Re-read anything you are about to rely on. Sources at the bottom.
 
 ## Live
-- **Live release `rel_BU` → commit `c763ff59`** (the SECURITY REDESIGN, Parts 1+2 — both Security pages on his design and one kit;
+- **Live release `rel_BV` → commit `f426f449`** (the SECURITY REDESIGN, Part 3 — login alerts, the session timeout, "password last
+  changed", login approval on the back office and Approve / Deny from a signed-in device; `HISTORY.md`, "SECURITY REDESIGN, PART 3").
+  **V:** gates on the final code — MariaDB 11.8.9 **4,541/4,541** (34,120 assertions) · MySQL 8.4.10 4,540/4,541, the one failure (my
+  duplicate mutation ids) fixed and its file green alone · PHPStan L5 0 · Pint clean · mutations 14/14 + 25/25 · money gate **FULL**
+  unmoved (all in §0x). Deploy: stage — 21 files, nothing drifted; the additive migration from the staged release (118 ms); the read-only
+  preflight on the host (PHP 8.4.26, MariaDB 11.8.9): the 7 new routes present and throttled, the timeout in the web group, both columns
+  in place, the 13 views compile AND parse, email sent **no** (so login approval stays refused ON), 0 accounts with a timeout, 0 approvals
+  waiting, the new-device check for all 20 accounts 559 ms, the slowest Part 3 read for one account 135 ms; all 20 accounts take the staff
+  alert key — 🔬 checked a second way: production has **0 owners, 0 owner team users, 0 External Owner holders**; swap 2026-10-24
+  21:04:50 UTC (01:04 Baku), 12 ms; public checks **12/0/0**; 1,485/1,485 deployable files match git; 0 error-level lines since the
+  swap — 11 warnings, all `security.refusal`, from the exposure battery; both Security pages 302 → /login for anon. ⚠️ Not pushed (his
+  rule). Rollback target: `rel_BU @ c763ff59`. Before it: **`rel_BU` → commit `c763ff59`** (the SECURITY REDESIGN, Parts 1+2 — both Security pages on his design and one kit;
   `HISTORY.md`, "SECURITY REDESIGN"). **V:** gates on the final code — **4,528/4,528 on MySQL 8.4.10** (34,049 assertions; 22:37–23:11
   Baku) · **4,528/4,528 on MariaDB 11.8.9** (34,049; 23:12–23:33 Baku) — JUnit 0 failed, 0 errors, 0 skipped; the engine swap asked
   (F: "Yes, swap") and checked (nothing on 3306, no advisor process); PHPStan L5 0 errors (106 s, a cleared cache); Pint clean; mutations
@@ -250,8 +261,7 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     fixed; ⚠️⚠️ login approval refused ON while email is not sent (it was a lockout waiting to happen — `OPEN.md` D-LOGIN-APPROVAL-MAIL).
     Refused as fabrication: a place name, "trusted locations", SMS, re-showing recovery codes, sample apps. **Part 3 next** (login alerts,
     session timeout, password last changed, login approval + approve-from-here on the back office) — drafted, not in the repo yet.
-    **✅ Parts 1+2 LIVE on `rel_BU @ c763ff59`** (V swap 2026-10-24 23:36 Baku; public checks 12/0/0; 0 errors since). Left: his look
-    (signed in) and Part 3.
+    **✅ Parts 1+2 LIVE on `rel_BU @ c763ff59`** (V swap 2026-10-24 23:36 Baku; public checks 12/0/0; 0 errors since).
     **Part 3 built (2026-10-24/25):** login alerts made real (`NewDeviceSignIn` + `NotifyNewDeviceSignIn`: a sign-in from a device the
     account has not used in 90 days → the bell, and email once email is sent; staff switch = Notification preferences' `new_device_login`,
     one stored setting; an owner's is `account_security`, always on), the session timeout (15 / 30 / 60 min, `EnforceSessionTimeout`; the
@@ -264,6 +274,8 @@ Probes, one line each, all "(not a customer)": `PUBLIC-01 PROBE` · `ADMIN-P1` t
     00:30–01:00 Baku; JUnit 0 failed, 0 errors, 0 skipped; nothing on 3306 first) · PHPStan L5 0 errors (48 s, a cleared cache) · Pint clean
     (the 21 changed PHP files) · mutations `security-protections` 14/14 (re-run after the rename), `security-redesign` 25/25 · money gate
     **FULL** `929 / 10928000 / 0 / 42 / 16 / 0`, digest unchanged (V 01:01 Baku).
+    **✅ Part 3 LIVE on `rel_BV @ f426f449`** (V swap 2026-10-25 01:04 Baku, 12 ms; public checks 12/0/0; 1,485/1,485 files match git;
+    0 errors since). **Left: his look, signed in** — both Security pages; he signs in himself.
 0w. **The one select engine, everywhere (2026-10-10)** — his approval ("the same sort of select and same sort of drop down in the
     entire application, everywhere … test everywhere … on live server"). Every select in the six realms opens the Vyrobel panel through
     one engine included in 19 shells; the combobox retired; the menus share the panel; the console's searchable drop-down restyled

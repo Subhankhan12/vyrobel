@@ -1569,6 +1569,11 @@ rest guards proven by mutation); mutations `security-protections` 14/14; `securi
 the one red was mine: the new set's ids `SP-M1`–`SP-M12` were already the sidebar set's; renamed `SXP-M`, re-run 14/14, the file green
 alone · MariaDB 4,541/4,541 (34,120 assertions) · PHPStan L5 0 · Pint clean · money gate FULL unmoved. ⚠️ **Pick a new set's id prefix
 by grepping every set first** — the suite caught it, but only after a 28-minute run.
+**Live on `rel_BV @ f426f449`** (V): stage 21 files, nothing drifted; the additive migration 118 ms; the read-only preflight on the host —
+routes, middleware, columns, 13 views compile and parse, email sent no, 0 timeouts, 0 approvals waiting, 559 ms for the new-device check
+over all 20 accounts; all 20 take the staff key because production has 0 owner accounts (checked from the raw tables too); swap
+2026-10-24 21:04:50 UTC, 12 ms; public checks 12/0/0; 1,485/1,485 files match git; 0 errors since; both pages 302 → /login for anon.
+Committed locally, not pushed. Left: his signed-in look.
 
 ## 2 · Mistakes to learn from (each one cited above)
 
