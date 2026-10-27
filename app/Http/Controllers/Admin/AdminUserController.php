@@ -16,7 +16,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -64,7 +63,7 @@ class AdminUserController extends Controller
             'email' => ['required', 'email', 'max:190', Rule::unique('platform_admins', 'email')],
             'role' => ['required', Rule::enum(PlatformAdminRole::class)],
             'current_password' => ['required', 'current_password:admin'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
 
         [$admin, $token] = $this->invites->invite(
@@ -85,7 +84,7 @@ class AdminUserController extends Controller
     {
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
-        abort_unless($target->status === PlatformAdmin::STATUS_INVITED, 409, 'Only a pending invitation can be re-issued.');
+        abort_unless($target->status === PlatformAdmin::STATUS_INVITED, 409, __('php/http/controllers/admin/admin_user_controller.only_pending_reissued'));
 
         $token = $this->invites->reissue($target);
         $this->audit->record('platform.admin.invite_reissued', [], 'platform_admin', $target->id, reason: $reason);
@@ -100,54 +99,54 @@ class AdminUserController extends Controller
         $request->validate([
             'role' => ['required', Rule::enum(PlatformAdminRole::class)],
             'current_password' => ['required', 'current_password:admin'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
         $to = PlatformAdminRole::from((string) $request->string('role'));
         $from = (string) $target->role;
 
         if ($from === PlatformAdminRole::Owner->value && $to !== PlatformAdminRole::Owner && $this->isLastActiveOwner($target)) {
-            throw ValidationException::withMessages(['role' => 'This is the last active Owner. Make someone else an Owner first.']);
+            throw ValidationException::withMessages(['role' => __('php/http/controllers/admin/admin_user_controller.last_owner_role')]);
         }
 
         $target->forceFill(['role' => $to->value])->save();
         $this->audit->record('platform.admin.role_changed', ['from' => $from, 'to' => $to->value], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "{$target->name} is now {$to->label()}.");
+        return redirect()->route('admin.admins.index')->with('admin_notice', __('php/http/controllers/admin/admin_user_controller.role_changed', ['name' => $target->name, 'role' => $to->label()]));
     }
 
     public function revoke(Request $request, string $admin): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
 
         if ($target->is($this->actor())) {
-            throw ValidationException::withMessages(['reason' => 'You cannot revoke your own access. Ask another Owner.']);
+            throw ValidationException::withMessages(['reason' => __('php/http/controllers/admin/admin_user_controller.cannot_revoke_self')]);
         }
 
         if ($target->role === PlatformAdminRole::Owner->value && $this->isLastActiveOwner($target)) {
-            throw ValidationException::withMessages(['reason' => 'This is the last active Owner and cannot be revoked.']);
+            throw ValidationException::withMessages(['reason' => __('php/http/controllers/admin/admin_user_controller.last_owner_revoke')]);
         }
 
         $target->forceFill(['status' => PlatformAdmin::STATUS_DISABLED, 'invite_token_hash' => null])->save();
         $ended = $this->sessions->endAllFor($target, 'revoked', $this->actor());
         $this->audit->record('platform.admin.revoked', ['sessions_ended' => $ended], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "{$target->name}'s access is revoked; {$ended} ".Str::plural('session', $ended).' ended.');
+        return redirect()->route('admin.admins.index')->with('admin_notice', trans_choice('php/http/controllers/admin/admin_user_controller.access_revoked', $ended, ['name' => $target->name, 'count' => $ended]));
     }
 
     public function restore(Request $request, string $admin): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $target = $this->find($admin);
-        abort_unless($target->status === PlatformAdmin::STATUS_DISABLED, 409, 'Only a revoked admin can be restored.');
+        abort_unless($target->status === PlatformAdmin::STATUS_DISABLED, 409, __('php/http/controllers/admin/admin_user_controller.only_revoked_restored'));
 
         $target->forceFill(['status' => PlatformAdmin::STATUS_ACTIVE])->save();
         $this->audit->record('platform.admin.restored', [], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "{$target->name}'s access is restored.");
+        return redirect()->route('admin.admins.index')->with('admin_notice', __('php/http/controllers/admin/admin_user_controller.access_restored', ['name' => $target->name]));
     }
 
     /** End every live session of an admin — enforced on their next request, on any session driver. */
@@ -165,13 +164,13 @@ class AdminUserController extends Controller
             $ended = $this->sessions->endOthersFor($target, $request);
             $this->audit->record('platform.admin.signed_out', ['sessions_ended' => $ended, 'own_other_sessions_only' => true], 'platform_admin', $target->id, reason: $reason);
 
-            return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} of your other ".Str::plural('session', $ended).' — this one stays signed in.');
+            return redirect()->route('admin.admins.index')->with('admin_notice', trans_choice('php/http/controllers/admin/admin_user_controller.ended_own_other_sessions', $ended, ['count' => $ended]));
         }
 
         $ended = $this->sessions->endAllFor($target, 'forced', $actor);
         $this->audit->record('platform.admin.signed_out', ['sessions_ended' => $ended], 'platform_admin', $target->id, reason: $reason);
 
-        return redirect()->route('admin.admins.index')->with('admin_notice', "Ended {$ended} ".Str::plural('session', $ended)." for {$target->name}.");
+        return redirect()->route('admin.admins.index')->with('admin_notice', trans_choice('php/http/controllers/admin/admin_user_controller.ended_sessions_for', $ended, ['count' => $ended, 'name' => $target->name]));
     }
 
     private function find(string $id): PlatformAdmin

@@ -34,7 +34,7 @@ class StatusIncidentController extends Controller
             'impact' => ['required', Rule::in(array_keys(StatusIncident::IMPACTS))],
             'status' => ['required', Rule::in(['investigating', 'identified', 'monitoring'])],
             'message' => ['required', 'string', 'max:2000'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
 
         // ⚠️ ADMIN 03 · F13 — mint the id first so the "posted" ledger row names the incident its updates will name.
@@ -44,7 +44,7 @@ class StatusIncidentController extends Controller
             'started_at' => now(), 'created_by' => (string) auth('admin')->id(),
         ]))->forceFill(['id' => $id])->save(), ['impact' => $data['impact']], 'status_incident', $id);
 
-        return redirect()->route('admin.status.index')->with('admin_notice', 'Posted to the public status page.');
+        return redirect()->route('admin.status.index')->with('admin_notice', __('php/http/controllers/admin/status_incident_controller.posted'));
     }
 
     public function update(Request $request, string $incident): RedirectResponse
@@ -52,11 +52,11 @@ class StatusIncidentController extends Controller
         $data = $request->validate([
             'status' => ['required', Rule::in(array_keys(StatusIncident::STATUSES))],
             'message' => ['required', 'string', 'max:2000'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $row = StatusIncident::query()->findOrFail($incident);
         if (! $row->isOpen()) {
-            return redirect()->route('admin.status.index')->withErrors(['status' => 'That incident is already resolved.']);
+            return redirect()->route('admin.status.index')->withErrors(['status' => __('php/http/controllers/admin/status_incident_controller.already_resolved')]);
         }
 
         $this->platform->mutate('platform.status.incident_'.$data['status'], $reason, fn () => $row->update([
@@ -65,6 +65,6 @@ class StatusIncidentController extends Controller
             'resolved_at' => $data['status'] === 'resolved' ? now() : null,
         ]), ['from' => $row->status], 'status_incident', (string) $row->id);
 
-        return redirect()->route('admin.status.index')->with('admin_notice', 'Updated on the public status page.');
+        return redirect()->route('admin.status.index')->with('admin_notice', __('php/http/controllers/admin/status_incident_controller.updated'));
     }
 }

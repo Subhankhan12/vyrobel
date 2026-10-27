@@ -14,44 +14,44 @@
 
      The viewer is resolved from the `admin` guard only. noindex.
      RAW-BLADE RULE: every `@` follows a space, newline or tag. --}}
-@props(['active' => 'overview', 'title' => 'Overview', 'subtitle' => '', 'back' => null, 'backLabel' => 'Back'])
+@props(['active' => 'overview', 'title' => __('components/admin/shell.nav_overview'), 'subtitle' => '', 'back' => null, 'backLabel' => __('common.back')])
 @php
     $admin = \Illuminate\Support\Facades\Auth::guard('admin')->user();
-    $adminName = $admin?->name ?? 'Platform admin';
+    $adminName = $admin?->name ?? __('components/admin/shell.platform_admin');
     $initials = \Illuminate\Support\Str::of($adminName)->explode(' ')->take(2)->map(fn ($p) => \Illuminate\Support\Str::substr($p, 0, 1))->implode('');
     // The nav — [key, label, url, live, icon-path, capability]. The icon set is the SAME 24×24 stroked line
     // family the operator shell draws (fill:none, stroke:currentColor, width 1.6), so the two consoles read alike.
     // ⚠️ ADMIN 01 · Phase 1 — an item whose capability this admin's ROLE lacks is not shown at all: the nav asks
     //    the SAME matrix (PlatformAdminRole) the route gate asks, so a link can never lead to a 403.
     $nav = [
-        ['health', 'Health', route('admin.dashboard'), true, 'M3 12h4l3-8 4 16 3-8h4', 'console.view'],
-        ['overview', 'Overview', route('admin.overview'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', 'console.view'],
-        ['customers', 'Organisations', route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
-        ['triage', 'Triage', route('admin.customers.triage'), true, 'M4 5h16l-6 8v5l-4 2v-7z', 'console.view'],
-        ['support', 'Support', route('admin.support.index'), true, 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.9 4.9l4.3 4.3M14.8 14.8l4.3 4.3M14.8 9.2l4.3-4.3M4.9 19.1l4.3-4.3', 'support.use'],
-        ['revenue', 'Revenue', route('admin.revenue'), true, 'M3 17l6-6 4 4 8-8M14 7h7v7', 'billing.view'],
-        ['funnel', 'Signup funnel', route('admin.funnel'), true, 'M3 4h18l-7 8v6l-4 2v-8z', 'console.view'],
-        ['privacy', 'Privacy desk', route('admin.privacy.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9.5 12l2 2 3.5-4', 'console.view'],
-        ['hotels', 'Statistics', route('admin.hotels'), true, 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', 'console.view'],
-        ['announcements', 'Announcements', route('admin.announcements.index'), true, 'M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8', 'console.view'],
-        ['status', 'Status page', route('admin.status.index'), true, 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', 'console.view'],
-        ['plans', 'Plans', route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
-        ['switches', 'Kill switches', route('admin.switches.index'), true, 'M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7zM16 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'console.view'],
-        ['audit', 'Audit log', route('admin.audit.index'), true, 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01', 'console.view'],
-        ['admins', 'Admins', route('admin.admins.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8.5 15.5c.6-1.5 2-2.5 3.5-2.5s2.9 1 3.5 2.5', 'admins.view'],
-        ['activity', 'Security & activity', route('admin.activity.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', 'console.view'],
-        ['integrations', 'Integrations', route('admin.integrations.index'), true, 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', 'integrations.view'],
+        ['health', __('components/admin/shell.nav_health'), route('admin.dashboard'), true, 'M3 12h4l3-8 4 16 3-8h4', 'console.view'],
+        ['overview', __('components/admin/shell.nav_overview'), route('admin.overview'), true, 'M3 13h8V3H3zM13 21h8v-6h-8zM13 3v8h8V3zM3 21h8v-6H3z', 'console.view'],
+        ['customers', __('components/admin/shell.nav_customers'), route('admin.customers.index'), true, 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', 'console.view'],
+        ['triage', __('components/admin/shell.nav_triage'), route('admin.customers.triage'), true, 'M4 5h16l-6 8v5l-4 2v-7z', 'console.view'],
+        ['support', __('components/admin/shell.nav_support'), route('admin.support.index'), true, 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.9 4.9l4.3 4.3M14.8 14.8l4.3 4.3M14.8 9.2l4.3-4.3M4.9 19.1l4.3-4.3', 'support.use'],
+        ['revenue', __('components/admin/shell.nav_revenue'), route('admin.revenue'), true, 'M3 17l6-6 4 4 8-8M14 7h7v7', 'billing.view'],
+        ['funnel', __('components/admin/shell.nav_funnel'), route('admin.funnel'), true, 'M3 4h18l-7 8v6l-4 2v-8z', 'console.view'],
+        ['privacy', __('components/admin/shell.nav_privacy'), route('admin.privacy.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM9.5 12l2 2 3.5-4', 'console.view'],
+        ['hotels', __('components/admin/shell.nav_hotels'), route('admin.hotels'), true, 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6', 'console.view'],
+        ['announcements', __('components/admin/shell.nav_announcements'), route('admin.announcements.index'), true, 'M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8', 'console.view'],
+        ['status', __('components/admin/shell.nav_status'), route('admin.status.index'), true, 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', 'console.view'],
+        ['plans', __('components/admin/shell.nav_plans'), route('admin.plans.index'), true, 'M3 7h18v12H3zM3 11h18M7 15h4', 'console.view'],
+        ['switches', __('components/admin/shell.nav_switches'), route('admin.switches.index'), true, 'M8 7h8a5 5 0 0 1 0 10H8A5 5 0 0 1 8 7zM16 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z', 'console.view'],
+        ['audit', __('components/admin/shell.nav_audit'), route('admin.audit.index'), true, 'M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01', 'console.view'],
+        ['admins', __('components/admin/shell.nav_admins'), route('admin.admins.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8.5 15.5c.6-1.5 2-2.5 3.5-2.5s2.9 1 3.5 2.5', 'admins.view'],
+        ['activity', __('components/admin/shell.nav_activity'), route('admin.activity.index'), true, 'M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z', 'console.view'],
+        ['integrations', __('components/admin/shell.nav_integrations'), route('admin.integrations.index'), true, 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3', 'integrations.view'],
     ];
     $nav = array_values(array_filter($nav, fn (array $item): bool => $admin?->may($item[5]) ?? false));
-    $roleLabel = $admin?->roleEnum()?->label() ?? 'No role';
+    $roleLabel = $admin?->roleEnum()?->label() ?? __('components/admin/shell.no_role');
 @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>{{ $title }} · Vyrobel Platform</title>
+    <title>{{ __('components/admin/shell.page_title', ['title' => $title]) }}</title>
     {{-- The favicon now carries the product's terracotta V, shared with every other surface. --}}
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
@@ -363,7 +363,7 @@
                 <span class="ad-brand-mark">V</span>
                 <span>
                     <div class="ad-brand-name">Vyrobel</div>
-                    <div class="ad-brand-tag">Platform</div>
+                    <div class="ad-brand-tag">{{ __('components/admin/shell.platform') }}</div>
                 </span>
             </div>
             {{-- ⚠️ "Platform console" is LOAD-BEARING TEXT, not decoration: PlatformAdminGate0Test's
@@ -371,8 +371,8 @@
                  It used to live as a per-page `.ad-eyebrow`; those were removed when the page title moved
                  into the topbar, so the sidebar's section label carries it now — the string stays true
                  rather than the assertion being weakened to match a redesign. --}}
-            <nav class="ad-nav" aria-label="Platform console">
-                <div class="ad-nav-label">Platform console</div>
+            <nav class="ad-nav" aria-label="{{ __('components/admin/shell.platform_console') }}">
+                <div class="ad-nav-label">{{ __('components/admin/shell.platform_console') }}</div>
                 @foreach ($nav as [$key, $label, $url, $live, $icon, $capability])
                     @if ($live)
                         <a href="{{ $url }}" class="{{ $key === $active ? 'is-active' : '' }}" @if ($key === $active) aria-current="page" @endif>
@@ -380,12 +380,12 @@
                             {{ $label }}
                         </a>
                     @else
-                        <span class="ad-soon" aria-disabled="true" title="Coming soon">
+                        <span class="ad-soon" aria-disabled="true" title="{{ __('components/admin/shell.coming_soon') }}">
                             <span style="display: inline-flex; align-items: center; gap: 10px;">
                                 <svg class="ad-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icon }}"/></svg>
                                 {{ $label }}
                             </span>
-                            <span class="ad-soon-tag">Soon</span>
+                            <span class="ad-soon-tag">{{ __('components/admin/shell.soon') }}</span>
                         </span>
                     @endif
                 @endforeach
@@ -408,13 +408,13 @@
                     <a class="ad-chip {{ $active === 'account' ? 'is-active' : '' }}" href="{{ route('admin.account.edit') }}" style="text-decoration: none; color: inherit;">
                         <span class="ad-chip-id">
                             <span class="ad-chip-name">{{ $adminName }}</span>
-                            <span class="ad-chip-role">Platform · {{ $roleLabel }}</span>
+                            <span class="ad-chip-role">{{ __('components/admin/shell.chip_role', ['role' => $roleLabel]) }}</span>
                         </span>
                         <span class="ad-ava">{{ $initials }}</span>
                     </a>
                     <form method="POST" action="{{ route('admin.logout') }}" style="margin: 0;">
                         @csrf
-                        <button type="submit" class="ad-signout">Sign out</button>
+                        <button type="submit" class="ad-signout">{{ __('common.sign_out') }}</button>
                     </form>
                 </div>
             </header>

@@ -18,6 +18,7 @@ use App\Services\Platform\OrganizationDeletionRefused;
 use App\Services\TenantProvisioningService;
 use App\Support\Billing\StripeTaxIdSync;
 use App\Support\Countries;
+use App\Support\I18n\Locales;
 use App\Support\Mail\UndeliverableRecipients;
 use App\Support\Platform\AdminReason;
 use App\Support\Platform\ConsoleFields;
@@ -35,7 +36,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -144,23 +144,23 @@ class CustomerController extends Controller
         $request->validate([
             'current_password' => ['required', 'current_password:admin'],
             'acknowledge_delete' => ['accepted'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
         if (($lock = TenantLifecycle::lockFor($org)) !== null) {
             $this->audit->record('platform.customer.refused', ['attempted' => 'delete', 'lock' => $lock], 'organization', (string) $org->id, reason: $reason);
 
-            return $this->back($org)->withErrors(['lock' => 'Refused — this organisation is protected and can never be deleted from the console.']);
+            return $this->back($org)->withErrors(['lock' => __('php/http/controllers/admin/customer_controller.delete_refused_protected')]);
         }
         if (! hash_equals((string) $org->name, trim((string) $request->input('confirm_name')))) {
-            return $this->back($org)->withErrors(['confirm_name' => 'Type the organisation’s exact name to confirm the deletion.']);
+            return $this->back($org)->withErrors(['confirm_name' => __('php/http/controllers/admin/customer_controller.delete_type_name')]);
         }
         if (! $org->trashed() && $org->status !== TenantLifecycle::SUSPENDED) {
-            return $this->back($org)->withErrors(['status' => 'Suspend it first — only a suspended or archived organisation can be deleted.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.delete_suspend_first')]);
         }
         if (($refusal = $this->platform->read('platform.customer.delete_check', fn (): ?string => $deletion->refusal((string) $org->id), [])) !== null) {
-            return $this->back($org)->withErrors(['delete' => 'Nothing was deleted. '.$refusal]);
+            return $this->back($org)->withErrors(['delete' => __('php/http/controllers/admin/customer_controller.nothing_deleted_because', ['reason' => $refusal])]);
         }
 
         $id = (string) $org->id;
@@ -187,16 +187,16 @@ class CustomerController extends Controller
         } catch (OrganizationDeletionRefused $e) {
             // nothing was deleted, and the service says why in its own plain words
             return $this->stillThere($id)
-                ? $this->back($org)->withErrors(['delete' => 'Nothing was deleted. '.$e->getMessage()])
+                ? $this->back($org)->withErrors(['delete' => __('php/http/controllers/admin/customer_controller.nothing_deleted_because', ['reason' => $e->getMessage()])])
                 : redirect()->route('admin.customers.index')->withErrors(['delete' => $e->getMessage()]);
         } catch (Throwable $e) {
             report($e);
             // ⚠️ the service never throws after its commit — but "nothing was deleted" is CHECKED, never assumed
             if (! $this->stillThere($id)) {
-                return redirect()->route('admin.customers.index')->withErrors(['delete' => '“'.$name.'” was deleted, but the console could not confirm what was removed — see the error log.']);
+                return redirect()->route('admin.customers.index')->withErrors(['delete' => __('php/http/controllers/admin/customer_controller.deleted_unconfirmed', ['name' => $name])]);
             }
 
-            return $this->back($org)->withErrors(['delete' => 'Nothing was deleted — the deletion failed part-way and was rolled back. The cause is in the error log.']);
+            return $this->back($org)->withErrors(['delete' => __('php/http/controllers/admin/customer_controller.delete_rolled_back')]);
         }
 
         $meta = [
@@ -218,23 +218,27 @@ class CustomerController extends Controller
             // the deletion HAS happened: it is told as such, and the result goes to the log instead of a 500
             report($e);
             Log::error('ADMIN 05 — an organisation was deleted, but its result could not be written to the console ledger.', ['organization_id' => $id] + $meta);
-            $ledgerNote = ' ⚠️ The result could not be written to the console ledger (the request was) — the details are in the error log.';
+            $ledgerNote = ' '.__('php/http/controllers/admin/customer_controller.ledger_write_failed');
         }
 
         $failed = count($result['files_failed']);
         $atStripe = count($result['stripe']['customers']) + count($result['stripe']['subscriptions']) + count($result['stripe']['connect_accounts']);
 
-        return redirect()->route('admin.customers.index')->with('admin_notice', 'Deleted “'.$name.'” permanently — '
-            .number_format($result['records']).' '.Str::plural('record', $result['records']).' in '.$result['tables'].' '.Str::plural('table', $result['tables']).', '
-            .$result['users_deleted'].' '.Str::plural('account', $result['users_deleted']).' and '
-            .$result['files_deleted'].' '.Str::plural('file', $result['files_deleted']).' removed.'
-            .($result['users_kept'] > 0 ? ' '.$result['users_kept'].' '.($result['users_kept'] === 1 ? 'person who also belongs elsewhere kept their account.' : 'people who also belong elsewhere kept their accounts.') : '')
-            .($result['files_missing'] > 0 ? ' '.$result['files_missing'].' '.Str::plural('file', $result['files_missing']).' had already gone from storage.' : '')
-            .($result['files_shared'] > 0 ? ' '.$result['files_shared'].' '.Str::plural('file', $result['files_shared']).' shared with another organisation stayed.' : '')
-            .($failed > 0 ? ' ⚠️ '.$failed.' '.Str::plural('file', $failed).' could not be removed — their paths are in the ledger and the error log.' : '')
-            .($atStripe > 0 ? ' ⚠️ Stripe still holds '.$atStripe.' '.Str::plural('record', $atStripe).' for it — customers, subscriptions or connected accounts; their ids are in the ledger. Close them in Stripe.' : '')
+        // one sentence with four counts: each count is its own plural phrase, placed into the sentence as a placeholder
+        return redirect()->route('admin.customers.index')->with('admin_notice', __('php/http/controllers/admin/customer_controller.deleted_summary', [
+            'name' => $name,
+            'records' => trans_choice('php/http/controllers/admin/customer_controller.records_count', $result['records'], ['count' => number_format($result['records'])]),
+            'tables' => trans_choice('php/http/controllers/admin/customer_controller.tables_count', $result['tables']),
+            'accounts' => trans_choice('php/http/controllers/admin/customer_controller.accounts_count', $result['users_deleted']),
+            'files' => trans_choice('php/http/controllers/admin/customer_controller.files_count', $result['files_deleted']),
+        ])
+            .($result['users_kept'] > 0 ? ' '.trans_choice('php/http/controllers/admin/customer_controller.users_kept', $result['users_kept']) : '')
+            .($result['files_missing'] > 0 ? ' '.trans_choice('php/http/controllers/admin/customer_controller.files_missing', $result['files_missing']) : '')
+            .($result['files_shared'] > 0 ? ' '.trans_choice('php/http/controllers/admin/customer_controller.files_shared', $result['files_shared']) : '')
+            .($failed > 0 ? ' '.trans_choice('php/http/controllers/admin/customer_controller.files_failed', $failed) : '')
+            .($atStripe > 0 ? ' '.trans_choice('php/http/controllers/admin/customer_controller.stripe_still_holds', $atStripe) : '')
             .($result['warnings'] !== [] ? ' ⚠️ '.implode(' ', $result['warnings']) : '')
-            .' The console’s own record of the deletion is kept.'.$ledgerNote);
+            .' '.__('php/http/controllers/admin/customer_controller.deletion_record_kept').$ledgerNote);
     }
 
     private function stillThere(string $organizationId): bool
@@ -250,7 +254,7 @@ class CustomerController extends Controller
     {
         // ⚠️ `current_password:admin` — QUALIFIED. /admin runs on `auth:admin`; the bare rule would check the
         // `web` guard and, with no web user, validate nothing.
-        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
@@ -258,7 +262,7 @@ class CustomerController extends Controller
             return $refused;
         }
         if ($org->trashed() || $org->status === TenantLifecycle::SUSPENDED) {
-            return $this->back($org)->withErrors(['status' => 'This organisation is already suspended.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.already_suspended')]);
         }
 
         $impact = $this->impact($org);
@@ -275,7 +279,7 @@ class CustomerController extends Controller
             $org->id,
         );
 
-        return $this->back($org)->with('admin_notice', 'Suspended. Its staff and owners are refused and the storefront is closed. No reservation, folio or payment was touched.');
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.suspended'));
     }
 
     /** REACTIVATE — full access back, at the status it had before it was suspended. A written reason required. */
@@ -288,10 +292,10 @@ class CustomerController extends Controller
             return $refused;
         }
         if ($org->trashed()) {
-            return $this->back($org)->withErrors(['status' => 'Restore it from the archive first.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.restore_first')]);
         }
         if ($org->status !== TenantLifecycle::SUSPENDED) {
-            return $this->back($org)->withErrors(['status' => 'This organisation is not suspended.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.not_suspended')]);
         }
 
         $to = in_array($org->suspended_from_status, ['active', 'trialing', 'cancelled'], true) ? $org->suspended_from_status : 'active';
@@ -305,7 +309,7 @@ class CustomerController extends Controller
             $org->id,
         );
 
-        return $this->back($org)->with('admin_notice', 'Reactivated — its staff and owners can sign in again, and the storefront follows its status ('.$to.').');
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.reactivated', ['status' => $to]));
     }
 
     /**
@@ -314,7 +318,7 @@ class CustomerController extends Controller
      */
     public function archive(Request $request, string $organization): RedirectResponse
     {
-        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
@@ -322,10 +326,10 @@ class CustomerController extends Controller
             return $refused;
         }
         if ($org->trashed()) {
-            return $this->back($org)->withErrors(['status' => 'This organisation is already archived.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.already_archived')]);
         }
         if ($org->status !== TenantLifecycle::SUSPENDED) {
-            return $this->back($org)->withErrors(['status' => 'Suspend it first — only a suspended organisation can be archived.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.archive_suspend_first')]);
         }
 
         $impact = $this->impact($org);
@@ -342,7 +346,7 @@ class CustomerController extends Controller
             $org->id,
         );
 
-        return $this->back($org)->with('admin_notice', 'Archived — hidden from the directory, every record kept. It stays suspended; restore it to bring it back.');
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.archived'));
     }
 
     /** RESTORE from the archive — visible again, still suspended until someone reactivates it on purpose. */
@@ -355,12 +359,12 @@ class CustomerController extends Controller
             return $refused;
         }
         if (! $org->trashed()) {
-            return $this->back($org)->withErrors(['status' => 'This organisation is not archived.']);
+            return $this->back($org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.not_archived')]);
         }
 
         $this->platform->mutate('platform.customer.restore', $reason, fn () => $org->restore(), [], 'organization', $org->id);
 
-        return $this->back($org)->with('admin_notice', 'Restored from the archive. It is still suspended — reactivate it when access should return.');
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.restored'));
     }
 
     /**
@@ -372,7 +376,7 @@ class CustomerController extends Controller
      */
     public function assignPlan(Request $request, string $organization): RedirectResponse
     {
-        $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']], [], ConsoleFields::NAMES);
+        $validated = $request->validate(['plan_id' => ['required', 'string', 'exists:plans,id']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $planId = (string) $validated['plan_id'];
         $org = $this->resolveOrg($organization);
@@ -391,7 +395,7 @@ class CustomerController extends Controller
             [],
         );
         if ($currentPlanId !== null && (string) $currentPlanId === $planId) {
-            return $this->back($org)->withErrors(['plan_id' => 'This organisation is already on that plan — nothing was changed. Choose a different plan to assign.']);
+            return $this->back($org)->withErrors(['plan_id' => __('php/http/controllers/admin/customer_controller.already_on_plan')]);
         }
 
         $this->platform->mutate(
@@ -423,7 +427,7 @@ class CustomerController extends Controller
             $organization,
         );
 
-        return $this->back($org)->with('admin_notice', 'Plan assigned. The customer\'s features update immediately; billing (Stripe) is a separate step.');
+        return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.plan_assigned'));
     }
 
     /**
@@ -432,7 +436,7 @@ class CustomerController extends Controller
      */
     public function setInternal(Request $request, string $organization): RedirectResponse
     {
-        $validated = $request->validate(['internal' => ['required', 'boolean']], [], ConsoleFields::NAMES);
+        $validated = $request->validate(['internal' => ['required', 'boolean']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $internal = (bool) $validated['internal'];
         $org = $this->resolveOrg($organization);
@@ -451,7 +455,7 @@ class CustomerController extends Controller
         );
 
         return $this->back($org)
-            ->with('admin_notice', $internal ? 'Marked internal — excluded from platform statistics.' : 'Marked as a customer — counted in platform statistics.');
+            ->with('admin_notice', $internal ? __('php/http/controllers/admin/customer_controller.marked_internal') : __('php/http/controllers/admin/customer_controller.marked_customer'));
     }
 
     /**
@@ -465,12 +469,12 @@ class CustomerController extends Controller
         if ($lock === TenantLifecycle::LOCK_BASELINE) {
             $this->audit->record('platform.customer.refused', ['attempted' => $action, 'lock' => $lock], 'organization', (string) $org->id, reason: $reason);
 
-            return $this->back($org)->withErrors(['lock' => 'Refused — this is the protected baseline organisation. No console action may change it.']);
+            return $this->back($org)->withErrors(['lock' => __('php/http/controllers/admin/customer_controller.refused_baseline')]);
         }
 
         if ($lock === TenantLifecycle::LOCK_CONFIRM && $lifecycle
             && ! hash_equals((string) $org->name, trim((string) $request->input('confirm_name')))) {
-            return $this->back($org)->withErrors(['confirm_name' => 'This organisation is protected. Type its exact name to confirm.']);
+            return $this->back($org)->withErrors(['confirm_name' => __('php/http/controllers/admin/customer_controller.protected_type_name')]);
         }
 
         return null;
@@ -480,7 +484,7 @@ class CustomerController extends Controller
     private function refusedWithoutAcknowledgement(Request $request, Organization $org, array $impact): ?RedirectResponse
     {
         if ($impact['in_house'] + $impact['upcoming'] > 0 && ! $request->boolean('acknowledge_guests')) {
-            return $this->back($org)->withErrors(['acknowledge_guests' => 'This organisation has '.$impact['in_house'].' guest '.Str::plural('stay', $impact['in_house']).' in house and '.$impact['upcoming'].' upcoming. Confirm you have seen that.']);
+            return $this->back($org)->withErrors(['acknowledge_guests' => trans_choice('php/http/controllers/admin/customer_controller.acknowledge_guests', $impact['in_house'], ['upcoming' => $impact['upcoming']])]);
         }
 
         return null;
@@ -515,14 +519,14 @@ class CustomerController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'country' => ['nullable', 'string', Rule::in(array_keys(Countries::options()))],
             // the app's own list — plus the value already stored, so a language set elsewhere survives an unrelated save
-            'default_locale' => ['required', Rule::in(array_values(array_unique(array_filter([...(array) config('app.available_locales', ['en']), (string) $org->default_locale]))))],
+            'default_locale' => ['required', Rule::in(array_values(array_unique(array_filter([...Locales::offered(), (string) $org->default_locale]))))],
             'billing_email' => ['nullable', 'email', 'max:255'],
             // A CHANGED value meets the operator's Settings limits — the stricter of its two writers, so it passes both;
             // an UNCHANGED one (the operator's Billing screen allows longer) only has to fit its column.
             'billing_company' => ['nullable', 'string', $this->unchanged($request, $org, 'billing_company') ? 'max:255' : 'max:160'],
             'billing_vat_id' => ['nullable', 'string', $this->unchanged($request, $org, 'billing_vat_id') ? 'max:255' : 'max:40'],
             'billing_city' => ['nullable', 'string', 'max:120'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
 
         if ($refused = $this->refusedByLock($request, $org, 'update_details', $reason)) {
@@ -539,7 +543,7 @@ class CustomerController extends Controller
         }
 
         if ($changes === []) {
-            return $this->back($org)->with('admin_notice', 'Nothing changed — every value was already as entered.');
+            return $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.nothing_changed'));
         }
 
         // ⚠️ The Stripe copy of a VAT number is a SIDE EFFECT of a save that has already landed: if Stripe cannot be
@@ -570,12 +574,12 @@ class CustomerController extends Controller
         // READ BACK — a write that did not land must never be reported as saved.
         $stored = Organization::withTrashed()->findOrFail($org->id);
         $missed = array_keys(array_filter($changes, fn ($value, string $field): bool => (string) $stored->getAttribute($field) !== (string) $value, ARRAY_FILTER_USE_BOTH));
-        $words = array_map(fn (string $field): string => $field === 'name' ? 'name' : ConsoleFields::NAMES[$field], array_keys($changes));
+        $words = array_map(fn (string $field): string => $field === 'name' ? __('php/http/controllers/admin/customer_controller.field_name') : ConsoleFields::names()[$field], array_keys($changes));
 
         return $missed === []
-            ? $this->back($org)->with('admin_notice', 'Saved — read back from the database: '.implode(', ', $words).'.'
-                .($stripeOk ? '' : ' ⚠️ The new VAT number could not be sent to Stripe just now — it is saved here; save again to retry.'))
-            : $this->back($org)->withErrors(['details' => 'The write did not land for: '.implode(', ', $missed).'.']);
+            ? $this->back($org)->with('admin_notice', __('php/http/controllers/admin/customer_controller.details_saved', ['fields' => implode(', ', $words)])
+                .($stripeOk ? '' : ' '.__('php/http/controllers/admin/customer_controller.vat_not_sent_to_stripe')))
+            : $this->back($org)->withErrors(['details' => __('php/http/controllers/admin/customer_controller.write_not_landed', ['fields' => implode(', ', $missed)])]);
     }
 
     /** ADMIN 04 — the "create an organisation" form: the same choices self-signup offers, and one founder. */
@@ -616,13 +620,14 @@ class CustomerController extends Controller
             'founder_name' => ['required', 'string', 'max:255'],
             'founder_email' => ['required', 'email', 'max:255'],
             'internal' => ['sometimes', 'boolean'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
 
         $refusal = match (true) {
-            MailDelivery::discards() => 'Mail is not being delivered (mail is “'.MailDelivery::mailer().'”), so the founder could never receive the set-password link. Nothing was created.',
-            ($why = UndeliverableRecipients::reason($data['founder_email'])) !== null => 'This address can never receive mail ('.$why.'), so the founder could never receive the set-password link. Nothing was created.',
-            User::query()->where('email', $data['founder_email'])->exists() => 'An account already uses this email address. Nothing was created.',
+            MailDelivery::discards() => __('php/http/controllers/admin/customer_controller.create_mail_discarded', ['mailer' => MailDelivery::mailer()]),
+            // the screen names the reason in the reader's language (null exactly when reason() is null; the stored English stays)
+            ($why = UndeliverableRecipients::displayReason($data['founder_email'])) !== null => __('php/http/controllers/admin/customer_controller.create_address_undeliverable', ['reason' => $why]),
+            User::query()->where('email', $data['founder_email'])->exists() => __('php/http/controllers/admin/customer_controller.create_email_taken'),
             default => null,
         };
         if ($refusal !== null) {
@@ -667,8 +672,8 @@ class CustomerController extends Controller
         $this->audit->record($sentTo ? 'platform.customer.founder_link' : 'platform.customer.founder_link.failed', ['handed_to_mailer' => $sentTo], 'organization', (string) $org->id, reason: $reason);
 
         return redirect()->route('admin.customers.show', $org->id)->with('admin_notice', $sentTo
-            ? 'Created. The founder’s set-password link was handed to the mailer — it is single-use and expires in '.OwnerInviteService::EXPIRY_DAYS.' days.'
-            : 'Created — but the set-password email could not be sent. Use Support → “Send password reset” for the founder once mail is working.');
+            ? trans_choice('php/http/controllers/admin/customer_controller.created_link_sent', OwnerInviteService::EXPIRY_DAYS)
+            : __('php/http/controllers/admin/customer_controller.created_link_failed'));
     }
 
     /** Whether a submitted value is exactly what is already stored (so a looser, older limit may apply to it). */

@@ -1,14 +1,14 @@
 {{-- ADMIN 01 · PHASE 2 — the TRIAGE QUEUE: organisations worth a look, COUNTED per bucket, each with the exact
      definition it counts by and a link to the same list in the directory (one definition, two screens). ⚠️ It
      surfaces; it never acts. Customers only unless internal organisations are asked for; archived never. --}}
-<x-admin.shell active="triage" title="Triage" subtitle="Organisations worth a look — counted, defined, and never acted on automatically.">
+<x-admin.shell active="triage" :title="__('admin/customers/triage.title')" :subtitle="__('admin/customers/triage.subtitle')">
 
     <div class="ad-filters" style="justify-content: space-between;">
         <span class="ad-stat-sub" style="margin: 0;">
-            {{ $includeInternal ? 'Including Vyrobel’s own internal organisations.' : 'Customers only — Vyrobel’s own internal organisations are left out.' }}
+            {{ $includeInternal ? __('admin/customers/triage.scope_including_internal') : __('admin/customers/triage.scope_customers_only') }}
         </span>
         <a class="ad-btn ad-btn--ghost ad-btn--sm" href="{{ route('admin.customers.triage', $includeInternal ? [] : ['internal' => 'include']) }}">
-            {{ $includeInternal ? 'Customers only' : 'Include internal' }}
+            {{ $includeInternal ? __('admin/customers/triage.toggle_customers_only') : __('admin/customers/triage.toggle_include_internal') }}
         </a>
     </div>
 
@@ -23,7 +23,7 @@
                     <div class="ad-bucket-count">{{ number_format($bucket['count']) }}</div>
                     @if ($bucket['count'] > 0)
                         <a class="ad-cell-link" style="font-size: 12.5px;"
-                           href="{{ route('admin.customers.index', array_filter(['bucket' => $key, 'kind' => $includeInternal ? null : 'customers'])) }}">View in the directory →</a>
+                           href="{{ route('admin.customers.index', array_filter(['bucket' => $key, 'kind' => $includeInternal ? null : 'customers'])) }}">{{ __('admin/customers/triage.view_in_directory') }}</a>
                     @endif
                 </div>
             </div>
@@ -31,6 +31,6 @@
     </div>
 
     @if ($customers === 0 && ! $includeInternal)
-        <p class="ad-stat-sub" style="margin-top: 14px;"><strong>No customers yet</strong> — every organisation on the platform is one of Vyrobel’s own, so these queues are empty by definition, not because everything is fine.</p>
+        <p class="ad-stat-sub" style="margin-top: 14px;">{!! __('admin/customers/triage.no_customers_yet') !!}</p>
     @endif
 </x-admin.shell>

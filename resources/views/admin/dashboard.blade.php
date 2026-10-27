@@ -7,14 +7,19 @@
 @php
     $counts = collect($cards)->countBy(fn ($c) => $c->status);
 @endphp
-<x-admin.shell active="health" title="Health"
-    subtitle="Is anything failing quietly? Every card is measured on this page load — grey means it could not look.">
+<x-admin.shell active="health" :title="__('admin/dashboard.title')"
+    :subtitle="__('admin/dashboard.subtitle')">
 
     <div class="ad-health-summary">
-        @foreach (['red' => 'problem', 'amber' => 'attention', 'grey' => 'could not measure', 'green' => 'ok'] as $status => $label)
+        @foreach (['red', 'amber', 'grey', 'green'] as $status)
             <span class="ad-health-count ad-health-count--{{ $status }}">
                 <span class="ad-dot ad-dot--{{ $status }}" aria-hidden="true"></span>
-                {{ $counts[$status] ?? 0 }} {{ $label }}
+                {{ match ($status) {
+                    'red' => __('admin/dashboard.count_red', ['number' => $counts[$status] ?? 0]),
+                    'amber' => __('admin/dashboard.count_amber', ['number' => $counts[$status] ?? 0]),
+                    'grey' => __('admin/dashboard.count_grey', ['number' => $counts[$status] ?? 0]),
+                    'green' => __('admin/dashboard.count_green', ['number' => $counts[$status] ?? 0]),
+                } }}
             </span>
         @endforeach
     </div>

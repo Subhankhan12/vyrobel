@@ -33,7 +33,7 @@ function consoleValidateCallsWithoutFieldNames(): array
                 $depth += match ($tokens[$j]->text) {
                     '(', '[' => 1, ')', ']' => -1, default => 0
                 };
-                if ($tokens[$j]->text === 'ConsoleFields' && ($tokens[$j + 2] ?? null)?->text === 'NAMES') {
+                if ($tokens[$j]->text === 'ConsoleFields' && in_array(($tokens[$j + 2] ?? null)?->text, ['NAMES', 'names'], true)) {   // I18N-01: names() = the map in the reader's language
                     $passes = true;
                 }
                 if ($depth === 0) {

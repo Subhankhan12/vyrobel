@@ -44,23 +44,27 @@ final class PlatformSwitches
 
     public const SIGNIN_TWITTER = 'signin.twitter.enabled';
 
+    /** Every switch key, in console order. ⚠️ The checks read this, never the (translated) catalogue. */
+    private const KEYS = [self::SIGNUP, self::SIGNUP_GOOGLE, self::SIGNUP_TWITTER, self::SIGNIN_GOOGLE, self::SIGNIN_TWITTER];
+
     private const CACHE_KEY = 'platform:switches:v1';
 
     private const CACHE_SECONDS = 30;
 
     /**
      * Every switch that exists, with what it controls. ⚠️ An unknown key is an exception, never a silent "on".
+     * I18N-01 — `label` and `controls` are in the reader's language; `provider` and `kind` are codes.
      *
      * @return array<string, array{label: string, controls: string, provider: ?string, kind: string}>
      */
     public static function catalogue(): array
     {
         return [
-            self::SIGNUP => ['label' => 'New sign-ups (all sources)', 'controls' => 'Whether anyone can create a new Vyrobel account and organisation — by email, Google or X.', 'provider' => null, 'kind' => 'signup'],
-            self::SIGNUP_GOOGLE => ['label' => 'Sign-up with Google', 'controls' => 'Whether a new account can be created by signing in with Google.', 'provider' => 'google', 'kind' => 'signup'],
-            self::SIGNUP_TWITTER => ['label' => 'Sign-up with X', 'controls' => 'Whether a new account can be created by signing in with X.', 'provider' => 'twitter', 'kind' => 'signup'],
-            self::SIGNIN_GOOGLE => ['label' => 'Sign-in with Google', 'controls' => 'Whether an existing account can sign in with Google.', 'provider' => 'google', 'kind' => 'signin'],
-            self::SIGNIN_TWITTER => ['label' => 'Sign-in with X', 'controls' => 'Whether an existing account can sign in with X.', 'provider' => 'twitter', 'kind' => 'signin'],
+            self::SIGNUP => ['label' => __('php/support/platform/platform_switches.signup_label'), 'controls' => __('php/support/platform/platform_switches.signup_controls'), 'provider' => null, 'kind' => 'signup'],
+            self::SIGNUP_GOOGLE => ['label' => __('php/support/platform/platform_switches.signup_google_label'), 'controls' => __('php/support/platform/platform_switches.signup_google_controls'), 'provider' => 'google', 'kind' => 'signup'],
+            self::SIGNUP_TWITTER => ['label' => __('php/support/platform/platform_switches.signup_twitter_label'), 'controls' => __('php/support/platform/platform_switches.signup_twitter_controls'), 'provider' => 'twitter', 'kind' => 'signup'],
+            self::SIGNIN_GOOGLE => ['label' => __('php/support/platform/platform_switches.signin_google_label'), 'controls' => __('php/support/platform/platform_switches.signin_google_controls'), 'provider' => 'google', 'kind' => 'signin'],
+            self::SIGNIN_TWITTER => ['label' => __('php/support/platform/platform_switches.signin_twitter_label'), 'controls' => __('php/support/platform/platform_switches.signin_twitter_controls'), 'provider' => 'twitter', 'kind' => 'signin'],
         ];
     }
 
@@ -124,10 +128,10 @@ final class PlatformSwitches
     /** @return array<string, array{on: bool, updated_by: ?string, updated_at: ?string}> for the console */
     public static function states(): array
     {
-        $rows = PlatformSetting::query()->whereIn('key', array_keys(self::catalogue()))->get()->keyBy('key');
+        $rows = PlatformSetting::query()->whereIn('key', self::KEYS)->get()->keyBy('key');
 
         $out = [];
-        foreach (array_keys(self::catalogue()) as $key) {
+        foreach (self::KEYS as $key) {
             $row = $rows->get($key);
             $out[$key] = [
                 'on' => $row === null || $row->value === null ? true : (bool) $row->value,
@@ -146,7 +150,7 @@ final class PlatformSwitches
             // ⚠️ Through the MODEL, so the `array` (JSON) cast is applied: a stored JSON `false` must come back
             //    as boolean false. Read raw, it would be the string "false" — and (bool) "false" is TRUE.
             return Cache::remember(self::CACHE_KEY, self::CACHE_SECONDS, static fn (): array => PlatformSetting::query()
-                ->whereIn('key', array_keys(self::catalogue()))
+                ->whereIn('key', self::KEYS)
                 ->get()
                 ->mapWithKeys(static fn (PlatformSetting $row): array => [$row->key => $row->value])
                 ->all());
@@ -160,7 +164,7 @@ final class PlatformSwitches
 
     private static function assertKnown(string $key): void
     {
-        if (! array_key_exists($key, self::catalogue())) {
+        if (! in_array($key, self::KEYS, true)) {
             throw new InvalidArgumentException("Unknown platform switch [{$key}].");
         }
     }

@@ -4,32 +4,32 @@
     $me = auth('admin')->user();
     $canPost = $me?->may('tenants.manage') ?? false;
 @endphp
-<x-admin.shell active="status" title="Status page" subtitle="Incidents on the public status page — posted by hand. Nothing internal ever reaches it.">
+<x-admin.shell active="status" :title="__('admin/status.title')" :subtitle="__('admin/status.subtitle')">
 
 
     <div class="ad-card" style="margin-bottom: 18px;">
         <p class="ad-stat-sub" style="margin: 0; line-height: 1.6;">
-            ⚠️ <strong>Everything written here is public</strong> at <a class="ad-cell-link" href="{{ route('status') }}" target="_blank" rel="noopener">{{ route('status') }}</a>.
-            The page shows only what is posted: with nothing posted it says “No incidents have been posted” — never “all systems operational”.
+            ⚠️ {!! __('admin/status.public_warning', ['url' => e(route('status'))]) !!}
+            {{ __('admin/status.shows_only_posted') }}
         </p>
     </div>
 
     <div class="ad-card" style="overflow-x: auto;">
         @if ($incidents->isEmpty())
-            <div class="ad-empty">No incident has ever been posted.</div>
+            <div class="ad-empty">{{ __('admin/status.none_ever_posted') }}</div>
         @else
             @foreach ($incidents as $i)
                 <div style="padding: 12px 0; border-bottom: 1px solid var(--ad-border);">
-                    <strong>{{ $i->title }}</strong> · {{ StatusIncident::IMPACTS[$i->impact] ?? $i->impact }} · {{ StatusIncident::STATUSES[$i->status] ?? $i->status }}
-                    <div style="font-size: 12px; color: var(--ad-muted);">Started <x-admin.time :at="$i->started_at" />@if ($i->resolved_at) · resolved <x-admin.time :at="$i->resolved_at" />@endif</div>
+                    <strong>{{ $i->title }}</strong> · {{ StatusIncident::impactLabel((string) $i->impact) }} · {{ StatusIncident::statusLabel((string) $i->status) }}
+                    <div style="font-size: 12px; color: var(--ad-muted);">{{ __('admin/status.started') }} <x-admin.time :at="$i->started_at" />@if ($i->resolved_at) · {{ __('admin/status.resolved') }} <x-admin.time :at="$i->resolved_at" />@endif</div>
                     <p class="ad-stat-sub" style="margin: 6px 0;">{{ $i->message }}</p>
                     @if ($canPost && $i->isOpen())
                         <form method="POST" action="{{ route('admin.status.update', $i->id) }}" data-guard-submit style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 8px;">
                             @csrf
-                            <select aria-label="Status" name="status" class="ad-input">@foreach (StatusIncident::STATUSES as $k => $label)<option value="{{ $k }}" @selected($i->status === $k)>{{ $label }}</option>@endforeach</select>
-                            <input aria-label="Public message" class="ad-input" name="message" required maxlength="2000" placeholder="Public update">
-                            <input aria-label="Reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="Internal reason (audit log)" style="grid-column: 1 / -1;">
-                            <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm" style="grid-column: 1 / -1; justify-self: start;">Post update</button>
+                            <select aria-label="{{ __('admin/status.status_aria') }}" name="status" class="ad-input">@foreach (array_keys(StatusIncident::STATUSES) as $k)<option value="{{ $k }}" @selected($i->status === $k)>{{ StatusIncident::statusLabel($k) }}</option>@endforeach</select>
+                            <input aria-label="{{ __('admin/status.public_message_aria') }}" class="ad-input" name="message" required maxlength="2000" placeholder="{{ __('admin/status.public_update_placeholder') }}">
+                            <input aria-label="{{ __('admin/status.reason_aria') }}" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500" placeholder="{{ __('admin/status.internal_reason_placeholder') }}" style="grid-column: 1 / -1;">
+                            <button type="submit" class="ad-btn ad-btn--ghost ad-btn--sm" style="grid-column: 1 / -1; justify-self: start;">{{ __('admin/status.post_update') }}</button>
                         </form>
                     @endif
                 </div>
@@ -39,20 +39,20 @@
 
     @if ($canPost)
         <div class="ad-card" style="margin-top: 18px;">
-            <h2 class="ad-panel-title">Post an incident</h2>
+            <h2 class="ad-panel-title">{{ __('admin/status.post_incident_heading') }}</h2>
             <form method="POST" action="{{ route('admin.status.store') }}" data-guard-submit>
                 @csrf
-                <label class="ad-label" for="si-title">Public title</label>
+                <label class="ad-label" for="si-title">{{ __('admin/status.public_title') }}</label>
                 <input id="si-title" class="ad-input" name="title" required maxlength="120">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px;">
-                    <div><label class="ad-label" for="si-impact">Impact</label><select id="si-impact" name="impact" class="ad-input">@foreach (StatusIncident::IMPACTS as $k => $label)<option value="{{ $k }}">{{ $label }}</option>@endforeach</select></div>
-                    <div><label class="ad-label" for="si-status">Status</label><select id="si-status" name="status" class="ad-input">@foreach (['investigating', 'identified', 'monitoring'] as $k)<option value="{{ $k }}">{{ StatusIncident::STATUSES[$k] }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="si-impact">{{ __('admin/status.impact') }}</label><select id="si-impact" name="impact" class="ad-input">@foreach (array_keys(StatusIncident::IMPACTS) as $k)<option value="{{ $k }}">{{ StatusIncident::impactLabel($k) }}</option>@endforeach</select></div>
+                    <div><label class="ad-label" for="si-status">{{ __('common.status') }}</label><select id="si-status" name="status" class="ad-input">@foreach (['investigating', 'identified', 'monitoring'] as $k)<option value="{{ $k }}">{{ StatusIncident::statusLabel($k) }}</option>@endforeach</select></div>
                 </div>
-                <label class="ad-label" for="si-msg" style="margin-top: 10px;">Public message</label>
+                <label class="ad-label" for="si-msg" style="margin-top: 10px;">{{ __('admin/status.public_message') }}</label>
                 <textarea id="si-msg" class="ad-input" name="message" required maxlength="2000" rows="3"></textarea>
-                <label class="ad-label" for="si-reason" style="margin-top: 10px;">Internal reason (audit log — not public)</label>
+                <label class="ad-label" for="si-reason" style="margin-top: 10px;">{{ __('admin/status.internal_reason_label') }}</label>
                 <input id="si-reason" class="ad-input ad-reason" name="reason" required minlength="5" maxlength="500">
-                <button type="submit" class="ad-btn" style="margin-top: 12px;">Post publicly</button>
+                <button type="submit" class="ad-btn" style="margin-top: 12px;">{{ __('admin/status.post_publicly') }}</button>
             </form>
         </div>
     @endif

@@ -37,6 +37,6 @@ final class PlatformAdminPasswordPolicy
 
     public static function hint(): string
     {
-        return 'At least '.self::MIN_LENGTH.' characters, with upper- and lower-case letters, a number and a symbol.';
+        return __('php/support/platform/platform_admin_password_policy.hint', ['min' => self::MIN_LENGTH]);
     }
 }

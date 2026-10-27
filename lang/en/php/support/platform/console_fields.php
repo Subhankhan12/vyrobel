@@ -1,0 +1,46 @@
+<?php
+
+// app/Support/Platform/ConsoleFields.php — the words a console validation message uses for a field, and its conditional-rule sentences.
+
+return [
+    // field names, as they appear inside a validation message ("The :attribute field is required.")
+    'current_password' => 'your password',
+    'organization_id' => 'organisation',
+    'organization_ids' => 'chosen organisations',
+    'organization_ids_each' => 'organisation',
+    'plan_id' => 'plan',
+    'body' => 'message',
+    'starts_at' => 'show from',
+    'ends_at' => 'until',
+    'subject_kind' => 'about',
+    'channel' => 'received by',
+    'api_key' => 'API key',
+    'api_secret' => 'API secret',
+    'is_enabled' => 'enabled',
+    'is_active' => 'active',
+    'pricing_type' => 'pricing',
+    'vat_pct' => 'VAT %',
+    'stripe_price_id' => 'Stripe price ID',
+    'country' => 'country',
+    'default_locale' => 'language',
+    'billing_email' => 'billing email',
+    'billing_company' => 'billing name',
+    'billing_vat_id' => 'VAT ID',
+    'billing_city' => 'billing city',
+    'org_name' => 'organisation name',
+    'currency' => 'currency',
+    'property_name' => 'first property',
+    'property_type' => 'property type',
+    'location' => 'location',
+    'founder_name' => "founder's name",
+    'founder_email' => "founder's email",
+    'acknowledge_delete' => 'the acknowledgement',
+    'feature_enabled' => 'feature switch',
+    'feature_limit' => 'feature limit',
+    // the conditional rules' own sentences
+    'email_required_if' => 'An account holder’s request needs their email address — it finds the account and is not stored.',
+    'organization_id_required_if' => 'A guest’s request needs the organisation that relayed it.',
+    'organization_ids_required_if' => 'Choose at least one organisation — or send it to every organisation.',
+    'price_required_if' => 'A flat-priced plan needs a price.',
+    'unit_rate_required_if' => 'A per-unit plan needs a rate per unit.',
+];

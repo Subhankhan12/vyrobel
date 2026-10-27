@@ -35,15 +35,15 @@ final class AdminReason
     public static function messages(): array
     {
         return [
-            'reason.required' => 'Write a short reason — every change made from the console is recorded with one.',
-            'reason.min' => 'The reason is too short to mean anything later. A sentence is enough.',
+            'reason.required' => __('php/support/platform/admin_reason.reason_required'),
+            'reason.min' => __('php/support/platform/admin_reason.reason_too_short'),
         ];
     }
 
     /** Validate and return the trimmed reason. */
     public static function from(Request $request): string
     {
-        $request->validate(self::rules(), self::messages(), ConsoleFields::NAMES);
+        $request->validate(self::rules(), self::messages(), ConsoleFields::names());
 
         return trim((string) $request->string('reason'));
     }

@@ -1,0 +1,102 @@
+<?php
+
+// app/Support/Platform/Health/HealthBoard.php — the console's "nothing is silent" health board: card titles, verdicts and lines.
+// Setting names (MAIL_HOST, OPS_HEARTBEAT_PING_URL …), file paths and the Hostinger/Postmark/Channex names stay as they are.
+
+return [
+    // mail
+    'mail_not_delivered' => 'MAIL IS NOT BEING DELIVERED',
+    'mail_discarded_line' => 'Active mailer: :mailer — every email is discarded, not sent.',
+    'mail_discarded_reach' => 'Invites, password resets, verification and receipts reach nobody until a real mailer is configured.',
+    'mail_founder_step' => "Founder step: the Hostinger mailbox password, typed into the server's .env (docs/EMAIL-PRODUCTION.md).",
+    'mail_active_mailer' => 'Active mailer: :mailer.',
+    'mail_token_missing' => 'Mailer set, token missing',
+    'mail_postmark_no_token' => 'Postmark is selected but has no token — sends will fail.',
+    'mail_local_host' => 'Mail goes to this machine, not to people',
+    'mail_local_host_line' => 'MAIL_HOST points at a local catch-inbox (loopback / Mailpit) — nothing reaches a person.',
+    'mail_smtp_incomplete' => 'SMTP login incomplete',
+    'mail_smtp_not_set' => 'Not set: :keys — the mail server will refuse every message.',
+    'mail_sender_mismatch' => 'Sender does not match the SMTP login',
+    'mail_sender_mismatch_line' => 'MAIL_FROM_ADDRESS is not the mailbox that signs in (MAIL_USERNAME) — Hostinger rejects mail sent as anyone else.',
+    'mail_smtp_ok' => 'SMTP: a real mail server, a complete login, and a From address that matches it.',
+    'mail_accepted' => 'Accepted by the mail server — 24h: :day · 7 days: :week.',
+    'mail_suppressed' => 'Suppressed (an address that can never receive mail — never sent) — 7 days: :week.',
+    'mail_failed_queue' => 'Failed on the queue — 7 days: :failed. (An inline send that fails shows as an error on the page that sent it, and in the log.)',
+    'mail_bounced' => 'Bounced: not visible to the app — with SMTP a bounce comes back as an email to the sending mailbox. "Accepted" is not "delivered".',
+    'mail_queued_failed' => '{1} Delivering — but :count queued email failed in 7 days|[0,*] Delivering — but :count queued emails failed in 7 days',
+    'mail_delivering' => 'A delivering mailer is configured',
+    // channel manager
+    'channex_not_connected' => 'Not connected',
+    'channex_fake_client' => 'No live Channex connection: a fake client is bound.',
+    'channex_no_key' => 'No live Channex connection: no API key is SET.',
+    'channex_deferred' => 'The cutover (F-36/A10) is deferred on its trigger — this console does not build, start or simulate it.',
+    'channex_key_set' => 'A key is SET — sync health is not measured here',
+    'channex_not_called' => 'This card does not call Channex. Whether rates, availability and bookings are flowing is not measured from the console.',
+    // queue
+    'queue_jobs_waiting' => 'Jobs waiting: :waiting',
+    'queue_jobs_waiting_oldest' => 'Jobs waiting: :waiting · oldest :age',
+    'queue_failed_jobs' => 'Failed jobs: :failed',
+    'queue_worker_never' => 'Worker last ran: never recorded',
+    'queue_worker_last_ran' => 'Worker last ran: :age ago',
+    'queue_failed_headline' => '{1} :count failed job|[0,*] :count failed jobs',
+    'queue_worker_not_seen' => 'Worker not seen',
+    'queue_backing_up' => 'Jobs are backing up',
+    'queue_draining' => 'Draining',
+    // scheduler
+    'scheduler_never' => 'Scheduler last beat: never recorded',
+    'scheduler_last_beat' => 'Scheduler last beat: :age ago',
+    'scheduler_switch_armed' => "External dead-man's switch: armed",
+    'scheduler_switch_not_armed' => "External dead-man's switch: NOT ARMED — no ping URL is configured",
+    'scheduler_not_seen' => 'Scheduler not seen',
+    'scheduler_dead_cron_note' => 'A dead cron stops the GDPR deletion and the retention prune without any error.',
+    'scheduler_unwatched' => 'Running — but nobody is told if it stops',
+    'scheduler_founder_step' => 'Founder step: an external monitor URL in OPS_HEARTBEAT_PING_URL, then a config rebuild.',
+    'scheduler_watched' => 'Running, and watched',
+    // server errors
+    'errors_note' => 'Origin errors only — the CDN in front of the site is not visible from here. Logged at warning+; the route group is not recorded in the log, so errors cannot be split by route.',
+    'could_not_measure' => 'Could not measure',
+    'errors_no_log_file' => 'No application log file was found.',
+    'errors_counts' => 'Errors: :errors · warnings: :warnings',
+    // :from is a day and hour ("3 Oct, 14:00"), :to the next hour; both UTC
+    'errors_hour_line' => '{1} :from–:to UTC — :count error|[0,*] :from–:to UTC — :count errors',
+    'errors_none' => 'No server errors logged',
+    'errors_logged' => '{1} :count server error logged|[0,*] :count server errors logged',
+    // live release
+    'release_not_in_layout' => 'Not running from a release directory (this is a development checkout).',
+    'release_commit_unreadable' => ':release — commit unreadable',
+    'release_no_file' => 'The live release has no readable .release file.',
+    'release_commit' => 'Commit :commit',
+    'release_rollback_unreadable' => 'Rollback candidate :name — commit unreadable',
+    'release_rollback' => 'Rollback candidate :name · :commit',
+    'release_older_retained' => '{1} … and :count older release retained|[0,*] … and :count older releases retained',
+    'release_note' => 'Read from the release layout on disk. There is no deploy or rollback button, by design.',
+    // configuration
+    'config_calibration_failed' => 'The inventory failed its own calibration, so its answer is not trusted.',
+    'config_counts' => ':set set · :empty empty · :unclassified empty and unclassified',
+    'config_empty_silent' => 'EMPTY and SILENT: :path',
+    'config_no_gaps' => 'No silent gaps',
+    'config_silent_settings' => '{1} :count setting empty that fails silently|[0,*] :count settings empty that fail silently',
+    'config_names_only' => 'Names only — no value is ever shown.',
+    // kill switches
+    'switches_all_on' => 'All on — normal service',
+    'switches_open' => 'Sign-up and social sign-in are open.',
+    'switches_off_count' => '[0,*] :count switched off',
+    'switches_off_line' => 'OFF: :switch',
+    // exposure
+    'exposure_why' => 'Both run from outside the host (ops/exposure-battery.sh, ops/htaccess-drift-check.sh) and their results are not stored anywhere this page can read. Running them from a web request would be the wrong place to run them.',
+    // ages, short units: "45s", "12 min", "3 h", "4 days" — the trailing s of age_seconds is the unit, written straight after the number
+    'age_seconds' => ':secondss',
+    'age_minutes' => ':minutes min',
+    'age_hours' => ':hours h',
+    'age_days' => '{1} :count day|[0,*] :count days',
+    // card titles
+    'title_mail' => 'Mail delivery',
+    'title_queue' => 'Queue',
+    'title_scheduler' => 'Scheduler & heartbeat',
+    'title_errors' => 'Server errors (24h)',
+    'title_release' => 'Live release',
+    'title_config' => 'Silent configuration',
+    'title_switches' => 'Kill switches',
+    'title_channex' => 'Channel manager (Channex)',
+    'title_exposure' => 'Exposure battery & drift check',
+];

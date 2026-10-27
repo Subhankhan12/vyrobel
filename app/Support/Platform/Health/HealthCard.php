@@ -42,22 +42,22 @@ final class HealthCard
     /** A card whose measurement itself failed — grey, with the reason, never green. */
     public static function couldNotMeasure(string $key, string $title, string $why): self
     {
-        return new self($key, $title, self::GREY, 'Could not measure', [$why]);
+        return new self($key, $title, self::GREY, __('php/support/platform/health/health_card.could_not_measure'), [$why]);
     }
 
     public static function fromFailure(string $key, string $title, Throwable $e): self
     {
-        return self::couldNotMeasure($key, $title, 'The check itself failed: '.class_basename($e).'.');
+        return self::couldNotMeasure($key, $title, __('php/support/platform/health/health_card.check_failed', ['exception' => class_basename($e)]));
     }
 
     public function statusLabel(): string
     {
         return $this->label ?? match ($this->status) {
-            self::OFF => 'Off',
-            self::GREEN => 'OK',
-            self::AMBER => 'Attention',
-            self::RED => 'Problem',
-            default => 'Could not measure',
+            self::OFF => __('php/support/platform/health/health_card.status_off'),
+            self::GREEN => __('php/support/platform/health/health_card.status_ok'),
+            self::AMBER => __('php/support/platform/health/health_card.status_attention'),
+            self::RED => __('php/support/platform/health/health_card.status_problem'),
+            default => __('php/support/platform/health/health_card.status_could_not_measure'),
         };
     }
 }

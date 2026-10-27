@@ -38,7 +38,11 @@ final class TenantLifecycle
     /** A lifecycle action needs the organisation's exact name typed as a second confirmation. */
     public const LOCK_CONFIRM = 'confirm';
 
-    /** How an organisation was created. NULL is shown as "Unknown" — never guessed. */
+    /**
+     * How an organisation was created. NULL is shown as "Unknown" — never guessed. ⚠️ I18N-01 — the KEYS are the stored
+     * codes; the English values are the fallback for callers that still read the constant. A person reads
+     * {@see sourceLabel()} / {@see sourceLabels()}.
+     */
     public const SIGNUP_SOURCES = ['email' => 'Email', 'google' => 'Google', 'twitter' => 'X', 'console' => 'Created in the console'];   // `console` — ADMIN 04
 
     /**
@@ -70,7 +74,28 @@ final class TenantLifecycle
 
     public static function sourceLabel(?string $source): string
     {
-        return self::SIGNUP_SOURCES[$source] ?? 'Unknown';
+        return match ($source) {
+            'email' => __('php/support/platform/tenant_lifecycle.source_email'),
+            'google' => 'Google',
+            'twitter' => 'X',
+            'console' => __('php/support/platform/tenant_lifecycle.source_console'),
+            default => __('php/support/platform/tenant_lifecycle.source_unknown'),
+        };
+    }
+
+    /**
+     * I18N-01 — every signup source, code => label in the reader's language (without "Unknown").
+     *
+     * @return array<string, string>
+     */
+    public static function sourceLabels(): array
+    {
+        $out = [];
+        foreach (array_keys(self::SIGNUP_SOURCES) as $code) {
+            $out[$code] = self::sourceLabel($code);
+        }
+
+        return $out;
     }
 
     /**

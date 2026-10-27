@@ -55,13 +55,13 @@ class AdminTwoFactorController extends Controller
     public function store(Request $request): View|RedirectResponse
     {
         $admin = $this->admin();
-        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::NAMES);
+        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::names());
 
         $codes = $this->twoFactor->confirm($admin, (string) $request->string('code'));
 
         if ($codes === null) {
             throw ValidationException::withMessages([
-                'code' => 'That code is invalid. Scan the QR again and enter the current 6-digit code.',
+                'code' => __('php/http/controllers/admin/auth/admin_two_factor_controller.code_invalid'),
             ]);
         }
 

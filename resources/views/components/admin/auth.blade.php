@@ -5,14 +5,14 @@
      ruled that the admin realm must look like the rest of Vyrobel. The `--ad-*` token NAMES are kept (every
      `.ad-*` rule and all four admin auth views keep working) and their VALUES now come from the canonical
      `--vy-*` palette. Self-contained; noindex. --}}
-@props(['title' => 'Platform admin', 'heading' => '', 'sub' => ''])
+@props(['title' => __('components/admin/auth.platform_admin'), 'heading' => '', 'sub' => ''])
 <!DOCTYPE html>
-<html lang="en">
+<html {!! \App\Support\I18n\Locales::htmlAttributes() !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>{{ $title }} · Vyrobel Platform</title>
+    <title>{{ __('components/admin/auth.page_title', ['title' => $title]) }}</title>
     <x-favicon />
     {{-- Self-hosted Inter + Sora (audit F6-6) — no third-party font request; see public/fonts/fonts.css --}}
     <link href="/fonts/fonts.css" rel="stylesheet">
@@ -99,7 +99,7 @@
             <span class="ad-brand-mark">V</span>
             <span>
                 <div class="ad-brand-name">Vyrobel</div>
-                <div class="ad-brand-tag">Platform admin</div>
+                <div class="ad-brand-tag">{{ __('components/admin/auth.platform_admin') }}</div>
             </span>
         </div>
         @if ($heading !== '')
@@ -132,7 +132,7 @@
 
         <div class="ad-secure">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Hardened platform access · 2FA required
+            {{ __('components/admin/auth.hardened_access') }}
         </div>
     </main>
 </body>

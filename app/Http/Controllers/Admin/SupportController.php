@@ -72,10 +72,10 @@ class SupportController extends Controller
         $row = UserIdentity::query()->where('user_id', $account->id)->whereKey($identity)->first();
 
         if ($row === null) {
-            return $this->back($account)->withErrors(['identity' => 'That connection no longer exists.']);
+            return $this->back($account)->withErrors(['identity' => __('php/http/controllers/admin/support_controller.connection_gone')]);
         }
         if (! SignInCredentials::mayUnlink($account, (string) $row->getKey())) {
-            return $this->back($account)->withErrors(['identity' => 'Refused — this is the only way this person can sign in (no password, no other provider). Unlinking it would lock them out for good.']);
+            return $this->back($account)->withErrors(['identity' => __('php/http/controllers/admin/support_controller.unlink_refused_only_way_in')]);
         }
 
         $this->platform->mutate(
@@ -90,8 +90,8 @@ class SupportController extends Controller
         $gone = ! UserIdentity::query()->whereKey($identity)->exists();
 
         return $gone
-            ? $this->back($account)->with('admin_notice', ucfirst((string) $row->provider).' unlinked — read back: the connection is gone.')
-            : $this->back($account)->withErrors(['identity' => 'The unlink did not land — the connection is still there.']);
+            ? $this->back($account)->with('admin_notice', __('php/http/controllers/admin/support_controller.unlinked', ['provider' => ucfirst((string) $row->provider)]))
+            : $this->back($account)->withErrors(['identity' => __('php/http/controllers/admin/support_controller.unlink_not_landed')]);
     }
 
     /** MARK VERIFIED — the "mail is down" procedure, audited; the column is read back, never assumed. */
@@ -101,7 +101,7 @@ class SupportController extends Controller
         $account = User::query()->findOrFail($user);
 
         if ($account->email_verified_at !== null) {
-            return $this->back($account)->withErrors(['verify' => 'Already verified.']);
+            return $this->back($account)->withErrors(['verify' => __('php/http/controllers/admin/support_controller.already_verified')]);
         }
 
         // ⚠️ forceFill — `email_verified_at` is NOT fillable, and a mass-assign of it is dropped SILENTLY.
@@ -117,8 +117,8 @@ class SupportController extends Controller
         $stored = DB::table('users')->where('id', $account->id)->value('email_verified_at');
 
         return $stored !== null
-            ? $this->back($account)->with('admin_notice', 'Marked verified — read back from the database: '.$stored.' UTC.')
-            : $this->back($account)->withErrors(['verify' => 'The write did not land — email_verified_at is still empty.']);
+            ? $this->back($account)->with('admin_notice', __('php/http/controllers/admin/support_controller.marked_verified', ['stored' => $stored]))
+            : $this->back($account)->withErrors(['verify' => __('php/http/controllers/admin/support_controller.verify_not_landed')]);
     }
 
     /** RESEND the verification email — and say plainly when mail discards it. */
@@ -128,11 +128,11 @@ class SupportController extends Controller
         $account = User::query()->findOrFail($user);
 
         if ($account->email_verified_at !== null) {
-            return $this->back($account)->withErrors(['verify' => 'Already verified — nothing to resend.']);
+            return $this->back($account)->withErrors(['verify' => __('php/http/controllers/admin/support_controller.already_verified_nothing_to_resend')]);
         }
 
         $discards = MailDelivery::discards();
-        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'the verification email')) !== null) {
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'verification')) !== null) {
             return $refused;
         }
         $this->platform->mutate(
@@ -145,8 +145,8 @@ class SupportController extends Controller
         );
 
         return $discards
-            ? $this->back($account)->withErrors(['mail' => 'NOT DELIVERED — mail is “'.MailDelivery::mailer().'”, so the verification email was discarded. Nobody received anything. Confirm who they are another way, then use “Mark email verified”.'])
-            : $this->back($account)->with('admin_notice', 'Verification email handed to the mailer ('.MailDelivery::mailer().').');
+            ? $this->back($account)->withErrors(['mail' => __('php/http/controllers/admin/support_controller.verification_discarded', ['mailer' => MailDelivery::mailer()])])
+            : $this->back($account)->with('admin_notice', __('php/http/controllers/admin/support_controller.verification_handed', ['mailer' => MailDelivery::mailer()]));
     }
 
     /** SEND A PASSWORD RESET — through the product's own broker — and say plainly when mail discards it. */
@@ -155,7 +155,7 @@ class SupportController extends Controller
         $reason = AdminReason::from($request);
         $account = User::query()->findOrFail($user);
         $discards = MailDelivery::discards();
-        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'the reset link')) !== null) {
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, 'reset')) !== null) {
             return $refused;
         }
 
@@ -169,12 +169,12 @@ class SupportController extends Controller
         );
 
         if ($status !== Password::RESET_LINK_SENT) {
-            return $this->back($account)->withErrors(['mail' => 'No reset link was created: '.__((string) $status)]);
+            return $this->back($account)->withErrors(['mail' => __('php/http/controllers/admin/support_controller.no_reset_link', ['status' => __((string) $status)])]);
         }
 
         return $discards
-            ? $this->back($account)->withErrors(['mail' => 'NOT DELIVERED — a reset link was created, but mail is “'.MailDelivery::mailer().'”, so the email was discarded. Nobody received anything.'])
-            : $this->back($account)->with('admin_notice', 'Password reset email handed to the mailer ('.MailDelivery::mailer().').');
+            ? $this->back($account)->withErrors(['mail' => __('php/http/controllers/admin/support_controller.reset_discarded', ['mailer' => MailDelivery::mailer()])])
+            : $this->back($account)->with('admin_notice', __('php/http/controllers/admin/support_controller.reset_handed', ['mailer' => MailDelivery::mailer()]));
     }
 
     /**
@@ -185,9 +185,12 @@ class SupportController extends Controller
      */
     private function refusedUndeliverable(User $account, string $what): ?RedirectResponse
     {
-        $why = UndeliverableRecipients::reason((string) $account->email);
+        // The stored reason stays English (it is what the mail listener logs); the screen shows it in the reader's language.
+        $why = UndeliverableRecipients::displayReason((string) $account->email);
 
-        return $why === null ? null : $this->back($account)->withErrors(['mail' => 'NOT SENT — this address can never receive mail ('.$why.'), so '.$what.' was not handed to the mailer. Nobody received anything.']);
+        return $why === null ? null : $this->back($account)->withErrors(['mail' => $what === 'reset'
+            ? __('php/http/controllers/admin/support_controller.reset_not_sent_undeliverable', ['reason' => $why])
+            : __('php/http/controllers/admin/support_controller.verification_not_sent_undeliverable', ['reason' => $why])]);
     }
 
     /**

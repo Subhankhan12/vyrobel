@@ -18,7 +18,7 @@ final class DeviceLabel
     {
         $ua = trim((string) $userAgent);
         if ($ua === '') {
-            return 'Unknown device';
+            return __('php/support/platform/device_label.unknown_device');
         }
 
         $browser = match (true) {
@@ -42,7 +42,8 @@ final class DeviceLabel
         };
 
         return match (true) {
-            $browser !== null && $system !== null => $browser.' on '.$system,
+            // the browser and system names are product names and stay as they are; only the sentence around them is translated
+            $browser !== null && $system !== null => __('php/support/platform/device_label.browser_on_system', ['browser' => $browser, 'system' => $system]),
             $browser !== null => $browser,
             $system !== null => $system,
             default => mb_strimwidth($ua, 0, 40, '…'),

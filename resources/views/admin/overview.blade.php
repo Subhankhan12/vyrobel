@@ -8,21 +8,21 @@
     $peak = collect($m['signups'])->max('count') ?: 1;
     $noCustomers = ! $m['include_internal'] && $m['organizations'] === 0;
 @endphp
-<x-admin.shell active="overview" title="Overview"
-    :subtitle="$m['include_internal'] ? 'Every organisation, including Vyrobel\'s own internal ones.' : 'Customers only — Vyrobel\'s own internal organisations are excluded.'">
+<x-admin.shell active="overview" :title="__('admin/overview.title')"
+    :subtitle="$m['include_internal'] ? __('admin/overview.subtitle_all') : __('admin/overview.subtitle_customers')">
 
     <div class="ad-card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; padding: 14px 20px;">
         <span class="ad-stat-sub" style="margin: 0;">
             @if ($m['include_internal'])
-                Showing <strong>all</strong> organisations — {{ number_format($m['internal_orgs']) }} of them internal.
+                {!! __('admin/overview.showing_all', ['internal' => e(number_format($m['internal_orgs']))]) !!}
             @else
-                {{ number_format($m['internal_orgs']) }} internal organisation{{ $m['internal_orgs'] === 1 ? '' : 's' }} excluded from every figure below.
+                {{ trans_choice('admin/overview.internal_excluded', $m['internal_orgs'], ['count' => number_format($m['internal_orgs'])]) }}
             @endif
         </span>
         @if ($m['include_internal'])
-            <a class="ad-btn ad-btn--ghost ad-btn--sm" href="{{ route('admin.overview') }}">Customers only</a>
+            <a class="ad-btn ad-btn--ghost ad-btn--sm" href="{{ route('admin.overview') }}">{{ __('admin/overview.customers_only') }}</a>
         @else
-            <a class="ad-btn ad-btn--ghost ad-btn--sm" href="{{ route('admin.overview', ['internal' => 'include']) }}">Include internal</a>
+            <a class="ad-btn ad-btn--ghost ad-btn--sm" href="{{ route('admin.overview', ['internal' => 'include']) }}">{{ __('admin/overview.include_internal') }}</a>
         @endif
     </div>
 
@@ -30,47 +30,46 @@
         {{-- ⚠️ Said in words. A grid of zeroes would read like a business that died; this is one that has not
              started — every organisation that exists is Vyrobel's own. --}}
         <div class="ad-card" style="text-align: center; padding: 40px 24px;">
-            <h2 class="ad-panel-title" style="margin-bottom: 8px; font-size: 20px;">No customers yet</h2>
+            <h2 class="ad-panel-title" style="margin-bottom: 8px; font-size: 20px;">{{ __('admin/overview.no_customers_heading') }}</h2>
             <p class="ad-stat-sub" style="max-width: 520px; margin: 0 auto;">
-                Every organisation on the platform is one of Vyrobel's own
-                ({{ number_format($m['internal_orgs']) }} internal). The first real sign-up will appear here.
+                {{ __('admin/overview.no_customers_body', ['internal' => number_format($m['internal_orgs'])]) }}
             </p>
         </div>
     @else
         <div class="ad-kpis">
             <div class="ad-kpi">
-                <div class="ad-kpi-label">{{ $m['include_internal'] ? 'Organisations' : 'Customers' }}</div>
+                <div class="ad-kpi-label">{{ $m['include_internal'] ? __('admin/overview.kpi_organisations') : __('admin/overview.kpi_customers') }}</div>
                 <div class="ad-kpi-val">{{ number_format($m['organizations']) }}</div>
                 {{-- ⚠️ ADMIN 03 · F2 — the ACCOUNT's own status. A free trial is a SUBSCRIPTION state (next card): signup never
                      sets an organisation's status to "trialing", so an "on trial" figure here was always 0 beside "N in free trial". --}}
-                <div class="ad-kpi-sub">{{ number_format($m['by_status']['active']) }} active · {{ number_format($m['by_status']['suspended']) }} suspended</div>
+                <div class="ad-kpi-sub">{{ __('admin/overview.kpi_account_status', ['active' => number_format($m['by_status']['active']), 'suspended' => number_format($m['by_status']['suspended'])]) }}</div>
             </div>
             <div class="ad-kpi">
-                <div class="ad-kpi-label">Subscriptions</div>
+                <div class="ad-kpi-label">{{ __('admin/overview.kpi_subscriptions') }}</div>
                 <div class="ad-kpi-val">{{ number_format($m['active_subscriptions']) }}</div>
-                <div class="ad-kpi-sub">active · {{ number_format($m['on_trial']) }} in free trial</div>
+                <div class="ad-kpi-sub">{{ __('admin/overview.kpi_subscriptions_sub', ['trial' => number_format($m['on_trial'])]) }}</div>
             </div>
             <div class="ad-kpi">
-                <div class="ad-kpi-label">Revenue</div>
+                <div class="ad-kpi-label">{{ __('admin/overview.kpi_revenue') }}</div>
                 @if ($m['live_billed_subscriptions'] === 0)
-                    <div class="ad-kpi-val" style="font-size: 20px; margin-top: 14px;">No live billing yet</div>
-                    <div class="ad-kpi-sub">No subscription is billed through Stripe. A trial's list price is not revenue.</div>
+                    <div class="ad-kpi-val" style="font-size: 20px; margin-top: 14px;">{{ __('admin/overview.no_live_billing') }}</div>
+                    <div class="ad-kpi-sub">{{ __('admin/overview.no_live_billing_sub') }}</div>
                 @else
-                    <div class="ad-kpi-val" style="font-size: 20px; margin-top: 14px;">{{ number_format($m['live_billed_subscriptions']) }} billed live</div>
+                    <div class="ad-kpi-val" style="font-size: 20px; margin-top: 14px;">{{ trans_choice('admin/overview.billed_live', $m['live_billed_subscriptions'], ['count' => number_format($m['live_billed_subscriptions'])]) }}</div>
                     {{-- ADMIN 03 · F22 — the Revenue screen exists (Phase 4); this used to say it "arrives in a later release". --}}
-                    <div class="ad-kpi-sub">Computed from what Stripe charged, never the price list — see <a class="ad-cell-link" href="{{ route('admin.revenue') }}">Revenue</a>.</div>
+                    <div class="ad-kpi-sub">{!! __('admin/overview.billed_live_sub', ['url' => e(route('admin.revenue'))]) !!}</div>
                 @endif
             </div>
             <div class="ad-kpi">
-                <div class="ad-kpi-label">Properties</div>
+                <div class="ad-kpi-label">{{ __('admin/overview.kpi_properties') }}</div>
                 <div class="ad-kpi-val">{{ number_format($m['properties']) }}</div>
-                <div class="ad-kpi-sub">{{ number_format($m['reservations']) }} reservations</div>
+                <div class="ad-kpi-sub">{{ trans_choice('admin/overview.kpi_reservations', $m['reservations'], ['count' => number_format($m['reservations'])]) }}</div>
             </div>
         </div>
 
         <div class="ad-grid-2">
             <div class="ad-card">
-                <h2 class="ad-panel-title">New {{ $m['include_internal'] ? 'organisations' : 'customers' }} · last 6 months</h2>
+                <h2 class="ad-panel-title">{{ $m['include_internal'] ? __('admin/overview.new_organisations_heading') : __('admin/overview.new_customers_heading') }}</h2>
                 @if (collect($m['signups'])->sum('count') > 0)
                     <div class="ad-chart">
                         @foreach ($m['signups'] as $point)
@@ -83,29 +82,29 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="ad-empty">No sign-ups in the last 6 months.</div>
+                    <div class="ad-empty">{{ __('admin/overview.no_signups') }}</div>
                 @endif
             </div>
 
             <div class="ad-card">
-                <h2 class="ad-panel-title">Account status</h2>
-                @foreach (['active' => 'Active', 'suspended' => 'Suspended', 'cancelled' => 'Cancelled', 'trialing' => 'Trialing (account)'] as $key => $label)
+                <h2 class="ad-panel-title">{{ __('admin/overview.account_status_heading') }}</h2>
+                @foreach (['active' => __('admin/overview.status_active'), 'suspended' => __('admin/overview.status_suspended'), 'cancelled' => __('admin/overview.status_cancelled'), 'trialing' => __('admin/overview.status_trialing')] as $key => $label)
                     @continue($key === 'trialing' && $m['by_status']['trialing'] === 0)
                     <div class="ad-row">
                         <span class="ad-row-k"><span class="ad-pill ad-pill--{{ $key }}">{{ $label }}</span></span>
                         <span class="ad-row-v">{{ number_format($m['by_status'][$key]) }}</span>
                     </div>
                 @endforeach
-                <p class="ad-reason-hint" style="margin-top: 8px;">A free trial is a subscription state, not an account status — {{ number_format($m['on_trial']) }} on a free trial now.</p>
+                <p class="ad-reason-hint" style="margin-top: 8px;">{{ __('admin/overview.free_trial_hint', ['trial' => number_format($m['on_trial'])]) }}</p>
 
-                <h2 class="ad-panel-title" style="margin-top: 22px;">Plans in use <span class="ad-stat-sub" style="font-weight: 400;">· active or trial</span></h2>
+                <h2 class="ad-panel-title" style="margin-top: 22px;">{!! __('admin/overview.plans_in_use') !!}</h2>
                 @forelse ($m['plan_distribution'] as $plan)
                     <div class="ad-row">
                         <span class="ad-row-k">{{ $plan['name'] }}</span>
                         <span class="ad-row-v">{{ number_format($plan['count']) }}</span>
                     </div>
                 @empty
-                    <div class="ad-empty">No plans in use yet.</div>
+                    <div class="ad-empty">{{ __('admin/overview.no_plans') }}</div>
                 @endforelse
             </div>
         </div>

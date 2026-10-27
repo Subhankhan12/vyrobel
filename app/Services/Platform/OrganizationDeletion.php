@@ -111,10 +111,10 @@ final class OrganizationDeletion
         // ⚠️⚠️ #2 — A HOLD PENDING THE FOUNDER'S LAWYER, NOT A POLICY (docs/DECISIONS.md, ADMIN 06). Live-mode money
         // records are never deleted until the ruling on how long the law requires them kept. Test-mode ones never block.
         if (($live = $this->liveMoneyRecords($organizationId)) !== []) {
-            return 'It has live money records ('.implode(', ', $live).'). The law may require them to be kept for years, so deleting them is on hold until the legal ruling on how long — it cannot be deleted before then.';
+            return __('php/services/platform/organization_deletion.live_money_records', ['records' => implode(', ', $live)]);
         }
         if (($deeper = self::uncountedCascades($this->cascadeEdges(), $this->organizationTables(), $this->nullableOrganizationTables(), self::REACHED_THROUGH_A_PARENT)) !== []) {
-            return 'The database links records in a way the deletion cannot count exactly ('.implode(', ', array_slice($deeper, 0, 3)).'), so the confirmation could not say what goes. Nothing can be deleted until that is fixed.';
+            return __('php/services/platform/organization_deletion.uncounted_cascades', ['links' => implode(', ', array_slice($deeper, 0, 3))]);
         }
         // any subscription Stripe knows about that is not cancelled — an unknown status refuses too, never the reverse
         $live = DB::table('subscriptions')->where('organization_id', $organizationId)
@@ -122,8 +122,7 @@ final class OrganizationDeletion
                 ->orWhere(fn ($s) => $s->whereNotNull('stripe_subscription_id')->where('status', '!=', 'canceled')))
             ->exists();
         if ($live) {
-            return 'Stripe billing is live for this organisation. Cancel the subscription in Stripe first, or it keeps charging a customer that no longer exists.'
-                .' If it is already cancelled there, Stripe’s report of it has not been applied here — resolve it by hand.';
+            return __('php/services/platform/organization_deletion.stripe_billing_live');
         }
         // B19 (KNOWN-LIMITS L19) — a payment page that can still be paid
         $page = CheckoutSession::whereOpen(DB::table('stripe_checkout_sessions')->where('organization_id', $organizationId))
@@ -131,8 +130,9 @@ final class OrganizationDeletion
         if ($page !== null) {
             $closes = $page->expires_at ?? CarbonImmutable::parse((string) $page->created_at)->addHours(CheckoutSession::LONGEST_LIFETIME_HOURS);
 
-            return 'A Stripe payment page for '.($page->mode === 'subscription' ? 'its subscription' : 'a guest’s card payment').' was opened '.$this->when($page->created_at)
-                .' and can still be paid until '.$this->when($closes).'. Try again once it has been paid or has expired.';
+            return $page->mode === 'subscription'
+                ? __('php/services/platform/organization_deletion.checkout_open_subscription', ['opened' => $this->when($page->created_at), 'closes' => $this->when($closes)])
+                : __('php/services/platform/organization_deletion.checkout_open_card', ['opened' => $this->when($page->created_at), 'closes' => $this->when($closes)]);
         }
         // ⚠️ REVIEW 2 (D-R2-2) — a LIVE page past its expiry that Stripe has not reported on. It may have been paid in its
         //    last minute with the report still in Stripe's retries, and deleting now would leave a live subscription
@@ -142,52 +142,51 @@ final class OrganizationDeletion
         if ($unreported !== null) {
             $closed = $unreported->expires_at ?? CarbonImmutable::parse((string) $unreported->created_at)->addHours(CheckoutSession::LONGEST_LIFETIME_HOURS);
 
-            return 'A live Stripe payment page for '.($unreported->mode === 'subscription' ? 'its subscription' : 'a guest’s card payment').' was opened '.$this->when($unreported->created_at)
-                .' and closed '.$this->when($closed).', but no report of whether it was paid has been applied here. Check the page in Stripe’s dashboard; if it was paid, cancel what it started there first.'
-                .' Stripe retries a report it could not deliver for up to 3 days — try again once it is applied. If Stripe already reported it and the report could not be applied, resolve it by hand.';
+            return $unreported->mode === 'subscription'
+                ? __('php/services/platform/organization_deletion.checkout_unreported_subscription', ['opened' => $this->when($unreported->created_at), 'closed' => $this->when($closed)])
+                : __('php/services/platform/organization_deletion.checkout_unreported_card', ['opened' => $this->when($unreported->created_at), 'closed' => $this->when($closed)]);
         }
         $open = DB::table('payments')->where('organization_id', $organizationId)->where('gateway', 'stripe')->whereIn('status', ['pending', 'authorized']);
         if ((clone $open)->where('type', 'refund')->exists()) {
-            return 'A card refund is still being processed at Stripe. Wait until Stripe confirms it, then try again.';
+            return __('php/services/platform/organization_deletion.refund_processing');
         }
         if ($open->exists() || DB::table('payment_authorizations')->where('organization_id', $organizationId)->where('status', 'authorized')->exists()) {
-            return 'A card payment or card hold is still open. Let it settle, or release it, first.';
+            return __('php/services/platform/organization_deletion.card_payment_open');
         }
         // any status Stripe does not call finished — an unknown one included (REVIEW 2, D-R2-7)
         $disputes = DB::table('payment_disputes')->where('organization_id', $organizationId)->whereNotIn('status', PaymentDispute::CLOSED_STATUSES);
         if ($disputes->exists()) {
             // ⚠️ REVIEW 2 (D-R2-8) — a dispute can stay open for months, so there is no "stuck" clock; the way out is named
-            return 'A card payment is being disputed at Stripe (since '.$this->when($disputes->min('created_at')).'). Answer it in Stripe, and try again once Stripe reports the dispute closed.'
-                .' If Stripe’s dashboard already shows it closed, the report never arrived — resolve it by hand.';
+            return __('php/services/platform/organization_deletion.dispute_open', ['since' => $this->when($disputes->min('created_at'))]);
         }
         $transit = DB::table('payouts')->where('organization_id', $organizationId)->where('status', 'processing');
         if (($n = (clone $transit)->count()) > 0) {
             $since = (clone $transit)->min('updated_at');
 
-            return ($n === 1 ? 'A payout to an owner is' : $n.' payouts to owners are').' in transit at Stripe (since '.$this->when($since).'). '
-                .($this->stale($since) ? 'That is longer than it should take — resolve it with Stripe by hand first.' : 'Wait until Stripe confirms, then try again.');
+            return trans_choice('php/services/platform/organization_deletion.payouts_in_transit', $n, ['count' => $n, 'since' => $this->when($since)]).' '
+                .($this->stale($since) ? __('php/services/platform/organization_deletion.payout_transit_stale') : __('php/services/platform/organization_deletion.payout_transit_wait'));
         }
         // money OWED to an owner and not yet sent — deleting would leave them unpaid, and nothing here would remember it
         if (($owed = DB::table('payouts')->where('organization_id', $organizationId)->whereIn('status', ['pending', 'held'])->count()) > 0) {
-            return ($owed === 1 ? 'A payout is' : $owed.' payouts are').' still owed to '.($owed === 1 ? 'an owner' : 'owners').' (waiting or on hold). Pay '.($owed === 1 ? 'it' : 'them').' first — deleting would leave the owners unpaid, with no record of it.';
+            return trans_choice('php/services/platform/organization_deletion.payouts_owed', $owed, ['count' => $owed]);
         }
         $run = DB::table('payout_runs')->where('status', 'running')->orderBy('created_at')->first(['started_at', 'created_at']);
         if ($run !== null) {
             $since = $run->started_at ?? $run->created_at;
 
-            return 'A payout run has been running since '.$this->when($since).'. '
-                .($this->stale($since) ? 'It looks stuck — resolve it by hand before deleting.' : 'Try again when it has finished.');
+            return __('php/services/platform/organization_deletion.payout_run_running', ['since' => $this->when($since)]).' '
+                .($this->stale($since) ? __('php/services/platform/organization_deletion.looks_stuck') : __('php/services/platform/organization_deletion.payout_run_wait'));
         }
         $hook = DB::table('webhook_events')->where('organization_id', $organizationId)->whereIn('status', ['received', 'processing'])
             ->orderBy('created_at')->first(['source', 'received_at', 'created_at']);
         if ($hook !== null) {
             $since = $hook->received_at ?? $hook->created_at;
 
-            return 'A '.str_replace('_', ' ', ucfirst((string) $hook->source)).' notification for this organisation, received '.$this->when($since).', has not been processed yet. '
-                .($this->stale($since) ? 'It looks stuck — resolve it by hand before deleting.' : 'Try again in a few minutes.');
+            return __('php/services/platform/organization_deletion.webhook_unprocessed', ['source' => str_replace('_', ' ', ucfirst((string) $hook->source)), 'received' => $this->when($since)]).' '
+                .($this->stale($since) ? __('php/services/platform/organization_deletion.looks_stuck') : __('php/services/platform/organization_deletion.webhook_wait'));
         }
         if (($crossing = $this->crossTenantReferences($organizationId)) !== []) {
-            return 'Another organisation has records that point into this one ('.implode(', ', array_slice($crossing, 0, 3)).'). Deleting would delete them too.';
+            return __('php/services/platform/organization_deletion.cross_tenant_references', ['links' => implode(', ', array_slice($crossing, 0, 3))]);
         }
 
         return null;
@@ -230,22 +229,22 @@ final class OrganizationDeletion
         $id = (string) $org->getKey();
         $tables = $this->organizationTables();
         if (($unseen = array_values(array_diff(self::MUST_SEE, $tables))) !== []) {
-            throw new OrganizationDeletionRefused('The database schema could not be read in full ('.implode(', ', $unseen).' not found).');
+            throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.schema_unreadable', ['tables' => implode(', ', $unseen)]));
         }
 
         $done = DB::transaction(function () use ($id, $tables): array {
             // ⓪ The lock — then everything is read under it.
             if (DB::table('organizations')->where('id', $id)->lockForUpdate()->first(['id']) === null) {
-                throw new OrganizationDeletionRefused('This organisation no longer exists — it has already been deleted.');
+                throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.already_deleted'));
             }
             // the service holds its own bounds (never only the console): a protected organisation, or one not suspended
             // or archived, is refused here too — re-read under the lock, so a reactivation racing the delete is seen
             $current = Organization::withTrashed()->whereKey($id)->firstOrFail();
             if (TenantLifecycle::lockFor($current) !== null) {
-                throw new OrganizationDeletionRefused('This organisation is protected and can never be deleted.');
+                throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.protected'));
             }
             if (! $current->trashed() && $current->status !== TenantLifecycle::SUSPENDED) {
-                throw new OrganizationDeletionRefused('Suspend it first — only a suspended or archived organisation can be deleted.');
+                throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.not_suspended'));
             }
             // a payout being paid holds its row while the transfer is at Stripe, and says `processing` only when it
             // commits — so the open payouts are LOCKED before the refusal reads them: one mid-transfer is waited for and
@@ -298,11 +297,11 @@ final class OrganizationDeletion
 
             // ④ POST-CONDITION — nothing of this organisation may survive, or everything above is rolled back.
             if (($left = $this->rowsPerTable($id, $tables)) !== []) {
-                throw new OrganizationDeletionRefused('A record of this organisation survived the deletion (in '.implode(', ', array_keys($left)).'), so everything was rolled back.');
+                throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.record_survived', ['tables' => implode(', ', array_keys($left))]));
             }
             $soleLeft = collect(array_chunk($sole, self::CHUNK))->contains(fn (array $chunk): bool => DB::table('users')->whereIn('id', $chunk)->exists());
             if ($soleLeft || DB::table('organizations')->where('id', $id)->exists()) {
-                throw new OrganizationDeletionRefused('The organisation or one of its people survived the deletion, so everything was rolled back.');
+                throw new OrganizationDeletionRefused(__('php/services/platform/organization_deletion.organization_survived'));
             }
 
             return ['tally' => $tally, 'sole' => $sole, 'shared' => $shared, 'files' => $files, 'stripe' => $stripe];
@@ -583,20 +582,19 @@ final class OrganizationDeletion
     private function liveMoneyRecords(string $organizationId): array
     {
         $live = fn (string $table) => DB::table($table)->where('organization_id', $organizationId)->where('livemode', true);
-        $says = fn (int $n, string $one, string $many): string => $n.' '.($n === 1 ? $one : $many);
         $found = [];
         if (($n = $live('payments')->where('type', '!=', 'refund')->count()) > 0) {
-            $found[] = $says($n, 'card payment', 'card payments');
+            $found[] = trans_choice('php/services/platform/organization_deletion.live_card_payments', $n, ['count' => $n]);
         }
         if (($n = $live('payments')->where('type', 'refund')->count()) > 0) {
-            $found[] = $says($n, 'refund', 'refunds');
+            $found[] = trans_choice('php/services/platform/organization_deletion.live_refunds', $n, ['count' => $n]);
         }
         if (($n = $live('payouts')->count()) > 0) {
-            $found[] = $says($n, 'payout', 'payouts');
+            $found[] = trans_choice('php/services/platform/organization_deletion.live_payouts', $n, ['count' => $n]);
         }
         // the subscription's invoices live at Stripe; a live billing relationship is what says they exist
         if ($live('subscriptions')->exists()) {
-            $found[] = 'live Stripe billing, with its invoices';
+            $found[] = __('php/services/platform/organization_deletion.live_stripe_billing');
         }
 
         return $found;
@@ -883,7 +881,9 @@ final class OrganizationDeletion
 
     private function when(mixed $at): string
     {
-        return $at === null ? 'an unknown time' : CarbonImmutable::parse((string) $at)->utc()->format('j M Y, H:i').' UTC';
+        return $at === null
+            ? __('php/services/platform/organization_deletion.unknown_time')
+            : __('php/services/platform/organization_deletion.time_utc', ['time' => CarbonImmutable::parse((string) $at)->utc()->translatedFormat('j M Y, H:i')]);
     }
 
     private function stale(mixed $at): bool

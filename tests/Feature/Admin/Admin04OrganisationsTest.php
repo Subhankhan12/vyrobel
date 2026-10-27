@@ -409,7 +409,7 @@ it('a founder\'s pending link is not listed among the operator\'s own pending in
 
 it('the create page is reachable (not read as an organisation id), and only by a tenant manager', function () {
     $admin = platformAdmin();
-    $this->actingAs($admin, 'admin')->get(route('admin.customers.create'))->assertOk()->assertSee('Create an organisation')->assertSee("Founder's email", false);
+    $this->actingAs($admin, 'admin')->get(route('admin.customers.create'))->assertOk()->assertSee('Create an organisation')->assertSee("Founder's email");   // I18N-01: printed through {{ }}, so the apostrophe is &#039; in the HTML
     $this->actingAs($admin, 'admin')->get(route('admin.customers.index'))->assertOk()->assertSee(route('admin.customers.create'));
 
     foreach (['billing', 'analyst'] as $role) {

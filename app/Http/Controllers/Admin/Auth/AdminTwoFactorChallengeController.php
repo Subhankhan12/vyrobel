@@ -47,13 +47,13 @@ class AdminTwoFactorChallengeController extends Controller
         }
 
         $this->ensureNotRateLimited($request, (string) $admin->getKey());
-        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::NAMES);
+        $request->validate(['code' => ['required', 'string']], [], ConsoleFields::names());
 
         if (! $this->twoFactor->verifyChallenge($admin, (string) $request->string('code'))) {
             RateLimiter::hit($this->throttleKey($request, (string) $admin->getKey()));
 
             throw ValidationException::withMessages([
-                'code' => 'That code is invalid or has expired. Try again, or use a recovery code.',
+                'code' => __('php/http/controllers/admin/auth/admin_two_factor_challenge_controller.code_invalid'),
             ]);
         }
 

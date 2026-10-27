@@ -67,7 +67,7 @@ class BreakGlassController extends Controller
         $data = $request->validate([
             'organization_id' => ['required', 'string'],
             'code' => ['required', 'string'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
 
         /** @var PlatformAdmin $admin */
@@ -77,32 +77,32 @@ class BreakGlassController extends Controller
         // ⚠️ STEP-UP — the admin's own authenticator, now. Rate-limited like the login challenge.
         $throttle = 'break-glass-step-up:'.$admin->id;
         if (RateLimiter::tooManyAttempts($throttle, self::MAX_CODE_ATTEMPTS)) {
-            return $back->withErrors(['code' => 'Too many codes tried. Wait a minute and try again.'])->withInput($request->except('code'));
+            return $back->withErrors(['code' => __('php/http/controllers/admin/break_glass_controller.too_many_codes')])->withInput($request->except('code'));
         }
         $totp = preg_replace('/\D/', '', (string) $data['code']) ?? '';
         if ($admin->two_factor_secret === null || strlen($totp) !== 6 || ! $this->twoFactor->verify((string) $admin->two_factor_secret, $totp)) {
             RateLimiter::hit($throttle);
             $this->audit->record('platform.break_glass.step_up_failed', [], 'organization', (string) $data['organization_id'], reason: $reason);
 
-            return $back->withErrors(['code' => 'That code is not valid. Enter the current code from your authenticator app.'])->withInput($request->except('code'));
+            return $back->withErrors(['code' => __('php/http/controllers/admin/break_glass_controller.code_invalid')])->withInput($request->except('code'));
         }
         RateLimiter::clear($throttle);
 
         if (Auth::guard('web')->check()) {
-            return $back->withErrors(['organization_id' => 'Sign out of the organisation account in this browser first — a support session must never mix with a real user\'s session.']);
+            return $back->withErrors(['organization_id' => __('php/http/controllers/admin/break_glass_controller.sign_out_org_first')]);
         }
         if ($this->breakGlass->current($request) !== null) {
-            return $back->withErrors(['organization_id' => 'You already have a support session open. End it first.']);
+            return $back->withErrors(['organization_id' => __('php/http/controllers/admin/break_glass_controller.already_open')]);
         }
 
         $organization = Organization::query()->find($data['organization_id']);
         if ($organization === null) {
-            return $back->withErrors(['organization_id' => 'That organisation does not exist, or is archived.']);
+            return $back->withErrors(['organization_id' => __('php/http/controllers/admin/break_glass_controller.org_missing')]);
         }
 
         $viewing = $this->breakGlass->viewingUserFor($organization);
         if ($viewing === null) {
-            return $back->withErrors(['organization_id' => 'This organisation has no active, verified back-office user to view as — so there is nothing to open. (Support can mark one verified first, audited.)']);
+            return $back->withErrors(['organization_id' => __('php/http/controllers/admin/break_glass_controller.no_user_to_view_as')]);
         }
 
         $this->platform->mutate(
@@ -128,7 +128,7 @@ class BreakGlassController extends Controller
         $request->session()->forget(BreakGlass::SESSION_KEY);
 
         return redirect()->route('admin.break-glass.index')
-            ->with('admin_notice', $session !== null ? 'Support session ended. The organisation has been told in-app.' : 'No support session was open.');
+            ->with('admin_notice', $session !== null ? __('php/http/controllers/admin/break_glass_controller.session_ended') : __('php/http/controllers/admin/break_glass_controller.no_session_open'));
     }
 
     private function ensureEnabled(): void

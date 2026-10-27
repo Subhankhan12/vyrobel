@@ -59,7 +59,7 @@ class IntegrationController extends Controller
             'api_key' => ['nullable', 'string', 'max:500'],
             'api_secret' => ['nullable', 'string', 'max:500'],
             'is_enabled' => ['nullable', 'boolean'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $integration = PlatformIntegration::query()->firstOrNew(['channel' => $channel]);
@@ -82,7 +82,7 @@ class IntegrationController extends Controller
         // 🔒 Audit records WHICH channel + WHETHER configured — NEVER the credential value (#28 discipline).
         $this->audit->record('platform.integration.updated', ['channel' => $channel, 'configured' => $integration->isConfigured()], 'platform_integration', $integration->id, reason: $reason);
 
-        return redirect()->route('admin.integrations.index')->with('admin_notice', PlatformIntegration::CHANNELS[$channel].' credentials saved (encrypted).');
+        return redirect()->route('admin.integrations.index')->with('admin_notice', __('php/http/controllers/admin/integration_controller.credentials_saved', ['channel' => PlatformIntegration::CHANNELS[$channel]]));
     }
 
     /**
@@ -97,13 +97,13 @@ class IntegrationController extends Controller
         $integration = PlatformIntegration::query()->where('channel', $channel)->first();
 
         if ($integration === null || ! $integration->isConfigured()) {
-            return redirect()->route('admin.integrations.edit', $channel)->with('admin_notice', 'Add a credential before testing.');
+            return redirect()->route('admin.integrations.edit', $channel)->with('admin_notice', __('php/http/controllers/admin/integration_controller.add_credential_first'));
         }
 
         $integration->update(['status' => 'tested', 'last_tested_at' => now()]);
         $this->audit->record('platform.integration.tested', ['channel' => $channel], 'platform_integration', $integration->id, reason: $reason);
 
         return redirect()->route('admin.integrations.index')
-            ->with('admin_notice', PlatformIntegration::CHANNELS[$channel].': credential present. A live connection test runs once the '.PlatformIntegration::CHANNELS[$channel].' account is connected (account-gated).');
+            ->with('admin_notice', __('php/http/controllers/admin/integration_controller.credential_present', ['channel' => PlatformIntegration::CHANNELS[$channel]]));
     }
 }

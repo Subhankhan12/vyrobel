@@ -25,7 +25,16 @@ final class OrganizationSignIns
 {
     public const LIMIT = 25;
 
-    public const EVENTS = ['login' => 'Signed in', 'failed' => 'Failed attempt', 'lockout' => 'Locked out'];
+    /** The label of a stored event code, in the request's language — an unknown code is shown as itself. */
+    private static function eventLabel(string $event): string
+    {
+        return match ($event) {
+            'login' => __('php/support/platform/organization_sign_ins.event_login'),
+            'failed' => __('php/support/platform/organization_sign_ins.event_failed'),
+            'lockout' => __('php/support/platform/organization_sign_ins.event_lockout'),
+            default => ucfirst($event),
+        };
+    }
 
     /**
      * @return array{last: ?array{event: string, label: string, at: ?CarbonImmutable, name: string, email: string, ip: ?string, device: string}, rows: list<array{event: string, label: string, at: ?CarbonImmutable, name: string, email: string, ip: ?string, device: string}>, window_days: int}
@@ -55,7 +64,7 @@ final class OrganizationSignIns
 
             return [
                 'event' => (string) $row->event,
-                'label' => self::EVENTS[$row->event] ?? ucfirst((string) $row->event),
+                'label' => self::eventLabel((string) $row->event),
                 'at' => $row->occurred_at instanceof \DateTimeInterface ? CarbonImmutable::instance($row->occurred_at) : null,
                 'name' => (string) ($member->name ?? '—'),
                 'email' => (string) ($member->email ?? ''),

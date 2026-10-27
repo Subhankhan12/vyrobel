@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class PlatformFunnel
 {
+    /** ⚠️ I18N-01 — the English is the fallback for callers that still read the constant; a person reads {@see stageLabel()}. */
     public const STAGES = [
         'signed_up' => 'Signed up',
         'verified' => 'Verified an email (the gate to /app)',
@@ -35,11 +36,55 @@ final class PlatformFunnel
         'paid' => 'Paid (charged by Stripe)',
     ];
 
+    /** ⚠️ I18N-01 — keyed by its English label, so it is the fallback only; a person reads {@see unmeasured()}. */
     public const UNMEASURED = [
         'Visited the site' => 'No analytics or visit log is recorded, by design.',
         'Started the sign-up form' => 'Nothing is written until the form is submitted.',
         'Reached /app' => 'No page view is recorded. “Verified an email” is the nearest recorded step — every /app page requires it.',
     ];
+
+    /** I18N-01 — a funnel stage's name in the reader's language, by its code (the code is what the counts are keyed by). */
+    public static function stageLabel(string $stage): string
+    {
+        return match ($stage) {
+            'signed_up' => __('php/support/platform/platform_funnel.stage_signed_up'),
+            'verified' => __('php/support/platform/platform_funnel.stage_verified'),
+            'first_reservation' => __('php/support/platform/platform_funnel.stage_first_reservation'),
+            'first_check_in' => __('php/support/platform/platform_funnel.stage_first_check_in'),
+            'paid' => __('php/support/platform/platform_funnel.stage_paid'),
+            default => $stage,
+        };
+    }
+
+    /**
+     * I18N-01 — every stage, code => name in the reader's language, in funnel order.
+     *
+     * @return array<string, string>
+     */
+    public static function stages(): array
+    {
+        $out = [];
+        foreach (array_keys(self::STAGES) as $code) {
+            $out[$code] = self::stageLabel($code);
+        }
+
+        return $out;
+    }
+
+    /**
+     * I18N-01 — the steps that are NOT measured and why, in the reader's language. A list, never keyed by a label (two
+     * labels that translate alike would collapse into one row).
+     *
+     * @return list<array{stage: string, why: string}>
+     */
+    public static function unmeasured(): array
+    {
+        return [
+            ['stage' => __('php/support/platform/platform_funnel.unmeasured_visited'), 'why' => __('php/support/platform/platform_funnel.unmeasured_visited_why')],
+            ['stage' => __('php/support/platform/platform_funnel.unmeasured_started_form'), 'why' => __('php/support/platform/platform_funnel.unmeasured_started_form_why')],
+            ['stage' => __('php/support/platform/platform_funnel.unmeasured_reached_app'), 'why' => __('php/support/platform/platform_funnel.unmeasured_reached_app_why')],
+        ];
+    }
 
     /**
      * @return array{sources: array<string, array<string, int>>, total: array<string, int>, without_property: int, include_internal: bool}

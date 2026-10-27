@@ -224,10 +224,11 @@ final class BreakGlass
             return;
         }
 
-        $adminName = (string) (PlatformAdmin::query()->whereKey($session->platform_admin_id)->value('name') ?? 'A Vyrobel admin');
+        // ⚠️ I18N-01 — the fallback (an admin since removed) is worded in each RECIPIENT's language, at the moment they are told.
+        $name = PlatformAdmin::query()->whereKey($session->platform_admin_id)->value('name');
         $roles = (array) config('authorization.back_office_roles', []);
 
-        $this->tenant->forOrganization($session->target_organization_id, function () use ($session, $adminName, $roles): void {
+        $this->tenant->forOrganization($session->target_organization_id, function () use ($session, $name, $roles): void {
             $ids = DB::table('model_has_roles')
                 ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
                 ->join('organization_user', function ($join) use ($session): void {
@@ -242,6 +243,7 @@ final class BreakGlass
                 ->pluck('model_has_roles.model_id');
 
             foreach (User::query()->whereIn('id', $ids)->get() as $user) {
+                $adminName = $name !== null ? (string) $name : __('php/support/platform/break_glass.unnamed_admin', [], $user->preferredLocale());
                 $user->notify(new SupportAccessNotification($adminName, $session));
             }
         });

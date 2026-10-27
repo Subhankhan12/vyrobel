@@ -13,7 +13,6 @@ use App\Support\Platform\PlatformQuery;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -46,12 +45,12 @@ class AnnouncementController extends Controller
             'organization_ids.*' => ['string', 'exists:organizations,id'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['nullable', 'date', 'after:starts_at'],
-        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        ], ConsoleFields::messages(), ConsoleFields::names());
         // ⚠️ ADMIN 05 — "Every organisation" with organisations ticked used to publish to EVERY tenant and drop the ticks
         //    without a word (and a failed submit reset the audience to "Every organisation"). Contradictory input is
         //    refused, never guessed at.
         if ($data['audience'] === 'all' && ($data['organization_ids'] ?? []) !== []) {
-            return back()->withInput()->withErrors(['audience' => 'You ticked organisations but chose “Every organisation”. Choose “Chosen organisations” to send it only to them, or untick them.']);
+            return back()->withInput()->withErrors(['audience' => __('php/http/controllers/admin/announcement_controller.audience_mismatch')]);
         }
         $reason = AdminReason::from($request);
 
@@ -71,9 +70,14 @@ class AnnouncementController extends Controller
         ]), fn (PlatformAnnouncement $a) => $a->forceFill(['id' => $id])->save()), ['audience' => $data['audience'], 'organizations' => count($data['organization_ids'] ?? [])], 'announcement', $id);
 
         $chosen = count($data['organization_ids'] ?? []);
-        $to = $data['audience'] === 'all' ? 'every organisation' : $chosen.' chosen '.Str::plural('organisation', $chosen);
+        $notice = match (true) {
+            $data['audience'] === 'all' && $announcement->isLive() => __('php/http/controllers/admin/announcement_controller.published_all_live'),
+            $data['audience'] === 'all' => __('php/http/controllers/admin/announcement_controller.published_all_scheduled'),
+            $announcement->isLive() => trans_choice('php/http/controllers/admin/announcement_controller.published_chosen_live', $chosen, ['count' => $chosen]),
+            default => trans_choice('php/http/controllers/admin/announcement_controller.published_chosen_scheduled', $chosen, ['count' => $chosen]),
+        };
 
-        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Announcement published to '.$to.($announcement->isLive() ? ' — showing now.' : ' — it will show from its start time.'));
+        return redirect()->route('admin.announcements.index')->with('admin_notice', $notice);
     }
 
     public function withdraw(Request $request, string $announcement): RedirectResponse
@@ -81,11 +85,11 @@ class AnnouncementController extends Controller
         $reason = AdminReason::from($request);
         $row = PlatformAnnouncement::query()->findOrFail($announcement);
         if ($row->withdrawn_at !== null) {
-            return redirect()->route('admin.announcements.index')->withErrors(['announcement' => 'Already withdrawn.']);
+            return redirect()->route('admin.announcements.index')->withErrors(['announcement' => __('php/http/controllers/admin/announcement_controller.already_withdrawn')]);
         }
 
         $this->platform->mutate('platform.announcement.withdraw', $reason, fn () => $row->forceFill(['withdrawn_at' => now()])->save(), [], 'announcement', (string) $row->id);
 
-        return redirect()->route('admin.announcements.index')->with('admin_notice', 'Withdrawn — it no longer shows to anyone.');
+        return redirect()->route('admin.announcements.index')->with('admin_notice', __('php/http/controllers/admin/announcement_controller.withdrawn'));
     }
 }

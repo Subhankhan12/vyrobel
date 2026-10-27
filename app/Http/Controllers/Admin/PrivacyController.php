@@ -18,7 +18,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -60,7 +59,7 @@ class PrivacyController extends Controller
             'organization_id' => ['required_if:subject_kind,relayed_guest', 'nullable', 'string'],
             'channel' => ['required', Rule::in(array_keys(PrivacyRequest::CHANNELS))],
             'received_on' => ['required', 'date', 'before_or_equal:today'],
-        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        ], ConsoleFields::messages(), ConsoleFields::names());
         $reason = AdminReason::from($request);
         $back = redirect()->route('admin.privacy.index');
 
@@ -69,12 +68,12 @@ class PrivacyController extends Controller
         if ($data['subject_kind'] === 'account_holder') {
             $userId = User::query()->where('email', (string) $data['email'])->value('id');
             if ($userId === null) {
-                return $back->withErrors(['email' => 'No account holder has that email address. (A hotel guest’s request is relayed — choose that instead.)'])->withInput($request->except('email'));
+                return $back->withErrors(['email' => __('php/http/controllers/admin/privacy_controller.no_account_holder')])->withInput($request->except('email'));
             }
         } else {
             $orgId = Organization::query()->whereKey((string) $data['organization_id'])->value('id');
             if ($orgId === null) {
-                return $back->withErrors(['organization_id' => 'Choose the organisation the guest’s request is about.'])->withInput();
+                return $back->withErrors(['organization_id' => __('php/http/controllers/admin/privacy_controller.choose_organisation')])->withInput();
             }
         }
 
@@ -92,18 +91,18 @@ class PrivacyController extends Controller
             'recorded_by' => (string) auth('admin')->id(),
         ]), ['kind' => $data['kind'], 'subject_kind' => $data['subject_kind']], $userId !== null ? 'user' : 'organization', (string) ($userId ?? $orgId));
 
-        return $back->with('admin_notice', 'Request recorded — due by '.$received->addMonthsNoOverflow(PrivacyRequest::DUE_MONTHS)->format('j M Y').'.');
+        return $back->with('admin_notice', __('php/http/controllers/admin/privacy_controller.request_recorded', ['date' => $received->addMonthsNoOverflow(PrivacyRequest::DUE_MONTHS)->translatedFormat('j M Y')]));
     }
 
     /** MOVE a request along: received → in progress → completed | refused. A reason each time. */
     public function update(Request $request, string $privacyRequest): RedirectResponse
     {
-        $data = $request->validate(['status' => ['required', Rule::in(['in_progress', 'completed', 'refused'])]], [], ConsoleFields::NAMES);
+        $data = $request->validate(['status' => ['required', Rule::in(['in_progress', 'completed', 'refused'])]], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $row = PrivacyRequest::query()->findOrFail($privacyRequest);
 
         if (! $row->isOpen()) {
-            return redirect()->route('admin.privacy.index')->withErrors(['status' => 'That request is already closed.']);
+            return redirect()->route('admin.privacy.index')->withErrors(['status' => __('php/http/controllers/admin/privacy_controller.already_closed')]);
         }
 
         $closing = in_array($data['status'], ['completed', 'refused'], true);
@@ -112,6 +111,10 @@ class PrivacyController extends Controller
             'closed_at' => $closing ? now() : null,
         ]), ['from' => $row->status], 'privacy_request', (string) $row->id);
 
-        return redirect()->route('admin.privacy.index')->with('admin_notice', 'Request marked as '.Str::lower(PrivacyRequest::STATUSES[$data['status']]).'.');
+        return redirect()->route('admin.privacy.index')->with('admin_notice', match ($data['status']) {
+            'in_progress' => __('php/http/controllers/admin/privacy_controller.marked_in_progress'),
+            'completed' => __('php/http/controllers/admin/privacy_controller.marked_completed'),
+            default => __('php/http/controllers/admin/privacy_controller.marked_refused'),
+        });
     }
 }

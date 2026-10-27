@@ -58,7 +58,7 @@ class PlanController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate(PlanIntegrity::rules(), ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        $validated = $request->validate(PlanIntegrity::rules(), ConsoleFields::messages(), ConsoleFields::names());
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $plan = Plan::create($this->columnsFrom($validated) + [
@@ -71,7 +71,7 @@ class PlanController extends Controller
         ], 'plan', $plan->id, reason: $reason);
 
         return redirect()->route('admin.plans.edit', $plan->id)
-            ->with('admin_notice', $plan->name.' created as a draft — add its Stripe Price id, then activate it.');
+            ->with('admin_notice', __('php/http/controllers/admin/plan_controller.created_draft', ['plan' => $plan->name]));
     }
 
     /**
@@ -121,7 +121,7 @@ class PlanController extends Controller
             'features' => ['array'],
             'features.*.enabled' => ['nullable', 'boolean'],
             'features.*.limit' => ['nullable', 'integer', 'min:0'],
-        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        ], ConsoleFields::messages(), ConsoleFields::names());
         $reason = AdminReason::from($request);   // ⚠️ before any write — ADMIN 01 · Phase 1
 
         $model->update($this->columnsFrom($validated));
@@ -134,7 +134,7 @@ class PlanController extends Controller
 
             if ($blocked !== null) {
                 return redirect()->route('admin.plans.edit', $model->id)
-                    ->with('admin_error', 'Saved, but it stays a draft: '.$blocked);
+                    ->with('admin_error', __('php/http/controllers/admin/plan_controller.saved_stays_draft', ['reason' => $blocked]));
             }
         }
 
@@ -155,7 +155,7 @@ class PlanController extends Controller
 
         $this->audit->record('platform.plan.updated', ['plan' => $model->code], 'plan', $model->id, reason: $reason);
 
-        return redirect()->route('admin.plans.index')->with('admin_notice', $model->name.' updated.');
+        return redirect()->route('admin.plans.index')->with('admin_notice', __('php/http/controllers/admin/plan_controller.updated', ['plan' => $model->name]));
     }
 
     /** Toggle a plan active/inactive (a plan that is inactive is not offered on new checkouts). Audited. */
@@ -171,7 +171,7 @@ class PlanController extends Controller
 
             if ($blocked !== null) {
                 return redirect()->route('admin.plans.index')
-                    ->with('admin_error', $model->name.' cannot be activated: '.$blocked);
+                    ->with('admin_error', __('php/http/controllers/admin/plan_controller.cannot_activate', ['plan' => $model->name, 'reason' => $blocked]));
             }
         }
 
@@ -179,6 +179,6 @@ class PlanController extends Controller
 
         $this->audit->record('platform.plan.toggled', ['plan' => $model->code, 'is_active' => $model->is_active], 'plan', $model->id, reason: $reason);
 
-        return redirect()->route('admin.plans.index')->with('admin_notice', $model->name.($model->is_active ? ' activated.' : ' deactivated.'));
+        return redirect()->route('admin.plans.index')->with('admin_notice', $model->is_active ? __('php/http/controllers/admin/plan_controller.activated', ['plan' => $model->name]) : __('php/http/controllers/admin/plan_controller.deactivated', ['plan' => $model->name]));
     }
 }

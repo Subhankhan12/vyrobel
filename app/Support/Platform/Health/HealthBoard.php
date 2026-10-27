@@ -13,7 +13,6 @@ use App\Support\Platform\PlatformSwitches;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -40,14 +39,14 @@ final class HealthBoard
     public function cards(): array
     {
         return [
-            $this->guard('mail', 'Mail delivery', fn () => $this->mail()),
-            $this->guard('queue', 'Queue', fn () => $this->queue()),
-            $this->guard('scheduler', 'Scheduler & heartbeat', fn () => $this->scheduler()),
-            $this->guard('errors', 'Server errors (24h)', fn () => $this->errors()),
-            $this->guard('release', 'Live release', fn () => $this->release()),
-            $this->guard('config', 'Silent configuration', fn () => $this->config()),
-            $this->guard('switches', 'Kill switches', fn () => $this->switches()),
-            $this->guard('channex', 'Channel manager (Channex)', fn () => $this->channex()),
+            $this->guard('mail', $this->title('mail'), fn () => $this->mail()),
+            $this->guard('queue', $this->title('queue'), fn () => $this->queue()),
+            $this->guard('scheduler', $this->title('scheduler'), fn () => $this->scheduler()),
+            $this->guard('errors', $this->title('errors'), fn () => $this->errors()),
+            $this->guard('release', $this->title('release'), fn () => $this->release()),
+            $this->guard('config', $this->title('config'), fn () => $this->config()),
+            $this->guard('switches', $this->title('switches'), fn () => $this->switches()),
+            $this->guard('channex', $this->title('channex'), fn () => $this->channex()),
             $this->exposure(),
         ];
     }
@@ -68,24 +67,24 @@ final class HealthBoard
 
         // ⚠️⚠️ `log` and `array` do not deliver. This is RED, in words, whatever else is true.
         if (MailDelivery::discards()) {
-            return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'MAIL IS NOT BEING DELIVERED', [
-                "Active mailer: {$mailer} — every email is discarded, not sent.",
-                'Invites, password resets, verification and receipts reach nobody until a real mailer is configured.',
-            ], 'Founder step: the Hostinger mailbox password, typed into the server\'s .env (docs/EMAIL-PRODUCTION.md).');
+            return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_not_delivered'), [
+                __('php/support/platform/health/health_board.mail_discarded_line', ['mailer' => $mailer]),
+                __('php/support/platform/health/health_board.mail_discarded_reach'),
+            ], __('php/support/platform/health/health_board.mail_founder_step'));
         }
 
-        $lines = ["Active mailer: {$mailer}."];
+        $lines = [__('php/support/platform/health/health_board.mail_active_mailer', ['mailer' => $mailer])];
         if ($mailer === 'postmark' && blank(config('services.postmark.token')) && blank(config('mail.mailers.postmark.token'))) {
-            return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'Mailer set, token missing', array_merge($lines, [
-                'Postmark is selected but has no token — sends will fail.',
+            return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_token_missing'), array_merge($lines, [
+                __('php/support/platform/health/health_board.mail_postmark_no_token'),
             ]));
         }
 
         // ⚠️ MAIL 02 — SMTP (Hostinger's own mail, the founder's choice). Each check names a KEY, never a value.
         if ($mailer === 'smtp') {
             if (MailSafetyGuard::isLocalSmtpHost((string) config('mail.mailers.smtp.host'))) {
-                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'Mail goes to this machine, not to people', array_merge($lines, [
-                    'MAIL_HOST points at a local catch-inbox (loopback / Mailpit) — nothing reaches a person.',
+                return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_local_host'), array_merge($lines, [
+                    __('php/support/platform/health/health_board.mail_local_host_line'),
                 ]));
             }
             $missing = array_keys(array_filter([
@@ -93,30 +92,32 @@ final class HealthBoard
                 'MAIL_PASSWORD' => config('mail.mailers.smtp.password'),
             ], static fn ($v): bool => blank($v)));
             if ($missing !== []) {
-                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'SMTP login incomplete', array_merge($lines, [
-                    'Not set: '.implode(', ', $missing).' — the mail server will refuse every message.',
+                return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_smtp_incomplete'), array_merge($lines, [
+                    __('php/support/platform/health/health_board.mail_smtp_not_set', ['keys' => implode(', ', $missing)]),
                 ]));
             }
             if (strcasecmp(trim((string) config('mail.from.address')), trim((string) config('mail.mailers.smtp.username'))) !== 0) {
-                return new HealthCard('mail', 'Mail delivery', HealthCard::RED, 'Sender does not match the SMTP login', array_merge($lines, [
-                    'MAIL_FROM_ADDRESS is not the mailbox that signs in (MAIL_USERNAME) — Hostinger rejects mail sent as anyone else.',
+                return new HealthCard('mail', $this->title('mail'), HealthCard::RED, __('php/support/platform/health/health_board.mail_sender_mismatch'), array_merge($lines, [
+                    __('php/support/platform/health/health_board.mail_sender_mismatch_line'),
                 ]));
             }
-            $lines[] = 'SMTP: a real mail server, a complete login, and a From address that matches it.';
+            $lines[] = __('php/support/platform/health/health_board.mail_smtp_ok');
         }
 
         $failed = $this->queuedMailFailures(now()->subDays(7));
-        $lines[] = 'Accepted by the mail server — 24h: '.MailSendLog::count(MailSendLog::ACCEPTED, now()->subDay())
-            .' · 7 days: '.MailSendLog::count(MailSendLog::ACCEPTED, now()->subDays(7)).'.';
-        $lines[] = 'Suppressed (an address that can never receive mail — never sent) — 7 days: '.MailSendLog::count(MailSendLog::SUPPRESSED, now()->subDays(7)).'.';
-        $lines[] = "Failed on the queue — 7 days: {$failed}. (An inline send that fails shows as an error on the page that sent it, and in the log.)";
-        $lines[] = 'Bounced: not visible to the app — with SMTP a bounce comes back as an email to the sending mailbox. "Accepted" is not "delivered".';
+        $lines[] = __('php/support/platform/health/health_board.mail_accepted', [
+            'day' => MailSendLog::count(MailSendLog::ACCEPTED, now()->subDay()),
+            'week' => MailSendLog::count(MailSendLog::ACCEPTED, now()->subDays(7)),
+        ]);
+        $lines[] = __('php/support/platform/health/health_board.mail_suppressed', ['week' => MailSendLog::count(MailSendLog::SUPPRESSED, now()->subDays(7))]);
+        $lines[] = __('php/support/platform/health/health_board.mail_failed_queue', ['failed' => $failed]);
+        $lines[] = __('php/support/platform/health/health_board.mail_bounced');
 
         if ($failed > 0) {
-            return new HealthCard('mail', 'Mail delivery', HealthCard::AMBER, "Delivering — but {$failed} queued ".Str::plural('email', $failed).' failed in 7 days', $lines);
+            return new HealthCard('mail', $this->title('mail'), HealthCard::AMBER, trans_choice('php/support/platform/health/health_board.mail_queued_failed', $failed, ['count' => $failed]), $lines);
         }
 
-        return new HealthCard('mail', 'Mail delivery', HealthCard::GREEN, 'A delivering mailer is configured', $lines);
+        return new HealthCard('mail', $this->title('mail'), HealthCard::GREEN, __('php/support/platform/health/health_board.mail_delivering'), $lines);
     }
 
     /** Queued email jobs that ended in `failed_jobs` since the given moment — read by the job's display name. */
@@ -140,14 +141,14 @@ final class HealthBoard
         $configured = ! (bool) config('services.channex.fake', true) && filled(config('services.channex.api_key'));
 
         if (! $configured) {
-            return new HealthCard('channex', 'Channel manager (Channex)', HealthCard::OFF, 'Not connected', [
-                'No live Channex connection: '.((bool) config('services.channex.fake', true) ? 'a fake client is bound.' : 'no API key is SET.'),
-                'The cutover (F-36/A10) is deferred on its trigger — this console does not build, start or simulate it.',
-            ], label: 'Not connected');
+            return new HealthCard('channex', $this->title('channex'), HealthCard::OFF, __('php/support/platform/health/health_board.channex_not_connected'), [
+                (bool) config('services.channex.fake', true) ? __('php/support/platform/health/health_board.channex_fake_client') : __('php/support/platform/health/health_board.channex_no_key'),
+                __('php/support/platform/health/health_board.channex_deferred'),
+            ], label: __('php/support/platform/health/health_board.channex_not_connected'));
         }
 
-        return new HealthCard('channex', 'Channel manager (Channex)', HealthCard::AMBER, 'A key is SET — sync health is not measured here', [
-            'This card does not call Channex. Whether rates, availability and bookings are flowing is not measured from the console.',
+        return new HealthCard('channex', $this->title('channex'), HealthCard::AMBER, __('php/support/platform/health/health_board.channex_key_set'), [
+            __('php/support/platform/health/health_board.channex_not_called'),
         ]);
     }
 
@@ -160,20 +161,24 @@ final class HealthBoard
         $beat = Heartbeat::status(Heartbeat::QUEUE, Heartbeat::QUEUE_STALE_AFTER_SECONDS);
 
         $lines = [
-            "Jobs waiting: {$waiting}".($oldestAge === null ? '' : ' · oldest '.$this->age($oldestAge)),
-            "Failed jobs: {$failed}",
-            'Worker last ran: '.($beat['age_seconds'] === null ? 'never recorded' : $this->age($beat['age_seconds']).' ago'),
+            $oldestAge === null
+                ? __('php/support/platform/health/health_board.queue_jobs_waiting', ['waiting' => $waiting])
+                : __('php/support/platform/health/health_board.queue_jobs_waiting_oldest', ['waiting' => $waiting, 'age' => $this->age($oldestAge)]),
+            __('php/support/platform/health/health_board.queue_failed_jobs', ['failed' => $failed]),
+            $beat['age_seconds'] === null
+                ? __('php/support/platform/health/health_board.queue_worker_never')
+                : __('php/support/platform/health/health_board.queue_worker_last_ran', ['age' => $this->age($beat['age_seconds'])]),
         ];
 
         if ($failed > 0 || ! $beat['healthy']) {
-            return new HealthCard('queue', 'Queue', HealthCard::RED, $failed > 0 ? $failed.' failed '.Str::plural('job', $failed) : 'Worker not seen', $lines);
+            return new HealthCard('queue', $this->title('queue'), HealthCard::RED, $failed > 0 ? trans_choice('php/support/platform/health/health_board.queue_failed_headline', $failed, ['count' => $failed]) : __('php/support/platform/health/health_board.queue_worker_not_seen'), $lines);
         }
 
         if ($oldestAge !== null && $oldestAge > self::QUEUE_BACKLOG_SECONDS) {
-            return new HealthCard('queue', 'Queue', HealthCard::AMBER, 'Jobs are backing up', $lines);
+            return new HealthCard('queue', $this->title('queue'), HealthCard::AMBER, __('php/support/platform/health/health_board.queue_backing_up'), $lines);
         }
 
-        return new HealthCard('queue', 'Queue', HealthCard::GREEN, 'Draining', $lines);
+        return new HealthCard('queue', $this->title('queue'), HealthCard::GREEN, __('php/support/platform/health/health_board.queue_draining'), $lines);
     }
 
     private function scheduler(): HealthCard
@@ -182,37 +187,43 @@ final class HealthBoard
         $armed = filled(config('ops.heartbeat_ping_url'));
 
         $lines = [
-            'Scheduler last beat: '.($beat['age_seconds'] === null ? 'never recorded' : $this->age($beat['age_seconds']).' ago'),
-            'External dead-man\'s switch: '.($armed ? 'armed' : 'NOT ARMED — no ping URL is configured'),
+            $beat['age_seconds'] === null
+                ? __('php/support/platform/health/health_board.scheduler_never')
+                : __('php/support/platform/health/health_board.scheduler_last_beat', ['age' => $this->age($beat['age_seconds'])]),
+            $armed ? __('php/support/platform/health/health_board.scheduler_switch_armed') : __('php/support/platform/health/health_board.scheduler_switch_not_armed'),
         ];
 
         if (! $beat['healthy']) {
-            return new HealthCard('scheduler', 'Scheduler & heartbeat', HealthCard::RED, 'Scheduler not seen', $lines,
-                'A dead cron stops the GDPR deletion and the retention prune without any error.');
+            return new HealthCard('scheduler', $this->title('scheduler'), HealthCard::RED, __('php/support/platform/health/health_board.scheduler_not_seen'), $lines,
+                __('php/support/platform/health/health_board.scheduler_dead_cron_note'));
         }
 
         if (! $armed) {
-            return new HealthCard('scheduler', 'Scheduler & heartbeat', HealthCard::AMBER, 'Running — but nobody is told if it stops', $lines,
-                'Founder step: an external monitor URL in OPS_HEARTBEAT_PING_URL, then a config rebuild.');
+            return new HealthCard('scheduler', $this->title('scheduler'), HealthCard::AMBER, __('php/support/platform/health/health_board.scheduler_unwatched'), $lines,
+                __('php/support/platform/health/health_board.scheduler_founder_step'));
         }
 
-        return new HealthCard('scheduler', 'Scheduler & heartbeat', HealthCard::GREEN, 'Running, and watched', $lines);
+        return new HealthCard('scheduler', $this->title('scheduler'), HealthCard::GREEN, __('php/support/platform/health/health_board.scheduler_watched'), $lines);
     }
 
     private function errors(): HealthCard
     {
         $counts = LogErrorCounter::lastDay();
-        $note = 'Origin errors only — the CDN in front of the site is not visible from here. Logged at warning+; the route group is not recorded in the log, so errors cannot be split by route.';
+        $note = __('php/support/platform/health/health_board.errors_note');
 
         if ($counts['found_files'] === 0) {
-            return new HealthCard('errors', 'Server errors (24h)', HealthCard::GREY, 'Could not measure', ['No application log file was found.'], $note);
+            return new HealthCard('errors', $this->title('errors'), HealthCard::GREY, __('php/support/platform/health/health_board.could_not_measure'), [__('php/support/platform/health/health_board.errors_no_log_file')], $note);
         }
 
-        $lines = ["Errors: {$counts['errors_24h']} · warnings: {$counts['warnings_24h']}"];
+        $lines = [__('php/support/platform/health/health_board.errors_counts', ['errors' => $counts['errors_24h'], 'warnings' => $counts['warnings_24h']])];
         foreach (array_slice($counts['by_hour'], -6, null, true) as $hour => $n) {
             // ADMIN 03 · F7 — the log's clock is the app's (UTC); say so, and say which hour.
             $at = Carbon::parse($hour, 'UTC');
-            $lines[] = $at->format('j M, H:i').'–'.$at->copy()->addHour()->format('H:i').' UTC — '.$n.' '.Str::plural('error', $n);
+            $lines[] = trans_choice('php/support/platform/health/health_board.errors_hour_line', $n, [
+                'count' => $n,
+                'from' => $at->translatedFormat('j M, H:i'),
+                'to' => $at->copy()->addHour()->format('H:i'),
+            ]);
         }
 
         $status = match (true) {
@@ -221,8 +232,10 @@ final class HealthBoard
             default => HealthCard::AMBER,
         };
 
-        return new HealthCard('errors', 'Server errors (24h)', $status,
-            $counts['errors_24h'] === 0 ? 'No server errors logged' : $counts['errors_24h'].' server '.Str::plural('error', $counts['errors_24h']).' logged', $lines, $note);
+        return new HealthCard('errors', $this->title('errors'), $status,
+            $counts['errors_24h'] === 0
+                ? __('php/support/platform/health/health_board.errors_none')
+                : trans_choice('php/support/platform/health/health_board.errors_logged', $counts['errors_24h'], ['count' => $counts['errors_24h']]), $lines, $note);
     }
 
     private function release(): HealthCard
@@ -230,24 +243,27 @@ final class HealthBoard
         $r = ReleaseReader::read();
 
         if (! $r['in_layout']) {
-            return HealthCard::couldNotMeasure('release', 'Live release', 'Not running from a release directory (this is a development checkout).');
+            return HealthCard::couldNotMeasure('release', $this->title('release'), __('php/support/platform/health/health_board.release_not_in_layout'));
         }
 
         if ($r['commit'] === null) {
-            return new HealthCard('release', 'Live release', HealthCard::AMBER, "{$r['current']} — commit unreadable",
-                ['The live release has no readable .release file.']);
+            return new HealthCard('release', $this->title('release'), HealthCard::AMBER, __('php/support/platform/health/health_board.release_commit_unreadable', ['release' => $r['current']]),
+                [__('php/support/platform/health/health_board.release_no_file')]);
         }
 
-        $lines = ["Commit {$r['commit']}"];
+        $lines = [__('php/support/platform/health/health_board.release_commit', ['commit' => $r['commit']])];
         foreach (array_slice($r['retained'], 0, 3) as $old) {
-            $lines[] = "Rollback candidate {$old['name']}".($old['commit'] === null ? ' — commit unreadable' : ' · '.substr($old['commit'], 0, 8));
+            $lines[] = $old['commit'] === null
+                ? __('php/support/platform/health/health_board.release_rollback_unreadable', ['name' => $old['name']])
+                : __('php/support/platform/health/health_board.release_rollback', ['name' => $old['name'], 'commit' => substr($old['commit'], 0, 8)]);
         }
         if (count($r['retained']) > 3) {
-            $lines[] = '… and '.(count($r['retained']) - 3).' older '.Str::plural('release', count($r['retained']) - 3).' retained';
+            $older = count($r['retained']) - 3;
+            $lines[] = trans_choice('php/support/platform/health/health_board.release_older_retained', $older, ['count' => $older]);
         }
 
-        return new HealthCard('release', 'Live release', HealthCard::GREEN, "{$r['current']} · ".substr($r['commit'], 0, 8), $lines,
-            'Read from the release layout on disk. There is no deploy or rollback button, by design.');
+        return new HealthCard('release', $this->title('release'), HealthCard::GREEN, "{$r['current']} · ".substr($r['commit'], 0, 8), $lines,
+            __('php/support/platform/health/health_board.release_note'));
     }
 
     private function config(): HealthCard
@@ -257,17 +273,17 @@ final class HealthBoard
         $failedCalibration = array_filter(ConfigInventory::calibration($inv), fn (array $c): bool => ! $c[1]);
 
         if ($failedCalibration !== []) {
-            return HealthCard::couldNotMeasure('config', 'Silent configuration', 'The inventory failed its own calibration, so its answer is not trusted.');
+            return HealthCard::couldNotMeasure('config', $this->title('config'), __('php/support/platform/health/health_board.config_calibration_failed'));
         }
 
-        $lines = ["{$inv['set']} set · {$inv['empty']} empty · ".count($inv['buckets']['UNCLASSIFIED']).' empty and unclassified'];
+        $lines = [__('php/support/platform/health/health_board.config_counts', ['set' => $inv['set'], 'empty' => $inv['empty'], 'unclassified' => count($inv['buckets']['UNCLASSIFIED'])])];
         foreach ($silent as [$path]) {
-            $lines[] = "EMPTY and SILENT: {$path}";
+            $lines[] = __('php/support/platform/health/health_board.config_empty_silent', ['path' => $path]);
         }
 
-        return new HealthCard('config', 'Silent configuration', $silent === [] ? HealthCard::GREEN : HealthCard::RED,
-            $silent === [] ? 'No silent gaps' : count($silent).' '.Str::plural('setting', count($silent)).' empty that '.(count($silent) === 1 ? 'fails' : 'fail').' silently', $lines,
-            'Names only — no value is ever shown.');
+        return new HealthCard('config', $this->title('config'), $silent === [] ? HealthCard::GREEN : HealthCard::RED,
+            $silent === [] ? __('php/support/platform/health/health_board.config_no_gaps') : trans_choice('php/support/platform/health/health_board.config_silent_settings', count($silent), ['count' => count($silent)]), $lines,
+            __('php/support/platform/health/health_board.config_names_only'));
     }
 
     private function switches(): HealthCard
@@ -280,24 +296,41 @@ final class HealthBoard
         }
 
         return $off === []
-            ? new HealthCard('switches', 'Kill switches', HealthCard::GREEN, 'All on — normal service', ['Sign-up and social sign-in are open.'])
-            : new HealthCard('switches', 'Kill switches', HealthCard::AMBER, count($off).' switched off', array_map(fn (string $l): string => "OFF: {$l}", $off));
+            ? new HealthCard('switches', $this->title('switches'), HealthCard::GREEN, __('php/support/platform/health/health_board.switches_all_on'), [__('php/support/platform/health/health_board.switches_open')])
+            : new HealthCard('switches', $this->title('switches'), HealthCard::AMBER, trans_choice('php/support/platform/health/health_board.switches_off_count', count($off), ['count' => count($off)]),
+                array_map(fn (string $l): string => __('php/support/platform/health/health_board.switches_off_line', ['switch' => $l]), $off));
     }
 
     /** ⚠️ GREY by design: the battery and drift check run from OUTSIDE the host, and store their results nowhere this page can read. */
     private function exposure(): HealthCard
     {
-        return HealthCard::couldNotMeasure('exposure', 'Exposure battery & drift check',
-            'Both run from outside the host (ops/exposure-battery.sh, ops/htaccess-drift-check.sh) and their results are not stored anywhere this page can read. Running them from a web request would be the wrong place to run them.');
+        return HealthCard::couldNotMeasure('exposure', $this->title('exposure'), __('php/support/platform/health/health_board.exposure_why'));
+    }
+
+    /** A card's title, by its code, in the request's language (the code itself never changes). */
+    private function title(string $key): string
+    {
+        return match ($key) {
+            'mail' => __('php/support/platform/health/health_board.title_mail'),
+            'queue' => __('php/support/platform/health/health_board.title_queue'),
+            'scheduler' => __('php/support/platform/health/health_board.title_scheduler'),
+            'errors' => __('php/support/platform/health/health_board.title_errors'),
+            'release' => __('php/support/platform/health/health_board.title_release'),
+            'config' => __('php/support/platform/health/health_board.title_config'),
+            'switches' => __('php/support/platform/health/health_board.title_switches'),
+            'channex' => __('php/support/platform/health/health_board.title_channex'),
+            'exposure' => __('php/support/platform/health/health_board.title_exposure'),
+            default => $key,
+        };
     }
 
     private function age(int $seconds): string
     {
         return match (true) {
-            $seconds < 90 => "{$seconds}s",
-            $seconds < 5400 => intdiv($seconds, 60).' min',
-            $seconds < 172800 => intdiv($seconds, 3600).' h',
-            default => intdiv($seconds, 86400).' days',
+            $seconds < 90 => __('php/support/platform/health/health_board.age_seconds', ['seconds' => $seconds]),
+            $seconds < 5400 => __('php/support/platform/health/health_board.age_minutes', ['minutes' => intdiv($seconds, 60)]),
+            $seconds < 172800 => __('php/support/platform/health/health_board.age_hours', ['hours' => intdiv($seconds, 3600)]),
+            default => trans_choice('php/support/platform/health/health_board.age_days', intdiv($seconds, 86400), ['count' => intdiv($seconds, 86400)]),
         };
     }
 }

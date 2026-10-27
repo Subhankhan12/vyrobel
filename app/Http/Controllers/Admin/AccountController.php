@@ -19,7 +19,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -55,12 +54,12 @@ class AccountController extends Controller
     {
         $admin = $this->admin();
 
-        $data = $request->validate(['name' => ['required', 'string', 'max:120']], [], ConsoleFields::NAMES);
+        $data = $request->validate(['name' => ['required', 'string', 'max:120']], [], ConsoleFields::names());
         $admin->forceFill($data)->save();
 
         $this->audit->record('platform.account.profile_updated', ['fields' => array_keys($data)]);
 
-        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your profile is saved.');
+        return redirect()->route('admin.account.edit')->with('admin_notice', __('php/http/controllers/admin/account_controller.profile_saved'));
     }
 
     /**
@@ -80,7 +79,7 @@ class AccountController extends Controller
             //    used to be the app-wide default (8 characters), so the super-admin password could be changed to
             //    something weaker than it was allowed to be created with.
             'password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
 
         $admin->changePasswordTo((string) $request->string('password'));
         // ⚠️ ADMIN 01 · Phase 1 — a changed password ends the admin's OTHER console sessions, enforced on their next
@@ -90,24 +89,24 @@ class AccountController extends Controller
         // The audit row records the TRUE number of sessions ended — never a claim the code did not verify.
         $this->audit->record('platform.account.password_changed', ['other_sessions_ended' => $endedOthers]);
 
-        return redirect()->route('admin.account.edit')->with('admin_notice', 'Your password has been changed.'
-            .($endedOthers > 0 ? " {$endedOthers} other console ".Str::plural('session', $endedOthers).($endedOthers === 1 ? ' was' : ' were').' signed out.' : ''));
+        return redirect()->route('admin.account.edit')->with('admin_notice', __('php/http/controllers/admin/account_controller.password_changed')
+            .($endedOthers > 0 ? ' '.trans_choice('php/http/controllers/admin/account_controller.other_sessions_signed_out', $endedOthers, ['count' => $endedOthers]) : ''));
     }
 
     /** Regenerate the 2FA recovery codes (shown ONCE). 🔒 CURRENT password required; audited. */
     public function regenerateRecoveryCodes(Request $request, PlatformTwoFactorService $twoFactor): RedirectResponse
     {
         $admin = $this->admin();
-        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::NAMES);
+        $request->validate(['current_password' => ['required', 'current_password:admin']], [], ConsoleFields::names());
 
         if (! $admin->hasTwoFactorEnabled()) {
-            return redirect()->route('admin.account.edit')->with('admin_notice', 'Two-factor is not active yet.');
+            return redirect()->route('admin.account.edit')->with('admin_notice', __('php/http/controllers/admin/account_controller.two_factor_not_active'));
         }
 
         $codes = $twoFactor->regenerateRecoveryCodes($admin);
         $this->audit->record('platform.account.recovery_codes_regenerated');
 
-        return redirect()->route('admin.account.edit')->with('admin_recovery_codes', $codes)->with('admin_notice', 'New recovery codes generated — save them now.');
+        return redirect()->route('admin.account.edit')->with('admin_recovery_codes', $codes)->with('admin_notice', __('php/http/controllers/admin/account_controller.recovery_codes_generated'));
     }
 
     /**
@@ -125,7 +124,7 @@ class AccountController extends Controller
                 Rule::unique('platform_admins', 'email')->ignore($admin->getKey()),
                 Rule::notIn([(string) $admin->email]),
             ],
-        ], [], ['email' => 'email address'] + ConsoleFields::NAMES);
+        ], [], ['email' => __('php/http/controllers/admin/account_controller.email_attribute')] + ConsoleFields::names());
 
         $newEmail = (string) $data['email'];
         $admin->forceFill(['pending_email' => $newEmail])->save();
@@ -139,7 +138,7 @@ class AccountController extends Controller
 
         $this->audit->record('platform.account.email_change_requested', ['fields' => ['email']]);
 
-        return redirect()->route('admin.account.edit')->with('admin_notice', 'Check your new inbox — we emailed a link to confirm the change. Your email stays the same until you open it.');
+        return redirect()->route('admin.account.edit')->with('admin_notice', __('php/http/controllers/admin/account_controller.email_change_sent'));
     }
 
     /** Cancel a pending email change (clears the parked address; any outstanding link then no longer matches). */
@@ -147,7 +146,7 @@ class AccountController extends Controller
     {
         $this->admin()->forceFill(['pending_email' => null])->save();
 
-        return redirect()->route('admin.account.edit')->with('admin_notice', 'The email change was cancelled.');
+        return redirect()->route('admin.account.edit')->with('admin_notice', __('php/http/controllers/admin/account_controller.email_change_cancelled'));
     }
 
     /**
@@ -159,26 +158,26 @@ class AccountController extends Controller
     {
         $model = PlatformAdmin::query()->find($admin);
         if ($model === null) {
-            return redirect()->route('admin.login')->with('status', 'That email-change link is no longer valid. Please request a new one.');
+            return redirect()->route('admin.login')->with('status', __('php/http/controllers/admin/account_controller.email_link_invalid'));
         }
 
         $pending = (string) ($model->pending_email ?? '');
         if ($pending === '' || ! hash_equals(sha1($pending), $hash)) {
-            return redirect()->route('admin.login')->with('status', 'That email-change link is no longer valid. Please request a new one.');
+            return redirect()->route('admin.login')->with('status', __('php/http/controllers/admin/account_controller.email_link_invalid'));
         }
 
         // Someone else may have taken the address since it was requested — fail closed, keep the old email.
         if (PlatformAdmin::query()->where('email', $pending)->whereKeyNot($model->getKey())->exists()) {
             $model->forceFill(['pending_email' => null])->save();
 
-            return redirect()->route('admin.login')->with('status', 'That email address is already in use. Your email was not changed.');
+            return redirect()->route('admin.login')->with('status', __('php/http/controllers/admin/account_controller.email_taken'));
         }
 
         $model->forceFill(['email' => $pending, 'pending_email' => null])->save();
 
         $this->audit->record('platform.account.email_changed', ['fields' => ['email']], actor: $model);
 
-        return redirect()->route('admin.login')->with('status', "Your sign-in email is now {$pending}. Use that address from now on — the old one no longer works.");
+        return redirect()->route('admin.login')->with('status', __('php/http/controllers/admin/account_controller.email_changed', ['email' => $pending]));
     }
 
     /** The current authenticated platform admin (self-resolved from the guard, never a request id). */

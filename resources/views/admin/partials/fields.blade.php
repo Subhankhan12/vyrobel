@@ -148,6 +148,21 @@
     const flagOf = (code) => /^[A-Z]{2}$/.test(code) ? String.fromCodePoint(...[...code].map((c) => 127397 + c.charCodeAt(0))) : '';
     const fold = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
     const painters = [];
+    // the dropdown's own words, in the page's language; a count's plural form is worked out on the server (0…199, then by
+    // the last two digits — what plural rules read) so no language's plural is guessed in a script
+    const t = {
+        choose: @js(__('admin/partials/fields.choose')),
+        search: @js(__('admin/partials/fields.search_placeholder')),
+        searchNamed: @js(__('admin/partials/fields.search_named')),
+        noneChosen: @js(__('admin/partials/fields.none_chosen')),
+        trigger: @js(__('admin/partials/fields.trigger_label')),
+        chosen: @js(collect(range(0, 199))->map(fn ($n) => trans_choice('admin/partials/fields.chosen_count', $n, ['count' => ':count', 'list' => ':list']))->all()),
+        nothing: @js(__('admin/partials/fields.nothing_matches')),
+        chooseOption: @js(__('admin/partials/fields.choose_an_option')),
+    };
+    // one pass, so a value that itself contains ":name" is never replaced again
+    const fill = (text, values) => text.replace(/:([a-z_]+)/g, (m, k) => (k in values ? values[k] : m));
+    const chosenText = (n, list) => fill(t.chosen[n < 200 ? n : 100 + (n % 100)], { count: String(n), list: list });
     let uid = 0;
 
     // ⚠️ Everything is built OFF the page and swapped in as the LAST step — so an error anywhere leaves the native select
@@ -158,7 +173,7 @@
         const multi = select.multiple;
         const flags = select.hasAttribute('data-flags');
         const label = select.id ? document.querySelector('label[for="' + CSS.escape(select.id) + '"]') : null;
-        const name = select.getAttribute('aria-label') || (label ? label.textContent.trim() : 'Choose');
+        const name = select.getAttribute('aria-label') || (label ? label.textContent.trim() : t.choose);
 
         const wrap = document.createElement('div');
         wrap.className = 'ad-combo';
@@ -185,9 +200,9 @@
         const search = document.createElement('input');
         search.type = 'search';
         search.className = 'ad-combo-search';
-        search.placeholder = 'Search…';
+        search.placeholder = t.search;
         search.autocomplete = 'off';
-        search.setAttribute('aria-label', 'Search ' + name.toLowerCase());
+        search.setAttribute('aria-label', fill(t.searchNamed, { name: name.toLowerCase() }));
         search.setAttribute('aria-controls', id + '-list');
         const list = document.createElement('ul');
         list.id = id + '-list';
@@ -217,17 +232,17 @@
             }
             if (multi) {
                 const chosen = [...select.selectedOptions].map((c) => c.textContent.trim());
-                value.textContent = chosen.length ? chosen.join(', ') : (select.dataset.placeholder || 'None chosen');
+                value.textContent = chosen.length ? chosen.join(', ') : (select.dataset.placeholder || t.noneChosen);
                 value.classList.toggle('is-placeholder', !chosen.length);
                 count.textContent = chosen.length > 1 ? String(chosen.length) : '';
-                trigger.setAttribute('aria-label', name + ': ' + (chosen.length ? chosen.length + ' chosen — ' + chosen.join(', ') : value.textContent));
+                trigger.setAttribute('aria-label', fill(t.trigger, { name: name, value: chosen.length ? chosenText(chosen.length, chosen.join(', ')) : value.textContent }));
                 return;
             }
             const o = select.options[select.selectedIndex];
             const empty = !o || o.value === '';
             value.textContent = o ? o.textContent.trim() : '';
             value.classList.toggle('is-placeholder', empty);
-            trigger.setAttribute('aria-label', name + ': ' + value.textContent);
+            trigger.setAttribute('aria-label', fill(t.trigger, { name: name, value: value.textContent }));
             flag.textContent = flags && o ? flagOf(o.value) : '';
         }
         function render(filter) {
@@ -256,7 +271,7 @@
             if (!list.children.length) {
                 const none = document.createElement('li');
                 none.className = 'ad-combo-empty';
-                none.textContent = 'Nothing matches “' + filter + '”.';
+                none.textContent = fill(t.nothing, { filter: filter });
                 list.appendChild(none);
             }
             const items = visible();
@@ -326,7 +341,7 @@
         select.addEventListener('change', paintTrigger);
         select.addEventListener('invalid', (e) => {
             e.preventDefault();
-            error.textContent = select.validationMessage || 'Choose an option.';
+            error.textContent = select.validationMessage || t.chooseOption;
             error.hidden = false;
             trigger.setAttribute('aria-invalid', 'true');
             trigger.setAttribute('aria-describedby', error.id);

@@ -1,0 +1,36 @@
+<?php
+
+// resources/views/admin/activity/index.blade.php — the console's Security & activity page.
+
+return [
+    'realm_web' => 'Operator/Owner',
+    'realm_guest' => 'Guest',
+    'realm_admin' => 'Platform admin',
+    'event_login' => 'Login',
+    'event_failed' => 'Failed',
+    'event_lockout' => 'Lockout',
+    'subject_user' => 'User',
+    'subject_guest' => 'Guest',
+    'subject_platform_admin' => 'Platform admin',
+    'subject_unknown' => 'Unknown',
+    'actor_user' => 'User',
+    'actor_agent' => 'Agent',
+    'actor_system' => 'System',
+    'page_title' => 'Security & activity',
+    'page_subtitle' => 'Sign-in activity and account events across the platform — kept for :days days, then purged.',
+    'kpi_failures' => 'Failed / lockout · 24h',
+    'kpi_failures_help' => 'Repeated failures can signal probing.',
+    'privacy' => 'Privacy',
+    'privacy_body' => 'Sign-in activity (incl. IP) is captured only as a <strong style="color: var(--ad-ink);">security signal</strong> — spotting suspicious logins and support — never ambient tracking. Retained :days days, then purged automatically; access is limited to this console.',
+    'recent_sign_ins' => 'Recent sign-in activity',
+    'col_event' => 'Event',
+    'col_realm' => 'Realm',
+    'col_account' => 'Account',
+    'col_ip' => 'IP',
+    'col_when' => 'When',
+    'no_sign_ins' => 'No sign-in activity captured yet.',
+    'recent_account_events' => 'Recent account events <span style="color: var(--ad-faint); font-weight: 400; font-size: 12px;">· across all customers</span>',
+    'col_customer' => 'Customer',
+    'col_actor' => 'Actor',
+    'no_account_events' => 'No account events yet.',
+];

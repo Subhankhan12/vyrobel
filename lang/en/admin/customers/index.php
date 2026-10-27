@@ -1,0 +1,42 @@
+<?php
+
+// resources/views/admin/customers/index.blade.php — the admin console's organisation directory.
+
+return [
+    'title' => 'Organisations',
+    'subtitle' => 'Every organisation on the platform — account metadata only, never a guest.',
+    'create_organisation' => 'Create an organisation',
+    // the bucket's name and description come from PlatformCustomers::BUCKETS
+    'triage_banner' => '<strong>Triage · :name</strong> — :description',
+    'search_placeholder' => 'Search name or slug…',
+    'status_label' => 'Status',
+    'all_statuses' => 'All statuses (not archived)',
+    'kind_label' => 'Kind',
+    'kind_all' => 'Customers & internal',
+    'kind_customers' => 'Customers only',
+    'kind_internal' => 'Internal only',
+    'source_label' => 'Signup source',
+    'source_any' => 'Any signup source',
+    'source_unknown' => 'Unknown (before recording began)',
+    'verified_label' => 'Verified',
+    'verified_any' => 'Verified or not',
+    'verified_yes' => 'Verified',
+    'verified_no' => 'Not verified',
+    'triage_queue' => 'Triage queue',
+    'col_organisation' => 'Organisation',
+    'col_plan' => 'Plan',
+    'col_signed_up_with' => 'Signed up with',
+    'col_verified' => 'Verified',
+    'col_created' => 'Created',
+    'col_last_sign_in' => 'Last sign-in',
+    'col_properties' => 'Properties',
+    'col_users' => 'Users',
+    'internal_pill' => 'Internal',
+    'archived_pill' => 'Archived',
+    'never_signed_in' => 'Never',
+    'empty_filtered' => 'No organisations match — try clearing the filters.',
+    'empty_none' => 'No organisations match — no organisations on the platform yet.',
+    'help_verified' => '<strong>Verified</strong>: at least one of its users has confirmed an email address.',
+    'help_last_sign_in' => '<strong>Last sign-in</strong>: the latest completed sign-in by any of its users — the sign-up session itself does not count.',
+    'help_signed_up_with' => '<strong>Signed up with</strong>: recorded only since this console began recording it; older organisations read “Unknown”, because nothing recorded it — not because they came through email.',
+];

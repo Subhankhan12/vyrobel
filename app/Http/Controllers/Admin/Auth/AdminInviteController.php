@@ -34,13 +34,13 @@ class AdminInviteController extends Controller
     {
         if (Auth::guard('admin')->check()) {
             // Someone already signed into the console opening an invite — do not mix the two.
-            return view('admin.auth.invite-invalid', ['message' => 'Sign out of the console first, then open the invitation link again.']);
+            return view('admin.auth.invite-invalid', ['message' => __('php/http/controllers/admin/auth/admin_invite_controller.sign_out_first')]);
         }
 
         $admin = $this->invites->find($token);
 
         return $admin === null
-            ? view('admin.auth.invite-invalid', ['message' => 'This invitation link is not valid. It may have expired or already been used — ask an Owner for a new one.'])
+            ? view('admin.auth.invite-invalid', ['message' => __('php/http/controllers/admin/auth/admin_invite_controller.invite_invalid')])
             : view('admin.auth.invite-accept', ['admin' => $admin, 'token' => $token, 'hint' => PlatformAdminPasswordPolicy::hint()]);
     }
 
@@ -49,15 +49,15 @@ class AdminInviteController extends Controller
         $admin = $this->invites->find($token);
 
         if ($admin === null) {
-            return view('admin.auth.invite-invalid', ['message' => 'This invitation link is not valid. It may have expired or already been used — ask an Owner for a new one.']);
+            return view('admin.auth.invite-invalid', ['message' => __('php/http/controllers/admin/auth/admin_invite_controller.invite_invalid')]);
         }
 
-        $request->validate(['password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::NAMES);
+        $request->validate(['password' => ['required', 'confirmed', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::names());
 
         $this->invites->accept($admin, (string) $request->string('password'));
         $this->audit->record('platform.admin.invite_accepted', ['role' => $admin->role], 'platform_admin', $admin->id, actor: $admin);
 
         return redirect()->route('admin.login')
-            ->with('status', 'Your password is set. Sign in now — you will be asked to set up two-factor authentication before the console opens.');
+            ->with('status', __('php/http/controllers/admin/auth/admin_invite_controller.password_set'));
     }
 }

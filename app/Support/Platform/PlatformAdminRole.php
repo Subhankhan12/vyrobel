@@ -98,20 +98,20 @@ enum PlatformAdminRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Owner => 'Owner',
-            self::Support => 'Support',
-            self::Billing => 'Billing',
-            self::Analyst => 'Analyst',
+            self::Owner => __('php/support/platform/platform_admin_role.owner_label'),
+            self::Support => __('php/support/platform/platform_admin_role.support_label'),
+            self::Billing => __('php/support/platform/platform_admin_role.billing_label'),
+            self::Analyst => __('php/support/platform/platform_admin_role.analyst_label'),
         };
     }
 
     public function description(): string
     {
         return match ($this) {
-            self::Owner => 'Everything, including switches, integrations and other admins.',
-            self::Support => 'Customers and support tools. No billing, no switches.',
-            self::Billing => 'Revenue, plans and subscriptions. No support tools.',
-            self::Analyst => 'Read-only everywhere it may look. Changes nothing.',
+            self::Owner => __('php/support/platform/platform_admin_role.owner_description'),
+            self::Support => __('php/support/platform/platform_admin_role.support_description'),
+            self::Billing => __('php/support/platform/platform_admin_role.billing_description'),
+            self::Analyst => __('php/support/platform/platform_admin_role.analyst_description'),
         };
     }
 

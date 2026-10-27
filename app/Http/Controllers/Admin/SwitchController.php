@@ -14,7 +14,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -57,7 +56,7 @@ class SwitchController extends Controller
         $catalogue = PlatformSwitches::catalogue();
         abort_unless(array_key_exists($switch, $catalogue), 404);
 
-        $validated = $request->validate(['on' => ['required', 'boolean']], [], ConsoleFields::NAMES);
+        $validated = $request->validate(['on' => ['required', 'boolean']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $on = (bool) $validated['on'];
         $meta = $catalogue[$switch];
@@ -71,8 +70,8 @@ class SwitchController extends Controller
             if (! $request->boolean('confirm_lockout')) {
                 throw ValidationException::withMessages([
                     'confirm_lockout' => $lockout === 0
-                        ? 'Tick the box to confirm — no account relies on this provider alone right now, but anyone who does by the time it is off will be locked out.'
-                        : "Confirm that you understand this locks out {$lockout} ".Str::plural('account', $lockout).' whose only way in is this provider.',
+                        ? __('php/http/controllers/admin/switch_controller.confirm_no_lockout')
+                        : trans_choice('php/http/controllers/admin/switch_controller.confirm_lockout', $lockout, ['count' => $lockout]),
                 ]);
             }
         }
@@ -92,6 +91,6 @@ class SwitchController extends Controller
         );
 
         return redirect()->route('admin.switches.index')
-            ->with('admin_notice', $meta['label'].' is now '.($on ? 'ON' : 'OFF').'. It takes effect on the next request.');
+            ->with('admin_notice', $on ? __('php/http/controllers/admin/switch_controller.now_on', ['switch' => $meta['label']]) : __('php/http/controllers/admin/switch_controller.now_off', ['switch' => $meta['label']]));
     }
 }

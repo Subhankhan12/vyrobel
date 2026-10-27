@@ -5,7 +5,7 @@
 @props(['at' => null, 'date' => false, 'empty' => '—'])
 @if ($at)
     @php $utc = \Carbon\CarbonImmutable::instance($at)->utc(); @endphp
-    <time {{ $attributes->merge(['class' => 'ad-time']) }} datetime="{{ $utc->toIso8601String() }}" title="{{ $utc->format('j M Y, H:i') }} UTC · {{ $utc->diffForHumans() }}">{{ $date ? $utc->format('j M Y') : $utc->format('j M Y, H:i').' UTC' }}</time>
+    <time {{ $attributes->merge(['class' => 'ad-time']) }} datetime="{{ $utc->toIso8601String() }}" title="{{ __('components/admin/time.title', ['time' => $utc->translatedFormat('j M Y, H:i'), 'ago' => $utc->diffForHumans()]) }}">{{ $date ? $utc->translatedFormat('j M Y') : __('components/admin/time.utc', ['time' => $utc->translatedFormat('j M Y, H:i')]) }}</time>
 @else
     {{ $empty }}
 @endif

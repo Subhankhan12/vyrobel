@@ -35,7 +35,10 @@ class PlatformCustomers
     /** Customers per page (audit fix P2-1 — the list is paginated so it scales past a handful of orgs). */
     public const PER_PAGE = 25;
 
-    /** The triage buckets — key => [label, definition shown on screen]. */
+    /**
+     * The triage buckets — key => [label, definition shown on screen]. ⚠️ I18N-01 — the English here is the fallback for
+     * callers that still read the constant; what a person reads comes from {@see bucketLabel()} / {@see bucketDefinition()}.
+     */
     public const BUCKETS = [
         'unverified' => [
             'Unverified for 7+ days',
@@ -57,6 +60,70 @@ class PlatformCustomers
 
     /** ADMIN 03 · F9 — a subscription's state in words, never the raw Stripe-style value. */
     public const SUBSCRIPTION_STATES = ['trialing' => 'On a free trial', 'active' => 'Active — billed', 'past_due' => 'Past due', 'canceled' => 'Cancelled', 'incomplete' => 'Incomplete', 'paused' => 'Paused'];
+
+    /** I18N-01 — a triage bucket's name, in the reader's language. The bucket CODE is what the queries and URLs use. */
+    public static function bucketLabel(string $bucket): string
+    {
+        return match ($bucket) {
+            'unverified' => __('php/support/platform/platform_customers.bucket_unverified'),
+            'never_signed_in' => __('php/support/platform/platform_customers.bucket_never_signed_in'),
+            'via_x' => __('php/support/platform/platform_customers.bucket_via_x'),
+            default => $bucket,
+        };
+    }
+
+    /** I18N-01 — what a triage bucket means, in the reader's language. */
+    public static function bucketDefinition(string $bucket): string
+    {
+        return match ($bucket) {
+            'unverified' => __('php/support/platform/platform_customers.bucket_unverified_definition'),
+            'never_signed_in' => __('php/support/platform/platform_customers.bucket_never_signed_in_definition'),
+            'via_x' => __('php/support/platform/platform_customers.bucket_via_x_definition'),
+            default => '',
+        };
+    }
+
+    /** I18N-01 — an organisation status in words, by its stored code (an unknown code reads as itself, capitalised). */
+    public static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'active' => __('php/support/platform/platform_customers.status_active'),
+            'trialing' => __('php/support/platform/platform_customers.status_trialing'),
+            'suspended' => __('php/support/platform/platform_customers.status_suspended'),
+            'cancelled' => __('php/support/platform/platform_customers.status_cancelled'),
+            'archived' => __('php/support/platform/platform_customers.status_archived'),
+            default => ucfirst($status),
+        };
+    }
+
+    /**
+     * I18N-01 — the status filter's options: code => label in the reader's language. The codes are {@see STATUSES}' keys.
+     *
+     * @return array<string, string>
+     */
+    public static function statusLabels(): array
+    {
+        $out = [];
+        foreach (array_keys(self::STATUSES) as $code) {
+            $out[$code] = self::statusLabel($code);
+        }
+
+        return $out;
+    }
+
+    /** I18N-01 — a subscription's state in words, by its stored code (an unknown code reads as itself, capitalised). */
+    public static function subscriptionStateLabel(string $state): string
+    {
+        return match ($state) {
+            'trialing' => __('php/support/platform/platform_customers.subscription_trialing'),
+            'active' => __('php/support/platform/platform_customers.subscription_active'),
+            'past_due' => __('php/support/platform/platform_customers.subscription_past_due'),
+            'canceled' => __('php/support/platform/platform_customers.subscription_canceled'),
+            'incomplete' => __('php/support/platform/platform_customers.subscription_incomplete'),
+            'paused' => __('php/support/platform/platform_customers.subscription_paused'),
+            default => ucfirst($state),
+        };
+    }
 
     /**
      * The directory — every organisation, with its plan, status, signup source, verified flag, created date, last
@@ -145,6 +212,7 @@ class PlatformCustomers
             'internal' => $org->isInternal(),
             'plan' => $plans[(string) $org->id] ?? null,
             'source' => TenantLifecycle::sourceLabel($org->signup_source),
+            'source_known' => array_key_exists((string) $org->signup_source, TenantLifecycle::SIGNUP_SOURCES),   // a code, never the label (rule 10)
             'verified' => (int) $org->getAttribute('verified_users') > 0,
             'properties' => (int) $org->getAttribute('properties_count'),
             'members' => (int) $org->getAttribute('users_count'),
@@ -162,13 +230,13 @@ class PlatformCustomers
     public function triage(bool $includeInternal = false): array
     {
         $out = [];
-        foreach (self::BUCKETS as $key => [$label, $definition]) {
+        foreach (array_keys(self::BUCKETS) as $key) {
             $query = Organization::query();
             if (! $includeInternal) {
                 $query->customers();
             }
             $this->applyBucket($query, $key);
-            $out[$key] = ['label' => $label, 'definition' => $definition, 'count' => $query->count()];
+            $out[$key] = ['label' => self::bucketLabel($key), 'definition' => self::bucketDefinition($key), 'count' => $query->count()];
         }
 
         return $out;
@@ -318,7 +386,9 @@ class PlatformCustomers
             // First (latest) per org wins. ⚠️ ADMIN 03 · F2 — a free trial says so beside the plan: it is the only place
             //    the directory can show it, because the organisation's own status is "Active" throughout a trial.
             if (! isset($out[$subscription->organization_id]) && $subscription->plan !== null) {
-                $out[$subscription->organization_id] = (string) $subscription->plan->name.($subscription->status === 'trialing' ? ' · free trial' : '');
+                $out[$subscription->organization_id] = $subscription->status === 'trialing'
+                    ? __('php/support/platform/platform_customers.plan_on_free_trial', ['plan' => (string) $subscription->plan->name])
+                    : (string) $subscription->plan->name;
             }
         }
 

@@ -1,0 +1,37 @@
+<?php
+
+// resources/views/admin/announcements.blade.php — the admin console's in-app announcements page.
+
+return [
+    'title' => 'Announcements',
+    'subtitle' => 'A notice inside every organisation’s back office and owner portal — or chosen ones. Plain text; nothing is emailed.',
+    'empty_state' => 'No announcement has ever been published.',
+    'col_announcement' => 'Announcement',
+    'col_to' => 'To',
+    'col_from_until' => 'From → until',
+    'col_state' => 'State',
+    'audience_all' => 'Every organisation',
+    'audience_chosen_count' => ':number chosen',
+    'no_end' => 'no end',
+    'state_withdrawn' => 'Withdrawn',
+    'state_showing' => 'Showing',
+    'state_scheduled' => 'Scheduled',
+    'state_ended' => 'Ended',
+    'reason_aria' => 'Reason',
+    'withdraw_placeholder' => 'Why withdraw?',
+    'withdraw_button' => 'Withdraw',
+    'publish_heading' => 'Publish an announcement',
+    'title_label' => 'Title',
+    'message_label' => 'Message (plain text)',
+    'kind_label' => 'Kind',
+    'show_from_label' => 'Show from (UTC)',
+    'until_label' => 'Until (UTC, optional)',
+    'to_label' => 'To',
+    'option_every_organisation' => 'Every organisation',
+    'option_chosen_organisations' => 'Chosen organisations',
+    'chosen_organisations_label' => 'Chosen organisations (when “Chosen”)',
+    'no_organisation_chosen' => 'No organisation chosen yet',
+    'reason_label' => 'Reason',
+    'publish_reason_placeholder' => 'Why is this going out?',
+    'publish_button' => 'Publish',
+];
