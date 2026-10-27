@@ -46,7 +46,8 @@ function sec5Hidden(string $html, string $action): array
 /** The view as it runs — its Blade comments out (they quote the old markup they replaced; a scan must not read its own note). */
 function sec5Src(string $view = 'views/livewire/operator/operator-security.blade.php'): string
 {
-    return (string) preg_replace('/\{\{--.*?--\}\}/s', '', (string) file_get_contents(resource_path($view)));
+    // I18N-01 — the view's words are read in English, as the page shows them (they now live in lang/en)
+    return (string) preg_replace('/\{\{--.*?--\}\}/s', '', i18nEnglishSource(resource_path($view)));
 }
 
 // ── his report: the design ─────────────────────────────────────────────────────────────────────────────────────

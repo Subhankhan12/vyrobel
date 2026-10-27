@@ -269,8 +269,8 @@ return [
         'id' => 'A05-M19',
         'name' => 'the console no longer asks for a suspension first (the service refuses, but under the wrong name)',
         'file' => $ctl,
-        'old' => "        if (! \$org->trashed() && \$org->status !== TenantLifecycle::SUSPENDED) {\n            return \$this->back(\$org)->withErrors(['status' => 'Suspend it first",
-        'new' => "        if (false) {\n            return \$this->back(\$org)->withErrors(['status' => 'Suspend it first",
+        'old' => "        if (! \$org->trashed() && \$org->status !== TenantLifecycle::SUSPENDED) {\n            return \$this->back(\$org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.delete_suspend_first')",
+        'new' => "        if (false) {\n            return \$this->back(\$org)->withErrors(['status' => __('php/http/controllers/admin/customer_controller.delete_suspend_first')",
         'tests' => [['file' => $t, 'filter' => 'without every confirmation']],
     ],
     [
@@ -334,8 +334,8 @@ return [
         'id' => 'A05-M44',
         'name' => 'a notification no longer names its organisation',
         'file' => 'app/Notifications/FeedNotification.php',
-        'old' => "        return \$this->data(\$notifiable) + (\$organization !== null ? ['organization_id' => \$organization] : []);",
-        'new' => '        return $this->data($notifiable);',
+        'old' => "        return \$data + (\$organization !== null ? ['organization_id' => \$organization] : []) + (\$this->i18n !== [] ? ['i18n' => \$this->i18n] : []);",
+        'new' => "        return \$data + (\$this->i18n !== [] ? ['i18n' => \$this->i18n] : []);",
         'tests' => [['file' => $t, 'filter' => 'every notification names the organisation']],
     ],
     [
@@ -390,9 +390,9 @@ return [
     [
         'id' => 'A05-M31',
         'name' => 'the name to type is uppercased by its label again',
-        'file' => 'resources/views/admin/customers/show.blade.php',
-        'old' => '<label class="ad-label" for="delete_confirm">Type <strong class="ad-confirm-name">',
-        'new' => '<label class="ad-label" for="delete_confirm">Type <strong>',
+        'file' => 'lang/en/admin/customers/show.php',
+        'old' => '\'Type <strong class="ad-confirm-name">:name</strong> to confirm\'',
+        'new' => '\'Type <strong>:name</strong> to confirm\'',
         'tests' => [['file' => $f, 'filter' => 'every organisation list']],
     ],
     [

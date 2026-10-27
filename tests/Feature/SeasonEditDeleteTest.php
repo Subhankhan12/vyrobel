@@ -204,7 +204,7 @@ it('⚠️⚠️ both new routes are gated by rates.manage — the DENIED role c
 // ══ The interface must not imply more than it does ═════════════════════════════════════════════════
 
 it('⚠️⚠️ the delete dialog SAYS that applied prices are not restored', function () {
-    $view = file_get_contents(base_path('resources/views/livewire/operator/rates-grid.blade.php'));
+    $view = i18nEnglishSource(base_path('resources/views/livewire/operator/rates-grid.blade.php'));
 
     expect($view)->toContain('the nightly prices it wrote stay as they are')
         ->and($view)->toContain('not stored anywhere')
@@ -213,7 +213,7 @@ it('⚠️⚠️ the delete dialog SAYS that applied prices are not restored', f
 });
 
 it('⚠️ Edit is offered ONLY on a draft — an applied season shows no edit control', function () {
-    $view = file_get_contents(base_path('resources/views/livewire/operator/rates-grid.blade.php'));
+    $view = i18nEnglishSource(base_path('resources/views/livewire/operator/rates-grid.blade.php'));
 
     expect($view)->toContain("@if (! \$vySeason['applied'])");
 });

@@ -121,8 +121,8 @@ return [
         'id' => 'PR-M14',
         'name' => 'a directive glued to a word ships raw Blade source to the page (`run@if`)',
         'file' => $view,
-        'old' => "removed at the nightly run{{ \$p['units'] > 0 ? ', and owners of its units are told' : '' }}.",
-        'new' => "removed at the nightly run@if (\$p['units'] > 0), and owners of its units are told@endif.",
+        'old' => "<span class=\"vy-rm-what\">{{ \$p['units'] > 0 ? __('livewire/operator/portfolio.then_removed_with_owners') : __('livewire/operator/portfolio.then_removed') }}</span>",
+        'new' => "<span class=\"vy-rm-what\">Then it’s removed at the nightly run@if (\$p['units'] > 0), and owners of its units are told@endif. You can keep it any time before.</span>",
         'tests' => [['file' => $t, 'filter' => 'stay ahead is SCHEDULED']],
     ],
 ];

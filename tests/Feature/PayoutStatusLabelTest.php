@@ -60,7 +60,7 @@ it('⚠️ FIX 1 — labels EVERY payout enum member accurately; processing and 
     // ⚠️ NON-VACUITY FIRST, AND IT READS THE SOURCE (not a pinned constant — DO-RESTORE-2's trap). The two
     // states must be EXPLICIT arms; a guard that only checked the output would still pass if someone widened
     // `default` to return "In transit" for everything.
-    $source = (string) file_get_contents(app_path('Livewire/Owner/Concerns/FormatsOwnerData.php'));
+    $source = (string) i18nEnglishSource(app_path('Livewire/Owner/Concerns/FormatsOwnerData.php'));
     expect($source)->toContain("'processing' => ['label' => 'In transit'")
         ->and($source)->toContain("'held' => ['label' => 'On hold'");
 
@@ -83,7 +83,7 @@ it('⚠️ FIX 1 — labels EVERY payout enum member accurately; processing and 
     // ⚠️ EVERY declared enum member now resolves to a NAMED arm. Computed from the model's own docblock rather
     // than a list typed here, so adding a seventh status to the enum and forgetting the map fails HERE.
     $declared = [];
-    preg_match('/`status` spans the full lifecycle enum \(([^)]+)\)/', (string) file_get_contents(app_path('Models/Payout.php')), $m);
+    preg_match('/`status` spans the full lifecycle enum \(([^)]+)\)/', (string) i18nEnglishSource(app_path('Models/Payout.php')), $m);
     preg_match_all('/`(\w+)`/', $m[1] ?? '', $found);
     $declared = $found[1] ?? [];
     expect($declared)->not->toBeEmpty('the Payout enum docblock changed shape — this guard reads it');
@@ -139,8 +139,8 @@ it('⚠️ the two OPERATOR copies are NOT collapsed into the owner trait — th
      * This test pins that reasoning so a later "consistency" pass cannot collapse them without first
      * disproving it. ⚠️ It is a guard on a DECISION, not on behaviour (the pattern the DO-RESTORE guards use).
      */
-    $ownerShell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
-    $operatorShell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $ownerShell = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
+    $operatorShell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // The owner realm's tones exist as `.vy-status--x`; the operator's as `.vy-tag.tone-x`.
     expect($ownerShell)->toContain('.vy-status--paid')->toContain('.vy-status--draft')
@@ -171,12 +171,12 @@ it('⚠️ the two OPERATOR copies are NOT collapsed into the owner trait — th
         ->and($operatorMap->getStartLine())->toBe($otherMap->getStartLine());
 
     // The behaviour this block always cared about: an unknown status is ECHOED, never re-badged.
-    $operatorSrc = (string) file_get_contents(app_path('Livewire/Operator/Concerns/FormatsOperatorData.php'));
+    $operatorSrc = (string) i18nEnglishSource(app_path('Livewire/Operator/Concerns/FormatsOperatorData.php'));
     expect($operatorSrc)->toContain("default => ['label' => ucfirst(\$status)");
 
     // ⚠️ And no component may quietly grow its own copy back.
     foreach (['Operator/OperatorOwnerDetail.php', 'Operator/PayoutRun.php'] as $file) {
-        $src = (string) file_get_contents(app_path('Livewire/'.$file));
+        $src = (string) i18nEnglishSource(app_path('Livewire/'.$file));
         expect($src)->not->toContain('function payoutStatusMeta(string $status): array')
             // The stale docblock claim stays gone (the §N.8d class, in a comment).
             ->and($src)->not->toContain('the enum is EXACTLY pending|paid|failed|reversed');

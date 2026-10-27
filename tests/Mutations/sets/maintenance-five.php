@@ -33,7 +33,7 @@ return [
         'id' => 'MT-M3',
         'name' => 'a stacked fact loses its name',
         'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'old' => '<td class="vy-mt-c-due" data-label="Time to target">',
+        'old' => '<td class="vy-mt-c-due" data-label="{{ __(\'livewire/maintenance-list.time_to_target\') }}">',
         'new' => '<td class="vy-mt-c-due">',
         'tests' => [['file' => $test, 'filter' => 'fits the board inside its card at every width']],
     ],
@@ -41,7 +41,7 @@ return [
         'id' => 'MT-M4',
         'name' => 'every assignee called "Technician" again',
         'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'old' => '<th class="vy-mt-c-who">Assigned to</th>',
+        'old' => '<th class="vy-mt-c-who">{{ __(\'livewire/maintenance-list.assigned_to\') }}</th>',
         'new' => '<th>Technician</th>',
         'tests' => [['file' => $test, 'filter' => 'calls the column "Assigned to"']],
     ],
@@ -49,7 +49,7 @@ return [
         'id' => 'MT-M5',
         'name' => 'assigning promises a task list that does not exist',
         'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'old' => '<p class="vy-gl-note">It shows under their name on this board. Nothing is sent to their phone.</p>',
+        'old' => '<p class="vy-gl-note">{{ __(\'livewire/maintenance-list.assign_note\') }}</p>',
         'new' => '<p class="vy-gl-note">The work order appears in their task list. Nothing is sent to their phone.</p>',
         'tests' => [['file' => $test, 'filter' => 'says what assigning does']],
     ],
@@ -57,10 +57,10 @@ return [
         'id' => 'MT-M6',
         'name' => '"Busy" / "Available" guessed from a count again',
         'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'old' => '                                    <span class="vy-mt-panel-sub">{{ $tech[\'load\'] }} open @if ($tech[\'urgent\'] > 0) · {{ $tech[\'urgent\'] }} urgent @endif</span>
+        'old' => '                                    <span class="vy-mt-panel-sub">@if ($tech[\'urgent\'] > 0) {{ __(\'livewire/maintenance-list.tech_open_urgent\', [\'open\' => $tech[\'load\'], \'urgent\' => $tech[\'urgent\']]) }} @else {{ __(\'livewire/maintenance-list.tech_open\', [\'open\' => $tech[\'load\']]) }} @endif</span>
                                 </span></span>
 ',
-        'new' => '                                    <span class="vy-mt-panel-sub">{{ $tech[\'load\'] }} open @if ($tech[\'urgent\'] > 0) · {{ $tech[\'urgent\'] }} urgent @endif</span>
+        'new' => '                                    <span class="vy-mt-panel-sub">@if ($tech[\'urgent\'] > 0) {{ __(\'livewire/maintenance-list.tech_open_urgent\', [\'open\' => $tech[\'load\'], \'urgent\' => $tech[\'urgent\']]) }} @else {{ __(\'livewire/maintenance-list.tech_open\', [\'open\' => $tech[\'load\']]) }} @endif</span>
                                 </span></span>
                                 <span class="vy-tag tone-{{ $tech[\'status\'] === \'busy\' ? \'risk\' : \'in-house\' }}"><span class="vy-dot"></span>{{ ucfirst($tech[\'status\']) }}</span>
 ',
@@ -70,7 +70,7 @@ return [
         'id' => 'MT-M7',
         'name' => 'tonight\'s rate called "revenue on hold" again',
         'file' => 'resources/views/livewire/maintenance-list.blade.php',
-        'old' => '<span>tonight’s rate for the units blocked</span>',
+        'old' => '<span>{{ __(\'livewire/maintenance-list.tonight_rate\') }}</span>',
         'new' => '<span>revenue on hold</span>',
         'tests' => [['file' => $test, 'filter' => 'says the out-of-order figure is tonight’s rate']],
     ],
@@ -78,15 +78,15 @@ return [
         'id' => 'MT-M8',
         'name' => 'the drawer\'s photo lands on the full record again',
         'file' => 'app/Http/Controllers/Operator/MaintenanceActionController.php',
-        'old' => '        return $this->listReturn($request, redirect()->route(\'app.maintenance.show\', $model->id))->with(\'mt_notice\', \'Photo added.\');',
-        'new' => '        return redirect()->route(\'app.maintenance.show\', $model->id)->with(\'mt_notice\', \'Photo added.\');',
+        'old' => '        return $this->listReturn($request, redirect()->route(\'app.maintenance.show\', $model->id))->with(\'mt_notice\', __(\'php/http/controllers/operator/maintenance_action_controller.photo_added\'));',
+        'new' => '        return redirect()->route(\'app.maintenance.show\', $model->id)->with(\'mt_notice\', __(\'php/http/controllers/operator/maintenance_action_controller.photo_added\'));',
         'tests' => [['file' => $test, 'filter' => 'takes the photo types the server takes']],
     ],
     [
         'id' => 'MT-M9',
         'name' => 'Note / Progress / Part ordered are loose buttons again (his report)',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '<div class="vy-wo-kinds" role="radiogroup" aria-label="Kind of update">',
+        'old' => '<div class="vy-wo-kinds" role="radiogroup" aria-label="{{ __(\'livewire/maintenance-ticket-detail.kind_of_update\') }}">',
         'new' => '<div class="vy-wo-kinds">',
         'tests' => [['file' => $test, 'filter' => 'makes Note / Progress / Part ordered one real choice']],
     ],
@@ -135,8 +135,8 @@ return [
         'id' => 'MT-M15',
         'name' => '"Part ordered" asks for no part',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '<input id="vy-wo-part" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="e.g. Extractor fan motor">',
-        'new' => '<input class="vy-input" type="text" maxlength="160" placeholder="e.g. Extractor fan motor">',
+        'old' => '<input id="vy-wo-part" class="vy-input" type="text" name="part_name" maxlength="160" placeholder="{{ __(\'livewire/maintenance-ticket-detail.part_placeholder\') }}">',
+        'new' => '<input class="vy-input" type="text" maxlength="160" placeholder="{{ __(\'livewire/maintenance-ticket-detail.part_placeholder\') }}">',
         'tests' => [['file' => $test, 'filter' => 'makes "Part ordered" do what it says']],
     ],
     [
@@ -167,9 +167,9 @@ return [
         'id' => 'MT-M19',
         'name' => 'Mark resolved printed twice again',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '                        <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px;">{{ $ticket[\'priority_label\'] }} priority · Unit {{ $ticket[\'unit\'] }}@if ($ticket[\'is_oos\']) · out of order @endif</div>
+        'old' => '                        <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px;">@if ($ticket[\'is_oos\']){{ __(\'livewire/maintenance-ticket-detail.hero_line_oos\', [\'priority\' => $ticket[\'priority_label\'], \'unit\' => $ticket[\'unit\']]) }}@else{{ __(\'livewire/maintenance-ticket-detail.hero_line\', [\'priority\' => $ticket[\'priority_label\'], \'unit\' => $ticket[\'unit\']]) }}@endif</div>
 ',
-        'new' => '                        <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px;">{{ $ticket[\'priority_label\'] }} priority · Unit {{ $ticket[\'unit\'] }}@if ($ticket[\'is_oos\']) · out of order @endif</div>
+        'new' => '                        <div style="font-size:12.5px;color:#B9ABA0;margin-top:6px;">@if ($ticket[\'is_oos\']){{ __(\'livewire/maintenance-ticket-detail.hero_line_oos\', [\'priority\' => $ticket[\'priority_label\'], \'unit\' => $ticket[\'unit\']]) }}@else{{ __(\'livewire/maintenance-ticket-detail.hero_line\', [\'priority\' => $ticket[\'priority_label\'], \'unit\' => $ticket[\'unit\']]) }}@endif</div>
                         <button type="button" @click="mr = true" class="vy-btn vy-btn--accent">Mark resolved</button>
 ',
         'tests' => [['file' => $test, 'filter' => 'offers Mark resolved once, and for an open work order too']],
@@ -178,16 +178,16 @@ return [
         'id' => 'MT-M20',
         'name' => 'the part field\'s name only as a placeholder again',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '<label class="vy-field-label" for="vy-wo-manage-part">Part needed</label>',
-        'new' => '<label class="vy-sr-only" for="vy-wo-manage-part">Part needed</label>',
+        'old' => '<label class="vy-field-label" for="vy-wo-manage-part">{{ __(\'livewire/maintenance-ticket-detail.part_needed\') }}</label>',
+        'new' => '<label class="vy-sr-only" for="vy-wo-manage-part">{{ __(\'livewire/maintenance-ticket-detail.part_needed\') }}</label>',
         'tests' => [['file' => $test, 'filter' => 'labels the part fields where they can be seen']],
     ],
     [
         'id' => 'MT-M21',
         'name' => 'every assignee called "Technician" on the work order',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '{{ $ticket[\'assignee\'] ? \'Assignee\' : \'No one assigned yet\' }}',
-        'new' => '{{ $ticket[\'assignee\'] ? \'Technician\' : \'No one assigned yet\' }}',
+        'old' => '{{ $ticket[\'assignee\'] ? __(\'livewire/maintenance-ticket-detail.assignee\') : __(\'livewire/maintenance-ticket-detail.no_one_assigned\') }}',
+        'new' => '{{ $ticket[\'assignee\'] ? \'Technician\' : __(\'livewire/maintenance-ticket-detail.no_one_assigned\') }}',
         'tests' => [['file' => $test, 'filter' => 'says "Assignee", and offers "Notify" only when someone reported it']],
     ],
     [
@@ -204,8 +204,8 @@ return [
         'id' => 'MT-M23',
         'name' => 'the Mark resolved dialog’s "What was done" is named by nothing again (the review)',
         'file' => 'resources/views/livewire/maintenance-ticket-detail.blade.php',
-        'old' => '<label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-lbl-maintenance-ticket-detail-resolution">What was done</label>',
-        'new' => '<div class="vy-eyebrow" style="margin-bottom:7px;">What was done</div>',
+        'old' => '<label class="vy-eyebrow" style="margin-bottom:7px;" for="vy-lbl-maintenance-ticket-detail-resolution">{{ __(\'livewire/maintenance-ticket-detail.what_was_done\') }}</label>',
+        'new' => '<div class="vy-eyebrow" style="margin-bottom:7px;">{{ __(\'livewire/maintenance-ticket-detail.what_was_done\') }}</div>',
         'tests' => [['file' => $test, 'filter' => 'labels "What was done" in the Mark resolved dialog']],
     ],
 ];

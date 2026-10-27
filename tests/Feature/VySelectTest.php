@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Membership;
 use App\Models\User;
 use App\Support\Time\TimezoneOptions;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
@@ -24,6 +25,10 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
  * <optgroup>s and data-hint / data-clock where they read a hidden input and an Alpine button before.
  */
 uses(DatabaseTransactions::class);
+
+// The offsets below are summer ones (Lisbon UTC+1). The page reads the offset at the moment it renders, so the clock is held
+// on a summer day — written 2026-10-27, after this file went red on its own when Lisbon left summer time (OPEN D-TEST-LISBON-DST).
+beforeEach(fn () => $this->travelTo(CarbonImmutable::parse('2026-07-15 12:00:00', 'UTC')));
 
 function selectStaff(array $s, ?string $timezone = null): User
 {

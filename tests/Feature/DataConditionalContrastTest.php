@@ -54,7 +54,7 @@ const PARTB_BOOKED_CELL_PLATE = [242, 178, 145];    // a calendar cell a booking
 const PARTB_LEGEND_PLATE = [234, 195, 172];         // the calendar legend strip
 
 it('⚠️ AXIS 3 — the owner EXPENSES row chips clear AA, and the markup only exists when populated', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
 
     // ⚠️ NON-VACUITY: the rule exists, so this is about its colour and not about a deleted rule.
     expect($shell)->toContain('.vy-status--draft {');
@@ -68,7 +68,7 @@ it('⚠️ AXIS 3 — the owner EXPENSES row chips clear AA, and the markup only
 });
 
 it('⚠️ --vy-amber-text was darkened again — it failed on a chip only the POPULATED page renders', function () {
-    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+    $tokens = (string) i18nEnglishSource(resource_path('views/components/design/tokens.blade.php'));
 
     expect($tokens)->toContain('--vy-amber-text:')                        // non-vacuity
         ->and($tokens)->toContain('--vy-amber-text: rgb(112, 66, 4)')
@@ -81,7 +81,7 @@ it('⚠️ --vy-amber-text was darkened again — it failed on a chip only the P
 });
 
 it('⚠️ AXIS 3 — the BOOKED-cell guest name clears AA (it cannot exist without a booking)', function () {
-    $view = (string) file_get_contents(resource_path('views/livewire/owner/block-calendar.blade.php'));
+    $view = (string) i18nEnglishSource(resource_path('views/livewire/owner/block-calendar.blade.php'));
 
     expect($view)->toContain('.vy-cal-guest {')                            // non-vacuity
         ->and($view)->toMatch('/\.vy-cal-guest \{[^}]*color:\s*var\(--vy-on-grad\)/')
@@ -95,8 +95,8 @@ it('⚠️ AXIS 3 — the BOOKED-cell guest name clears AA (it cannot exist with
 });
 
 it('⚠️ §N.8f — .vy-avatar is defined in BOTH shells, and BOTH carry the wireframe background', function () {
-    $owner = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
-    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $owner = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
+    $operator = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // ⚠️ RE-POINTED BY DO-RESTORE-3 (2026-08-14). DO-A11Y-1 moved these backgrounds to a deep orange so white
     // would clear AA; the founder ruled to restore the WIREFRAME backgrounds and ACCEPT the sub-AA. What this
@@ -156,7 +156,7 @@ const PARTB_MU_DARK_PLATE = [64, 43, 32];         // the DARK performance card
 const PARTB_MU_ADDCARD_PLATE = [245, 214, 195];   // the Add-a-unit card
 
 it('⚠️ AXIS 3 — the My Units attention-item text clears AA (it exists only when items do)', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
 
     // ⚠️ NON-VACUITY: the rules exist, so these are statements about their colour.
     foreach (['.vy-mu-ac-sub {', '.vy-mu-item-sub {', '.vy-mu-uplabel {'] as $rule) {
@@ -174,8 +174,8 @@ it('⚠️ AXIS 3 — the My Units attention-item text clears AA (it exists only
 });
 
 it('⚠️ the DARK performance card and the Add-a-unit label use values that clear their own plates', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
-    $units = (string) file_get_contents(resource_path('views/livewire/owner/units.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
+    $units = (string) i18nEnglishSource(resource_path('views/livewire/owner/units.blade.php'));
 
     // A literal hard-coding "accent as text" where a corrected token exists (N.14.9).
     expect($shell)->toMatch('/\.vy-mu-addcard \{[^}]*color:\s*var\(--vy-accent-text\)/')
@@ -206,8 +206,8 @@ it('⚠️ the DARK performance card and the Add-a-unit label use values that cl
 const PARTB_GUEST_CARD_PLATE = [249, 235, 228];   // a guest booking card, where the brand fill was used as text
 
 it('⚠️ the guest .vy-link CLASS uses the text token — both copies of it (§N.8f)', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/guest/shell.blade.php'));
-    $auth = (string) file_get_contents(resource_path('views/guest/auth/layout.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/guest/shell.blade.php'));
+    $auth = (string) i18nEnglishSource(resource_path('views/guest/auth/layout.blade.php'));
 
     // ⚠️ NON-VACUITY: the rule exists in both files — it is defined twice, which is why both must be checked.
     foreach ([$shell, $auth] as $source) {
@@ -248,7 +248,7 @@ const PARTB_PAYSTATUS_HOLD = [236, 191, 167];   // the owners "On hold" chip, on
 const PARTB_NAV_ACTIVE_PLATE = [251, 236, 226]; // the active sidebar pill
 
 it('⚠️ AXIS 3 — the maintenance SLA line clears AA in BOTH failing states, not just the rendered one', function () {
-    $view = (string) file_get_contents(resource_path('views/livewire/maintenance-list.blade.php'));
+    $view = (string) i18nEnglishSource(resource_path('views/livewire/maintenance-list.blade.php'));
 
     // ⚠️ NON-VACUITY: the conditional really is there, so this is about its branches.
     expect($view)->toContain("\$row['sla']['breached']");
@@ -268,7 +268,7 @@ it('⚠️ AXIS 3 — the maintenance SLA line clears AA in BOTH failing states,
 });
 
 it('⚠️ AXIS 3 — the owner payout-status chips: three branches fixed, the PASSING one left alone', function () {
-    $view = (string) file_get_contents(resource_path('views/livewire/operator/owners.blade.php'));
+    $view = (string) i18nEnglishSource(resource_path('views/livewire/operator/owners.blade.php'));
 
     expect($view)->toContain('.vy-paystatus--hold')                              // non-vacuity
         ->and($view)->toMatch('/\.vy-paystatus--hold \{[^}]*color: var\(--vy-accent-text\)/')
@@ -284,7 +284,7 @@ it('⚠️ AXIS 3 — the owner payout-status chips: three branches fixed, the P
 });
 
 it('⚠️ the ACTIVE sidebar item used the brand FILL as text — 4.49, a miss by 0.01', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     expect($shell)->toContain('.vy-nav-item.is-active {')                        // non-vacuity
         ->and($shell)->toMatch('/\.vy-nav-item\.is-active \{[^}]*color: var\(--vy-accent-text\)/');
@@ -312,7 +312,7 @@ const STATE1_MODAL_PLATE = [215, 199, 189];   // the glass card composited over 
 const STATE1_PAGE_PLATE = [249, 223, 207];    // the same card on a page, for contrast
 
 it('⚠️ AXIS 1 — the MODAL card is opaque enough that its labels clear AA', function () {
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // ⚠️ NON-VACUITY: the rule exists and the concept is named once (§N.8f) rather than patched per modal.
     expect($shell)->toContain('.vy-modal-card {')
@@ -338,7 +338,7 @@ it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one 
 
     $total = 0;
     foreach ($files as $f) {
-        $src = (string) file_get_contents(resource_path('views/'.$f));
+        $src = (string) i18nEnglishSource(resource_path('views/'.$f));
 
         // ⚠️ non-vacuity per file: it really does build a scrim modal — with the old inline scrim, or (the two Guests
         // pages since 2026-09-29) the shared `.vy-modal-backdrop`, because an inline `display` beside x-show is erased
@@ -355,11 +355,11 @@ it('⚠️ AXIS 1 — every modal card carries the class, so the fix is not one 
     // what makes a `.vy-modal` panel that is a modal card near-opaque.
     // 🖥 Measured 2026-09-29 on the Portfolio's Add dialog, the see-through panel read 3.52:1 (sub-text, --vy-muted) and
     //    3.25:1 (field labels, --vy-faint); with the card the Guests dialogs read 6.27:1 and 5.28:1.
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
     expect($shell)->toMatch('/\.vy-modal\.vy-modal-card \{[^}]*background: rgba\(255, 252, 248, 0\.94\)/');
     foreach (['livewire/operator/guests-list.blade.php', 'livewire/operator/guest-profile.blade.php', 'livewire/operator/portfolio.blade.php',
         'livewire/maintenance-list.blade.php', 'livewire/units-list.blade.php'] as $f) {
-        $src = (string) file_get_contents(resource_path('views/'.$f));
+        $src = (string) i18nEnglishSource(resource_path('views/'.$f));
         // Every panel's class list, read whole — a first draft counted `class="vy-modal "` WITH a trailing space and never
         // saw a panel whose class is exactly `vy-modal` (the mutation harness found it: GL-M21 stayed green).
         preg_match_all('/class="(vy-modal(?:\s[^"]*)?)"/', $src, $panels);
@@ -391,8 +391,8 @@ const FD1_META_PLATE = [228, 202, 187];        // the arrival row's meta line
 const FD1_NOWLABEL_PLATE = [251, 236, 225];    // hand-read, NOT the sampler's mis-identified accent
 
 it('⚠️ AXIS 3 — the arrival-row text clears AA (it renders only when an arrival exists)', function () {
-    $fd = (string) file_get_contents(resource_path('views/livewire/front-desk.blade.php'));
-    $shell = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $fd = (string) i18nEnglishSource(resource_path('views/livewire/front-desk.blade.php'));
+    $shell = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // ⚠️ NON-VACUITY: the rules exist, so these are statements about their colour.
     expect($fd)->toContain('.vy-tl-foot {')->toContain('.vy-tl-nowlabel {')
@@ -448,9 +448,9 @@ const R5_ACCENT = [194, 65, 12];           // the badge fill
 const R5_OLD_GRAD_DARK = [203, 76, 22];    // the dark end that made the gradient unfixable
 
 it('⚠️ DO-RESTORE-5 — every avatar copy is FLAT and robustly passing (§N.8f)', function () {
-    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
-    $owner = (string) file_get_contents(resource_path('views/components/layouts/owner.blade.php'));
-    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
+    $operator = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
+    $owner = (string) i18nEnglishSource(resource_path('views/components/layouts/owner.blade.php'));
+    $tokens = (string) i18nEnglishSource(resource_path('views/components/design/tokens.blade.php'));
 
     // ⚠️ NON-VACUITY + named, not inlined: the concept has six copies and a bare hex would drift again.
     expect($tokens)->toContain('--vy-avatar-bg: #F0A57A');
@@ -465,7 +465,7 @@ it('⚠️ DO-RESTORE-5 — every avatar copy is FLAT and robustly passing (§N.
     // ⚠️ THE SIXTH COPY, and the one this pass nearly shipped past: `.vy-fd-av` is PAGE-LOCAL, so the two
     // earlier passes — which both searched the shells — never saw it. It carried the family's WORST pairing,
     // white on the peach gradient. §N.8f is not "check the other shell", it is "check everywhere".
-    expect((string) file_get_contents(resource_path('views/livewire/front-desk.blade.php')))
+    expect((string) i18nEnglishSource(resource_path('views/livewire/front-desk.blade.php')))
         ->toMatch('/\.vy-fd-av \{[^}]*background: var\(--vy-avatar-bg\)/');
 
     // ⚠️ AND THE SWEEP THAT FOUND THE SEVENTH — this is not a hypothetical. Written to catch the next stray,
@@ -495,7 +495,7 @@ it('⚠️ DO-RESTORE-5 — every avatar copy is FLAT and robustly passing (§N.
 });
 
 it('⚠️ the "Pro" badge took option (b) — a solid accent fill, so it still reads as a badge', function () {
-    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $operator = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     expect($operator)->toMatch('/\.vy-plan-tag \{[^}]*background: var\(--vy-accent\)/')
         ->and($operator)->toMatch('/\.vy-plan-tag \{[^}]*color: #fff/');
@@ -506,8 +506,8 @@ it('⚠️ the "Pro" badge took option (b) — a solid accent fill, so it still 
 });
 
 it('⚠️ THE CTA GRADIENT IS UNTOUCHED — only the avatars stopped using it (DO-RESTORE-1a intact)', function () {
-    $tokens = (string) file_get_contents(resource_path('views/components/design/tokens.blade.php'));
-    $operator = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $tokens = (string) i18nEnglishSource(resource_path('views/components/design/tokens.blade.php'));
+    $operator = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // ⚠️ THE SCOPE GUARD. Flattening the shared gradient token would have destroyed the founder's CTA restore.
     // The token keeps the wireframe orange, and the CTAs keep using it.

@@ -12,15 +12,18 @@ declare(strict_types=1);
  * Neither is a money figure and no number changed — only the unit the reader is owed.
  */
 it('prints the operator weekday occupancy tiles as percentages', function () {
-    $blade = file_get_contents(resource_path('views/livewire/operator/insights.blade.php'));
+    $blade = i18nEnglishSource(resource_path('views/livewire/operator/insights.blade.php'));
 
     expect($blade)->toContain("{{ \$w['pct'] }}%")
         ->and($blade)->not->toContain("font-weight: 700;\">{{ \$w['pct'] }}</div>");
 });
 
 it('labels the owner occupancy delta in percentage points', function () {
-    $blade = file_get_contents(resource_path('views/livewire/owner/insights.blade.php'));
+    $blade = i18nEnglishSource(resource_path('views/livewire/owner/insights.blade.php'));
 
-    expect($blade)->toContain("{{ abs(\$m['delta_pts']) }} pts")
+    // (I18N-01: the delta prints through delta_up / delta_down with `:pts` = abs(delta_pts); "pts" is in the words)
+    expect($blade)->toContain("['pts' => e(abs(\$m['delta_pts']))]")
+        ->and(__('livewire/owner/insights.delta_up', [], 'en'))->toEndWith(':pts pts')
+        ->and(__('livewire/owner/insights.delta_down', [], 'en'))->toEndWith(':pts pts')
         ->and($blade)->not->toContain("{{ abs(\$m['delta_pts']) }}</span>");
 });

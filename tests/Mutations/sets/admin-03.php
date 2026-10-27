@@ -26,8 +26,8 @@ return [
         'id' => 'A03-M3',
         'name' => 'F3 lone UTC',
         'file' => 'resources/views/admin/privacy/index.blade.php',
-        'old' => '{{ $live[\'next_due\'] ? $live[\'next_due\']->format(\'j M Y, H:i\').\' UTC\' : \'Nothing scheduled\' }}',
-        'new' => '{{ $live[\'next_due\']?->format(\'j M Y, H:i\').\' UTC\' ?? \'—\' }}',
+        'old' => '{{ $live[\'next_due\'] ? __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']->translatedFormat(\'j M Y, H:i\')]) : __(\'admin/privacy/index.nothing_scheduled\') }}',
+        'new' => '{{ __(\'admin/privacy/index.next_due_utc\', [\'datetime\' => $live[\'next_due\']?->translatedFormat(\'j M Y, H:i\')]) }}',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F3']],
     ],
     [
@@ -75,8 +75,8 @@ return [
         'id' => 'A03-M9',
         'name' => 'F7 no zone',
         'file' => 'resources/views/components/admin/time.blade.php',
-        'old' => '$utc->format(\'j M Y, H:i\').\' UTC\' }}</time>',
-        'new' => '$utc->format(\'j M Y, H:i\') }}</time>',
+        'old' => ': __(\'components/admin/time.utc\', [\'time\' => $utc->translatedFormat(\'j M Y, H:i\')]) }}</time>',
+        'new' => ': $utc->translatedFormat(\'j M Y, H:i\') }}</time>',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F6']],
     ],
     [
@@ -99,9 +99,9 @@ return [
         'id' => 'A03-N1',
         'name' => 'announcement form drops the field-name map',
         'file' => 'app/Http/Controllers/Admin/AnnouncementController.php',
-        'old' => '        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        'old' => '        ], ConsoleFields::messages(), ConsoleFields::names());
         // ⚠️ ADMIN 05 — "Every organisation"',
-        'new' => '        ], ConsoleFields::MESSAGES);
+        'new' => '        ], ConsoleFields::messages());
         // ⚠️ ADMIN 05 — "Every organisation"',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php'], ['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F12']],
     ],
@@ -110,17 +110,17 @@ return [
         'name' => 'privacy form drops the field-name map',
         'file' => 'app/Http/Controllers/Admin/PrivacyController.php',
         'old' => '            \'received_on\' => [\'required\', \'date\', \'before_or_equal:today\'],
-        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);',
+        ], ConsoleFields::messages(), ConsoleFields::names());',
         'new' => '            \'received_on\' => [\'required\', \'date\', \'before_or_equal:today\'],
-        ], ConsoleFields::MESSAGES);',
+        ], ConsoleFields::messages());',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php'], ['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'F12']],
     ],
     [
         'id' => 'A03-N3',
         'name' => 'field-name map only in a comment',
         'file' => 'app/Http/Controllers/Admin/SwitchController.php',
-        'old' => '], [], ConsoleFields::NAMES);',
-        'new' => '] /* [], ConsoleFields::NAMES */);',
+        'old' => '], [], ConsoleFields::names());',
+        'new' => '] /* [], ConsoleFields::names() */);',
         'tests' => [['file' => 'tests/Feature/Admin/ConsoleFieldNamesAreUsedTest.php']],
     ],
     [
@@ -137,7 +137,7 @@ return [
         'name' => 'plan placeholder removed',
         'file' => 'resources/views/admin/customers/show.blade.php',
         'old' => '                            <option value="" @selected(! $sub || ! $plans->contains(\'id\', $sub->plan_id))>
-                                {{ $plans->isEmpty() ? \'No plan is active — turn one on under Plans first\' : \'Choose a plan…\' }}
+                                {{ $plans->isEmpty() ? __(\'admin/customers/show.plan_none_active\') : __(\'admin/customers/show.plan_choose\') }}
                             </option>
 ',
         'new' => '',
@@ -155,10 +155,10 @@ return [
         'id' => 'A03-N7',
         'name' => 'privacy form drops the conditional sentences',
         'file' => 'app/Http/Controllers/Admin/PrivacyController.php',
-        'old' => '        ], ConsoleFields::MESSAGES, ConsoleFields::NAMES);
+        'old' => '        ], ConsoleFields::messages(), ConsoleFields::names());
         $reason = AdminReason::from($request);
         $back',
-        'new' => '        ], [], ConsoleFields::NAMES);
+        'new' => '        ], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $back',
         'tests' => [['file' => 'tests/Feature/Admin/Admin03QualityPassTest.php', 'filter' => 'conditional error']],

@@ -98,7 +98,7 @@ it('⚠️ FIX 2 — the RENDERED schedule PDF asserts nothing the code cannot s
 it('⚠️ FIX 2 — the source comments no longer deny features the product ships', function () {
     // The Blade's own record was false in two more places, and a stale comment is what let the printed
     // sentence survive this long. Reads the SOURCE (not a pinned constant).
-    $blade = (string) file_get_contents(resource_path('views/pdfs/operator-schedule.blade.php'));
+    $blade = (string) i18nEnglishSource(resource_path('views/pdfs/operator-schedule.blade.php'));
 
     expect($blade)->toContain('Weekly rota')                                  // non-vacuity: right file
         ->and($blade)->not->toContain('no unassigned-shift model — every shift is bound to a person')
@@ -117,7 +117,7 @@ it('⚠️ the features the PDF stopped denying are genuinely REAL — the claim
     expect(class_exists(SchedulePublication::class))->toBeTrue()
         ->and(class_exists(OpenShift::class))->toBeTrue();
 
-    $controller = (string) file_get_contents(app_path('Http/Controllers/Operator/ScheduleController.php'));
+    $controller = (string) i18nEnglishSource(app_path('Http/Controllers/Operator/ScheduleController.php'));
     expect($controller)->toContain('public function publishWeek')
         ->and($controller)->toContain('SchedulePublication::updateOrCreate');
 

@@ -186,9 +186,9 @@ it('⚠️ D10-2 + D10-5 — both badges MATCH the surfaces they were taken from
      * fails if either original changes without the inbox following. That is the risk of matching rather
      * than extracting, made loud instead of latent.
      */
-    $inbox = (string) file_get_contents(resource_path('views/livewire/operator/operator-inbox.blade.php'));
-    $frontDesk = (string) file_get_contents(resource_path('views/livewire/front-desk.blade.php'));
-    $reservations = (string) file_get_contents(resource_path('views/livewire/operator/reservations-list.blade.php'));
+    $inbox = (string) i18nEnglishSource(resource_path('views/livewire/operator/operator-inbox.blade.php'));
+    $frontDesk = (string) i18nEnglishSource(resource_path('views/livewire/front-desk.blade.php'));
+    $reservations = (string) i18nEnglishSource(resource_path('views/livewire/operator/reservations-list.blade.php'));
 
     // The VIP badge, verbatim from the front desk.
     $vip = '<span class="vy-tag tone-vip" style="margin-left: 6px;"><span class="vy-dot"></span>VIP</span>';
@@ -200,7 +200,7 @@ it('⚠️ D10-2 + D10-5 — both badges MATCH the surfaces they were taken from
         ->and($inbox)->toContain('<span class="vy-tag tone-{{ $active[\'reservation\'][\'stage_meta\'][\'tone\'] }}"><span class="vy-dot"></span>{{ $active[\'reservation\'][\'stage_meta\'][\'label\'] }}</span>');
 
     // ⚠️ And the stage is resolved by the SHARED helper in the component — never re-derived in Blade.
-    $component = (string) file_get_contents(app_path('Livewire/Operator/OperatorInbox.php'));
+    $component = (string) i18nEnglishSource(app_path('Livewire/Operator/OperatorInbox.php'));
     expect($component)->toContain('ReservationStage::meta(ReservationStage::for($reservation))')
         ->and($inbox)->not->toContain('ReservationStage::');
 });
@@ -208,8 +208,8 @@ it('⚠️ D10-2 + D10-5 — both badges MATCH the surfaces they were taken from
 it('⚠️ the reused sources are UNTOUCHED — this pass matched them, it did not edit them', function () {
     // Front Desk's VIP rendering and the shared resolver must be byte-identical: "reuse" that quietly edits
     // its source is not reuse.
-    $frontDesk = (string) file_get_contents(app_path('Livewire/FrontDesk.php'));
-    $stage = (string) file_get_contents(app_path('Support/Reservations/ReservationStage.php'));
+    $frontDesk = (string) i18nEnglishSource(app_path('Livewire/FrontDesk.php'));
+    $stage = (string) i18nEnglishSource(app_path('Support/Reservations/ReservationStage.php'));
 
     expect($frontDesk)->toContain("'is_vip' => \$guest !== null && (bool) \$guest->is_vip,")
         ->and($stage)->toContain('public static function meta(string $stage): array')
@@ -219,7 +219,7 @@ it('⚠️ the reused sources are UNTOUCHED — this pass matched them, it did n
 it('⚠️ D10-1 was NOT built — party size and balance stay out of the reservation card', function () {
     // ⚠️ The neighbouring ledger item, deliberately untouched. Asserted so "while I was in there" scope
     // creep would fail rather than pass unnoticed.
-    $component = (string) file_get_contents(app_path('Livewire/Operator/OperatorInbox.php'));
+    $component = (string) i18nEnglishSource(app_path('Livewire/Operator/OperatorInbox.php'));
     $card = substr($component, strpos($component, 'private function reservationCard'), 1800);
 
     expect($card)->not->toContain('adults')

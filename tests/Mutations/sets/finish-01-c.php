@@ -17,9 +17,9 @@ return [
     [
         'id' => 'C-M2',
         'name' => 'the prototype\'s "48h" put back into the visible copy',
-        'file' => 'resources/views/guest/reservation.blade.php',
-        'old' => 'Your door code &amp; Wi-Fi unlock on {{ $arrival[\'released_from\'] }}.',
-        'new' => 'Your door code &amp; Wi-Fi unlock 48h before arrival, on {{ $arrival[\'released_from\'] }}.',
+        'file' => 'lang/en/guest/reservation.php',
+        'old' => '\'Your door code & Wi-Fi unlock on :date.\'',
+        'new' => '\'Your door code & Wi-Fi unlock 48h before arrival, on :date.\'',
         'tests' => [['file' => 'tests/Feature/GuestReservationTest.php', 'filter' => 'derives the unlock date']],
     ],
     [

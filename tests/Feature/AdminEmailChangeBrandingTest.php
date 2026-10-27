@@ -71,7 +71,7 @@ it('keeps the warning under the CTA, never demoted into the footer', function ()
     $html = adminEmailChangeHtml();
 
     $cta = strpos($html, 'Confirm new email</a>');
-    $warning = strpos($html, "If you didn't request this");
+    $warning = strpos($html, e("If you didn't request this"));   // I18N-01: printed through {{ }} (&#039;)
     $footer = strpos($html, 'Powered by Vyrobel');
 
     expect($cta)->not->toBeFalse()

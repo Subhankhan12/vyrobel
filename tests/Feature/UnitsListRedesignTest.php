@@ -90,7 +90,7 @@ function ulIsland(string $html): array
 // ── The founder's report: Add inventory ────────────────────────────────────────────────────────────
 
 it('⚠️⚠️ lays the add forms out with styled labels, one height of box, and buttons in a footer — never a 15 px drop', function () {
-    $view = (string) file_get_contents(resource_path('views/livewire/units-list.blade.php'));
+    $view = i18nEnglishSource(resource_path('views/livewire/units-list.blade.php'));   // I18N-01: the words as read
 
     // The classes that styled nothing are gone.
     expect($view)->not->toContain('class="vy-label"')

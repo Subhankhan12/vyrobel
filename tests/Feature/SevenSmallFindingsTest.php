@@ -122,7 +122,8 @@ it('⚠️ F-11 — no navigation link is offered whose route the viewer cannot 
 
     // ⚠️ FIXED WHERE THE FILTER LIVES, not per role: the nav drops any item whose route resolves to null,
     // so the gap was two items that never produced null. Both now check the permission their route enforces.
-    preg_match_all("~\['([a-z0-9\-]+)',\s*'[^']+',\s*'[^']*',\s*(.+?)\],\n~", $shell, $m, PREG_SET_ORDER);
+    // (I18N-01: an item's label is a quoted string or its translation call, `__('components/operator/shell.nav_…')`)
+    preg_match_all("~\['([a-z0-9\-]+)',\s*(?:'[^']+'|__\('[^']+'\)),\s*'[^']*',\s*(.+?)\],\n~", $shell, $m, PREG_SET_ORDER);
 
     $gaps = [];
     foreach ($m as $row) {

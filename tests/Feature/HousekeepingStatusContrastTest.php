@@ -28,7 +28,7 @@ function hkRatio(array $ink, array $plate): float
 }
 
 it('⚠️ never lets colour be the sole carrier of a housekeeping status (WCAG 1.4.1)', function () {
-    $board = (string) file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $board = (string) i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
 
     // Each status token must appear in a chip that also carries its WORD. This is what makes the fill fine.
     foreach ([
@@ -41,7 +41,7 @@ it('⚠️ never lets colour be the sole carrier of a housekeeping status (WCAG 
 });
 
 it('⚠️ dims the DOT for an empty status, never the status WORD', function () {
-    $layout = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $layout = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     // The whole chip used to drop to opacity .62, which took its TEXT to 2.28 on the saturated part of the
     // gradient band. The empty state is carried by the "0" beside the word, so the de-emphasis rides the dot.

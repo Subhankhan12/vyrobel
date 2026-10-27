@@ -7,6 +7,7 @@ use App\Mail\RefundConfirmationMail;
 use App\Models\OwnerPayoutPreference;
 use App\Support\Money\RefundEta;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 
 uses(RefreshDatabase::class);
 
@@ -31,11 +32,13 @@ it('states ONE refund ETA across every email that mentions it', function () {
         $source = file_get_contents(base_path($file));
         // No hardcoded day-range literal may survive in either mailable.
         expect($source)->not->toMatch('/\d+[–-]\d+ business days/');
-        $etas[] = str_contains($source, 'RefundEta::WINDOW');
+        // I18N-01 — the mailables read the window in the recipient's language; RefundEta::WINDOW is its English
+        $etas[] = str_contains($source, 'RefundEta::window()');
     }
 
     expect($etas)->toBe([true, true])
-        ->and(RefundEta::WINDOW)->toBe('5–10 business days');
+        ->and(RefundEta::WINDOW)->toBe('5–10 business days')
+        ->and(__('php/support/money/refund_eta.window', [], 'en'))->toBe(RefundEta::WINDOW);
 });
 
 /**
@@ -106,6 +109,8 @@ it('still renders the refund emails with the shared ETA', function () {
 it('never restates a credit expiry policy or a credit source the wallet engine does not implement', function () {
     $blade = file_get_contents(resource_path('views/guest/wallet.blade.php'));
     $rendered = preg_replace('/\{\{--.*?--\}\}/s', '', $blade);   // Blade comments never reach the guest
+    // I18N-01 — the page's words now live in its lang group: read the English the guest is shown, alongside the view.
+    $rendered .= "\n".implode("\n", Arr::flatten(require lang_path('en/guest/wallet.php')));
 
     expect($rendered)->not->toContain('12 months')                 // no fabricated expiry policy
         ->and($rendered)->not->toContain('after a refund')         // no refund→credit promise (no writer)

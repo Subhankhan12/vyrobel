@@ -82,7 +82,7 @@ it('⚠️ never calls someone "Busy" or "Available" from a count — it says th
 });
 
 it('⚠️ says the out-of-order figure is tonight’s rate for the blocked units — not "revenue on hold"', function () {
-    $src = (string) file_get_contents(resource_path('views/livewire/maintenance-list.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/maintenance-list.blade.php'));   // I18N-01: the words as read
 
     expect($src)->not->toContain('revenue on hold')->toContain('<span>tonight’s rate for the units blocked</span>');
 });

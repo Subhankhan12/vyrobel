@@ -166,8 +166,9 @@ return [
         'id' => 'MB-M18',
         'name' => 'the hero says "1 units blocked" again',
         'file' => $view,
-        'old' => "<span class=\"vy-mt-oos-n\">{{ \$oosHero['count'] }}</span> {{ \\Illuminate\\Support\\Str::plural('unit', \$oosHero['count']) }} blocked</p>",
-        'new' => "<span class=\"vy-mt-oos-n\">{{ \$oosHero['count'] }}</span> units blocked</p>",
+        // (I18N-01: the sentence is one plural key now — the mutation forces its plural form whatever the count)
+        'old' => "{!! trans_choice('livewire/maintenance-list.oos_blocked', \$oosHero['count'], ['count' => e(\$oosHero['count'])]) !!}",
+        'new' => "{!! trans_choice('livewire/maintenance-list.oos_blocked', 2, ['count' => e(\$oosHero['count'])]) !!}",
         'tests' => [['file' => $t, 'filter' => 'unit blocked'], ['file' => $bv, 'filter' => 'Unit OOS badge']],
     ],
     [

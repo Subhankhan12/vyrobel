@@ -142,15 +142,15 @@ it('⚠️ D1-3 — the dashboard and FRONT DESK render the same value identical
         ->and($frontDesk)->toContain('Arrival · '.D13_FREE_TEXT);
 
     // And the two PAYLOAD normalisations are the same expression, not merely similar.
-    $dashSrc = (string) file_get_contents(app_path('Livewire/Operator/OperatorDashboard.php'));
-    $fdSrc = (string) file_get_contents(app_path('Livewire/FrontDesk.php'));
+    $dashSrc = (string) i18nEnglishSource(app_path('Livewire/Operator/OperatorDashboard.php'));
+    $fdSrc = (string) i18nEnglishSource(app_path('Livewire/FrontDesk.php'));
     $idiom = "trim((string) (\$reservation->expected_arrival ?? ''))) !== '' ? \$ea : null";
     expect($dashSrc)->toContain($idiom)
         ->and($fdSrc)->toContain($idiom);
 
     // Both Blades omit-when-null with the same label — the rendering half of the idiom.
     foreach (['livewire/operator/dashboard', 'livewire/front-desk'] as $view) {
-        $blade = (string) file_get_contents(resource_path('views/'.$view.'.blade.php'));
+        $blade = (string) i18nEnglishSource(resource_path('views/'.$view.'.blade.php'));
         expect(str_contains($blade, "@if (\$a['expected_arrival'])") || str_contains($blade, "@if (\$row['expected_arrival'])"))
             ->toBeTrue("{$view} does not omit the arrival line when null");
         expect($blade)->toContain('Arrival · ');
@@ -176,7 +176,7 @@ it('⚠️ D1-3 — GDPR: the field reaches the SAME audience as Front Desk, and
     }
 
     // And it IS covered by the erase path — the reason it counts as GDPR data in the first place.
-    expect((string) file_get_contents(app_path('Models/Guest.php')))->toContain("'expected_arrival' => null");
+    expect((string) i18nEnglishSource(app_path('Models/Guest.php')))->toContain("'expected_arrival' => null");
 });
 
 it('⚠️ D1-3 — the other arrivals fields are untouched', function () {

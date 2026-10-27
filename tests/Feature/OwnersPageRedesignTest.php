@@ -107,7 +107,7 @@ it('⚠️⚠️ never says units can be given to an owner later — only their 
     // 🔬 the hint read "None chosen — you can give units later from the owner’s page", and no screen does that: a unit's
     //    owner is written only when an invite is accepted (OwnerInviteService) or a requested unit is approved, and cleared
     //    only when the owner is removed.
-    $source = (string) file_get_contents(resource_path('views/livewire/operator/owners.blade.php'));
+    $source = i18nEnglishSource(resource_path('views/livewire/operator/owners.blade.php'));   // I18N-01: the words as read
 
     expect($source)->not->toContain('give units later')
         ->and($source)->toContain('an owner is given existing units only in their invite');

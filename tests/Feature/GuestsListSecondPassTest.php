@@ -94,7 +94,8 @@ it('⚠️ on a phone moves the status down beside the facts, and hides the Life
 
 it('⚠️ writes the stacked rows’ labels in the darker grey — the lighter one measured 4.48:1 on a row, under AA', function () {
     $css = gp2Css();
-    expect($css)->toMatch('~\.vy-gst \.vy-gl-table thead tr::before \{[^}]*content: "Sort by";[^}]*color: var\(--vy-on-grad\)~')
+    // I18N-01 — the "Sort by" words come from components/layouts/operator.sort_by (English unchanged); the claim is the darker grey
+    expect($css)->toMatch('~\.vy-gst \.vy-gl-table thead tr::before \{[^}]*content: [^;]*operator\.sort_by[^;]*;[^}]*color: var\(--vy-on-grad\)~')
         ->toMatch('~\.vy-gst \.vy-gl-table tbody td\[data-label\]::before \{[^}]*color: var\(--vy-on-grad\)~');
 });
 
@@ -187,7 +188,8 @@ it('⚠️⚠️ will not say a message was sent while email is not sent from Vy
     $html = gp2Page($s);
     expect($html)->toContain('Email isn’t being sent from Vyrobel yet, so a message can’t reach anyone from here.')
         ->not->toContain('Sent by email')
-        ->toMatch('~<button type="submit" class="vy-btn vy-btn--accent" disabled><span>Send to~')
+        // I18N-01 — the button's "Send to N guests" is written in the browser from per-count texts; the claim is that it is DISABLED
+        ->toMatch('~<button type="submit" class="vy-btn vy-btn--accent" disabled><span x-text="counts\.send_button\[count\(\)\]">~')
         // the message box and the marketing switch are off with it — nothing to type into that cannot go anywhere
         ->toMatch('~<textarea id="vy-gl-msg-body"[^>]*autofocus disabled></textarea>~')
         ->toContain('<input type="checkbox" name="marketing" value="1" x-model="marketing" disabled>');

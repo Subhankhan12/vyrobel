@@ -33,7 +33,7 @@ uses(RefreshDatabase::class);
  */
 function messagesSource(): string
 {
-    $source = (string) file_get_contents(resource_path('views/livewire/owner/messages.blade.php'));
+    $source = (string) i18nEnglishSource(resource_path('views/livewire/owner/messages.blade.php'));
 
     return (string) preg_replace('/\{\{--.*?--\}\}/s', '', $source);
 }

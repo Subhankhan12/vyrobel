@@ -630,9 +630,9 @@ return [
     [
         'id' => 'A06-M74',
         'name' => 'R2-8 — a dispute refusal no longer says how to get out when the closing report never came',
-        'file' => $svc,
-        'old' => "                .' If Stripe’s dashboard already shows it closed, the report never arrived — resolve it by hand.';",
-        'new' => '                .\'\';',
+        'file' => 'lang/en/php/services/platform/organization_deletion.php',
+        'old' => " If Stripe’s dashboard already shows it closed, the report never arrived — resolve it by hand.',",
+        'new' => "',",
         'tests' => [['file' => $t, 'filter' => 'R2-8']],
     ],
     [
@@ -656,10 +656,10 @@ return [
         'name' => 'R2-13 — the console deletes with no written reason',
         'file' => 'app/Http/Controllers/Admin/CustomerController.php',
         'old' => "            'acknowledge_delete' => ['accepted'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         \$reason = AdminReason::from(\$request);",
         'new' => "            'acknowledge_delete' => ['accepted'],
-        ], [], ConsoleFields::NAMES);
+        ], [], ConsoleFields::names());
         \$reason = 'no reason given';",
         'tests' => [['file' => 'tests/Feature/Admin/Admin05DeleteOrganisationTest.php', 'filter' => 'without every confirmation']],
     ],
@@ -675,8 +675,8 @@ return [
         'id' => 'A06-M79',
         'name' => 'R2-14 — the console SHOWS the founder\'s link in its notice',
         'file' => 'app/Http/Controllers/Admin/CustomerController.php',
-        'old' => "? 'Created. The founder’s set-password link was handed to the mailer",
-        'new' => "? 'Created. The founder’s set-password link ('.url('/invite/'.\$token).') was handed to the mailer",
+        'old' => "? trans_choice('php/http/controllers/admin/customer_controller.created_link_sent', OwnerInviteService::EXPIRY_DAYS)",
+        'new' => "? trans_choice('php/http/controllers/admin/customer_controller.created_link_sent', OwnerInviteService::EXPIRY_DAYS).' ('.url('/invite/'.\$token).')'",
         'tests' => [['file' => $t, 'filter' => 'R2-14']],
     ],
     [
@@ -730,9 +730,9 @@ return [
     [
         'id' => 'A06-M84',
         'name' => 'R3-1 — the live-billing refusal no longer names the way out when the cancellation report is lost',
-        'file' => $svc,
-        'old' => "                .' If it is already cancelled there, Stripe’s report of it has not been applied here — resolve it by hand.';",
-        'new' => '                .\'\';',
+        'file' => 'lang/en/php/services/platform/organization_deletion.php',
+        'old' => " If it is already cancelled there, Stripe’s report of it has not been applied here — resolve it by hand.',",
+        'new' => "',",
         'tests' => [['file' => $t, 'filter' => 'R3-1 — Stripe']],
     ],
     [

@@ -70,10 +70,10 @@ it('still says unlimited when the plan genuinely sets no limit', function () {
  * absence of a sentence, so that is what is pinned. All four were browser-checked in the same pass.
  */
 it('no longer asserts unenforced or unqualified behaviour in owner copy', function () {
-    $rates = file_get_contents(resource_path('views/livewire/owner/rates.blade.php'));
-    $payoutMethod = file_get_contents(resource_path('views/livewire/owner/payout-method.blade.php'));
-    $reports = file_get_contents(resource_path('views/livewire/owner/reports.blade.php'));
-    $welcome = file_get_contents(resource_path('views/livewire/owner/welcome.blade.php'));
+    $rates = i18nEnglishSource(resource_path('views/livewire/owner/rates.blade.php'));
+    $payoutMethod = i18nEnglishSource(resource_path('views/livewire/owner/payout-method.blade.php'));
+    $reports = i18nEnglishSource(resource_path('views/livewire/owner/reports.blade.php'));
+    $welcome = i18nEnglishSource(resource_path('views/livewire/owner/welcome.blade.php'));
 
     // #6 — the guardrail governs PROPOSALS; the blanket claim is gone.
     expect($rates)->not->toContain('Every change needs your sign-off')
@@ -89,7 +89,10 @@ it('no longer asserts unenforced or unqualified behaviour in owner copy', functi
         ->and($reports)->toContain('not yet statemented');
 
     // #22 — the footnote cannot claim "configured" while the badge says EXAMPLE.
-    expect($reports)->toContain("\$vat['is_example'] ? 'EXAMPLE' : 'configured'");
+    // (I18N-01: the footnote branches between two KEYS on the same flag; each one's English says which rates it used)
+    expect($reports)->toContain("\$vat['is_example'] ? 'livewire/owner/reports.vat_computed_example' : 'livewire/owner/reports.vat_computed_configured'")
+        ->and(__('livewire/owner/reports.vat_computed_example', [], 'en'))->toContain('EXAMPLE')
+        ->and(__('livewire/owner/reports.vat_computed_configured', [], 'en'))->toContain('configured')->not->toContain('EXAMPLE');
 
     // #13 — the heading branches like the rest of the card.
     expect($welcome)->toContain("\$hasPayout ? 'Your payout account' : 'Add your payout account'");

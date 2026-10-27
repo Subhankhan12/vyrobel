@@ -26,7 +26,7 @@
 // works by touch, by keyboard, and with no JavaScript at all. Drag is an ADDITIONAL desk affordance
 // layered on top, and losing it on a phone costs nothing.
 it('⚠️ advances a task status without drag, JavaScript, or a pointer', function () {
-    $src = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
 
     // A real form POST per card — the touch/keyboard/no-JS path.
     expect($src)->toContain("route('app.housekeeping.status'");
@@ -42,8 +42,8 @@ it('⚠️ advances a task status without drag, JavaScript, or a pointer', funct
 // rule, and nobody used it — the board hand-rolled the same four columns inline and inherited the shape
 // but not the behaviour. The rule was never missing; the class was.
 it('⚠️ draws the board with the shell’s kanban class', function () {
-    $board = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
-    $shell = file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $board = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $shell = i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     expect($board)->toContain('class="vy-kanban"');
     // ⚠️ No private four-column grid may come back alongside it.
@@ -59,8 +59,8 @@ it('⚠️ draws the board with the shell’s kanban class', function () {
 // used to — four columns, align-items:start — and the board keeps its own 14px gap inline so the shared
 // class's 16px cannot silently retune the wide layout.
 it('⚠️ leaves the desk grid at four columns with its original gap', function () {
-    $board = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
-    $shell = file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $board = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $shell = i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     expect($board)->toContain('<div class="vy-kanban" style="gap: 14px;">');
     expect($shell)->toContain('grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start;');
@@ -69,7 +69,7 @@ it('⚠️ leaves the desk grid at four columns with its original gap', function
 // ⚠️ THE BREAKPOINTS ARE THE SHELL'S OWN. Inventing a set for one screen is the drift this project keeps
 // finding; 1100px and 700px both already existed before this pass.
 it('⚠️ reuses breakpoints the shell already declared', function () {
-    $shell = file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $shell = i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
 
     expect(substr_count($shell, '@media (max-width: 1100px)'))->toBeGreaterThan(0);
     expect(substr_count($shell, '@media (max-width: 700px)'))->toBeGreaterThan(1);   // the pre-existing one + ours
@@ -81,19 +81,19 @@ it('⚠️ reuses breakpoints the shell already declared', function () {
 // back to them. Two of this screen's three had `max-width` but no height bound; all three now cap at 90vh
 // and scroll internally.
 it('⚠️ bounds every dialog on this screen so its buttons cannot scroll away', function () {
-    $src = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
 
     // ⚠️ 2026-10-05 — the three panels moved onto the SHARED dialog card (`vy-modal vy-modal-card`), and the bound moved with them:
     //    the shared `.vy-modal` caps its height and scrolls inside, so the inline `max-height: 90vh` each panel carried is gone.
     preg_match_all('/<div [^>]*class="vy-modal vy-modal-card[^"]*"[^>]*>/', $src, $panels);
     expect(count($panels[0]))->toBe(3);
-    $layout = (string) file_get_contents(resource_path('views/components/layouts/operator.blade.php'));
+    $layout = (string) i18nEnglishSource(resource_path('views/components/layouts/operator.blade.php'));
     expect($layout)->toMatch('~\n\s*\.vy-modal \{[^}]*max-height: 92vh; overflow-y: auto~');
 });
 
 // ⚠️ And the D2 contract, applied here because it is mechanical — every dialog announced and focus-managed.
 it('⚠️ gives each dialog on this screen a role, a name, a trap and an Escape', function () {
-    $src = file_get_contents(resource_path('views/livewire/housekeeping-board.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/housekeeping-board.blade.php'));
 
     expect(substr_count($src, 'role="dialog"'))->toBe(3);
     expect(substr_count($src, 'aria-modal="true"'))->toBe(3);

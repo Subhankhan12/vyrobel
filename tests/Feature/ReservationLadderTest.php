@@ -131,7 +131,7 @@ it('⚠️⚠️ R5 — the tentative refusal names the SHIPPED confirm control,
     // ⚠️⚠️ THE CONTROL IS NAMED BY READING THE SURFACE, NEVER BY TYPING THE LABEL TWICE. Two `match`es for one
     // concept drift; so do a button and the sentence that points at it. If the button is renamed, the copy
     // becomes a lie about the product's own UI — and this fails, naming both halves.
-    $blade = file_get_contents(resource_path('views/livewire/reservation-detail.blade.php'));
+    $blade = i18nEnglishSource(resource_path('views/livewire/reservation-detail.blade.php'));
     preg_match('/app\\.reservations\\.confirm.*?<button[^>]*>([^<]+)<\\/button>/s', (string) $blade, $m);
     $shippedLabel = trim($m[1] ?? '');
 

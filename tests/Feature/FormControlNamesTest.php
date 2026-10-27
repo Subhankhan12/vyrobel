@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
  */
 function mkCheckoutSrc(): string
 {
-    return (string) file_get_contents(resource_path('views/booking/checkout.blade.php'));
+    return (string) i18nEnglishSource(resource_path('views/booking/checkout.blade.php'));
 }
 
 // ══ D3 · D5 — WHAT THESE TESTS PROVE, AND WHAT THEY CANNOT ════════════════════════════════════════
@@ -119,7 +119,7 @@ it('⚠️ shows a rejected checkout field its own error, tied to the field', fu
 // ⚠️ `parts` posts a REAL owner-ledger charge; `time_spent` is its labour counterpart. Both were named
 // only by an adjacent <div>. Two unlabelled number boxes side by side, one of which moves money.
 it('⚠️ names the maintenance cost fields, without moving their posted keys', function () {
-    $src = file_get_contents(resource_path('views/livewire/maintenance-ticket-detail.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/maintenance-ticket-detail.blade.php'));
 
     expect($src)->toContain('for="vy-mt-parts"');
     expect($src)->toContain('name="parts" id="vy-mt-parts"');
@@ -135,7 +135,7 @@ it('⚠️ names the maintenance cost fields, without moving their posted keys',
 // only by text that vanishes on the first keystroke. VISIBLE labels, because an invisible fix would
 // leave the sighted half of that defect in place.
 it('⚠️ gives the change-password trio visible labels, and leaves the username decoy alone', function () {
-    $src = file_get_contents(resource_path('views/livewire/operator/operator-security.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/operator/operator-security.blade.php'));
 
     foreach ([
         'vy-sec-cur' => 'current_password',
@@ -159,7 +159,7 @@ it('⚠️ gives the change-password trio visible labels, and leaves the usernam
 // not, on the same grid. A real <button> is preferred to a div taught to behave: it is focusable, Enter
 // and Space already activate it, and it is announced as a button.
 it('⚠️ makes the schedule shift cell a real button, not a div with a click handler', function () {
-    $src = file_get_contents(resource_path('views/livewire/operator/schedule.blade.php'));
+    $src = i18nEnglishSource(resource_path('views/livewire/operator/schedule.blade.php'));
 
     expect($src)->toContain('<button type="button" data-shift-type=');
     expect($src)->not->toContain('<div data-shift-type=');

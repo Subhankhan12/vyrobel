@@ -125,8 +125,8 @@ it('gives every control it added a focus ring the class-scoped rule actually rea
     //    therefore be named in the rule, and named in the SAME rule so the ring has one definition.
     //    Measured in a browser at 2px solid rgb(194,65,12) on rgb(255,252,248) — 5.06:1, above the 3:1
     //    non-text minimum.
-    $operator = file_get_contents(base_path('resources/views/components/layouts/operator.blade.php'));
-    $owner = file_get_contents(base_path('resources/views/components/layouts/owner.blade.php'));
+    $operator = i18nEnglishSource(base_path('resources/views/components/layouts/operator.blade.php'));
+    $owner = i18nEnglishSource(base_path('resources/views/components/layouts/owner.blade.php'));
 
     foreach (['.vy-rowopen:focus-visible', '.vy-detail-head:focus-visible'] as $needle) {
         $this->assertStringContainsString($needle, $operator,
@@ -143,7 +143,7 @@ it('keeps the work-order checkbox independent of the title that opens the work o
     //    two `.stop`s held the checkbox and the title apart from it. The table that replaced those rows has NO row-wide
     //    click at all: the checkbox only selects, and the title — a real button — only opens. Asserted, because a row
     //    handler coming back would silently couple them again.
-    $view = (string) file_get_contents(base_path('resources/views/livewire/maintenance-list.blade.php'));
+    $view = (string) i18nEnglishSource(base_path('resources/views/livewire/maintenance-list.blade.php'));
 
     preg_match_all('/<tr\b[^>]*>/', $view, $rows);
     expect($rows[0])->not->toBeEmpty();

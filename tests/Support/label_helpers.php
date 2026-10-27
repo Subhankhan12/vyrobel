@@ -30,6 +30,11 @@ function vyControlCensus(): array
             '/<style\b[^>]*>.*?<\/style>/is', '/<script\b[^>]*>.*?<\/script>/is',
         ], '', (string) file_get_contents($file->getRealPath()));
 
+        // ⚠️ I18N-01 — a `>` INSIDE a Blade echo (`aria-label="{{ __('k', ['n' => $n]) }}"`) is not the end of the tag; the
+        //    pattern below stops at the first `>`, so it cut the tag short and lost every attribute after it. Neutralised
+        //    in echoes only — ids and labels keep their own text, so no two controls start to look alike.
+        $s = (string) preg_replace_callback('/\{\{.*?\}\}|\{!!.*?!!\}/s', fn (array $e): string => str_replace('>', '›', $e[0]), $s);
+
         preg_match_all('/\bid="([^"]+)"/', $s, $idm);
         $ids = array_flip($idm[1]);
         $rel = str_replace(resource_path('views').'/', '', (string) $file->getRealPath());

@@ -83,7 +83,7 @@ it('⚠️ D2-1 — the payload maps 0 to null rather than passing a falsy integ
     Unit::withoutGlobalScopes()->whereKey($s['units'][0]->getKey())->update(['max_occupancy' => 0]);
     Unit::withoutGlobalScopes()->whereKey($s['units'][1]->getKey())->update(['max_occupancy' => 4]);
 
-    $src = (string) file_get_contents(app_path('Livewire/ReservationRack.php'));
+    $src = (string) i18nEnglishSource(app_path('Livewire/ReservationRack.php'));
     expect($src)->toContain("'sleeps' => (\$cap = (int) \$unit->max_occupancy) > 0 ? \$cap : null");
 
     $html = (string) d21Rack($s)->assertOk()->getContent();
@@ -97,9 +97,9 @@ it('⚠️ D2-1 — the label MATCHES the product’s existing capacity idiom (�
      * inventing a third. This reads those sources, so renaming the label in one place fails here instead of
      * silently leaving the product saying capacity three different ways.
      */
-    $ownerDetail = (string) file_get_contents(resource_path('views/livewire/operator/owner-detail.blade.php'));
-    $unitDetail = (string) file_get_contents(resource_path('views/livewire/owner/unit-detail.blade.php'));
-    $rack = (string) file_get_contents(resource_path('views/livewire/reservation-rack.blade.php'));
+    $ownerDetail = (string) i18nEnglishSource(resource_path('views/livewire/operator/owner-detail.blade.php'));
+    $unitDetail = (string) i18nEnglishSource(resource_path('views/livewire/owner/unit-detail.blade.php'));
+    $rack = (string) i18nEnglishSource(resource_path('views/livewire/reservation-rack.blade.php'));
 
     expect($ownerDetail)->toContain('Sleeps ')     // non-vacuity: the idiom really is established
         ->and($unitDetail)->toContain('Sleeps')

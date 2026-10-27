@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 
 // ── L1 · one payment account per organisation, country fixed at creation ─────────────────────────
 it('⚠️ L1 — takes no country when creating a connected account, and offers no way to change one', function () {
-    $iface = file_get_contents(app_path('Payments/Stripe/StripeClientInterface.php'));
+    $iface = i18nEnglishSource(app_path('Payments/Stripe/StripeClientInterface.php'));
 
     // ⚠️ The precise fact: we never choose the country — there is no parameter for it.
     expect($iface)->toContain('function createConnectAccount(string $email, array $metadata = []');
@@ -37,7 +37,7 @@ it('⚠️ L1 — takes no country when creating a connected account, and offers
 });
 
 it('⚠️ L1 — warns about the country BEFORE the account exists, not after', function () {
-    $billing = file_get_contents(resource_path('views/livewire/operator/billing.blade.php'));
+    $billing = i18nEnglishSource(resource_path('views/livewire/operator/billing.blade.php'));
 
     expect($billing)->toContain('the country cannot be changed later');
     expect($billing)->toContain('cannot be changed');

@@ -86,7 +86,15 @@ it('renders a card for every role, dropping none', function () {
     // publishes reached the page — drop one and this needle changes. (A per-name needle does NOT work here:
     // `Js::from('Group Admin')` emits an entire `JSON.parse('…')` expression, not a bare quoted string —
     // the same escaping trap D23-2 hit twice.)
-    expect($html)->toContain((string) Js::from($matrix['roles']));
+    // I18N-01 — the page sends each role with its translated words BESIDE the codes (display_name, level_label …), so the
+    // payload is no longer byte-identical to the service's array. Decoded from the page itself: the roles the browser
+    // receives are exactly the service's, every one, in order — drop one and the names differ.
+    // (Js::from escapes every ' inside the payload, so its end is the first "')" after the start.)
+    $from = strpos($html, "roles: JSON.parse('");
+    expect($from)->not->toBeFalse();
+    $from += strlen("roles: JSON.parse('");
+    $shipped = json_decode((string) json_decode('"'.substr($html, $from, strpos($html, "')", $from) - $from).'"'), true);
+    expect(array_column($shipped, 'name'))->toBe(array_column($matrix['roles'], 'name'));
 
     // …and the count is the service's own, so a future filter in the payload is visible too.
     expect(count($matrix['roles']))->toBe(count(app(RolePermissionService::class)->matrix($admin)['roles']));

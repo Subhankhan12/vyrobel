@@ -171,7 +171,7 @@ it('⚠️ D3-1 — a REJECTED window says so, and shows the preset it fell back
 
     $html = (string) d31Insights($s, '?from=2026-09-30&to=2026-09-01')->assertOk()->getContent();
 
-    expect($html)->toContain("That date range couldn't be used")
+    expect($html)->toContain(e("That date range couldn't be used"))   // I18N-01: printed through {{ }} (&#039;)
         ->and($html)->toContain('13 months')          // the real reason, from the real constant
         // the typed values survive so the user can correct them
         ->and($html)->toContain('value="2026-09-30"');

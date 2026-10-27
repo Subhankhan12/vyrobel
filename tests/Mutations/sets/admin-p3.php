@@ -173,9 +173,9 @@ return [
         'file' => 'app/Http/Controllers/Admin/SupportController.php',
         // ⚠️ re-anchored TONIGHT 01: the skip-list refusal now sits between this line and the mutate() call.
         'old' => '        $discards = MailDelivery::discards();
-        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the verification email\')) !== null) {',
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'verification\')) !== null) {',
         'new' => '        $discards = false;
-        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'the verification email\')) !== null) {',
+        if (! $discards && ($refused = $this->refusedUndeliverable($account, \'verification\')) !== null) {',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformSupportToolsTest.php']],
     ],
     [

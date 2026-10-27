@@ -200,8 +200,8 @@ return [
         'id' => 'P1-M17b',
         'name' => 'invitation accepts the 8-char rule',
         'file' => 'app/Http/Controllers/Admin/Auth/AdminInviteController.php',
-        'old' => '$request->validate([\'password\' => [\'required\', \'confirmed\', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::NAMES);',
-        'new' => '$request->validate([\'password\' => [\'required\', \'confirmed\', \\Illuminate\\Validation\\Rules\\Password::defaults()]], [], ConsoleFields::NAMES);',
+        'old' => '$request->validate([\'password\' => [\'required\', \'confirmed\', PlatformAdminPasswordPolicy::rule()]], [], ConsoleFields::names());',
+        'new' => '$request->validate([\'password\' => [\'required\', \'confirmed\', \\Illuminate\\Validation\\Rules\\Password::defaults()]], [], ConsoleFields::names());',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformAdminAccessTest.php', 'filter' => 'accepting sets']],
     ],
     [

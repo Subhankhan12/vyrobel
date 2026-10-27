@@ -101,9 +101,9 @@ return [
         'name' => 'archive without suspension',
         'file' => 'app/Http/Controllers/Admin/CustomerController.php',
         'old' => '        if ($org->status !== TenantLifecycle::SUSPENDED) {
-            return $this->back($org)->withErrors([\'status\' => \'Suspend it first',
+            return $this->back($org)->withErrors([\'status\' => __(\'php/http/controllers/admin/customer_controller.archive_suspend_first\')',
         'new' => '        if (false) {
-            return $this->back($org)->withErrors([\'status\' => \'Suspend it first',
+            return $this->back($org)->withErrors([\'status\' => __(\'php/http/controllers/admin/customer_controller.archive_suspend_first\')',
         'tests' => [['file' => 'tests/Feature/Admin/PlatformTenantLifecycleTest.php']],
     ],
     [
@@ -181,7 +181,7 @@ return [
     {
         // ⚠️ `current_password:admin` — QUALIFIED. /admin runs on `auth:admin`; the bare rule would check the
         // `web` guard and, with no web user, validate nothing.
-        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::NAMES);',
+        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::names());',
         'new' => '    public function suspend(Request $request, string $organization): RedirectResponse
     {
 ',
@@ -199,12 +199,12 @@ return [
         'id' => 'P2-M23',
         'name' => 'archive needs no reason',
         'file' => 'app/Http/Controllers/Admin/CustomerController.php',
-        'old' => '        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::NAMES);
+        'old' => '        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::names());
         $reason = AdminReason::from($request);
         $org = $this->resolveOrg($organization);
 
         if ($refused = $this->refusedByLock($request, $org, \'archive\', $reason)) {',
-        'new' => '        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::NAMES);
+        'new' => '        $request->validate([\'current_password\' => [\'required\', \'current_password:admin\']], [], ConsoleFields::names());
         $reason = \'no reason given\';
         $org = $this->resolveOrg($organization);
 

@@ -73,8 +73,8 @@ return [
         'id' => 'CN-M7',
         'name' => 'the dialog claims to match earlier guests again',
         'file' => $dialog,
-        'old' => '                    <p class="vy-rnr-fine">Books it straight away, as a new guest',
-        'new' => '                    <p class="vy-rnr-fine">Matches an existing profile if the guest has stayed before. Books it straight away, as a new guest',
+        'old' => '                    <p class="vy-rnr-fine">{!! __(\'livewire/operator/partials/rack-new-reservation.books_straight_away\'',
+        'new' => '                    <p class="vy-rnr-fine">Matches an existing profile if the guest has stayed before. {!! __(\'livewire/operator/partials/rack-new-reservation.books_straight_away\'',
         'tests' => [['file' => $test, 'filter' => 'says nothing it does not do']],
     ],
     // ── No dead ends ──────────────────────────────────────────────────────────────────────────────────
@@ -165,8 +165,8 @@ return [
         'id' => 'CN-M18',
         'name' => 'a check-out before check-in says nothing',
         'file' => $rack,
-        'old' => "            \$nights === 0 => 'Check-out must be after check-in.',",
-        'new' => "            false => 'Check-out must be after check-in.',",
+        'old' => "            \$nights === 0 => __('php/livewire/reservation_rack.check_out_after_check_in'),",
+        'new' => "            false => __('php/livewire/reservation_rack.check_out_after_check_in'),",
         'tests' => [['file' => $test, 'filter' => 'names a check-out before check-in']],
     ],
     [
@@ -290,9 +290,10 @@ return [
     [
         'id' => 'CN-M32',
         'name' => 'the drag hint splits into two columns again',
-        'file' => $view,
-        'old' => '<p class="vy-rack-hint"><strong>Drag a booking</strong> to a new date or unit',
-        'new' => '<p class="vy-rack-hint"><span class="vy-deferred-note"><strong>Drag a booking</strong></span> to a new date or unit',
+        // ⚠️ I18N-01: the hint's markup is now its English value, so the split is made there
+        'file' => 'lang/en/livewire/reservation-rack.php',
+        'old' => '\'hint_drag\' => \'<strong>Drag a booking</strong> to a new date or unit',
+        'new' => '\'hint_drag\' => \'<span class="vy-deferred-note"><strong>Drag a booking</strong></span> to a new date or unit',
         'tests' => [['file' => $test, 'filter' => 'keeps the drag hint in one sentence']],
     ],
 ];
