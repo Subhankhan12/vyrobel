@@ -1585,6 +1585,18 @@ run 40139824815 (02:44–03:26 Baku): the parity image, the runtime contract, as
 skipped** (the auto-memory tests, by design) = the local 4,541, 34,116 assertions; money FULL `929 / 10928000 / 0 / 42 / 16 / 0`;
 marketing 9 · claims 23 · cookies 15. Then this record, pushed the same way.
 
+**I18N-01, ⛔ G1 (2026-10-27) — the translation brief: inventory and plan.** His brief (every screen of every realm and role in
+English + 27 languages, hrmzy's pipeline and quality bar, plus a permanent `lang:check` / `lang:todo`) saved word for word as
+`briefs/I18N-01.md`. Read the canon it names (D7/E1, D-MONEY-COMMA, `SetLocale`, `available_locales`, `PdfService`, the Mailables,
+the bell) and hrmzy's pipeline (its memory, the agent briefs, the tool headers). Built a draft scanner and the coverage map
+(`docs/i18n/INVENTORY.md`): the route table → each page's component or controller → the views it reaches → strings, and every
+role → the pages its gates open. The scanner was checked by hand on two files before any count was used (the login page: an
+HTTP header name counted as text, fixed; the Security controller: 12 of 12 flashes). Found on the way (V): the bell stores finished
+English sentences; no Mailable knows its recipient's language; the guest Account page offers a language the app cannot show and
+saves any 10 characters; the booking engine never sets a guest's language; the checkout shows no terms or privacy text at all
+(`OPEN.md` D-BOOK-NO-TERMS). Production read, counts only: no saved non-English language anywhere. Plan and proposals in
+`docs/i18n/PLAN.md`; stopped for his rulings (`OPEN.md` F10). Nothing in the app changed; no deploy.
+
 ## 2 · Mistakes to learn from (each one cited above)
 
 - **Briefs were wrong, often.** "No queue worker" (CLOSE 01 → REPAIR 01). "Type a token" was really 2 packages plus

@@ -14,6 +14,7 @@ founder's separate planning chat.
 | `ADMIN-06.md` | 2026-09-26 20:06 | `d2a49b1777020838` | **Finished 2026-09-29** (review 2 and 3 fixed, every gate green, committed). Whether it is live: `../STATE.md`. The **later** version, with #3b. |
 | `PW-SIGNUP-DELETE-1.md` | 2026-09-26 18:35 | `84ff7fadf442df94` | The before/after proof for the first real deletion. Not started: the probe is not suspended (V 2026-09-27). |
 | `PW-SIGNUP-DELETE-2-follow-up.md` | 2026-09-26 19:00 | `660cc5d919b8c6e5` | The founder's follow-up: explain 17 vs ~230 (answered: 232), and search every table after the delete. It began "suspended." but the probe was **not** suspended (V). |
+| `I18N-01.md` | 2026-10-27 01:32 | `f975af0baedf12db` | Every app screen in English + 27 languages, plus `lang:check` / `lang:todo`. Multi-day, gated G1–G4. **At ⛔ G1** (inventory + plan, `docs/i18n/`); work data outside the repo in `~/vyrobel-local/i18n/` (its `STATE.md` is the resume point). |
 
 **Where a brief's premise is now out of date:**
 - `ADMIN-06.md` #5 says the mailer was `log` "until the email pass switched mail on". Mail was **never** switched on: it
