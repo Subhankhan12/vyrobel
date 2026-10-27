@@ -5,6 +5,31 @@ re-run `php ~/vyrobel-local/i18n/tools/inventory.php <repo> docs/i18n/INVENTORY.
 `~/vyrobel-local/i18n/STATE.md`. Labels: **V** = Verified (how, when) · **R** = Reported · **F** = Founder said · **E** = estimate
 from the G1 draft scanner.
 
+## 0. His rulings (F 2026-10-27 02:50–02:51 CET)
+
+- **"Go ahead start working"** — taken as yes to every §5 recommendation, including local commits per area inside Phase A (5.8).
+  Not taken as yes to the two items that need an explicit word: the Ask Vyrobel prompt line (5.9) and per-language email templates.
+- **Booking engine: "the main language will be English. That's the default language. And the other languages will be all the
+  languages … using inside the HRMZ."** → §5.1 amended: a signed-out visitor starts in **English** (never the browser's language);
+  the language menu offers every finished language; the pick is remembered (`vy_lang` cookie) and copied to the guest at booking.
+- **"emails for each language … each account who have different language, email will go in that specific language. The same with the
+  notifications, the same with the PDF"** → §5.3–5.5 as proposed: each recipient's/viewer's own language.
+- **"the same with the Arabic and Persian calendars. And also Arabic and Persian should be RTL, and the design should be completely
+  fine"** → §5.6: RTL everywhere for ar/fa, the calendars included (time runs right to left), the design intact.
+- **"the rest of the things you can decide by your own. I give you all permissions, so continue working and complete the work. Once you
+  complete it, ship everything live and test everything"** → the remaining choices are mine (recorded in §4); the ten hard rules
+  still hold, and nothing goes to GitHub until he says.
+
+**Amendments made while building (recorded, not asked):**
+- Two lists, not one: `available_locales` = the FINISHED languages (applied); `Locales::offered()` = finished + the three offered
+  before (pt, es, fr) — what a person may pick, so no saved choice or existing form changes before its language is done
+  (existing tests save `pt`/`es`; they stay untouched).
+- The visitor's `?lang=` lives in its own middleware, `SetVisitorLocale` — `SetLocale` stays self-only, as `UnwiredControlsTest` pins.
+- Correction to §1: Laravel never moved Carbon's language, so the 33 `diffForHumans` printed English for everyone; a `LocaleUpdated`
+  listener now moves it.
+- The before/after renders run in a scratch copy `vyrobel_i18n` (the demo seeder at the money gate's reference date) — never the dev,
+  test or production database; read-only, rolled back per page.
+
 ## 1. What exists today
 
 - **Keys: 10 translation calls in 7 files; no `lang/` folder** (V 2026-10-27, grep — matches your read).
@@ -25,7 +50,7 @@ from the G1 draft scanner.
 - **PDFs:** 17 views, every one rendered through `PdfService` (no direct dompdf call elsewhere, V); each view sets DejaVu Sans
   in its own CSS (V).
 - **Dates:** 395 `format()` calls print English month/day names; 0 use `translatedFormat`/`isoFormat`; 33 `diffForHumans`
-  already follow the locale; 15 browser-side `toLocale…`/`Intl` calls (V, grep counts).
+  (they printed English for everyone: Laravel never moved Carbon's language — fixed in Phase B); 15 browser-side `toLocale…`/`Intl` calls (V, grep counts).
 - **Uppercase:** 426 CSS `text-transform: uppercase|capitalize` rules in views (V, grep count).
 - **Glued sentences and hand-made plurals (E, grep patterns):** ~930 English fragments joined with `.` in PHP, ~126 sentences in
   views split around a `{{ }}`, ~340 plurals built by hand (`Str::plural`, `=== 1 ? …`). These are the costly part of Phase A.
